@@ -1,0 +1,31 @@
+{
+    "name": "benzed-ts",
+    "description": "TypeScript mono repo for all BenZed's code.",
+    "scripts": {
+        "bootstrap": "lerna bootstrap --hoist --strict",
+        "build": "lerna run build --parallel",
+        "test": "lerna run test --parallel",
+        "babel": "lerna run babel --parallel",
+        "babel:dev": "lerna run babel:dev --parallel"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "devDependencies": {
+        "@types/jest": "^24.0.18",
+        "jest": "^24.9.0",
+        "lerna": "^3.16.4",
+        "ts-jest": "^24.1.0",
+        "@typescript-eslint/eslint-plugin": "^2.2.0",
+        "@typescript-eslint/parser": "^2.2.0",
+        "eslint": "^6.4.0",
+        "typescript": "^3.6.3"
+    }
+}

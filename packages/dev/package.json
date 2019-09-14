@@ -1,0 +1,20 @@
+{
+  "name": "@benzed/dev",
+  "description": "Development and Testing tools and helpers.",
+  "scripts": {
+    "test": "../../node_modules/.bin/jest",
+    "test:dev": "../../node_modules/.bin/jest --verbose --watch",
+    "build": "eslint src/**/*.ts --fix && npm run tsc",
+    "tsc": "rm -rf lib; mkdir lib; tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BenZed/benzed-ts.git"
+  },
+  "author": "BenZed",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BenZed/benzed-ts/issues"
+  },
+  "homepage": "https://github.com/BenZed/benzed-ts#readme"
+}
