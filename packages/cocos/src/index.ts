@@ -1,7 +1,21 @@
 
-export default function asyncSchedule(
-    component: cc.Component,
-    time: number
-): Promise<void> {
-    return new Promise(resolve => component.scheduleOnce(resolve, time))
+/***************************************************************/
+// Error Checking
+/***************************************************************/
+
+if (typeof cc !== 'object')
+    throw new Error(
+        'Do not import the @benzed/cocos module until the ' +
+        'Cocos Creator namespace has been placed in the global scope ' +
+        '(global.cc). This is convention for Cocos Creator projects ' +
+        'and the utility methods and components in this library depend ' +
+        'on the namespace to exist.'
+    )
+
+/***************************************************************/
+// Exports
+/***************************************************************/
+
+export {
+
 }
