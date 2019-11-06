@@ -11,8 +11,8 @@
  */
 function toCamelCase(this: string | void, str: string, delimiter: string | RegExp = /-/): string {
 
-    if (this !== undefined) {
-        delimiter = str || delimiter
+    if (typeof this === 'string') {
+        delimiter = str ?? delimiter
         str = this
     }
 

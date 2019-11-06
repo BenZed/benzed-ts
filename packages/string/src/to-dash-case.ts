@@ -38,9 +38,9 @@ export default function toDashCase(
         const outputIsEmpty = output.length === 0
 
         // Dashes should:
-        // * be placed between lower and upper case characters
-        // * NOT be first or last character in output
-        // * NOT appear more than once in a row
+        // - be placed between lower and upper case characters
+        // - NOT be first or last character in output
+        // - NOT appear more than once consecutively
         const requiresDash =
             (isUpperChar && lastCharWasCaseable) ||
             (charIsCaseable && !lastCharWasCaseable && !outputIsEmpty)

@@ -1,8 +1,8 @@
 /**
- * Gets a substring between the two given markers.
+ * Gets a substring between the two given delimeters.
  * 
  * ```typescript
- *  between('<tag>content</tag>', '<tag>', '<tag/>')
+ *  between('<tag>content</tag>', '<tag>', '</tag>') // 'content'
  * ```
  *
  * @param  str Source string.
@@ -11,9 +11,14 @@
  *
  * @return Substring of the source between the two markers. Empty string if nothing found.
  */
-function between(this: string | void, str: string, open: string, close = open): string {
+function between(
+    this: string | void,
+    str: string,
+    open: string,
+    close = open
+): string {
 
-    if (this !== undefined) {
+    if (typeof this === 'string') {
         close = open === undefined ? str : open
         open = str
         str = this
@@ -33,7 +38,6 @@ function between(this: string | void, str: string, open: string, close = open): 
     closeIndex += open.length
 
     return str.substr(openIndex, closeIndex + close.length)
-
 }
 
 /******************************************************************************/
