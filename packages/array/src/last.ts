@@ -1,12 +1,9 @@
-
 /**
- * 
- * Returns the first element of an ArrayLike.
- * 
+ * Returns the last element of an ArrayLike.
  * @param this ArrayLike so this function can be bound as an alternative to providing a first argument
  * @param array 
  */
-function first<T>(
+function last<T>(
     this: ArrayLike<T> | void,
     array: ArrayLike<T> | void
 ): T | undefined {
@@ -15,7 +12,7 @@ function first<T>(
         array = this
 
     return array
-        ? array[0]
+        ? array[array.length - 1]
         : undefined
 }
 
@@ -23,4 +20,4 @@ function first<T>(
 // Exports
 /***************************************************************/
 
-export default first
+export default last

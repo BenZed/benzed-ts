@@ -8,8 +8,6 @@ const { indexOf } = Array.prototype
 // Main
 /******************************************************************************/
 
-function adjacent<T>(this: ArrayLike<T>, needle: T, delta: number): T | undefined
-
 /**
  * Get the value adjacent to a given valuen in an Array, wrapping around to the
  * beginning or end.
@@ -22,7 +20,7 @@ function adjacent<T>(this: ArrayLike<T>, needle: T, delta: number): T | undefine
  * @param delta index offset of the given value to return, defaults to 1
  */
 function adjacent<T>(
-    this: ArrayLike<T> | undefined,
+    this: ArrayLike<T> | void,
     haystack: ArrayLike<T>,
     needle: T,
     delta = 1
