@@ -1,19 +1,14 @@
 import unwrap from './unwrap'
-import { testOptionallyBindableMethod } from '../../dev/src'
 
-testOptionallyBindableMethod(unwrap, (_unwrap: typeof unwrap) => {
+it('ensures an input is not an array', () => {
+    const obj = {}
 
-    it('ensures an input is not an array', () => {
-        const obj = {}
+    expect(unwrap([obj])).toEqual(obj)
+})
 
-        expect(_unwrap([obj])).toEqual(obj)
-    })
+it('returns the input if it is not an array', () => {
 
-    it('returns the input if it is not an array', () => {
+    const obj = {}
 
-        const obj = {}
-
-        expect(_unwrap(obj)).toEqual(obj)
-    })
-
+    expect(unwrap(obj)).toEqual(obj)
 })

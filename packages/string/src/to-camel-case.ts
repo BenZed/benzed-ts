@@ -9,12 +9,7 @@
  * @param  delimiter=/-/ Delimiter.
  * @return camelCased string.
  */
-function toCamelCase(this: string | void, str: string, delimiter: string | RegExp = /-/): string {
-
-    if (typeof this === 'string') {
-        delimiter = str ?? delimiter
-        str = this
-    }
+function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
 
     let camelCased = ''
     let capitalizeNext = false

@@ -1,18 +1,12 @@
+
 /**
  * Returns the last element of an ArrayLike.
- * @param this ArrayLike so this function can be bound as an alternative to providing a first argument
- * @param array 
+ * @param arrayLike 
  */
-function last<T>(
-    this: ArrayLike<T> | void,
-    array: ArrayLike<T> | void
-): T | undefined {
+function last<T>(arrayLike: ArrayLike<T>): T | undefined {
 
-    if (this !== undefined)
-        array = this
-
-    return array
-        ? array[array.length - 1]
+    return arrayLike
+        ? arrayLike[arrayLike.length - 1]
         : undefined
 }
 

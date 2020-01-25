@@ -20,17 +20,10 @@ const { indexOf } = Array.prototype
  * @param delta index offset of the given value to return, defaults to 1
  */
 function adjacent<T>(
-    this: ArrayLike<T> | void,
     haystack: ArrayLike<T>,
     needle: T,
     delta = 1
 ): T | undefined {
-
-    if (this != null) {
-        delta = (needle == null ? 1 : needle) as number
-        needle = haystack as unknown as T
-        haystack = this
-    }
 
     const length = haystack ? haystack.length : 0
     const index = indexOf.call(haystack, needle) + delta
