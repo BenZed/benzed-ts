@@ -25,7 +25,8 @@ function adjacent<T>(
     delta = 1
 ): T | undefined {
 
-    const length = haystack ? haystack.length : 0
+    const { length } = haystack
+
     const index = indexOf.call(haystack, needle) + delta
     const indexWrapped = (index % length + length) % length
 
