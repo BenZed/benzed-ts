@@ -1,7 +1,5 @@
 import { toFraction } from './to-fraction'
 
-// eslint-disable-next-line no-unused-vars
-
 describe('creates fractions', () => {
 
     it('handles NaN', () =>

@@ -1,10 +1,8 @@
+import { pow, floor } from './overrides'
+
 /*** Types ***/
 
 type Fraction = readonly [numerator: number, denominator: number]
-
-/*** Shortcuts ***/
-
-const { pow, floor } = Math
 
 /*** Helper ***/
 
@@ -27,6 +25,11 @@ function getGreatestCommonDivisor(numerator: number, denominator: number): numbe
 
 /*** Main ***/
 
+/**
+ * Converts the given number to a fractional representation.
+ * @param value 
+ * @returns Fraction
+ */
 function toFraction(value: number): Fraction {
 
     if (Number.isNaN(value))
