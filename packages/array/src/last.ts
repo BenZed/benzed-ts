@@ -4,10 +4,7 @@
  * @param arrayLike 
  */
 function last<T>(arrayLike: ArrayLike<T>): T | undefined {
-
-    return arrayLike
-        ? arrayLike[arrayLike.length - 1]
-        : undefined
+    return arrayLike[arrayLike.length - 1]
 }
 
 /*** Exports ***/

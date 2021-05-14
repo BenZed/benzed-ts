@@ -19,7 +19,6 @@ function descending(a: Sortable, b: Sortable): number {
 }
 
 /*** Main ***/
-
 class SortedArray<T extends Sortable> extends Array {
 
     public constructor(...params: T[]) {
@@ -51,8 +50,6 @@ class SortedArray<T extends Sortable> extends Array {
 
             this[ii + 1] = item
         }
-
-        console.log('sorted')
 
         return this
     }

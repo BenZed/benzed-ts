@@ -14,9 +14,7 @@ function* iterate<T>(iterable: ArrayLike<T> | Iterable<T>): Iterable<T> {
         yield iterable[i]
 }
 
-/******************************************************************************/
-// Main
-/******************************************************************************/
+/*** Main ***/
 
 /**
  * Returns an array of the unique items in the given ArrayLike
