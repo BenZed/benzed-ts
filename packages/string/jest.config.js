@@ -7,7 +7,7 @@ module.exports = {
     },
     'globals': {
         'ts-jest': {
-            tsConfig: '../../tsconfig.json'
+            'tsconfig': '../../tsconfig.test.json'
         }
     }
 }
