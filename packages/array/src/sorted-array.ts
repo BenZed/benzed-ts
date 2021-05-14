@@ -6,38 +6,30 @@ type Sorter<T extends Sortable> = (a: T, b: T) => number
 
 /*** Helper ***/
 
-function valueOf(sortable: Sortable): number {
-    return typeof sortable === 'number'
-        ? sortable
-        : sortable.valueOf()
-}
-
 function ascending(a: Sortable, b: Sortable): number {
-    return valueOf(a) - valueOf(b)
+    return (a as unknown as number) - (b as unknown as number)
+    // javascript arithmetic operators actually *do* work
+    // on objects that implement { valueOf(): number }, 
+    // but typescript disregards that.
 }
 
 function descending(a: Sortable, b: Sortable): number {
-    return valueOf(b) - valueOf(a)
+    return (b as unknown as number) - (a as unknown as number)
 }
 
-function getIndexViaBinarySearch<T extends Sortable>(arr: T[], item: T): number {
+function getIndexViaBinarySearch<T extends Sortable>(arr: T[], value: T): number {
 
     let min = 0
     let max = arr.length
 
     const ascending = arr[0] < arr[arr.length - 1]
-
     // Even with a custom sorter, the array can only be in ascending order
     // or descending order. It assumes the array is sorted so its ascending
     // if the first is lesser than the last, and vice versa. 
 
-    const value = valueOf(item)
-
     while (min < max) {
         const mid = (min + max) >> 1
-        const _item = arr[mid]
-        const _value = valueOf(_item)
-
+        const _value = arr[mid]
         if (_value === value)
             return mid
 
