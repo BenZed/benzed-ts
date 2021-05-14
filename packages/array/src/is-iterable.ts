@@ -5,10 +5,7 @@
  */
 function isIterable<T>(input: unknown): input is Iterable<T> {
 
-    return typeof input === 'string' ||
-        typeof input === 'object' &&
-        input !== null &&
-        Symbol.iterator in input
+    return !!input && typeof (input as Iterable<T>)[Symbol.iterator] === 'function'
 }
 
 /*** Exports ***/

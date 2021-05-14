@@ -1,14 +1,12 @@
+import isIterable from './is-iterable'
 
 /*** Helper ***/
 
-function isIterable<T>(input: object): input is Iterable<T> {
-    return Symbol.iterator in input
-}
-
 function* iterate<T>(iterable: ArrayLike<T> | Iterable<T>): Iterable<T> {
 
-    if (typeof iterable === 'string' || isIterable(iterable)) for (const item of iterable)
-        yield item
+    if (isIterable(iterable))
+        for (const item of iterable)
+            yield item
 
     else for (let i = 0; i < iterable.length; i++)
         yield iterable[i]

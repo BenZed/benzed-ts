@@ -5,11 +5,9 @@
  */
 function isArrayLike<T>(input: unknown): input is ArrayLike<T> {
 
-    const arrayLike = input as null | ArrayLike<T>
-
-    return arrayLike !== null &&
-        typeof arrayLike === 'object' &&
-        typeof arrayLike.length === 'number'
+    return input !== null &&
+        typeof input === 'object' &&
+        typeof (input as ArrayLike<T>).length === 'number'
 }
 
 /*** Exports ***/

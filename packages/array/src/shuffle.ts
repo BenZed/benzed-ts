@@ -1,8 +1,7 @@
 /*** Main ***/
 
-interface ShuffleAble<T> {
-  length: number;
-  [index: number]: T;
+interface ShuffleAble<T> extends ArrayLike<T> {
+  [index: number]: T; // the index in ArrayLike<T> is read only
 }
 
 /**

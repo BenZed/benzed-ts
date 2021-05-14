@@ -6,6 +6,10 @@ const { push } = Array.prototype
 
 /*** Main ***/
 
+/**
+ * Unwraps all nested arrays into a single array.
+ * @returns the flattened array
+ */
 function flatten<T>(input: ArrayLike<T>): T[] {
 
     const output: T[] = []

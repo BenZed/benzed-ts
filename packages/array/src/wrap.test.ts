@@ -1,7 +1,5 @@
 import wrap from './wrap'
 
-// eslint-disable-next-line no-unused-vars
-
 it('ensures an input is an array', () => {
 
     expect(wrap(5)).toBeInstanceOf(Array)
