@@ -2,18 +2,25 @@
 
 type Sortable = number | { valueOf(): number }
 
-type Sorter<T extends Sortable> = (a: T, b: T) => number
+type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
 
 /*** Helper ***/
 
-function ascending(a: Sortable, b: Sortable): number {
+/**
+ * Sorter method that places the items in an array in ascending order.
+ */
+function ascending<T>(a: T, b: T): number {
+    //             ^ purposefully not extending Sortable so this
+    //               method can be exported to be used on regular
+    //               arrays.
+
     return (a as unknown as number) - (b as unknown as number)
-    // javascript arithmetic operators actually *do* work
-    // on objects that implement { valueOf(): number }, 
-    // but typescript disregards that.
 }
 
-function descending(a: Sortable, b: Sortable): number {
+/**
+ * Sorter method that places the items in an array in descending order.
+ */
+function descending<T>(a: T, b: T): number {
     return (b as unknown as number) - (a as unknown as number)
 }
 
@@ -24,8 +31,8 @@ function getIndexViaBinarySearch<T extends Sortable>(arr: T[], value: T): number
 
     const ascending = arr[0] < arr[arr.length - 1]
     // Even with a custom sorter, the array can only be in ascending order
-    // or descending order. It assumes the array is sorted so its ascending
-    // if the first is lesser than the last, and vice versa. 
+    // or descending order. It assumes the array is sorted so its considered
+    // ascending if the first is lesser than the last, and vice versa. 
 
     while (min < max) {
         const mid = (min + max) >> 1
@@ -50,14 +57,19 @@ class SortedArray<T extends Sortable> extends Array<T> {
         // initialize array with length
         super(params.length)
 
-        // assign empty items
         for (let i = 0; i < this.length; i++)
             this[i] = params[i]
 
         this.sort()
     }
 
-    public sort(sorter: Sorter<T> = ascending): this {
+    /**
+     * Sorts the array in place, by default in ascending order. 
+     * A sorter method may be provided to apply custom sorting order.
+     * @param sorter 
+     * @returns 
+     */
+    public sort(sorter: CompareFn<T> = ascending): this {
 
         const { length } = this
 
@@ -78,6 +90,22 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return this
     }
 
+    /**
+     * Returns a duplicate of this array. Extended array implementations
+     * can't take advantage of the array spread operator `[...]`, so this
+     * is provided as a convenience method for the rare occasions where
+     * you'd like to copy an array in place before chaining a mutating
+     * method.
+     * 
+     * ```typescript
+     * 
+     * const sa1 = new SortedArray(1,2,3) 
+     * const sa2 = sa1.copy().reverse()
+     * //          ^ because [...sa1].reverse() 
+     * //          won't result in a SortedArray
+     * 
+     * ```
+     */
     public copy(): SortedArray<T> {
 
         const clone = new SortedArray<T>()
@@ -88,6 +116,12 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return clone
     }
 
+    /**
+     * Returns the last index of a given value in the array using
+     * binary search.
+     * @param value 
+     * @returns found index or -1 if value cannot be found.
+     */
     public lastIndexOf(value: T): number {
 
         let index = getIndexViaBinarySearch(this, value)
@@ -99,6 +133,12 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return index
     }
 
+    /**
+     * Returns the first index of a given value in the array using
+     * binary search.
+     * @param value 
+     * @returns found index or -1 if value cannot be found.
+     */
     public indexOf(value: T): number {
 
         let index = getIndexViaBinarySearch(this, value)
@@ -111,8 +151,9 @@ class SortedArray<T extends Sortable> extends Array<T> {
     }
 
     public reverse(): this {
-        super.reverse.call(this)
-        return this
+        return super.reverse.call(this) as this
+        // this needs to be implemented because the inherited Array['reverse']
+        // method return type seems to be `Array<T>` instead of `this`
     }
 
 }
@@ -123,7 +164,6 @@ export default SortedArray
 
 export {
     Sortable,
-    Sorter,
     ascending,
     descending
 }
