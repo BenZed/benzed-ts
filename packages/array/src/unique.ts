@@ -1,7 +1,5 @@
 
-/***************************************************************/
-// Helper
-/***************************************************************/
+/*** Helper ***/
 
 function isIterable<T>(input: object): input is Iterable<T> {
     return Symbol.iterator in input
@@ -37,8 +35,6 @@ function unique<T>(
     return arrayUnique
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default unique

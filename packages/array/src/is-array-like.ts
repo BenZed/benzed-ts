@@ -12,8 +12,6 @@ function isArrayLike<T>(input: unknown): input is ArrayLike<T> {
         typeof arrayLike.length === 'number'
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default isArrayLike

@@ -4,14 +4,9 @@
  * @param arrayLike 
  */
 function first<T>(arrayLike: ArrayLike<T>): T | undefined {
-
-    return arrayLike
-        ? arrayLike[0]
-        : undefined
+    return arrayLike[0]
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default first

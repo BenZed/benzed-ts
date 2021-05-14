@@ -1,13 +1,8 @@
-
-/***************************************************************/
-// Shortcuts
-/***************************************************************/
+/*** Shortcuts ***/
 
 const { indexOf, push } = Array.prototype
 
-/***************************************************************/
-// Main
-/***************************************************************/
+/*** Main ***/
 
 /**
  * If a value exists does not exist in an arraylike collection, it
@@ -30,8 +25,6 @@ function ensure<T>(arrayLike: ArrayLike<T>, value: T): typeof arrayLike {
     return arrayLike
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default ensure

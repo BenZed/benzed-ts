@@ -10,8 +10,6 @@ function last<T>(arrayLike: ArrayLike<T>): T | undefined {
         : undefined
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default last

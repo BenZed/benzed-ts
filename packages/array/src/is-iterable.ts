@@ -11,8 +11,6 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
         Symbol.iterator in input
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default isIterable

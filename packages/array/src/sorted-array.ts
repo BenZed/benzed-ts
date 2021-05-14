@@ -1,12 +1,8 @@
-/***************************************************************/
-// Types
-/***************************************************************/
+/*** Types ***/
 
 type Sortable = number | { valueOf(): number }
 
-/***************************************************************/
-// Helper
-/***************************************************************/
+/*** Helper ***/
 
 function valueOf(sortable: Sortable): number {
     return typeof sortable === 'number'
@@ -22,9 +18,7 @@ function descending(a: Sortable, b: Sortable): number {
     return valueOf(b) - valueOf(a)
 }
 
-/***************************************************************/
-// Main
-/***************************************************************/
+/*** Main ***/
 
 class SortedArray<T extends Sortable> extends Array {
 
@@ -65,9 +59,7 @@ class SortedArray<T extends Sortable> extends Array {
 
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default SortedArray
 
