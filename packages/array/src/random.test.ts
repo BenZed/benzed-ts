@@ -4,7 +4,7 @@ import { isDeepStrictEqual } from 'util'
 
 function expectEqualOccurances<T>(
     input: ArrayLike<T> | Iterable<T>,
-    values: T[],
+    values: readonly T[],
     count = values.length * 5000
 ): void {
 
@@ -17,11 +17,11 @@ function expectEqualOccurances<T>(
 
     for (const value of values) {
         const occurances = results
-            .reduce((c, v) => isDeepStrictEqual(v, value)
-                ? c + 1
-                : c,
-                0
-
+            .reduce(
+                (c, v) => isDeepStrictEqual(v, value)
+                    ? c + 1
+                    : c
+                , 0
             )
         try {
             expect(
@@ -32,7 +32,9 @@ function expectEqualOccurances<T>(
                 occurances <= average + slop,
             ).toBeTruthy()
         } catch (err) {
-            throw new Error(`${value} should have been generated ${average} +- ${slop} times: ${occurances}`)
+            throw new Error(
+                `${value} should have been generated ${average} +- ${slop} times: ${occurances}`
+            )
         }
     }
 }

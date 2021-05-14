@@ -34,8 +34,8 @@ export default function toDashCase(
         // - NOT be first or last character in output
         // - NOT appear more than once consecutively
         const requiresDash =
-            (isUpperChar && lastCharWasCaseable) ||
-            (charIsCaseable && !lastCharWasCaseable && !outputIsEmpty)
+            isUpperChar && lastCharWasCaseable ||
+            charIsCaseable && !lastCharWasCaseable && !outputIsEmpty
         if (requiresDash)
             output += dash
 

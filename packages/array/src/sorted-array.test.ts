@@ -22,12 +22,12 @@ describe.only('Sorted Array', () => {
             public name: string
             public age: number
 
-            constructor(name: string, age: number) {
+            public constructor(name: string, age: number) {
                 this.name = name
                 this.age = age
             }
 
-            valueOf(): number {
+            public valueOf(): number {
                 return this.age
             }
         }
@@ -137,7 +137,6 @@ describe.only('Sorted Array', () => {
             expect(dsc.indexOf(100)).toEqual(-1)
         })
 
-
     })
 
     describe('lastIndexOf()', () => {
@@ -155,13 +154,11 @@ describe.only('Sorted Array', () => {
             expect(dsc.lastIndexOf(3)).toEqual(2)
         })
 
-
         it('returns -1 if value doesnt exist', () => {
             expect(asc.lastIndexOf(100)).toEqual(-1)
         })
 
     })
-
 
     describe('unshift()', () => {
 
@@ -173,7 +170,6 @@ describe.only('Sorted Array', () => {
         })
     })
 
-
     describe('splice()', () => {
         const arr = new SortedArray<number>(3, 2, 0, 1)
         arr.splice(2, 0, 10, 8, 10)
@@ -184,7 +180,6 @@ describe.only('Sorted Array', () => {
 
     })
 
-
     describe('reverse()', () => {
         const arr = new SortedArray(2, 3, 1, 0)
         arr.reverse()
@@ -194,7 +189,6 @@ describe.only('Sorted Array', () => {
         })
 
     })
-
 
     describe('copyWithin()', () => {
         const arr = new SortedArray(2, 3, 1, 0)

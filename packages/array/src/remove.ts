@@ -11,19 +11,19 @@ const { indexOf, splice } = Array.prototype
  */
 function remove<T>(input: ArrayLike<T>, value: T): typeof input {
 
-  const inputIndexOf = indexOf.bind(input)
-  const inputSplice = splice.bind(input)
-  let index: number
+    const inputIndexOf = indexOf.bind(input)
+    const inputSplice = splice.bind(input)
+    let index: number
 
-  do {
+    do {
 
-    index = inputIndexOf(value)
-    if (index > -1)
-      inputSplice(index, 1)
+        index = inputIndexOf(value)
+        if (index > -1)
+            inputSplice(index, 1)
 
-  } while (index >= 0)
+    } while (index >= 0)
 
-  return input
+    return input
 
 }
 

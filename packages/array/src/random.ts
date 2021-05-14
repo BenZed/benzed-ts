@@ -12,12 +12,12 @@ const { random: _random, floor } = Math
  */
 function random<T>(input: ArrayLike<T> | Iterable<T>): T {
 
-  if (isIterable(input))
-    input = [...input] as ArrayLike<T>
+    if (isIterable(input))
+        input = [...input] as ArrayLike<T>
 
-  const rIndex = floor(_random() * input.length)
+    const rIndex = floor(_random() * input.length)
 
-  return input[rIndex]
+    return input[rIndex]
 }
 
 /*** Exports ***/

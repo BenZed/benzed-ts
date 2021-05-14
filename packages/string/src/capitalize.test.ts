@@ -25,4 +25,3 @@ for (const string of [
     })
 }
 
-

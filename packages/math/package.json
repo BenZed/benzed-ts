@@ -1,20 +1,20 @@
 {
-  "name": "@benzed/math",
-  "description": "My own personal Math module, extending Math with overridden or custom functionality.",
-  "scripts": {
-    "test": "../../node_modules/.bin/jest",
-    "test:dev": "../../node_modules/.bin/jest --verbose --watch",
-    "build": "eslint src/**/*.ts --fix && npm run tsc",
-    "tsc": "rm -rf lib; mkdir lib; tsc"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/BenZed/benzed-ts.git"
-  },
-  "author": "BenZed",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/BenZed/benzed-ts/issues"
-  },
-  "homepage": "https://github.com/BenZed/benzed-ts#readme"
+    "name": "@benzed/math",
+    "description": "My own personal Math module, extending Math with overridden or custom functionality.",
+    "scripts": {
+        "test": "../../node_modules/.bin/jest",
+        "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
+        "build": "eslint src/**/*.ts --fix && npm run tsc",
+        "tsc": "rm -rf lib; mkdir lib; tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme"
 }

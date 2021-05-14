@@ -1,3 +1,7 @@
+/*** Shortcuts ***/
+
+const { splice } = Array.prototype
+
 /*** Main ***/
 
 /**
@@ -7,7 +11,7 @@
  * const even = pluck([1, 2, 3, 4], v => v % 2 === 0) // [2,4], [1,3]
  * ```
  *
- * @param  {Array} arr                 array to mutate
+ * @param  {Array} input                 array to mutate
  * @param  {Function} test             predicate to run on each item
  * @param  {number} count = arr.length max number of items to remove. If this is a
  *                                     negative number, they'll be removed from the end
@@ -15,9 +19,9 @@
  * @return {Array}                     items removed via test
  */
 function pluck<T>(
-    arr: T[],
-    test: (item: T, index: number, array: T[]) => boolean,
-    count = arr.length
+    input: ArrayLike<T>,
+    test: (item: T, index: number, input: ArrayLike<T>) => boolean,
+    count = input.length
 ): T[] {
 
     const results = []
@@ -28,17 +32,17 @@ function pluck<T>(
         count = -count
 
     for (
-        let i = reverse ? arr.length - 1 : 0;
+        let i = reverse ? input.length - 1 : 0;
 
         results.length < count && (reverse
             ? i >= 0
-            : i < arr.length);
+            : i < input.length);
 
         i += reverse ? -1 : 1
     ) {
 
-        const value = arr[i]
-        if (!test(value, i, arr))
+        const value = input[i]
+        if (!test(value, i, input))
             continue
 
         if (reverse) {
@@ -50,8 +54,9 @@ function pluck<T>(
         }
     }
 
+    const spliceInput = splice.bind(input)
     for (const index of indexes)
-        arr.splice(index, 1)
+        spliceInput(index, 1)
 
     return results
 }

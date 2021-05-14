@@ -24,7 +24,7 @@ function descending<T>(a: T, b: T): number {
     return (b as unknown as number) - (a as unknown as number)
 }
 
-function getIndexViaBinarySearch<T extends Sortable>(arr: T[], value: T): number {
+function getIndexViaBinarySearch<T extends Sortable>(arr: readonly T[], value: T): number {
 
     let min = 0
     let max = arr.length
@@ -35,7 +35,7 @@ function getIndexViaBinarySearch<T extends Sortable>(arr: T[], value: T): number
     // ascending if the first is lesser than the last, and vice versa. 
 
     while (min < max) {
-        const mid = (min + max) >> 1
+        const mid = min + max >> 1
         const _value = arr[mid]
         if (_value === value)
             return mid
@@ -52,7 +52,7 @@ function getIndexViaBinarySearch<T extends Sortable>(arr: T[], value: T): number
 /*** Main ***/
 class SortedArray<T extends Sortable> extends Array<T> {
 
-    public constructor(...params: T[]) {
+    public constructor(...params: readonly T[]) {
 
         // initialize array with length
         super(params.length)

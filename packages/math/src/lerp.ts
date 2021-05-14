@@ -10,7 +10,7 @@
  * @return {number} Inerpolated value.
  */
 function lerp(from: number, to: number, factor: number): number {
-  return from + factor * (to - from)
+    return from + factor * (to - from)
 }
 
 /*** Exports ***/

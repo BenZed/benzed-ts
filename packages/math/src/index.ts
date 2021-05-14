@@ -18,9 +18,21 @@ import toFraction from './to-fraction'
 
 import { primes, isPrime } from './prime'
 
-/******************************************************************************/
-// Exports
-/******************************************************************************/
+/*** Exports ***/
+
+/**
+ * Q: Why all the re-exports?
+ * A: So I don't have to mix: 
+ * ```typescript 
+ * import { floor } from '@benzed/math'
+ * const { PI } = Math
+ * ```
+ * 
+ * And instead:
+ * ```typescript
+ * import { floor, PI } from '@benzed/math'
+ * ```
+ */
 
 export {
 

@@ -10,12 +10,12 @@ describe('returns true if an object is iterable', function () {
 
     class CustomTypeWithIterator {
 
-        *[Symbol.iterator](): Generator<number> {
+        public *[Symbol.iterator](): Generator<number> {
             for (let i = 0; i < this.size; i++)
                 yield i
         }
 
-        size = 5
+        public size = 5
 
     }
 
@@ -30,11 +30,12 @@ describe('returns true if an object is iterable', function () {
         new CustomTypeWithIterator()
     ]
 
-    for (const obj of objs)
+    for (const obj of objs) {
         it(
             `${obj === args ? '<arguments>' : inspect(obj)} is iterable`,
             () => expect(isIterable(obj)).toEqual(true)
         )
+    }
 
 })
 
@@ -54,11 +55,12 @@ describe('returns false if object is not iterable', () => {
         new CustomTypeWithoutIterator()
     ]
 
-    for (const obj of objs)
+    for (const obj of objs) {
         it(
             `${inspect(obj)} is not iterable`,
             () => expect(isIterable(obj)).toEqual(false)
         )
+    }
 
 })
 

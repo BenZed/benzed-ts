@@ -2,12 +2,14 @@ import unique from './unique'
 import { inspect } from 'util'
 
 describe('returns an array of input without duplicate elements', () => {
+
     it('[0,0,1,1,2,2,3,3] >> [0,1,2,3]', () => {
         const arr = [0, 0, 1, 1, 2, 2, 3, 3]
         const arr2 = unique(arr)
 
         expect(arr2).toEqual([0, 1, 2, 3])
     })
+
     it('[Function, Function, Object, Object] >> [Function, Object]', () => {
 
         const arr = [Function, Function, Object, Object]
@@ -32,6 +34,7 @@ describe('works on numerical-length values', () => {
         const str = 'foobar'
         expect(unique(str).join('')).toEqual('fobar')
     })
+
     it(`${inspect(obj)} >> ['one']`, () => {
         expect(unique(obj)).toEqual(['one'])
     })
@@ -47,7 +50,9 @@ describe('works on iterables', () => {
     })
 
     const custom = {
-        *[Symbol.iterator](this: { [key: string]: string }) {
+        *[Symbol.iterator](
+            this: Readonly<{ [key: string]: string }>
+        ) {
             for (const key in this)
                 yield this[key]
         },

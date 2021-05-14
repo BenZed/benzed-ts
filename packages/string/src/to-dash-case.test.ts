@@ -45,10 +45,11 @@ for (const strings of [
         in: 'Regularily punctuated words and Nouns.',
         out: 'regularily-punctuated-words-and-nouns'
     }
-])
+]) {
     test(`${strings.in} -> ${strings.out}`, () => {
         expect(toDashCase(strings.in)).toBe(strings.out)
     })
+}
 
 describe('additional argument for custom dash', () => {
     test('"HotPocket" -> "hot@pocket"', () => {

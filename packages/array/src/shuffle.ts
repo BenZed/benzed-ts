@@ -1,34 +1,39 @@
-/*** Main ***/
+/*** Shortcuts ***/
 
-interface ShuffleAble<T> extends ArrayLike<T> {
-  [index: number]: T; // the index in ArrayLike<T> is read only
-}
+const { splice } = Array.prototype
+const { floor, random } = Math
+
+/*** Main ***/
 
 /**
  * Randomly re-arranges a given array.
  *
- * @param  {Array} array Array to be sorted.
- * @return {Array}       Array is mutated in place, but method returns it anyway.
+ * @param  {Array} input ArrayLike to be sorted.
+ * @return {Array} ArrayLike is mutated in place, but method returns it anyway.
  */
-function shuffle<T>(array: ShuffleAble<T>): typeof array {
+function shuffle<T>(
+    input: ArrayLike<T>
+): typeof input {
 
-  let index = array.length
+    let index = input.length
 
-  while (index > 0) {
+    const inputSplice = splice.bind(input)
 
-    const randomIndex = Math.floor(
-      Math.random() * array.length
-    )
+    while (index > 0) {
 
-    index--
+        const randomIndex = floor(random() * input.length)
 
-    const temp = array[index]
-    array[index] = array[randomIndex]
-    array[randomIndex] = temp
+        index--
 
-  }
+        const fromItem = input[index]
+        const toItem = input[randomIndex]
 
-  return array
+        inputSplice(index, 1, toItem)
+        inputSplice(randomIndex, 1, fromItem)
+
+    }
+
+    return input
 }
 
 /*** Exports ***/

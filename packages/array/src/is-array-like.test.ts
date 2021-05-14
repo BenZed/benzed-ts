@@ -4,17 +4,17 @@ import isArrayLike from './is-array-like'
 /*** DATA ***/
 
 class CustomTypeWithLength {
-    length = 5
+    public length = 5
 }
 
 class CustomTypeWithoutLength {
 
-    *[Symbol.iterator](): Generator<number> {
+    public *[Symbol.iterator](): Generator<number> {
         for (let i = 0; i < this.size; i++)
             yield i
     }
 
-    size = 5
+    public size = 5
 }
 
 const ARRAY_LIKES = [
@@ -40,24 +40,25 @@ const ARRAY_UNLIKES = [
 
 /*** Tests ***/
 
-
 describe('returns true if an object is array-like', function () {
 
     // eslint-disable-next-line
     const arg = arguments
 
-    for (const value of [...ARRAY_LIKES, arg])
+    for (const value of [...ARRAY_LIKES, arg]) {
         it(
             `${value === arg ? '<arguments>' : inspect(value)} is array-like`,
             () => expect(isArrayLike(value)).toEqual(true)
         )
+    }
 
 })
 
 describe('returns false if object is not an arraylike', () => {
-    for (const value of [...ARRAY_UNLIKES, 'foobar'])
+    for (const value of [...ARRAY_UNLIKES, 'foobar']) {
         it(
             `${inspect(value)} is not array-like`,
             () => expect(isArrayLike(value)).toEqual(false)
         )
+    }
 })
