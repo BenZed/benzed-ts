@@ -44,8 +44,17 @@ function toFraction(value: number): Fraction {
 
 }
 
+function fromFraction(fraction: Fraction): number {
+    const [numerator, denominator] = fraction
+    return numerator / denominator
+}
+
 /*** Exports ***/
 
 export default toFraction
 
-export { Fraction }
+export {
+    toFraction,
+    fromFraction,
+    Fraction
+}
