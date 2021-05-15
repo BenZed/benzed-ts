@@ -44,7 +44,6 @@ function toFraction(value: number): Fraction {
         numerator / divisor,
         denominator / divisor
     ]
-
 }
 
 function fromFraction(fraction: Fraction): number {
