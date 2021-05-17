@@ -7,6 +7,21 @@
             "jest",
             "node"
         ],
+        "baseUrl": "./",
+        "paths": {
+            "@benzed/array": [
+                "./packages/array/src"
+            ],
+            "@benzed/immutable": [
+                "./packages/immutable/src"
+            ],
+            "@benzed/string": [
+                "./packages/string/src"
+            ],
+            "@benzed/math": [
+                "./packages/math/src"
+            ],
+        },
         // Build Options
         "build": true,
         "target": "es5",
@@ -20,6 +35,6 @@
         "strict": true,
         // Import non-ES modules as default imports.
         "esModuleInterop": true,
-        "downlevelIteration": true
+        "downlevelIteration": true,
     }
 }

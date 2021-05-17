@@ -2,7 +2,7 @@
     "name": "benzed-ts",
     "description": "TypeScript mono repo for all BenZed's code.",
     "scripts": {
-        "bootstrap": "lerna bootstrap --hoist --strict",
+        "bootstrap": "lerna bootstrap --force-local",
         "build": "lerna run build --parallel",
         "test": "lerna run test --parallel",
         "babel": "lerna run babel --parallel",
