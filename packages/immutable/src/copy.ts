@@ -1,10 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* 
+    eslint-disable 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/prefer-readonly-parameter-types
+*/
 
 import { $$copy, getKeys, isPrototypal, isReferable, Prototypal } from './util'
 
 /*** Types ***/
 
-type Refs = Readonly<WeakSet<any>>
+type Refs = any[]
 interface Copyable<T> {
     [$$copy]: (this: Readonly<T>, refs?: Refs) => T
 }
@@ -17,7 +21,7 @@ function isCopyable<T>(input: unknown): input is Copyable<T> {
 /*** Helper ***/
 
 function hasCircularRef<T>(value: T, refs: Refs): boolean {
-    const hasCircularReference = isReferable(value) && refs.has(value)
+    const hasCircularReference = isReferable(value) && refs.includes(value)
     return hasCircularReference
 }
 
@@ -26,19 +30,18 @@ function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
     if (hasCircularRef(value, refs))
         throw new Error('Cannot copy, circular reference deteced.')
 
-    if (isReferable(value))
-        refs.add(value)
+    if (isReferable(value) && !refs.includes(value))
+        refs = [...refs, value]
 
     return copyWithImplementation(value, refs)
 }
 
-function copyObjectWithoutCircularRefs<T>(value: T, refs?: Refs): T {
+function copyObjectWithoutCircularRefs<T>(value: T, refs: Refs = [value]): T {
 
     const clone = {} as any
-    if (!refs)
-        refs = new WeakSet<any>([value])
 
     for (const key of getKeys(value)) {
+
         if (!hasCircularRef(value[key], refs))
             clone[key] = copyWithoutCircularRef(value[key], refs)
     }
@@ -46,11 +49,9 @@ function copyObjectWithoutCircularRefs<T>(value: T, refs?: Refs): T {
     return clone
 }
 
-function copyArrayWithoutCircularRefs<T>(value: readonly T[], refs?: Refs): T[] {
+function copyArrayWithoutCircularRefs<T>(value: readonly T[], refs: Refs = [value]): T[] {
 
     const clone = new (value.constructor as ArrayConstructor)(value.length)
-    if (!refs)
-        refs = new WeakSet<any>([value])
 
     for (let i = 0; i < value.length; i++) {
         if (!hasCircularRef(value[i], refs))

@@ -14,7 +14,10 @@ import equals from '../equals'
  * @param value 
  * @returns Numeric index, or -1 if none could be found.
  */
-export default function indexOf<T>(arrayLike: ArrayLike<T>, value: T): number {
+export default function indexOf<T>(
+    arrayLike: ArrayLike<T>,
+    value: T
+): number {
 
     for (let i = 0; i < arrayLike.length; i++) {
         if (equals(arrayLike[i], value))

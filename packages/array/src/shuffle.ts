@@ -1,6 +1,5 @@
 /*** Shortcuts ***/
 
-const { splice } = Array.prototype
 const { floor, random } = Math
 
 /*** Main ***/
@@ -11,13 +10,13 @@ const { floor, random } = Math
  * @param  {Array} input ArrayLike to be sorted.
  * @return {Array} ArrayLike is mutated in place, but method returns it anyway.
  */
-function shuffle<T>(
-    input: ArrayLike<T>
+function shuffle<T extends ArrayLike<unknown>>(
+    input: T
 ): typeof input {
 
-    let index = input.length
+    let index = input.length - 1
 
-    const inputSplice = splice.bind(input)
+    const inputMut = input as { [index: number]: T }
 
     while (index > 0) {
 
@@ -25,11 +24,9 @@ function shuffle<T>(
 
         index--
 
-        const fromItem = input[index]
-        const toItem = input[randomIndex]
-
-        inputSplice(index, 1, toItem)
-        inputSplice(randomIndex, 1, fromItem)
+        const item = inputMut[index]
+        inputMut[index] = inputMut[randomIndex]
+        inputMut[randomIndex] = item
 
     }
 

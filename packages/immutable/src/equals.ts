@@ -5,13 +5,13 @@ import { isIterable, isArrayLike } from '@benzed/array'
 
 /*** Types ***/
 
-interface Comparable<T> {
-    [$$equals]: (this: Readonly<T>, right: unknown) => boolean
+interface Comparable {
+    [$$equals]: (this: Readonly<Comparable>, right: unknown) => boolean
 }
 
-function isComparable<T>(input: unknown): input is Comparable<T> {
+function isComparable(input: unknown): input is Comparable {
     return input != null &&
-        typeof (input as Comparable<T>)[$$equals] === 'function'
+        typeof (input as Comparable)[$$equals] === 'function'
 }
 
 /*** Helper ***/

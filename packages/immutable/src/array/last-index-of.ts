@@ -14,7 +14,10 @@ import equals from '../equals'
  * @param value 
  * @returns Numeric index, or -1 if none could be found.
  */
-export default function lastIndexOf<T>(arrayLike: ArrayLike<T>, value: T): number {
+export default function lastIndexOf<T>(
+    arrayLike: ArrayLike<T>,
+    value: T
+): number {
 
     for (let i = arrayLike.length - 1; i >= 0; i--) {
         if (equals(arrayLike[i], value))

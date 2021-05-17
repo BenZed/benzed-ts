@@ -1,36 +1,53 @@
-import isIterable from './is-iterable'
+import { descending } from './sorted-array'
 
-/*** Helper ***/
+/*** Shortcuts ***/
 
-function* iterate<T>(iterable: ArrayLike<T> | Iterable<T>): Iterable<T> {
-
-    if (isIterable(iterable)) {
-        for (const item of iterable)
-            yield item
-    } else {
-        for (let i = 0; i < iterable.length; i++)
-            yield iterable[i]
-    }
-}
+const { splice } = Array.prototype
 
 /*** Main ***/
 
 /**
- * Returns an array of the unique items in the given ArrayLike
- * @param arrayLike 
+ * Removes all duplicate values in a given array.
+ *
+ * @param  {Array} input ArrayLike to be uniquified
+ * @return {Array} ArrayLike is mutated in place, but method returns it anyway.
  */
-function unique<T>(
-    arrayLike: ArrayLike<T> | Iterable<T>
-): T[] {
+function unique<T extends string | ArrayLike<unknown>>(
+    arrayLike: T
+): typeof arrayLike {
 
-    const arrayUnique: T[] = []
+    if (typeof arrayLike === 'string') {
 
-    for (const item of iterate(arrayLike)) {
-        if (!arrayUnique.includes(item))
-            arrayUnique.push(item)
+        let output = ''
+        for (const char of arrayLike) {
+            if (!output.includes(char))
+                output += char
+        }
+
+        return output as T
+
+    } else {
+
+        const indexesToDelete: number[] = []
+        const arraySplice = splice.bind(arrayLike)
+
+        for (let i = 0; i < arrayLike.length; i++) {
+            if (indexesToDelete.includes(i))
+                continue
+
+            for (let ii = i + 1; ii < arrayLike.length; ii++) {
+                if (Object.is(arrayLike[ii], arrayLike[i]))
+                    indexesToDelete.push(ii)
+
+            }
+
+        }
+
+        for (const indexToDelete of indexesToDelete.sort(descending))
+            arraySplice(indexToDelete, 1)
+
+        return arrayLike
     }
-
-    return arrayUnique
 }
 
 /*** Exports ***/

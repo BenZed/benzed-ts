@@ -29,7 +29,7 @@ for (const boundary of [max, min]) {
         })
 
         it('throws if no arguments are provided', () => {
-            expect(() => boundary()).toThrow('at least one argument required')
+            expect(() => boundary()).toThrow('At least one argument must be provided.')
         })
 
         it('works on objects implementing valueOf', () => {

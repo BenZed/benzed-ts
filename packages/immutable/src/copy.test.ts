@@ -1,5 +1,6 @@
 import { $$copy } from './util'
 import copy from './copy'
+import equals from './equals'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -104,7 +105,7 @@ describe('copy()', () => {
             expect(obj).toEqual(obj2)
         })
 
-        it('ignores duplicate references', () => {
+        it('ignores circular references', () => {
 
             const circle: any = { foo: 'bar' }
             circle.circle = circle
@@ -113,6 +114,21 @@ describe('copy()', () => {
 
             expect(circle2).toEqual({ foo: 'bar' })
             expect(circle2).not.toHaveProperty('circle')
+        })
+
+        it('allows duplicate references', () => {
+
+            const passenger = { passenger: true }
+            const bus = {
+                type: 'bus',
+                p1: passenger,
+                p2: passenger,
+                p3: passenger
+            }
+
+            const bus2 = copy(bus)
+
+            expect(bus2).toEqual(bus)
         })
 
         it('ignores duplicate references in arrays', () => {
