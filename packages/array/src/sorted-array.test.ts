@@ -3,7 +3,7 @@ import SortedArray from './sorted-array'
 // eslint-disable-next-line no-unused-vars
 /* global describe it  */
 
-describe.only('Sorted Array', () => {
+describe('Sorted Array', () => {
 
     it('extends Array', () => {
         expect(new SortedArray()).toBeInstanceOf(Array)
