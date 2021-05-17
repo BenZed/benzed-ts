@@ -1,4 +1,4 @@
-import { $$copy } from './symbols'
+import { $$copy } from './util'
 import copy from './copy'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -104,27 +104,29 @@ describe('copy()', () => {
             expect(obj).toEqual(obj2)
         })
 
-        it('resolves circular references', () => {
+        it('ignores duplicate references', () => {
 
             const circle: any = { foo: 'bar' }
             circle.circle = circle
 
             const circle2 = copy(circle)
 
-            expect(circle2.circle).toEqual(circle2)
-            expect(circle2.circle).not.toBe(circle)
+            expect(circle2).toEqual({ foo: 'bar' })
+            expect(circle2).not.toHaveProperty('circle')
         })
 
-        it('resolves circlular references in arrays', () => {
+        it('ignores duplicate references in arrays', () => {
             const array: any[] = []
             array.push(array)
 
             const array2 = copy(array)
-            expect(array2).toEqual([array2])
-            expect(array2[0]).toBe(array2)
+
+            expect(array2).toEqual([undefined])
+            expect(array2[0]).toBe(undefined)
         })
 
         it('array sub-object undefined value bug', () => {
+
             const array = [{
                 delay: undefined,
                 brand: 'cool'

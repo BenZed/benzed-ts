@@ -1,19 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { $$copy } from './symbols'
+import { $$copy, getKeys, isPrototypal, isReferable, Prototypal } from './util'
 
 /*** Types ***/
 
-type ReferenceMap = Readonly<WeakMap<any, any>>
-
-type Prototypal = { prototype: unknown }
-
-function isPrototypal(input: unknown): input is Prototypal {
-    return Object.getPrototypeOf(input) !== null
-}
-
+type Refs = Readonly<WeakSet<any>>
 interface Copyable<T> {
-    [$$copy]: (this: Readonly<T>, refs?: ReferenceMap) => T
+    [$$copy]: (this: Readonly<T>, refs?: Refs) => T
 }
 
 function isCopyable<T>(input: unknown): input is Copyable<T> {
@@ -23,51 +16,51 @@ function isCopyable<T>(input: unknown): input is Copyable<T> {
 
 /*** Helper ***/
 
-function resolveCircularRef<T>(value: T, refs: ReferenceMap): T {
-
-    const isObject = value !== null && typeof value === 'object'
-    const hasCircularReference = isObject && refs.has(value)
-
-    const clone = hasCircularReference
-        ? refs.get(value)
-        : copyWithImplementation(value, refs)
-
-    if (isObject && !hasCircularReference)
-        refs.set(value, clone)
-
-    return clone
-
+function hasCircularRef<T>(value: T, refs: Refs): boolean {
+    const hasCircularReference = isReferable(value) && refs.has(value)
+    return hasCircularReference
 }
 
-function copyObjectConsideringCircularRefs<T>(value: T, refs?: ReferenceMap): T {
+function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
+
+    if (hasCircularRef(value, refs))
+        throw new Error('Cannot copy, circular reference deteced.')
+
+    if (isReferable(value))
+        refs.add(value)
+
+    return copyWithImplementation(value, refs)
+}
+
+function copyObjectWithoutCircularRefs<T>(value: T, refs?: Refs): T {
 
     const clone = {} as any
     if (!refs)
-        refs = new WeakMap([[value, clone]] as any)
+        refs = new WeakSet<any>([value])
 
-    const keys = Object.getOwnPropertyNames(value)
-    for (const key of keys)
-        clone[key] = resolveCircularRef((value as any)[key], refs)
+    for (const key of getKeys(value)) {
+        if (!hasCircularRef(value[key], refs))
+            clone[key] = copyWithoutCircularRef(value[key], refs)
+    }
 
     return clone
 }
 
-function copyArrayConsideringCircularRefs<T>(value: readonly T[], refs?: ReferenceMap): T[] {
+function copyArrayWithoutCircularRefs<T>(value: readonly T[], refs?: Refs): T[] {
 
     const clone = new (value.constructor as ArrayConstructor)(value.length)
     if (!refs)
-        refs = new WeakMap([[value, clone]])
+        refs = new WeakSet<any>([value])
 
-    for (let i = 0; i < value.length; i++)
-        clone[i] = resolveCircularRef(value[i], refs)
+    for (let i = 0; i < value.length; i++) {
+        if (!hasCircularRef(value[i], refs))
+            clone[i] = copyWithoutCircularRef(value[i], refs)
+    }
 
     return clone
 }
 
-function copyWithImplementation<T>(value: T, refs?: ReferenceMap): T {
-
-    if (refs?.has(value))
-        return refs.get(value) as T
+function copyWithImplementation<T>(value: T, refs?: Refs): T {
 
     if (value == null)
         return value
@@ -76,10 +69,10 @@ function copyWithImplementation<T>(value: T, refs?: ReferenceMap): T {
         return value[$$copy](refs)
 
     if (!isPrototypal(value))
-        return copyObjectConsideringCircularRefs(value, refs)
+        return copyObjectWithoutCircularRefs(value, refs)
 
     throw new Error(
-        `${value.constructor?.name || 'value'} does not implement $$copy trait.`
+        `${value.constructor?.name || 'value'} does not implement Copyable<T>`
     )
 }
 
@@ -89,19 +82,19 @@ function copyImmutable<T>(this: Readonly<T>): T {
     return this
 }
 
-function copyObject<T>(this: Readonly<T>, refs?: ReferenceMap): T {
-    return copyObjectConsideringCircularRefs(this, refs)
+function copyObject<T>(this: Readonly<T>, refs?: Refs): T {
+    return copyObjectWithoutCircularRefs(this, refs)
 }
 
-function copyArray<T>(this: readonly T[], refs?: ReferenceMap): T[] {
-    return copyArrayConsideringCircularRefs(this, refs)
+function copyArray<T>(this: readonly T[], refs?: Refs): T[] {
+    return copyArrayWithoutCircularRefs(this, refs)
 }
 
 function copyDate(this: Readonly<Date>): Date {
     return new Date(this.getTime())
 }
 
-function copySet<T>(this: Readonly<Set<T>>, refs?: ReferenceMap): Set<T> {
+function copySet<T>(this: Readonly<Set<T>>, refs?: Refs): Set<T> {
 
     const args: T[] = []
 
@@ -111,7 +104,7 @@ function copySet<T>(this: Readonly<Set<T>>, refs?: ReferenceMap): Set<T> {
     return new Set(args)
 }
 
-function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: ReferenceMap): Map<K, V> {
+function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
 
     const args: [K, V][] = []
 
@@ -119,7 +112,6 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: ReferenceMap): Map<K, V
         args.push(copyWithImplementation(value, refs))
 
     return new Map(args)
-
 }
 
 /*** Add Standard Implementations ***/
@@ -175,8 +167,6 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: ReferenceMap): Map<K, V
         addToPrototype<any[]>(ArrayType, copyArray)
 
 }
-
-// Create copy interface 
 
 /**
  * Creates a data duplicate of a given value, ignoring
