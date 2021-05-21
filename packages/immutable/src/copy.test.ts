@@ -1,6 +1,5 @@
 import { $$copy } from './util'
 import copy from './copy'
-import equals from './equals'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
