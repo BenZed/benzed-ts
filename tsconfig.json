@@ -9,18 +9,9 @@
         ],
         "baseUrl": "./",
         "paths": {
-            "@benzed/array": [
-                "./packages/array/src"
-            ],
-            "@benzed/immutable": [
-                "./packages/immutable/src"
-            ],
-            "@benzed/string": [
-                "./packages/string/src"
-            ],
-            "@benzed/math": [
-                "./packages/math/src"
-            ],
+            "@benzed/*": [
+                "./packages/*/src"
+            ]
         },
         // Build Options
         "build": true,
