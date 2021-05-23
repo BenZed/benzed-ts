@@ -1,4 +1,4 @@
-import isArrayLike from './is-array-like'
+import { isArrayLike } from '@benzed/is'
 
 /*** Shortcuts ***/
 

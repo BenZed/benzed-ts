@@ -7,9 +7,6 @@ import random from './random'
 import ensure from './ensure'
 import remove from './remove'
 
-import isArrayLike from './is-array-like'
-import isIterable from './is-iterable'
-
 import { min, max } from './min-max'
 import wrap from './wrap'
 import unwrap from './unwrap'
@@ -39,9 +36,6 @@ export {
     max,
     wrap,
     unwrap,
-
-    isArrayLike,
-    isIterable,
 
     SortedArray,
     Sortable,
