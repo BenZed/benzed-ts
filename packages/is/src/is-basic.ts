@@ -1,0 +1,59 @@
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
+
+import { Falsy } from './types'
+
+/**
+ * Returns true if input is a string
+ * @param input 
+ * @returns 
+ */
+export function isString(input: unknown): input is string {
+    return typeof input === 'string'
+}
+
+export function isBoolean(input: unknown): input is boolean {
+    return typeof input === 'boolean'
+}
+
+export function isSymbol(input: unknown): input is symbol {
+    return typeof input === 'symbol'
+}
+
+export function isNaN(input: unknown): boolean {
+    return Number.isNaN(input)
+}
+
+export function isNumber(input: unknown): input is number {
+    return typeof input === 'number' && !isNaN(input)
+}
+
+export function isBigInt(input: unknown): input is bigint {
+    return typeof input === 'bigint'
+}
+
+export function isObject<O extends object>(input: unknown): input is O {
+    return input !== null && typeof input === 'object'
+}
+
+export function isArray<T>(input: T[] | unknown): input is T[] {
+    return Array.isArray(input)
+}
+
+export function isFunction<F extends Function>(input: unknown): input is F {
+    return typeof input === 'function'
+}
+
+export function isDefined<T>(input: T): input is Exclude<T, null | undefined> {
+    return input != null && !isNaN(input)
+}
+
+export function isTruthy<T>(input: T): input is Exclude<T, Falsy> {
+    return !!input
+}
+
+export function isFalsy<T>(input: T): input is Extract<T, Falsy> {
+    return !input
+}
