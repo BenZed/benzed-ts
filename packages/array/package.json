@@ -20,6 +20,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/is": "*"
+        "@benzed/is": "*",
+        "@benzed/util": "*"
     }
 }

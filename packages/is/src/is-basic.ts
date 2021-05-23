@@ -3,13 +3,10 @@
     @typescript-eslint/ban-types
 */
 
-import { Falsy } from './types'
+import { Falsy, Sortable } from './types'
 
-/**
- * Returns true if input is a string
- * @param input 
- * @returns 
- */
+/*** Main ***/
+
 export function isString(input: unknown): input is string {
     return typeof input === 'string'
 }
@@ -56,4 +53,11 @@ export function isTruthy<T>(input: T): input is Exclude<T, Falsy> {
 
 export function isFalsy<T>(input: T): input is Extract<T, Falsy> {
     return !input
+}
+
+export function isSortable(input: unknown): input is Sortable {
+    return (
+        isNumber(input) && !isNaN(input) ||
+        isObject(input) && isFunction(input.valueOf)
+    )
 }

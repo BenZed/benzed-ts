@@ -72,8 +72,10 @@ function thisPop<F extends Func>(
 export default thisShift
 
 export {
+
     thisShift,
     thisPop,
+
     ThisShifted,
     ThisPopped,
 

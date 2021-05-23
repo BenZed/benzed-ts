@@ -1,4 +1,6 @@
-import isArrayLike from './is-array-like'
+/* eslint-disable
+    @typescript-eslint/no-explicit-any
+*/
 
 import {
     isArray,
@@ -7,6 +9,7 @@ import {
     isFunction,
     isNumber,
     isObject,
+    isSortable,
     isString,
     isSymbol
 } from './is-basic'
@@ -17,10 +20,8 @@ import { isInteger } from './is-math'
 
 import type { Constructor } from './types'
 
-/* eslint-disable
-    @typescript-eslint/no-explicit-any,  
-    @typescript-eslint/no-this-alias
-*/
+import isArrayLike from './is-array-like'
+import isPlainObject from './is-plain-object'
 
 /*** Helper ***/
 
@@ -72,8 +73,10 @@ export const isArrayOfIterable = everyItemInArray(isIterable)
 
 export const isArrayOfInt = everyItemInArray(isInteger)
 
+export const isArrayOfPlainObject = everyItemInArray(isPlainObject)
+
+export const isArrayOfSortable = everyItemInArray(isSortable)
+
 /*** Exports ***/
 
 export { isArrayOf }
-
-export { everyItemInArray }
