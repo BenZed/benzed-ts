@@ -21,17 +21,15 @@ class Foo { }
 const SHORTCUTS = [
     'string',
     'number',
-    'bool',
+    'boolean',
     'object',
-    'func',
+    'function',
     'symbol',
     'array',
     'date',
     'promise',
-    'primitive',
     'nan',
     'plainObject',
-    'instanceable',
     'defined',
     'truthy',
     'falsy'
@@ -40,14 +38,13 @@ const SHORTCUTS = [
 const TYPES = {
     string: String,
     number: Number,
-    bool: Boolean,
-    func: Function,
+    boolean: Boolean,
+    function: Function,
     object: Object,
     array: Array,
     date: Date,
     promise: Promise,
-    symbol: Symbol,
-    primitive: [String, Boolean, Number]
+    symbol: Symbol
 }
 
 const VALUES = [
@@ -78,7 +75,7 @@ const VALUES = [
     }
 ]
 
-const ARRAY_VALUES = [
+const VALUES_PLUS_VALUES_IN_ARRAY = [
     ...VALUES,
     ...VALUES.map(v => [v])
 ]
@@ -86,12 +83,12 @@ const ARRAY_VALUES = [
 /*** Helper ***/
 
 function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): void {
-    describe(title, () => {
+    describe.only(title, () => {
 
         let atLeastOneFalse = false
         let atLeastOneTrue = false
 
-        for (const value of ARRAY_VALUES) {
+        for (const value of VALUES_PLUS_VALUES_IN_ARRAY) {
             if (result(value))
                 atLeastOneTrue = true
             else

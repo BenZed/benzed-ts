@@ -6,12 +6,18 @@ import {
     isArray,
     isBigInt,
     isBoolean,
+    isDate,
+    isDefined,
+    isFalsy,
     isFunction,
+    isNaN,
     isNumber,
     isObject,
+    isPromise,
     isSortable,
     isString,
-    isSymbol
+    isSymbol,
+    isTruthy
 } from './is-basic'
 
 import isInstanceOf from './is-instance-of'
@@ -48,6 +54,7 @@ export default function isArrayOf<T extends (Constructor<any>)[]>(
     ...types: T
 ): input is (InstanceType<typeof types[number]>)[] {
     return isArray(input) &&
+        input.length > 0 &&
         input.every(value => isInstanceOf(value, ...types))
 }
 
@@ -61,11 +68,15 @@ export const isArrayOfBigInt = everyItemInArray(isBigInt)
 
 export const isArrayOfObject = everyItemInArray(isObject)
 
-export const isArrayOfArray = everyItemInArray(isArrayOf)
+export const isArrayOfArray = everyItemInArray(isArray)
 
 export const isArrayOfFunction = everyItemInArray(isFunction)
 
 export const isArrayOfSymbol = everyItemInArray(isSymbol)
+
+export const isArrayOfPromise = everyItemInArray(isPromise)
+
+export const isArrayOfDate = everyItemInArray(isDate)
 
 export const isArrayOfArrayLike = everyItemInArray(isArrayLike)
 
@@ -73,9 +84,17 @@ export const isArrayOfIterable = everyItemInArray(isIterable)
 
 export const isArrayOfInt = everyItemInArray(isInteger)
 
+export const isArrayOfNaN = everyItemInArray(isNaN)
+
 export const isArrayOfPlainObject = everyItemInArray(isPlainObject)
 
 export const isArrayOfSortable = everyItemInArray(isSortable)
+
+export const isArrayOfDefined = everyItemInArray(isDefined)
+
+export const isArrayOfTruthy = everyItemInArray(isTruthy)
+
+export const isArrayOfFalsy = everyItemInArray(isFalsy)
 
 /*** Exports ***/
 

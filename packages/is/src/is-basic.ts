@@ -5,26 +5,45 @@
 
 import { Falsy, Sortable } from './types'
 
+/*** Constants ***/
+
+const BOXABLE_PRIMITIVES = {
+    string: String,
+    number: Number,
+    boolean: Boolean
+}
+
+/*** Helper ***/
+
+function isBoxablePrimitive(
+    input: unknown,
+    primitive: 'string' | 'boolean' | 'number'
+): boolean {
+    const type = typeof input
+    return type === primitive ||
+        type === 'object' && input instanceof BOXABLE_PRIMITIVES[primitive]
+}
+
 /*** Main ***/
 
 export function isString(input: unknown): input is string {
-    return typeof input === 'string'
+    return isBoxablePrimitive(input, 'string')
 }
 
 export function isBoolean(input: unknown): input is boolean {
-    return typeof input === 'boolean'
+    return isBoxablePrimitive(input, 'boolean')
+}
+
+export function isNumber(input: unknown): input is number {
+    return !isNaN(input) && isBoxablePrimitive(input, 'number')
 }
 
 export function isSymbol(input: unknown): input is symbol {
     return typeof input === 'symbol'
 }
 
-export function isNaN(input: unknown): boolean {
+export function isNaN(input: unknown): input is number {
     return Number.isNaN(input)
-}
-
-export function isNumber(input: unknown): input is number {
-    return typeof input === 'number' && !isNaN(input)
 }
 
 export function isBigInt(input: unknown): input is bigint {
@@ -41,6 +60,14 @@ export function isArray<T>(input: T[] | unknown): input is T[] {
 
 export function isFunction<F extends Function>(input: unknown): input is F {
     return typeof input === 'function'
+}
+
+export function isPromise<T>(input: unknown): input is Promise<T> {
+    return input instanceof Promise
+}
+
+export function isDate(input: unknown): input is Date {
+    return input instanceof Date
 }
 
 export function isDefined<T>(input: T): input is Exclude<T, null | undefined> {

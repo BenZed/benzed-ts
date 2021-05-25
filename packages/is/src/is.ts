@@ -14,6 +14,8 @@ import {
     isDefined,
     isArray,
     isSortable,
+    isPromise,
+    isDate,
 } from './is-basic'
 
 import isArrayLike from './is-array-like'
@@ -32,7 +34,13 @@ import arrayOf, {
     isArrayOfSymbol,
     isArrayOfInt,
     isArrayOfPlainObject,
-    isArrayOfSortable
+    isArrayOfSortable,
+    isArrayOfPromise,
+    isArrayOfTruthy,
+    isArrayOfFalsy,
+    isArrayOfDefined,
+    isArrayOfDate,
+    isArrayOfNaN
 } from './is-array-of'
 
 import {
@@ -64,6 +72,8 @@ type Is = typeof isInstanceOf & {
     array: typeof isArray
     function: typeof isFunction
     symbol: typeof isSymbol
+    promise: typeof isPromise
+    date: typeof isDate
 
     nan: typeof isNaN
     truthy: typeof isTruthy
@@ -97,6 +107,13 @@ type Is = typeof isInstanceOf & {
         array: typeof isArrayOfArray
         function: typeof isArrayOfFunction
         symbol: typeof isArrayOfSymbol
+        promise: typeof isArrayOfPromise
+        date: typeof isArrayOfDate
+
+        nan: typeof isArrayOfNaN
+        truthy: typeof isArrayOfTruthy
+        falsy: typeof isArrayOfFalsy
+        defined: typeof isArrayOfDefined
 
         arrayLike: typeof isArrayOfArrayLike
         iterable: typeof isArrayOfIterable
@@ -125,6 +142,8 @@ let is: Is
     is.array = isArray
     is.function = isFunction
     is.symbol = isSymbol
+    is.promise = isPromise
+    is.date = isDate
 
     is.nan = isNaN
     is.truthy = isTruthy
@@ -141,9 +160,10 @@ let is: Is
     is.instanceOf = isInstanceOf
     is.arrayLike = isArrayLike
     is.iterable = isIterable
-    is.plainObject = isPlainObject
-    is.sortable = isSortable
 
+    is.plainObject = isPlainObject
+
+    is.sortable = isSortable
     is.sortedArray = isSortedArray
 
     is.arrayOf = arrayOf.bind(undefined) as Is['arrayOf']
@@ -158,10 +178,19 @@ let is: Is
     is.arrayOf.array = isArrayOfArray
     is.arrayOf.function = isArrayOfFunction
     is.arrayOf.symbol = isArrayOfSymbol
+    is.arrayOf.promise = isArrayOfPromise
+    is.arrayOf.date = isArrayOfDate
+
+    is.arrayOf.nan = isArrayOfNaN
+    is.arrayOf.truthy = isArrayOfTruthy
+    is.arrayOf.falsy = isArrayOfFalsy
+    is.arrayOf.defined = isArrayOfDefined
 
     is.arrayOf.arrayLike = isArrayOfArrayLike
     is.arrayOf.iterable = isArrayOfIterable
+
     is.arrayOf.plainObject = isArrayOfPlainObject
+
     is.arrayOf.sortable = isArrayOfSortable
 }
 
