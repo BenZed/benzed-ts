@@ -83,8 +83,15 @@ export function isFalsy<T>(input: T): input is Extract<T, Falsy> {
 }
 
 export function isSortable(input: unknown): input is Sortable {
-    return (
-        isNumber(input) && !isNaN(input) ||
-        isObject(input) && isFunction(input.valueOf)
-    )
+
+    if (isNumber(input) || isString(input) || isBigInt(input))
+        return true
+
+    if (!isObject(input) || !isFunction(input.valueOf))
+        return false
+
+    const value = input.valueOf()
+
+    return isNumber(value) || isString(value) || isBigInt(value)
+
 }
