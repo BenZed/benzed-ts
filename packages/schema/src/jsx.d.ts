@@ -3,7 +3,7 @@
     @typescript-eslint/no-explicit-any
 */
 
-import { DefaultValidators, Validator } from './schema'
+import { DefaultValidators, Validator } from './validators/type'
 
 /*** JSX ***/
 
