@@ -1,11 +1,12 @@
 {
     "name": "@benzed/string",
     "description": "Utility and Convenience methods for working with strings.",
+    "main": "./lib",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch",
-        "build": "eslint src/**/*.ts --fix && npm run tsc",
-        "tsc": "rm -rf lib; mkdir lib; tsc"
+        "build": "../../node_modules/.bin/eslint src/**/*.ts --fix && npm run tsc",
+        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
     "repository": {
         "type": "git",

@@ -1,6 +1,7 @@
 {
     "name": "@benzed/schema",
     "description": "Data validation using JSX",
+    "main": "./lib",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
@@ -20,6 +21,7 @@
     "dependencies": {
         "@benzed/array": "*",
         "@benzed/math": "*",
-        "@benzed/immutable": "*"
+        "@benzed/string": "*",
+        "@benzed/is": "*"
     }
 }
