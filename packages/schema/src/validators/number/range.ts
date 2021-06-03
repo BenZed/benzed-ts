@@ -1,9 +1,9 @@
 import { pluck } from '@benzed/array'
-import { isArray, isNumber, isObject, isString } from '@benzed/is'
+import { isArray, isDefined, isNumber, isObject, isString } from '@benzed/is'
 
 import { Validator } from '../type'
 
-import resolveErrorMessager, { ErrorMessager } from '../../util/resolve-error-messager'
+import ValidationError from '../../util/validation-error'
 
 /*** Constants ***/
 
@@ -16,32 +16,45 @@ const RANGE_STRING_REGEX = new RegExp(
     '(\\d*\\.?\\d*)' // 0 | 0.0 | .0
 )
 
-/*** Types ***/
+/*** Errors ***/
 
-type RangeErrorMessager = ErrorMessager<number>
+type RangeValidationErrorFormat =
+    string | ((input: number, rangeTransgressionDetail: string) => string)
+class RangeValidationError extends ValidationError {
+    public constructor(
+        input: number,
+        rangeTransgressionDetail: string,
+        format: RangeValidationErrorFormat = (input, rangeTransgressionDetail) =>
+            `${input} must be ${rangeTransgressionDetail}`
+    ) {
+        super(format, input, rangeTransgressionDetail)
+    }
+}
+
+/*** Types ***/
 
 type BetweenComparator = typeof BETWEEN_COMPARATORS[number]
 type RangeComparator = typeof RANGE_COMPARATORS[number]
 
 type RangeConfig = {
-    min: number
-    max: number
-    comparator?: BetweenComparator
-    error?: string | RangeErrorMessager
+    readonly min: number
+    readonly max: number
+    readonly comparator?: BetweenComparator
+    readonly error?: RangeValidationErrorFormat
 } | {
-    value: number
-    comparator: RangeComparator
-    error?: string | RangeErrorMessager
+    readonly value: number
+    readonly comparator: RangeComparator
+    readonly error?: RangeValidationErrorFormat
 }
 
 type RangeArrayConfig =
     [min: number, max: number] |
-    [min: number, max: number, error: string | RangeErrorMessager] |
+    [min: number, max: number, error: RangeValidationErrorFormat] |
     [min: number, comparator: BetweenComparator, max: number] |
-    [min: number, comparator: BetweenComparator, max: number, error: string | RangeErrorMessager] |
+    [min: number, comparator: BetweenComparator, max: number, error: RangeValidationErrorFormat] |
     [value: number] |
     [comparator: RangeComparator, value: number] |
-    [comparator: RangeComparator, value: number, error: string | RangeErrorMessager]
+    [comparator: RangeComparator, value: number, error: RangeValidationErrorFormat]
 
 type RangeStringConfig =
     `${number}${BetweenComparator}${number}` |
@@ -50,6 +63,10 @@ type RangeStringConfig =
 interface RangeValidatorProps {
     range?: RangeArrayConfig | RangeStringConfig | RangeConfig | number
 }
+
+type RangeValidatorFactoryOutput<P> = P extends { range: undefined }
+    ? null
+    : Validator<number>
 
 /*** Type Guards ***/
 
@@ -175,17 +192,17 @@ function toRangeConfig(
 
 /*** Main ***/
 
-function createRangeValidator(
-    props: Readonly<RangeValidatorProps>
-): Validator<number> | null {
+function createRangeValidator<P extends RangeValidatorProps>(
+    props: P
+): RangeValidatorFactoryOutput<P> {
 
-    if (!props.range)
-        return null
+    if (!isDefined(props.range))
+        return null as RangeValidatorFactoryOutput<P>
 
     const options = toRangeConfig(props.range)
 
     let test: (input: number) => boolean
-    let failDetail: string
+    let rangeTransgressionDetail: string
 
     switch (options.comparator) {
 
@@ -193,7 +210,7 @@ function createRangeValidator(
             const { value } = options
 
             test = input => input < value
-            failDetail = `below ${value}`
+            rangeTransgressionDetail = `below ${value}`
 
             break
         }
@@ -202,7 +219,7 @@ function createRangeValidator(
             const { value } = options
 
             test = input => input <= value
-            failDetail = `equal or below ${value}`
+            rangeTransgressionDetail = `equal or below ${value}`
 
             break
         }
@@ -211,7 +228,7 @@ function createRangeValidator(
             const { value } = options
 
             test = input => input === value
-            failDetail = `equal ${value}`
+            rangeTransgressionDetail = `equal ${value}`
 
             break
         }
@@ -220,7 +237,7 @@ function createRangeValidator(
             const { value } = options
 
             test = input => input > value
-            failDetail = `above ${value}`
+            rangeTransgressionDetail = `above ${value}`
 
             break
         }
@@ -229,7 +246,7 @@ function createRangeValidator(
             const { value } = options
 
             test = input => input >= value
-            failDetail = `above or equal ${value}`
+            rangeTransgressionDetail = `above or equal ${value}`
 
             break
 
@@ -237,7 +254,7 @@ function createRangeValidator(
             const { min, max } = options
 
             test = input => input >= min && input <= max
-            failDetail = `between ${min} and ${max}`
+            rangeTransgressionDetail = `between ${min} and ${max}`
 
             break
         }
@@ -246,20 +263,19 @@ function createRangeValidator(
             const { min, max } = options
 
             test = input => input >= min && input < max
-            failDetail = `at least ${min} to at most ${max}`
+            rangeTransgressionDetail = `at least ${min} to at most ${max}`
 
             break
         }
     }
 
-    const failMessager: RangeErrorMessager = resolveErrorMessager(options.error)
-
-    return (input: number) => {
+    return ((input: number) => {
         if (!test(input))
-            throw new Error(failMessager(input, failDetail))
+            throw new RangeValidationError(input, rangeTransgressionDetail, options.error)
 
         return input
-    }
+
+    }) as RangeValidatorFactoryOutput<P>
 }
 
 /*** Exports ***/

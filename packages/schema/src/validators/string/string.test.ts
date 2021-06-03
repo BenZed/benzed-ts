@@ -11,8 +11,13 @@ describe('string validator', () => {
             casing: 'upper',
             format: [/\d$/, 'must end with a number'], // ends-with-digit,
             length: 5,
-            trim: true
+            trim: true,
+            cast: true
         }) as Validator<string | unknown, string>
+    })
+
+    it('can be configured with cast sanitizer', () => {
+        expect(weirdStringValidator(69420)).toBe('69420')
     })
 
     it('can be configured with case sanitizer', () => {

@@ -23,7 +23,8 @@ function toLengthConfig(
     }
 
     // Override default error
-    lengthOptions.error = lengthOptions.error ?? ((_input, detail) => `length must be ${detail}`)
+    lengthOptions.error = lengthOptions.error ??
+        ((_input, rangeTransgressionDetail) => `length must be ${rangeTransgressionDetail}`)
 
     return lengthOptions
 }

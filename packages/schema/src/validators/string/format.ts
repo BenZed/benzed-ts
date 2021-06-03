@@ -1,6 +1,6 @@
 import { isArray, isInstanceOf, isString } from '@benzed/is'
+import ValidationError from '../../util/validation-error'
 
-import resolveErrorMessager, { ErrorMessager } from '../../util/resolve-error-messager'
 import { Validator } from '../type'
 
 /*** DATA ***/
@@ -31,22 +31,37 @@ const FORMAT_SHORTCUTS = {
 
 /*** Types ***/
 
-type FormatFailMessager = ErrorMessager<string>
+type FormatValidationErrorFormat = string | ((
+    input: string,
+    formatTransgressionDetail: string
+) => string)
+class FormatValidationError extends ValidationError {
+    public constructor(
+        input: string,
+        formatTransgressionDetail: string,
+        format: FormatValidationErrorFormat = (input, formatTransgressionDetail) =>
+            `"${input}" must be ${formatTransgressionDetail}`
+    ) {
+        super(format, input, formatTransgressionDetail)
+    }
+}
 
 type FormatShortcut = keyof typeof FORMAT_SHORTCUTS
 type Format = RegExp | FormatShortcut
 
 type FormatOption = {
-    test: Format
-    error?: string | FormatFailMessager
+    readonly test: Format
+    readonly error?: FormatValidationErrorFormat
 }
 
-type FormatArrayOption = [
-    format: Format
-] | [
-    format: Format,
-    error: string | FormatFailMessager
-]
+type FormatArrayOption =
+    [
+        format: Format
+    ] |
+    [
+        format: Format,
+        error: FormatValidationErrorFormat
+    ]
 
 type FormatValidatorProps = {
     format?: FormatArrayOption | FormatOption | Format
@@ -76,7 +91,7 @@ function asRegExp(
     return new RegExp(str.raw[0].replace(/\s/gm, ''), '')
 }
 
-function toRegExpDetail(format: Format): [regexp: RegExp, detail: string] {
+function toRegExpDetail(format: Format): [regexp: RegExp, formatTransgressionDetail: string] {
 
     if (isFormatShortcut(format)) {
         return [
@@ -125,12 +140,16 @@ function createFormatValidator(props: Readonly<FormatValidatorProps>): Validator
         return null
 
     const { test: format, error } = toFormatOption(props.format)
-    const [regexp, errorDetail] = toRegExpDetail(format)
-    const errorMessager = resolveErrorMessager(error)
+    const [regexp, formatTransgressionDetail] = toRegExpDetail(format)
 
     return input => {
-        if (!regexp.test(input))
-            throw new Error(errorMessager(input, errorDetail))
+        if (!regexp.test(input)) {
+            throw new FormatValidationError(
+                input,
+                formatTransgressionDetail,
+                error
+            )
+        }
 
         return input
     }
@@ -146,5 +165,4 @@ export {
 
     toFormatOption,
     FormatOption,
-
 }

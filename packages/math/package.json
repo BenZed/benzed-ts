@@ -6,7 +6,7 @@
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
         "build": "eslint src/**/*.ts --fix && npm run tsc",
-        "tsc": "rm -rf lib; mkdir lib; tsc"
+        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
     "repository": {
         "type": "git",

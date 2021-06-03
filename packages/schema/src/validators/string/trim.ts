@@ -4,7 +4,7 @@ import { Validator } from '../type'
 /*** Types ***/
 
 type TrimSanitizerProps = {
-    trim?: boolean
+    readonly trim?: boolean
 }
 
 /*** Main ***/

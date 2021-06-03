@@ -5,8 +5,8 @@
 import { isString } from '@benzed/is'
 
 import {
-    ValueValidatorProps,
-    ValidatorFactoryOutput
+    ValidatorProps,
+    TypeValidatorFactoryOutput
 } from '../type'
 
 import createTypeValidator from '../type'
@@ -19,7 +19,7 @@ import createFormatValidator, { FormatValidatorProps } from './format'
 /*** Types ***/
 
 type StringValidatorProps =
-    ValueValidatorProps<string> &
+    ValidatorProps<string | unknown> &
     CaseSanitizerProps &
     TrimSanitizerProps &
     FormatValidatorProps &
@@ -28,10 +28,11 @@ type StringValidatorProps =
 /*** Helper ***/
 
 function tryCastToString(value: unknown): unknown {
+
     try {
-        return `${value}`
-    } catch {
-        return String(value)
+        value = `${value}`
+    } catch (e) {
+        value = String(value)
     } finally {
         return value
     }
@@ -40,8 +41,8 @@ function tryCastToString(value: unknown): unknown {
 /*** Main ***/
 
 function createStringValidator(
-    props: Readonly<StringValidatorProps>
-): ValidatorFactoryOutput<string, StringValidatorProps> {
+    props: StringValidatorProps
+): TypeValidatorFactoryOutput<string | unknown, StringValidatorProps> {
 
     return createTypeValidator(props, {
         name: 'String',

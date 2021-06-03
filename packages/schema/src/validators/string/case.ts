@@ -5,7 +5,7 @@ import { Validator } from '../type'
 /*** Types ***/
 
 interface CaseSanitizerProps {
-    casing?: 'upper' | 'lower' | 'capitalize'
+    readonly casing?: 'upper' | 'lower' | 'capitalize'
 }
 
 /*** Main ***/

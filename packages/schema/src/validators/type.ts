@@ -83,9 +83,11 @@ interface TypeConstructorValidatorConfig<T> extends TypeValidatorConfig<T> {
 
 type Immutable = symbol | string | number | boolean
 
+type Known<T> = Exclude<T, unknown>
+
 type DefaultProp<T> = T extends Immutable
-    ? T | (() => T)
-    : () => T
+    ? Known<T> | (() => Known<T>)
+    : () => Known<T>
 
 interface ValidatorProps<T> {
     key?: string | number
@@ -97,14 +99,12 @@ interface ValidatorProps<T> {
 
 }
 
-type ValidatorFactoryOutput<T, P extends ValidatorProps<T> | undefined> =
+type TypeValidatorFactoryOutput<T, P extends ValidatorProps<T> | undefined> =
     P extends undefined
     ? null
     : P extends { required: true | TypeValidationErrorFormat } | { default: DefaultProp<T> }
     ? Validator<T | unknown, T>
     : Validator<T | unknown, T | undefined>
-
-type ValueValidatorProps<T extends symbol | string | number | boolean> = ValidatorProps<T>
 
 // interface ReferenceValidatorProps<T extends object> extends ValidatorProps<T> {
 //     default?: () => T
@@ -115,7 +115,7 @@ type ValueValidatorProps<T extends symbol | string | number | boolean> = Validat
 function createTypeValidator<T, P extends ValidatorProps<T>>(
     props: P,
     config: TypeTestValidatorConfig<T> | TypeConstructorValidatorConfig<T>
-): ValidatorFactoryOutput<T, P> {
+): TypeValidatorFactoryOutput<T, P> {
 
     const { cast, default: _default } = props
 
@@ -168,7 +168,7 @@ function createTypeValidator<T, P extends ValidatorProps<T>>(
 
         return input
 
-    }) as ValidatorFactoryOutput<T, P>
+    }) as TypeValidatorFactoryOutput<T, P>
 }
 
 /*** Exports ***/
@@ -178,8 +178,7 @@ export default createTypeValidator
 export {
     createTypeValidator,
     TypeValidatorConfig,
+    TypeValidatorFactoryOutput,
     Validator,
     ValidatorProps,
-    ValueValidatorProps,
-    ValidatorFactoryOutput,
 }
