@@ -4,7 +4,7 @@ import createStringValidator from './string'
 
 describe('string validator', () => {
 
-    let weirdStringValidator: Validator<string | unknown, string>
+    let weirdStringValidator: Validator<unknown, string>
     beforeAll(() => {
         weirdStringValidator = createStringValidator({
             required: true,
@@ -13,7 +13,17 @@ describe('string validator', () => {
             length: 5,
             trim: true,
             cast: true
-        }) as Validator<string | unknown, string>
+        })
+
+        const stringer = createStringValidator({
+            casing: 'upper',
+            format: [/\d$/, 'must end with a number'], // ends-with-digit,
+            length: 5,
+            trim: true,
+            cast: true,
+            required: false
+        })
+
     })
 
     it('can be configured with cast sanitizer', () => {

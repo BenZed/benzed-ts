@@ -6,11 +6,11 @@ import { Validator } from '../validators/type'
  * @param validators Validators to combine
  * @returns 
  */
-export default function pipeValidators<T>(
-    ...validators: readonly (Validator<T, T> | null)[]
-): Validator<T, T> {
+export default function pipeValidators<I, O = I>(
+    ...validators: readonly (Validator<I, O> | null)[]
+): Validator<I, O> {
 
-    const _validators = validators.filter(v => v) as Validator<T, T>[]
+    const _validators = validators.filter(v => v) as Validator<I, O>[]
 
     return (input: T): T => {
         for (const validator of _validators)

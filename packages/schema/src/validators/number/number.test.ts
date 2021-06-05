@@ -4,14 +4,14 @@ import createNumberValidator from './number'
 
 describe('number validator', () => {
 
-    let weirdNumberValidator: Validator<number | unknown, number>
+    let weirdNumberValidator: Validator<unknown, number>
     beforeAll(() => {
         weirdNumberValidator = createNumberValidator({
-            required: true,
+            required: false,
             cast: true,
             range: ['>', 0],
             round: 1
-        }) as Validator<number | unknown, number>
+        })
     })
 
     it('can be configured to use the cast sanitizer', () => {

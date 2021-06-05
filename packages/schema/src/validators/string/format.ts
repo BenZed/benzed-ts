@@ -1,7 +1,7 @@
 import { isArray, isInstanceOf, isString } from '@benzed/is'
 import ValidationError from '../../util/validation-error'
 
-import { Validator } from '../type'
+import { ValidatorFactoryOutput } from '../type'
 
 /*** DATA ***/
 
@@ -66,6 +66,9 @@ type FormatArrayOption =
 type FormatValidatorProps = {
     format?: FormatArrayOption | FormatOption | Format
 }
+
+type FormatValidatorFactoryOutput<P extends FormatValidatorProps> =
+    ValidatorFactoryOutput<P, 'format', FormatArrayOption | FormatOption | Format, string>
 
 /*** Type Guards ***/
 
@@ -134,15 +137,17 @@ function toFormatOption(input: NonNullable<FormatValidatorProps['format']>): For
 
 /*** Main ***/
 
-function createFormatValidator(props: Readonly<FormatValidatorProps>): Validator<string> | null {
+function createFormatValidator<P extends FormatValidatorProps>(
+    props: P
+): FormatValidatorFactoryOutput<P> {
 
     if (!props.format)
-        return null
+        return null as FormatValidatorFactoryOutput<P>
 
     const { test: format, error } = toFormatOption(props.format)
     const [regexp, formatTransgressionDetail] = toRegExpDetail(format)
 
-    return input => {
+    return (input => {
         if (!regexp.test(input)) {
             throw new FormatValidationError(
                 input,
@@ -152,7 +157,7 @@ function createFormatValidator(props: Readonly<FormatValidatorProps>): Validator
         }
 
         return input
-    }
+    }) as FormatValidatorFactoryOutput<P>
 }
 
 /*** Exports ***/

@@ -8,7 +8,6 @@ import { DefaultValidators, Validator } from './validators/type'
 /*** JSX ***/
 
 declare global {
-
     namespace JSX {
 
         type IntrinsicElements = DefaultValidators

@@ -28,10 +28,18 @@ type ThisPopped<F extends Func> = (
     ...args: AllButLastParameter<F>
 ) => ReturnType<F>
 
+type BindShifted<F extends Func> = (
+    ...args: AllButFirstParameter<F>
+) => ReturnType<F>
+
+type BindPopped<F extends Func> = (
+    ...args: AllButLastParameter<F>
+) => ReturnType<F>
+
 /*** Main ***/
 
 /**
- * Returns an output function that shifts the first parameter of the input function,
+ * Returns a function that shifts the first parameter of the input function,
  * placing it in the 'this' context
  * @param func Function to arg shift
  */
@@ -60,10 +68,47 @@ function thisPop<F extends Func>(
         this: LastParameter<F>,
         ...args: AllButLastParameter<F>
     ): ReturnType<F> {
+        return func(...args, this) as ReturnType<F>
+    }
+}
 
-        args.push(this)
+/**
+ * Returns a function that shifts the first parameter off the input function,
+ * using the provided argument instead.
+ * @param func 
+ * @param firstArg 
+ * @returns 
+ */
+function bindShift<F extends Func, T>(
+    func: F,
+    firstArg: FirstParameter<F>,
+): BindShifted<F> {
 
-        return func(...args) as ReturnType<F>
+    return function (
+        this: T,
+        ...args: AllButFirstParameter<F>
+    ) {
+        return func.call(this, firstArg, ...args)
+    }
+}
+
+/**
+ * Returns a function that pops the last parameter off the input function,
+ * using the provided argument instead.
+ * @param func 
+ * @param firstArg 
+ * @returns 
+ */
+function bindPop<F extends Func, T>(
+    func: F,
+    lastArg: LastParameter<F>
+): BindPopped<F> {
+
+    return function (
+        this: T,
+        ...args: AllButLastParameter<F>
+    ) {
+        return func.call(this, ...args, lastArg)
     }
 }
 
@@ -76,8 +121,14 @@ export {
     thisShift,
     thisPop,
 
+    bindShift,
+    bindPop,
+
     ThisShifted,
     ThisPopped,
+
+    BindShifted,
+    BindPopped,
 
     FirstParameter,
     LastParameter,

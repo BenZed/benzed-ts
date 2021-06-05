@@ -40,7 +40,7 @@ function createLengthValidator<T extends { length: number }>(
 
     const lengthConfig = toLengthConfig(props.length)
 
-    const rangeValidator = createRangeValidator({ range: lengthConfig }) as Validator<number>
+    const rangeValidator = createRangeValidator({ range: lengthConfig })
 
     return input => {
         rangeValidator(input.length)

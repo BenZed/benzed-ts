@@ -1,5 +1,5 @@
 import { round, ceil, floor } from '@benzed/math'
-import { isNumber } from '@benzed/is'
+import { isNumber, Sortable } from '@benzed/is'
 
 import { Validator } from '../type'
 
@@ -38,7 +38,7 @@ type RounderSanitizerProps = RoundSanitizerProp | FloorSanitizerProp | CeilSanit
 /* eslint-disable @typescript-eslint/indent */
 type RoundSanitizerFactoryOutput<P> =
     P extends { round: Precision } | { ceil: Precision } | { floor: Precision }
-    ? Validator<number>
+    ? Validator<Sortable>
     : null
 /* eslint-enable @typescript-eslint/indent */
 

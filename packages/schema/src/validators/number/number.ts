@@ -4,19 +4,18 @@
 */
 
 import { isNaN, isNumber } from '@benzed/is'
-import {
+import createTypeValidator, {
     ValidatorProps,
     TypeValidatorFactoryOutput
 } from '../type'
 
-import createTypeValidator from '../type'
 import createRangeValidator, { RangeValidatorProps } from './range'
 import createRoundSanitizer, { RounderSanitizerProps } from './round'
 
 /*** Types ***/
 
 type NumberValidatorProps =
-    ValidatorProps<string | unknown> &
+    ValidatorProps<number> &
     RangeValidatorProps &
     RounderSanitizerProps
 
@@ -31,15 +30,15 @@ function tryCastToNumber(value: unknown): unknown {
 
 /*** Main ***/
 
-function createStringValidator(
-    props: NumberValidatorProps
-): TypeValidatorFactoryOutput<number | unknown, NumberValidatorProps> {
+function createNumberValidator<P extends NumberValidatorProps>(
+    props: P
+): TypeValidatorFactoryOutput<P, unknown, number> {
 
     return createTypeValidator(props, {
         name: 'Number',
         test: isNumber,
         cast: tryCastToNumber,
-        validators: [
+        validate: [
             createRoundSanitizer(props),
             createRangeValidator(props),
         ]
@@ -49,9 +48,9 @@ function createStringValidator(
 
 /*** Exports ***/
 
-export default createStringValidator
+export default createNumberValidator
 
 export {
-    createStringValidator,
+    createNumberValidator,
     NumberValidatorProps
 }

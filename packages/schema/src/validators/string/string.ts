@@ -4,12 +4,10 @@
 */
 import { isString } from '@benzed/is'
 
-import {
+import createTypeValidator, {
     ValidatorProps,
     TypeValidatorFactoryOutput
 } from '../type'
-
-import createTypeValidator from '../type'
 
 import createTrimSanitizer, { TrimSanitizerProps } from './trim'
 import createCaseSanitizer, { CaseSanitizerProps } from './case'
@@ -19,7 +17,7 @@ import createFormatValidator, { FormatValidatorProps } from './format'
 /*** Types ***/
 
 type StringValidatorProps =
-    ValidatorProps<string | unknown> &
+    ValidatorProps<string> &
     CaseSanitizerProps &
     TrimSanitizerProps &
     FormatValidatorProps &
@@ -40,22 +38,21 @@ function tryCastToString(value: unknown): unknown {
 
 /*** Main ***/
 
-function createStringValidator(
-    props: StringValidatorProps
-): TypeValidatorFactoryOutput<string | unknown, StringValidatorProps> {
+function createStringValidator<P extends StringValidatorProps>(
+    props: P
+): TypeValidatorFactoryOutput<P, unknown, string> {
 
     return createTypeValidator(props, {
         name: 'String',
         test: isString,
         cast: tryCastToString,
-        validators: [
+        validate: [
             createTrimSanitizer(props),
             createCaseSanitizer(props),
             createLengthValidator<string>(props),
             createFormatValidator(props)
         ]
     })
-
 }
 
 /*** Exports ***/

@@ -8,6 +8,7 @@
 */
 
 import is, { Constructor, isDefined, isFunction } from '@benzed/is'
+import { wrap } from '@benzed/array'
 import pipeValidators from '../util/pipe-validators'
 import ValidationError from '../util/validation-error'
 
@@ -37,16 +38,16 @@ class RequiredValueError extends ValidationError {
 
 type IsTypePredicate<T> = ((input: unknown) => input is T)
 
-type TypeCastMethod<T> = ((input: unknown) => unknown | T)
+type TypeCastMethod = ((input: unknown) => unknown)
 
-type Validator<Input, Output = Input> = (input: Input) => Output
+type Validator<I, O = I> = (input: I) => O
 
 interface TypeValidatorConfig<T> {
 
     /**
      * Method to attempt to cast inputs with mismatched types to the desired type.
      */
-    cast?: TypeCastMethod<T>
+    cast?: TypeCastMethod
 
     /**
      * Overrides the default TypeValidationError message
@@ -57,7 +58,7 @@ interface TypeValidatorConfig<T> {
      * Validators to be run on the input value, once it's correct
      * type has been ascertained.
      */
-    validators?: (Validator<T, T> | null)[]
+    validate?: (Validator<T> | null)[]
 }
 
 interface TypeTestValidatorConfig<T> extends TypeValidatorConfig<T> {
@@ -83,28 +84,47 @@ interface TypeConstructorValidatorConfig<T> extends TypeValidatorConfig<T> {
 
 type Immutable = symbol | string | number | boolean
 
-type Known<T> = Exclude<T, unknown>
-
 type DefaultProp<T> = T extends Immutable
-    ? Known<T> | (() => Known<T>)
-    : () => Known<T>
+    ? T | (() => T)
+    : () => T
 
 interface ValidatorProps<T> {
+    /**
+     * Used by child validators.
+     */
     key?: string | number
 
+    /**
+     * Field is required.
+     */
     required?: boolean | RequiredValueErrorFormat
+
+    /**
+     * 
+     */
     default?: DefaultProp<T>
-    cast?: boolean | TypeCastMethod<T>
+    cast?: boolean | TypeCastMethod
     error?: TypeValidationErrorFormat
+
+    /**
+     * Validators to be run on the input value, once it's correct
+     * type has been ascertained.
+     */
+    validate?:
+    Validator<T> |
+    Validator<T>[]
 
 }
 
-type TypeValidatorFactoryOutput<T, P extends ValidatorProps<T> | undefined> =
+type TypeValidatorFactoryOutput<P extends ValidatorProps<O> | undefined, I, O = I> =
     P extends undefined
     ? null
-    : P extends { required: true | TypeValidationErrorFormat } | { default: DefaultProp<T> }
-    ? Validator<T | unknown, T>
-    : Validator<T | unknown, T | undefined>
+    : P extends { required: true | TypeValidationErrorFormat } | { default: DefaultProp<O> }
+    ? Validator<I, O>
+    : Validator<I, O | undefined>
+
+type ValidatorFactoryOutput<P, PK extends keyof P, PKV, VO> =
+    P[PK] extends PKV ? Validator<VO> : null
 
 // interface ReferenceValidatorProps<T extends object> extends ValidatorProps<T> {
 //     default?: () => T
@@ -112,22 +132,22 @@ type TypeValidatorFactoryOutput<T, P extends ValidatorProps<T> | undefined> =
 
 /*** Main ***/
 
-function createTypeValidator<T, P extends ValidatorProps<T>>(
+function createTypeValidator<P extends ValidatorProps<O>, I, O = I>(
     props: P,
-    config: TypeTestValidatorConfig<T> | TypeConstructorValidatorConfig<T>
-): TypeValidatorFactoryOutput<T, P> {
+    config: TypeTestValidatorConfig<O> | TypeConstructorValidatorConfig<O>
+): TypeValidatorFactoryOutput<P, I, O> {
 
-    const { cast, default: _default } = props
+    const { cast, validate, default: _default } = props
 
     // Create get default
     const getDefault = _default !== undefined
         ? isFunction(_default)
-            ? _default as () => T
+            ? _default as () => O
             : () => _default
         : null
 
-    const isType: IsTypePredicate<T> = 'type' in config
-        ? (input?: unknown): input is T => is(input, config.type)
+    const isType: IsTypePredicate<O> = 'type' in config
+        ? (input?: unknown): input is O => is(input, config.type)
         : config.test
 
     const toType = cast
@@ -138,37 +158,42 @@ function createTypeValidator<T, P extends ValidatorProps<T>>(
 
     const typeName = ('type' in config ? config.type.name : config.name) ?? 'Any'
 
-    const esotericValidators = pipeValidators(...config.validators ?? [])
+    const validators = pipeValidators(
+        ...config.validate ?? [],
+        ...validate ? wrap(validate) : []
+    )
 
-    return (input => {
+    return ((input?: I | O) => {
 
-        if (getDefault && !isDefined(input))
-            input = getDefault() as T | undefined
+        let output = input
 
-        if (toType && isDefined(input) && !isType(input))
-            input = toType(input) as T | undefined
+        if (getDefault && !isDefined(output))
+            output = getDefault() as O | undefined
 
-        if (isDefined(input) && !isType(input)) {
+        if (toType && isDefined(output) && !isType(output))
+            output = toType(output) as O | undefined
+
+        if (isDefined(output) && !isType(output)) {
             throw new TypeValidationError(
-                input,
+                output,
                 typeName,
                 props.error ?? config.error
             )
         }
 
-        if (props.required && !isDefined(input) && !isType(input)) {
+        if (props.required && !isDefined(output) && !isType(output)) {
             throw new RequiredValueError(
                 'value', // TODO replace with path of value currently being validated
                 isFunction(props.required) ? props.required : undefined
             )
         }
 
-        if (isDefined(input) && config.validators)
-            return esotericValidators(input)
+        if (isDefined(output) && config.validate)
+            return validators(output as O)
 
-        return input
+        return output
 
-    }) as TypeValidatorFactoryOutput<T, P>
+    }) as TypeValidatorFactoryOutput<P, I, O>
 }
 
 /*** Exports ***/
@@ -180,5 +205,6 @@ export {
     TypeValidatorConfig,
     TypeValidatorFactoryOutput,
     Validator,
+    ValidatorFactoryOutput,
     ValidatorProps,
 }

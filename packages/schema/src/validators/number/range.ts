@@ -1,7 +1,7 @@
 import { pluck } from '@benzed/array'
-import { isArray, isDefined, isNumber, isObject, isString } from '@benzed/is'
+import { isArray, isDefined, isNumber, isObject, isString, Sortable } from '@benzed/is'
 
-import { Validator } from '../type'
+import { ValidatorFactoryOutput } from '../type'
 
 import ValidationError from '../../util/validation-error'
 
@@ -22,7 +22,7 @@ type RangeValidationErrorFormat =
     string | ((input: number, rangeTransgressionDetail: string) => string)
 class RangeValidationError extends ValidationError {
     public constructor(
-        input: number,
+        input: Sortable,
         rangeTransgressionDetail: string,
         format: RangeValidationErrorFormat = (input, rangeTransgressionDetail) =>
             `${input} must be ${rangeTransgressionDetail}`
@@ -64,9 +64,8 @@ interface RangeValidatorProps {
     range?: RangeArrayConfig | RangeStringConfig | RangeConfig | number
 }
 
-type RangeValidatorFactoryOutput<P> = P extends { range: undefined }
-    ? null
-    : Validator<number>
+type RangeValidatorFactoryOutput<P extends RangeValidatorProps, O extends Sortable> =
+    ValidatorFactoryOutput<P, 'range', NonNullable<RangeValidatorProps['range']>, O>
 
 /*** Type Guards ***/
 
@@ -192,16 +191,16 @@ function toRangeConfig(
 
 /*** Main ***/
 
-function createRangeValidator<P extends RangeValidatorProps>(
+function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>(
     props: P
-): RangeValidatorFactoryOutput<P> {
+): RangeValidatorFactoryOutput<P, O> {
 
     if (!isDefined(props.range))
-        return null as RangeValidatorFactoryOutput<P>
+        return null as RangeValidatorFactoryOutput<P, O>
 
     const options = toRangeConfig(props.range)
 
-    let test: (input: number) => boolean
+    let test: (input: O) => boolean
     let rangeTransgressionDetail: string
 
     switch (options.comparator) {
@@ -269,13 +268,13 @@ function createRangeValidator<P extends RangeValidatorProps>(
         }
     }
 
-    return ((input: number) => {
+    return ((input: O) => {
         if (!test(input))
             throw new RangeValidationError(input, rangeTransgressionDetail, options.error)
 
         return input
 
-    }) as RangeValidatorFactoryOutput<P>
+    }) as RangeValidatorFactoryOutput<P, O>
 }
 
 /*** Exports ***/
