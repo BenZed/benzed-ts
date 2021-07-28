@@ -23,11 +23,11 @@ type RangeValidationErrorFormat =
 class RangeValidationError extends ValidationError {
     public constructor(
         input: Sortable,
-        rangeTransgressionDetail: string,
-        format: RangeValidationErrorFormat = (input, rangeTransgressionDetail) =>
-            `${input} must be ${rangeTransgressionDetail}`
+        rangeErrorDetail: string,
+        format: RangeValidationErrorFormat = (input, rangeErrorDetail) =>
+            `${input} must be ${rangeErrorDetail}`
     ) {
-        super(format, input, rangeTransgressionDetail)
+        super(format, input, rangeErrorDetail)
     }
 }
 
@@ -201,7 +201,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
     const options = toRangeConfig(props.range)
 
     let test: (input: O) => boolean
-    let rangeTransgressionDetail: string
+    let rangeErrorDetail: string
 
     switch (options.comparator) {
 
@@ -209,7 +209,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { value } = options
 
             test = input => input < value
-            rangeTransgressionDetail = `below ${value}`
+            rangeErrorDetail = `below ${value}`
 
             break
         }
@@ -218,7 +218,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { value } = options
 
             test = input => input <= value
-            rangeTransgressionDetail = `equal or below ${value}`
+            rangeErrorDetail = `equal or below ${value}`
 
             break
         }
@@ -227,7 +227,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { value } = options
 
             test = input => input === value
-            rangeTransgressionDetail = `equal ${value}`
+            rangeErrorDetail = `equal ${value}`
 
             break
         }
@@ -236,7 +236,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { value } = options
 
             test = input => input > value
-            rangeTransgressionDetail = `above ${value}`
+            rangeErrorDetail = `above ${value}`
 
             break
         }
@@ -245,7 +245,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { value } = options
 
             test = input => input >= value
-            rangeTransgressionDetail = `above or equal ${value}`
+            rangeErrorDetail = `above or equal ${value}`
 
             break
 
@@ -253,7 +253,7 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { min, max } = options
 
             test = input => input >= min && input <= max
-            rangeTransgressionDetail = `between ${min} and ${max}`
+            rangeErrorDetail = `between ${min} and ${max}`
 
             break
         }
@@ -262,15 +262,20 @@ function createRangeValidator<P extends RangeValidatorProps, O extends Sortable>
             const { min, max } = options
 
             test = input => input >= min && input < max
-            rangeTransgressionDetail = `at least ${min} to at most ${max}`
+            rangeErrorDetail = `at least ${min} to at most ${max}`
 
             break
         }
     }
 
     return ((input: O) => {
-        if (!test(input))
-            throw new RangeValidationError(input, rangeTransgressionDetail, options.error)
+        if (!test(input)) {
+            throw new RangeValidationError(
+                input,
+                rangeErrorDetail,
+                options.error
+            )
+        }
 
         return input
 
