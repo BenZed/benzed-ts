@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
 import { $$equals, getKeys, isReferable, Prototypal } from './util'
-import { isIterable, isArrayLike } from '@benzed/array'
+import { isIterable, isArrayLike } from '@benzed/is'
 
 /*** Types ***/
 
@@ -117,9 +117,9 @@ function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
 
 {
 
-    const addToPrototype = <T>(
+    const addToPrototype = (
         { prototype }: Readonly<Prototypal>,
-        implementation: Comparable<T>[typeof $$equals]
+        implementation: Comparable[typeof $$equals]
     ): void => {
 
         Object.defineProperty(prototype, $$equals, {
@@ -132,11 +132,11 @@ function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
         addToPrototype(Immutable, equalIs)
 
     for (const Iterable of [Map, Set])
-        addToPrototype(Iterable, equalIterable)
+        addToPrototype(Iterable, equalIterable as any)
 
     addToPrototype(Object, equalObject)
-    addToPrototype(RegExp, equalRegExp)
-    addToPrototype(Date, equalDate)
+    addToPrototype(RegExp, equalRegExp as any)
+    addToPrototype(Date, equalDate as any)
 
     for (const ArrayType of [
         Array,
@@ -150,7 +150,7 @@ function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
         Float32Array,
         Float64Array
     ])
-        addToPrototype<any[]>(ArrayType, equalArrayLike)
+        addToPrototype(ArrayType, equalArrayLike as any)
 }
 
 /*** Main ***/

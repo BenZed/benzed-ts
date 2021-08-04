@@ -1,4 +1,4 @@
-import isIterable from './is-iterable'
+import { isIterable } from '@benzed/is'
 
 /*** Shortcut ***/
 

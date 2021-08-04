@@ -7,12 +7,6 @@
             "jest",
             "node"
         ],
-        "baseUrl": "./",
-        "paths": {
-            "@benzed/*": [
-                "./packages/*/src"
-            ]
-        },
         // Build Options
         "build": true,
         "target": "es5",

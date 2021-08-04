@@ -1,7 +1,7 @@
-import createSchema from './create-validator'
+// import createSchema from './create-validator'
 
-/* global describe it */
+// /* global describe it */
 
-describe('createSchema()', () => {
-    it('does stuff', () => { })
-})
+// describe('createSchema()', () => {
+//     it('does stuff', () => { })
+// })
