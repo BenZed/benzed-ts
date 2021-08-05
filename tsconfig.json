@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "lib": [
-            "esnext"
+            "ESNext",
+            "DOM"
         ],
         "types": [
             "jest",
