@@ -19,12 +19,15 @@ const { splice } = Array.prototype
  * @return {Array}                     items removed via test
  */
 function pluck<T>(
-    input: ArrayLike<T>,
-    test: (item: T, index: number, input: ArrayLike<T>) => boolean,
+    input: ArrayLike<unknown>,
+    test: (
+        ((item: unknown, index?: number, input?: ArrayLike<unknown>) => item is T) |
+        ((item: T, index?: number, input?: ArrayLike<T>) => boolean)
+    ),
     count = input.length
 ): T[] {
 
-    const results = []
+    const results: T[] = []
     const indexes = []
 
     const reverse = count < 0
@@ -42,14 +45,14 @@ function pluck<T>(
     ) {
 
         const value = input[i]
-        if (!test(value, i, input))
+        if (!test(value as T, i, input as T[]))
             continue
 
         if (reverse) {
-            results.unshift(value)
+            results.unshift(value as T)
             indexes.push(i)
         } else {
-            results.push(value)
+            results.push(value as T)
             indexes.unshift(i)
         }
     }
