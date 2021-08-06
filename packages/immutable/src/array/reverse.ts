@@ -20,3 +20,5 @@ export default function reverse<T extends ArrayLike<unknown>>(
 
     return output
 }
+
+export { reverse }

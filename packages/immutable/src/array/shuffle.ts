@@ -14,3 +14,5 @@ export default function shuffle<T extends ArrayLike<unknown>>(input: T): typeof 
 
     return _shuffle(output)
 }
+
+export { shuffle }

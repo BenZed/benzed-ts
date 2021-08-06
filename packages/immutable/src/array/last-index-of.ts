@@ -26,3 +26,5 @@ export default function lastIndexOf<T>(
 
     return -1
 }
+
+export { lastIndexOf }

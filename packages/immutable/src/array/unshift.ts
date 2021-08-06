@@ -25,3 +25,5 @@ export default function unshift<T extends ArrayLike<unknown>>(
 
     return output
 }
+
+export { unshift }

@@ -52,3 +52,5 @@ export default function unique<T extends string | ArrayLike<unknown>>(input: T):
         return output
     }
 }
+
+export { unique }

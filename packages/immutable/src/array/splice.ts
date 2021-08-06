@@ -27,3 +27,5 @@ export default function splice<T extends ArrayLike<unknown>>(
 
     return output
 }
+
+export { splice }

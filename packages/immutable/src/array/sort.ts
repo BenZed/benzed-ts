@@ -10,11 +10,11 @@ type SortParams = Parameters<typeof Array.prototype.sort>
 /*** Main ***/
 
 /**
- * Immutably shift an ArrayLike.
+ * Immutably sort an ArrayLike.
  * 
  * @returns A clone of the input Arraylike not including the final, popped off item.
  */
-export default function shift<T extends ArrayLike<unknown>>(
+export default function sort<T extends ArrayLike<unknown>>(
     input: T,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     ...args: SortParams
@@ -26,3 +26,5 @@ export default function shift<T extends ArrayLike<unknown>>(
 
     return output
 }
+
+export { sort }

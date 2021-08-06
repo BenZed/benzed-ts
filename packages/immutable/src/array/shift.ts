@@ -19,3 +19,5 @@ export default function shift<T extends ArrayLike<unknown>>(input: T): typeof in
 
     return output
 }
+
+export { shift }

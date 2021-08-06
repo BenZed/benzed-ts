@@ -23,3 +23,5 @@ export default function push<T extends ArrayLike<unknown>>(
     _push.apply(output, args)
     return output
 }
+
+export { push }

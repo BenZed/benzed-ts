@@ -26,3 +26,5 @@ export default function indexOf<T>(
 
     return -1
 }
+
+export { indexOf }

@@ -16,3 +16,5 @@ export default function pop<T extends ArrayLike<unknown>>(input: T): typeof inpu
     _pop.call(output)
     return output
 }
+
+export { pop }

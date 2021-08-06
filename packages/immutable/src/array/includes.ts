@@ -19,3 +19,7 @@ export default function includes<T>(
 ): boolean {
     return indexOf(arrayLike, value) > -1
 }
+
+export {
+    includes
+}
