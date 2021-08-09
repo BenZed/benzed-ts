@@ -4,7 +4,8 @@
     @typescript-eslint/prefer-readonly-parameter-types
 */
 
-import { $$copy, getKeys, isPrototypal, isReferable, Prototypal } from './util'
+import { getKeys, isPrototypal, isReferable, Prototypal } from './util'
+import { $$copy } from './symbols'
 
 /*** Types ***/
 

@@ -2,7 +2,7 @@ import equals from './equals'
 import copy from './copy'
 import indexOf from './array/index-of'
 
-import { $$copy, $$equals } from './util'
+import { $$copy, $$equals } from './symbols'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
