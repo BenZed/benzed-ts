@@ -155,7 +155,7 @@ function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
 
 /*** Main ***/
 
-function equals<T>(a: T, b: unknown): boolean {
+function equals<T>(a: T, b: unknown): b is T {
     return compareWithImplementation(a, b)
 }
 
