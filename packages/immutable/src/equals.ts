@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
 import { getKeys, isReferable, Prototypal } from './util'
-import { isIterable, isArrayLike } from '@benzed/is'
+import { isIterable, isArrayLike, isFunction, isObject, isInstanceOf } from '@benzed/is'
 import { $$equals } from './symbols'
 
 /*** Types ***/
@@ -11,8 +11,7 @@ interface Comparable {
 }
 
 function isComparable(input: unknown): input is Comparable {
-    return input != null &&
-        typeof (input as Comparable)[$$equals] === 'function'
+    return isFunction((input as Comparable)[$$equals])
 }
 
 /*** Helper ***/
@@ -81,7 +80,7 @@ function equalArrayLike<T>(this: readonly T[], right: unknown): boolean {
 
 function equalObject<T>(this: T, right: unknown): boolean {
 
-    if (typeof right !== 'object' || right === null)
+    if (!isObject(right))
         return false
 
     const left = this
@@ -104,14 +103,14 @@ function equalDate(this: Readonly<Date>, right: unknown): boolean {
     const left = this
 
     return isReferable(right) &&
-        typeof right.getTime === 'function' &&
+        isFunction(right.getTime) &&
         left.getTime() === right.getTime()
 }
 
 function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
     const left = this
 
-    return right instanceof RegExp && left.toString() === right.toString()
+    return isInstanceOf(right, RegExp) && left.toString() === right.toString()
 }
 
 /*** Add Standard Implementations ***/

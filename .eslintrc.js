@@ -28,7 +28,6 @@ module.exports = {
         '@typescript-eslint/prefer-optional-chain': ['warn'],
         '@typescript-eslint/prefer-nullish-coalescing': ['warn'],
         '@typescript-eslint/prefer-readonly': ['error'],
-        '@typescript-eslint/prefer-readonly-parameter-types': ['error', { ignoreInferredTypes: true }],
         '@typescript-eslint/semi': ['error', 'never'],
         '@typescript-eslint/quotes': ['error', 'single'],
         '@typescript-eslint/indent': ['error', 4],

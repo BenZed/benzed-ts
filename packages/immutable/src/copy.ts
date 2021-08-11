@@ -3,6 +3,7 @@
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/prefer-readonly-parameter-types
 */
+import { isFunction } from '@benzed/is'
 
 import { getKeys, isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
@@ -15,8 +16,7 @@ interface Copyable<T> {
 }
 
 function isCopyable<T>(input: unknown): input is Copyable<T> {
-    return input != null &&
-        typeof (input as Copyable<T>)[$$copy] === 'function'
+    return isFunction((input as Copyable<T>)[$$copy])
 }
 
 /*** Helper ***/
