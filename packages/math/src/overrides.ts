@@ -87,6 +87,20 @@ export function ceil(value: number, precision = 1): number {
 
 /*** Re Exports ***/
 
+/**
+ * Q: Why all the re-exports?
+ * A: So I don't have to mix:
+ * ```typescript
+ * import { floor } from '@benzed/math'
+ * const { PI } = Math
+ * ```
+ *
+ * And instead:
+ * ```typescript
+ * import { floor, PI } from '@benzed/math'
+ * ```
+ */
+
 export {
     abs, acos, acosh, asin, asinh, atan, atan2, atanh, cbrt, clz32, cos,
     cosh, exp, expm1, fround, log, log10, log1p, log2, pow, sign, sin, sinh,

@@ -16,3 +16,7 @@ function lerp(from: number, to: number, factor: number): number {
 /*** Exports ***/
 
 export default lerp
+
+export {
+    lerp
+}

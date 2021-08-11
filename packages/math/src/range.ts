@@ -22,3 +22,7 @@ function* range(from: number, to: number, step = 1): Iterable<number> {
 /*** Exports ***/
 
 export default range
+
+export {
+    range
+}

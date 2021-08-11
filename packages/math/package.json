@@ -17,5 +17,9 @@
     "bugs": {
         "url": "https://github.com/BenZed/benzed-ts/issues"
     },
-    "homepage": "https://github.com/BenZed/benzed-ts#readme"
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "@benzed/immutable": "*",
+        "@benzed/is": "*"
+    }
 }
