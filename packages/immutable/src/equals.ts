@@ -6,12 +6,12 @@ import { $$equals } from './symbols'
 
 /*** Types ***/
 
-interface Comparable {
-    [$$equals]: (this: Readonly<Comparable>, right: unknown) => boolean
+interface Comparable<T> {
+    [$$equals]: (this: Readonly<Comparable<T>>, right: unknown) => right is T
 }
 
-function isComparable(input: unknown): input is Comparable {
-    return isFunction((input as Comparable)[$$equals])
+function isComparable<T>(input: unknown): input is Comparable<T> {
+    return isFunction((input as Comparable<T>)[$$equals])
 }
 
 /*** Helper ***/
@@ -52,12 +52,12 @@ function compareArrayLikes<T>(left: ArrayLike<T>, right: ArrayLike<T>): boolean 
 
 /*** Standard Implementations ***/
 
-function equalIs<T>(this: T, right: unknown): boolean {
+function equalIs<T>(this: T, right: unknown): right is T {
     const left = this
     return Object.is(left, right)
 }
 
-function equalIterable<T extends Iterable<U>, U>(this: Readonly<T>, right: unknown): boolean {
+function equalIterable<T extends Iterable<U>, U>(this: T, right: unknown): right is T {
     const left = this
 
     if (!isIterable(right))
@@ -69,7 +69,7 @@ function equalIterable<T extends Iterable<U>, U>(this: Readonly<T>, right: unkno
     )
 }
 
-function equalArrayLike<T>(this: readonly T[], right: unknown): boolean {
+function equalArrayLike<T extends ArrayLike<any>>(this: T, right: unknown): right is T {
     const left = this
 
     if (!isArrayLike(right))
@@ -78,7 +78,7 @@ function equalArrayLike<T>(this: readonly T[], right: unknown): boolean {
     return compareArrayLikes(left, right)
 }
 
-function equalObject<T>(this: T, right: unknown): boolean {
+function equalObject<T>(this: T, right: unknown): right is T {
 
     if (!isObject(right))
         return false
@@ -99,7 +99,7 @@ function equalObject<T>(this: T, right: unknown): boolean {
     return true
 }
 
-function equalDate(this: Readonly<Date>, right: unknown): boolean {
+function equalDate(this: Date, right: unknown): right is Date {
     const left = this
 
     return isReferable(right) &&
@@ -107,7 +107,7 @@ function equalDate(this: Readonly<Date>, right: unknown): boolean {
         left.getTime() === right.getTime()
 }
 
-function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
+function equalRegExp(this: RegExp, right: unknown): right is RegExp {
     const left = this
 
     return isInstanceOf(right, RegExp) && left.toString() === right.toString()
@@ -117,9 +117,9 @@ function equalRegExp(this: Readonly<RegExp>, right: unknown): boolean {
 
 {
 
-    const addToPrototype = (
-        { prototype }: Readonly<Prototypal>,
-        implementation: Comparable[typeof $$equals]
+    const addToPrototype = <T>(
+        { prototype }: Prototypal,
+        implementation: Comparable<T>[typeof $$equals]
     ): void => {
 
         Object.defineProperty(prototype, $$equals, {
