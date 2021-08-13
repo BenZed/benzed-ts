@@ -2,7 +2,7 @@
 
 /*** Types ***/
 
-type Func = (...args: any) => any
+type Func = (...args: any[]) => any
 
 type FirstParameter<F extends Func> = Parameters<F>[0]
 
