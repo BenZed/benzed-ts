@@ -49,4 +49,3 @@ export type Immutable<T> =
 export function getKeys<T>(value: T): (keyof T)[] {
     return Object.getOwnPropertyNames(value) as (keyof T)[]
 }
-
