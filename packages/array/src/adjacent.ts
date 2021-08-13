@@ -1,9 +1,8 @@
+import resolveIndex from './resolve-index'
 
 /*** Shortcuts ***/
 
 const { indexOf } = Array.prototype
-
-/*** Main ***/
 
 /**
  * Get the value adjacent to a given valuen in an Array, wrapping around to the
@@ -25,10 +24,10 @@ function adjacent<T>(
     const { length } = haystack
 
     const index = indexOf.call(haystack, needle) + delta
-    const indexWrapped = (index % length + length) % length
+    const indexResolved = resolveIndex(length, index)
 
     return haystack
-        ? haystack[indexWrapped]
+        ? haystack[indexResolved]
         : undefined
 }
 
