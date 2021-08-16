@@ -1,7 +1,7 @@
 import lerp from './lerp'
 
 import { equals, $$copy, $$equals } from '@benzed/immutable'
-import { isArray, isNumber, isObject, isString } from '@benzed/is'
+import { isArray, isArrayOfNumber, isObject, isString } from '@benzed/is'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'
@@ -10,7 +10,9 @@ import { PI } from './constants'
 
 type V2String = `${number},${number}`
 
-type V2ConstructorSignature = [V2String] | [{ x?: number, y?: number }] | number[]
+type V2Json = { x: number, y: number }
+
+type V2ConstructorSignature = [V2String | Partial<V2Json> | [number, number]] | [number, number]
 
 /*** Main ***/
 
@@ -73,13 +75,16 @@ class V2 {
         if (isString(args[0]))
             args = args[0].split(',').map(parseFloat) as [number, number]
 
+        else if (isArray(args[0]))
+            args = args[0]
+
         else if (isObject(args[0])) {
             x = args[0].x
             y = args[0].y
         }
 
-        if (isArray(args))
-            [x, y] = (args as number[]).filter(isNumber) as number[]
+        if (isArrayOfNumber(args))
+            [x, y] = args
 
         this.x = x ?? 0
         this.y = y ?? 0
@@ -180,7 +185,7 @@ class V2 {
         return `${this.x},${this.y}`
     }
 
-    public toJSON(): { x: number, y: number } {
+    public toJSON(): V2Json {
         return {
             x: this.x,
             y: this.y
@@ -218,6 +223,7 @@ export default V2
 export {
     V2,
     V2String,
+    V2Json,
 
     v2
 }
