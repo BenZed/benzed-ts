@@ -54,7 +54,7 @@ export function isObject<O extends object>(input: unknown): input is O {
     return input !== null && typeof input === 'object'
 }
 
-export function isArray<T>(input: T[] | unknown): input is T[] {
+export function isArray<T>(input: unknown): input is T[] {
     return Array.isArray(input)
 }
 
