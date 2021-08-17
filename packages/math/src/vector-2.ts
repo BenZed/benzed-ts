@@ -12,7 +12,7 @@ type V2String = `${number},${number}`
 
 type V2Json = { x: number, y: number }
 
-type V2Signature = V2Json | V2String | [number, number]
+type V2Signature = Partial<V2Json> | V2String | [number, number]
 
 type V2ConstructorSignature = [V2Signature] | [number, number]
 
@@ -42,11 +42,11 @@ class V2 {
 
     public static lerp(a: V2Signature, b: V2Signature, delta = 0): V2 {
 
-        a = V2.from(a)
-        b = V2.from(b)
+        const av2 = V2.from(a)
+        const bv2 = V2.from(b)
 
-        const x = lerp(a.x, b.x, delta)
-        const y = lerp(a.y, b.y, delta)
+        const x = lerp(av2.x, bv2.x, delta)
+        const y = lerp(av2.y, bv2.y, delta)
 
         return new V2(x, y)
     }
@@ -98,19 +98,19 @@ class V2 {
         this.y = y ?? 0
     }
 
-    public add(vec: V2Signature): this {
-        vec = V2.from(vec)
+    public add(input: V2Signature): this {
+        const inputv2 = V2.from(input)
 
-        this.x += vec.x
-        this.y += vec.y
+        this.x += inputv2.x
+        this.y += inputv2.y
         return this
     }
 
-    public sub(vec: V2Signature): this {
-        vec = V2.from(vec)
+    public sub(input: V2Signature): this {
+        const inputv2 = V2.from(input)
 
-        this.x -= vec.x
-        this.y -= vec.y
+        this.x -= inputv2.x
+        this.y -= inputv2.y
         return this
     }
 
@@ -128,10 +128,10 @@ class V2 {
 
     public lerp(to: V2Signature, delta = 0): this {
 
-        to = V2.from(to)
+        const inputv2 = V2.from(to)
 
-        this.x = lerp(this.x, to.x, delta)
-        this.y = lerp(this.y, to.y, delta)
+        this.x = lerp(this.x, inputv2.x, delta)
+        this.y = lerp(this.y, inputv2.y, delta)
         return this
     }
 
@@ -181,12 +181,12 @@ class V2 {
         return this.x ** 2 + this.y ** 2
     }
 
-    public set(vec: V2Signature): this {
+    public set(input: V2Signature): this {
 
-        vec = V2.from(vec)
+        const inputv2 = V2.from(input)
 
-        this.x = vec.x
-        this.y = vec.y
+        this.x = inputv2.x
+        this.y = inputv2.y
 
         return this
     }
