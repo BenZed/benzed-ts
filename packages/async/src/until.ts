@@ -8,7 +8,7 @@ type Condition = ((deltaTime: number) => boolean) | (() => boolean)
 
 type TimeoutMessage = string | ((timeout?: number) => string)
 
-interface Options {
+interface UntilOptions {
     interval?: number
     timeout?: number
     timeoutMsg?: TimeoutMessage
@@ -21,7 +21,7 @@ type UntilArgs =
     [condition: Condition, timeout: number, interval: number, errMsg: TimeoutMessage] |
     [condition: Condition, timeout: number, timeoutMsg: TimeoutMessage] |
     [condition: Condition, timeoutMsg: TimeoutMessage] |
-    [condition: Condition, options: Options]
+    [condition: Condition, options: UntilOptions]
 
 const DEFAULT_INTERVAL = 25 // ms 
 const DEFAULT_TIMEOUT = Infinity
@@ -56,7 +56,7 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
             interval = a2
 
         // Find configuration object
-    } else if (isObject<Options>(a1)) {
+    } else if (isObject<UntilOptions>(a1)) {
         timeout = a1.timeout ?? timeout
         interval = a1.interval ?? interval
         timeoutMsg = a1.timeoutMsg ?? timeoutMsg
@@ -109,5 +109,5 @@ export default until
 
 export {
     until,
-    Options as UntilOptions
+    UntilOptions
 }

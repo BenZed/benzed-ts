@@ -3,7 +3,6 @@ import ValueMap from './value-map'
 /*** Helper ***/
 
 function trimCacheToSize(
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     cache: ValueMap<unknown, unknown>,
     size: number
 ): void {
@@ -12,8 +11,10 @@ function trimCacheToSize(
     const values = cache['_values']
 
     if (cache.size > size) {
-        keys.splice(0, keys.length - size)
-        values.splice(0, values.length - size)
+        const deleteCount = cache.size - size
+
+        keys.splice(0, deleteCount)
+        values.splice(0, deleteCount)
     }
 }
 
@@ -28,7 +29,6 @@ function trimCacheToSize(
 function memoize<K extends unknown[], V>(
     method: (...args: K) => V,
     maxCacheSize = Infinity
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 ): typeof method {
 
     const cache = new ValueMap<K, V>()
@@ -47,7 +47,6 @@ function memoize<K extends unknown[], V>(
 
         return result
     }
-
 }
 
 /*** Exports ***/
