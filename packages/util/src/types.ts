@@ -9,3 +9,9 @@ export type CollectionKeyType<C> = C extends ArrayLike<any>
     : C extends CollectionKeys<infer K>
     /**/ ? K
     /**/ : never
+
+type UnknownObject<T> = { [P in keyof T]: unknown }
+
+export type TypeMatchedKeys<T1, K1 extends keyof T1, T2> = {
+    [K2 in keyof T2]: T2[K2] extends T1[K1] ? K2 : never
+}[keyof T2]

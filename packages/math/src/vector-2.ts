@@ -204,10 +204,8 @@ class V2 {
     }
 
     public toJSON(): V2Json {
-        return {
-            x: this.x,
-            y: this.y
-        }
+        const { x, y } = this
+        return { x, y }
     }
 
     // Symbolic
@@ -219,8 +217,8 @@ class V2 {
     public [$$equals](other: unknown): other is V2 {
         return other != null &&
             other instanceof V2 &&
-            equals(this.x, other.x) &&
-            equals(this.y, other.y)
+            this.x === other.x &&
+            this.y === other.y
     }
 
     public *[Symbol.iterator](): Generator<number> {
