@@ -134,3 +134,4 @@ class ValueMap<K, V> {
 
 export default ValueMap
 
+export { ValueMap }

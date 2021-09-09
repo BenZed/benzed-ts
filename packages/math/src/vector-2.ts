@@ -1,7 +1,7 @@
 import lerp from './lerp'
 
 import { equals, $$copy, $$equals } from '@benzed/immutable'
-import { isArray, isNumber, isObject, isString } from '@benzed/is'
+import { isArray, isArrayOfNumber, isObject, isString } from '@benzed/is'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'
@@ -10,57 +10,67 @@ import { PI } from './constants'
 
 type V2String = `${number},${number}`
 
-type V2ConstructorSignature = [V2String] | [{ x?: number, y?: number }] | number[]
+type V2Json = { x: number, y: number }
+
+type V2Signature = Partial<V2Json> | V2String | [number, number]
+
+type V2ConstructorSignature = [V2Signature] | [number, number]
 
 /*** Main ***/
 
 class V2 {
 
     public static get ZERO(): V2 {
-        return V2.from(0, 0)
+        return new V2(0, 0)
     }
 
     public static get UP(): V2 {
-        return V2.from(0, 1)
+        return new V2(0, 1)
     }
 
     public static get RIGHT(): V2 {
-        return V2.from(1, 0)
+        return new V2(1, 0)
     }
 
     public static get DOWN(): V2 {
-        return V2.from(0, -1)
+        return new V2(0, -1)
     }
 
     public static get LEFT(): V2 {
-        return V2.from(-1, 0)
+        return new V2(-1, 0)
     }
 
-    public static lerp(from: V2, to: V2, delta = 0): V2 {
+    public static lerp(a: V2Signature, b: V2Signature, delta = 0): V2 {
 
-        const x = lerp(from.x, to.x, delta)
-        const y = lerp(from.y, to.y, delta)
+        const av2 = V2.from(a)
+        const bv2 = V2.from(b)
 
-        return V2.from(x, y)
+        const x = lerp(av2.x, bv2.x, delta)
+        const y = lerp(av2.y, bv2.y, delta)
+
+        return new V2(x, y)
     }
 
-    public static distance(from: V2, to: V2): number {
-        return sqrt(this.sqrDistance(from, to))
+    public static distance(a: V2Signature, b: V2Signature): number {
+        return sqrt(this.sqrDistance(a, b))
     }
 
-    public static sqrDistance(from: V2, to: V2): number {
-        return from.sub(to).sqrMagnitude
+    public static sqrDistance(a: V2Signature, b: V2Signature): number {
+        return new V2(a).sub(b).sqrMagnitude
     }
 
-    public static dot(a: V2, b: V2): number {
-        const an = a.normalize()
-        const bn = b.normalize()
+    public static dot(a: V2Signature, b: V2Signature): number {
+        const an = new V2(a).normalize()
+        const bn = new V2(b).normalize()
 
         return an.x * bn.x + an.y * bn.y
     }
 
+    /**
+     * Converts input to a vector, if it isn't already.
+     */
     public static from(...args: V2ConstructorSignature): V2 {
-        return new V2(...args)
+        return args[0] instanceof V2 ? args[0] : new V2(...args)
     }
 
     public x: number
@@ -73,27 +83,34 @@ class V2 {
         if (isString(args[0]))
             args = args[0].split(',').map(parseFloat) as [number, number]
 
+        else if (isArray(args[0]))
+            args = args[0]
+
         else if (isObject(args[0])) {
             x = args[0].x
             y = args[0].y
         }
 
-        if (isArray(args))
-            [x, y] = (args as number[]).filter(isNumber) as number[]
+        if (isArrayOfNumber(args))
+            [x, y] = args
 
         this.x = x ?? 0
         this.y = y ?? 0
     }
 
-    public add(vec: V2): this {
-        this.x += vec.x
-        this.y += vec.y
+    public add(input: V2Signature): this {
+        const inputv2 = V2.from(input)
+
+        this.x += inputv2.x
+        this.y += inputv2.y
         return this
     }
 
-    public sub(vec: V2): this {
-        this.x -= vec.x
-        this.y -= vec.y
+    public sub(input: V2Signature): this {
+        const inputv2 = V2.from(input)
+
+        this.x -= inputv2.x
+        this.y -= inputv2.y
         return this
     }
 
@@ -109,9 +126,12 @@ class V2 {
         return this
     }
 
-    public lerp(to = V2.ZERO, delta = 0): this {
-        this.x = lerp(this.x, to.x, delta)
-        this.y = lerp(this.y, to.y, delta)
+    public lerp(to: V2Signature, delta = 0): this {
+
+        const inputv2 = V2.from(to)
+
+        this.x = lerp(this.x, inputv2.x, delta)
+        this.y = lerp(this.y, inputv2.y, delta)
         return this
     }
 
@@ -161,9 +181,12 @@ class V2 {
         return this.x ** 2 + this.y ** 2
     }
 
-    public set(vector: V2): this {
-        this.x = vector.x
-        this.y = vector.y
+    public set(input: V2Signature): this {
+
+        const inputv2 = V2.from(input)
+
+        this.x = inputv2.x
+        this.y = inputv2.y
 
         return this
     }
@@ -180,24 +203,22 @@ class V2 {
         return `${this.x},${this.y}`
     }
 
-    public toJSON(): { x: number, y: number } {
-        return {
-            x: this.x,
-            y: this.y
-        }
+    public toJSON(): V2Json {
+        const { x, y } = this
+        return { x, y }
     }
 
     // Symbolic
 
     public [$$copy](): V2 {
-        return V2.from(this)
+        return new V2(this)
     }
 
     public [$$equals](other: unknown): other is V2 {
         return other != null &&
             other instanceof V2 &&
-            equals(this.x, other.x) &&
-            equals(this.y, other.y)
+            this.x === other.x &&
+            this.y === other.y
     }
 
     public *[Symbol.iterator](): Generator<number> {
@@ -209,7 +230,7 @@ class V2 {
 
 /*** Util ***/
 
-const v2 = V2.from
+const v2 = (...args: V2ConstructorSignature): V2 => new V2(...args)
 
 /*** Exports ***/
 
@@ -218,6 +239,8 @@ export default V2
 export {
     V2,
     V2String,
+    V2Json,
+    V2Signature,
 
     v2
 }

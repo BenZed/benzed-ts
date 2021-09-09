@@ -6,6 +6,7 @@ import flatten from './flatten'
 import random from './random'
 import ensure from './ensure'
 import remove from './remove'
+import resolveIndex from './resolve-index'
 
 import { min, max } from './min-max'
 import wrap from './wrap'
@@ -29,6 +30,7 @@ export {
 
     ensure,
     remove,
+    resolveIndex,
 
     first,
     last,
