@@ -1,7 +1,6 @@
 import { isFunction } from '@benzed/is'
 
 /* eslint-disable 
-    @typescript-eslint/prefer-readonly-parameter-types,
     @typescript-eslint/no-explicit-any
 */
 

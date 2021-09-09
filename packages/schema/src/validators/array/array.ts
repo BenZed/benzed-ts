@@ -1,6 +1,5 @@
 /* eslint-disable 
-    @typescript-eslint/no-namespace,
-    @typescript-eslint/prefer-readonly-parameter-types
+    @typescript-eslint/no-namespace
 */
 
 import { isArray } from '@benzed/is'
