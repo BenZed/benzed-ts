@@ -19,10 +19,7 @@ describe('until', () => {
 
             it('takes delta ms as argument', async () => {
                 let _delta = 0
-                await until(delta => {
-                    _delta = delta as number
-                    return _delta >= 25
-                })
+                await until(delta => (_delta = delta) >= 25)
 
                 expect(_delta >= 25).toBe(true)
             })
