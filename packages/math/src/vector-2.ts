@@ -230,7 +230,49 @@ class V2 {
 
 /*** Util ***/
 
-const v2 = (...args: V2ConstructorSignature): V2 => new V2(...args)
+interface V2Utility {
+    (...args: V2ConstructorSignature): V2
+
+    zero: V2
+    up: V2
+    right: V2
+    down: V2
+    left: V2
+}
+
+const v2 = ((...args: V2ConstructorSignature): V2 => new V2(...args)) as V2Utility
+
+Object.defineProperties(v2, {
+    zero: {
+        get() {
+            return V2.ZERO
+        }, enumerable: true
+    },
+    up: {
+        get() {
+            return V2.UP
+        },
+        enumerable: true
+    },
+    right: {
+        get() {
+            return V2.RIGHT
+        },
+        enumerable: true
+    },
+    down: {
+        get() {
+            return V2.DOWN
+        },
+        enumerable: true
+    },
+    left: {
+        get() {
+            return V2.LEFT
+        },
+        enumerable: true
+    },
+})
 
 /*** Exports ***/
 
