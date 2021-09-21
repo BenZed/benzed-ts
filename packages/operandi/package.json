@@ -1,6 +1,6 @@
 {
-    "name": "@benzed/schema",
-    "description": "Data validation using JSX",
+    "name": "@benzed/operandi",
+    "description": "Spatial UX View Library",
     "main": "./lib",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
@@ -22,7 +22,8 @@
         "@benzed/array": "*",
         "@benzed/math": "*",
         "@benzed/string": "*",
-        "@benzed/immutable": "*",
-        "@benzed/is": "*"
+        "@benzed/is": "*",
+        "@benzed/util": "*",
+        "@benzed/immutable": "*"
     }
 }
