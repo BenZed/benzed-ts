@@ -1,8 +1,8 @@
+import { Func } from './types'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
-
-type Func = (...args: any[]) => any
 
 type FirstParameter<F extends Func> = Parameters<F>[0]
 
@@ -79,7 +79,7 @@ function thisPop<F extends Func>(
  * @param firstArg 
  * @returns 
  */
-function bindShift<F extends Func, T>(
+function bindShift<F extends Func<any[], any>, T>(
     func: F,
     firstArg: FirstParameter<F>,
 ): BindShifted<F> {
@@ -99,7 +99,7 @@ function bindShift<F extends Func, T>(
  * @param firstArg 
  * @returns 
  */
-function bindPop<F extends Func, T>(
+function bindPop<F extends Func<any[], any>, T>(
     func: F,
     lastArg: LastParameter<F>
 ): BindPopped<F> {
