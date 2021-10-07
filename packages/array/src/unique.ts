@@ -1,50 +1,55 @@
+import { descending } from './sorted-array'
 
-/***************************************************************/
-// Helper
-/***************************************************************/
+/*** Shortcuts ***/
 
-function isIterable<T>(input: object): input is Iterable<T> {
-    return Symbol.iterator in input
-}
+const { splice } = Array.prototype
 
-function* iterate<T>(iterable: ArrayLike<T> | Iterable<T>): Iterable<T> {
-
-    if (typeof iterable === 'string' || isIterable(iterable)) for (const item of iterable)
-        yield item
-
-    else for (let i = 0; i < iterable.length; i++)
-        yield iterable[i]
-}
-
-/******************************************************************************/
-// Main
-/******************************************************************************/
+/*** Main ***/
 
 /**
- * Returns an array of the unique items in the given ArrayLike
- * @param this ArrayLike so this function can be bound as an alternative to providing a first argument
- * @param arrayLike 
+ * Removes all duplicate values in a given array.
+ *
+ * @param  {Array} input ArrayLike to be uniquified
+ * @return {Array} ArrayLike is mutated in place, but method returns it anyway.
  */
-function unique<T>(
-    this: ArrayLike<T> | Iterable<T> | void,
-    arrayLike: ArrayLike<T> | Iterable<T> | void
-): T[] {
+function unique<T extends string | ArrayLike<unknown>>(
+    arrayLike: T
+): typeof arrayLike {
 
-    const arrayUnique: T[] = []
+    if (typeof arrayLike === 'string') {
 
-    if (this !== undefined)
-        arrayLike = this
+        let output = ''
+        for (const char of arrayLike) {
+            if (!output.includes(char))
+                output += char
+        }
 
-    if (arrayLike)
-        for (const item of iterate(arrayLike))
-            if (!arrayUnique.includes(item))
-                arrayUnique.push(item)
+        return output as T
 
-    return arrayUnique
+    } else {
+
+        const indexesToDelete: number[] = []
+        const arraySplice = splice.bind(arrayLike)
+
+        for (let i = 0; i < arrayLike.length; i++) {
+            if (indexesToDelete.includes(i))
+                continue
+
+            for (let ii = i + 1; ii < arrayLike.length; ii++) {
+                if (Object.is(arrayLike[ii], arrayLike[i]))
+                    indexesToDelete.push(ii)
+
+            }
+
+        }
+
+        for (const indexToDelete of indexesToDelete.sort(descending))
+            arraySplice(indexToDelete, 1)
+
+        return arrayLike
+    }
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default unique

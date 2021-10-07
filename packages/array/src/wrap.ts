@@ -1,28 +1,20 @@
-/******************************************************************************/
-// Main
-/******************************************************************************/
+/*** Main ***/
 
 /**
  * Wraps an input in an Array, if it isn't an array already.
  *
- * @param  {type} arr Object to wrap.
+ * @param  {type} value Object to wrap.
  * @return {type}     If input is an array, returns the input, otherwise returns
  *                    an array with the input as the first value.
  */
-function wrap<T>(this: T | T[], arr: T | T[]): T[] {
+function wrap<T>(value: T | T[]): T[] {
 
-    if (this !== undefined)
-        arr = this
-
-    return Array.isArray(arr)
-        ? arr
-        : [arr]
+    return Array.isArray(value)
+        ? value
+        : [value]
 }
 
-
-/******************************************************************************/
-// Exports
-/******************************************************************************/
+/*** Exports ***/
 
 export default wrap
 

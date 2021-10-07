@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "lib": [
-            "esnext"
+            "ESNext",
+            "DOM"
         ],
         "types": [
             "jest",
@@ -20,6 +21,6 @@
         "strict": true,
         // Import non-ES modules as default imports.
         "esModuleInterop": true,
-        "downlevelIteration": true
+        "downlevelIteration": true,
     }
 }

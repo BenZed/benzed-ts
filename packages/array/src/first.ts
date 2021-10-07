@@ -1,26 +1,15 @@
 
 /**
- * 
  * Returns the first element of an ArrayLike.
- * 
- * @param this ArrayLike so this function can be bound as an alternative to providing a first argument
- * @param array 
+ * @param arrayLike 
  */
 function first<T>(
-    this: ArrayLike<T> | void,
-    array: ArrayLike<T> | void
-): T | undefined {
+    arrayLike: ArrayLike<T>
+): (typeof arrayLike) extends readonly [infer FirstT, ...unknown[]] ? FirstT : T | undefined {
 
-    if (this !== undefined)
-        array = this
-
-    return array
-        ? array[0]
-        : undefined
+    return arrayLike[0]
 }
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export default first

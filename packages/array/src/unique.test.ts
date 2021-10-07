@@ -1,68 +1,54 @@
 import unique from './unique'
-import { testOptionallyBindableMethod } from '../../dev/src'
-
 import { inspect } from 'util'
 
-testOptionallyBindableMethod(unique, (_unique: typeof unique) => {
+describe('removes duplicate items from input array', () => {
 
-    describe('returns an array of input without duplicate elements', () => {
-        it('[0,0,1,1,2,2,3,3] >> [0,1,2,3]', () => {
-            const arr = [0, 0, 1, 1, 2, 2, 3, 3]
-            const arr2 = _unique(arr)
+    it('[0,0,1,1,2,2,3,3] >> [0,1,2,3]', () => {
+        const arr = unique([0, 0, 1, 1, 2, 2, 3, 3])
 
-            expect(arr2).toEqual([0, 1, 2, 3])
-        })
-        it('[Function, Function, Object, Object] >> [Function, Object]', () => {
-
-            const arr = [Function, Function, Object, Object]
-            const arr2 = _unique(arr)
-
-            expect(arr2).toHaveLength(2)
-            expect(arr2[0]).toEqual(Function)
-            expect(arr2[1]).toEqual(Object)
-        })
-
+        expect(arr.sort()).toEqual([0, 1, 2, 3])
     })
 
-    describe('works on numerical-length values', () => {
+    it('[Function, Function, Object, Object] >> [Function, Object]', () => {
 
-        const obj: ArrayLike<string> = {
-            0: 'one',
-            1: 'one',
-            length: 2
-        }
+        const arr = [Function, Function, Object, Object]
+        const arr2 = unique(arr)
 
-        it(`${inspect('foobar')} >> ['f','o','b','a','r']`, () => {
-            const str = 'foobar'
-            expect(_unique(str).join('')).toEqual('fobar')
-        })
-        it(`${inspect(obj)} >> ['one']`, () => {
-            expect(_unique(obj)).toEqual(['one'])
-        })
-
+        expect(arr2).toHaveLength(2)
+        expect(arr2[0]).toEqual(Function)
+        expect(arr2[1]).toEqual(Object)
     })
 
-    describe('works on iterables', () => {
+    it('mixed array', () => {
+        const arr = [true, true, 'foo', 'foo', 'bar', 0, NaN, NaN]
+        unique(arr)
+        expect(arr).toEqual([true, 'foo', 'bar', 0, NaN])
+    })
 
-        const map = new Map([[0, 'one'], [1, 'one'], [2, 'one']])
+    it('unsorted array', () => {
+        const arr = 'the quick brown fox jumps over the lazy dog'.split('')
 
-        it(`(${inspect(map)}).values() >> [ 'one' ]`, () => {
-            expect(_unique(map.values())).toEqual(['one'])
-        })
-
-        const custom = {
-            *[Symbol.iterator](this: { [key: string]: string }) {
-                for (const key in this)
-                    yield this[key]
-            },
-            foo: 'bar',
-            baz: 'bar'
-        }
-
-        it('{foo: \'bar\', baz: \'bar\', @@iterator} >> [\'bar\']', () => {
-            expect(_unique(custom)).toEqual(['bar'])
-        })
-
+        expect(unique(arr.join(''))).toEqual('the quickbrownfxjmpsvlazydg')
     })
 
 })
+
+describe('works on numerical-length values', () => {
+
+    const obj: ArrayLike<string> = {
+        0: 'one',
+        1: 'one',
+        length: 2
+    }
+
+    it(`${inspect('foobar')} >> 'fobar'`, () => {
+        const str = 'foobar'
+        expect(unique<string>(str)).toEqual('fobar')
+    })
+
+    it(`${inspect(obj)} >> {"0": "one", "length": 1}`, () => {
+        expect(unique(obj)).toEqual({ 0: 'one', length: 1 })
+    })
+
+})
+

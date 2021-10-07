@@ -3,9 +3,7 @@ import toDashCase from './to-dash-case'
 import capitalize from './capitalize'
 import between from './between'
 
-/***************************************************************/
-// Exports
-/***************************************************************/
+/*** Exports ***/
 
 export {
     toCamelCase,

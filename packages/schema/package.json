@@ -1,0 +1,28 @@
+{
+    "name": "@benzed/schema",
+    "description": "Data validation using JSX",
+    "main": "./lib",
+    "scripts": {
+        "test": "../../node_modules/.bin/jest",
+        "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
+        "build": "eslint src/**/*.ts --fix && npm run tsc",
+        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "@benzed/array": "*",
+        "@benzed/math": "*",
+        "@benzed/string": "*",
+        "@benzed/immutable": "*",
+        "@benzed/is": "*"
+    }
+}

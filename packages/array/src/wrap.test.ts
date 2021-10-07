@@ -1,21 +1,15 @@
 import wrap from './wrap'
-import { testOptionallyBindableMethod } from '../../dev/src'
 
-// eslint-disable-next-line no-unused-vars
+it('ensures an input is an array', () => {
 
-testOptionallyBindableMethod(wrap, (_wrap: typeof wrap) => {
+    expect(wrap(5)).toBeInstanceOf(Array)
+    expect(wrap(5)).toEqual([5])
+})
 
-    it('ensures an input is an array', () => {
+it('returns the input if it is an array', () => {
 
-        expect(_wrap(5)).toBeInstanceOf(Array)
-        expect(_wrap(5)).toEqual([5])
-    })
+    const arr = [1]
 
-    it('returns the input if it is an array', () => {
-
-        const arr = [1]
-
-        expect(_wrap(arr)).toEqual(arr)
-    })
-
+    expect(wrap(arr)).toEqual(arr)
+    expect(wrap(arr) === arr).toBe(true)
 })

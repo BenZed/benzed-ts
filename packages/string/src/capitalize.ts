@@ -6,20 +6,13 @@
  * capitalize('ace') // 'Ace'
  * ```
  * 
- * @param this Optionally bindable
  * @param str String to capitalize, `undefined` or `null` will return `''`.
  * 
  */
-export default function capitalize(this: string | void, str?: string): string {
-
-    if (typeof this === 'string')
-        str = this
-
-    if (str == null)
-        str = ''
+export default function capitalize<S extends string>(str: S): Capitalize<S> {
 
     const firstLetter = str.charAt(0)
-    const restOfTheWord = str.slice(1)
+    const restOfTheString = str.slice(1)
 
-    return firstLetter.toUpperCase() + restOfTheWord
+    return firstLetter.toUpperCase() + restOfTheString as Capitalize<S>
 }

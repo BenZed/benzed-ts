@@ -1,5 +1,5 @@
 /**
- * Gets a substring between the two given delimeters.
+ * Gets a substring between the given delimeter(s).
  * 
  * ```typescript
  *  between('<tag>content</tag>', '<tag>', '</tag>') // 'content'
@@ -12,17 +12,10 @@
  * @return Substring of the source between the two markers. Empty string if nothing found.
  */
 function between(
-    this: string | void,
     str: string,
     open: string,
     close = open
 ): string {
-
-    if (typeof this === 'string') {
-        close = open === undefined ? str : open
-        open = str
-        str = this
-    }
 
     if (!open || !close)
         throw new Error('delimeters must not be empty')
@@ -40,8 +33,6 @@ function between(
     return str.substr(openIndex, closeIndex + close.length)
 }
 
-/******************************************************************************/
-// Exports
-/******************************************************************************/
+/*** Exports ***/
 
 export default between
