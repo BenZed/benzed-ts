@@ -22,4 +22,3 @@ export type Json =
     null | string | number | boolean |
     Json[] |
     { [prop: string]: Json }
-

@@ -2,6 +2,7 @@
     "name": "@benzed/math",
     "description": "My own personal Math module, extending Math with overridden or custom functionality.",
     "main": "./lib",
+    "version": "3.0.0",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",

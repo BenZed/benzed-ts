@@ -2,6 +2,7 @@
     "name": "@benzed/immutable",
     "description": "My own library for manipulating objects immutably.",
     "main": "./lib",
+    "version": "3.0.0",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
