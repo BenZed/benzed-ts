@@ -4,7 +4,7 @@ import createNumberValidator from './number'
 
 describe('number validator', () => {
 
-    let weirdNumberValidator: Validator<unknown, number>
+    let weirdNumberValidator: Validator<unknown, number | undefined>
     beforeAll(() => {
         weirdNumberValidator = createNumberValidator({
             required: false,
@@ -27,6 +27,11 @@ describe('number validator', () => {
     })
 
     it('can be configured to use the required sanitizer', () => {
-        expect(() => weirdNumberValidator(undefined)).toThrow('is required')
+
+        const requiredNumberValidator = createNumberValidator({
+            required: true
+        })
+
+        expect(() => requiredNumberValidator(undefined)).toThrow('is required')
     })
 })

@@ -1,6 +1,7 @@
 /* eslint-disable 
     @typescript-eslint/no-namespace,
-    @typescript-eslint/prefer-readonly-parameter-types
+    @typescript-eslint/prefer-readonly-parameter-types,
+    @typescript-eslint/ban-types
 */
 
 import { isObject } from '@benzed/is'
@@ -12,8 +13,7 @@ import createTypeValidator, {
 
 /*** Types ***/
 
-type ObjectValidatorProps =
-    ValidatorProps<object>
+type ObjectValidatorProps = ValidatorProps<object>
 
 /*** Main ***/
 
@@ -26,7 +26,6 @@ function createObjectValidator<P extends ObjectValidatorProps>(
         test: isObject,
         validate: []
     })
-
 }
 
 /*** Exports ***/
