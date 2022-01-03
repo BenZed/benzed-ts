@@ -37,7 +37,6 @@ function createArrayValidator<P extends ArrayValidatorProps>(
             createLengthValidator(props)
         ]
     })
-
 }
 
 /*** Exports ***/

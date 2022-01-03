@@ -30,9 +30,9 @@ function tryCastToNumber(value: unknown): unknown {
 
 /*** Main ***/
 
-function createNumberValidator<P extends NumberValidatorProps>(
-    props: P
-): TypeValidatorFactoryOutput<P, unknown, number> {
+function createNumberValidator(
+    props: NumberValidatorProps
+): TypeValidatorFactoryOutput<NumberValidatorProps, unknown, number> {
 
     return createTypeValidator(props, {
         name: 'Number',

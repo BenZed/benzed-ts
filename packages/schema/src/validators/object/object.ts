@@ -17,9 +17,9 @@ type ObjectValidatorProps = ValidatorProps<object>
 
 /*** Main ***/
 
-function createObjectValidator<P extends ObjectValidatorProps>(
-    props: P
-): TypeValidatorFactoryOutput<P, unknown, object> {
+function createObjectValidator(
+    props: ObjectValidatorProps
+): TypeValidatorFactoryOutput<ObjectValidatorProps, unknown, object> {
 
     return createTypeValidator(props, {
         name: 'Object',

@@ -3,7 +3,8 @@
     @typescript-eslint/prefer-readonly-parameter-types
 */
 
-import { isBoolean } from '@benzed/is'
+import { isBoolean, isString } from '@benzed/is'
+
 import createTypeValidator, {
     ValidatorProps,
     TypeValidatorFactoryOutput
@@ -16,20 +17,24 @@ type BooleanValidatorProps =
 
 /*** Helper ***/
 
-function tryCastToBoolean(value: unknown): unknown {
+function castToBoolean(value: unknown): boolean {
+
+    if (value === 'false')
+        return false
+
     return !!value
 }
 
 /*** Main ***/
 
-function createBooleanValidator<P extends BooleanValidatorProps>(
-    props: P
-): TypeValidatorFactoryOutput<P, unknown, boolean> {
+function createBooleanValidator(
+    props: BooleanValidatorProps
+): TypeValidatorFactoryOutput<BooleanValidatorProps, unknown, boolean> {
 
     return createTypeValidator(props, {
         name: 'Boolean',
         test: isBoolean,
-        cast: tryCastToBoolean,
+        cast: castToBoolean,
         validate: []
     })
 
