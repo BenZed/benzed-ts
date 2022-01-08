@@ -9,6 +9,7 @@
 
 import is, { Constructor, isDefined, isFunction } from '@benzed/is'
 import { wrap } from '@benzed/array'
+
 import pipeValidators from '../util/pipe-validators'
 import ValidationError from '../util/validation-error'
 
@@ -82,9 +83,9 @@ interface TypeConstructorValidatorConfig<T> extends TypeValidatorConfig<T> {
     type: Constructor<T>
 }
 
-type Immutable = symbol | string | number | boolean
+type Primitive = symbol | string | number | boolean
 
-type DefaultProp<T> = T extends Immutable
+type DefaultProp<T> = T extends Primitive
     ? T | (() => T)
     : () => T
 
@@ -98,7 +99,7 @@ interface ValidatorProps<T> {
     /**
      * Field is required.
      */
-    required?: boolean | RequiredValueErrorFormat
+    optional?: boolean
 
     /**
      * 
@@ -120,9 +121,9 @@ interface ValidatorProps<T> {
 type TypeValidatorFactoryOutput<P extends ValidatorProps<O> | undefined, I, O = I> =
     P extends undefined
     ? null
-    : P extends { required: true | TypeValidationErrorFormat } | { default: DefaultProp<O> }
-    ? Validator<I, O>
-    : Validator<I, O | undefined>
+    : P extends { optional: true }
+    ? Validator<I, O | undefined>
+    : Validator<I, O>
 
 type ValidatorFactoryOutput<P, PK extends keyof P, PKV, VO> =
     P[PK] extends PKV ? Validator<VO> : null
@@ -178,10 +179,9 @@ function createTypeValidator<P extends ValidatorProps<O>, I, O = I>(
             )
         }
 
-        if (props.required && !isDefined(output) && !isType(output)) {
+        if (!props.optional && !isDefined(output) && !isType(output)) {
             throw new RequiredValueError(
                 'value', // TODO replace with path of value currently being validated
-                isFunction(props.required) ? props.required : undefined
             )
         }
 

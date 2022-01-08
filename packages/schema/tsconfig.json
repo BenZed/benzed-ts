@@ -1,12 +1,7 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "types": [
-            "node"
-        ],
         "outDir": "./lib",
-        "jsx": "react",
-        "jsxFactory": "createValidator"
     },
     "include": [
         "./src"

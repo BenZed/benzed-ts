@@ -1,7 +1,3 @@
 {
-    "extends": "../../tsconfig.test.json",
-    "compilerOptions": {
-        "jsx": "react",
-        "jsxFactory": "createValidator"
-    }
+    "extends": "../../tsconfig.test.json"
 }

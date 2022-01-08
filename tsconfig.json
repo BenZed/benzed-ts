@@ -5,7 +5,6 @@
             "DOM"
         ],
         "types": [
-            "jest",
             "node"
         ],
         // Build Options

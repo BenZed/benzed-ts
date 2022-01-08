@@ -23,6 +23,7 @@
         "@benzed/math": "*",
         "@benzed/string": "*",
         "@benzed/immutable": "*",
-        "@benzed/is": "*"
+        "@benzed/is": "*",
+        "@benzed/util": "*"
     }
 }
