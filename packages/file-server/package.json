@@ -20,6 +20,12 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/is": "*"
+        "@benzed/is": "*",
+        "@benzed/array": "*",
+        "@benzed/math": "*",
+        "fluent-ffmpeg": "^2.1.2"
+    },
+    "devDependencies": {
+        "@types/fluent-ffmpeg": "^2.1.20"
     }
 }
