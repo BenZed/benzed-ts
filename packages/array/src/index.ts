@@ -1,3 +1,6 @@
+
+// TODO clean this up
+
 import adjacent from './adjacent'
 import shuffle from './shuffle'
 import unique from './unique'
@@ -8,16 +11,12 @@ import ensure from './ensure'
 import remove from './remove'
 import resolveIndex from './resolve-index'
 
-import { min, max } from './min-max'
 import wrap from './wrap'
 import unwrap from './unwrap'
 import first from './first'
 import last from './last'
 
-import SortedArray, { ascending, descending } from './sorted-array'
-import type { Sortable } from './sorted-array'
-
-/*** Public Exports ***/
+/*** Exports ***/
 
 export {
 
@@ -34,14 +33,12 @@ export {
 
     first,
     last,
-    min,
-    max,
     wrap,
     unwrap,
 
-    SortedArray,
-    Sortable,
-    ascending,
-    descending,
-
 }
+
+export * from './min-max'
+export * from './adjacent'
+export * from './sorted-array'
+export * from './priority-find'
