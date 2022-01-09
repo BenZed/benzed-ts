@@ -1,131 +1,142 @@
 import { Json } from '@benzed/util'
+/* eslint-disable @typescript-eslint/indent */
 
 /*** Validator ***/
 
-type Validator<T extends Json> = (input: unknown) => T
+type Validator<T extends Readonly<Json>> = (input: unknown) => T
 
 /*** Schema ***/
+abstract class Schema<T extends Readonly<Json>> {
 
-abstract class Schema<T> {
+    public get default(): T {
+        // TODO provide default
+        return undefined as unknown as T
+    }
 
-    private readonly _validators: Validator<SchemaOutput<T>>[] = []
-
-    public get output(): SchemaOutput<T> {
+    public get output(): T {
         return this.default
     }
 
-    // TODO this should return a default value
-    public get default(): SchemaOutput<T> {
-        return null as unknown as SchemaOutput<T>
-    }
-
-    public validate: Validator<SchemaOutput<T>> = (input: unknown): SchemaOutput<T> => {
-        const { _validators: validators } = this
-
-        let output = input as SchemaOutput<T>
-        for (const validator of validators)
-            output = validator(output)
-
-        return output
-    }
+    public validate: Validator<T> = (input: unknown): T =>
+        input as T
 }
 
-abstract class PrimitiveSchema<T extends number | string | boolean> extends Schema<T> {
-    public constructor (defaultValue?: T | (() => T)) {
+/*** Primitive Schemas ***/
+
+abstract class PrimitiveSchema<T extends number | boolean | string>
+    extends Schema<T> {
+
+    public constructor (
+        protected defaultValue?: T
+    ) {
         super()
-        void defaultValue
     }
+
 }
 
-class NumberSchema<T extends number = number> extends PrimitiveSchema<T> { }
+class StringSchema<T extends string = string> extends PrimitiveSchema<T> {
 
-class StringSchema<T extends string = string> extends PrimitiveSchema<T> { }
+}
 
-class BooleanScheam<T extends boolean = boolean> extends PrimitiveSchema<T> { }
+class NumberSchema<T extends number = number> extends PrimitiveSchema<T> {
 
-type ArraySchemaInput = Schema<Json> | { [key: string]: ArraySchemaInput | [ArraySchemaInput] }
-class ArraySchema<T extends ArraySchemaInput>
-    extends Schema<T[]> {
+}
 
-    public constructor (of: T) {
+class BooleanSchema<T extends boolean = boolean> extends PrimitiveSchema<T> {
+
+}
+
+/*** Shape Schema Schemas ***/
+
+class ShapeSchema<T extends { [key: string]: Json }> extends Schema<T> {
+
+    public constructor (input: { [key: string]: SchemaInput }) {
         super()
-        void of
+        void input
     }
+
 }
 
-type ShapeSchemaInput = {
-    [key: string]: Schema<Json> | [Schema<Json>] | ShapeSchemaInput | [ShapeSchemaInput]
-}
-class ShapeSchema<T extends ShapeSchemaInput>
-    extends Schema<T>{
+class TupleSchema<T extends readonly Json[]> extends Schema<T> {
 
-    public constructor (shape: T) {
+    public constructor (input: SchemaInput[]) {
         super()
-        void shape
+        void input
     }
+
 }
 
-type OrSchemaInput = (
-    Schema<Json> | ArraySchemaInput | [ArraySchemaInput] | ShapeSchemaInput
-)[]
-class OrSchema<T> extends Schema<T> {
-    public constructor (...schemas: OrSchemaInput) {
+class OrSchema<T extends readonly Json[]> extends Schema<T> {
+
+    public constructor (...input: SchemaInput[]) {
         super()
-        void schemas
+        void input
     }
+
 }
 
-/*** Util ***/
+/***  ***/
 
-interface SchemaUtility {
+type SchemaInput =
+    | Schema<Json>
 
-    <T extends ShapeSchemaInput>(shape: T): ShapeSchema<T>
+    | readonly SchemaInput[]
+    | SchemaInput[]
 
-    shape<T extends ShapeSchemaInput>(shape: T): ShapeSchema<T>
+    | { [key: string]: SchemaInput }
 
-    string<T extends string>(defaultValue?: T): StringSchema<T>
-    boolean<T extends boolean>(defaultValue?: T): BooleanScheam<T>
-    number<T extends number>(defaultValue?: T): NumberSchema<T>
+type SchemaOutput<T> = T extends Json
+    ? T
 
-    array<T extends ArraySchemaInput>(schema: T): ArraySchema<T>
-
-    or<T extends OrSchemaInput>(...schemas: T): OrSchema<T[number]>
-    // enum()
-}
-
-/* eslint-disable @typescript-eslint/indent */
-
-type SchemaOutput<T> = T extends Schema<infer U>
-    ? SchemaOutput<U>
-
-    : T extends Array<infer U>
-    ? SchemaOutput<U>[]
+    : T extends Schema<infer S>
+    ? S
 
     : T extends { [key: string]: unknown }
     ? { [K in keyof T]: SchemaOutput<T[K]> }
 
-    : T extends Json
-    ? T
+    : T extends Array<infer A>
+    ? SchemaOutput<readonly A[]>
+
+    : T extends readonly [...infer A]
+    ? { [I in keyof A]: SchemaOutput<A[I]> }
 
     : never
 
-/* eslint-enable @typescript-eslint/indent */
+/*** Utility ***/
 
-const createValidatorUtility = (): SchemaUtility => {
+interface SchemaUtility {
 
-    const $: SchemaUtility = shape => new ShapeSchema(shape)
+    <T extends { [key: string]: SchemaInput }>(input: T): ShapeSchema<SchemaOutput<T>>
 
-    $.shape = shape => new ShapeSchema(shape)
-    $.array = shape => new ArraySchema(shape)
-    $.string = <T extends string>(defaultValue?: T) => new StringSchema<T>(defaultValue)
-    $.number = <T extends number>(defaultValue?: T) => new NumberSchema<T>(defaultValue)
-    $.boolean = <T extends boolean>(defaultValue?: T) => new BooleanScheam<T>(defaultValue)
-    $.or = (...schemas: OrSchemaInput) => new OrSchema(...schemas)
+    shape<T extends { [key: string]: SchemaInput }>(input: T): ShapeSchema<SchemaOutput<T>>
+    tuple<T extends SchemaInput[]>(input: T): TupleSchema<SchemaOutput<T>>
+
+    number<T extends number>(defaultValue?: T): NumberSchema<T>
+    string<T extends string>(defaultValue?: T): StringSchema<T>
+    boolean<T extends boolean>(defaultValue?: T): BooleanSchema<T>
+
+    or<T extends SchemaInput[]>(...input: T): OrSchema<SchemaOutput<T>[number]>
+}
+
+const createSchemaUtility = (): SchemaUtility => {
+
+    const $: SchemaUtility = input => new ShapeSchema(input)
+
+    $.shape = input => new ShapeSchema(input)
+    $.tuple = input => new TupleSchema(input)
+
+    $.string = defaultValue => new StringSchema(defaultValue)
+    $.number = defaultValue => new NumberSchema(defaultValue)
+    $.boolean = defaultValue => new BooleanSchema(defaultValue)
+
+    $.or = (...input) => new OrSchema(...input)
 
     return $
 }
 
-const $ = createValidatorUtility()
+const $ = createSchemaUtility()
+
+/* eslint-enable @typescript-eslint/indent */
 
 /*** Exports ***/
 
@@ -134,15 +145,13 @@ export default $
 export {
     $,
 
-    Validator,
-    SchemaOutput,
-
-    Schema,
     StringSchema,
     NumberSchema,
-    BooleanScheam,
-    ArraySchema,
+    BooleanSchema,
+
     ShapeSchema,
 
-    OrSchema,
+    TupleSchema,
+
+    OrSchema
 }
