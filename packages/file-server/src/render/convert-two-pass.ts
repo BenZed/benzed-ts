@@ -2,7 +2,6 @@ import ffmpeg from 'fluent-ffmpeg'
 
 import os from 'os'
 import path from 'path'
-import fs from 'fs'
 
 import {
     AudioOptions,
@@ -16,8 +15,8 @@ import {
 } from './options'
 import { getSize } from './util'
 
-import { isDefined } from '@benzed/is'
 import { first } from '@benzed/array'
+import { isDefined } from '@benzed/is'
 import { RequirePartial } from '@benzed/util'
 
 /*** Types ***/
@@ -34,7 +33,7 @@ type ConvertTwoPass =
 /*** Constants ***/
 
 const VIDEO_CODEC = 'libx264'
-const PASS_LOG_FILE_PREFIX = 'bz-fs-pl'
+const PASS_LOG_FILE_PREFIX = 'benzed-renderer-passlog'
 
 /*** Main ***/
 
@@ -107,11 +106,6 @@ async function convertTwoPass(
             .output(output)
             .run()
     })
-
-    // Delete temp first pass file
-    await new Promise<void>(resolve =>
-        fs.unlink(firstPassUrl, () => resolve())
-    )
 
     const renderTime = Date.now() - start
     return renderTime

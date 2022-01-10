@@ -2,11 +2,12 @@
     "name": "@benzed/file-server",
     "description": "My own file server/preview renderer.",
     "main": "./lib",
-    "version": "3.0.0",
+    "version": "0.0.1",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch --maxWorkers=1 -o",
-        "build": "eslint src/**/*.ts --fix && npm run tsc",
+        "build": "npm run lint && npm run tsc",
+        "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
         "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
     "repository": {
@@ -27,7 +28,6 @@
         "fluent-ffmpeg": "^2.1.2"
     },
     "devDependencies": {
-        "@types/fluent-ffmpeg": "^2.1.20",
-        "isomorphic-fetch": "^3.0.0"
+        "@types/fluent-ffmpeg": "^2.1.20"
     }
 }
