@@ -1,4 +1,6 @@
 
+/*** Shortcuts ***/
+
 const { findIndex } = Array.prototype
 
 /*** Type ***/

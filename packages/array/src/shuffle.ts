@@ -12,7 +12,7 @@ const { floor, random } = Math
  */
 function shuffle<T extends ArrayLike<unknown>>(
     input: T
-): typeof input {
+): T {
 
     let index = input.length - 1
 

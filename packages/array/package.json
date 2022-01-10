@@ -5,7 +5,7 @@
     "main": "./lib",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
-        "test:dev": "../../node_modules/.bin/jest --verbose --watch",
+        "test:dev": "../../node_modules/.bin/jest --verbose --watch --maxWorkers=1 -o",
         "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
         "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
