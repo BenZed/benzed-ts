@@ -8,11 +8,11 @@ import { SizeOptions } from './options'
  */
 export function getSize(input: SizeOptions): string | undefined {
 
-    if ('dimension' in input) {
-        return isNumber(input.dimension)
-            ? `${input.dimension}x${input.dimension}`
-            : input.dimension
-    }
+    if ('dimensions' in input && isNumber(input.dimensions))
+        return `${input.dimensions}x${input.dimensions}`
+
+    if ('scale' in input && isNumber(input.scale))
+        return `${input.scale * 100}%`
 
     const width = 'width' in input ? input.width : '?'
     const height = 'height' in input ? input.height : '?'

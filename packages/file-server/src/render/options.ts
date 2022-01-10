@@ -64,7 +64,8 @@ export type SizeOptions =
     | Height
     | Width
     | (Height & Width)
-    | { dimension?: number | `${number}%` }
+    | { dimensions?: number }
+    | { scale?: number }
 
 /*** Selection ***/
 

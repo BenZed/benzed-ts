@@ -4,7 +4,7 @@ import { getMetadata } from './get-metadata'
 import { ImageOutputFormats, Input, Output, SizeOptions, TimeOptions } from './options'
 
 import { clamp } from '@benzed/math'
-import { isDefined } from '@benzed/is/lib'
+import { isDefined, isString } from '@benzed/is/lib'
 import { getSize } from './util'
 
 /*** Types ***/
@@ -61,10 +61,12 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
     const cmd = ffmpeg(input)
 
     const timeStamp = await getTime(options)
-    cmd.addOutputOptions([
-        `-ss ${timeStamp}`,
-        '-vframes 1',
-    ])
+    cmd.videoCodec('png')
+        .seek(timeStamp)
+        .frames(1)
+
+    if (!isString(output))
+        cmd.format('image2pipe')
 
     const size = getSize(options)
     if (isDefined(size))
@@ -72,11 +74,16 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
 
     const start = Date.now()
 
-    await new Promise((resolve, reject) => cmd.on('end', resolve)
-        .on('error', reject)
-        .output(output)
-        .run()
-    )
+    try {
+        await new Promise((resolve, reject) => cmd.on('end', resolve)
+            .on('error', reject)
+            .output(output)
+            .run()
+        )
+    } catch (e) {
+        console.log(cmd)
+        throw e
+    }
 
     const renderTime = Date.now() - start
     return renderTime
