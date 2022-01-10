@@ -5,7 +5,7 @@
     "version": "3.0.0",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
-        "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
+        "test:dev": "../../node_modules/.bin/jest --verbose --watch --maxWorkers=1 -o",
         "build": "eslint src/**/*.ts --fix && npm run tsc",
         "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
@@ -23,9 +23,11 @@
         "@benzed/is": "*",
         "@benzed/array": "*",
         "@benzed/math": "*",
+        "@benzed/util": "*",
         "fluent-ffmpeg": "^2.1.2"
     },
     "devDependencies": {
-        "@types/fluent-ffmpeg": "^2.1.20"
+        "@types/fluent-ffmpeg": "^2.1.20",
+        "isomorphic-fetch": "^3.0.0"
     }
 }

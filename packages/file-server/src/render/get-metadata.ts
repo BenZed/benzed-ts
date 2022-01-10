@@ -1,93 +1,82 @@
-import { Readable } from 'stream'
-import os from 'os'
-import path from 'path'
-
 import ffmpeg, { FfprobeData, FfprobeStream } from 'fluent-ffmpeg'
 
-import { isNumber, isString } from '@benzed/is'
+import { isNaN, isString } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
+import { round } from '@benzed/math'
 
-import { convertVideo } from './convert-video'
-import unlink from './unlink'
+import {
+    Duration,
+    Width,
+    Height,
+    Input,
+
+} from './options'
 
 /*** Type ***/
 
-type Duration = {
-    duration: number
-}
-
-type MetaData<Audio extends boolean = false> = Audio extends true
-    ? Duration
-    : Duration & {
-        height: number
-        width: number
+type Metadata =
+    Partial<Width & Height & Duration> &
+    {
+        format?: string
+        size?: number
+        frameRate?: number
     }
 
-interface GetMetaDataOptions<A> {
-    audio?: A
-    source: string | Readable
-}
+type GetMetadataOptions = Input
 
 /*** Helper ***/
 
-/**
- * Couldn't come up with another way to get the duration of a .gif
- */
-async function getGifDuration(source: string | Readable): Promise<number> {
-    const tmpVideo = path.join(os.tmpdir(), `${Date.now()}.mp4 `)
+function parseOutputDuration(
+    stream: FfprobeStream,
+): number | undefined {
 
-    await convertVideo({
-        input: source,
-        output: tmpVideo,
+    const duration = isString(stream.duration)
+        ? parseFloat(stream.duration)
+        : stream.duration
 
-        // video quality is 
-        vbr: 4,
-        dimension: 4,
-    })
-
-    const { duration } = await getMetadata({ source: tmpVideo })
-
-    await unlink(tmpVideo)
-
-    return duration
+    return isNaN(duration) ? undefined : duration
 }
 
-async function getDuration(
-    source: string | Readable,
+function parseOutputFrameRate(
     stream: FfprobeStream
-): Promise<number | undefined> {
+): number | undefined {
 
-    const isGif = stream.codec_name === 'gif'
+    // So that we're not returning a framerate on streams that 
+    // don't have a duration.
+    const duration = parseOutputDuration(stream)
+    if (!duration)
+        return undefined
 
-    const duration = isGif
-        ? await getGifDuration(source)
+    const frameRateFraction = stream.avg_frame_rate
+    if (!frameRateFraction)
+        return undefined
 
-        : isString(stream.duration)
-            ? parseFloat(stream.duration)
-            : stream.duration
+    const [numerator, denominator] = frameRateFraction.split('/').map(parseFloat)
 
-    return duration
+    const frameRate = numerator / denominator
+    return isNaN(frameRate) ? undefined : round(frameRate, 0.001)
 
 }
 
 /*** Main ***/
 
-async function getMetadata<Audio extends boolean>(
-    options: GetMetaDataOptions<Audio>
-): Promise<MetaData<Audio>> {
+async function getMetadata(
+    options: GetMetadataOptions
+): Promise<Metadata> {
 
-    const { source, audio = false } = options
+    const { input } = options
 
     // Probe source
     const probed = await new Promise<FfprobeData>((resolve, reject) =>
-        ffmpeg(source).ffprobe((err, probed) => err
+        ffmpeg(input).ffprobe((err, probed) => err
             ? reject(err)
             : resolve(probed)
         )
     )
 
     // Get stream
-    const stream = priorityFind(probed.streams,
+    const stream = priorityFind(
+        probed.streams,
         stream => stream.codec_type === 'video',
         stream => stream.codec_type === 'audio'
     )
@@ -97,24 +86,16 @@ async function getMetadata<Audio extends boolean>(
         )
     }
 
-    const duration = await getDuration(source, stream)
-    if (!isNumber(duration)) {
-        throw new Error(
-            'Could not get duration from source.'
-        )
-    }
-
     const { width, height } = stream
-    if (!audio && (!isNumber(width) || !isNumber(height))) {
-        throw new Error(
-            'Could not get dimensions from source.'
-        )
+
+    return {
+        width,
+        height,
+        size: probed.format.size,
+        format: stream.codec_name,
+        duration: parseOutputDuration(stream),
+        frameRate: parseOutputFrameRate(stream)
     }
-
-    return (
-        audio ? { duration } : { width, height, duration }
-    ) as MetaData<Audio>
-
 }
 
 /*** Exports ***/
@@ -123,7 +104,7 @@ export default getMetadata
 
 export {
     getMetadata,
-    GetMetaDataOptions,
+    GetMetadataOptions,
 
-    MetaData
+    Metadata
 }

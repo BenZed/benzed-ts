@@ -1,61 +1,54 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import { Readable, Writable } from 'stream'
 import { getMetadata } from './get-metadata'
+import { ImageOutputFormats, Input, Output, SizeOptions, TimeOptions } from './options'
 
 import { clamp } from '@benzed/math'
+import { isDefined } from '@benzed/is/lib'
+import { getSize } from './util'
 
 /*** Types ***/
 
-type ExtractFrameOptions = {
-
-    input: string | Readable
-    output: string | Writable
-
-} & ({
-
-    /**
-        * Time, in seconds, in the video where 
-        * the frame should be extract from.
-        * 
-        * Negative values will be interpreted 
-        * as a timestamp counting from the end 
-        * of the video.
-        */
-    time: number
-
-} | {
-
-    /**
-        * A value between 0-1 that corresponds to 
-        * a 
-        */
-    progress: number
-})
+type ExtractFrameOptions =
+    & Input
+    & Output<ImageOutputFormats>
+    & TimeOptions
+    & SizeOptions
 
 /*** Helper ***/
 
-async function getTimestamp(options: ExtractFrameOptions): Promise<number> {
+async function getTime(options: ExtractFrameOptions): Promise<number> {
 
     const { input } = options
-    const { duration } = await getMetadata({ source: input })
+    const { duration, frameRate } = await getMetadata({ input })
+
+    if (!isDefined(duration) || !isDefined(frameRate))
+        return 0
 
     if ('time' in options) {
 
         const { time } = options
-        return time >= 0
+        const timeStamp = time >= 0
 
             // from beginning
             ? clamp(time, 0, duration)
 
             // from end
             : clamp(duration + time, 0, duration)
+        return timeStamp
 
     } else {
 
         const { progress } = options
 
-        return clamp(progress) * duration
+        const frameDuration = 1 / frameRate
+
+        // progress 1 should map to the last frame, 
+        // not the end of the stream (which results in no output file)
+        const maxProgress = duration - frameDuration
+
+        const timeStamp = clamp(progress * maxProgress, 0, duration)
+        return timeStamp
     }
 }
 
@@ -65,17 +58,21 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
 
     const { input, output } = options
 
-    const timeStamp = await getTimestamp(options)
+    const cmd = ffmpeg(input)
+
+    const timeStamp = await getTime(options)
+    cmd.addOutputOptions([
+        `-ss ${timeStamp}`,
+        '-vframes 1',
+    ])
+
+    const size = getSize(options)
+    if (isDefined(size))
+        cmd.setSize(size)
 
     const start = Date.now()
 
-    await new Promise((resolve, reject) => ffmpeg(input)
-        .addInputOption([
-            `-ss ${timeStamp}`,
-            '-vframes 1',
-            '-y'
-        ])
-        .on('end', resolve)
+    await new Promise((resolve, reject) => cmd.on('end', resolve)
         .on('error', reject)
         .output(output)
         .run()

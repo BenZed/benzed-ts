@@ -1,68 +1,48 @@
-import { Readable, Writable } from 'stream'
+import ffmpeg from 'fluent-ffmpeg'
 
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
 
-import ffmpeg from 'fluent-ffmpeg'
+import {
+    AudioOptions,
+    Input,
+    Output,
+    SizeOptions,
+    VideoOptions,
+    VideoOutputFormats,
+    VIDEO_OUTPUT_FORMATS,
+
+} from './options'
+import { getSize } from './util'
+
+import { isDefined } from '@benzed/is'
+import { first } from '@benzed/array'
+import { RequirePartial } from '@benzed/util'
 
 /*** Types ***/
 
-type DimensionOptions = {
-    height: number
-} | {
-    width: number
-} | {
-    height: number
-    width: number
-} | {
-    dimension?: number | `${number}%`
-}
+type VideoOptionsVbrRequired = RequirePartial<VideoOptions, 'vbr'>
 
-type ConverVideoOptions = {
-
-    input: string | Readable
-    output: string | Writable
-
-    /**
-     * Video bit rate
-     */
-    vbr?: number
-
-    /**
-     * Audio bit rate
-     */
-    abr?: number
-
-    /**
-     * Frame rate
-     */
-    fps?: number
-
-} & DimensionOptions
+type ConvertTwoPass =
+    & Input
+    & Output<VideoOutputFormats>
+    & SizeOptions
+    & VideoOptionsVbrRequired
+    & AudioOptions
 
 /*** Constants ***/
 
-const VIDEO_FORMAT = 'mp4'
 const VIDEO_CODEC = 'libx264'
-
-/*** Helper ***/
-
-function getSize(input: DimensionOptions): string | undefined {
-
-    if ('dimension' in input)
-        return input.dimension?.toString()
-
-    const width = 'width' in input ? input.width : '?'
-    const height = 'height' in input ? input.height : '?'
-
-    return `${width}x${height}`
-}
+const PASS_LOG_FILE_PREFIX = 'bz-fs-pl'
 
 /*** Main ***/
 
-async function convertVideo(
-    options: ConverVideoOptions
+/**
+ * Converts a source stream to an mp4 
+ */
+async function convertTwoPass(
+    options: ConvertTwoPass
 ): Promise<number> {
 
     const {
@@ -70,18 +50,22 @@ async function convertVideo(
         abr,
         fps,
         input,
-        output
+        output,
+        format = first.assert(VIDEO_OUTPUT_FORMATS)
     } = options
 
     // Create command from options
     const cmd = ffmpeg(input)
         .videoCodec(VIDEO_CODEC)
-        .format(VIDEO_FORMAT)
+        .format(format)
 
-    if (vbr !== undefined && vbr > 0)
+    // Optionally set bit rate
+    if (isDefined(vbr) && vbr > 0)
         cmd.videoBitrate(vbr)
+    if (isDefined(fps) && fps > 0)
+        cmd.outputFPS(fps)
 
-    if (abr === undefined || abr <= 0)
+    if (!isDefined(abr) || abr <= 0)
         cmd.noAudio()
     else
         cmd.audioBitrate(abr)
@@ -90,17 +74,19 @@ async function convertVideo(
     if (size)
         cmd.size(size)
 
-    if (fps !== undefined && fps > 0)
-        cmd.outputFPS(fps)
-
     // Execute First Pass
     const start = Date.now()
+
     const firstPassUrl = path.join(os.tmpdir(), start.toString())
+
+    // Required for two-pass encoding.
+    const firstPassLogFile = path.join(os.tmpdir(), PASS_LOG_FILE_PREFIX)
 
     await new Promise((resolve, reject) => {
         const pass1Cmd = cmd.clone()
         pass1Cmd
-            .addInputOption([
+            .addOutputOptions([
+                `-passlogfile ${firstPassLogFile}`,
                 '-pass 1'
             ])
             .on('error', reject)
@@ -112,9 +98,9 @@ async function convertVideo(
     await new Promise((resolve, reject) => {
         const pass2Cmd = cmd.clone()
         pass2Cmd
-            .addInputOption([
+            .addOutputOptions([
+                `-passlogfile ${firstPassLogFile}`,
                 '-pass 2',
-                '-y' // overwrite flag
             ])
             .on('error', reject)
             .on('end', resolve)
@@ -133,9 +119,9 @@ async function convertVideo(
 
 /*** Exports ***/
 
-export default convertVideo
+export default convertTwoPass
 
 export {
-    convertVideo,
-    ConverVideoOptions,
+    convertTwoPass,
+    ConvertTwoPass,
 }
