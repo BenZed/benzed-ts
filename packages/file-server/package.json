@@ -2,6 +2,7 @@
     "name": "@benzed/file-server",
     "description": "My own file server/preview renderer.",
     "main": "./lib",
+    "private": true,
     "version": "0.0.1",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
