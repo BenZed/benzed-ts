@@ -5,7 +5,7 @@
     "version": "3.0.0",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
-        "test:dev": "../../node_modules/.bin/jest --verbose --watch",
+        "test:dev": "../../node_modules/.bin/jest --verbose --watch --maxWorkers=1 -o",
         "build": "eslint src/**/*.ts --fix && npm run tsc",
         "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
