@@ -2,7 +2,7 @@
     "name": "@benzed/util",
     "description": "Language and meta programminging utilities",
     "main": "./lib",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "scripts": {
         "test": "../../node_modules/.bin/jest",
         "test:dev": "../../node_modules/.bin/jest --verbose --watch --maxWorkers=1 -o",
