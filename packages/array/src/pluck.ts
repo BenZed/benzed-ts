@@ -12,23 +12,22 @@ const { splice } = Array.prototype
  * ```
  *
  * @param  {Array} input                 array to mutate
- * @param  {Function} test             predicate to run on each item
+ * @param  {Function} predicate             predicate to run on each item
  * @param  {number} count = arr.length max number of items to remove. If this is a
  *                                     negative number, they'll be removed from the end
  *                                     of the array, rather than the beginning.
  * @return {Array}                     items removed via test
  */
 function pluck<T>(
-    input: ArrayLike<unknown>,
-    test: (
-        ((item: unknown, index?: number, input?: ArrayLike<unknown>) => item is T) |
-        ((item: T, index?: number, input?: ArrayLike<T>) => boolean)
+    input: ArrayLike<T>,
+    predicate: (
+        ((item: T, index: number, input: ArrayLike<T>) => boolean)
     ),
     count = input.length
 ): T[] {
 
     const results: T[] = []
-    const indexes = []
+    const indexes: number[] = []
 
     const reverse = count < 0
     if (reverse)
@@ -45,7 +44,7 @@ function pluck<T>(
     ) {
 
         const value = input[i]
-        if (!test(value as T, i, input as T[]))
+        if (!predicate(value as T, i, input as T[]))
             continue
 
         if (reverse) {
@@ -55,6 +54,7 @@ function pluck<T>(
             results.push(value as T)
             indexes.unshift(i)
         }
+
     }
 
     const spliceInput = splice.bind(input)

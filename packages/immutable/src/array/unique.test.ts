@@ -1,7 +1,7 @@
 import copy from '../copy'
 import unique from './unique'
 import { Comparable } from '../equals'
-import { $$equals } from '../util'
+import { $$equals } from '../symbols'
 
 describe('unique()', () => {
 
@@ -41,11 +41,12 @@ describe('unique()', () => {
 
             public bar: unknown
 
-            public constructor(bar) {
+            public constructor (bar: unknown) {
                 this.bar = bar
             }
 
-            public equals(b): boolean {
+            // eslint-disable-next-line
+            public equals(b: any): b is Foo {
                 return b.bar === this.bar
             }
 
@@ -57,7 +58,7 @@ describe('unique()', () => {
             expect(unique(foos).map(f => f.bar)).toEqual(pResults)
         })
 
-        class UltraFoo extends Foo implements Comparable {
+        class UltraFoo extends Foo implements Comparable<Foo> {
             public [$$equals] = Foo.prototype.equals
         }
 

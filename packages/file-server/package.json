@@ -1,0 +1,34 @@
+{
+    "name": "@benzed/file-server",
+    "description": "My own file server/preview renderer.",
+    "main": "./lib",
+    "private": true,
+    "version": "0.0.1",
+    "scripts": {
+        "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
+        "test:dev": "npm run test -- --verbose --watch",
+        "build": "npm run lint && npm run tsc",
+        "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
+        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "@benzed/is": "*",
+        "@benzed/array": "*",
+        "@benzed/math": "*",
+        "@benzed/util": "*",
+        "fluent-ffmpeg": "^2.1.2"
+    },
+    "devDependencies": {
+        "@types/fluent-ffmpeg": "^2.1.20"
+    }
+}

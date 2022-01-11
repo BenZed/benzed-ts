@@ -14,7 +14,7 @@ type V2Json = { x: number, y: number }
 
 type V2Signature = Partial<V2Json> | V2String | [number, number]
 
-type V2ConstructorSignature = [V2Signature] | [number, number]
+type V2ConstructorSignature = [V2Signature] | [number, number] | [number] | []
 
 /*** Main ***/
 
@@ -76,7 +76,7 @@ class V2 {
     public x: number
     public y: number
 
-    public constructor(...args: V2ConstructorSignature) {
+    public constructor (...args: V2ConstructorSignature) {
 
         let x, y
 
@@ -240,6 +240,11 @@ interface V2Utility {
     left: V2
 }
 
+/**
+ * Shorthand V2 constructor.
+ * Different from V2.from, this method will always create a new V2 instnace, weather or
+ * not it receives one as input.
+ */
 const v2 = ((...args: V2ConstructorSignature): V2 => new V2(...args)) as V2Utility
 
 Object.defineProperties(v2, {

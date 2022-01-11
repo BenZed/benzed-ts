@@ -8,7 +8,7 @@ import { $$equals } from './symbols'
 /*** Types ***/
 
 interface Comparable<T> {
-    [$$equals]: (this: Readonly<Comparable<T>>, right: unknown) => right is T
+    [$$equals]: (this: Comparable<T>, right: unknown) => right is T
 }
 
 function isComparable<T>(input: unknown): input is Comparable<T> {

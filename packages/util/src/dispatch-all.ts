@@ -4,10 +4,12 @@ import reduceToVoid from './reduce-to-void'
 
 /*** Types ***/
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Dispatcher<A extends any[]> = Func<A, void | Promise<void>>
 
 /*** dispatchAll ***/
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dispatchAll<A extends any[]>(
     dispatcher: Dispatcher<A>[]
 ): Dispatcher<A> {

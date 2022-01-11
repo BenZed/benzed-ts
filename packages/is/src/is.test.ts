@@ -10,8 +10,8 @@ import isPlainObject from './is-plain-object'
 
 interface TestEachValueConfig {
     title: string
-    test
-    result
+    test: (input: unknown) => boolean
+    result: (input: unknown) => boolean
 }
 
 /*** Data ***/
@@ -83,7 +83,7 @@ const VALUES_PLUS_VALUES_IN_ARRAY = [
 /*** Helper ***/
 
 function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): void {
-    describe.only(title, () => {
+    describe(title, () => {
 
         let atLeastOneFalse = false
         let atLeastOneTrue = false
@@ -108,7 +108,10 @@ function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): 
 }
 
 describe('is() shortcuts give same output as counterparts', () => {
-    for (const key in TYPES) {
+    for (const property in TYPES) {
+
+        const key = property as keyof typeof TYPES
+
         testEachValue({
             title: `is.${key}`,
             test: is[key],
@@ -118,13 +121,17 @@ describe('is() shortcuts give same output as counterparts', () => {
         testEachValue({
             title: `is.arrayOf.${key}`,
             test: is.arrayOf[key],
-            result: value => is.arrayOf(value, TYPES[key])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            result: value => is.arrayOf(value, TYPES[key] as any)
         })
 
         testEachValue({
             title: `is.arrayOf(value, ${TYPES[key]})`,
-            test: value => is.arrayOf(value, TYPES[key]),
-            result: value => isArrayOf(value, TYPES[key])
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            test: value => is.arrayOf(value, TYPES[key] as any),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            result: value => isArrayOf(value, TYPES[key] as any)
         })
     }
 })
@@ -161,7 +168,8 @@ describe('exotic shortcuts', () => {
         result: value => !value
     })
 
-    for (const shortcut of SHORTCUTS) {
+    for (const property of SHORTCUTS) {
+        const shortcut = property as keyof (typeof is | typeof is.arrayOf)
         testEachValue({
             title: `is.arrayOf.${shortcut}`,
             test: is.arrayOf[shortcut],
