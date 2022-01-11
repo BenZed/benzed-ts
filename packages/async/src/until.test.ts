@@ -39,8 +39,8 @@ describe('until', () => {
                             interval: 1
                         }
                     )
-                } catch (e: any) {
-                    expect(e.message).toContain('Could not resolve condition in 20 ms')
+                } catch (e: unknown) {
+                    expect((e as Error).message).toContain('Could not resolve condition in 20 ms')
                 }
             })
 
@@ -86,8 +86,8 @@ describe('until', () => {
                             timeoutMsg: 'if it cannot be done in 10 milliseconds, it cannot be done'
                         }
                     )
-                } catch (e: any) {
-                    expect(e.message)
+                } catch (e: unknown) {
+                    expect((e as Error).message)
                         .toContain('if it cannot be done in 10 milliseconds, it cannot be done')
                 }
             })

@@ -1,4 +1,4 @@
-import { $$copy } from './util'
+import { $$copy } from './symbols'
 import copy from './copy'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

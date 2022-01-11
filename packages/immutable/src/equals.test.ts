@@ -1,6 +1,6 @@
 import equals from './equals'
 import { inspect } from 'util'
-import { $$equals } from './util'
+import { $$equals } from './symbols'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -132,7 +132,7 @@ describe('equals()', () => {
                 foo2[$$equals] =
                 bar[$$equals] =
                 bar2[$$equals] =
-                function (other) {
+                function (other: any) {
                     return other() === this()
                 }
 
@@ -149,7 +149,7 @@ describe('equals()', () => {
                 public funcLoose(): void { /**/ }
                 public funcBound(): void { /**/ }
 
-                public constructor() {
+                public constructor () {
                     this.funcBound = this.funcBound.bind(this)
                 }
             }
@@ -185,11 +185,11 @@ describe('equals()', () => {
 
                 public bar: string
 
-                public constructor(bar) {
+                public constructor (bar: any) {
                     this.bar = bar
                 }
 
-                public [$$equals](b): boolean {
+                public [$$equals](b: any): boolean {
                     calls++
                     return b instanceof Foo && b.bar === this.bar
                 }
@@ -280,7 +280,7 @@ describe('equals()', () => {
 
                 public amount: number
 
-                public constructor(amount) {
+                public constructor (amount: any) {
                     if (amount instanceof Account)
                         amount = amount.amount
                     this.amount = amount

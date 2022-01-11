@@ -9,7 +9,7 @@ module.exports = {
     plugins: ['@typescript-eslint'],
 
     extends: [
-        'plugin:@typescript-eslint/recommended'
+        'plugin:@typescript-eslint/recommended',
     ],
 
     // TODO turn this into a preset and put it in @benzed/dev
@@ -39,6 +39,7 @@ module.exports = {
         '@typescript-eslint/return-await': 'error',
         '@typescript-eslint/await-thenable': 'error',
         '@typescript-eslint/no-implied-eval': 'error',
+        '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/unified-signatures': 'error',
         '@typescript-eslint/no-duplicate-imports': 'error',
         '@typescript-eslint/explicit-member-accessibility': 'error',

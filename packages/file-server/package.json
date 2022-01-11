@@ -5,8 +5,8 @@
     "private": true,
     "version": "0.0.1",
     "scripts": {
-        "test": "../../node_modules/.bin/jest",
-        "test:dev": "../../node_modules/.bin/jest --verbose --watch --maxWorkers=1 -o",
+        "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
+        "test:dev": "npm run test -- --verbose --watch",
         "build": "npm run lint && npm run tsc",
         "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
         "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
