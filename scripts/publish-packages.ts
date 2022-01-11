@@ -184,11 +184,10 @@ void async function publishPackages() {
             publishCount++
         } catch (e) {
             process.stdout.write(
-                '!!\n'
+                'x\n'
             )
             failCount++
         }
-
     })
 
     process.stdout.write(`${publishCount} packages published\n`)
