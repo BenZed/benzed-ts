@@ -12,6 +12,8 @@ const { random: _random, floor } = Math
  */
 function random<T>(input: ArrayLike<T> | Iterable<T>): T {
 
+    // TODO: Throw is input is empty.
+
     if (isIterable(input))
         input = [...input] as ArrayLike<T>
 

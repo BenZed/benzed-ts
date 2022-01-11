@@ -16,7 +16,7 @@ import ValidationError from '../util/validation-error'
 
 type TypeValidationErrorFormat = string | ((value: unknown, typeName: string) => string)
 class TypeValidationError<T> extends ValidationError {
-    public constructor(
+    public constructor (
         value: T,
         typeName: string,
         format: TypeValidationErrorFormat =
@@ -28,7 +28,7 @@ class TypeValidationError<T> extends ValidationError {
 
 type RequiredValueErrorFormat = string | ((key: string) => string)
 class RequiredValueError extends ValidationError {
-    public constructor(
+    public constructor (
         key: string,
         format: RequiredValueErrorFormat = key => `${key} is required.`
     ) {
@@ -89,6 +89,7 @@ type DefaultProp<T> = T extends Immutable
     : () => T
 
 interface ValidatorProps<T> {
+
     /**
      * Used by child validators.
      */
@@ -125,10 +126,6 @@ type TypeValidatorFactoryOutput<P extends ValidatorProps<O> | undefined, I, O = 
 
 type ValidatorFactoryOutput<P, PK extends keyof P, PKV, VO> =
     P[PK] extends PKV ? Validator<VO> : null
-
-// interface ReferenceValidatorProps<T extends object> extends ValidatorProps<T> {
-//     default?: () => T
-// }
 
 /*** Main ***/
 

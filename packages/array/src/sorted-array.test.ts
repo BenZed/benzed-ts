@@ -22,7 +22,7 @@ describe('Sorted Array', () => {
             public name: string
             public age: number
 
-            public constructor(name: string, age: number) {
+            public constructor (name: string, age: number) {
                 this.name = name
                 this.age = age
             }
@@ -41,7 +41,7 @@ describe('Sorted Array', () => {
 
         it('sorts contents', () => {
 
-            const arr = new SortedArray()
+            const arr = new SortedArray<number>()
             arr.push(5)
             arr.push(3)
             arr.push(10)
@@ -78,7 +78,7 @@ describe('Sorted Array', () => {
                     return this.mass
                 }
 
-                public constructor(mass: number, parent: Body | null = null) {
+                public constructor (mass: number, parent: Body | null = null) {
                     this.mass = mass
                     this.parent = parent
                 }

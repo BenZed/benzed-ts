@@ -12,7 +12,7 @@ describe('string validator', () => {
             format: [/\d$/, 'must end with a number'], // ends-with-digit,
             length: 5,
             trim: true,
-            cast: true
+            cast: true,
         })
 
         const stringer = createStringValidator({

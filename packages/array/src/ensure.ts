@@ -16,7 +16,7 @@ const { indexOf, push } = Array.prototype
  * @param arrayLike Collection
  * @param value Value to ensure
  */
-function ensure<T>(arrayLike: ArrayLike<T>, value: T): typeof arrayLike {
+function ensure<T>(arrayLike: ArrayLike<T>, value: T): ArrayLike<T> {
 
     const index = indexOf.call(arrayLike, value)
     if (index === -1)

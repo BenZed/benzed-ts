@@ -2,11 +2,12 @@
     "name": "@benzed/is",
     "description": "Type check/guard utility methods.",
     "main": "./lib",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "scripts": {
-        "test": "../../node_modules/.bin/jest",
-        "test:dev": "../../node_modules/.bin/jest --verbose --watch --runInBand",
-        "build": "../../node_modules/.bin/eslint src/**/*.ts --fix && npm run tsc",
+        "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
+        "test:dev": "npm run test -- --verbose --watch",
+        "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
+        "build": "npm run lint && npm run tsc",
         "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
     "repository": {

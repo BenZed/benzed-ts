@@ -21,7 +21,7 @@ const RANGE_STRING_REGEX = new RegExp(
 type RangeValidationErrorFormat =
     string | ((input: number, rangeTransgressionDetail: string) => string)
 class RangeValidationError extends ValidationError {
-    public constructor(
+    public constructor (
         input: Sortable,
         rangeErrorDetail: string,
         format: RangeValidationErrorFormat = (input, rangeErrorDetail) =>
@@ -145,7 +145,7 @@ function parseRangeArrayOption(
 
     range = [...range] // don't mutate input array
 
-    const numbers = pluck(range, item => typeof item === 'number') as number[]
+    const numbers = pluck(range, isNumber)
     if (numbers.length === 2) {
         const [min, max] = numbers
         const [comparator] = pluck(range, isBetweenComparator) as BetweenComparator[]

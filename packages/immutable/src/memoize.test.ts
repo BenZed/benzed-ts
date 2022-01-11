@@ -3,17 +3,12 @@ import memoize from './memoize'
 import { primes } from '../../math/src'
 
 describe('memoize', () => {
-    let add
-    let memoizedAdd
+    const add = (a: number, b: number): number => {
+        addCalls++
+        return a + b
+    }
+    const memoizedAdd = memoize(add)
     let addCalls = 0
-
-    beforeAll(() => {
-        add = (a: number, b: number): number => {
-            addCalls++
-            return a + b
-        }
-        memoizedAdd = memoize(add)
-    })
 
     it('returns cached result if arguments are value equal', () => {
         expect(memoizedAdd(3, 7)).toEqual(10)

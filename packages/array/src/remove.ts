@@ -4,12 +4,12 @@ const { indexOf, splice } = Array.prototype
 /*** Main ***/
 
 /**
- * Removes all instances of a given value in an ArrayLike<T>
+ * Removes all values equal to input in an array-like.
  * @param input 
  * @param value 
  * @returns 
  */
-function remove<T>(input: ArrayLike<T>, value: T): typeof input {
+function remove<T>(input: ArrayLike<T>, value: T): ArrayLike<T> {
 
     const inputIndexOf = indexOf.bind(input)
     const inputSplice = splice.bind(input)

@@ -3,7 +3,7 @@ import equals from './equals'
 
 import ValueMap from './value-map'
 
-import { $$copy, $$equals } from './util'
+import { $$copy, $$equals } from './symbols'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -17,7 +17,7 @@ class CustomId {
 
     public id = 0
 
-    public constructor(input = Math.random()) {
+    public constructor (input = Math.random()) {
 
         this.id = input
         while (this.toString().length < 10)
@@ -60,18 +60,14 @@ const pairs: [unknown, unknown][] = [
 ]
 /* eslint-enable no-multi-spaces */
 
-/******************************************************************************/
 // Helper
-/******************************************************************************/
 
-function forEachPair(func): void {
+function forEachPair(func: (key: any, value: any) => void): void {
     for (const [key, value] of pairs)
         func(key, value)
 }
 
-/******************************************************************************/
 // Tests
-/******************************************************************************/
 
 describe('ValueMap', () => {
 
@@ -191,11 +187,6 @@ describe('ValueMap', () => {
 
             describe('equivalent object ids pass', () => {
 
-                let size
-                beforeAll(() => {
-                    size = map.size
-                })
-
                 forEachPair(k => {
                     if (typeof k !== 'object')
                         return
@@ -204,7 +195,7 @@ describe('ValueMap', () => {
                         map.set(ki, false)
 
                         // Proves that setting a key copy didn't result in a new key being set
-                        expect(map.size).toEqual(size)
+                        expect(map.size).toEqual(map.size)
 
                         return expect(map.get(ki)).toBe(false)
                     })
@@ -361,12 +352,8 @@ describe('ValueMap', () => {
 
     describe('immutable implementations', () => {
 
-        let map1, map2
-
-        beforeAll(() => {
-            map1 = new ValueMap([['one', 1]])
-            map2 = copy(map1)
-        })
+        const map1 = new ValueMap([['one', 1]])
+        const map2 = copy(map1)
 
         it('implements $$copy', () => {
             expect(typeof map1[$$copy]).toEqual('function')
