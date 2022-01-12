@@ -18,7 +18,9 @@ import {
     WatchEventType,
     WatchListener,
 
-    StatOptions
+    StatOptions,
+    MakeDirectoryOptions,
+    RmDirOptions,
 
 } from 'fs'
 
@@ -37,6 +39,9 @@ import {
 
 const {
     readdir,
+    mkdir,
+    rmdir,
+
     readFile,
     writeFile,
 
@@ -51,13 +56,17 @@ export {
     createReadStream,
     createWriteStream,
 
-    readFile,
     readdir,
     readdir as readDir,
 
-    writeFile,
+    mkdir as makeDir,
+    rmdir,
+    rmdir as removeDir,
 
+    readFile,
+    writeFile,
     unlink,
+    unlink as removeFile,
 
     watch,
 
@@ -81,5 +90,8 @@ export type {
     WatchEventType,
     WatchListener,
 
-    StatOptions
+    StatOptions,
+
+    MakeDirectoryOptions,
+    RmDirOptions as RemoveDirOptions,
 }
