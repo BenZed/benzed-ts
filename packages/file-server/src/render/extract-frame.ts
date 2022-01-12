@@ -67,6 +67,7 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
     const cmd = ffmpeg(input)
 
     const timeStamp = await getTime(options)
+
     cmd.videoCodec('png')
         .seek(timeStamp)
         .frames(1)

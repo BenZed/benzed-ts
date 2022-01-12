@@ -35,50 +35,59 @@ describe('extractFrame', () => {
         label: 'stream ' + o.label
     }))
 
-    for (const { options, label, stream } of [...testInput, ...testInputWithStreams]) {
-        it(`extracts a frame from input stream ${label}`, async () => {
+    const types = [
+        'png',
+        'gif',
+        'mp4',
+        'jpg',
+    ] as const
 
-            const input = TEST_ASSETS.mp4
-            const outputUrl = path.join(RENDER_FOLDER, `test-frame-${label}.png`)
+    for (const type of types) {
+        for (const { options, label, stream } of [...testInput, ...testInputWithStreams]) {
+            it(`extracts a frame from ${type} input stream ${label}`, async () => {
 
-            const output = stream
-                ? fs.createWriteStream(outputUrl)
-                : outputUrl
+                const input = TEST_ASSETS[type]
+                const outputUrl = path.join(RENDER_FOLDER, `test-frame-from-${type}-${label}.png`)
 
-            await extractFrame({
-                input: input,
-                output: output,
-                ...options
+                const output = stream
+                    ? fs.createWriteStream(outputUrl)
+                    : outputUrl
+
+                await extractFrame({
+                    input: input,
+                    output: output,
+                    ...options
+                })
+
+                const inputMetadata = await getMetadata({ input })
+                const outputMetadata = await getMetadata({ input: outputUrl })
+
+                expect(fs.existsSync(outputUrl)).toEqual(true)
+
+                if ('scale' in options && isNumber(options.scale)) {
+                    expect(outputMetadata.width)
+                        .toEqual(inputMetadata.width as number * options.scale)
+                    expect(outputMetadata.height)
+                        .toEqual(inputMetadata.height as number * options.scale)
+                }
+
+                if ('width' in options && isNumber(options.width)) {
+                    expect(outputMetadata.width)
+                        .toEqual(options.width)
+                }
+
+                if ('height' in options && isNumber(options.height)) {
+                    expect(outputMetadata.height)
+                        .toEqual(options.height)
+                }
+
+                if ('dimensions' in options && isNumber(options.dimensions)) {
+                    expect(outputMetadata.width)
+                        .toEqual(options.dimensions)
+                    expect(outputMetadata.height)
+                        .toEqual(options.dimensions)
+                }
             })
-
-            const inputMetadata = await getMetadata({ input })
-            const outputMetadata = await getMetadata({ input: outputUrl })
-
-            expect(fs.existsSync(outputUrl)).toEqual(true)
-
-            if ('scale' in options && isNumber(options.scale)) {
-                expect(outputMetadata.width)
-                    .toEqual(inputMetadata.width as number * options.scale)
-                expect(outputMetadata.height)
-                    .toEqual(inputMetadata.height as number * options.scale)
-            }
-
-            if ('width' in options && isNumber(options.width)) {
-                expect(outputMetadata.width)
-                    .toEqual(options.width)
-            }
-
-            if ('height' in options && isNumber(options.height)) {
-                expect(outputMetadata.height)
-                    .toEqual(options.height)
-            }
-
-            if ('dimensions' in options && isNumber(options.dimensions)) {
-                expect(outputMetadata.width)
-                    .toEqual(options.dimensions)
-                expect(outputMetadata.height)
-                    .toEqual(options.dimensions)
-            }
-        })
+        }
     }
 })
