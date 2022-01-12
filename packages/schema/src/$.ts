@@ -66,7 +66,7 @@ class TupleSchema<T extends readonly Json[]> extends Schema<T> {
 
 }
 
-class OrSchema<T extends readonly Json[]> extends Schema<T> {
+class OrSchema<T extends Json> extends Schema<T> {
 
     public constructor (...input: SchemaInput[]) {
         super()
@@ -79,10 +79,6 @@ class OrSchema<T extends readonly Json[]> extends Schema<T> {
 
 type SchemaInput =
     | Schema<Json>
-
-    | readonly SchemaInput[]
-    | SchemaInput[]
-
     | { [key: string]: SchemaInput }
 
 type SchemaOutput<T> = T extends Json
@@ -115,7 +111,7 @@ interface SchemaUtility {
     string<T extends string>(defaultValue?: T): StringSchema<T>
     boolean<T extends boolean>(defaultValue?: T): BooleanSchema<T>
 
-    or<T extends SchemaInput[]>(...input: T): OrSchema<SchemaOutput<T>[number]>
+    or<T extends SchemaInput[]>(...input: T): OrSchema<SchemaOutput<T[number]>>
 }
 
 const createSchemaUtility = (): SchemaUtility => {
