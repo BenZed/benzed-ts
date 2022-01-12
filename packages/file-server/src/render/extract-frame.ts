@@ -1,11 +1,17 @@
 import ffmpeg from 'fluent-ffmpeg'
 
 import { getMetadata } from './get-metadata'
-import { ImageOutputFormats, Input, Output, SizeOptions, TimeOptions } from './options'
+import { getSize } from './util'
+import {
+    ImageOutputFormats,
+    Input,
+    Output,
+    SizeOptions,
+    TimeOptions
+} from './options'
 
 import { clamp } from '@benzed/math'
-import { isDefined, isString } from '@benzed/is/lib'
-import { getSize } from './util'
+import { isDefined, isString } from '@benzed/is'
 
 /*** Types ***/
 
@@ -81,7 +87,6 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
             .run()
         )
     } catch (e) {
-        console.log(cmd)
         throw e
     }
 

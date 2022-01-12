@@ -5,7 +5,7 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import extractFrame from './extract-frame'
 import getMetadata from './get-metadata'
-import { isNumber } from '@benzed/is/lib'
+import { isNumber } from '@benzed/is'
 import { SizeOptions, TimeOptions } from './options'
 
 type TestInput = {

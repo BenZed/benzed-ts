@@ -23,6 +23,8 @@ type UntilArgs =
     [condition: Condition, timeoutMsg: TimeoutMessage] |
     [condition: Condition, options: UntilOptions]
 
+/*** Constants ***/
+
 const DEFAULT_INTERVAL = 25 // ms 
 const DEFAULT_TIMEOUT = Infinity
 const DEFAULT_TIMEOUT_MSG = ((timeout?: number) => {
