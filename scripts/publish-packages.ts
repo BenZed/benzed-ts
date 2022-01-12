@@ -114,10 +114,22 @@ async function getNpmVersionData(
     currentVersion: string
 ): Promise<{ upToDate: boolean, version: string }> {
 
-    const upstreamVersion = (await exec(`npm info ${name} version`)).trim()
-    return {
-        upToDate: semver.lte(currentVersion, upstreamVersion),
-        version: upstreamVersion
+    try {
+        const upstreamVersion = (await exec(`npm info ${name} version`)).trim()
+        return {
+            upToDate: semver.lte(currentVersion, upstreamVersion),
+            version: upstreamVersion
+        }
+    } catch (e) {
+
+        if ((e as Error).message.includes('is not in the npm registry')) {
+            return {
+                upToDate: false,
+                version: '(unpublished)'
+            }
+        } else
+            throw e
+
     }
 }
 
@@ -125,6 +137,8 @@ async function getNpmVersionData(
  * I'd prefer if benzed packages didn't have a 'lib' subfolder in them.
  */
 async function createTarBallPackageJson(json: PackageJson, url: string): Promise<string> {
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tarBallRootJson = { ...json } as any
     delete tarBallRootJson.main
     const tarBallRootJsonUrl = path.join(url, 'lib', 'package.json')
@@ -151,7 +165,7 @@ async function publishPackage(json: PackageJson, url: string): Promise<void> {
     const tarBallPackageJsonUrl = await createTarBallPackageJson(json, url)
 
     process.stdout.write('publish ')
-    await exec('npm publish', { cwd: path.join(url, 'lib') })
+    await exec('npm publish --access=public', { cwd: path.join(url, 'lib') })
     process.stdout.write('\bed √\n')
 
     await unlink(tarBallPackageJsonUrl).catch(e => void e)
