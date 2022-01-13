@@ -57,9 +57,17 @@ class ShapeSchema<T extends { [key: string]: Json }> extends Schema<T> {
 
 }
 
+class ArraySchema<T extends Json> extends Schema<T[]> {
+
+    public constructor (input: SchemaInput) {
+        super()
+        void input
+    }
+}
+
 class TupleSchema<T extends readonly Json[]> extends Schema<T> {
 
-    public constructor (input: SchemaInput[]) {
+    public constructor (...input: readonly SchemaInput[]) {
         super()
         void input
     }
@@ -73,6 +81,14 @@ class OrSchema<T extends Json> extends Schema<T> {
         void input
     }
 
+}
+
+class AndSchema<T extends Json> extends Schema<T> {
+    public constructor (left: SchemaInput, right: SchemaInput) {
+        super()
+        void left
+        void right
+    }
 }
 
 /***  ***/
@@ -90,11 +106,11 @@ type SchemaOutput<T> = T extends Json
     : T extends { [key: string]: unknown }
     ? { [K in keyof T]: SchemaOutput<T[K]> }
 
-    : T extends Array<infer A>
-    ? SchemaOutput<readonly A[]>
-
     : T extends readonly [...infer A]
     ? { [I in keyof A]: SchemaOutput<A[I]> }
+
+    : T extends Array<infer A>
+    ? SchemaOutput<readonly A[]>
 
     : never
 
@@ -105,13 +121,18 @@ interface SchemaUtility {
     <T extends { [key: string]: SchemaInput }>(input: T): ShapeSchema<SchemaOutput<T>>
 
     shape<T extends { [key: string]: SchemaInput }>(input: T): ShapeSchema<SchemaOutput<T>>
-    tuple<T extends SchemaInput[]>(input: T): TupleSchema<SchemaOutput<T>>
+    array<T extends SchemaInput>(input: T): ArraySchema<SchemaOutput<T>>
+    tuple<T extends readonly SchemaInput[]>(...input: T): TupleSchema<SchemaOutput<T>>
 
     number<T extends number>(defaultValue?: T): NumberSchema<T>
     string<T extends string>(defaultValue?: T): StringSchema<T>
     boolean<T extends boolean>(defaultValue?: T): BooleanSchema<T>
 
     or<T extends SchemaInput[]>(...input: T): OrSchema<SchemaOutput<T[number]>>
+    and<L extends SchemaInput, R extends SchemaInput>(
+        left: L,
+        right: R
+    ): AndSchema<SchemaOutput<L> & SchemaOutput<R>>
 }
 
 const createSchemaUtility = (): SchemaUtility => {
@@ -119,13 +140,15 @@ const createSchemaUtility = (): SchemaUtility => {
     const $: SchemaUtility = input => new ShapeSchema(input)
 
     $.shape = input => new ShapeSchema(input)
-    $.tuple = input => new TupleSchema(input)
+    $.array = input => new ArraySchema(input)
+    $.tuple = (...input) => new TupleSchema(...input)
 
     $.string = defaultValue => new StringSchema(defaultValue)
     $.number = defaultValue => new NumberSchema(defaultValue)
     $.boolean = defaultValue => new BooleanSchema(defaultValue)
 
     $.or = (...input) => new OrSchema(...input)
+    $.and = (left, right) => new AndSchema(left, right)
 
     return $
 }
@@ -146,8 +169,9 @@ export {
     BooleanSchema,
 
     ShapeSchema,
-
+    ArraySchema,
     TupleSchema,
 
-    OrSchema
+    OrSchema,
+    AndSchema
 }

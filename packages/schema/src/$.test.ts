@@ -1,12 +1,16 @@
 import {
     $,
 
+    StringSchema,
     BooleanSchema,
     NumberSchema,
-    ShapeSchema,
-    StringSchema,
-    OrSchema
 
+    ShapeSchema,
+    ArraySchema,
+    TupleSchema,
+
+    OrSchema,
+    AndSchema
 } from './$'
 
 /**
@@ -116,12 +120,11 @@ describe.only('$ Syntax Tests', () => {
         })
     })
 
-    /*
     describe('Creates schemas for array types', () => {
 
         it('$.array() -> Array<T>', () => {
             const BufferSchema = $.array($.number())
-            expect(BufferSchema).toBeInstanceOf(TupleSchema)
+            expect(BufferSchema).toBeInstanceOf(ArraySchema)
 
             type Buffer = typeof BufferSchema.output
             const buffer: Buffer = [0, 1, 2, 3, 4]
@@ -135,7 +138,7 @@ describe.only('$ Syntax Tests', () => {
                 date: $.number(),
                 content: $.string()
             })
-            expect(TodoListSchema).toBeInstanceOf(TupleSchema)
+            expect(TodoListSchema).toBeInstanceOf(ArraySchema)
 
             type TodoList = typeof TodoListSchema.output
             const todoList: TodoList = [{
@@ -145,31 +148,7 @@ describe.only('$ Syntax Tests', () => {
             }]
             expect(TodoListSchema.validate(todoList)).toEqual(todoList)
         })
-
-        it('Nested array in shape shorthand: $.array({ arr: []})', () => {
-
-            const ArmySchema = $.array({
-                battalion: $.string<`${number} ${string} Division`>(),
-                soldiers: [{
-                    name: $.string(),
-                    rank: $.string()
-                }]
-            })
-            expect(ArmySchema).toBeInstanceOf(TupleSchema)
-
-            type Army = typeof ArmySchema.output
-            const army: Army = [{
-                battalion: '101 Danger Division',
-                soldiers: [
-                    { name: 'Steve', rank: 'Sarge' },
-                    { name: 'Tony', rank: 'Tech' }
-                ]
-            }]
-
-            expect(ArmySchema.validate(army)).toEqual(army)
-        })
     })
-    */
 
     describe('Creates schemas for object types', () => {
 
@@ -228,7 +207,35 @@ describe.only('$ Syntax Tests', () => {
             }
             expect(EmployeeSchema.validate(employee)).toEqual(employee)
         })
+    })
 
+    describe('Creates schemas for tuple types', () => {
+        it('$.tuple()', () => {
+            const RangeSchema = $.tuple($.number(), $.number())
+            expect(RangeSchema).toBeInstanceOf(TupleSchema)
+
+            type Range = typeof RangeSchema.output
+            const range: Range = [0, 10]
+
+            expect(RangeSchema.validate(range)).toEqual(range)
+        })
+
+        it('$.tuple({}, {}) works with nested shapes', () => {
+
+            const V2Schema = $({
+                x: $.number(),
+                y: $.number()
+            })
+
+            const EdgeSchema = $.tuple(V2Schema, V2Schema)
+            expect(EdgeSchema).toBeInstanceOf(TupleSchema)
+
+            type Edge = typeof EdgeSchema.output
+            const edge: Edge = [{ x: 0, y: 0 }, { x: 5, y: 5 }]
+
+            expect(EdgeSchema.validate(edge)).toEqual(edge)
+
+        })
     })
 
     describe('Creates schemas for or types', () => {
@@ -244,7 +251,25 @@ describe.only('$ Syntax Tests', () => {
 
             expect(KeySchema.validate(key1)).toEqual(key1)
             expect(KeySchema.validate(key2)).toEqual(key2)
+        })
 
+    })
+
+    describe('Creates schemas for and types', () => {
+
+        it('$.and()', () => {
+            const V3Schema = $.and({
+                x: $.number(),
+                y: $.number()
+            }, {
+                z: $.number()
+            })
+            expect(V3Schema).toBeInstanceOf(AndSchema)
+
+            type V3 = typeof V3Schema.output
+
+            const v3: V3 = { x: 0, y: 1, z: 2 }
+            expect(V3Schema.validate(v3)).toEqual(v3)
         })
 
     })
