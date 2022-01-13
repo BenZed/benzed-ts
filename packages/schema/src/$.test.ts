@@ -1,7 +1,6 @@
 import {
     $,
 
-    TupleSchema,
     BooleanSchema,
     NumberSchema,
     ShapeSchema,
@@ -230,55 +229,6 @@ describe.only('$ Syntax Tests', () => {
             expect(EmployeeSchema.validate(employee)).toEqual(employee)
         })
 
-        it('Nested array shortahnd: $({foo: []})', () => {
-
-            const RobotSchema = $({
-                function: $.string(),
-                tasks: [$.string()]
-            })
-            expect(RobotSchema).toBeInstanceOf(ShapeSchema)
-
-            type Robot = typeof RobotSchema.output
-            const robot: Robot = {
-                function: 'Human Killer',
-                tasks: ['kill human#1', 'kill human#2']
-            }
-            expect(RobotSchema.validate(robot)).toEqual(robot)
-        })
-
-        it('Nested array shape shorthand: $({foo: [{}]})', () => {
-
-            const ConcertTourSchema = $({
-                start: $.number(),
-                end: $.number(),
-                tour: [{
-                    city: $.string(),
-                    venue: $.string(),
-                    dates: [$.number()] as const
-                }]
-            })
-            expect(ConcertTourSchema).toBeInstanceOf(ShapeSchema)
-
-            type ConcertTour = typeof ConcertTourSchema.output
-            const concertTour: ConcertTour = {
-
-                start: Date.now(),
-                end: Date.now(), // ooof short tour
-
-                // two concerts in the same millisecond in two cities. Damn.
-                tour: [{
-                    city: 'Vancouver',
-                    venue: 'BC Place',
-                    dates: [Date.now()]
-                }, {
-                    city: 'Seattle',
-                    venue: 'The Seattle... pirate dome or whatever',
-                    dates: [Date.now()]
-                }]
-
-            }
-            expect(ConcertTourSchema.validate(concertTour)).toEqual(concertTour)
-        })
     })
 
     describe('Creates schemas for or types', () => {
@@ -297,23 +247,5 @@ describe.only('$ Syntax Tests', () => {
 
         })
 
-        it('$.or({},[]) shape/array shorthand', () => {
-
-            const ColorSchema = $.or(
-                [$.number(), $.number(), $.number(), $.number()] as const,
-                { hsv: [$.number()] },
-                { hex: $.string<`#${string}`>() }
-            )
-
-            type Color = typeof ColorSchema.output
-            const color1: Color = [255, 255, 255, 1]
-            const color2: Color = { hsv: [360, 1, 1] }
-            const color3: Color = { hex: '#fff' }
-
-            expect(ColorSchema.validate(color1)).toEqual(color1)
-            expect(ColorSchema.validate(color2)).toEqual(color2)
-            expect(ColorSchema.validate(color3)).toEqual(color3)
-
-        })
     })
 })
