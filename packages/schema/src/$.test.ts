@@ -1,6 +1,6 @@
-import {
-    $,
+import $ from './$'
 
+import {
     StringSchema,
     BooleanSchema,
     NumberSchema,
@@ -11,7 +11,7 @@ import {
 
     OrSchema,
     AndSchema
-} from './$'
+} from './schema'
 
 /**
  * These tests might look redundant from a runtime perspective, but they 
@@ -271,6 +271,5 @@ describe.only('$ Syntax Tests', () => {
             const v3: V3 = { x: 0, y: 1, z: 2 }
             expect(V3Schema.validate(v3)).toEqual(v3)
         })
-
     })
 })
