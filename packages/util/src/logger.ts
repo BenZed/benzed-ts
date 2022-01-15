@@ -84,11 +84,11 @@ function colorTimeStamp(
         const isErr = status === ERR_SYMBOl
         const color = isErr ? 'red' : 'yellow'
 
-        return ansi(timeStamp, { color, inverted: isErr })
+        return ansi(timeStamp, { color, inverted: true })
     }
 
     if (timeStamp === lastTimeStamp)
-        return ansi(timeStamp, { color: 'black', bright: true })
+        return ansi(timeStamp, { intensity: 'dim' })
 
     return timeStamp
 }

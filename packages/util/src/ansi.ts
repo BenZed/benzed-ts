@@ -5,8 +5,9 @@ type AnsiColor = keyof typeof ANSI_COLOR_CODES
 
 type AnsiOptions = {
     color?: AnsiColor
-    bright?: boolean
+    intensity?: 'bright' | 'dim'
     bold?: boolean
+    italic?: boolean
     background?: boolean
     inverted?: boolean
     underline?: boolean
@@ -32,6 +33,8 @@ const ANSI_BRIGHT_SUFFIX = ';1'
 const ANSI_UTIL_TAGS = {
 
     bold: '\u001b[1m',
+    dim: '\u001b[2m',
+    italic: '\u001b[3m',
     underline: '\u001b[4m',
     reset: '\u001b[0m',
     inverted: '\u001b[7m'
@@ -72,8 +75,9 @@ function ansi(
     const {
 
         color,
-        bright,
+        intensity,
         bold,
+        italic,
         underline,
         inverted,
         background
@@ -86,6 +90,9 @@ function ansi(
     if (bold)
         tags.push(ANSI_UTIL_TAGS.bold)
 
+    if (italic)
+        tags.push(ANSI_UTIL_TAGS.italic)
+
     if (underline)
         tags.push(ANSI_UTIL_TAGS.underline)
 
@@ -93,7 +100,10 @@ function ansi(
         tags.push(ANSI_UTIL_TAGS.inverted)
 
     if (color)
-        tags.push(ansiColorTag(color, bright, background))
+        tags.push(ansiColorTag(color, intensity === 'bright', background))
+
+    if (intensity === 'dim')
+        tags.push(ANSI_UTIL_TAGS.dim)
 
     // No tags? Return input as is.
     if (tags.length === 0)
@@ -111,5 +121,7 @@ export {
     ansiColorTag,
 
     AnsiColor,
-    AnsiOptions
+    AnsiOptions,
+
+    ANSI_UTIL_TAGS
 }

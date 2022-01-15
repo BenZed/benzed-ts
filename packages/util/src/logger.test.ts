@@ -1,4 +1,4 @@
-import { ansiColorTag } from './ansi'
+import ansi, { ansiColorTag, ANSI_UTIL_TAGS } from './ansi'
 import {
     createLogger,
     Logger,
@@ -21,7 +21,7 @@ describe('Logger', () => {
                 logs.push(...args)
 
                 // Comment out when tests are complete.
-                console.log(...args)
+                // console.log(...args)
             }
         })
         return { log, logs }
@@ -75,8 +75,9 @@ describe('Logger', () => {
 
         void log`Bruh what's good`
         void log`Ntm`
+        void log`Nice`
 
-        expect(logs.join('')).toContain(ansiColorTag('black', true))
+        expect(logs.join('')).toContain(ANSI_UTIL_TAGS.dim)
     })
 
     it(`log.warn prefixes ${WARN_SYMBOL} `, () => {
@@ -90,7 +91,7 @@ describe('Logger', () => {
     it(`log.error prefixes ${ERR_SYMBOl}`, () => {
         const { log, logs } = createTestLogger({})
 
-        void log.error`Oh No`
+        void log.error`Oh ${ansi('No', { italic: true })}`
 
         expect(logs).toContain(ERR_SYMBOl)
     })
