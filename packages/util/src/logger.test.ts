@@ -21,7 +21,7 @@ describe('Logger', () => {
                 logs.push(...args)
 
                 // Comment out when tests are complete.
-                // console.log(...args)
+                console.log(...args)
             }
         })
         return { log, logs }
@@ -95,4 +95,10 @@ describe('Logger', () => {
         expect(logs).toContain(ERR_SYMBOl)
     })
 
+    it('no color on directly interpolated strings', () => {
+        const { log, logs } = createTestLogger()
+
+        void log`This ${'string'} should not be green.`
+        expect(logs.join('')).not.toContain(ansiColorTag('green'))
+    })
 })

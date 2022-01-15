@@ -124,7 +124,9 @@ const createLogger =
                 outputs.push(string)
                 if (i in inputs) {
                     outputs.push(
-                        inspect(inputs[i], false, INPECT_DEPTH, true)
+                        typeof inputs[i] === 'string'
+                            ? inputs[i]
+                            : inspect(inputs[i], false, INPECT_DEPTH, true)
                     )
                 }
             }
