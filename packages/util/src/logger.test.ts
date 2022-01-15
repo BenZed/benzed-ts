@@ -101,4 +101,17 @@ describe('Logger', () => {
         void log`This ${'string'} should not be green.`
         expect(logs.join('')).not.toContain(ansiColorTag('green'))
     })
+
+    it('does not log "this" unless it is a string', () => {
+        const { log, logs } = createTestLogger()
+
+        const notAString = {
+            log,
+            property: 'should-be-invisible'
+        }
+
+        void notAString.log`Hello!`
+
+        expect(logs.every(l => l !== notAString)).toBe(true)
+    })
 })

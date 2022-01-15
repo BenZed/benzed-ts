@@ -52,11 +52,11 @@ type LogHandler = (...items: unknown[]) => void
 
 /*** Constants ***/
 
-const WARN_SYMBOL = '❗'
+const WARN_SYMBOL = '⚠️'
 
-const ERR_SYMBOl = '❌'
+const ERR_SYMBOl = '‼️'
 
-const INPECT_DEPTH = 5
+const INPECT_DEPTH = 3
 
 /*** Helper ***/
 
@@ -115,7 +115,7 @@ const createLogger =
         ): void {
 
             // eslint-disable-next-line @typescript-eslint/no-this-alias
-            const status = this
+            const status = typeof this === 'string' ? this : undefined
 
             const outputs: unknown[] = []
             for (let i = 0; i < strings.length; i++) {
