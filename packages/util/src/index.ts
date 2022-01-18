@@ -4,6 +4,7 @@ export * from './this-shift'
 export * from './reduce-to-void'
 export * from './assert-defined'
 export * from './promisify'
+export * from './event-emitter'
 
 export {
     createLogger,
