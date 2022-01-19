@@ -189,7 +189,7 @@ class EventEmitter<T extends Events> {
         for (const { listener, persist } of [...listeners]) {
             //                              ^ shallow copy so that removing non-persitent
             //                                listeners doesn't cause any skipping.
-            listener(...args)
+            listener.apply(this, args)
 
             if (!persist)
                 this._removeListener(event, listener)

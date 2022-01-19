@@ -227,4 +227,20 @@ describe('Event Emitter', () => {
         })
 
     })
+
+    describe('callbacks', () => {
+        it('this is bound to emitter', () => {
+
+            const emitter = new EventEmitter()
+
+            let that: EventEmitter<{ event: [] }> | null = null
+            emitter.on('event', function (this: EventEmitter<{ event: [] }>) {
+                that = this
+            })
+
+            emitter.emit('event')
+
+            expect(that).toBe(emitter)
+        })
+    })
 })

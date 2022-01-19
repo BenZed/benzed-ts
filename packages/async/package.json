@@ -1,6 +1,6 @@
 {
     "name": "@benzed/async",
-    "version": "3.1.1",
+    "version": "3.2.0",
     "main": "./lib",
     "description": "Asyncronous and Promise-related tools, classes and helpers",
     "scripts": {
@@ -22,6 +22,7 @@
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
         "@benzed/array": "*",
-        "@benzed/is": "*"
+        "@benzed/is": "*",
+        "@benzed/math": "*"
     }
 }
