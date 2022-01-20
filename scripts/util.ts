@@ -9,6 +9,9 @@ export type PackageJson = {
     private: boolean
     main: string
     version: string
+    dependencies: {
+        [key: string]: string
+    }
 }
 
 /*** Constants ***/
@@ -44,7 +47,7 @@ export function exec(cmd: string, options?: ExecOptions): Promise<string> {
 }
 
 export async function forEachPackage(
-    func: (json: PackageJson, url: string) => Promise<void>
+    func: (json: PackageJson, url: string) => void | Promise<void>
 ): Promise<void> {
 
     const packageNames = await fs.promises.readdir(PACKAGES_DIR)
@@ -65,3 +68,8 @@ export async function forEachPackage(
 
 }
 
+export async function assertBranch(target: string): Promise<void> {
+    const branch = (await exec('git rev-parse --abbrev-ref HEAD')).trim()
+    if (branch !== target)
+        throw new Error(`current branch "${branch}" is not "${target}"`)
+}

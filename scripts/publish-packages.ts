@@ -7,6 +7,7 @@ import {
     exec,
     writeJson,
     forEachPackage,
+    assertBranch,
 } from './util'
 
 /*** Publish Packages ***/
@@ -80,12 +81,6 @@ async function publishPackage(json: PackageJson, url: string): Promise<void> {
     process.stdout.write('\bed √\n')
 
     await fs.promises.unlink(tarBallPackageJsonUrl).catch(e => void e)
-}
-
-async function assertBranch(target: string): Promise<void> {
-    const branch = (await exec('git rev-parse --abbrev-ref HEAD')).trim()
-    if (branch !== 'master')
-        throw new Error(`current branch "${branch}" is not "${target}"`)
 }
 
 /*** Execute ***/
