@@ -2,7 +2,7 @@
     "name": "@benzed/fs",
     "description": "My own fs utilties.",
     "main": "./lib",
-    "version": "3.0.2",
+    "version": "3.0.3",
     "scripts": {
         "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
@@ -21,6 +21,6 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/util": "*"
+        "@benzed/util": "^3.7.0"
     }
 }
