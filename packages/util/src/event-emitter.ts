@@ -14,6 +14,21 @@ type Events = {
     [key: string]: any[]
 }
 
+type EventSubscription<T extends Events, K extends keyof T> = {
+
+    /**
+     * Number of times the listener will be called before being removed.
+     */
+    invocations: number
+
+    /**
+     * Internal listeners will not be removed by public remove methods.
+     */
+    internal: boolean
+
+    listener: EventListener<T, K>
+}
+
 type EventListener<T extends Events, K extends keyof T> =
     (...args: T[K]) => void | Promise<void>
 
@@ -30,11 +45,8 @@ type EventListener<T extends Events, K extends keyof T> =
  */
 class EventEmitter<T extends Events> {
 
-    private readonly _listeners: {
-        [K in keyof T]?: Array<{
-            persist: boolean
-            listener: EventListener<T, K>
-        }>
+    protected readonly _subscriptions: {
+        [K in keyof T]?: Array<EventSubscription<T, K>>
     } = {}
 
     public constructor (
@@ -52,7 +64,11 @@ class EventEmitter<T extends Events> {
         event: K,
         listener: EventListener<T, K>
     ): void {
-        this._addListener(event, listener, true, false)
+        this._addListener(event, listener, {
+            invocations: Infinity,
+            internal: false,
+            prepend: false
+        })
     }
 
     /**
@@ -66,7 +82,11 @@ class EventEmitter<T extends Events> {
         event: K,
         listener: EventListener<T, K>
     ): void {
-        this._addListener(event, listener, false, false)
+        this._addListener(event, listener, {
+            invocations: 1,
+            internal: false,
+            prepend: false
+        })
     }
 
     /**
@@ -109,7 +129,11 @@ class EventEmitter<T extends Events> {
         event: K,
         listener: EventListener<T, K>
     ): void {
-        this._addListener(event, listener, true, true)
+        this._addListener(event, listener, {
+            invocations: Infinity,
+            internal: false,
+            prepend: true
+        })
     }
 
     /**
@@ -124,7 +148,11 @@ class EventEmitter<T extends Events> {
         event: K,
         listener: EventListener<T, K>
     ): void {
-        this._addListener(event, listener, false, true)
+        this._addListener(event, listener, {
+            invocations: 1,
+            internal: false,
+            prepend: true
+        })
     }
 
     /**
@@ -152,7 +180,7 @@ class EventEmitter<T extends Events> {
     public removeAllListeners<K extends keyof T>(
         event: K,
     ): void {
-        const listeners = this._listeners[event] ?? []
+        const listeners = this._subscriptions[event] ?? []
 
         for (const { listener } of [...listeners])
             this.removeListener(event, listener)
@@ -173,7 +201,7 @@ class EventEmitter<T extends Events> {
         event: K,
         listener: EventListener<T, K>,
     ): void {
-        this._removeListener(event, listener)
+        this.removeListener(event, listener)
     }
 
     /**
@@ -184,15 +212,15 @@ class EventEmitter<T extends Events> {
      */
     public emit<K extends keyof T>(event: K, ...args: T[K]): void {
 
-        const listeners = this._listeners[event] ?? []
+        const subscriptions = this._subscriptions[event] ?? []
 
-        for (const { listener, persist } of [...listeners]) {
-            //                              ^ shallow copy so that removing non-persitent
-            //                                listeners doesn't cause any skipping.
-            listener.apply(this, args)
+        for (const subscription of [...subscriptions]) {
+            //                     ^ shallow copy so that removing non-persitent
+            //                       listeners doesn't cause any skipping.
+            subscription.listener.apply(this, args)
 
-            if (!persist)
-                this._removeListener(event, listener)
+            if (--subscription.invocations <= 0)
+                this._removeListener(event, subscription.listener, { internal: true })
         }
     }
 
@@ -203,25 +231,52 @@ class EventEmitter<T extends Events> {
      * @returns Number of listeners.
      */
     public getNumListeners<K extends keyof T>(event: K): number {
-        return this._listeners[event]?.length ?? 0
+        return this._getNumListeners(event)
+    }
+
+    public _getNumListeners<K extends keyof T>(
+        event: K,
+        options?: { internal?: boolean }
+    ): number {
+
+        const { internal: includeInternal = false } = options ?? {}
+
+        return this._subscriptions[event]
+            ?.filter(sub => includeInternal || !sub.internal)
+            .length ?? 0
     }
 
     /**
      * A list of event names that have listeners attached.
      */
     public get eventNames(): (keyof T)[] {
+        return this._getEventNames()
+    }
+
+    /**
+     * Gets a list of even names that have listeneres attached, optionally able
+     * to include internal events.
+     */
+    protected _getEventNames(options?: { internal?: boolean }): (keyof T)[] {
+
+        const { internal: includeInternal = false } = options ?? {}
+
         const eventNames: (keyof T)[] = []
 
-        for (const eventName in this._listeners) {
-            const listeners = this._listeners[eventName]
-            if (!listeners)
+        for (const eventName in this._subscriptions) {
+            const subscriptions = this._subscriptions[eventName]
+            if (!subscriptions)
                 continue
 
-            if (listeners.length > 0)
+            if (
+                subscriptions.length > 0 &&
+                includeInternal || !subscriptions.every(sub => sub.internal)
+            )
                 eventNames.push(eventName)
         }
 
         return eventNames
+
     }
 
     /**
@@ -246,48 +301,87 @@ class EventEmitter<T extends Events> {
     protected _addListener<K extends keyof T>(
         event: K,
         listener: EventListener<T, K>,
-        persist: boolean,
-        prepend: boolean
+        options?: {
+            /**
+             * Internal listeners will not be removed by public removal methods.
+             * False by default.
+             */
+            internal?: boolean
+
+            /**
+             * Number of times the listener will be invoked before being removed.
+             * Infinity by default.
+             */
+            invocations?: number
+
+            /**
+             * Listener will be invoked before other registered listeners.
+             * False by default.
+             */
+            prepend?: boolean
+        }
     ): void {
 
-        const listeners = this._listeners[event] ?? (this._listeners[event] = []) as {
-            persist: boolean
-            listener: EventListener<T, K>
-        }[]
+        const subscription = this._subscriptions[event] ?? (this._subscriptions[event] = []) as
+            EventSubscription<T, K>[]
+
+        const { prepend = false, internal = false, invocations = Infinity } = options ?? {}
 
         const method = prepend ? 'unshift' : 'push'
 
-        if (listeners.length + 1 > this.maxListeners) {
+        if (subscription.length + 1 > this.maxListeners) {
             throw new Error(
                 `Cannot add more than ${this.maxListeners} ` +
                 `listeners for the "${event}" event.`
             )
         }
 
-        listeners[method]({ listener, persist })
+        if (invocations < 1) {
+            throw new Error(
+                'Number of invocations must be 1 or higher.'
+            )
+        }
+
+        subscription[method]({
+            listener,
+            invocations,
+            internal
+        })
     }
 
     protected _removeListener<K extends keyof T>(
         event: K,
         listener: EventListener<T, K>,
+        options?: {
+            /**
+             * Remove subscribers marked as internal.
+             * False by default.
+             */
+            internal?: boolean
+        }
     ): void {
 
-        const listeners = this._listeners[event]
-        if (!listeners)
+        const subscriptions = this._subscriptions[event]
+        if (!subscriptions)
             return
+
+        const { internal: removeInternal = false } = options ?? {}
 
         // const index = listeners.findLastIndexOf(item => item.listener === listener)
         let index = -1
-        for (let i = listeners.length - 1; i >= 0; i--) {
-            const item = listeners[i]
-            if (item.listener === listener) {
+        for (let i = subscriptions.length - 1; i >= 0; i--) {
+            const subscription = subscriptions[i]
+            if (
+                subscription.listener === listener &&
+                (!subscription.internal || removeInternal)
+            ) {
                 index = i
                 break
             }
         }
 
         if (index >= 0)
-            listeners.splice(index, 1)
+            subscriptions.splice(index, 1)
     }
 
 }

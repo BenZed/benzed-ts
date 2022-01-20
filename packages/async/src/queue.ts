@@ -1,10 +1,7 @@
+import { isDate, isInstanceOf, isObject } from '@benzed/is'
 import { floor } from '@benzed/math'
-import { EventEmitter, EventListener } from '@benzed/util'
+import { EventEmitter } from '@benzed/util'
 import { milliseconds } from './milliseconds'
-
-/*** Main ***/
-
-const $$internal = Symbol('queue-internal-listener')
 
 /*** Types ***/
 
@@ -23,17 +20,23 @@ type QueuePayload<T> = {
     queue: Queue<T>
 }
 
+function isQueuePayload<T>(input: unknown): input is QueuePayload<T> {
+    return isObject<{ [key: string]: unknown }>(input) &&
+        isInstanceOf(input.item, QueueItem) &&
+        isDate(input.time) &&
+        isInstanceOf(input.queue, Queue)
+}
+
 /**
  * Events that either a Queue or a QueueItem will emit.
  */
 type QueueEvents<T> = {
-    start: [QueuePayload<T>]
-    complete: [T, QueuePayload<T>]
-    error: [Error, QueuePayload<T>]
+    start: [payload: QueuePayload<T>]
+    complete: T extends void | undefined
+    /**/ ? [payload: QueuePayload<T>]
+    /**/ : [value: T, payload: QueuePayload<T>]
+    error: [error: Error, payload: QueuePayload<T>]
 }
-
-type QueueInternalListener<T, K extends keyof QueueEvents<T>> =
-    EventListener<QueueEvents<T>, K> & { [$$internal]: true }
 
 interface QueueOptions {
     /**
@@ -69,49 +72,9 @@ interface QueueOptions {
 
 }
 
-/*** QueueEventEmitter ***/
-
-/**
- * Intermediate class for creating Event Emitters with internal listeners that cannot
- * be removed by public removeListener or removeAllListener methods.
- * 
- * TODO: Maybe this functionality should be on the base EventEmitter?
- */
-class QueueEventEmitter<T> extends EventEmitter<QueueEvents<T>> {
-
-    protected _addInternalListener<K extends keyof QueueEvents<T>>(
-        event: K,
-        listener: EventListener<QueueEvents<T>, K>,
-        persist: boolean
-    ): void {
-
-        (listener as QueueInternalListener<T, K>)[$$internal] = true
-
-        this._addListener(event, listener, persist, false)
-    }
-
-    private _isInternalListener<K extends keyof QueueEvents<T>>(
-        listener: EventListener<QueueEvents<T>, K>,
-    ): listener is QueueInternalListener<T, K> {
-        return !!(listener as QueueInternalListener<T, K>)[$$internal]
-    }
-
-    public override removeListener<K extends keyof QueueEvents<T>>(
-        event: K,
-        listener: EventListener<QueueEvents<T>, K>
-    ): void {
-
-        if (this._isInternalListener(listener))
-            return
-
-        super._removeListener(event, listener)
-    }
-
-}
-
 /*** QueueItem ***/
 
-class QueueItem<T> extends QueueEventEmitter<T> {
+class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
 
     public constructor (
         public readonly task: QueueTask<T>,
@@ -119,19 +82,20 @@ class QueueItem<T> extends QueueEventEmitter<T> {
     ) {
         super(maxListeners)
 
-        this._addInternalListener('start', () => {
+        this._addListener('start', () => {
             this._isStarted = true
-        }, false)
+        }, { invocations: 1, internal: true })
 
-        this._addInternalListener('complete', value => {
-            this._value = value
+        this._addListener('complete', (...[arg]) => {
+            const value = isQueuePayload(arg) ? undefined : arg
+            this._value = value as T
             this._isFinished = true
-        }, false)
+        }, { invocations: 1, internal: true })
 
-        this._addInternalListener('error', error => {
+        this._addListener('error', error => {
             this._error = error
             this._isFinished = true
-        }, false)
+        }, { invocations: 1, internal: true })
     }
 
     private _value?: T
@@ -171,8 +135,15 @@ class QueueItem<T> extends QueueEventEmitter<T> {
                     : resolve(this._value as T)
             }
 
-            this._addInternalListener('error', reject, false)
-            this._addInternalListener('complete', resolve, false)
+            this._addListener('error', reject, { internal: true })
+            this._addListener(
+                'complete',
+                (...[arg]) => {
+
+                    const value = isQueuePayload<T>(arg) ? undefined : arg
+                    resolve(value as T)
+                },
+                { internal: true })
         })
     }
 
@@ -180,7 +151,7 @@ class QueueItem<T> extends QueueEventEmitter<T> {
 
 /*** Queue ***/
 
-class Queue<T> extends QueueEventEmitter<T> {
+class Queue<T> extends EventEmitter<QueueEvents<T>> {
 
     private readonly _items: QueueItem<T>[] = []
 
@@ -311,8 +282,8 @@ class Queue<T> extends QueueEventEmitter<T> {
                 resolve()
             }
 
-            this._addInternalListener('complete', onFinish, true)
-            this._addInternalListener('error', onFinish, true)
+            this._addListener('complete', onFinish, { internal: true })
+            this._addListener('error', onFinish, { internal: true })
 
             onFinish() // <- in case queue is already finished
         })
@@ -363,13 +334,21 @@ class Queue<T> extends QueueEventEmitter<T> {
             this._removeCurrentItem(item)
 
             const time = new Date()
-            item.emit('complete', value, { item, time, queue: this })
-            this.emit('complete', value, { item, time, queue: this })
+            const payload = { item, time, queue: this }
+
+            const args = (value === undefined
+                ? [payload]
+                : [value, payload]) as unknown as QueueEvents<T>['complete']
+            //                      ^ don't really understand the unknown cast, but w/e
+
+            item.emit('complete', ...args)
+            this.emit('complete', ...args)
 
         } catch (e) {
             const error = e as Error
 
-            this._removeCurrentItem(item)
+            if (this._currentItems.includes(item))
+                this._removeCurrentItem(item)
 
             const time = new Date()
             item.emit('error', error, { item, time, queue: this })
@@ -392,5 +371,7 @@ export {
     QueueOptions,
 
     QueuePayload,
+    isQueuePayload,
+
     QueueTask,
 }

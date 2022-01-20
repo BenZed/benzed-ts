@@ -9,7 +9,8 @@
         "tsc:dev": "lerna run tsc:dev --parallel",
         "lint": "eslint ./packages/** --fix",
         "update-deps": "npx npm-check -u",
-        "publish-packages": "ts-node ./scripts/publish-packages.ts"
+        "publish-packages": "ts-node ./scripts/publish-packages.ts",
+        "sync-package-versions": "ts-node ./scripts/sync-package-versions.ts"
     },
     "repository": {
         "type": "git",

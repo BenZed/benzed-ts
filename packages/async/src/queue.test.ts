@@ -1,4 +1,4 @@
-import { Queue } from './queue'
+import { isQueuePayload, Queue } from './queue'
 import milliseconds from './milliseconds'
 
 describe('queue', () => {
@@ -239,6 +239,53 @@ describe('queue', () => {
             expect(callback).toHaveBeenCalledTimes(1)
 
         })
+
+        it('"complete" event first argument is a payload if queue type is void or undefined',
+            async () => {
+
+                const callback = jest.fn()
+
+                const strQ = new Queue<string>()
+                strQ.on('complete', (output) => {
+                    expect(typeof output).toBe('string')
+                })
+                const strItem = strQ.add(() => {
+                    callback()
+                    return 'hey'
+                })
+
+                const voidQ = new Queue<void>()
+                voidQ.on('complete', (payload) => {
+                    expect(isQueuePayload(payload)).toBe(true)
+                })
+                const voidItem = voidQ.add(callback)
+
+                const undefQ = new Queue<undefined>()
+                undefQ.on('complete', (payload) => {
+                    expect(isQueuePayload(payload)).toBe(true)
+                })
+                const undefItem = undefQ.add(callback)
+
+                const funQ = new Queue<string | undefined>()
+                funQ.add(() => {
+                    return 'hey'
+                })
+
+                // @ts-expect-error If T is void or undefined, the signature is going to complain.
+                funQ.on('complete', (output) => void output)
+
+                await Promise.all([
+                    strQ.finished(),
+                    voidQ.finished(),
+                    undefQ.finished()
+                ])
+
+                expect(strItem.error).toEqual(undefined)
+                expect(voidItem.error).toEqual(undefined)
+                expect(undefItem.error).toEqual(undefined)
+                expect(callback).toBeCalledTimes(3)
+
+            })
 
         it('"error" event fires when task throws an error', async () => {
 

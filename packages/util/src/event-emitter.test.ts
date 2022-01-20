@@ -8,7 +8,7 @@ describe('Event Emitter', () => {
             it('allows callbacks to be invoked via .emit', () => {
 
                 const emitter = new EventEmitter<{
-                    'hello': ['world']
+                    'hello': [greeting: 'world']
                 }>()
 
                 emitter[addMethod]('hello', value => {
@@ -175,13 +175,16 @@ describe('Event Emitter', () => {
             const emitter = new EventEmitter<{
                 'one': []
                 'two': []
+                'three': []
             }>()
 
             emitter.addListener('one', jest.fn())
+            emitter.addListener('one', jest.fn())
             emitter.addListener('two', jest.fn())
+            emitter.addListener('three', jest.fn())
             emitter.removeAllListeners('two')
 
-            expect(emitter.eventNames).toEqual(['one'])
+            expect(emitter.eventNames).toEqual(['one', 'three'])
         })
     })
 
@@ -242,5 +245,100 @@ describe('Event Emitter', () => {
 
             expect(that).toBe(emitter)
         })
+    })
+
+    describe('internal listeners', () => {
+
+        class ExtendedEmitter extends EventEmitter<{
+            msg: [message: string]
+        }> {
+
+            public lastMessage = ''
+            public firstMessage = ''
+            public secondMessage = ''
+
+            public constructor (maxListeners?: number) {
+                super(maxListeners)
+
+                this._addListener('msg', msg => {
+                    this.lastMessage = msg
+                }, { internal: true })
+
+                this._addListener('msg', msg => {
+                    this.firstMessage = msg
+                }, { internal: true, invocations: 1 })
+
+                this._addListener('msg', msg => {
+                    this.secondMessage = msg
+                }, { internal: true, invocations: 2 })
+            }
+        }
+
+        it(
+            'extended classes can add internal listeners that are not ' +
+            'removed by public methods', () => {
+
+                const emitter = new ExtendedEmitter()
+
+                emitter.removeAllListeners('msg')
+
+                emitter.emit('msg', 'cake')
+
+                expect(emitter.lastMessage).toEqual('cake')
+
+            })
+
+        it(
+            'internal listeners respect invocation count', () => {
+
+                const emitter = new ExtendedEmitter()
+
+                emitter.removeAllListeners('msg')
+
+                emitter.emit('msg', '1')
+                emitter.emit('msg', '2')
+                emitter.emit('msg', '3')
+
+                expect(emitter.firstMessage).toEqual('1')
+                expect(emitter.secondMessage).toEqual('2')
+                expect(emitter.lastMessage).toEqual('3')
+
+            })
+
+        it(
+            'error in case some smartass tries to configure <1 invocations', () => {
+
+                const emitter = new ExtendedEmitter()
+
+                expect(
+                    () => {
+                        emitter['_addListener']('msg', msg => {
+                            throw new Error(msg)
+                        }, { internal: true, invocations: 0 })
+                    }
+                ).toThrow('Number of invocations must be 1 or higher.')
+
+            })
+
+        it('do not contribute to listener count or event names', () => {
+
+            const emitter = new ExtendedEmitter()
+
+            expect(emitter.eventNames).toEqual([])
+            expect(emitter.getNumListeners('msg')).toEqual(0)
+
+        })
+
+        it(
+            'protected _getEventName and _getNumeListener methods ' +
+            'can optionally include internal events', () => {
+
+                const emitter = new ExtendedEmitter()
+
+                expect(emitter['_getEventNames']({ internal: true })).toEqual(['msg'])
+                expect(emitter['_getNumListeners']('msg', { internal: true })).toEqual(3)
+
+            })
+
     })
 })
