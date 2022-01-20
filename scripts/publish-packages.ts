@@ -1,113 +1,24 @@
-import fs, { Stats } from 'fs'
+import fs from 'fs'
 import path from 'path'
-import cp, { ExecOptions } from 'child_process'
 import semver from 'semver'
+
+import {
+    PackageJson,
+    exec,
+    writeJson,
+    forEachPackage,
+} from './util'
 
 /*** Publish Packages ***/
 
 // For each package, check that the version in the json is up-to-date with what is
 // on npm. 
+//
 // If the package is not up to date, run it's tests, build it and publish it to npm
 // relative to the lib folder (rather than the root folder) for cleaner imports.
-
-/*** Types ***/
-
-type PackageJson = {
-    name: string
-    private: boolean
-    main: string
-    version: string
-}
-
-/*** Setup ***/
-
-const PACKAGES_DIR = path.join(process.cwd(), 'packages')
-
-/*** Helper ***/
-
-function readdir(url: string): Promise<string[]> {
-    return new Promise<string[]>((resolve, reject) =>
-        fs.readdir(url, (err, dirs) => {
-            if (err)
-                reject(err)
-            else
-                resolve(dirs)
-        }))
-}
-
-function stat(url: string): Promise<Stats> {
-    return new Promise<Stats>((resolve, reject) =>
-        fs.stat(url, (err, stat) => {
-            if (err)
-                reject(err)
-            else
-                resolve(stat)
-        }))
-}
-
-function unlink(url: string): Promise<void> {
-    return new Promise<void>((resolve, reject) =>
-        fs.unlink(url, (err) => {
-            if (err)
-                reject(err)
-            else
-                resolve()
-        }))
-}
-
-function readJson(url: string): Promise<unknown> {
-    return new Promise<unknown>((resolve, reject) =>
-        fs.readFile(url, 'utf-8', (err, txt) => {
-            if (err)
-                reject(err)
-            else
-                resolve(JSON.parse(txt))
-        }))
-}
-
-function writeJson(json: unknown, url: string): Promise<void> {
-    return new Promise<void>((resolve, reject) =>
-        fs.writeFile(url, JSON.stringify(json, null, 4), 'utf-8', (err) => {
-            if (err)
-                reject(err)
-            else
-                resolve()
-        }))
-}
-
-function exec(cmd: string, options?: ExecOptions): Promise<string> {
-    return new Promise<string>((resolve, reject) =>
-        cp.exec(cmd, options ?? {}, (err, output) => {
-            if (err) {
-                reject(
-                    new Error(`exec ${cmd} failed: ${(err as Error).message}`)
-                )
-            } else
-                resolve(output)
-        }))
-}
-
-async function forEachPackage(
-    func: (json: PackageJson, url: string) => Promise<void>
-): Promise<void> {
-
-    const packageNames = await readdir(PACKAGES_DIR)
-
-    for (const packageName of packageNames) {
-
-        const packageUrl = path.join(PACKAGES_DIR, packageName)
-
-        const packageStat = await stat(packageUrl)
-        if (!packageStat.isDirectory())
-            continue
-
-        const packageJsonUrl = path.join(packageUrl, 'package.json')
-        const packageJson = await readJson(packageJsonUrl) as PackageJson
-
-        await func(packageJson, packageUrl)
-    }
-
-}
+//
+// Because I want packages hoisted up from their /lib subfolder, I'm not using 
+// lerna publish.
 
 async function getNpmVersionData(
     name: string,
@@ -168,7 +79,7 @@ async function publishPackage(json: PackageJson, url: string): Promise<void> {
     await exec('npm publish --access=public', { cwd: path.join(url, 'lib') })
     process.stdout.write('\bed √\n')
 
-    await unlink(tarBallPackageJsonUrl).catch(e => void e)
+    await fs.promises.unlink(tarBallPackageJsonUrl).catch(e => void e)
 }
 
 /*** Execute ***/
@@ -197,9 +108,7 @@ void async function publishPackages() {
             await publishPackage(packageJson, packageUrl)
             publishCount++
         } catch (e) {
-            process.stdout.write(
-                'x\n'
-            )
+            process.stdout.write('x\n')
             failCount++
         }
     })
