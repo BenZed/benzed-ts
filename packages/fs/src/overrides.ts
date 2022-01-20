@@ -59,12 +59,15 @@ export {
     readdir,
     readdir as readDir,
 
+    mkdir,
     mkdir as makeDir,
+
     rmdir,
     rmdir as removeDir,
 
     readFile,
     writeFile,
+
     unlink,
     unlink as removeFile,
 
