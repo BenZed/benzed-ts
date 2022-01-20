@@ -82,38 +82,53 @@ async function publishPackage(json: PackageJson, url: string): Promise<void> {
     await fs.promises.unlink(tarBallPackageJsonUrl).catch(e => void e)
 }
 
+async function assertBranch(target: string): Promise<void> {
+    const branch = (await exec('git rev-parse --abbrev-ref HEAD')).trim()
+    if (branch !== 'master')
+        throw new Error(`current branch "${branch}" is not "${target}"`)
+}
+
 /*** Execute ***/
 
 void async function publishPackages() {
 
-    let publishCount = 0
-    let failCount = 0
+    try {
 
-    await forEachPackage(async (packageJson, packageUrl) => {
+        await assertBranch('master')
 
-        const { main, version, name, private: _private } = packageJson
+        let publishCount = 0
+        let failCount = 0
 
-        if (_private || !version || !main || !name)
-            return
+        await forEachPackage(async (packageJson, packageUrl) => {
 
-        const npmData = await getNpmVersionData(name, version)
-        if (npmData.upToDate)
-            return
+            const { main, version, name, private: _private } = packageJson
 
-        process.stdout.write(
-            `${name} ${npmData.version} -> ${version} `
-        )
+            if (_private || !version || !main || !name)
+                return
 
-        try {
-            await publishPackage(packageJson, packageUrl)
-            publishCount++
-        } catch (e) {
-            process.stdout.write('x\n')
-            failCount++
-        }
-    })
+            const npmData = await getNpmVersionData(name, version)
+            if (npmData.upToDate)
+                return
 
-    process.stdout.write(`${publishCount} packages published\n`)
-    if (failCount > 0)
-        process.stdout.write(`${failCount} packages failed\n`)
+            process.stdout.write(
+                `${name} ${npmData.version} -> ${version} `
+            )
+
+            try {
+                await publishPackage(packageJson, packageUrl)
+                publishCount++
+            } catch (e) {
+                process.stdout.write('x\n')
+                failCount++
+            }
+        })
+
+        process.stdout.write(`${publishCount} packages published\n`)
+        if (failCount > 0)
+            process.stdout.write(`${failCount} packages failed\n`)
+
+    } catch (e) {
+        console.error('publish failed: ', (e as Error).message)
+    }
+
 }()
