@@ -36,3 +36,7 @@ function between(
 /*** Exports ***/
 
 export default between
+
+export {
+    between
+}

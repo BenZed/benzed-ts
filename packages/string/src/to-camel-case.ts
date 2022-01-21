@@ -39,3 +39,7 @@ function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
 /*** Exports ***/
 
 export default toCamelCase
+
+export {
+    toCamelCase
+}

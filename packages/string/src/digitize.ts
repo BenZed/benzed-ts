@@ -144,5 +144,5 @@ export default digitize
 
 export {
     digitize,
-    DecimalOptions
+    DigitizeOptions
 }

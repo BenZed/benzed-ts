@@ -9,7 +9,7 @@
  * @param dash character(s) to use as dash
  * @return dash cased string
  */
-export default function toDashCase(
+function toDashCase(
     input: string,
     dash = '-'
 ): string {
@@ -43,4 +43,12 @@ export default function toDashCase(
     }
 
     return output
+}
+
+/*** Exports ***/
+
+export default toDashCase
+
+export {
+    toDashCase
 }
