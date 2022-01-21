@@ -5,23 +5,20 @@
  * toDashCase('fooBar') // 'foo-bar'
  * ```
  * 
- * @param str String to convert to dash case
+ * @param input String to convert to dash case
  * @param dash character(s) to use as dash
  * @return dash cased string
  */
 export default function toDashCase(
-    str: string,
+    input: string,
     dash = '-'
 ): string {
 
-    if (str == null)
-        str = ''
-
     let output = ''
     let lastCharWasCaseable = false
-    for (let i = 0; i < str.length; i++) {
+    for (let i = 0; i < input.length; i++) {
 
-        const char = str.charAt(i)
+        const char = input.charAt(i)
         const charUp = char.toUpperCase()
         const charLo = char.toLowerCase()
         const charIsCaseable = charUp !== charLo
