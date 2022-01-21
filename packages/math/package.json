@@ -2,7 +2,7 @@
     "name": "@benzed/math",
     "description": "My own personal Math module, extending Math with overridden or custom functionality.",
     "main": "./lib",
-    "version": "3.1.1",
+    "version": "3.1.2",
     "scripts": {
         "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",

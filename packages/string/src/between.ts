@@ -2,12 +2,12 @@
  * Gets a substring between the given delimeter(s).
  * 
  * ```typescript
- *  between('<tag>content</tag>', '<tag>', '</tag>') // 'content'
+ *  between('<tag><a>content</tag>', '<tag>', '</tag>') // 'content'
  * ```
  *
  * @param  str Source string.
- * @param  open Open marker.
- * @param  close=open Close marker.
+ * @param  open Open delimiter.
+ * @param  close=open Close delimiter.
  *
  * @return Substring of the source between the two markers. Empty string if nothing found.
  */
@@ -20,19 +20,23 @@ function between(
     if (!open || !close)
         throw new Error('delimeters must not be empty')
 
-    const openIndex = str.indexOf(open)
-    if (openIndex === -1)
+    const openStartIndex = str.indexOf(open)
+    if (openStartIndex === -1)
         return ''
 
-    let closeIndex = str.substr(openIndex + open.length).indexOf(close)
-    if (closeIndex === -1)
+    const openEndIndex = openStartIndex + open.length
+
+    const closeLength = str.substring(openEndIndex).indexOf(close)
+    if (closeLength === -1)
         return ''
 
-    closeIndex += open.length
-
-    return str.substr(openIndex, closeIndex + close.length)
+    return str.substring(openEndIndex, openEndIndex + closeLength)
 }
 
 /*** Exports ***/
 
 export default between
+
+export {
+    between
+}

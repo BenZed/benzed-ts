@@ -1,5 +1,4 @@
-import { isDate, isInstanceOf, isObject } from '@benzed/is'
-import { floor } from '@benzed/math'
+import { isDate, isInstanceOf, isInteger, isObject } from '@benzed/is'
 import { EventEmitter } from '@benzed/util'
 import { milliseconds } from './milliseconds'
 
@@ -215,7 +214,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
             if (this[maxOption] < 1)
                 throw new Error(`options.${maxOption} must be 1 or higher.`)
 
-            if (this[maxOption] !== floor(this[maxOption]))
+            if (!isInteger(this[maxOption]))
                 throw new Error(`options.${maxOption} must be a whole number.`)
         }
 

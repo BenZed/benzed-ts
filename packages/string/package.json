@@ -2,7 +2,7 @@
     "name": "@benzed/string",
     "description": "Utility and Convenience methods for working with strings.",
     "main": "./lib",
-    "version": "3.1.1",
+    "version": "3.2.0",
     "scripts": {
         "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
@@ -19,5 +19,9 @@
     "bugs": {
         "url": "https://github.com/BenZed/benzed-ts/issues"
     },
-    "homepage": "https://github.com/BenZed/benzed-ts#readme"
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "@benzed/is": "^3.1.0",
+        "@benzed/math": "^3.1.1"
+    }
 }

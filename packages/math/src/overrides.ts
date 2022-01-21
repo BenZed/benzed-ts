@@ -49,8 +49,20 @@ export function random(min = 0, max = 1, seed?: number): number {
  */
 export function round(value: number, precision = 1): number {
 
-    return precision === 0
-        ? value
+    precision = abs(precision)
+    if (precision === 0)
+        return value
+
+    // This helps reduce float point precision errors when 
+    // rounding to tiny decimal places <= (0.001)
+    let inverted = false
+    if (precision < 1) {
+        precision = 1 / precision
+        inverted = true
+    }
+
+    return inverted
+        ? _round(value * precision) / precision
         : _round(value / precision) * precision
 }
 
