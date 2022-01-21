@@ -5,15 +5,15 @@ import between from './between'
 const str = '{one}, (two), [three], |four|, <!--five-->, <SIX/>'
 
 it('returns the content between and open and closing delimeter', () => {
-    expect(between(str, '[', ']')).toBe('[three]')
+    expect(between(str, '[', ']')).toBe('three')
 })
 
 it('close delimeter is same as open delimeter if not provided', () => {
-    expect(between(str, '|')).toBe('|four|')
+    expect(between(str, '|')).toBe('four')
 })
 
 it('handles long delimiters', () => {
-    expect(between(str, '<!--', '-->')).toBe('<!--five-->')
+    expect(between(str, '<!--', '-->')).toBe('five')
 })
 
 it('returns " if open delimiter can\'t be found', () => {
