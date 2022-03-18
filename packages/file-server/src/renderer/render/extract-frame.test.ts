@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 
-import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
+import { RENDER_FOLDER, TEST_ASSETS } from '../../../test-assets'
 
 import extractFrame from './extract-frame'
 import getMetadata from './get-metadata'
