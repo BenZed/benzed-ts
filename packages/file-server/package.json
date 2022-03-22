@@ -4,11 +4,11 @@
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {
-        "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
+        "test": "jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
         "build": "npm run lint && npm run tsc",
-        "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
-        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
+        "lint": "eslint src/**/*.ts --fix",
+        "tsc": "rm -rf lib; mkdir lib; tsc"
     },
     "repository": {
         "type": "git",
@@ -25,11 +25,20 @@
         "@benzed/is": "^3.1.0",
         "@benzed/math": "^3.1.2",
         "@benzed/util": "^3.7.0",
-        "@feathersjs/feathers": "^5.0.0-pre.16",
-        "@feathersjs/koa": "^5.0.0-pre.16",
-        "fluent-ffmpeg": "^2.1.2"
+        "@feathersjs/configuration": "^5.0.0-pre.17",
+        "@feathersjs/express": "5.0.0-pre.17",
+        "@feathersjs/feathers": "^5.0.0-pre.17",
+        "@feathersjs/socketio": "^5.0.0-pre.17",
+        "@feathersjs/authentication-local": "^5.0.0-pre.17",
+        "@feathersjs/authentication-oauth": "^5.0.0-pre.17",
+        "@feathersjs/authentication": "^5.0.0-pre.17",
+        "compression": "^1.7.4",
+        "cors": "^2.8.5",
+        "fluent-ffmpeg": "^2.1.2",
+        "helmet": "^5.0.2"
     },
     "devDependencies": {
+        "@types/compression": "^1.7.2",
         "@types/fluent-ffmpeg": "^2.1.20"
     }
 }
