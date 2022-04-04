@@ -2,13 +2,13 @@
     "name": "@benzed/immutable",
     "description": "My own library for manipulating objects immutably.",
     "main": "./lib",
-    "version": "3.1.1",
+    "version": "3.1.2",
     "scripts": {
-        "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
+        "test": "jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
-        "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
+        "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
-        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
+        "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
         "type": "git",
@@ -21,6 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/is": "^3.1.0"
+        "@benzed/is": "^3.1.0",
+        "@benzed/array": "^3.1.2"
     }
 }
