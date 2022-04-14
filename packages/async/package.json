@@ -1,6 +1,6 @@
 {
     "name": "@benzed/async",
-    "version": "3.3.3",
+    "version": "3.3.4",
     "main": "./lib",
     "description": "Asyncronous and Promise-related tools, classes and helpers",
     "scripts": {
@@ -8,7 +8,7 @@
         "test:dev": "npm run test -- --verbose --watch",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
-        "tsc": "shx rm -rf lib; shx mkdir lib; tsc"
+        "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
         "type": "git",
