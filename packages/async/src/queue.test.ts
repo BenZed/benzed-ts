@@ -111,13 +111,11 @@ describe('queue', () => {
                 // 🏃 represents running tasks
                 // 🛑 represents finished tasks 
 
-                /*
-        console.log(
-            taskStates
-                .map(state => state.join(''))
-                .join('\n')
-        )
-        */
+                // console.log(
+                //     taskStates
+                //         .map(state => state.join(''))
+                //         .join('\n')
+                // )
 
             })
 

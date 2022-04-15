@@ -143,7 +143,6 @@ class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
             this._addListener(
                 'complete',
                 (...[arg]) => {
-
                     const value = isQueuePayload<T>(arg) ? undefined : arg
                     resolve(value as T)
                 },
