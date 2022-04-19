@@ -139,14 +139,18 @@ class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
                     : resolve(this._value as T)
             }
 
-            this._addListener('error', reject, { internal: true })
+            this._addListener(
+                'error',
+                reject,
+                { internal: true, invocations: 1 })
+
             this._addListener(
                 'complete',
                 (...[arg]) => {
                     const value = isQueuePayload<T>(arg) ? undefined : arg
                     resolve(value as T)
                 },
-                { internal: true })
+                { internal: true, invocations: 1 })
         })
     }
 

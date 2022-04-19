@@ -315,6 +315,20 @@ describe('queue', () => {
             expect(item.isStarted).toBe(true)
         })
 
+        it('.finished() returns value', async () => {
+
+            const VALUE = 'string-value'
+
+            const queue = new Queue<string>()
+            const item = queue.add(async () => {
+                await milliseconds(0)
+                return VALUE
+            })
+
+            const output = await item.finished()
+            expect(output).toBe(VALUE)
+        })
+
         it('.finished() promises resolve when already finished', async () => {
 
             const queue = new Queue()
