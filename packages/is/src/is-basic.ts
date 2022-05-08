@@ -15,7 +15,7 @@ const BOXABLE_PRIMITIVES = {
 
 /*** Helper ***/
 
-function isBoxablePrimitive(
+function isBoxedOrPrimitive(
     input: unknown,
     primitive: 'string' | 'boolean' | 'number'
 ): boolean {
@@ -27,22 +27,22 @@ function isBoxablePrimitive(
 /*** Main ***/
 
 export function isString(input: unknown): input is string {
-    return isBoxablePrimitive(input, 'string')
+    return isBoxedOrPrimitive(input, 'string')
 }
 
 export function isBoolean(input: unknown): input is boolean {
-    return isBoxablePrimitive(input, 'boolean')
+    return isBoxedOrPrimitive(input, 'boolean')
 }
 
 export function isNumber(input: unknown): input is number {
-    return !isNaN(input) && isBoxablePrimitive(input, 'number')
+    return !isNaN(input) && isBoxedOrPrimitive(input, 'number')
 }
 
 export function isSymbol(input: unknown): input is symbol {
     return typeof input === 'symbol'
 }
 
-export function isNaN(input: unknown): input is number {
+export function isNaN(input: unknown): boolean {
     return Number.isNaN(input)
 }
 

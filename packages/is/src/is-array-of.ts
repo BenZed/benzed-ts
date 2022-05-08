@@ -88,7 +88,9 @@ export const isArrayOfIterable = everyItemInArray(isIterable)
 
 export const isArrayOfInt = everyItemInArray(isInteger)
 
-export const isArrayOfNaN = everyItemInArray(isNaN)
+export const isArrayOfNaN = everyItemInArray(
+    isNaN as (input: unknown) => input is number
+)
 
 export const isArrayOfPlainObject = everyItemInArray(isPlainObject)
 

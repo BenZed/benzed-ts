@@ -2,7 +2,7 @@
     "name": "@benzed/math",
     "description": "My own personal Math module, extending Math with overridden or custom functionality.",
     "main": "./lib",
-    "version": "3.1.3",
+    "version": "3.1.4",
     "scripts": {
         "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/immutable": "^3.1.2",
-        "@benzed/is": "^3.1.1"
+        "@benzed/immutable": "^3.1.3",
+        "@benzed/is": "^3.1.2"
     }
 }
