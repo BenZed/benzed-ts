@@ -15,15 +15,17 @@ function toDashCase(
 ): string {
 
     let output = ''
-    let lastCharWasCaseable = false
+    let prevCharIsCaseable = false
+    let prevCharIsDigit = false
     for (let i = 0; i < input.length; i++) {
 
         const char = input.charAt(i)
         const charUp = char.toUpperCase()
         const charLo = char.toLowerCase()
-        const charIsCaseable = charUp !== charLo
+        const isDigit = char >= '0' && char <= '9'
+        const isCaseable = charUp !== charLo
 
-        const isUpperChar = charIsCaseable && char === charUp
+        const isUpper = isCaseable && char === charUp
         const outputIsEmpty = output.length === 0
 
         // Dashes should:
@@ -31,15 +33,17 @@ function toDashCase(
         // - NOT be first or last character in output
         // - NOT appear more than once consecutively
         const requiresDash =
-            isUpperChar && lastCharWasCaseable ||
-            charIsCaseable && !lastCharWasCaseable && !outputIsEmpty
+            isUpper && prevCharIsCaseable ||
+            isDigit && (!prevCharIsCaseable && !prevCharIsDigit && !outputIsEmpty) ||
+            isCaseable && !prevCharIsCaseable && !outputIsEmpty
         if (requiresDash)
             output += dash
 
-        if (charIsCaseable)
+        if (isCaseable || isDigit)
             output += charLo
 
-        lastCharWasCaseable = charIsCaseable
+        prevCharIsCaseable = isCaseable
+        prevCharIsDigit = isDigit
     }
 
     return output

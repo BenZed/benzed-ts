@@ -44,6 +44,30 @@ for (const strings of [
     {
         in: 'Regularily punctuated words and Nouns.',
         out: 'regularily-punctuated-words-and-nouns'
+    },
+    {
+        in: 'SomeId#123',
+        out: 'some-id-123',
+    },
+    {
+        in: '123SomeAddress',
+        out: '123-some-address',
+    },
+    {
+        in: 'some.address123',
+        out: 'some-address123',
+    },
+    {
+        in: 'HeyMan123HowAreYou456',
+        out: 'hey-man123-how-are-you456',
+    },
+    {
+        in: '123! Who do we appreciate? 456! We appreciate you!',
+        out: '123-who-do-we-appreciate-456-we-appreciate-you',
+    },
+    {
+        in: 'd∂lm@t10n!',
+        out: 'd-lm-t10-n'
     }
 ]) {
     test(`${strings.in} -> ${strings.out}`, () => {

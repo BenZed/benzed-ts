@@ -2,7 +2,7 @@
     "name": "@benzed/string",
     "description": "Utility and Convenience methods for working with strings.",
     "main": "./lib",
-    "version": "3.2.2",
+    "version": "3.2.3",
     "scripts": {
         "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
