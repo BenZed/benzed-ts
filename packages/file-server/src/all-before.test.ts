@@ -5,7 +5,7 @@ export default async (): Promise<void> => {
 
     // Remove Render Folder
     await new Promise<void>(resolve =>
-        fs.rmdir(
+        fs.rm(
             RENDER_FOLDER,
             { recursive: true },
             () => resolve()

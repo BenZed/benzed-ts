@@ -10,7 +10,8 @@
         "lint": "eslint ./packages/** --fix",
         "update-deps": "npx npm-check -u",
         "publish-packages": "ts-node ./scripts/publish-packages.ts",
-        "sync-package-versions": "ts-node ./scripts/sync-package-versions.ts"
+        "sync-package-versions": "ts-node ./scripts/sync-package-versions.ts",
+        "postinstall": "npm run bootstrap; npm run build; npm audit fix"
     },
     "repository": {
         "type": "git",
@@ -29,7 +30,7 @@
         "@typescript-eslint/parser": "^5.9.1",
         "eslint": "^8.6.0",
         "jest": "^27.4.7",
-        "lerna": "^4.0.0",
+        "lerna": "^5.1.8",
         "semver": "^7.3.5",
         "shx": "^0.3.4",
         "ts-jest": "^27.1.2",

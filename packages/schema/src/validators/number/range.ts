@@ -145,7 +145,7 @@ function parseRangeArrayOption(
 
     range = [...range] // don't mutate input array
 
-    const numbers = pluck(range, isNumber)
+    const numbers = pluck(range, isNumber) as number[]
     if (numbers.length === 2) {
         const [min, max] = numbers
         const [comparator] = pluck(range, isBetweenComparator) as BetweenComparator[]

@@ -21,6 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/is": "^3.1.2"
+        "@benzed/is": "^3.1.2",
+        "@benzed/array": "^3.1.4"
     }
 }
