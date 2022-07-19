@@ -238,6 +238,7 @@ describe('Event Emitter', () => {
 
             let that: EventEmitter<{ event: [] }> | null = null
             emitter.on('event', function (this: EventEmitter<{ event: [] }>) {
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
                 that = this
             })
 

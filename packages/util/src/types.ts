@@ -25,3 +25,5 @@ export type UndefinedToOptional<T> =
 export type TypeMatchedKeys<T1, K1 extends keyof T1, T2> = {
     [K2 in keyof T2]: T2[K2] extends T1[K1] ? K2 : never
 }[keyof T2]
+
+export type StringKeys<T> = Extract<keyof T, string>
