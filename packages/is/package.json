@@ -2,7 +2,7 @@
     "name": "@benzed/is",
     "description": "Type check/guard utility methods.",
     "main": "./lib",
-    "version": "3.1.0",
+    "version": "3.1.2",
     "scripts": {
         "test": "jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",

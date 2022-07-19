@@ -1,5 +1,5 @@
-import { isQueuePayload, Queue } from './queue'
 import milliseconds from './milliseconds'
+import { isQueuePayload, Queue } from './queue'
 
 describe('queue', () => {
 
@@ -9,14 +9,11 @@ describe('queue', () => {
 
         const queue = new Queue()
 
-        const task = async (): Promise<'complete'> => {
-            await milliseconds(1)
-            return 'complete'
-        }
+        const task = (): Promise<string> => Promise.resolve('complete')
 
         const item = queue.add(task)
 
-        await milliseconds(10)
+        await new Promise(resolve => queue.once('complete', resolve))
 
         expect(item.value).toEqual('complete')
     })
@@ -37,15 +34,15 @@ describe('queue', () => {
     describe('maxTotalItems option', () => {
 
         it('Must be 1 or higher', () => {
-            expect(() => new Queue({ maxTotalItems: 0 }))
-                .toThrow('options.maxTotalItems must be 1 or higher.')
+            for (const badNumber of [0, -1, NaN]) {
+                expect(() => new Queue({ maxTotalItems: badNumber }))
+                    .toThrow('options.maxTotalItems must be 1 or higher.')
+            }
         })
 
         it('Must be a whole number', () => {
-            for (const badNumber of [1.5, NaN]) {
-                expect(() => new Queue({ maxTotalItems: badNumber }))
-                    .toThrow('options.maxTotalItems must be a whole number.')
-            }
+            expect(() => new Queue({ maxTotalItems: 1.5 }))
+                .toThrow('options.maxTotalItems must be infinite or an integer.')
         })
 
         it('Error is thrown if too many items are queued', () => {
@@ -63,20 +60,17 @@ describe('queue', () => {
     describe('maxConcurrent option', () => {
 
         it('Must be 1 or higher', () => {
-            expect(() => new Queue({ maxConcurrent: 0 }))
-                .toThrow('options.maxConcurrent must be 1 or higher.')
-        })
-
-        it('Must be a whole number', () => {
-            for (const badNumber of [1.5, NaN]) {
+            for (const badNumber of [-1, 0]) {
                 expect(() => new Queue({ maxConcurrent: badNumber }))
-                    .toThrow('options.maxConcurrent must be a whole number.')
+                    .toThrow('options.maxConcurrent must be 1 or higher.')
             }
         })
 
-        it('Cannot be infinite', () => {
-            expect(() => new Queue({ maxConcurrent: Infinity }))
-                .toThrow('options.maxConcurrent cannot be Infinite.')
+        it('Must be a whole number', () => {
+            for (const badNumber of [1.5, Infinity]) {
+                expect(() => new Queue({ maxConcurrent: badNumber }))
+                    .toThrow('options.maxConcurrent must be an integer.')
+            }
         })
 
         it('sets the number of concurrent tasks', () => {
@@ -112,18 +106,16 @@ describe('queue', () => {
 
                 await queue.finished()
 
-                // UnComment this to see the state visualization
+                // UnComment the following block to see the state visualization
                 // ⌛ represents waiting tasks 
                 // 🏃 represents running tasks
                 // 🛑 represents finished tasks 
 
-                /*
-                console.log(
-                    taskStates
-                        .map(state => state.join(''))
-                        .join('\n')
-                )
-                */
+                // console.log(
+                //     taskStates
+                //         .map(state => state.join(''))
+                //         .join('\n')
+                // )
 
             })
 
@@ -321,6 +313,20 @@ describe('queue', () => {
             await item.finished()
 
             expect(item.isStarted).toBe(true)
+        })
+
+        it('.finished() returns value', async () => {
+
+            const VALUE = 'string-value'
+
+            const queue = new Queue<string>()
+            const item = queue.add(async () => {
+                await milliseconds(0)
+                return VALUE
+            })
+
+            const output = await item.finished()
+            expect(output).toBe(VALUE)
         })
 
         it('.finished() promises resolve when already finished', async () => {

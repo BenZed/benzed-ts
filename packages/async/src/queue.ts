@@ -1,4 +1,4 @@
-import { isDate, isInstanceOf, isInteger, isObject } from '@benzed/is'
+import { isDate, isInstanceOf, isInteger, isFinite, isObject, isNaN } from '@benzed/is'
 import { EventEmitter } from '@benzed/util'
 import { milliseconds } from './milliseconds'
 
@@ -19,6 +19,11 @@ type QueuePayload<T> = {
     queue: Queue<T>
 }
 
+/**
+ * Type guard that determines weather the input is a QueuePayload
+ * @param input 
+ * @returns 
+ */
 function isQueuePayload<T>(input: unknown): input is QueuePayload<T> {
     return isObject<{ [key: string]: unknown }>(input) &&
         isInstanceOf(input.item, QueueItem) &&
@@ -134,15 +139,18 @@ class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
                     : resolve(this._value as T)
             }
 
-            this._addListener('error', reject, { internal: true })
+            this._addListener(
+                'error',
+                reject,
+                { internal: true, invocations: 1 })
+
             this._addListener(
                 'complete',
                 (...[arg]) => {
-
                     const value = isQueuePayload<T>(arg) ? undefined : arg
                     resolve(value as T)
                 },
-                { internal: true })
+                { internal: true, invocations: 1 })
         })
     }
 
@@ -180,7 +188,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
 
     /**
      * 
-     * Number of items waiting to be executed.
+     * Number of items currently executing.
      */
     public get numCurrentItems(): number {
         return this._currentItems.length
@@ -194,8 +202,14 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
         return this.numItems + this.numCurrentItems
     }
 
+    /**
+     * Maximum number of concurrently executing items allowed on this queue.
+     */
     public readonly maxConcurrent: number
 
+    /**
+     * Maximum number of items the queue can hold.
+     */
     public readonly maxTotalItems: number
 
     /*** Constructor ***/
@@ -211,20 +225,30 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
         this.isPaused = options?.initiallyPaused ?? false
 
         for (const maxOption of ['maxConcurrent', 'maxTotalItems'] as const) {
-            if (this[maxOption] < 1)
+            if (this[maxOption] < 1 || isNaN(this[maxOption]))
                 throw new Error(`options.${maxOption} must be 1 or higher.`)
-
-            if (!isInteger(this[maxOption]))
-                throw new Error(`options.${maxOption} must be a whole number.`)
         }
 
-        if (!isFinite(this.maxConcurrent))
-            throw new Error('options.maxConcurrent cannot be Infinite.')
-        //                          ^ being infinite would kind of defeat the purpose.
+        if (!isInteger(this.maxConcurrent))
+            throw new Error('options.maxConcurrent must be an integer.')
+
+        if (
+            !isInteger(this.maxTotalItems) &&
+            isFinite(this.maxTotalItems)
+        ) {
+            throw new Error(
+                'options.maxTotalItems must be infinite or an integer.'
+            )
+        }
     }
 
     /*** Main ***/
 
+    /**
+     * Adds a task to the queue
+     * @param task 
+     * @returns A queue item object containing the given task.
+     */
     public add(
         task: QueueTask<T>,
     ): QueueItem<T> {
@@ -268,6 +292,9 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
         return this.numTotalItems === 0
     }
 
+    /**
+     * @returns Promise that resolves when the queue is finished.
+     */
     public finished(): Promise<void> {
         return new Promise(resolve => {
 
@@ -287,6 +314,8 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
             onFinish() // <- in case queue is already finished
         })
     }
+
+    /*** Helper ***/
 
     private async _updateCurrentItems(): Promise<void> {
 
