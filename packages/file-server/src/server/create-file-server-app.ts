@@ -41,9 +41,7 @@ function createFileServerApp(): FileServerApp {
     //
     const app = Object.assign(
 
-        express(
-            feathers()
-        ) as Express & Application<FileServices, FileServerConfig>,
+        express(feathers()) as Express & Application<FileServices, FileServerConfig>,
 
         {
             log: createLogger({
@@ -55,15 +53,15 @@ function createFileServerApp(): FileServerApp {
 
     app.configure(configuration())
 
-    const corsOptions = { origin: '*' } as const
+    const CORS_OPTIONS = { origin: '*' } as const
 
     app.use(helmet())
-    app.use(cors(corsOptions))
+    app.use(cors(CORS_OPTIONS))
     app.use(compress())
     app.use(json())
     app.use(urlencoded())
 
-    app.configure(socketio({ cors: corsOptions }))
+    app.configure(socketio({ cors: CORS_OPTIONS }))
     app.configure(channels)
 
     app.configure(rest())
@@ -78,10 +76,12 @@ function createFileServerApp(): FileServerApp {
 export default createFileServerApp
 
 export {
+
     createFileServerApp,
+
     FileServerApp,
     FileServerConfig,
     FileServerHookContext,
-
     FileServices
+
 }

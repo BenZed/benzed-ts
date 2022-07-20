@@ -1,11 +1,13 @@
 import path from 'path'
 import fs from 'fs'
 
+import { isNumber } from '@benzed/is'
+
 import { RENDER_FOLDER, TEST_ASSETS } from '../../../test-assets'
 
 import extractFrame from './extract-frame'
 import getMetadata from './get-metadata'
-import { isNumber } from '@benzed/is'
+
 import { SizeOptions, TimeOptions } from './options'
 
 type TestInput = {
@@ -20,9 +22,9 @@ describe('extractFrame', () => {
         { options: { progress: 0 }, label: 'beginning' },
         { options: { progress: 0.5 }, label: 'middle' },
         { options: { progress: 1 }, label: 'end' },
-        { options: { time: 0.125 }, label: 'time 0.125' },
-        { options: { time: 0.25 }, label: 'time 0.250' },
-        { options: { time: 0.5 }, label: 'time 0.550' },
+        { options: { time: 0.125 }, label: 'time 1-8' },
+        { options: { time: 0.25 }, label: 'time 1-4' },
+        { options: { time: 0.5 }, label: 'time 1-2' },
         { options: { progress: 0.5, scale: 0.5 }, label: 'middle @ half size' },
         { options: { progress: 0.5, width: 26 }, label: 'middle @ width 26' },
         { options: { progress: 0.5, height: 32 }, label: 'middle @ height 32' },
@@ -36,18 +38,26 @@ describe('extractFrame', () => {
     }))
 
     const types = [
-        'png',
-        'gif',
         'mp4',
-        'jpg',
+        'gif',
+        'png',
+        'jpg'
     ] as const
+
+    // input multiplied by scale to the nearest even integer
+    const toTargetDimension = (axis: number, scale: number): number => {
+        let target = Math.floor(axis * scale)
+        target -= target % 2
+        return target
+    }
 
     for (const type of types) {
         for (const { options, label, stream } of [...testInput, ...testInputWithStreams]) {
-            it(`extracts a frame from ${type} input stream ${label}`, async () => {
+
+            it(`extracts a frame from ${type} input ${label}`, async () => {
 
                 const input = TEST_ASSETS[type]
-                const outputUrl = path.join(RENDER_FOLDER, `test-frame-from-${type}-${label}.png`)
+                const outputUrl = path.join(RENDER_FOLDER, `test-${type}-${label}.png`)
 
                 const output = stream
                     ? fs.createWriteStream(outputUrl)
@@ -65,10 +75,15 @@ describe('extractFrame', () => {
                 expect(fs.existsSync(outputUrl)).toEqual(true)
 
                 if ('scale' in options && isNumber(options.scale)) {
+
                     expect(outputMetadata.width)
-                        .toEqual(inputMetadata.width as number * options.scale)
+                        .toEqual(
+                            toTargetDimension(inputMetadata.width as number, options.scale)
+                        )
                     expect(outputMetadata.height)
-                        .toEqual(inputMetadata.height as number * options.scale)
+                        .toEqual(
+                            toTargetDimension(inputMetadata.height as number, options.scale)
+                        )
                 }
 
                 if ('width' in options && isNumber(options.width)) {
@@ -82,11 +97,10 @@ describe('extractFrame', () => {
                 }
 
                 if ('dimensions' in options && isNumber(options.dimensions)) {
-                    expect(outputMetadata.width)
-                        .toEqual(options.dimensions)
-                    expect(outputMetadata.height)
-                        .toEqual(options.dimensions)
+                    expect(outputMetadata.width).toEqual(options.dimensions)
+                    expect(outputMetadata.height).toEqual(options.dimensions)
                 }
+
             })
         }
     }

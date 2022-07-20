@@ -23,7 +23,7 @@ type ExtractFrameOptions =
 
 /*** Helper ***/
 
-async function getTime(options: ExtractFrameOptions): Promise<number> {
+async function getTimeStamp(options: ExtractFrameOptions): Promise<number> {
 
     const { input } = options
     const { duration, frameRate } = await getMetadata({ input })
@@ -31,29 +31,26 @@ async function getTime(options: ExtractFrameOptions): Promise<number> {
     if (!isDefined(duration) || !isDefined(frameRate))
         return 0
 
+    const frameDuration = 1 / frameRate
+    const maxFrameDuration = duration - frameDuration
+
     if ('time' in options) {
 
         const { time } = options
+
         const timeStamp = time >= 0
-
             // from beginning
-            ? clamp(time, 0, duration)
-
+            ? clamp(time, 0, maxFrameDuration)
             // from end
-            : clamp(duration + time, 0, duration)
+            : clamp(duration + time, 0, maxFrameDuration)
+
         return timeStamp
 
     } else {
 
         const { progress } = options
 
-        const frameDuration = 1 / frameRate
-
-        // progress 1 should map to the last frame, 
-        // not the end of the stream (which results in no output file)
-        const maxProgress = duration - frameDuration
-
-        const timeStamp = clamp(progress * maxProgress, 0, duration)
+        const timeStamp = clamp(progress * maxFrameDuration, 0, maxFrameDuration)
         return timeStamp
     }
 }
@@ -66,7 +63,7 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
 
     const cmd = ffmpeg(input)
 
-    const timeStamp = await getTime(options)
+    const timeStamp = await getTimeStamp(options)
 
     cmd.videoCodec('png')
         .seek(timeStamp)
@@ -82,11 +79,14 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
     const start = Date.now()
 
     try {
-        await new Promise((resolve, reject) => cmd.on('end', resolve)
+
+        await new Promise((resolve, reject) => cmd
+            .on('end', resolve)
             .on('error', reject)
             .output(output)
             .run()
         )
+
     } catch (e) {
         throw e
     }
