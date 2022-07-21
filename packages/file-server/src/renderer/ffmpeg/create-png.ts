@@ -1,14 +1,13 @@
 import ffmpeg from 'fluent-ffmpeg'
 
 import { getMetadata } from './get-metadata'
-import { getSize } from './util'
 import {
-    ImageOutputFormats,
     Input,
     Output,
     SizeOptions,
     TimeOptions
 } from './options'
+import { getSize } from './util'
 
 import { clamp } from '@benzed/math'
 import { isDefined, isString } from '@benzed/is'
@@ -17,9 +16,13 @@ import { isDefined, isString } from '@benzed/is'
 
 type CreatePNGOptions =
     & Input
-    & Output<ImageOutputFormats>
+    & Output
     & TimeOptions
     & SizeOptions
+
+/*** Constants ***/
+
+const IMAGE_FORMAT = 'png'
 
 /*** Helper ***/
 
@@ -65,7 +68,7 @@ async function createPNG(options: CreatePNGOptions): Promise<number> {
 
     const timeStamp = await getTimeStamp(options)
 
-    cmd.videoCodec('png')
+    cmd.videoCodec(IMAGE_FORMAT)
         .seek(timeStamp)
         .frames(1)
 

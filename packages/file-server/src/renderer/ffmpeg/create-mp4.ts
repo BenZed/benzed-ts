@@ -9,13 +9,10 @@ import {
     Output,
     SizeOptions,
     VideoOptions,
-    VideoOutputFormats,
-    VIDEO_OUTPUT_FORMATS,
 
 } from './options'
 import { getSize } from './util'
 
-import { first } from '@benzed/array'
 import { isDefined } from '@benzed/is'
 import { RequirePartial } from '@benzed/util'
 
@@ -25,7 +22,7 @@ type VideoOptionsVbrRequired = RequirePartial<VideoOptions, 'vbr'>
 
 type CreateMP4Options =
     & Input
-    & Output<VideoOutputFormats>
+    & Output
     & SizeOptions
     & VideoOptionsVbrRequired
     & AudioOptions
@@ -33,6 +30,7 @@ type CreateMP4Options =
 /*** Constants ***/
 
 const VIDEO_CODEC = 'libx264'
+const VIDEO_FORMAT = 'mp4'
 const PASS_LOG_FILE_PREFIX = 'benzed-renderer-passlog'
 
 /*** Main ***/
@@ -50,13 +48,12 @@ async function createMP4(
         fps,
         input,
         output,
-        format = first.assert(VIDEO_OUTPUT_FORMATS)
     } = options
 
     // Create command from options
     const cmd = ffmpeg(input)
         .videoCodec(VIDEO_CODEC)
-        .format(format)
+        .format(VIDEO_FORMAT)
 
     // Optionally set bit rate
     if (isDefined(vbr) && vbr > 0)

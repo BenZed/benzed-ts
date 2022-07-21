@@ -1,33 +1,29 @@
 import { Writable, Readable } from 'stream'
 
-/*** Input & Output ***/
-
-export const AUDIO_OUTPUT_FORMATS = ['mp3']
-export type AudioOutputFormats = (typeof AUDIO_OUTPUT_FORMATS)[number]
-
-export const VIDEO_OUTPUT_FORMATS = ['mp4']
-export type VideoOutputFormats = (typeof VIDEO_OUTPUT_FORMATS)[number]
-
-export const IMAGE_OUTPUT_FORMATS = ['png']
-export type ImageOutputFormats = (typeof IMAGE_OUTPUT_FORMATS)[number]
-
-export type OutputFormats = AudioOutputFormats | VideoOutputFormats | ImageOutputFormats
-
+/*** IO ***/
 export interface Input {
-
     input: string | Readable
-
 }
 
-export interface Output<F extends OutputFormats = OutputFormats> {
-
+export interface Output {
     output: string | Writable
-
-    format?: F
-
 }
 
-/*** Encoding ***/
+/*** Dimensions ***/
+
+export type Height = {
+    height: number
+}
+
+export type Width = {
+    width: number
+}
+
+export type Duration = {
+    duration: number
+}
+
+/*** Options ***/
 
 export interface VideoOptions {
 
@@ -52,22 +48,22 @@ export interface AudioOptions {
 
 }
 
-/*** Dimensions ***/
-
-export type Height = { height: number }
-
-export type Width = { width: number }
-
-export type Duration = { duration: number }
-
 export type SizeOptions =
     | Height
     | Width
     | (Height & Width)
-    | { dimensions?: number }
-    | { scale?: number }
-
-/*** Selection ***/
+    | {
+        /**
+         * Pixel dimensions of both width and height.
+         */
+        dimensions?: number
+    }
+    | {
+        /**
+         * Width and height will scale according to their input by this value.
+         */
+        scale?: number
+    }
 
 export type TimeOptions = {
 
