@@ -1,13 +1,11 @@
 import { feathers, HookContext } from '@feathersjs/feathers'
-
+import configuration from '@feathersjs/configuration'
 import express, {
     Application as ExpressApplication,
     json,
     urlencoded,
     rest
 } from '@feathersjs/express'
-
-import configuration from '@feathersjs/configuration'
 
 import helmet from 'helmet'
 import cors from 'cors'
@@ -20,49 +18,72 @@ import middleware from './middleware'
 
 /*** Types ***/
 
-interface FileServerConfig {
-    port: number
+interface FileServerSettings {
+    port: number,
+    env: 'production' | 'development' | 'test'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface FileServices { /**/ }
+interface FileServices {
+    /* interface will be extended in service declarations */
+}
 
-interface FileServerApp extends ExpressApplication<FileServices, FileServerConfig> {
+interface FileServerApp extends ExpressApplication<FileServices, FileServerSettings> {
     log: Logger
 }
 
 type FileServerHookContext = HookContext<FileServerApp, FileServices>
 
+/*** Constants ***/
+
+const CORS_OPTIONS = { origin: '*' } as const
+
+/*** Helper ***/
+
+function applyFileServerAppAddons(feathersApp: ExpressApplication<FileServices, FileServerSettings>): FileServerApp {
+
+    const log = createLogger({
+        header: '⚙️',
+        timeStamp: true,
+        onLog: feathersApp.get('env') === 'test'
+            ? () => {/* no logging in test mode */ }
+            : console.log.bind(console)
+    })
+
+    const start = async function start(this: FileServerApp) {
+
+        const env = this.get('env')
+        const port = this.get('port')
+
+        await this.listen(port)
+
+        this.log`file server listening on port ${port} in ${env} mode`
+    }
+
+    return Object.assign(feathersApp, {
+        log,
+        start,
+    })
+}
+
 /*** Main ***/
 
 function createFileServerApp(): FileServerApp {
 
-    //
-    const app = Object.assign(
+    const feathersApp = express(feathers()) as ExpressApplication<FileServices, FileServerSettings>
 
-        express(feathers()) as ExpressApplication<FileServices, FileServerConfig>,
+    feathersApp.configure(configuration())
+    feathersApp.use(helmet())
+    feathersApp.use(cors(CORS_OPTIONS))
+    feathersApp.use(compress())
+    feathersApp.use(json())
+    feathersApp.use(urlencoded({ extended: true }))
 
-        {
-            log: createLogger({ header: '🗄️' })
-        }
+    const fileServerApp = applyFileServerAppAddons(feathersApp)
+    fileServerApp.configure(rest())
+    fileServerApp.configure(services)
+    fileServerApp.configure(middleware)
 
-    )
-
-    app.configure(configuration())
-
-    const CORS_OPTIONS = { origin: '*' } as const
-
-    app.use(helmet())
-    app.use(cors(CORS_OPTIONS))
-    app.use(compress())
-    app.use(json())
-    app.use(urlencoded({ extended: true }))
-
-    app.configure(rest())
-    app.configure(services)
-    app.configure(middleware)
-
-    return app
+    return fileServerApp
 }
 
 /*** Exports ***/
@@ -74,7 +95,7 @@ export {
     createFileServerApp,
 
     FileServerApp,
-    FileServerConfig,
+    FileServerSettings,
     FileServerHookContext,
     FileServices
 

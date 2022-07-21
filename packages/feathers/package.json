@@ -1,0 +1,26 @@
+{
+    "name": "@benzed/feathers",
+    "description": "Hooks, reducers, utilities and more for feathersjs",
+    "main": "./lib",
+    "version": "1.0.0",
+    "scripts": {
+        "test": "NODE_ENV=test jest --maxWorkers=1 -o",
+        "test:dev": "npm run test -- --verbose --watch",
+        "build": "npm run lint && npm run tsc",
+        "lint": "eslint src/**/*.ts --fix",
+        "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {},
+    "peerDependencies": {},
+    "devDependencies": {}
+}
