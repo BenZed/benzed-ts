@@ -34,14 +34,18 @@ async function getNpmVersionData(
         }
     } catch (e) {
 
-        if ((e as Error).message.includes('is not in the npm registry')) {
+        const { message } = e as Error
+
+        if (
+            message.includes('is not in the npm registry') ||
+            message.includes('is not in this registry')
+        ) {
             return {
                 upToDate: false,
                 version: '(unpublished)'
             }
         } else
             throw e
-
     }
 }
 
