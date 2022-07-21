@@ -1,3 +1,24 @@
 {
-    "port": 4000
+    "port": 4000,
+    "authentication": {
+        "entity": "user",
+        "service": "users",
+        "secret": "<super-secure-and-hashed-dev-auth-secret>",
+        "authStrategies": [
+            "jwt",
+            "local"
+        ],
+        "jwtOptions": {
+            "header": {
+                "typ": "access"
+            },
+            "issuer": "benzed",
+            "algorithm": "HS256",
+            "expiresIn": "1d"
+        },
+        "local": {
+            "usernameField": "email",
+            "passwordField": "password"
+        }
+    }
 }

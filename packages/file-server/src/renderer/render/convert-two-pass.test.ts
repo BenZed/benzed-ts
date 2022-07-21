@@ -14,13 +14,12 @@ describe('convertTwoPass', () => {
         const output = path.join(RENDER_FOLDER, 'test-render-2pass.mp4')
 
         await convertTwoPass({
-            input: input,
-            output: output,
+            input,
+            output,
             vbr: 25
         })
 
         expect(fs.existsSync(output)).toEqual(true)
 
     })
-
 })

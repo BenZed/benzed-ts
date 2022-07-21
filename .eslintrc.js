@@ -34,7 +34,7 @@ module.exports = {
         '@typescript-eslint/indent': ['error', 4],
         '@typescript-eslint/no-extra-parens': 'warn',
         '@typescript-eslint/restrict-plus-operands': 'error',
-        '@typescript-eslint/no-unused-expressions': 'error',
+        '@typescript-eslint/no-unused-expression': { allowTaggedTemplates: true },
         '@typescript-eslint/no-unused-vars': ['warn', { args: 'all', argsIgnorePattern: '^_' }],
         '@typescript-eslint/return-await': 'error',
         '@typescript-eslint/await-thenable': 'error',

@@ -1,18 +1,22 @@
-import { feathers, Application, HookContext } from '@feathersjs/feathers'
-import express, { json, urlencoded, rest } from '@feathersjs/express'
+import { feathers, HookContext } from '@feathersjs/feathers'
+
+import express, {
+    Application as ExpressApplication,
+    json,
+    urlencoded,
+    rest
+} from '@feathersjs/express'
+
 import configuration from '@feathersjs/configuration'
-import socketio from '@feathersjs/socketio'
 
 import helmet from 'helmet'
 import cors from 'cors'
 import compress from 'compression'
-import type { Express } from 'express'
 
 import { Logger, createLogger } from '@benzed/util'
 
 import services from './services'
 import middleware from './middleware'
-import channels from './channels'
 
 /*** Types ***/
 
@@ -21,16 +25,11 @@ interface FileServerConfig {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface FileServices {
-    //
-}
+interface FileServices { /**/ }
 
-type FileServerApp =
-    Express &
-    Application<FileServices, FileServerConfig> &
-    {
-        log: Logger
-    }
+interface FileServerApp extends ExpressApplication<FileServices, FileServerConfig> {
+    log: Logger
+}
 
 type FileServerHookContext = HookContext<FileServerApp, FileServices>
 
@@ -41,12 +40,10 @@ function createFileServerApp(): FileServerApp {
     //
     const app = Object.assign(
 
-        express(feathers()) as Express & Application<FileServices, FileServerConfig>,
+        express(feathers()) as ExpressApplication<FileServices, FileServerConfig>,
 
         {
-            log: createLogger({
-                header: '🗄️'
-            })
+            log: createLogger({ header: '🗄️' })
         }
 
     )
@@ -59,10 +56,7 @@ function createFileServerApp(): FileServerApp {
     app.use(cors(CORS_OPTIONS))
     app.use(compress())
     app.use(json())
-    app.use(urlencoded())
-
-    app.configure(socketio({ cors: CORS_OPTIONS }))
-    app.configure(channels)
+    app.use(urlencoded({ extended: true }))
 
     app.configure(rest())
     app.configure(services)
