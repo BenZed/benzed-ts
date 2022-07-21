@@ -23,7 +23,7 @@ import { RequirePartial } from '@benzed/util'
 
 type VideoOptionsVbrRequired = RequirePartial<VideoOptions, 'vbr'>
 
-type ConvertTwoPassOptions =
+type CreateMP4Options =
     & Input
     & Output<VideoOutputFormats>
     & SizeOptions
@@ -40,8 +40,8 @@ const PASS_LOG_FILE_PREFIX = 'benzed-renderer-passlog'
 /**
  * Converts a source stream to an mp4 
  */
-async function convertTwoPass(
-    options: ConvertTwoPassOptions
+async function createMP4(
+    options: CreateMP4Options
 ): Promise<number> {
 
     const {
@@ -113,9 +113,9 @@ async function convertTwoPass(
 
 /*** Exports ***/
 
-export default convertTwoPass
+export default createMP4
 
 export {
-    convertTwoPass,
-    ConvertTwoPassOptions,
+    createMP4,
+    CreateMP4Options,
 }

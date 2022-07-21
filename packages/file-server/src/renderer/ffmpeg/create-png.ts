@@ -15,7 +15,7 @@ import { isDefined, isString } from '@benzed/is'
 
 /*** Types ***/
 
-type ExtractFrameOptions =
+type CreatePNGOptions =
     & Input
     & Output<ImageOutputFormats>
     & TimeOptions
@@ -23,7 +23,7 @@ type ExtractFrameOptions =
 
 /*** Helper ***/
 
-async function getTimeStamp(options: ExtractFrameOptions): Promise<number> {
+async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
     const { input } = options
     const { duration, frameRate } = await getMetadata({ input })
@@ -57,7 +57,7 @@ async function getTimeStamp(options: ExtractFrameOptions): Promise<number> {
 
 /*** Main ***/
 
-async function extractFrame(options: ExtractFrameOptions): Promise<number> {
+async function createPNG(options: CreatePNGOptions): Promise<number> {
 
     const { input, output } = options
 
@@ -97,9 +97,9 @@ async function extractFrame(options: ExtractFrameOptions): Promise<number> {
 
 /*** Exports ***/
 
-export default extractFrame
+export default createPNG
 
 export {
-    extractFrame,
-    ExtractFrameOptions
+    createPNG,
+    CreatePNGOptions
 }

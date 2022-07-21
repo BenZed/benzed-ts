@@ -3,9 +3,9 @@ import fs from 'fs'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../../../test-assets'
 
-import { convertTwoPass } from './convert-two-pass'
+import { createMP4 } from './create-mp4'
 
-describe('convertTwoPass', () => {
+describe('createMp4', () => {
 
     it('converts video using two pass encoding', async () => {
 
@@ -13,13 +13,12 @@ describe('convertTwoPass', () => {
 
         const output = path.join(RENDER_FOLDER, 'test-render-2pass.mp4')
 
-        await convertTwoPass({
+        await createMP4({
             input,
             output,
             vbr: 25
         })
 
         expect(fs.existsSync(output)).toEqual(true)
-
     })
 })

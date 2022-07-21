@@ -5,7 +5,7 @@ import { isNumber } from '@benzed/is'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../../../test-assets'
 
-import extractFrame from './extract-frame'
+import createPNG from './create-png'
 import getMetadata from './get-metadata'
 
 import { SizeOptions, TimeOptions } from './options'
@@ -16,7 +16,7 @@ type TestInput = {
     stream?: boolean
 }[]
 
-describe('extractFrame', () => {
+describe('createPNG', () => {
 
     const testInput: TestInput = [
         { options: { progress: 0 }, label: 'beginning' },
@@ -63,7 +63,7 @@ describe('extractFrame', () => {
                     ? fs.createWriteStream(outputUrl)
                     : outputUrl
 
-                await extractFrame({
+                await createPNG({
                     input: input,
                     output: output,
                     ...options
