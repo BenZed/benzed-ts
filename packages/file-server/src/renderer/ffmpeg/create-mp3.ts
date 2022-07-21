@@ -11,12 +11,10 @@ import { RequirePartial } from '@benzed/util'
 
 /*** Types ***/
 
-type AudioOptionsAbrRequired = RequirePartial<AudioOptions, 'abr'>
-
 type CreateMP3Options =
     & Input
     & Output
-    & AudioOptionsAbrRequired
+    & RequirePartial<AudioOptions, 'abr'>
 
 /*** Constants ***/
 

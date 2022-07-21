@@ -11,20 +11,18 @@ import {
     VideoOptions,
 
 } from './options'
-import { getSize } from './util'
+import { getFfmpegSizeOptionString } from './util'
 
 import { isDefined } from '@benzed/is'
 import { RequirePartial } from '@benzed/util'
 
 /*** Types ***/
 
-type VideoOptionsVbrRequired = RequirePartial<VideoOptions, 'vbr'>
-
 type CreateMP4Options =
     & Input
     & Output
     & SizeOptions
-    & VideoOptionsVbrRequired
+    & RequirePartial<VideoOptions, 'vbr'>
     & AudioOptions
 
 /*** Constants ***/
@@ -66,7 +64,7 @@ async function createMP4(
     else
         cmd.audioBitrate(abr)
 
-    const size = getSize(options)
+    const size = getFfmpegSizeOptionString(options)
     if (size)
         cmd.size(size)
 

@@ -7,7 +7,7 @@ import {
     SizeOptions,
     TimeOptions
 } from './options'
-import { getSize } from './util'
+import { getFfmpegSizeOptionString } from './util'
 
 import { clamp } from '@benzed/math'
 import { isDefined, isString } from '@benzed/is'
@@ -75,7 +75,7 @@ async function createPNG(options: CreatePNGOptions): Promise<number> {
     if (!isString(output))
         cmd.format('image2pipe')
 
-    const size = getSize(options)
+    const size = getFfmpegSizeOptionString(options)
     if (isDefined(size))
         cmd.setSize(size)
 

@@ -6,7 +6,7 @@ import { SizeOptions } from './options'
 /**
  * Get an ffmpeg size string from SizeOptions
  */
-export function getSize(input: SizeOptions): string | undefined {
+export function getFfmpegSizeOptionString(input: SizeOptions): string | undefined {
 
     if ('dimensions' in input && isNumber(input.dimensions))
         return `${input.dimensions}x${input.dimensions}`
