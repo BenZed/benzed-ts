@@ -2,5 +2,6 @@
 
 describe('createMp4', () => {
 
-    it.todo('converts video using two pass encoding')
+    it.todo('converts audio stream mp3')
+
 })
