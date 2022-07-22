@@ -16,7 +16,7 @@ export type ServerId = ObjectId
 
 export type ClientId = string
 
-export type Record<I extends ServerId | ClientId> = { _id: I }
+export type Record<I, D> = I extends void ? D : D & { _id: I }
 
 export {
 

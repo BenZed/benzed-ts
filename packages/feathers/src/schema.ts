@@ -10,19 +10,27 @@ import {
 
 /*** Module State ***/
 
-const ajvWithErrors = ajvErrors(
-    new Ajv({
-        coerceTypes: true,
-        allErrors: true,
-        allowUnionTypes: true,
-        removeAdditional: true
-    })
-)
+let ajvWithErrors: Ajv | undefined = undefined
 
 /*** Main ***/
 
-const schema = <S extends JSONSchemaDefinition>(input: S) =>
-    feathersSchema(input, ajvWithErrors)
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const schema = <S extends JSONSchemaDefinition>(input: S, ajv?: Ajv) => {
+
+    if (!ajv && !ajvWithErrors) {
+        ajvWithErrors = ajvErrors(new Ajv({
+            coerceTypes: true,
+            allErrors: true,
+            allowUnionTypes: true,
+            removeAdditional: true
+        }))
+    }
+
+    if (!ajv)
+        ajv = ajvWithErrors
+
+    return feathersSchema(input, ajv)
+}
 
 const schemaDefinition = <S extends { definition: { $id: string, async?: boolean } }>(
     input: S

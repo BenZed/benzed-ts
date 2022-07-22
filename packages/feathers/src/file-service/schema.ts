@@ -1,6 +1,6 @@
 
 import { Record } from '../types'
-import { schema, Infer, queryProperty } from '../types'
+import { schema, Infer, queryProperty } from '../schema'
 
 /**
  * Json description of File properties to be used in other schemas
@@ -27,6 +27,7 @@ const FILE_PROPERTIES = {
 
 /*** File Schemas ***/
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFileSchema = <S extends string, R extends readonly string[]>(
     $id: S,
     required: R
