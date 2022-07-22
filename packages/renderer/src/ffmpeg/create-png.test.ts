@@ -3,7 +3,7 @@ import fs from 'fs'
 
 import { isNumber } from '@benzed/is'
 
-import { RENDER_FOLDER, TEST_ASSETS } from '../../../test-assets'
+import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import createPNG from './create-png'
 import getMetadata from './get-metadata'
@@ -100,7 +100,6 @@ describe('createPNG', () => {
                     expect(outputMetadata.width).toEqual(options.dimensions)
                     expect(outputMetadata.height).toEqual(options.dimensions)
                 }
-
             })
         }
     }

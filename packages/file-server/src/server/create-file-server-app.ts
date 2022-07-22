@@ -19,16 +19,16 @@ import middleware from './middleware'
 /*** Types ***/
 
 interface FileServerSettings {
-    port: number,
+    port: number
     env: 'production' | 'development' | 'test'
 }
 
-interface FileServices {
-    /* interface will be extended in service declarations */
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface FileServices { }
 
 interface FileServerApp extends ExpressApplication<FileServices, FileServerSettings> {
     log: Logger
+    start(): Promise<void>
 }
 
 type FileServerHookContext = HookContext<FileServerApp, FileServices>
@@ -39,7 +39,9 @@ const CORS_OPTIONS = { origin: '*' } as const
 
 /*** Helper ***/
 
-function applyFileServerAppAddons(feathersApp: ExpressApplication<FileServices, FileServerSettings>): FileServerApp {
+function applyFileServerAppAddons(
+    feathersApp: ExpressApplication<FileServices, FileServerSettings>
+): FileServerApp {
 
     const log = createLogger({
         header: '⚙️',
@@ -49,7 +51,7 @@ function applyFileServerAppAddons(feathersApp: ExpressApplication<FileServices, 
             : console.log.bind(console)
     })
 
-    const start = async function start(this: FileServerApp) {
+    const start = async function start(this: FileServerApp): Promise<void> {
 
         const env = this.get('env')
         const port = this.get('port')

@@ -1,9 +1,5 @@
 import ffmpeg, { FfprobeData, FfprobeStream } from 'fluent-ffmpeg'
 
-import { isNaN, isString } from '@benzed/is'
-import { priorityFind } from '@benzed/array'
-import { round } from '@benzed/math'
-
 import {
     Duration,
     Width,
@@ -11,6 +7,10 @@ import {
     Input,
 
 } from './options'
+
+import { isNaN, isString } from '@benzed/is'
+import { priorityFind } from '@benzed/array'
+import { round } from '@benzed/math'
 
 /*** Type ***/
 

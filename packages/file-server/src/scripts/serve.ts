@@ -4,22 +4,12 @@ import createFileServerApp from '../server'
 
 void async function serve() {
 
-    const app = createFileServerApp()
+    const fileServerApp = createFileServerApp()
 
     process.on('unhandledRejection', (reason, p) =>
-        app.log.error`Unhandled Rejection at: Promise ${p} ${reason}`
+        fileServerApp.log.error`Unhandled Rejection at: Promise ${p} ${reason}`
     )
 
-    const port = app.get('port')
-    const env = app.get('env')
-
-    const server = app.listen(port)
-
-    await new Promise((resolve, reject) => {
-        server.once('listening', resolve)
-        server.once('error', reject)
-    })
-
-    void app.log`File Server started in ${env} mode on port ${port}`
+    await fileServerApp.start()
 
 }()

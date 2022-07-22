@@ -1,4 +1,4 @@
-import { TEST_ASSETS } from '../../../test-assets'
+import { TEST_ASSETS } from '../../test-assets'
 import { getMetadata } from './get-metadata'
 
 describe('getMetadata', () => {

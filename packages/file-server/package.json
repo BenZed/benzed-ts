@@ -25,8 +25,8 @@
         "@benzed/is": "^3.1.2",
         "@benzed/math": "^3.1.4",
         "@benzed/util": "^3.7.0",
-        "ajv-errors": "^3.0.0",
-        "fluent-ffmpeg": "^2.1.2"
+        "@benzed/feathers": "^1.0.0",
+        "ajv-errors": "^3.0.0"
     },
     "peerDependencies": {
         "@feathersjs/authentication": "^5.0.0-pre.27",
@@ -40,7 +40,6 @@
         "helmet": "^5.0.2"
     },
     "devDependencies": {
-        "@types/compression": "^1.7.2",
-        "@types/fluent-ffmpeg": "^2.1.20"
+        "@types/compression": "^1.7.2"
     }
 }

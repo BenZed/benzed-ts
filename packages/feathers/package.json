@@ -1,6 +1,6 @@
 {
     "name": "@benzed/feathers",
-    "description": "Hooks, reducers, utilities and more for feathersjs",
+    "description": "Hooks, reducers, utilities, types and more for feathersjs",
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {
@@ -20,7 +20,14 @@
         "url": "https://github.com/BenZed/benzed-ts/issues"
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
-    "dependencies": {},
-    "peerDependencies": {},
-    "devDependencies": {}
+    "dependencies": {
+        "@benzed/util": "^3.7.1",
+        "@benzed/renderer": "^0.1.0"
+    },
+    "peerDependencies": {
+        "@feathersjs/feathers": "^5.0.0-pre.27"
+    },
+    "devDependencies": {
+        "@types/mongodb": "^4.0.7"
+    }
 }

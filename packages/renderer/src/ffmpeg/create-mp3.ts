@@ -3,8 +3,7 @@ import ffmpeg from 'fluent-ffmpeg'
 import {
     AudioOptions,
     Input,
-    Output,
-
+    Output
 } from './options'
 
 import { RequirePartial } from '@benzed/util'
@@ -26,7 +25,7 @@ const OUTPUT_FORMAT = 'mp3'
 /**
  * Converts a source stream to an mp4 
  */
-async function createMP3(
+function createMP3(
     options: CreateMP3Options
 ): Promise<number> {
 
@@ -49,7 +48,7 @@ async function createMP3(
     throw new Error('Not yet implemented.')
 
     const renderTime = Date.now() - start
-    return renderTime
+    return Promise.resolve(renderTime)
 }
 
 /*** Exports ***/

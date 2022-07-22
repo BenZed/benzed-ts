@@ -1,12 +1,11 @@
 
 import { Record } from '../types'
-import { schema, Infer, queryProperty } from './index'
+import { schema, Infer, queryProperty } from '../types'
 
 /**
  * Json description of File properties to be used in other schemas
  */
 const FILE_PROPERTIES = {
-
     name: {
         type: 'string'
     },
@@ -24,7 +23,6 @@ const FILE_PROPERTIES = {
         type: ['integer', 'null'],
         minimum: 0
     }
-
 } as const
 
 /*** File Schemas ***/
@@ -43,10 +41,10 @@ const createFileSchema = <S extends string, R extends readonly string[]>(
     } as const)
 
 export interface FileData extends Infer<typeof FileSchema> {
-    ext: string,
-    mime: string,
+    ext: string
+    mime: string
 
-    created: number,
+    created: number
     updated: number
 }
 export type File<I = void> = Record<I, FileData>
@@ -61,7 +59,7 @@ export const FileSchema = createFileSchema(
     ] as const
 )
 
-export interface FilePatchData extends Infer<typeof FilePatchDataSchema> { }
+export type FilePatchData = Infer<typeof FilePatchDataSchema>
 export const FilePatchDataSchema = schema({
     $id: 'FilePatchData',
     type: 'object',
@@ -72,7 +70,7 @@ export const FilePatchDataSchema = schema({
     }
 } as const)
 
-export interface FileCreateData extends Infer<typeof FileCreateDataSchema> { }
+export type FileCreateData = Infer<typeof FileCreateDataSchema>
 export const FileCreateDataSchema = schema({
     $id: 'FileCreateData',
     type: 'object',
@@ -119,4 +117,4 @@ export const FileQuerySchema = schema({
     }
 } as const)
 
-export interface FileQuery extends Infer<typeof FileQuerySchema> { }
+export type FileQuery = Infer<typeof FileQuerySchema>

@@ -1,4 +1,5 @@
 import { isNumber } from '@benzed/is'
+
 import { SizeOptions } from './options'
 
 /*** Exports ***/
