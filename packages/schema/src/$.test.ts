@@ -234,7 +234,6 @@ describe.only('$ Syntax Tests', () => {
             const edge: Edge = [{ x: 0, y: 0 }, { x: 5, y: 5 }]
 
             expect(EdgeSchema.validate(edge)).toEqual(edge)
-
         })
     })
 
@@ -252,7 +251,6 @@ describe.only('$ Syntax Tests', () => {
             expect(KeySchema.validate(key1)).toEqual(key1)
             expect(KeySchema.validate(key2)).toEqual(key2)
         })
-
     })
 
     describe('Creates schemas for and types', () => {

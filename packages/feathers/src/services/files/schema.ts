@@ -1,6 +1,6 @@
 
-import { Record } from '../types'
-import { schema, Infer, queryProperty } from '../schema'
+import { Record } from '../../types'
+import { schema, Infer, queryProperty } from '../../schema'
 
 /**
  * Json description of File properties to be used in other schemas
