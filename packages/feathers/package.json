@@ -26,8 +26,8 @@
         "ajv-errors": "^3.0.0"
     },
     "peerDependencies": {
-        "@feathersjs/feathers": "^5.0.0-pre.27",
-        "@feathersjs/schema": "^5.0.0-pre.27"
+        "@feathersjs/feathers": "^5.0.0-pre.28",
+        "@feathersjs/schema": "^5.0.0-pre.28"
     },
     "devDependencies": {
         "@types/mongodb": "^4.0.7"
