@@ -1,6 +1,5 @@
 
-import { Record } from '../../types'
-import { schema, Infer, queryProperty } from '../../schema'
+import { Id, IdType, schema, Infer, queryProperty } from '@benzed/feathers'
 
 /**
  * Json description of File properties to be used in other schemas
@@ -48,7 +47,7 @@ export interface FileData extends Infer<typeof FileSchema> {
     created: number
     updated: number
 }
-export type File<I = void> = Record<I, FileData>
+export type File<I extends IdType> = FileData & Id<I>
 
 export const FileSchema = createFileSchema(
     'File',

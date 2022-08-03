@@ -1,6 +1,6 @@
 {
-    "name": "@benzed/file-server",
-    "description": "A quick-setup file server incorperating @file-service and @renderer packages",
+    "name": "@benzed/file-service",
+    "description": "File Service and and server incorperating @feathers & @renderer package",
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {
@@ -25,7 +25,8 @@
         "@benzed/is": "^3.1.2",
         "@benzed/math": "^3.1.4",
         "@benzed/util": "^3.7.0",
-        "@benzed/feathers": "^1.0.0"
+        "@benzed/feathers": "^1.0.0",
+        "@benzed/renderer": "^0.1.0"
     },
     "peerDependencies": {
         "@feathersjs/authentication": "^5.0.0-pre.28",

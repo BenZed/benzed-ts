@@ -1,11 +1,11 @@
-import { Application } from '../../types'
-import FileService from './service'
+import { Application, IdType, Params } from '@benzed/feathers'
 
+import FileService from './service'
 import * as hooks from './hooks'
 
 /*** Main ***/
 
-export default function setupFileService(app: Application): FileService {
+export default function setupFileService<I extends IdType, P = Params>(app: Application): FileService {
 
     const service = new FileService(app)
 

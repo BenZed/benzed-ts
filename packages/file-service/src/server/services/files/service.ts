@@ -1,14 +1,10 @@
 import Renderer from '@benzed/renderer'
 import {
     Params,
-
     Service,
-
-    Id,
     IdType,
-
     Paginated
-} from '../../types'
+} from '@benzed/feathers/src/types'
 
 import {
     File,
@@ -30,7 +26,7 @@ interface FileServiceOptions {
 
 export default
     class FileService<I extends IdType, P = Params>
-    implements Service<I, FileCreateData, FilePatchData, File & Id<I>> {
+    implements Service<I, FileCreateData, FilePatchData, File<I>> {
     //
 
     private readonly _renderer = new Renderer()
@@ -39,7 +35,7 @@ export default
         //
     }
 
-    public async find(params?: P): Promise<Paginated<File & Id<I>>> {
+    public async find(params?: P): Promise<Paginated<File<I>>> {
         return {
             data: [],
             total: 0,
@@ -48,7 +44,7 @@ export default
         }
     }
 
-    public async get(id: I, params?: P): Promise<File & Id<I>> {
+    public async get(id: I, params?: P): Promise<File<I>> {
         return {
             _id: id,
             name: '',
@@ -60,7 +56,7 @@ export default
         }
     }
 
-    public async create(data: FileCreateData, params?: P): Promise<File & Id<I>> {
+    public async create(data: FileCreateData, params?: P): Promise<File<I>> {
         return {
             _id: id,
             name: '',
@@ -72,7 +68,7 @@ export default
         }
     }
 
-    public async patch(id: I, data: FilePatchData, params?: P): Promise<File & Id<I>> {
+    public async patch(id: I, data: FilePatchData, params?: P): Promise<File<I>> {
         return {
             _id: id,
             name: '',
@@ -84,7 +80,7 @@ export default
         }
     }
 
-    public async remove(id: I, params?: P): Promise<File & Id<I>> {
+    public async remove(id: I, params?: P): Promise<File<I>> {
         return {
             _id: id,
             name: '',

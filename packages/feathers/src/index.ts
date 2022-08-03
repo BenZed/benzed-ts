@@ -1,1 +1,2 @@
-export * from './services/files' 
+export * from './types'
+export * from './schema'
