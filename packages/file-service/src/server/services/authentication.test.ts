@@ -1,7 +1,6 @@
-import createFileServerApp from "../create-file-server-app"
+import createFileServerApp from '../create-file-server-app'
 
 /*** Auth Service Tests ***/
-
 
 describe('Authentication Service', () => {
 

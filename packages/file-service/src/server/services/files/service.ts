@@ -1,4 +1,4 @@
-import Renderer from '@benzed/renderer'
+import { Renderer, RendererOptions } from '@benzed/renderer'
 import {
     Params,
     Service,
@@ -12,14 +12,28 @@ import {
     FilePatchData
 } from './schema'
 
-/* eslint-disable @typescript-eslint/indent */
+/* eslint-disable @typescript-eslint/indent, require-await */
 
 interface FileServiceOptions {
 
     /**
+     * Options for the preview renderer
+     */
+    render?: RendererOptions
+
+    /**
      * Directory on the local file system to store files.
      */
-    fs?: string
+    fs?: null | string
+
+    /**
+     * Configuration for storing files on s3
+     */
+    s3?: null | {
+        bucket: string
+        accessKeyId: string
+        secretAccessKey: string
+    }
 }
 
 /*** Main ***/
@@ -29,10 +43,15 @@ export default
     implements Service<I, FileCreateData, FilePatchData, File<I>> {
     //
 
-    private readonly _renderer = new Renderer()
+    private readonly _renderer: Renderer
+    private readonly _options: FileServiceOptions
 
-    public constructor (options: FileServiceOptions) {
-        //
+    public constructor (options?: FileServiceOptions) {
+
+        this._renderer = new Renderer(options?.render)
+        this._options = {
+            ...options
+        }
     }
 
     public async find(params?: P): Promise<Paginated<File<I>>> {
@@ -58,7 +77,7 @@ export default
 
     public async create(data: FileCreateData, params?: P): Promise<File<I>> {
         return {
-            _id: id,
+            _id: 0,
             name: '',
             size: 0,
             type: '',
@@ -100,5 +119,5 @@ export default
 
 export {
     FileService,
-    FileServiceOptions,
+    FileServiceOptions
 }
