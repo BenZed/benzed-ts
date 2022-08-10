@@ -1,15 +1,5 @@
-import type { StringKeys } from '@benzed/util'
 
-import type {
-    Application,
-    HookContext,
-    HookFunction,
-    NextFunction,
-    Paginated,
-    Params
-} from '@feathersjs/feathers'
-
-import type { ObjectId } from 'mongodb'
+import type { ObjectId } from './mongo-app/setup-mongo-db'
 
 /*** Exports ***/
 
@@ -19,39 +9,37 @@ export interface Id<I extends IdType> {
     _id: I
 }
 
-export interface Service<
-    I extends IdType,
-    CreateRecordData,
-    UpdateRecordData = Partial<CreateRecordData>,
-    Record extends { _id: I } = CreateRecordData & Id<I>,
-    P = Params> {
+export type {
+    StringKeys
+} from '@benzed/util'
 
-    find(params?: P): Promise<Paginated<Record>>
+export type {
 
-    get(id: I, params?: P): Promise<Record>
-
-    create(data: CreateRecordData, params?: P): Promise<Record>
-
-    // update(id: I, data: CreateRecordData, params?: P): Promise<Record>
-
-    patch(id: I, data: UpdateRecordData, params?: P): Promise<Record>
-
-    remove(id: I, params?: P): Promise<Record>
-
-    setup?(app: Application, path: string): Promise<void>
-
-    teardown?(app: Application, path: string): Promise<void>
-}
-
-export {
+    Paginated,
+    Params,
+    Query,
 
     Application,
+    Service,
+
     HookContext,
     HookFunction,
     NextFunction,
-    Paginated,
-    Params,
-    ObjectId,
+    AroundHookFunction,
 
-    StringKeys
-}
+} from '@feathersjs/feathers'
+
+export type {
+
+    MongoDbConfig,
+    ObjectId,
+    Db,
+
+} from './mongo-app/setup-mongo-db'
+
+export type {
+
+    MongoApplication,
+    MongoApplicationConfig
+
+} from './mongo-app/create-mongo-application'

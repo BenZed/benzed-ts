@@ -5,6 +5,9 @@ import {
     schema as feathersSchema,
     Infer,
     JSONSchemaDefinition,
+
+    Schema,
+    SchemaWrapper,
     queryProperty,
 } from '@feathersjs/schema'
 
@@ -14,6 +17,13 @@ let ajvWithErrors: Ajv | undefined = undefined
 
 /*** Main ***/
 
+/**
+ * Create a @feathers/schema definition. By default, it'll use an instance of AJV that 
+ * has errors. 
+ * @param input Schema Definition 
+ * @param ajv AJV instance
+ * @returns SchemaWrapper
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const schema = <S extends JSONSchemaDefinition>(input: S, ajv?: Ajv) => {
 
@@ -32,7 +42,12 @@ const schema = <S extends JSONSchemaDefinition>(input: S, ajv?: Ajv) => {
     return feathersSchema(input, ajv)
 }
 
-const schemaDefinition = <S extends { definition: { $id: string, async?: boolean } }>(
+/**
+ * 
+ * @param input 
+ * @returns 
+ */
+const getSchemaDefinition = <S extends { definition: { $id: string, async?: boolean } }>(
     input: S
 ): Omit<S['definition'], '$id' | 'async'> => {
 
@@ -48,11 +63,15 @@ const schemaDefinition = <S extends { definition: { $id: string, async?: boolean
 export default schema
 
 export {
+
     schema,
-    schemaDefinition,
+    getSchemaDefinition,
+    JSONSchemaDefinition,
 
     queryProperty,
 
-    Infer,
-    JSONSchemaDefinition,
+    Schema,
+    SchemaWrapper,
+    Infer
+
 }

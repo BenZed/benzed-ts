@@ -15,13 +15,11 @@ export default function setupFileService<
     P = Params
 >(
     app: Application
-): FileService<I, P> {
+): void {
 
     const service = new FileService(app)
 
     app.use('/files', service)
-
-    return service
 }
 
 /*** Exports ***/

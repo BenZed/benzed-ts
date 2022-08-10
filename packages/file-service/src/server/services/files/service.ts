@@ -4,7 +4,7 @@ import {
     Service,
     IdType,
     Paginated
-} from '@benzed/feathers/src/types'
+} from '@benzed/feathers'
 
 import {
     File,
@@ -38,10 +38,8 @@ interface FileServiceOptions {
 
 /*** Main ***/
 
-export default
-    class FileService<I extends IdType, P = Params>
-    implements Service<I, FileCreateData, FilePatchData, File<I>> {
-    //
+export default class FileService<I extends IdType, P = Params>
+    implements Service<File<I>, FilePatchData, P> {
 
     private readonly _renderer: Renderer
     private readonly _options: FileServiceOptions
@@ -97,6 +95,8 @@ export default
             createdAt: new Date(),
             updatedAt: new Date()
         }
+    public find(params?: P): Promise<Paginated<File<I>>> {
+        throw new Error('Method not implemented.')
     }
 
     public async remove(id: I, params?: P): Promise<File<I>> {
@@ -116,7 +116,6 @@ export default
     // teardown?(app: Application, path: string): Promise<void>
 
 }
-
 export {
     FileService,
     FileServiceOptions
