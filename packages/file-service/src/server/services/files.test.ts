@@ -6,8 +6,6 @@ describe('File Service', () => {
     const app = createTestApp()
     const config = configuration()()
 
-    console.log(config)
-
     const files = app.service('files')
 
     // beforeAll(() => app.listen(config.port))

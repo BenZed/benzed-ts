@@ -1,1 +1,9 @@
-{}
+{
+    "name": "test-feathers-app",
+    "port": 5500,
+    "db": {
+        "uri": "mongodb://localhost:<port>/<database>",
+        "port": 5750,
+        "database": "test-feathers-app"
+    }
+}

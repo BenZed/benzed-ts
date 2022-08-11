@@ -1,4 +1,8 @@
+import { ensureMongoDbInstance } from './scripts/util'
 
-export default (): void => {
-    // nothing yet
-}
+/**
+ * Ensure a mongo db instance is halted in the test cluster
+ */
+export default (): Promise<void> => ensureMongoDbInstance({
+    isRunning: false
+})

@@ -5,7 +5,7 @@ import cors from 'cors'
 
 import type { Db } from 'mongodb'
 
-import { feathers } from '@feathersjs/feathers'
+import { feathers, Application as FeathersApplication } from '@feathersjs/feathers'
 import configuration from '@feathersjs/configuration'
 import socketio from '@feathersjs/socketio'
 import express, {
@@ -44,7 +44,6 @@ export interface MongoApplication<S = any, C = any>
 
 function applyMongoAddons<S, C extends MongoApplicationConfig>(
     expressApp: ExpressApplication<S, C>
-
 ): MongoApplication<S, C> {
 
     const log = createLogger({
@@ -75,10 +74,10 @@ function applyMongoAddons<S, C extends MongoApplicationConfig>(
 
 /*** Main ***/
 
-export function createMongoApplication<S, C extends MongoApplicationConfig>(
+export default function createMongoApplication<S, C extends MongoApplicationConfig>(
     setup: {
-        services: (app: MongoApplication<S, C>) => void
-        middleware: (app: MongoApplication<S, C>) => void
+        services?: (app: MongoApplication<S, C>) => void
+        middleware?: (app: MongoApplication<S, C>) => void
         channels?: (app: MongoApplication<S, C>) => void
         configSchema?: Schema<C>
     }
@@ -87,29 +86,30 @@ export function createMongoApplication<S, C extends MongoApplicationConfig>(
     const {
         channels: setupChannels = defaultSetupChannels,
         middleware: setupMiddleware,
-        services: setupServices
+        services: setupServices,
+        configSchema
     } = setup
 
     const CORS_OPTIONS = { origin: '*' } as const
 
     // Create feathers instance and configure it
-    const feathersApp = feathers()
-    feathersApp.configure(configuration())
+    const mongoApp = applyMongoAddons(express(feathers()))
+    const feathersApp = mongoApp as FeathersApplication
+    const expressApp = mongoApp as ExpressApplication
+
+    feathersApp.configure(configuration(configSchema))
     feathersApp.configure(socketio({
         cors: CORS_OPTIONS
     }))
+    mongoApp.configure(setupChannels)
     feathersApp.hooks({
         update: [disallowAll] // disable update method, use patch instead
     })
 
-    // Wrap in express instance, configure
-
-    const expressApp = express(feathersApp)
-
     // standard express middleware
-    const IS_PRODUCTION = expressApp.get('env') === 'production'
+    const IS_PRODUCTION = mongoApp.get('env') === 'production'
     if (IS_PRODUCTION) {
-        expressApp.use(
+        mongoApp.use(
             helmet({
                 contentSecurityPolicy: false,
                 crossOriginEmbedderPolicy: false
@@ -117,20 +117,24 @@ export function createMongoApplication<S, C extends MongoApplicationConfig>(
         )
     }
 
-    expressApp.use(cors(CORS_OPTIONS))
-    expressApp.use(compress())
-    expressApp.use(json())
-    expressApp.use(urlencoded({ extended: true }))
+    mongoApp.use(cors(CORS_OPTIONS))
+    mongoApp.use(compress())
+    mongoApp.use(json())
+    mongoApp.use(urlencoded({ extended: true }))
 
     // providers
     expressApp.configure(rest())
 
     // Add Mongo addons
-    const mongoApp = applyMongoAddons(expressApp)
     mongoApp.configure(setupMongoDb)
-    mongoApp.configure(setupServices)
-    mongoApp.configure(setupChannels)
-    mongoApp.configure(setupMiddleware)
+    if (setupServices)
+        mongoApp.configure(setupServices)
+    if (setupMiddleware)
+        mongoApp.configure(setupMiddleware)
 
     return mongoApp
+}
+
+export {
+    createMongoApplication
 }

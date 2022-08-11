@@ -28,7 +28,10 @@ interface MongoDbConfig {
 
 function isMongoDbConfig(input: unknown): input is MongoDbConfig {
     //
-    if (input == null || typeof input !== 'object')
+    if (
+        input == null ||
+        typeof input !== 'object'
+    )
         return false
 
     const config = input as MongoDbConfig
@@ -95,6 +98,7 @@ export default function setupMongoDb<S, C extends MongoApplicationConfig>(
 }
 
 export {
+
     setupMongoDb,
     MongoDbConfig,
     isMongoDbConfig,
