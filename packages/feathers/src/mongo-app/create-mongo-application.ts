@@ -33,8 +33,7 @@ export interface MongoApplicationConfig {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MongoApplication<S = any, C = any>
-    extends ExpressApplication<S, C> {
+export interface MongoApplication<S = any, C = any> extends ExpressApplication<S, C> {
     log: Logger
     db(): Db
     start(): Promise<void>
@@ -87,20 +86,21 @@ export function createMongoApplication<S, C extends MongoApplicationConfig>(
     const {
         channels: setupChannels = defaultSetupChannels,
         middleware: setupMiddleware,
-        services: setupServices
+        services: setupServices,
+        configSchema
     } = setup
 
     const CORS_OPTIONS = { origin: '*' } as const
 
     // Create feathers instance and configure it
     const feathersApp = feathers()
-    feathersApp.configure(configuration())
-    feathersApp.configure(socketio({
-        cors: CORS_OPTIONS
-    }))
-    feathersApp.hooks({
-        update: [disallowAll] // disable update method, use patch instead
-    })
+        .configure(configuration(configSchema))
+        .configure(socketio({
+            cors: CORS_OPTIONS
+        }))
+        .hooks({
+            update: [disallowAll] // disable update method, use patch instead
+        })
 
     // Wrap in express instance, configure
 
@@ -118,19 +118,17 @@ export function createMongoApplication<S, C extends MongoApplicationConfig>(
     }
 
     expressApp.use(cors(CORS_OPTIONS))
-    expressApp.use(compress())
-    expressApp.use(json())
-    expressApp.use(urlencoded({ extended: true }))
-
-    // providers
-    expressApp.configure(rest())
+        .use(compress())
+        .use(json())
+        .use(urlencoded({ extended: true }))
+        .configure(rest())
 
     // Add Mongo addons
     const mongoApp = applyMongoAddons(expressApp)
-    mongoApp.configure(setupMongoDb)
-    mongoApp.configure(setupServices)
-    mongoApp.configure(setupChannels)
-    mongoApp.configure(setupMiddleware)
+        .configure(setupMongoDb)
+        .configure(setupServices)
+        .configure(setupChannels)
+        .configure(setupMiddleware)
 
     return mongoApp
 }
