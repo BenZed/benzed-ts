@@ -42,6 +42,7 @@
         "mongodb": "^4.8.1"
     },
     "devDependencies": {
-        "@feathersjs/configuration": "^5.0.0-pre.28"
+        "@feathersjs/configuration": "^5.0.0-pre.28",
+        "feathers-memory": "^4.1.0"
     }
 }

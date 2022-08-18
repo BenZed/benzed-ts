@@ -27,6 +27,7 @@ interface MongoDbConfig {
 /*** Helper ***/
 
 function isMongoDbConfig(input: unknown): input is MongoDbConfig {
+
     //
     if (input == null || typeof input !== 'object')
         return false

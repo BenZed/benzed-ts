@@ -93,6 +93,9 @@ export function createMongoApplication<S, C extends MongoApplicationConfig>(
 
     // Create feathers instance and configure it
     const feathersApp = feathers()
+
+    // Wrap in express instance, configure
+    const expressApp = express(feathersApp)
         .configure(configuration(configSchema))
         .configure(socketio({
             cors: CORS_OPTIONS
@@ -100,10 +103,6 @@ export function createMongoApplication<S, C extends MongoApplicationConfig>(
         .hooks({
             update: [disallowAll] // disable update method, use patch instead
         })
-
-    // Wrap in express instance, configure
-
-    const expressApp = express(feathersApp)
 
     // standard express middleware
     const IS_PRODUCTION = expressApp.get('env') === 'production'
