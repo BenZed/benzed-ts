@@ -4,6 +4,7 @@ import {
 } from 'feathers-mongodb'
 
 import { Db, MongoApplication } from '../mongo-app'
+import { Params } from '../types'
 
 /*** Types ***/
 
@@ -17,6 +18,9 @@ class MongoService<T, D = Partial<T>>
     extends Service<T, D> {
 
     private _collectionName: string
+    public get collectionName(): string {
+        return this._collectionName
+    }
 
     public constructor (options: MongoServiceOptions) {
 
