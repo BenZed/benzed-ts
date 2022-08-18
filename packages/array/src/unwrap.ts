@@ -1,5 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { isArray } from '@benzed/is/lib'
 import { assertDefined } from '@benzed/util'
 import first from './first'
+
+/*** Types ***/
+
+type UnwrapIn = any | any[] | readonly any[]
+
+type UnwrapOut<T> = T extends readonly [infer U, ...any]
+    ? U
+    : T extends Array<infer U>
+    /**/ ? U | undefined
+    /**/ : T extends Readonly<Array<infer U>>
+        /**/ ? U
+        /**/ : T
+
+/*** Main ***/
 
 /**
  * Unwraps an array if it is one.
@@ -8,10 +25,10 @@ import first from './first'
  * @return {type}     If input is an array, returns the first value, otherwise
  *                    returns the input.
  */
-function unwrap<T>(array: T | T[]): T | undefined {
-    return Array.isArray(array)
+function unwrap<T extends UnwrapIn>(array: T): UnwrapOut<T> {
+    return (isArray(array)
         ? first(array)
-        : array
+        : array) as UnwrapOut<T>
 }
 
 /*** Exports ***/
