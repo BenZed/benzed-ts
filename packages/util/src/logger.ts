@@ -93,6 +93,13 @@ function colorTimeStamp(
     return timeStamp
 }
 
+function isLogger(input: unknown): input is Logger {
+    return typeof input === 'function' &&
+        typeof (input as Logger).error === 'function' &&
+        typeof (input as Logger).warn === 'function' &&
+        (input as Logger).info === input
+}
+
 /*** Main ***/
 
 const createLogger =
@@ -171,6 +178,8 @@ export {
     createLogger,
 
     Logger,
+    isLogger,
+
     LoggerOptions,
 
     LogHandler,

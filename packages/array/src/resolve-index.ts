@@ -3,7 +3,7 @@ import { isNumber } from '@benzed/is'
 /*** Main ***/
 
 function resolveIndex(
-    arrLikeOrLength: number | string | ArrayLike<unknown>,
+    arrLikeOrLength: number | ArrayLike<unknown>,
     index: number
 ): number {
 

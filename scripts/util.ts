@@ -56,14 +56,20 @@ export async function forEachPackage(
 
         const packageUrl = path.join(PACKAGES_DIR, packageName)
 
-        const packageStat = await fs.promises.stat(packageUrl)
-        if (!packageStat.isDirectory())
-            continue
+        try {
+            const packageStat = await fs.promises.stat(packageUrl)
+            if (!packageStat.isDirectory())
+                continue
 
-        const packageJsonUrl = path.join(packageUrl, 'package.json')
-        const packageJson = await readJson(packageJsonUrl) as PackageJson
+            const packageJsonUrl = path.join(packageUrl, 'package.json')
+            const packageJson = await readJson(packageJsonUrl) as PackageJson
 
-        await func(packageJson, packageUrl)
+            await func(packageJson, packageUrl)
+        } catch (e) {
+            const message = (e as Error).message
+            if (!message.includes('ENOENT'))
+                console.error((e as { message: string }).message)
+        }
     }
 
 }

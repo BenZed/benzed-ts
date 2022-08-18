@@ -9,6 +9,7 @@ export * from './event-emitter'
 export {
     createLogger,
     Logger,
+    isLogger,
     LoggerOptions,
     LogHandler
 } from './logger'

@@ -1,4 +1,9 @@
 {
     "port": 4000,
-    "name": "benzed-feathers-test-app"
+    "name": "benzed-feathers-test-app",
+    "db": {
+        "uri": "mongodb://localhost:<port>/<database>",
+        "port": 4250,
+        "database": "benzed-feathers-test-app"
+    }
 }

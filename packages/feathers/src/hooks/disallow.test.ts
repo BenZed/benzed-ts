@@ -7,60 +7,56 @@ import {
 
 /*** Tests ***/
 
-describe('disallow hook', () => {
+for (const provider of ['rest', 'socketio', 'server', 'external', 'primus'] as const) {
+    for (const method of ['get', 'patch', 'update', 'find', 'create'] as const) {
 
-    for (const provider of ['rest', 'socketio', 'server', 'external', 'primus'] as const) {
-        for (const method of ['get', 'patch', 'update', 'find', 'create'] as const) {
+        it(`prevents configured "${provider}" from using "${method}" method`, async () => {
 
-            it(`prevents configured "${provider}" from using "${method}" method`, async () => {
+            const correctedProvider = provider === 'server'
+                ? undefined
+                : provider === 'external'
+                    ? 'rest'
+                    : provider
 
-                const correctedProvider = provider === 'server'
-                    ? undefined
-                    : provider === 'external'
-                        ? 'rest'
-                        : provider
-
-                const ctx = createTestHookContext({
-                    serviceName: 'users',
-                    method,
-                    params: {
-                        provider: correctedProvider
-                    }
-                })
-
-                const next = createTestNextFunction()
-
-                await expect(disallow(provider)(ctx, next))
-                    .rejects
-                    .toHaveProperty(
-                        'message',
-                        `Provider '${correctedProvider ?? 'server'}' can not call '${method}'.`
-                    )
-
-                expect(next.calls).toBe(0)
+            const ctx = createTestHookContext({
+                serviceName: 'users',
+                method,
+                params: {
+                    provider: correctedProvider
+                }
             })
 
-        }
-    }
+            const next = createTestNextFunction()
 
-    it('can prevent method from being called at all', async () => {
+            await expect(disallow(provider)(ctx, next))
+                .rejects
+                .toHaveProperty(
+                    'message',
+                    `Provider '${correctedProvider ?? 'server'}' can not call '${method}'.`
+                )
 
-        const ctx = createTestHookContext({
-            serviceName: 'users',
-            method: 'find',
+            expect(next.calls).toBe(0)
         })
 
-        const next = createTestNextFunction()
+    }
+}
 
-        await expect(disallow()(ctx, next))
-            .rejects
-            .toHaveProperty(
-                'message',
-                'Provider \'server\' can not call \'find\'.'
-            )
+it('can prevent method from being called at all', async () => {
 
-        expect(next.calls).toBe(0)
-
+    const ctx = createTestHookContext({
+        serviceName: 'users',
+        method: 'find',
     })
+
+    const next = createTestNextFunction()
+
+    await expect(disallow()(ctx, next))
+        .rejects
+        .toHaveProperty(
+            'message',
+            'Provider \'server\' can not call \'find\'.'
+        )
+
+    expect(next.calls).toBe(0)
 
 })

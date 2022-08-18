@@ -33,8 +33,7 @@ export interface MongoApplicationConfig {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MongoApplication<S = any, C = any>
-    extends ExpressApplication<S, C> {
+export interface MongoApplication<S = any, C = any> extends ExpressApplication<S, C> {
     log: Logger
     db(): Db
     start(): Promise<void>
@@ -117,18 +116,18 @@ export default function createMongoApplication<S, C extends MongoApplicationConf
         )
     }
 
-    mongoApp.use(cors(CORS_OPTIONS))
-    mongoApp.use(compress())
-    mongoApp.use(json())
-    mongoApp.use(urlencoded({ extended: true }))
-
-    // providers
-    expressApp.configure(rest())
+    expressApp.use(cors(CORS_OPTIONS))
+        .use(compress())
+        .use(json())
+        .use(urlencoded({ extended: true }))
+        .configure(rest())
 
     // Add Mongo addons
-    mongoApp.configure(setupMongoDb)
+    mongoApp
+        .configure(setupMongoDb)
     if (setupServices)
         mongoApp.configure(setupServices)
+    mongoApp.configure(setupChannels)
     if (setupMiddleware)
         mongoApp.configure(setupMiddleware)
 
