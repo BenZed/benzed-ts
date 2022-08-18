@@ -43,7 +43,6 @@ export interface MongoApplication<S = any, C = any> extends ExpressApplication<S
 
 function applyMongoAddons<S, C extends MongoApplicationConfig>(
     expressApp: ExpressApplication<S, C>
-
 ): MongoApplication<S, C> {
 
     const log = createLogger({
