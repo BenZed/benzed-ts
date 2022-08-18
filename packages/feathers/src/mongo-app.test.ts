@@ -22,7 +22,7 @@ it('creates a gears application', () => {
     expect(mongoApplication).toHaveProperty('start')
 })
 
-describe('db() method', () => {
+describe.skip('db() method', () => {
     it('throws if mongodb is not connected ', () => {
         expect(mongoApplication.db).toThrow('is not yet connected')
     })
