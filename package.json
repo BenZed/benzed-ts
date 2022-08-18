@@ -8,9 +8,8 @@
         "tsc": "lerna run tsc",
         "lint": "eslint ./packages/** --fix",
         "update-deps": "npx npm-check -u",
-        "publish-packages": "ts-node ./scripts/publish-packages.ts",
-        "sync-package-versions": "ts-node ./scripts/sync-package-versions.ts",
-        "postinstall": "npm run bootstrap; npm run build; npm audit fix"
+        "publish-packages": "npm run sync-package-versions; ts-node ./scripts/publish-packages.ts",
+        "sync-package-versions": "ts-node ./scripts/sync-package-versions.ts"
     },
     "repository": {
         "type": "git",
@@ -32,6 +31,7 @@
         "eslint": "^8.20.0",
         "jest": "^28.1.3",
         "lerna": "^5.1.8",
+        "expect-type": "^0.13.0",
         "semver": "^7.3.5",
         "shx": "^0.3.4",
         "ts-jest": "^28.0.7",

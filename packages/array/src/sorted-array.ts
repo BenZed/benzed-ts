@@ -27,7 +27,7 @@ function descending<T>(a: T, b: T): number {
 /*** Main ***/
 class SortedArray<T extends Sortable> extends Array<T> {
 
-    public constructor(...params: readonly T[]) {
+    public constructor (...params: readonly T[]) {
 
         // initialize array with length
         super(params.length)
