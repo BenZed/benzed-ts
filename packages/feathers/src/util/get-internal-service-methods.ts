@@ -1,11 +1,11 @@
 import { InternalServiceMethods } from '@feathersjs/adapter-commons'
 import { ServiceGenericType } from '@feathersjs/feathers'
 
-import { Service } from '../types'
+import { Service, StringKeys } from '../types'
 
 /*** Types ***/
 
-type InternalServiceMethodKeys = (keyof InternalServiceMethods<unknown>)[]
+type InternalServiceMethodKeys = StringKeys<InternalServiceMethods>[]
 
 /*** Main ***/
 
