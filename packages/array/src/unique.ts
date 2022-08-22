@@ -14,7 +14,7 @@ const { splice } = Array.prototype
  */
 function unique<T extends string | ArrayLike<unknown>>(
     arrayLike: T
-): typeof arrayLike {
+): T {
 
     if (typeof arrayLike === 'string') {
 
@@ -34,13 +34,10 @@ function unique<T extends string | ArrayLike<unknown>>(
         for (let i = 0; i < arrayLike.length; i++) {
             if (indexesToDelete.includes(i))
                 continue
-
             for (let ii = i + 1; ii < arrayLike.length; ii++) {
                 if (Object.is(arrayLike[ii], arrayLike[i]))
                     indexesToDelete.push(ii)
-
             }
-
         }
 
         for (const indexToDelete of indexesToDelete.sort(descending))

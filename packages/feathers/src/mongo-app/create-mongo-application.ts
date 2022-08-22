@@ -28,15 +28,18 @@ import { disallowAll } from '../hooks'
 export interface MongoApplicationConfig {
     name: string
     port: number
-    env: 'production' | 'development' | 'test'
     db: MongoDbConfig
 }
+
+type Env = 'test' | 'development' | 'production'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface MongoApplication<S = any, C = any> extends ExpressApplication<S, C> {
     log: Logger
     db(): Db
     start(): Promise<void>
+    mode(): Env
+    isMode(env: Env): boolean
 }
 
 /*** Helper ***/
@@ -45,11 +48,25 @@ function applyMongoAddons<S, C extends MongoApplicationConfig>(
     expressApp: ExpressApplication<S, C>
 ): MongoApplication<S, C> {
 
+    const mode = function mode(
+        this: MongoApplication<S, C>
+    ): Env {
+        const env = (this as unknown as FeathersApplication).get('env')
+        return env
+    }
+
+    const isMode = function isMode(
+        this: MongoApplication<S, C>,
+        env: Env
+    ): boolean {
+        return this.mode() === env
+    }
+
     const log = createLogger({
         header: '⚙️',
         timeStamp: true,
-        onLog: expressApp.get('env') === 'test'
-            ? () => {/* no logging in test mode */ }
+        onLog: mode.call(expressApp as MongoApplication<S, C>) === 'test'
+            ? () => { /* no logging in test mode */ }
             : console.log.bind(console)
     })
 
@@ -60,15 +77,18 @@ function applyMongoAddons<S, C extends MongoApplicationConfig>(
     const start = async function start(this: MongoApplication<S, C>): Promise<void> {
 
         const name = this.get('name')
-        const env = this.get('env')
         const port = this.get('port')
+        const env = this.mode()
 
         await this.listen(port)
 
         this.log`${name} listening on port ${port} in ${env} mode`
     }
 
-    return Object.assign(expressApp, { log, db, start }) as MongoApplication<S, C>
+    return Object.assign(
+        expressApp,
+        { log, db, mode, isMode, start }
+    ) as MongoApplication<S, C>
 }
 
 /*** Main ***/
@@ -106,8 +126,7 @@ export default function createMongoApplication<S, C extends MongoApplicationConf
     })
 
     // standard express middleware
-    const IS_PRODUCTION = mongoApp.get('env') === 'production'
-    if (IS_PRODUCTION) {
+    if (mongoApp.isMode('production')) {
         mongoApp.use(
             helmet({
                 contentSecurityPolicy: false,
@@ -116,15 +135,15 @@ export default function createMongoApplication<S, C extends MongoApplicationConf
         )
     }
 
-    expressApp.use(cors(CORS_OPTIONS))
+    expressApp
+        .use(cors(CORS_OPTIONS))
         .use(compress())
         .use(json())
         .use(urlencoded({ extended: true }))
         .configure(rest())
 
     // Add Mongo addons
-    mongoApp
-        .configure(setupMongoDb)
+    mongoApp.configure(setupMongoDb)
     if (setupServices)
         mongoApp.configure(setupServices)
     mongoApp.configure(setupChannels)
@@ -134,6 +153,4 @@ export default function createMongoApplication<S, C extends MongoApplicationConf
     return mongoApp
 }
 
-export {
-    createMongoApplication
-}
+export { createMongoApplication }

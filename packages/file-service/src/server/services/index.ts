@@ -5,7 +5,7 @@ import files from './files'
 
 /*** Main ***/
 
-export default function configureFileServices(app: FileServerApp): void {
+export default function setupFileServices(app: FileServerApp): void {
 
     app.configure(authentication)
     app.configure(files)
