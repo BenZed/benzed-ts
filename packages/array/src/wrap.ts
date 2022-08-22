@@ -8,9 +8,7 @@ type WrapIn = any | any[] | readonly any[]
 
 type WrapOut<T> = T extends any[] | readonly any[]
     ? T
-    : T extends boolean
-    /**/ ? boolean[]
-    /**/ : T[]
+    : T[]
 
 /*** Main ***/
 
