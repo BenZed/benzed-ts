@@ -1,54 +1,38 @@
-import { feathers, NextFunction } from '@feathersjs/feathers'
-import express from '@feathersjs/express'
-import socketio from '@feathersjs/socketio'
-import configuration from '@feathersjs/configuration'
-import '@feathersjs/transport-commons'
-
-import { Service as MemoryService } from 'feathers-memory'
-
 import {
-    Application,
+    NextFunction,
     HookContext,
     Params,
-    Service
-} from './types'
+} from '@feathersjs/feathers'
+
+import createMongoApplication, { MongoApplication } from './mongo-app'
+import setupMongoService, { MongoService } from './mongo-service'
 
 /*** Types ***/
 
-export type TestApp = Application
+export type TestApplication<S extends readonly string[]> =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    MongoApplication<{ [K in S[number]]: MongoService<any> }>
 
 /*** Helper ***/
 
-export const createTestApp = (serviceNames = ['users']): TestApp => {
-    const testApp = express(feathers()) as unknown as TestApp
+export const createTestApp = <S extends readonly string[]>(
+    services: S
+): TestApplication<S> => {
 
-    testApp.configure(configuration())
-    testApp.configure(socketio())
-    testApp.on('connection', (connection) => {
-        testApp.channel('all').join(connection)
-    })
-    testApp.publish(() => testApp.channel('all'))
+    const testApp = createMongoApplication()
 
-    for (const serviceName of serviceNames) {
-        testApp.use(serviceName, new MemoryService({
-            id: '_id',
-            multi: true,
-            paginate: {
-                default: 10,
-                max: 100
-            }
-        }) as unknown as Service)
-    }
+    for (const service of services)
+        setupMongoService(testApp, { collection: service })
 
-    return testApp
+    return testApp as TestApplication<S>
 }
 
-export const createTestHookContext = (config: {
-    app?: TestApp
-    serviceName: string
-    method: HookContext<TestApp>['method']
+export const createTestHookContext = <S extends string>(config: {
+    app?: TestApplication<[S]>
+    serviceName: S
+    method: HookContext<TestApplication<[S]>>['method']
     params?: Params
-}): HookContext<TestApp> => {
+}): HookContext<TestApplication<[S]>> => {
 
     const {
         serviceName,

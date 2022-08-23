@@ -15,22 +15,6 @@ export type {
 
 export type {
 
-    Paginated,
-    Params,
-    Query,
-
-    Application,
-    Service,
-
-    HookContext,
-    HookFunction,
-    NextFunction,
-    AroundHookFunction,
-
-} from '@feathersjs/feathers'
-
-export type {
-
     MongoDbConfig,
     ObjectId,
     Db,

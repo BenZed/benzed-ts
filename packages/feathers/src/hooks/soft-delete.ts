@@ -2,8 +2,13 @@
 import { BadRequest, NotFound } from '@feathersjs/errors'
 
 import { getInternalServiceMethods } from '../util'
-import { Params, Service, AroundHookFunction } from '../types'
-import { ServiceGenericData, ServiceGenericType } from '@feathersjs/feathers/lib'
+import {
+    ServiceGenericData,
+    ServiceGenericType,
+    Params,
+    Service,
+    AroundHookFunction
+} from '@feathersjs/feathers'
 
 /*** Types ***/
 
@@ -95,7 +100,7 @@ function softDelete<
 
         const _service = getInternalServiceMethods(service)
 
-        const record = await _service._get(id)
+        const record = await _service.$get(id)
         if (record[deleteField] && !includeDeleted && !restoreDeleted)
             throw new NotFound(`No record found for id '${id}'`)
         else if (!record[deleteField] && restoreDeleted)
@@ -109,7 +114,7 @@ function softDelete<
             method === 'remove' && !includeDeleted ||
             method === 'patch' && restoreDeleted
         ) {
-            context.result = await _service._patch(
+            context.result = await _service.$patch(
                 id,
                 {
                     ...data,

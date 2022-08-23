@@ -3,7 +3,7 @@ import configuration from '@feathersjs/configuration'
 
 describe('File Service', () => {
 
-    const app = createTestApp()
+    const app = createTestApp(['files'] as const)
     const config = configuration()()
 
     const files = app.service('files')

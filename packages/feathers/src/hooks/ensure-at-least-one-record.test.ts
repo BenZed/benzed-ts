@@ -57,7 +57,7 @@ it('does nothing if there is at least one record', async () => {
 
 it('may only be called by the remove method', async () => {
 
-    const app = createTestApp(['buildings'])
+    const app = createTestApp(['buildings'] as const)
 
     for (const method of ['find', 'get', 'create', 'update', 'patch']) {
         const ctx = createTestHookContext({

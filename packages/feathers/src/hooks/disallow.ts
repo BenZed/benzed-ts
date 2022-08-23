@@ -1,6 +1,6 @@
 import { MethodNotAllowed } from '@feathersjs/errors'
 
-import { AroundHookFunction } from '../types'
+import { AroundHookFunction } from '@feathersjs/feathers'
 
 /*** Types ***/
 

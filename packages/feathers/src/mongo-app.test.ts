@@ -45,28 +45,3 @@ describe('mode()', () => {
         expect(mongoApplication.mode()).toEqual('test')
     })
 })
-
-describe('isMode()', () => {
-    it('if provided with a mode, returns true if current env is that mode, false otherwise', () => {
-        expect(mongoApplication.isMode('test')).toBe(true)
-    })
-})
-
-describe('default providers', () => {
-
-    it('socketio', () => {
-        expect(mongoApplication.io).toBeTruthy()
-    })
-
-    it.todo('rest')
-})
-
-describe('default middleware', () => {
-
-    it.todo('helmet')
-    it.todo('compress')
-    it.todo('json')
-    it.todo('urlencoded')
-    it.todo('rest')
-
-})

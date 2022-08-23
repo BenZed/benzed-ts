@@ -1,11 +1,10 @@
 import updateHistory from './update-history'
 
 import { milliseconds } from '@benzed/async'
+import { Params } from '@feathersjs/feathers'
 
-import { createTestApp, TestApp } from '../util.test'
+import { createTestApp } from '../util.test'
 import { getInternalServiceMethods } from '../util'
-
-import { Params, AroundHookFunction } from '../types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -17,13 +16,13 @@ type User = {
 
 /*** Test ***/
 
-const app = createTestApp(['users'])
+const app = createTestApp(['users'] as const)
 const users = app.service('users').hooks([
     updateHistory()
 ])
 
 // remove all users
-afterEach(() => getInternalServiceMethods(users)._remove(null))
+afterEach(() => getInternalServiceMethods(users).$remove(null))
 
 describe('create method', () => {
     //
@@ -129,11 +128,11 @@ describe('patch method', () => {
 
         async () => {
 
-            const app = createTestApp(['users'])
+            const app = createTestApp(['users'] as const)
             const users = app.service('users').hooks([
                 updateHistory({
                     collapseInterval: 100
-                }) as AroundHookFunction<TestApp>
+                })
             ])
 
             const user: User = { _id: 'admin', age: 100, name: 'Boss' }

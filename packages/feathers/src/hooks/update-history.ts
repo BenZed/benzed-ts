@@ -1,14 +1,17 @@
 import is from '@benzed/is'
 
 import { BadRequest } from '@feathersjs/errors'
-
-import { schema, Infer, getSchemaDefinition } from '../schemas'
-
 import {
     AroundHookFunction,
     HookContext,
     Params,
-    Service,
+    Service
+} from '@feathersjs/feathers'
+
+import { schema, Infer, getSchemaDefinition } from '../schemas'
+
+import {
+
     ObjectId,
     IdType
 } from '../types'
@@ -76,7 +79,7 @@ async function getExistingHistory<T>(
     if (id === undefined)
         throw new Error('Cannot retrieve existing history, id missing.')
 
-    const record = await getInternalServiceMethods(service)._get(id.toString()) as Historical<T>
+    const record = await getInternalServiceMethods(service).$get(id.toString()) as Historical<T>
     return record.history
 }
 
@@ -137,7 +140,7 @@ async function applyScribeData<T extends object>(
         for (const key in scribeData)
             ctxData[key] = (scribeData as HookData)[key]
     } else if (service && id)
-        await getInternalServiceMethods(service)._patch(id.toString(), scribeData)
+        await getInternalServiceMethods(service).$patch(id.toString(), scribeData)
     else
         throw new BadRequest('Invalid history input.')
 }

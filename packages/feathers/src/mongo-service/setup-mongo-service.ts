@@ -1,28 +1,24 @@
-import { FeathersService } from '@feathersjs/feathers'
+import { FeathersService, Service } from '@feathersjs/feathers'
+import { MongoDBAdapterParams } from '@feathersjs/mongodb'
 
 import MongoService, { MongoServiceOptions } from './mongo-service'
-import { MongoApplication, Service, Params } from '../types'
+import { MongoApplication } from '../types'
 
 /*** Main ***/
 
-function setupMongoService<T, D = Partial<T>, P = Params>(
+function setupMongoService<
+    T,
+    D = Partial<T>,
+    P extends MongoDBAdapterParams = MongoDBAdapterParams
+>(
     mongoApp: MongoApplication,
-    collectionName: string,
-    options?: Partial<MongoServiceOptions>
+    options: MongoServiceOptions
 ): FeathersService<MongoApplication, Service<T, D, P>> {
 
-    const service = new MongoService<T, D>({
-        collection: collectionName,
-        ...options,
-    })
+    mongoApp.use(options.collection, new MongoService<T, D, P>(options))
+    mongoApp.log`${options.collection} service configured`
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mongoApp.use(collectionName as any, service as any)
-    //                       ^ I don't know why this cast is necessary.
-
-    mongoApp.log`${collectionName} service configured`
-
-    return mongoApp.service(collectionName)
+    return mongoApp.service(options.collection)
 }
 
 /*** Exports ***/

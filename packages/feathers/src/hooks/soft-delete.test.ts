@@ -8,7 +8,7 @@ import {
 
 /*** Test ***/
 
-const app = createTestApp(['users'])
+const app = createTestApp(['users'] as const)
 const users = app.service('users').hooks([softDelete()])
 
 let joe: any
@@ -192,7 +192,7 @@ describe('find method', () => {
 
 describe('option.deleteField', () => {
     it('sets the field that is used to hold the deleted date', async () => {
-        const users = createTestApp(['users'])
+        const users = createTestApp(['users'] as const)
             .service('users')
             .hooks([
                 softDelete({
@@ -209,7 +209,7 @@ describe('option.deleteField', () => {
 
 describe('option.deleteQueryParam', () => {
     it('sets the query param field name', async () => {
-        const users = createTestApp(['users'])
+        const users = createTestApp(['users'] as const)
             .service('users')
             .hooks([
                 softDelete({

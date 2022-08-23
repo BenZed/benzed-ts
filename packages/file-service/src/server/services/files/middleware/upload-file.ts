@@ -7,7 +7,7 @@ import { Request, RequestHandler, ErrorRequestHandler } from 'express'
 import multer, { diskStorage, StorageEngine } from 'multer'
 import s3Storage from 'multer-s3'
 
-import type { Application as ExpressApp } from '@feathersjs/express'
+import type { Application as KoaApplication } from '@feathersjs/koa'
 
 import is from '@benzed/is'
 
@@ -29,7 +29,7 @@ function isFsConfig(fsConfig: unknown): fsConfig is string {
 
 /*** Helper ***/
 
-function createS3Storage(app: ExpressApp<GearsServiceTypes, GearsSettings>): StorageEngine | null {
+function createS3Storage(app: KoaApplication<GearsServiceTypes, GearsSettings>): StorageEngine | null {
 
     const s3Data = getS3Package(app)
     if (!s3Data)
@@ -47,7 +47,7 @@ function createS3Storage(app: ExpressApp<GearsServiceTypes, GearsSettings>): Sto
     })
 }
 
-function createFsStorage(app: ExpressApp<GearsServiceTypes, GearsSettings>): StorageEngine | null {
+function createFsStorage(app: KoaApplication<GearsServiceTypes, GearsSettings>): StorageEngine | null {
 
     const fsConfig = app.get('fs')
     if (!isFsConfig(fsConfig))
@@ -62,7 +62,7 @@ function createFsStorage(app: ExpressApp<GearsServiceTypes, GearsSettings>): Sto
     })
 }
 
-function createUploadMiddleware(app: ExpressApp<GearsServiceTypes, GearsSettings>): RequestHandler {
+function createUploadMiddleware(app: KoaApplication<GearsServiceTypes, GearsSettings>): RequestHandler {
 
     const storage = createS3Storage(app) ?? createFsStorage(app)
     if (!storage)
@@ -104,7 +104,7 @@ const getReqUserRecord = (req: Request): UserRecordServer => {
 
 /*** uploadFile ***/
 
-function uploadFileMiddleware(app: ExpressApp<GearsServiceTypes, GearsSettings>): void {
+function uploadFileMiddleware(app: KoaApplication<GearsServiceTypes, GearsSettings>): void {
 
     const authenticate: RequestHandler = async (req, _res, next) => {
         const accessToken = req.headers.authorization

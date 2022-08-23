@@ -1,6 +1,7 @@
 import is from '@benzed/is'
 
-import { AroundHookFunction, Service, Paginated } from '../types'
+import { AroundHookFunction, Service, Paginated } from '@feathersjs/feathers'
+
 /*** Helper ***/
 
 /**
