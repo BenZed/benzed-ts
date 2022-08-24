@@ -3,13 +3,13 @@ import { ensureMongoDbInstance } from './scripts/util'
 import configuration from '@feathersjs/configuration'
 
 import {
-    MongoApplicationConfig,
-    MongoDbConfig
-} from './mongo-app'
+    MongoDBApplicationConfig,
+    MongoDBConfig
+} from './mongo-db-app'
 
 /*** Config ***/
 
-const config = (configuration()() as unknown as MongoApplicationConfig).db as MongoDbConfig
+const config = (configuration()() as unknown as MongoDBApplicationConfig).db as MongoDBConfig
 
 /**
  * Ensure a mongo db instance is running in the test cluster
