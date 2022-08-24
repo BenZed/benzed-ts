@@ -4,14 +4,17 @@ import {
     Params,
 } from '@feathersjs/feathers'
 
-import createMongoApplication, { MongoApplication } from './mongo-app'
-import setupMongoService, { MongoService } from './mongo-service'
+import createMongoApplication, {
+    MongoDBApplication,
+    MongoDBService,
+    setupMongoDBService
+} from './mongo-db-app'
 
 /*** Types ***/
 
 export type TestApplication<S extends readonly string[]> =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    MongoApplication<{ [K in S[number]]: MongoService<any> }>
+    MongoDBApplication<{ [K in S[number]]: MongoDBService<any> }>
 
 /*** Helper ***/
 
@@ -22,7 +25,7 @@ export const createTestApp = <S extends readonly string[]>(
     const testApp = createMongoApplication()
 
     for (const service of services)
-        setupMongoService(testApp, { collection: service })
+        setupMongoDBService(testApp, { collection: service })
 
     return testApp as TestApplication<S>
 }

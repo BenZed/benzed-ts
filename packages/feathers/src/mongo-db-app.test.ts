@@ -1,20 +1,13 @@
 
-import { Db } from 'mongodb'
-import { MongoApplication, createMongoApplication } from './mongo-app'
+import { Collection } from 'mongodb'
+import { MongoDBApplication, createMongoApplication } from './mongo-db-app'
 
 import { isLogger } from '@benzed/util'
 
-let mongoApplication: MongoApplication
+let mongoApplication: MongoDBApplication
 
 beforeAll(() => {
-    mongoApplication = createMongoApplication({
-        services() {
-            //
-        },
-        middleware() {
-            //
-        }
-    })
+    mongoApplication = createMongoApplication()
 })
 
 it('creates a mongo application', () => {
@@ -24,12 +17,9 @@ it('creates a mongo application', () => {
 })
 
 describe('db() method', () => {
-    it('throws if mongodb is not connected ', () => {
-        expect(mongoApplication.db).toThrow('is not yet connected')
-    })
-    it('returns a mongodb instance if connected', async () => {
+    it('returns a collection instance', async () => {
         await mongoApplication.start()
-        expect(mongoApplication.db()).toBeInstanceOf(Db)
+        expect(await mongoApplication.db('users')).toBeInstanceOf(Collection)
         await mongoApplication.teardown()
     })
 })

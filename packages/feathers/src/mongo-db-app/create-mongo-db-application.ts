@@ -1,5 +1,6 @@
 
-import type { Db } from 'mongodb'
+import type { Collection } from 'mongodb'
+import type { Schema } from '../schemas'
 
 import { feathers } from '@feathersjs/feathers'
 import configuration from '@feathersjs/configuration'
@@ -8,34 +9,31 @@ import {
     rest,
     bodyParser,
     errorHandler,
-    parseAuthentication,
+    parseAuthentication as authParser,
 
     Application as KoaApplication
 } from '@feathersjs/koa'
 
 import { createLogger, Logger } from '@benzed/util'
 
-import setupMongoDb, { MongoDbConfig } from './setup-mongo-db'
-
-import { Schema } from '../schemas'
-import { disallowAll } from '../hooks'
+import setupMongoDB, { MongoDBConfig } from './setup-mongo-db'
 
 /*** Types ***/
 
-export interface MongoApplicationConfig {
+export interface MongoDBApplicationConfig {
     name: string
     port: number
-    db: MongoDbConfig
+    db: MongoDBConfig
 }
 
 type Env = 'test' | 'development' | 'production'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MongoApplication<S = any, C = any> extends KoaApplication<S, C> {
+export interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
 
     log: Logger
 
-    db(): Db
+    db(collection: string): Promise<Collection>
 
     start(): Promise<void>
 
@@ -44,9 +42,9 @@ export interface MongoApplication<S = any, C = any> extends KoaApplication<S, C>
 
 /*** Helper ***/
 
-function applyMongoAddons<S, C extends MongoApplicationConfig>(
+function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
     expressApp: KoaApplication<S, C>
-): MongoApplication<S, C> {
+): MongoDBApplication<S, C> {
 
     const mode = function mode(): Env {
         return (process.env.NODE_ENV ?? 'development') as Env
@@ -60,11 +58,11 @@ function applyMongoAddons<S, C extends MongoApplicationConfig>(
             : console.log.bind(console)
     })
 
-    const db = function db(): Db {
+    const db = function db(_collection: string): Promise<Collection> {
         throw new Error('MongoDb not yet configured')
     }
 
-    const start = async function start(this: MongoApplication<S, C>): Promise<void> {
+    const start = async function start(this: MongoDBApplication<S, C>): Promise<void> {
 
         const name = this.get('name')
         const port = this.get('port')
@@ -78,38 +76,25 @@ function applyMongoAddons<S, C extends MongoApplicationConfig>(
     return Object.assign(
         expressApp,
         { log, db, mode, start }
-    ) as MongoApplication<S, C>
+    ) as MongoDBApplication<S, C>
 }
 
 /*** Main ***/
 
-export default function createMongoApplication<S, C extends MongoApplicationConfig>(
-    setup?: {
-        services?: (app: MongoApplication<S, C>) => void
-        middleware?: (app: MongoApplication<S, C>) => void
-        channels?: (app: MongoApplication<S, C>) => void
-        configSchema?: Schema<C>
-    }
-): MongoApplication<S, C> {
-
-    const {
-        configSchema
-    } = setup ?? {}
+export default function createMongoApplication<S, C extends MongoDBApplicationConfig>(
+    configSchema?: Schema<C>
+): MongoDBApplication<S, C> {
 
     // Create feathers instance and configure it
     const mongoApp = applyMongoAddons(koa(feathers()))
 
     mongoApp.configure(configuration(configSchema))
-    mongoApp.use(errorHandler())
-    mongoApp.use(parseAuthentication())
-    mongoApp.use(bodyParser())
-
+    mongoApp.configure(setupMongoDB)
     mongoApp.configure(rest())
-    mongoApp.configure(setupMongoDb)
 
-    mongoApp.hooks({
-        update: [disallowAll] // disable update method, use patch instead
-    })
+    mongoApp.use(errorHandler())
+    mongoApp.use(authParser())
+    mongoApp.use(bodyParser())
 
     return mongoApp
 }

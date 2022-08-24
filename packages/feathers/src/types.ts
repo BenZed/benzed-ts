@@ -1,5 +1,5 @@
 
-import type { ObjectId } from './mongo-app/setup-mongo-db'
+import type { ObjectId } from './mongo-db-app/setup-mongo-db'
 
 /*** Exports ***/
 
@@ -15,15 +15,15 @@ export type {
 
 export type {
 
-    MongoDbConfig,
+    MongoDBConfig,
     ObjectId,
     Db,
 
-} from './mongo-app/setup-mongo-db'
+} from './mongo-db-app/setup-mongo-db'
 
 export type {
 
-    MongoApplication,
-    MongoApplicationConfig
+    MongoDBApplication,
+    MongoDBApplicationConfig
 
-} from './mongo-app/create-mongo-application'
+} from './mongo-db-app/create-mongo-db-application'

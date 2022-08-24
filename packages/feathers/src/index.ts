@@ -1,3 +1,3 @@
 export * from './types'
 export * from './schemas'
-export * from './mongo-app'
+export * from './mongo-db-app'
