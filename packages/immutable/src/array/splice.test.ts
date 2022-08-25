@@ -1,7 +1,7 @@
 import copy from '../copy'
 import splice from './splice'
 
-describe.only('splice()', () => {
+describe('splice()', () => {
 
     it('does not mutate original array', () => {
         const array = [0, 1, 2, 3, 4, 5]

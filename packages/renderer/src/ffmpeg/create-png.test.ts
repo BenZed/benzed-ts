@@ -11,7 +11,7 @@ import getMetadata from './get-metadata'
 import { SizeOptions, TimeOptions } from './options'
 
 type TestInput = {
-    options: SizeOptions & TimeOptions
+    options: Partial<SizeOptions> & Partial<TimeOptions>
     label: string
     stream?: boolean
 }[]
@@ -19,6 +19,7 @@ type TestInput = {
 describe('createPNG', () => {
 
     const testInput: TestInput = [
+        { options: {}, label: 'unspecified' },
         { options: { progress: 0 }, label: 'beginning' },
         { options: { progress: 0.5 }, label: 'middle' },
         { options: { progress: 1 }, label: 'end' },
@@ -86,15 +87,11 @@ describe('createPNG', () => {
                         )
                 }
 
-                if ('width' in options && isNumber(options.width)) {
-                    expect(outputMetadata.width)
-                        .toEqual(options.width)
-                }
+                if ('width' in options && isNumber(options.width))
+                    expect(outputMetadata.width).toEqual(options.width)
 
-                if ('height' in options && isNumber(options.height)) {
-                    expect(outputMetadata.height)
-                        .toEqual(options.height)
-                }
+                if ('height' in options && isNumber(options.height))
+                    expect(outputMetadata.height).toEqual(options.height)
 
                 if ('dimensions' in options && isNumber(options.dimensions)) {
                     expect(outputMetadata.width).toEqual(options.dimensions)

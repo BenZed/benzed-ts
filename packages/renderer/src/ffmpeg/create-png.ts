@@ -10,15 +10,15 @@ import {
 import { getFfmpegSizeOptionString } from './util'
 
 import { clamp } from '@benzed/math'
-import { isDefined, isString } from '@benzed/is'
+import { isDefined, isNumber, isString } from '@benzed/is'
 
 /*** Types ***/
 
 type CreatePNGOptions =
     & Input
     & Output
-    & TimeOptions
-    & SizeOptions
+    & Partial<TimeOptions>
+    & Partial<SizeOptions>
 
 /*** Constants ***/
 
@@ -37,7 +37,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     const frameDuration = 1 / frameRate
     const maxFrameDuration = duration - frameDuration
 
-    if ('time' in options) {
+    if ('time' in options && isNumber(options.time)) {
 
         const { time } = options
 
@@ -51,7 +51,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
     } else {
 
-        const { progress } = options
+        const progress = 'progress' in options ? options.progress ?? 0 : 0
 
         const timeStamp = clamp(progress * maxFrameDuration, 0, maxFrameDuration)
         return timeStamp

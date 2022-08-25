@@ -21,7 +21,7 @@ import { RequirePartial } from '@benzed/util'
 type CreateMP4Options =
     & Input
     & Output
-    & SizeOptions
+    & Partial<SizeOptions>
     & RequirePartial<VideoOptions, 'vbr'>
     & AudioOptions
 

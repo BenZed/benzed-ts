@@ -1,10 +1,8 @@
 import { PathLike, readFile } from './overrides'
 
-import { Json } from '@benzed/util'
-
 /*** Main ***/
 
-async function readJson<T extends Json = Json>(
+async function readJson<T>(
     url: PathLike,
     validate?: (input: unknown) => asserts input is T
 ): Promise<T> {

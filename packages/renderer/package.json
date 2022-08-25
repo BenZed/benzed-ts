@@ -25,7 +25,9 @@
         "@benzed/is": "^3.1.2",
         "@benzed/math": "3.1.4",
         "@benzed/array": "^3.1.4",
-        "@benzed/util": "^3.7.1"
+        "@benzed/util": "^3.7.1",
+        "@benzed/async": "^3.4.1",
+        "@benzed/fs": "^3.0.4"
     },
     "peerDependencies": {},
     "devDependencies": {

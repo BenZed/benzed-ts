@@ -22,6 +22,6 @@ module.exports = {
     modulePathIgnorePatterns: [
         BEFORE_ALL_TESTS,
         AFTER_ALL_TESTS,
-        'util.test.ts'
+        'util.test.ts',
     ]
 }

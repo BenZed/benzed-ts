@@ -17,7 +17,7 @@ import {
  * These tests might look redundant from a runtime perspective, but they 
  * exist to ensure the $ usage syntax doesn't have any type errors.
  */
-describe.only('$ Syntax Tests', () => {
+describe('$ Syntax Tests', () => {
 
     // TODO move this test elsewhere
     describe('.validate', () => {
