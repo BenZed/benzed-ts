@@ -9,7 +9,6 @@ import { getInternalServiceMethods } from '../util'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 type User = {
-    _id: string
     name: string
     age: number
 }
@@ -32,7 +31,9 @@ describe('create method', () => {
             .create(
                 { name: 'Alice' },
                 {
-                    user: { _id: 'admin' } as User
+                    user: {
+                        [users.id]: 'admin'
+                    }
                 } as Params
             )
 
@@ -74,7 +75,7 @@ describe('remove method', () => {
 
         const joe1 = await users.create({ name: 'Joe' })
 
-        const joe2 = await users.remove(joe1._id as number)
+        const joe2 = await users.remove(joe1[users.id] as number)
 
         expect(joe2.history).toEqual([
             {
@@ -97,8 +98,8 @@ describe('patch method', () => {
     it('increments record history', async () => {
 
         let steve = await users.create({ name: 'Steve', age: 30 })
-        steve = await users.patch(steve._id as number, { age: 31 })
-        steve = await users.patch(steve._id as number, { age: 32 })
+        steve = await users.patch(steve[users.id] as number, { age: 31 })
+        steve = await users.patch(steve[users.id] as number, { age: 32 })
 
         expect(steve.history).toEqual([
             {
@@ -135,21 +136,21 @@ describe('patch method', () => {
                 })
             ])
 
-            const user: User = { _id: 'admin', age: 100, name: 'Boss' }
+            const user = { [users.id]: 'admin', age: 100, name: 'Boss' } as User
 
             const params = { user } as Params
 
             let robyn = await users.create({ name: 'Robin', age: 26 }, params)
-            robyn = await users.patch(robyn._id as number, { age: 27 }, params)
+            robyn = await users.patch(robyn[users.id] as number, { age: 27 }, params)
 
             const timeStampOfFirstCollapsablePatch = robyn.history.at(-1).timestamp
 
             // on the off chance the next patch happens in less than a millisecond
             await milliseconds(10)
 
-            robyn = await users.patch(robyn._id as number, { age: 25 }, params)
-            robyn = await users.patch(robyn._id as number, { age: 23 }, params)
-            robyn = await users.patch(robyn._id as number, { name: 'Robyn' }, params)
+            robyn = await users.patch(robyn[users.id] as number, { age: 25 }, params)
+            robyn = await users.patch(robyn[users.id] as number, { age: 23 }, params)
+            robyn = await users.patch(robyn[users.id] as number, { name: 'Robyn' }, params)
 
             expect(robyn.name).toBe('Robyn')
             expect(robyn.history).toEqual([
@@ -191,9 +192,9 @@ describe('revert query params', () => {
 
         let alice = await users.create({ name: 'Alice', age: 30 })
         while (alice.age < 40)
-            alice = await users.patch(alice._id, { age: (alice.age as number) + 1 })
+            alice = await users.patch(alice[users.id], { age: (alice.age as number) + 1 })
 
-        alice = await users.patch(alice._id, {}, {
+        alice = await users.patch(alice[users.id], {}, {
             query: {
                 $history: {
                     revert: 1
@@ -213,9 +214,9 @@ describe('revert query params', () => {
 
         let alice = await users.create({ name: 'Alice', age: 30 })
         while (alice.age < 40)
-            alice = await users.patch(alice._id, { age: (alice.age as number) + 1 })
+            alice = await users.patch(alice[users.id], { age: (alice.age as number) + 1 })
 
-        alice = await users.patch(alice._id, {}, {
+        alice = await users.patch(alice[users.id], {}, {
             query: {
                 $history: {
                     splice: [1, 9]

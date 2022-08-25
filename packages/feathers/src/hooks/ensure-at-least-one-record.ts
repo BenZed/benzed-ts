@@ -1,6 +1,6 @@
-import is from '@benzed/is'
 
 import { AroundHookFunction, Service, Paginated } from '@feathersjs/feathers'
+import { toPaginated } from '../util'
 
 /*** Helper ***/
 
@@ -14,7 +14,7 @@ const createRecordIfNoneExists = async <R>(
 ): Promise<void> => {
 
     const result = await service.find({}) as R[] | Paginated<R>
-    const total = is.array(result) ? result.length : result.total
+    const { total } = toPaginated(result)
     if (total === 0)
         await service.create(defaultRecordData)
 }

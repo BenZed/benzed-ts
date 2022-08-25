@@ -10,7 +10,7 @@ type Building = {
     owner: string
 }
 
-it('creates a new record if none are remain', async () => {
+it('creates a new record if none remain', async () => {
 
     const ctx = createTestHookContext({
         serviceName: 'buildings',
@@ -72,4 +72,5 @@ it('may only be called by the remove method', async () => {
             .rejects
             .toThrow('should only be called by the \'remove\' method')
     }
+
 })

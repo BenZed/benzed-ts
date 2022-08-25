@@ -3,18 +3,13 @@ import is from '@benzed/is'
 import { BadRequest } from '@feathersjs/errors'
 import {
     AroundHookFunction,
+    FeathersService,
     HookContext,
     Params,
     Service
 } from '@feathersjs/feathers'
 
 import { schema, Infer, getSchemaDefinition } from '../schemas'
-
-import {
-
-    ObjectId,
-    IdType
-} from '../types'
 
 import { getInternalServiceMethods } from '../util'
 
@@ -72,14 +67,13 @@ const HISTORY_QUERY_PARAM = '$history'
 /*** Helper ***/
 
 async function getExistingHistory<T>(
-    service: Service<Historical<T>>,
-    id?: IdType
+    ctx: HookContext<unknown, Service<Historical<T>>>
 ): Promise<Historical<T>['history']> {
 
-    if (id === undefined)
+    if (ctx.id === undefined)
         throw new Error('Cannot retrieve existing history, id missing.')
 
-    const record = await getInternalServiceMethods(service).$get(id.toString()) as Historical<T>
+    const record = await getInternalServiceMethods(ctx.service).$get(ctx.id) as Historical<T>
     return record.history
 }
 
@@ -129,40 +123,37 @@ function consumeHistoryQueryParam(
 
 async function applyScribeData<T extends object>(
     scribe: HistoryScribe<T>,
-    ctxData?: HookData,
-    service?: Service<Historical<T>>,
-    id?: ObjectId
+    ctx: HookContext<unknown, Service<Historical<T>>>
 ): Promise<void> {
 
     const scribeData = scribe.compile()
 
-    if (ctxData) {
+    if (ctx.data) {
         for (const key in scribeData)
-            ctxData[key] = (scribeData as HookData)[key]
-    } else if (service && id)
-        await getInternalServiceMethods(service).$patch(id.toString(), scribeData)
+            (ctx.data as HookData)[key] = (scribeData as HookData)[key]
+    } else if (ctx.service && ctx.id)
+        await getInternalServiceMethods(ctx.service).$patch(ctx.id, scribeData)
     else
         throw new BadRequest('Invalid history input.')
 }
 
 function createEntry<T extends object>(
-
-    params: Params,
-    method: HistoryEntry<T>['method'],
-
-    data: HookData,
+    ctx: HookContext<unknown, Service<Historical<T>>>,
     dataMask?: (data: HookData) => T
-
 ): HistoryEntry<T> {
 
-    const { user } = params as { user: { _id: IdType } }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const signature = (ctx.params as any)
+        ?.user
+        ?.[(ctx.service as FeathersService).id as string]
+        .toString() ?? null
 
-    const signature = user?._id.toString() ?? null
     const timestamp = Date.now()
+    const method = ctx.method as 'patch' | 'remove' | 'create'
 
     const entry: HistoryEntry<T> = method === 'remove'
         ? { method, signature, timestamp }
-        : { method, data: getEntryData(data, dataMask), signature, timestamp }
+        : { method, signature, timestamp, data: getEntryData(ctx.data, dataMask) }
 
     return entry
 }
@@ -175,7 +166,8 @@ function createEntry<T extends object>(
  */
 function updateHistory<T extends object>(
     hookOptions?: UpdateHistoryOptions<T>
-): AroundHookFunction<unknown, Service<Historical<T>>> {
+):
+    AroundHookFunction<unknown, Service<Historical<T>>> {
 
     const {
         dataMask,
@@ -183,10 +175,6 @@ function updateHistory<T extends object>(
     } = hookOptions ?? {}
 
     return async function (ctx, next) {
-
-        const { service, id, params, data } = ctx
-
-        const serverId = id as unknown as ObjectId
 
         // Validate Call
         const method = ctx.method as 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get'
@@ -200,7 +188,7 @@ function updateHistory<T extends object>(
                 ...scribeOptions,
                 history: method === 'create'
                     ? []
-                    : await getExistingHistory(service, serverId)
+                    : await getExistingHistory(ctx)
             })
 
             // Prevent history errors from being thrown when they should probably 
@@ -208,16 +196,16 @@ function updateHistory<T extends object>(
             if (scribe.history.some(e => e.method === 'remove'))
                 scribe = scribe.revert(-1)
 
-            const entry = createEntry(params, method, data, dataMask)
+            const entry = createEntry(ctx, dataMask)
             scribe = scribe.push(entry)
 
-            const { revert, splice } = consumeHistoryQueryParam(params.query)
+            const { revert, splice } = consumeHistoryQueryParam(ctx.params.query)
             if (is.defined(splice))
                 scribe = scribe.splice(...splice as Parameters<typeof scribe.splice>)
             if (is.defined(revert))
                 scribe = scribe.revert(revert)
 
-            await applyScribeData(scribe, data, service, serverId)
+            await applyScribeData(scribe, ctx)
 
         } catch (e) {
             if (e instanceof HistoryInvalidError)

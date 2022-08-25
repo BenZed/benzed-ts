@@ -33,6 +33,10 @@ export interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, 
 
     log: Logger
 
+    /**
+     * Retreive a database collection after the app has connected to the database
+     * @param collection 
+     */
     db(collection: string): Promise<Collection>
 
     start(): Promise<void>
@@ -59,7 +63,7 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
     })
 
     const db = function db(_collection: string): Promise<Collection> {
-        throw new Error('MongoDb not yet configured')
+        return Promise.reject(new Error('MongoDb not yet configured'))
     }
 
     const start = async function start(this: MongoDBApplication<S, C>): Promise<void> {

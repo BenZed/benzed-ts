@@ -1,20 +1,42 @@
 import {
+    feathers,
     NextFunction,
     HookContext,
     Params,
 } from '@feathersjs/feathers'
 
-import createMongoApplication, {
-    MongoDBApplication,
-    MongoDBService,
-    setupMongoDBService
-} from './mongo-db-app'
+import configuration from '@feathersjs/configuration'
+import {
+    koa,
+    rest,
+    bodyParser,
+    errorHandler,
+    parseAuthentication as authParser,
+
+    Application as KoaApplication
+} from '@feathersjs/koa'
+
+import { MemoryService } from '@feathersjs/memory'
+import { AdapterParams } from '@feathersjs/adapter-commons'
 
 /*** Types ***/
 
 export type TestApplication<S extends readonly string[]> =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    MongoDBApplication<{ [K in S[number]]: MongoDBService<any> }>
+    KoaApplication<{ [K in S[number]]: MemoryService<any> }>
+
+declare module '@feathersjs/memory' {
+    interface MemoryService
+    /**/ //eslint-disable-next-line @typescript-eslint/no-explicit-any        
+    /**/ <T = any, D = Partial<T>, P = AdapterParams> {
+
+        update(id: null, data: D, params?: P): Promise<T[]>
+        // TODO FIXME
+        // I don't know how long this will be necessary for, but the current MemoryService 
+        // definition doesn't match that of other services, which causes type errors
+
+    }
+}
 
 /*** Helper ***/
 
@@ -22,10 +44,17 @@ export const createTestApp = <S extends readonly string[]>(
     services: S
 ): TestApplication<S> => {
 
-    const testApp = createMongoApplication()
+    const testApp = koa(feathers())
+
+    testApp.configure(configuration())
+    testApp.configure(rest())
+
+    testApp.use(errorHandler())
+    testApp.use(authParser())
+    testApp.use(bodyParser())
 
     for (const service of services)
-        setupMongoDBService(testApp, { collection: service })
+        testApp.use(service, new MemoryService({ paginate: { default: 20, max: 100 } }))
 
     return testApp as TestApplication<S>
 }

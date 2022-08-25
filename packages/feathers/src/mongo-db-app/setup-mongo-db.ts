@@ -76,7 +76,6 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
         return (await connection)
             .db(config.database)
             .collection(collection)
-
     }
 
     // Amend setup to connect on start
