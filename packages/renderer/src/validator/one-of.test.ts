@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 import oneOf from './one-of'
 
-import describeValidator from './util.test'
+import { describeValidator } from '../util.test'
 
 describeValidator({
     factory: oneOf,

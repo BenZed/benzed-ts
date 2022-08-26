@@ -24,8 +24,6 @@ const describeValidator = <T extends Validator>(options: {
 
 /*** Exports ***/
 
-export default describeValidator
-
 export {
     describeValidator
 }

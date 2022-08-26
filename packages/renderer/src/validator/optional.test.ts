@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 import optional from './optional'
 
-import describeValidator from './util.test'
+import { describeValidator } from '../util.test'
 
 describeValidator({
     factory: optional,

@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 import shape from './shape-of'
 
-import describeValidator from './util.test'
+import { describeValidator } from '../util.test'
 
 describeValidator({
     factory: shape,
