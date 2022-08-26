@@ -1,9 +1,10 @@
+import { Validator } from './types'
 
 /*** Main ***/
 
 function optional<T>(
-    validator: (input: unknown) => input is T
-): (input: unknown) => input is T | undefined {
+    validator: Validator<T>
+): Validator<T | undefined> {
 
     return (input: unknown): input is T | undefined =>
         input === undefined || validator(input)

@@ -1,7 +1,3 @@
-import { Renderer } from './renderer'
-import { RendererOptions } from './render-options'
-
-import os from 'os'
 
 describe('configuration', () => {
 

@@ -1,7 +1,7 @@
 import type { Writable, Readable } from 'stream'
 
 import { isNumber } from '@benzed/is'
-import { oneOf, optional, shapeOf } from '../validator'
+import { oneOf, optional, shapeOf, Validator } from '../validator'
 
 /*** IO ***/
 export interface Input {
@@ -42,7 +42,7 @@ export interface VideoOptions {
 
 }
 
-export const isVideoOptions = shapeOf<VideoOptions>({
+export const isVideoOptions: Validator<VideoOptions> = shapeOf({
     vbr: optional(isNumber),
     fps: optional(isNumber)
 })
@@ -56,7 +56,7 @@ export interface AudioOptions {
 
 }
 
-export const isAudioOptions = shapeOf<AudioOptions>({
+export const isAudioOptions: Validator<AudioOptions> = shapeOf({
     abr: optional(isNumber)
 })
 
@@ -77,7 +77,7 @@ export type SizeOptions =
         scale: number
     }
 
-export const isSizeOptions: (input: unknown) => input is SizeOptions = oneOf(
+export const isSizeOptions: Validator<SizeOptions> = oneOf(
     shapeOf({ height: isNumber }),
     shapeOf({ width: isNumber }),
     shapeOf({ dimensions: isNumber }),
@@ -108,7 +108,7 @@ export type TimeOptions = {
     progress: number
 }
 
-export const isTimeOptions: (input: unknown) => input is TimeOptions = oneOf(
+export const isTimeOptions: Validator<TimeOptions> = oneOf(
     shapeOf({ time: isNumber }),
     shapeOf({ progress: isNumber })
 )

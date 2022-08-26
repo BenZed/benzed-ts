@@ -1,3 +1,4 @@
+import { Validator } from './types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -5,9 +6,9 @@
 
 export default function oneOf<T extends any[]>(
     ...validators: {
-        [K in keyof T]: (input: unknown) => input is T[K]
+        [K in keyof T]: Validator<T[K]>
     }
-): (input: unknown) => input is T[number] {
+): Validator<T[number]> {
 
     return (input: unknown): input is T[number] => {
         for (const validator of validators) {
