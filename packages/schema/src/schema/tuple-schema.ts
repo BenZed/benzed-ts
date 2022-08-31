@@ -1,10 +1,8 @@
 import { Schema, SchemaInput } from './schema'
 
-import { Json } from '@benzed/util'
-
 /*** Main ***/
 
-class TupleSchema<T extends readonly Json[]> extends Schema<T> {
+class TupleSchema<T extends readonly unknown[]> extends Schema<T> {
 
     public constructor (...input: readonly SchemaInput[]) {
         super()

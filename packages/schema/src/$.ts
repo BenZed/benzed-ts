@@ -12,7 +12,8 @@ import {
     TupleSchema,
 
     OrSchema,
-    AndSchema
+    AndSchema,
+    Intersect
 
 } from './schema'
 
@@ -32,10 +33,9 @@ interface SchemaUtility {
     boolean<T extends boolean>(defaultValue?: T): BooleanSchema<T>
 
     or<T extends SchemaInput[]>(...input: T): OrSchema<SchemaOutput<T[number]>>
-    and<L extends SchemaInput, R extends SchemaInput>(
-        left: L,
-        right: R
-    ): AndSchema<SchemaOutput<L> & SchemaOutput<R>>
+    and<T extends SchemaInput[]>(
+        ...input: T
+    ): AndSchema<Intersect<SchemaOutput<T>>>
 }
 
 const createSchemaUtility = (): SchemaUtility => {
@@ -51,7 +51,7 @@ const createSchemaUtility = (): SchemaUtility => {
     $.boolean = defaultValue => new BooleanSchema(defaultValue)
 
     $.or = (...input) => new OrSchema(...input)
-    $.and = (left, right) => new AndSchema(left, right)
+    $.and = (...input) => new AndSchema(...input)
 
     return $
 }

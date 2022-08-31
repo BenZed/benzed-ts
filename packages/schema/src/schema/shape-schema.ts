@@ -1,10 +1,8 @@
 import { Schema, SchemaInput } from './schema'
 
-import { Json } from '@benzed/util'
-
 /*** Main ***/
 
-class ShapeSchema<T extends { [key: string]: Json }> extends Schema<T> {
+class ShapeSchema<T extends { [key: string]: unknown }> extends Schema<T> {
 
     public constructor (input: { [key: string]: SchemaInput }) {
         super()

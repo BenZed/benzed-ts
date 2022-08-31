@@ -1,14 +1,17 @@
 import { Schema, SchemaInput } from './schema'
 
-import { Json } from '@benzed/util'
+/*** Types ***/
+
+type Intersect<T> = T extends [infer First, ...infer Rest]
+    ? First & Intersect<Rest>
+    : unknown
 
 /*** Main ***/
 
-class AndSchema<T extends Json> extends Schema<T> {
-    public constructor (left: SchemaInput, right: SchemaInput) {
+class AndSchema<T> extends Schema<T> {
+    public constructor (...input: SchemaInput[]) {
         super()
-        void left
-        void right
+        void input
     }
 }
 
@@ -17,5 +20,6 @@ class AndSchema<T extends Json> extends Schema<T> {
 export default AndSchema
 
 export {
-    AndSchema
+    AndSchema,
+    Intersect
 }

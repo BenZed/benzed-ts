@@ -1,20 +1,12 @@
-import { Json } from '@benzed/util'
-
-/*** Move me ***/
-
-type Validator<T extends Readonly<Json>> = (input: unknown) => T
 
 /*** Types ***/
 
 type SchemaInput =
-    | Schema<Json>
+    | Schema<unknown>
     | { [key: string]: SchemaInput }
 
 /* eslint-disable @typescript-eslint/indent */
-type SchemaOutput<T> = T extends Json
-    ? T
-
-    : T extends Schema<infer S>
+type SchemaOutput<T> = T extends Schema<infer S>
     ? S
 
     : T extends { [key: string]: unknown }
@@ -29,7 +21,7 @@ type SchemaOutput<T> = T extends Json
     : never
 
 /*** Schema ***/
-abstract class Schema<T extends Readonly<Json>> {
+abstract class Schema<T> {
 
     public get default(): T {
         // TODO provide default
@@ -40,8 +32,13 @@ abstract class Schema<T extends Readonly<Json>> {
         return this.default
     }
 
-    public validate: Validator<T> = (input: unknown): T =>
-        input as T
+    public readonly validate: (input: unknown) => T =
+        input => input as T
+
+    // public abstract readonly is: (input: unknown) => input is T
+
+    // public abstract readonly assert: (input: unknown) => asserts input is T
+
 }
 
 /*** Primitive Schemas ***/
