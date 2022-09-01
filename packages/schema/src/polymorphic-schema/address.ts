@@ -1,4 +1,4 @@
-import { $, SchemaOutput } from './schema'
+import { $, Infer } from './schema'
 
 const AddressSchema = $({
     street: $.string(),
@@ -10,7 +10,8 @@ const AddressSchema = $({
         payload: $.string().optional()
     }).readonly()
 })
-type Address = SchemaOutput<typeof AddressSchema>
+
+type Address = Infer<typeof AddressSchema>
 
 const VectorSchema = $({
     x: $.number(),
@@ -18,4 +19,4 @@ const VectorSchema = $({
     z: $.number()
         .optional()
 })
-type Vector = SchemaOutput<typeof VectorSchema>
+type Vector = Infer<typeof VectorSchema>

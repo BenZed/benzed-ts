@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export type Func<A extends any[] = unknown[], V = unknown, T = void> = (this: T, ...args: A) => V
+export type Func<A extends any[] = unknown[], V = unknown, T = void> =
+    (this: T, ...args: A) => V
 
 export type Json =
     null | string | number | boolean |
@@ -13,7 +14,7 @@ export type TypeMatchedKeys<T1, K1 extends keyof T1, T2> =
     }[keyof T2]
 
 /**
- * Create an interesection out of an arbitrary number of types
+ * Create an interesection out of an arbitrary number of types.
  */
 export type Intersect<T> = T extends [infer FIRST, ...infer REST]
     ? FIRST & Intersect<REST>
@@ -27,6 +28,9 @@ export type Merge<T extends any[]> =
         [K in keyof Intersect<T>]: Intersect<T>[K]
     }
 
+/**
+ * Remove the optional signature on specific keys of a type.
+ */
 export type RequirePartial<T, K extends keyof T> =
     Merge<[
         {
@@ -37,6 +41,9 @@ export type RequirePartial<T, K extends keyof T> =
         }
     ]>
 
+/**
+ * Make specific values of a type optional.
+ */
 export type Optional<T, V> =
     Merge<[
         {
@@ -47,6 +54,16 @@ export type Optional<T, V> =
         }
     ]>
 
+/**
+ * Make undefined values of a type optional.
+ */
 export type UndefinedToOptional<T> = Optional<T, undefined>
+
+/**
+ * Get a compiled contract of a type.
+ */
+export type Compile<T> = T extends object
+    ? T extends infer O ? { [K in keyof O]: Compile<O[K]> } : never
+    : T
 
 export type StringKeys<T> = Extract<keyof T, string>

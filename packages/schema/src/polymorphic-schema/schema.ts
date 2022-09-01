@@ -1,124 +1,131 @@
-
+import { Merge, Compile } from '@benzed/util'
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/indent */
-type Merge<A, B, C, D> =
-    {
-        [K in keyof (A & B & C & D)]: (A & B & C & D)[K]
-    }
 
 enum Flags {
     Readonly,
     Optional
 }
 
-type GetFlags<INPUT> = INPUT extends Flags[]
-    ? INPUT
-    : INPUT extends Schema<any, any, infer FLAGS>
-    ? FLAGS
+type GetFlags<I> = I extends Flags[]
+    ? I
+    : I extends Schema<any, any, infer F>
+    ? F
     : never
 
-type IsOptionalReadonly<INPUT, Y, N = never> =
-    GetFlags<INPUT> extends [Flags.Readonly, Flags.Optional] | [Flags.Optional, Flags.Readonly]
+type IsOptionalReadonly<I, Y, N = never> =
+    GetFlags<I> extends [Flags.Readonly, Flags.Optional] | [Flags.Optional, Flags.Readonly]
     /**/ ? Y
     /**/ : N
 
-type IsReadonly<INPUT, Y, N = never> = GetFlags<INPUT> extends [Flags.Readonly]
+type IsReadonly<I, Y, N = never> = GetFlags<I> extends [Flags.Readonly]
     ? Y
     : N
 
-type IsOptional<INPUT, Y, N = never> = GetFlags<INPUT> extends [Flags.Optional]
+type IsOptional<I, Y, N = never> = GetFlags<I> extends [Flags.Optional]
     ? Y
     : N
 
-type HasFlag<INPUT, FLAGS extends Flags, Y, N = never> =
-    GetFlags<INPUT> extends [infer FIRST, ...infer REST]
-    ? FIRST extends FLAGS
+type HasFlag<I, F extends Flags, Y, N = never> =
+    GetFlags<I> extends [infer F1, ...infer FN]
+    ? F1 extends F
 
     /**/ ? Y
-    /**/ : REST extends Flags[]
+    /**/ : FN extends Flags[]
 
-        /**/ ? HasFlag<REST, FLAGS, Y, N>
+        /**/ ? HasFlag<FN, F, Y, N>
         /**/ : N
 
     : N
 
-type HasReadonly<INPUT, Y, N = never> = HasFlag<INPUT, Flags.Readonly, Y, N>
+type HasReadonly<I, Y, N = never> = HasFlag<I, Flags.Readonly, Y, N>
 
-type HasOptional<INPUT, Y, N = never> = HasFlag<INPUT, Flags.Optional, Y, N>
+type HasOptional<I, Y, N = never> = HasFlag<I, Flags.Optional, Y, N>
 
-abstract class Schema<INPUT, OUTPUT, FLAGS extends Flags[]> {
+abstract class Schema<I, O, F extends Flags[]> {
 
-    public readonly flags: FLAGS
+    public readonly flags: F
 
-    private readonly input!: INPUT
-    private readonly output!: OUTPUT
+    private readonly input!: I
+    private readonly output!: O
 
-    public constructor (...flags: FLAGS) {
+    public constructor (...flags: F) {
         this.flags = flags
+        this.optional = null as any
+        this.readonly = null as any
     }
 
-    public abstract readonly optional: HasOptional<
-        FLAGS,
+    public readonly optional: HasOptional<
+        F,
         never,
-        () => Schema<INPUT, OUTPUT, [...FLAGS, Flags.Optional]>
+        () => Schema<I, O, [...F, Flags.Optional]>
     >
 
-    public abstract readonly readonly: HasReadonly<
-        FLAGS,
+    public readonly readonly: HasReadonly<
+        F,
         never,
-        () => Schema<INPUT, OUTPUT, [...FLAGS, Flags.Readonly]>
+        () => Schema<I, O, [...F, Flags.Readonly]>
     >
 
 }
+
+type Infer<S extends Schema<any, any, any>> = Compile<SchemaOutput<S>>
 
 type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer O, infer F>
     ? HasOptional<F, O | undefined, O>
     : never
 
-type SchemaShapeInput = { [key: string]: Schema<any, any, any> }
+type ShapeSchemaInput = { [key: string]: Schema<any, any, any> }
 
-type SchemaShapeOutput<T extends SchemaShapeInput> =
-    Merge<
+type ShapeSchemaOutput<T extends ShapeSchemaInput> =
+    Merge<[
         { readonly [K in keyof T as IsReadonly<T[K], K>]: SchemaOutput<T[K]> },
         { readonly [K in keyof T as IsOptionalReadonly<T[K], K>]?: SchemaOutput<T[K]> },
         { [K in keyof T as IsOptional<T[K], K>]?: SchemaOutput<T[K]> },
         { [K in keyof T as GetFlags<T[K]> extends [] ? K : never]: SchemaOutput<T[K]> }
-    >
+    ]>
 
 class ShapeSchema<I, O, F extends Flags[]> extends Schema<I, O, F> {
 
     public readonly optional!: HasOptional<
         F, never, () => ShapeSchema<I, O, [...F, Flags.Optional]>
     >
+
     public readonly readonly!: HasReadonly<
         F, never, () => ShapeSchema<I, O, [...F, Flags.Readonly]>
     >
 }
 
 class NumberSchema<F extends Flags[]> extends Schema<void, number, F> {
+
     public readonly optional!: HasOptional<
         F, never, () => NumberSchema<[...F, Flags.Optional]>
     >
+
     public readonly readonly!: HasReadonly<
         F, never, () => NumberSchema<[...F, Flags.Readonly]>
     >
+
 }
 
 class StringSchema<F extends Flags[]> extends Schema<void, string, F> {
+
     public readonly optional!: HasOptional<
         F, never, () => StringSchema<[...F, Flags.Optional]>
     >
+
     public readonly readonly!: HasReadonly<
         F, never, () => StringSchema<[...F, Flags.Readonly]>
     >
+
 }
 
 interface SchemaInterface {
 
-    <I extends SchemaShapeInput, O extends SchemaShapeOutput<I>>(
+    <I extends ShapeSchemaInput, O extends ShapeSchemaOutput<I>>(
         input: I
     ): ShapeSchema<I, O, []>
 
-    shape<I extends SchemaShapeInput, O extends SchemaShapeOutput<I>>(
+    shape<I extends ShapeSchemaInput, O extends ShapeSchemaOutput<I>>(
         input: I
     ): ShapeSchema<I, O, []>
 
@@ -129,4 +136,4 @@ interface SchemaInterface {
 
 export const $ = null as unknown as SchemaInterface
 
-export { SchemaOutput }
+export { Infer }
