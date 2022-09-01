@@ -1,12 +1,23 @@
-import { PrimitiveSchema } from './schema'
+
+import { Flags, HasReadonly, HasOptional } from './flags'
+
+import Schema from './schema'
 
 /*** Main ***/
 
-class StringSchema<T extends string = string> extends PrimitiveSchema<T> {
+class StringSchema<F extends Flags[]> extends Schema<string, F> {
+
+    public override readonly optional!: HasOptional<
+    /**/ F, never, () => StringSchema<[...F, Flags.Optional]>
+    >
+
+    public override readonly readonly!: HasReadonly<
+    /**/ F, never, () => StringSchema<[...F, Flags.Readonly]>
+    >
 
 }
 
-/*** Export ***/
+/*** Expors ***/
 
 export default StringSchema
 
