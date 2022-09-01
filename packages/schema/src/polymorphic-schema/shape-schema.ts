@@ -1,4 +1,4 @@
-import { Merge } from '@benzed/util'
+import { Compile, Merge } from '@benzed/util'
 
 import { Flags, HasReadonly, HasOptional } from './flags'
 
@@ -22,19 +22,21 @@ type IsOptionalNotReadonly<I, Y, N = never> =
 type NotOptionalNotReadonly<I, Y, N = never> =
     HasOptional<I, N, HasReadonly<I, N, Y>>
 
+type Shape = { [key: string]: any }
+
 type ShapeSchemaInput = { [key: string]: Schema<any, any> }
 
 type ShapeSchemaOutput<T extends ShapeSchemaInput> =
-    Merge<[
+    Compile<Merge<[
         { readonly [K in keyof T as IsReadonlyNotOptional<T[K], K>]: SchemaOutput<T[K]> },
         { readonly [K in keyof T as IsReadonlyAndOptional<T[K], K>]?: SchemaOutput<T[K]> },
         { [K in keyof T as IsOptionalNotReadonly<T[K], K>]?: SchemaOutput<T[K]> },
         { [K in keyof T as NotOptionalNotReadonly<T[K], K>]: SchemaOutput<T[K]> }
-    ]>
+    ]>>
 
 /*** Main ***/
 
-class ShapeSchema<T, F extends Flags[]> extends Schema<T, F> {
+class ShapeSchema<T extends Shape, F extends Flags[]> extends Schema<T, F> {
 
     public override readonly optional!: HasOptional<
     /**/ F, never, () => ShapeSchema<T, [...F, Flags.Optional]>
