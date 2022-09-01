@@ -79,7 +79,7 @@ function thisPop<F extends Func>(
  * @param firstArg 
  * @returns 
  */
-function bindShift<F extends Func<any[], any>, T>(
+function bindShift<F extends Func<any, any, any>, T>(
     func: F,
     firstArg: FirstParameter<F>,
 ): BindShifted<F> {
@@ -99,7 +99,7 @@ function bindShift<F extends Func<any[], any>, T>(
  * @param firstArg 
  * @returns 
  */
-function bindPop<F extends Func<any[], any>, T>(
+function bindPop<F extends Func<any, any, any>, T>(
     func: F,
     lastArg: LastParameter<F>
 ): BindPopped<F> {

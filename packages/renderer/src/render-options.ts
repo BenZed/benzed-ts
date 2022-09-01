@@ -4,6 +4,10 @@ import {
     isTimeOptions,
     isAudioOptions,
     isVideoOptions,
+    SizeOptions,
+    TimeOptions,
+    VideoOptions,
+    AudioOptions,
 } from './ffmpeg/options'
 
 import {
@@ -21,23 +25,33 @@ import {
 /*** Type ***/
 
 const hasType = <S extends string>(type: S): Validator<{ type: S }> =>
-    shapeOf({ type: enumOf(type) })
+    shapeOf({
+        type: enumOf(type)
+    })
 
-export type AudioRenderOptions = ValidatesType<typeof isAudioRenderOptions>
-const isAudioRenderOptions = and(
+export interface AudioRenderOptions extends AudioOptions {
+    type: 'audio'
+}
+const isAudioRenderOptions: Validator<AudioRenderOptions> = and(
     hasType('audio'),
     isAudioOptions
 )
 
-export type VideoRenderOptions = ValidatesType<typeof isVideoRenderOptions>
-const isVideoRenderOptions = and(
+export interface VideoRenderOptions extends VideoOptions, AudioOptions {
+    type: 'video'
+}
+const isVideoRenderOptions: Validator<VideoRenderOptions> = and(
     hasType('video'),
     isVideoOptions,
     isAudioOptions,
 )
 
-export type ImageRenderOptions = ValidatesType<typeof isImageRenderOptions>
-const isImageRenderOptions = shapeOf({
+export interface ImageRenderOptions {
+    type: 'image'
+    size?: SizeOptions
+    time?: TimeOptions
+}
+const isImageRenderOptions: Validator<ImageRenderOptions> = shapeOf({
     type: enumOf('image'),
     size: optional(isSizeOptions),
     time: optional(isTimeOptions)
@@ -45,20 +59,19 @@ const isImageRenderOptions = shapeOf({
 
 /*** Expots ***/
 
-export interface RendererOptions {
-    [key: string]: RenderOptions
-}
-
-export type RenderOptions = ValidatesType<typeof isRendererOption>
-export const isRendererOption = or(
+export type RenderOptions = ValidatesType<typeof isRenderOptions>
+export const isRenderOptions = or(
     isAudioRenderOptions,
     isVideoRenderOptions,
     isImageRenderOptions
 )
 
-export const isRendererOptions = recordOf(isRendererOption)
+export interface RendererOptions {
+    [key: string]: RenderOptions
+}
+export const isRendererOptions: Validator<RendererOptions> = recordOf(isRenderOptions)
 
 export const assertRendererOptions = assertify(
-    isRendererOption,
-    'input is not a valid RendererOptions object.'
+    isRendererOptions,
+    'not a valid RendererOptions object'
 )

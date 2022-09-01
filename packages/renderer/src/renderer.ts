@@ -1,13 +1,15 @@
 
 import fs from '@benzed/fs'
-import { Queue } from '@benzed/async'
+import { Queue, QueueItem } from '@benzed/async'
 
 import { RendererOptions, assertRendererOptions } from './render-options'
 import RenderJob from './render-job'
 
 /*** Main ***/
 
-class Renderer extends Queue<RenderJob> {
+class Renderer {
+
+    private readonly _queue: Queue<RenderJob> = new Queue()
 
     public readonly options: RendererOptions
 
@@ -26,14 +28,29 @@ class Renderer extends Queue<RenderJob> {
         return new Renderer(options)
     }
 
-    public constructor (options?: RendererOptions) {
+    public constructor (options: RendererOptions) {
 
-        super()
+        const numOptions = Object.keys(options).length
+        if (numOptions === 0)
+            throw new Error('requires at least one RenderOption')
 
         this.options = {
             ...options
         }
+    }
 
+    public add(): QueueItem<RenderJob> {
+
+        const job = new RenderJob()
+
+        for (const key in this.options) {
+            const renderOption = this.options[key]
+
+        }
+
+        return this._queue.add(() => {
+
+        })
     }
 }
 

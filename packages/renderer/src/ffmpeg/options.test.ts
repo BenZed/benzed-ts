@@ -4,11 +4,11 @@ describe('isTimeOptions method', () => {
 
     for (const [obj, result] of [
         [{ progress: 10 }, true],
-        [{ time: 0 }, true],
-        [{ time: '123' }, false],
+        [{ seconds: 0 }, true],
+        [{ seconds: '123' }, false],
         [{ progress: null }, false],
         [{ progress: undefined }, false],
-        [{ time: undefined }, false],
+        [{ seconds: undefined }, false],
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {

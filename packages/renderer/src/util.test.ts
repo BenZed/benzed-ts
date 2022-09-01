@@ -9,9 +9,14 @@ const describeValidator = <T extends Validator>(options: {
     factory: T
     input: Parameters<T>
     data: [value: unknown, result: boolean][]
-}): void =>
+    describe?: string
+}): void => {
 
-    describe(`creates a ${options.factory.name ?? ''}`.trim() + ' validator', () => {
+    const description =
+        options.describe ??
+        `creates a ${options.factory.name ?? ''}`.trim() + ' validator'
+
+    describe(description, () => {
 
         const validator = options.factory(...options.input)
 
@@ -21,6 +26,7 @@ const describeValidator = <T extends Validator>(options: {
             })
         }
     })
+}
 
 /*** Exports ***/
 

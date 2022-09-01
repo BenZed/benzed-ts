@@ -37,15 +37,15 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     const frameDuration = 1 / frameRate
     const maxFrameDuration = duration - frameDuration
 
-    if ('time' in options && isNumber(options.time)) {
+    if ('seconds' in options && isNumber(options.seconds)) {
 
-        const { time } = options
+        const { seconds } = options
 
-        const timeStamp = time >= 0
+        const timeStamp = seconds >= 0
             // from beginning
-            ? clamp(time, 0, maxFrameDuration)
+            ? clamp(seconds, 0, maxFrameDuration)
             // from end
-            : clamp(duration + time, 0, maxFrameDuration)
+            : clamp(duration + seconds, 0, maxFrameDuration)
 
         return timeStamp
 

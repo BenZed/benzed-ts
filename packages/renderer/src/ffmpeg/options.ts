@@ -94,7 +94,7 @@ export type TimeOptions = {
      * as a timestamp counting from the end 
      * of the stream.
      */
-    time: number
+    seconds: number
 
 } | {
 
@@ -109,6 +109,6 @@ export type TimeOptions = {
 }
 
 export const isTimeOptions: Validator<TimeOptions> = oneOf(
-    shapeOf({ time: isNumber }),
+    shapeOf({ seconds: isNumber }),
     shapeOf({ progress: isNumber })
 )
