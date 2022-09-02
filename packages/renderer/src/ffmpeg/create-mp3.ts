@@ -1,5 +1,10 @@
-import { isDefined } from '@benzed/is'
 import ffmpeg from 'fluent-ffmpeg'
+
+import { isDefined } from '@benzed/is'
+
+import {
+    Metadata
+} from './get-metadata'
 
 import {
     AudioSetting,
@@ -26,7 +31,7 @@ const OUTPUT_FORMAT = 'mp3'
  */
 function createMP3(
     options: CreateMP3Options
-): Promise<number> {
+): Promise<Metadata & { renderTime: number }> {
 
     const {
         abr,
@@ -45,9 +50,9 @@ function createMP3(
     const start = Date.now()
 
     throw new Error('Not yet implemented.')
-
+    void output
     const renderTime = Date.now() - start
-    return Promise.resolve(renderTime)
+    return Promise.resolve({ renderTime })
 }
 
 /*** Exports ***/

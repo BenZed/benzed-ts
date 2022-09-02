@@ -5,20 +5,31 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import { createMP4 } from './create-mp4'
 
-describe('createMp4', () => {
+import { isMetadata } from './get-metadata'
 
-    it('converts video using two pass encoding', async () => {
+const input = TEST_ASSETS.mp4
 
-        const input = TEST_ASSETS.mp4
+it('converts video using two pass encoding', async () => {
 
-        const output = path.join(RENDER_FOLDER, 'test-render-2pass.mp4')
+    const output = path.join(RENDER_FOLDER, 'test-render-2pass.mp4')
 
-        await createMP4({
-            input,
-            output,
-            vbr: 25
-        })
-
-        expect(fs.existsSync(output)).toEqual(true)
+    await createMP4({
+        input,
+        output,
+        vbr: 250
     })
+
+    expect(fs.existsSync(output)).toEqual(true)
+})
+
+it('receives metadata from render', async () => {
+
+    const output = fs.createWriteStream(
+        path.join(RENDER_FOLDER, 'render-for-meta.mp4')
+    )
+
+    const meta = await createMP4({ input, output })
+
+    expect(isMetadata(meta)).toBe(true)
+
 })

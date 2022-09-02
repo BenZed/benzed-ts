@@ -1,16 +1,30 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import { getMetadata } from './get-metadata'
+import {
+    getMetadata,
+    Metadata
+} from './get-metadata'
+
 import {
     Input,
     Output,
     SizeSetting,
     TimeSetting
 } from './settings'
-import { getFfmpegSizeOptionString } from './util'
 
-import { clamp } from '@benzed/math'
-import { isDefined, isNumber, isString } from '@benzed/is'
+import {
+    createOutputStreams,
+    getFfmpegSizeOptionString
+} from './util'
+
+import {
+    clamp
+} from '@benzed/math'
+
+import {
+    isDefined,
+    isNumber
+} from '@benzed/is'
 
 /*** Types ***/
 
@@ -60,7 +74,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
 /*** Main ***/
 
-async function createPNG(options: CreatePNGOptions): Promise<number> {
+async function createPNG(options: CreatePNGOptions): Promise<Metadata & { renderTime: number }> {
 
     const { input, output } = options
 
@@ -71,31 +85,31 @@ async function createPNG(options: CreatePNGOptions): Promise<number> {
     cmd.videoCodec(IMAGE_FORMAT)
         .seek(timeStamp)
         .frames(1)
-
-    if (!isString(output))
-        cmd.format('image2pipe')
+        .outputFormat('image2pipe')
 
     const size = getFfmpegSizeOptionString(options)
     if (isDefined(size))
         cmd.setSize(size)
 
-    const start = Date.now()
+    const [metaStream, outputStream] = createOutputStreams(output)
 
-    try {
+    const render = new Promise((resolve, reject) => cmd
+        .on('end', resolve)
+        .on('error', reject)
+        .output(outputStream, { end: true })
+        .run()
+    )
 
-        await new Promise((resolve, reject) => cmd
-            .on('end', resolve)
-            .on('error', reject)
-            .output(output)
-            .run()
-        )
+    const renderStart = Date.now()
 
-    } catch (e) {
-        throw e
-    }
+    const [metadata] = await Promise.all([
+        getMetadata({ input: metaStream }),
+        render,
+    ])
 
-    const renderTime = Date.now() - start
-    return renderTime
+    const renderTime = Date.now() - renderStart
+
+    return { ...metadata, renderTime }
 }
 
 /*** Exports ***/

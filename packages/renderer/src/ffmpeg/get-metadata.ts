@@ -1,26 +1,42 @@
 import ffmpeg, { FfprobeData, FfprobeStream } from 'fluent-ffmpeg'
 
 import {
+    optional,
+    or,
+    shapeOf,
+    Validator
+} from '../validator'
+
+import {
     Duration,
     Width,
     Height,
     Input,
-
 } from './settings'
 
-import { isNaN, isString } from '@benzed/is'
+import { isNaN, isNumber, isString } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
 
 /*** Type ***/
 
 type Metadata =
-    Partial<Width & Height & Duration> &
-    {
-        format?: string
-        size?: number
-        frameRate?: number
-    }
+    Partial<Width & Height & Duration & {
+        format: string
+        size: number | 'N/A'
+        frameRate: number
+    }>
+
+const isNotApplicable = (value: unknown): value is 'N/A' => value === 'N/A'
+
+const isMetadata: Validator<Metadata> = shapeOf({
+    width: optional(isNumber),
+    height: optional(isNumber),
+    duration: optional(isNumber),
+    format: optional(isString),
+    size: optional(or(isNumber, isNotApplicable)),
+    frameRate: optional(isNumber)
+})
 
 type GetMetadataOptions = Input
 
@@ -106,5 +122,6 @@ export {
     getMetadata,
     GetMetadataOptions,
 
-    Metadata
+    Metadata,
+    isMetadata
 }

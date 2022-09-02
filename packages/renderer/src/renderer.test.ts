@@ -4,6 +4,8 @@ import { isRenderSetting } from './render-settings'
 import { AddRenderTaskOptions, Renderer, RenderTaskResult } from './renderer'
 
 import { QueueItem } from '@benzed/async'
+import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
+import path from 'path'
 
 describe('construct', () => {
 
@@ -18,7 +20,7 @@ describe('static from() method', () => {
 
     it('gets a render option from a json url', async () => {
 
-        const renderer = await Renderer.from('./test-assets/render-settings.json')
+        const renderer = await Renderer.from(TEST_ASSETS.settings)
 
         expect(isRenderSetting(renderer.settings['image-low'])).toBe(true)
         expect(isRenderSetting(renderer.settings['image-medium'])).toBe(true)
@@ -26,7 +28,7 @@ describe('static from() method', () => {
     })
 
     it('throws if provided json is not formatted correctly', async () => {
-        await expect(Renderer.from('./test-assets/render-settings-bad.json'))
+        await expect(Renderer.from(TEST_ASSETS.badSettings))
             .rejects
             .toThrow('not a valid RenderSettings object')
     })
@@ -55,8 +57,8 @@ describe('add() method', () => {
         renderer = new Renderer(settings)
 
         items = renderer.add({
-            source: './test-assets/boss-media-pneumonic.mp4',
-            target: './test-assets/renders'
+            source: TEST_ASSETS.mp4,
+            target: RENDER_FOLDER
         })
 
         await Promise.all(items.map(item => item.finished()))
@@ -86,9 +88,12 @@ describe('add() method', () => {
         const CUSTOM_PATH_PART = 'from-gif'
 
         const items = renderer.add({
-            source: './test-assets/boss-media-pneumonic.gif',
+            source: TEST_ASSETS.gif,
             target({ setting, ext }) {
-                return `./test-assets/renders/${CUSTOM_PATH_PART}_${setting}${ext}`
+                return path.join(
+                    RENDER_FOLDER,
+                    `${CUSTOM_PATH_PART}_${setting}${ext}`
+                )
             }
         })
 
@@ -108,11 +113,14 @@ describe('add() method', () => {
     it('settings options allows for render of only specific settings', async () => {
 
         const items = renderer.add({
-            source: './test-assets/boss-media-logo.png',
+            source: TEST_ASSETS.png,
             settings: ['picture'],
             target({ ext }) {
                 return fs.createWriteStream(
-                    `./test-assets/renders/only-picture-setting${ext}`
+                    path.join(
+                        RENDER_FOLDER,
+                        `only-picture-setting${ext}`
+                    )
                 )
             }
         })

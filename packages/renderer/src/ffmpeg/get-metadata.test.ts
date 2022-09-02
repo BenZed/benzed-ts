@@ -6,7 +6,6 @@ describe('getMetadata', () => {
     it('Gets correct output data from pngs', async () => {
 
         const output = await getMetadata({ input: TEST_ASSETS.png })
-
         expect(output).toEqual({
             width: 256,
             height: 256,
@@ -19,7 +18,6 @@ describe('getMetadata', () => {
     it('Gets correct output data from jpgs', async () => {
 
         const output = await getMetadata({ input: TEST_ASSETS.jpg })
-
         expect(output).toEqual({
             width: 256,
             height: 256,
@@ -33,7 +31,6 @@ describe('getMetadata', () => {
     it('Gets correct output data from gifs', async () => {
 
         const output = await getMetadata({ input: TEST_ASSETS.gif })
-
         expect(output).toEqual({
             width: 96,
             height: 54,
@@ -47,7 +44,6 @@ describe('getMetadata', () => {
     it('Gets correct output data from mp4s', async () => {
 
         const output = await getMetadata({ input: TEST_ASSETS.mp4 })
-
         expect(output).toEqual({
             width: 320,
             height: 180,
@@ -57,5 +53,4 @@ describe('getMetadata', () => {
             format: 'h264'
         })
     })
-
 })

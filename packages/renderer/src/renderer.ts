@@ -1,5 +1,4 @@
 
-import { Writable } from 'stream'
 import path from 'path'
 
 import {
@@ -8,7 +7,13 @@ import {
     RenderSetting
 } from './render-settings'
 
-import { createMP3, createMP4, createPNG } from './ffmpeg'
+import {
+    createMP3,
+    createMP4,
+    createPNG,
+    Metadata
+} from './ffmpeg'
+
 import { Input, Output } from './ffmpeg/settings'
 
 import { Queue, QueueItem } from '@benzed/async'
@@ -34,7 +39,7 @@ type TargetMethod = <R extends RenderSettings = RenderSettings>(
         ext: string
         setting: StringKeys<R>
     }
-) => Writable | string
+) => Output['output']
 
 interface AddRenderTaskOptions<R extends RenderSettings = RenderSettings> {
     /**
@@ -61,9 +66,10 @@ interface RenderTaskResult<R extends RenderSettings = RenderSettings> extends Ou
     readonly setting: StringKeys<R>
 
     /**
-     * Time it took to complete the render
+     * Metadata from the output stream
      */
-    readonly time: number
+    readonly meta: Metadata & { renderTime: number }
+
 }
 
 type RenderTask<R extends RenderSettings = RenderSettings> = () => Promise<RenderTaskResult<R>>
@@ -112,21 +118,33 @@ function createRenderTask<R extends RenderSettings, K extends StringKeys<R>>(
                 ...size,
                 input,
                 output
-            }).then(time => ({ time, setting, output }))
+            }).then(meta => ({
+                setting,
+                output,
+                meta
+            }))
 
         case 'video':
             return () => createMP4({
                 ...renderSetting,
                 input,
                 output
-            }).then(time => ({ time, setting, output }))
+            }).then(meta => ({
+                setting,
+                output,
+                meta
+            }))
 
         case 'audio':
             return () => createMP3({
                 ...renderSetting,
                 input,
                 output
-            }).then(time => ({ time, setting, output }))
+            }).then(meta => ({
+                setting,
+                output,
+                meta
+            }))
 
         default: {
             const badType: never = type
@@ -167,9 +185,7 @@ class Renderer<R extends RenderSettings = RenderSettings> {
         if (numOptions === 0)
             throw new Error('requires at least one RenderSetting')
 
-        this.settings = {
-            ...settings
-        }
+        this.settings = { ...settings }
     }
 
     public add(
@@ -178,15 +194,17 @@ class Renderer<R extends RenderSettings = RenderSettings> {
 
         const renderItems: QueueItem<RenderTaskResult<R>>[] = []
 
-        const settingMask = addOptions.settings ?? Object.keys(this.settings) as StringKeys<R>[]
+        const settingMask =
+            addOptions.settings ??
+            Object.keys(this.settings) as StringKeys<R>[]
 
         for (const setting in this.settings) {
 
             if (!settingMask.includes(setting))
                 continue
 
-            const renderSetings = this.settings[setting]
-            const renderTask = createRenderTask(setting, addOptions, renderSetings)
+            const renderSettings = this.settings[setting]
+            const renderTask = createRenderTask(setting, addOptions, renderSettings)
             const renderItem = this._queue.add(renderTask)
 
             renderItems.push(renderItem)
