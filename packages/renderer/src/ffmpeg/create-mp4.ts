@@ -14,7 +14,6 @@ import {
 import { getFfmpegSizeOptionString } from './util'
 
 import { isDefined } from '@benzed/is'
-import { RequirePartial } from '@benzed/util'
 
 /*** Types ***/
 
@@ -22,7 +21,7 @@ type CreateMP4Options =
     & Input
     & Output
     & Partial<SizeOptions>
-    & RequirePartial<VideoOptions, 'vbr'>
+    & VideoOptions
     & AudioOptions
 
 /*** Constants ***/

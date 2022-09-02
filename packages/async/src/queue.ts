@@ -1,6 +1,15 @@
-import { isDate, isInstanceOf, isInteger, isFinite, isObject, isNaN } from '@benzed/is'
+import {
+    isDate,
+    isInstanceOf,
+    isInteger,
+    isFinite,
+    isObject,
+    isNaN
+} from '@benzed/is'
+
 import { EventEmitter } from '@benzed/util'
-import { milliseconds } from './milliseconds'
+
+import untilNextTick from './until-next-tick'
 
 /*** Types ***/
 
@@ -329,7 +338,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
 
         // Wait until next frame so that 'start' event handlers can be
         // registered
-        await milliseconds(0)
+        await untilNextTick()
 
         for (const item of this._currentItems) {
             if (!item.isStarted)
@@ -364,10 +373,13 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
             const time = new Date()
             const payload = { item, time, queue: this }
 
-            const args = (value === undefined
-                ? [payload]
-                : [value, payload]) as unknown as QueueEvents<T>['complete']
-            //                      ^ don't really understand the unknown cast, but w/e
+            const args = (
+                value === undefined
+                    ? [payload]
+                    : [value, payload]
+            ) as unknown as QueueEvents<T>['complete']
+            //           ^ don't really understand the 
+            //             unknown cast, but w/e
 
             item.emit('complete', ...args)
             this.emit('complete', ...args)

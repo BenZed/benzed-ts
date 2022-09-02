@@ -1,13 +1,14 @@
 import { isRenderOptions } from './render-options'
-import Renderer from './renderer'
+import Renderer, { RenderTaskResult } from './renderer'
+
+import fs from 'fs'
+import { QueueItem } from '@benzed/async'
 
 describe('construct', () => {
-
     it('throws if no render options are provided', () => {
         expect(() => new Renderer({}))
             .toThrow('requires at least one RenderOption')
     })
-
 })
 
 describe('static from() method', () => {
@@ -31,14 +32,36 @@ describe('static from() method', () => {
 
 describe('add() method', () => {
 
-    it('adds a render job to the queue', async () => {
-        const renderer = await Renderer.from('./test-assets/render-options.json')
+    let renderer: Renderer
+    let items: QueueItem<RenderTaskResult>[]
+    beforeAll(async () => {
+        renderer = await Renderer.from('./test-assets/render-options.json')
 
-        renderer.add({
-            in: './test-assets/boss-media-pneumonic.mp4',
-            out: './test-assets/renders'
+        items = renderer.add({
+            source: './test-assets/boss-media-pneumonic.mp4',
+            target: './test-assets/renders'
         })
 
+        await Promise.all(items.map(item => item.finished()))
+    })
+
+    it('creates an item for each render option', () => {
+
+        const itemForEachRenderKey = Object
+            .keys(renderer.options)
+            .every(key => items.find(item => item.value?.key === key))
+
+        expect(itemForEachRenderKey).toEqual(true)
+    })
+
+    it('renders a file for each item in the queue', () => {
+
+        const allItemsRendered = items
+            .every(item =>
+                fs.existsSync(item.value?.output as string)
+            )
+
+        expect(allItemsRendered).toBe(true)
     })
 
 })

@@ -1,3 +1,4 @@
+import { isDefined } from '@benzed/is'
 import ffmpeg from 'fluent-ffmpeg'
 
 import {
@@ -6,14 +7,12 @@ import {
     Output
 } from './options'
 
-import { RequirePartial } from '@benzed/util'
-
 /*** Types ***/
 
 type CreateMP3Options =
     & Input
     & Output
-    & RequirePartial<AudioOptions, 'abr'>
+    & AudioOptions
 
 /*** Constants ***/
 
@@ -40,9 +39,9 @@ function createMP3(
         .audioCodec(AUDIO_CODEC)
         .format(OUTPUT_FORMAT)
 
-    cmd.audioBitrate(abr)
+    if (isDefined(abr))
+        cmd.audioBitrate(abr)
 
-    // Execute First Pass
     const start = Date.now()
 
     throw new Error('Not yet implemented.')
