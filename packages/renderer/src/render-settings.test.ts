@@ -1,12 +1,13 @@
 import {
-    isRenderOption,
-    isRendererOptions
-} from './render-options'
+    isRenderSetting,
+    isRenderSettings
+} from './render-settings'
+
 import { describeValidator } from './util.test'
 
 describeValidator({
-    describe: 'isRendererOptions validator',
-    factory: () => isRendererOptions,
+    describe: 'isRendererSettings validator',
+    factory: () => isRenderSettings,
     input: [],
     data: [
         [
@@ -49,8 +50,8 @@ describeValidator({
 })
 
 describeValidator({
-    describe: 'isRenderOption validator',
-    factory: () => isRenderOption,
+    describe: 'isRenderSetting validator',
+    factory: () => isRenderSetting,
     input: [],
     data: [
         [

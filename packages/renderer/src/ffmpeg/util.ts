@@ -1,6 +1,6 @@
 import { isNumber } from '@benzed/is'
 
-import { SizeOptions } from './options'
+import { SizeSetting } from './settings'
 
 /*** Typesw ***/
 
@@ -13,7 +13,7 @@ type ScaleString = `${number}%`
  * Get an ffmpeg size string from SizeOptions
  */
 export function getFfmpegSizeOptionString(
-    input: Partial<SizeOptions>
+    input: Partial<SizeSetting>
 ):
     AxisString |
     ScaleString |

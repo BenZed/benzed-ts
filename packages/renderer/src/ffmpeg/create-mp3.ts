@@ -2,17 +2,17 @@ import { isDefined } from '@benzed/is'
 import ffmpeg from 'fluent-ffmpeg'
 
 import {
-    AudioOptions,
+    AudioSetting,
     Input,
     Output
-} from './options'
+} from './settings'
 
 /*** Types ***/
 
 type CreateMP3Options =
     & Input
     & Output
-    & AudioOptions
+    & AudioSetting
 
 /*** Constants ***/
 

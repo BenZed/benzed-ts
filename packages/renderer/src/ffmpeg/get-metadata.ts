@@ -6,7 +6,7 @@ import {
     Height,
     Input,
 
-} from './options'
+} from './settings'
 
 import { isNaN, isString } from '@benzed/is'
 import { priorityFind } from '@benzed/array'

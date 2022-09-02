@@ -4,9 +4,9 @@ import { getMetadata } from './get-metadata'
 import {
     Input,
     Output,
-    SizeOptions,
-    TimeOptions
-} from './options'
+    SizeSetting,
+    TimeSetting
+} from './settings'
 import { getFfmpegSizeOptionString } from './util'
 
 import { clamp } from '@benzed/math'
@@ -17,8 +17,8 @@ import { isDefined, isNumber, isString } from '@benzed/is'
 type CreatePNGOptions =
     & Input
     & Output
-    & Partial<TimeOptions>
-    & Partial<SizeOptions>
+    & Partial<TimeSetting>
+    & Partial<SizeSetting>
 
 /*** Constants ***/
 

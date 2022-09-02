@@ -28,7 +28,7 @@ export type Duration = {
 
 /*** Options ***/
 
-export interface VideoOptions {
+export interface VideoSetting {
 
     /**
      * Video Bit Rate
@@ -42,12 +42,12 @@ export interface VideoOptions {
 
 }
 
-export const isVideoOptions: Validator<VideoOptions> = shapeOf({
+export const isVideoSetting: Validator<VideoSetting> = shapeOf({
     vbr: optional(isNumber),
     fps: optional(isNumber)
 })
 
-export interface AudioOptions {
+export interface AudioSetting {
 
     /**
      * Audio Bit Rate
@@ -56,11 +56,11 @@ export interface AudioOptions {
 
 }
 
-export const isAudioOptions: Validator<AudioOptions> = shapeOf({
+export const isAudioSetting: Validator<AudioSetting> = shapeOf({
     abr: optional(isNumber)
 })
 
-export type SizeOptions =
+export type SizeSetting =
     | Height
     | Width
     | (Height & Width)
@@ -77,14 +77,14 @@ export type SizeOptions =
         scale: number
     }
 
-export const isSizeOptions: Validator<SizeOptions> = oneOf(
+export const isSizeSetting: Validator<SizeSetting> = oneOf(
     shapeOf({ height: isNumber }),
     shapeOf({ width: isNumber }),
     shapeOf({ dimensions: isNumber }),
     shapeOf({ scale: isNumber })
 )
 
-export type TimeOptions = {
+export type TimeSetting = {
 
     /**
      * Time, in seconds, corresponding to
@@ -108,7 +108,7 @@ export type TimeOptions = {
     progress: number
 }
 
-export const isTimeOptions: Validator<TimeOptions> = oneOf(
+export const isTimeSetting: Validator<TimeSetting> = oneOf(
     shapeOf({ seconds: isNumber }),
     shapeOf({ progress: isNumber })
 )

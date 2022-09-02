@@ -4,13 +4,13 @@ import os from 'os'
 import path from 'path'
 
 import {
-    AudioOptions,
+    AudioSetting,
     Input,
     Output,
-    SizeOptions,
-    VideoOptions,
+    SizeSetting,
+    VideoSetting,
 
-} from './options'
+} from './settings'
 import { getFfmpegSizeOptionString } from './util'
 
 import { isDefined } from '@benzed/is'
@@ -20,9 +20,9 @@ import { isDefined } from '@benzed/is'
 type CreateMP4Options =
     & Input
     & Output
-    & Partial<SizeOptions>
-    & VideoOptions
-    & AudioOptions
+    & Partial<SizeSetting>
+    & VideoSetting
+    & AudioSetting
 
 /*** Constants ***/
 

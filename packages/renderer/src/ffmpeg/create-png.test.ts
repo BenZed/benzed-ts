@@ -8,10 +8,10 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 import createPNG from './create-png'
 import getMetadata from './get-metadata'
 
-import { SizeOptions, TimeOptions } from './options'
+import { SizeSetting, TimeSetting } from './settings'
 
 type TestInput = {
-    options: Partial<SizeOptions> & Partial<TimeOptions>
+    options: Partial<SizeSetting> & Partial<TimeSetting>
     label: string
     stream?: boolean
 }[]
