@@ -8,7 +8,7 @@ const AddressSchema = $({
         prefix: $.number(),
         postfix: $.number(),
         payload: $.string().optional()
-    }).mutable().optional(),
+    }).mutable().optional().clearFlags(),
     switch: $.boolean()
 })
 

@@ -1,6 +1,6 @@
 import { Intersect } from '@benzed/util'
 
-import { Flags, HasMutable, HasOptional } from './flags'
+import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 import { Schema, SchemaOutput } from './schema'
 
 /* eslint-disable 
@@ -16,15 +16,17 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> = Intersect<{
 
 /*** Main ***/
 
-class IntersectionSchema<T, F extends Flags[]> extends Schema<T, F> {
+class IntersectionSchema<T, F extends Flags[] = []> extends Schema<T, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => IntersectionSchema<T, [...F, Flags.Optional]>
+    /**/ F, never, () => IntersectionSchema<T, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => IntersectionSchema<T, [...F, Flags.Mutable]>
+    /**/ F, never, () => IntersectionSchema<T, AddFlag<Flags.Mutable, F>>
     >
+
+    public override readonly clearFlags!: () => IntersectionSchema<T>
 
 }
 

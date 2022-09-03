@@ -52,44 +52,45 @@ interface SchemaInterface {
 
     <T extends [ShapeSchemaInput] | TupleSchemaInput | UnionSchemaInput>(
         ...input: T
-    ): T extends TupleSchemaInput
-        ? TupleSchema<TupleSchemaOutput<T>, []>
+    )
+    /**/: T extends TupleSchemaInput
+    /**/ ? TupleSchema<TupleSchemaOutput<T>>
 
         /**/ : T extends UnionSchemaInput
-        /**/ ? TupleSchema<UnionSchemaOutput<T>, []>
+        /**/ ? TupleSchema<UnionSchemaOutput<T>>
 
-        /*    */ : T extends [ShapeSchemaInput]
-            /**/ ? ShapeSchema<ShapeSchemaOutput<T[0]>, []>
+            /**/ : T extends [ShapeSchemaInput]
+            /**/ ? ShapeSchema<ShapeSchemaOutput<T[0]>>
 
-            /**/ : unknown
+                /**/ : unknown
 
     shape<T extends ShapeSchemaInput>(
         input: T
-    ): ShapeSchema<ShapeSchemaOutput<T>, []>
+    ): ShapeSchema<ShapeSchemaOutput<T>>
 
     array<T extends ArraySchemaInput>(
         input: T
-    ): ArraySchema<ArraySchemaOutput<T>, []>
+    ): ArraySchema<ArraySchemaOutput<T>>
 
     record<T extends RecordSchemaInput>(
         input: T
-    ): RecordSchema<RecordSchemaOutput<T>, []>
+    ): RecordSchema<RecordSchemaOutput<T>>
 
     tuple<T extends TupleSchemaInput>(
         ...input: T
-    ): TupleSchema<TupleSchemaOutput<T>, []>
+    ): TupleSchema<TupleSchemaOutput<T>>
 
     or<T extends UnionSchemaInput>(
         ...input: T
-    ): UnionSchema<UnionSchemaOutput<T>, []>
+    ): UnionSchema<UnionSchemaOutput<T>>
 
     and<T extends IntersectionSchemaInput>(
         ...input: T
-    ): IntersectionSchema<IntersectionSchemaOutput<T>, []>
+    ): IntersectionSchema<IntersectionSchemaOutput<T>>
 
-    number(): NumberSchema<[]>
-    string(): StringSchema<[]>
-    boolean(): BooleanSchema<[]>
+    number(): NumberSchema
+    string(): StringSchema
+    boolean(): BooleanSchema
 
 }
 

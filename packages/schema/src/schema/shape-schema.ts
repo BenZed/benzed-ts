@@ -1,6 +1,6 @@
 import { Compile, Merge } from '@benzed/util'
 
-import { Flags, HasMutable, HasOptional } from './flags'
+import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { SchemaOutput } from './schema'
 
@@ -36,15 +36,18 @@ type ShapeSchemaOutput<T extends ShapeSchemaInput> =
 
 /*** Main ***/
 
-class ShapeSchema<T extends Shape, F extends Flags[]> extends Schema<T, F> {
+class ShapeSchema<T extends Shape, F extends Flags[] = []> extends Schema<T, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => ShapeSchema<T, [...F, Flags.Optional]>
+    /**/ F, () => never, () => ShapeSchema<T, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => ShapeSchema<T, [...F, Flags.Mutable]>
+    /**/ F, () => never, () => ShapeSchema<T, AddFlag<Flags.Mutable, F>>
     >
+
+    public override readonly clearFlags!: () => ShapeSchema<T>
+
 }
 
 /*** Exports ***/

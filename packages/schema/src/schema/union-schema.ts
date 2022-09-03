@@ -1,6 +1,5 @@
 
-import { Flags, HasMutable, HasOptional } from './flags'
-
+import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 import Schema, { SchemaOutput } from './schema'
 
 /* eslint-disable 
@@ -21,15 +20,17 @@ type UnionSchemaOutput<T extends UnionSchemaInput> = {
 
 /*** Main ***/
 
-class UnionSchema<T, F extends Flags[]> extends Schema<T, F> {
+class UnionSchema<T, F extends Flags[] = []> extends Schema<T, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => UnionSchema<T, [...F, Flags.Optional]>
+    /**/ F, never, () => UnionSchema<T, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => UnionSchema<T, [...F, Flags.Mutable]>
+    /**/ F, never, () => UnionSchema<T, AddFlag<Flags.Mutable, F>>
     >
+
+    public override readonly clearFlags!: () => UnionSchema<T>
 
 }
 
