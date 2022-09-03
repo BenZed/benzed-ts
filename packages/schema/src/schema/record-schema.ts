@@ -15,6 +15,13 @@ type RecordSchemaOutput<T extends RecordSchemaInput> = SchemaOutput<T>
 
 class RecordSchema<T, F extends Flags[] = []> extends Schema<{ [key: string]: T }, F> {
 
+    private readonly _input: RecordSchemaInput
+
+    public constructor (input: RecordSchemaInput, ...flags: F) {
+        super(...flags)
+        this._input = input
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, never, () => RecordSchema<T, AddFlag<Flags.Optional, F>>
     >

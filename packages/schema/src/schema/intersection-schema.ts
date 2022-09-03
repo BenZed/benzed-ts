@@ -18,6 +18,13 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> = Intersect<{
 
 class IntersectionSchema<T, F extends Flags[] = []> extends Schema<T, F> {
 
+    private readonly _input: IntersectionSchemaInput
+
+    public constructor (input: IntersectionSchemaInput, ...flags: F) {
+        super(...flags)
+        this._input = input
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, never, () => IntersectionSchema<T, AddFlag<Flags.Optional, F>>
     >

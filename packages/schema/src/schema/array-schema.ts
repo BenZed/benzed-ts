@@ -16,6 +16,13 @@ type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>
 
 class ArraySchema<T, F extends Flags[] = []> extends Schema<T[], F> {
 
+    private readonly _input: ArraySchemaInput
+
+    public constructor (input: ArraySchemaInput, ...flags: F) {
+        super(...flags)
+        this._input = input
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, never, () => ArraySchema<T, AddFlag<Flags.Optional, F>>
     >

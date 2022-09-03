@@ -19,6 +19,13 @@ type TupleSchemaOutput<T extends TupleSchemaInput> = {
 
 class TupleSchema<T, F extends Flags[] = []> extends Schema<T, F> {
 
+    private readonly _input: TupleSchemaInput
+
+    public constructor (input: TupleSchemaInput, ...flags: F) {
+        super(...flags)
+        this._input = input
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, never, () => TupleSchema<T, AddFlag<Flags.Optional, F>>
     >

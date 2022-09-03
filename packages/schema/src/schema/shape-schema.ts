@@ -38,6 +38,13 @@ type ShapeSchemaOutput<T extends ShapeSchemaInput> =
 
 class ShapeSchema<T extends Shape, F extends Flags[] = []> extends Schema<T, F> {
 
+    private readonly _input: ShapeSchemaInput
+
+    public constructor (input: ShapeSchemaInput, ...flags: F) {
+        super(...flags)
+        this._input = input
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, () => never, () => ShapeSchema<T, AddFlag<Flags.Optional, F>>
     >

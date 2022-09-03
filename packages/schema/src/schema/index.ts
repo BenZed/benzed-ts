@@ -1,46 +1,48 @@
-import type {
+import {
+    Schema,
     SchemaOutput
 } from './schema'
 
-import type {
+import {
     ShapeSchema,
     ShapeSchemaInput,
     ShapeSchemaOutput
 } from './shape-schema'
 
-import type {
+import {
     ArraySchema,
     ArraySchemaInput,
     ArraySchemaOutput
 } from './array-schema'
 
-import type {
+import {
     TupleSchema,
     TupleSchemaInput,
     TupleSchemaOutput
 } from './tuple-schema'
 
-import type {
+import {
     UnionSchema,
     UnionSchemaInput,
     UnionSchemaOutput
 } from './union-schema'
 
-import type {
+import {
     IntersectionSchema,
     IntersectionSchemaInput,
     IntersectionSchemaOutput
 } from './intersection-schema'
 
-import type {
+import {
     RecordSchema,
     RecordSchemaInput,
     RecordSchemaOutput
 } from './record-schema'
 
-import type StringSchema from './string-schema'
-import type NumberSchema from './number-schema'
-import type BooleanSchema from './boolean-schema'
+import StringSchema from './string-schema'
+import NumberSchema from './number-schema'
+import BooleanSchema from './boolean-schema'
+import { isInstanceOf, isNumber, isPlainObject, isString } from '@benzed/is/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -48,21 +50,25 @@ import type BooleanSchema from './boolean-schema'
 
 /*** Types ***/
 
+type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput | UnionSchemaInput
+
+type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
+ /**/ T extends TupleSchemaInput
+ /**/ ? TupleSchema<TupleSchemaOutput<T>>
+
+ /*    */ : T extends UnionSchemaInput
+     /**/ ? UnionSchema<UnionSchemaOutput<T>>
+
+     /*    */ : T extends [ShapeSchemaInput]
+         /**/ ? ShapeSchema<ShapeSchemaOutput<T[0]>>
+
+         /**/ : never
+
 interface SchemaInterface {
 
-    <T extends [ShapeSchemaInput] | TupleSchemaInput | UnionSchemaInput>(
+    <T extends SchemaInterfaceShortcutSignature>(
         ...input: T
-    )
-    /**/: T extends TupleSchemaInput
-    /**/ ? TupleSchema<TupleSchemaOutput<T>>
-
-        /**/ : T extends UnionSchemaInput
-        /**/ ? TupleSchema<UnionSchemaOutput<T>>
-
-            /**/ : T extends [ShapeSchemaInput]
-            /**/ ? ShapeSchema<ShapeSchemaOutput<T[0]>>
-
-                /**/ : unknown
+    ): SchemaInterfaceShortcutOuput<T>
 
     shape<T extends ShapeSchemaInput>(
         input: T
@@ -94,9 +100,56 @@ interface SchemaInterface {
 
 }
 
+/*** Helper ***/
+
+function isTupleSchemaInput(args: SchemaInterfaceShortcutSignature): args is TupleSchemaInput {
+    return [...args].every(arg => isInstanceOf(arg, Schema))
+}
+
+function isUnionSchemaInput(args: SchemaInterfaceShortcutSignature): args is UnionSchemaInput {
+    return [...args].some(arg => isString(arg) || isNumber(arg))
+}
+
+function isShapeSchemaInput(args: SchemaInterfaceShortcutSignature): args is [ShapeSchemaInput] {
+    return args.length === 1 && isPlainObject(args[0])
+}
+
+function createSchemaInterface(): SchemaInterface {
+    const $: SchemaInterface = <T extends SchemaInterfaceShortcutSignature>(
+        ...args: T
+    ): SchemaInterfaceShortcutOuput<T> => {
+
+        const schema = isTupleSchemaInput(args)
+            ? new TupleSchema(args)
+            : isUnionSchemaInput(args)
+                ? new UnionSchema(args)
+                : isShapeSchemaInput(args)
+                    ? new ShapeSchema(args[0] as ShapeSchemaInput)
+                    : null
+
+        if (!schema)
+            throw new Error('Input not recognized.')
+
+        return schema as SchemaInterfaceShortcutOuput<T>
+    }
+
+    $.shape = shape => new ShapeSchema(shape)
+    $.array = of => new ArraySchema(of)
+    $.record = of => new RecordSchema(of)
+
+    $.tuple = (...of) => new TupleSchema(of)
+    $.or = (...options) => new UnionSchema(options)
+    $.and = (...objects) => new IntersectionSchema(objects)
+
+    $.number = () => new NumberSchema()
+    $.string = () => new StringSchema()
+    $.boolean = () => new BooleanSchema()
+
+    return $
+}
 /*** Main ***/
 
-const $: SchemaInterface = null as unknown as SchemaInterface
+const $ = createSchemaInterface()
 
 /*** Exports ***/
 

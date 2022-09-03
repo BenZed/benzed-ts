@@ -22,6 +22,13 @@ type UnionSchemaOutput<T extends UnionSchemaInput> = {
 
 class UnionSchema<T, F extends Flags[] = []> extends Schema<T, F> {
 
+    private readonly _input: UnionSchemaInput
+
+    public constructor (input: UnionSchemaInput, ...flags: F) {
+        super(...flags)
+        this._input = input
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, never, () => UnionSchema<T, AddFlag<Flags.Optional, F>>
     >
