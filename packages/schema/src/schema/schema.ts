@@ -1,6 +1,6 @@
 import { $$copy, $$equals, copy, CopyComparable } from '@benzed/immutable'
 
-import type { Flags, HasOptional, HasReadonly } from './flags'
+import type { Flags, HasOptional, HasMutable } from './flags'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -44,7 +44,7 @@ abstract class Schema<T, F extends Flags[]> implements CopyComparable<Schema<T, 
     public constructor (...flags: F) {
         this.flags = flags
         this.optional = null as any
-        this.readonly = null as any
+        this.mutable = null as any
     }
 
     public [$$copy](): this {
@@ -59,8 +59,8 @@ abstract class Schema<T, F extends Flags[]> implements CopyComparable<Schema<T, 
     /**/ F, never, () => Schema<T, [...F, Flags.Optional]>
     >
 
-    public readonly readonly: HasReadonly<
-    /**/ F, never, () => Schema<T, [...F, Flags.Readonly]>
+    public readonly mutable: HasMutable<
+    /**/ F, never, () => Schema<T, [...F, Flags.Mutable]>
     >
 }
 

@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema from './schema'
 
@@ -11,8 +11,8 @@ class StringSchema<F extends Flags[]> extends Schema<string, F> {
     /**/ F, never, () => StringSchema<[...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => StringSchema<[...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => StringSchema<[...F, Flags.Mutable]>
     >
 
 }

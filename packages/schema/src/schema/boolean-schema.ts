@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema from './schema'
 
@@ -11,8 +11,8 @@ class BooleanSchema<F extends Flags[]> extends Schema<boolean, F> {
     /**/ F, never, () => BooleanSchema<[...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => BooleanSchema<[...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => BooleanSchema<[...F, Flags.Mutable]>
     >
 
 }

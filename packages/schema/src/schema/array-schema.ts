@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { SchemaOutput } from './schema'
 
@@ -19,8 +19,8 @@ class ArraySchema<T, F extends Flags[]> extends Schema<T[], F> {
     /**/ F, never, () => ArraySchema<T, [...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => ArraySchema<T, [...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => ArraySchema<T, [...F, Flags.Mutable]>
     >
 
 }

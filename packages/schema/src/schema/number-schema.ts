@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema from './schema'
 
@@ -11,8 +11,8 @@ class NumberSchema<F extends Flags[]> extends Schema<number, F> {
     /**/ F, never, () => NumberSchema<[...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => NumberSchema<[...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => NumberSchema<[...F, Flags.Mutable]>
     >
 
 }

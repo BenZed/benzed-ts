@@ -3,7 +3,7 @@ import type { Schema } from './schema'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export enum Flags {
-    Readonly,
+    Mutable,
     Optional
 }
 
@@ -25,6 +25,6 @@ export type HasFlag<I, F extends Flags, Y, N = never> =
 
     /**/ : N
 
-export type HasReadonly<I, Y, N = never> = HasFlag<I, Flags.Readonly, Y, N>
+export type HasMutable<I, Y, N = never> = HasFlag<I, Flags.Mutable, Y, N>
 
 export type HasOptional<I, Y, N = never> = HasFlag<I, Flags.Optional, Y, N>

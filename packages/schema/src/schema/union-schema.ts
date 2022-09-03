@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { SchemaOutput } from './schema'
 
@@ -27,8 +27,8 @@ class UnionSchema<T, F extends Flags[]> extends Schema<T, F> {
     /**/ F, never, () => UnionSchema<T, [...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => UnionSchema<T, [...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => UnionSchema<T, [...F, Flags.Mutable]>
     >
 
 }

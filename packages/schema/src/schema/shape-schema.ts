@@ -1,6 +1,6 @@
 import { Compile, Merge } from '@benzed/util'
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { SchemaOutput } from './schema'
 
@@ -10,17 +10,17 @@ import Schema, { SchemaOutput } from './schema'
 
 /*** Types ***/
 
-type IsReadonlyAndOptional<I, Y, N = never> =
-    HasReadonly<I, HasOptional<I, Y, N>, N>
+type IsMutableAndOptional<I, Y, N = never> =
+    HasMutable<I, HasOptional<I, Y, N>, N>
 
-type IsReadonlyNotOptional<I, Y, N = never> =
-    HasReadonly<I, HasOptional<I, N, Y>, N>
+type IsMutableNotOptional<I, Y, N = never> =
+    HasMutable<I, HasOptional<I, N, Y>, N>
 
-type IsOptionalNotReadonly<I, Y, N = never> =
-    HasOptional<I, HasReadonly<I, N, Y>, N>
+type IsOptionalNotMutable<I, Y, N = never> =
+    HasOptional<I, HasMutable<I, N, Y>, N>
 
-type NotOptionalNotReadonly<I, Y, N = never> =
-    HasOptional<I, N, HasReadonly<I, N, Y>>
+type NotMutableNotOptional<I, Y, N = never> =
+    HasOptional<I, N, HasMutable<I, N, Y>>
 
 type Shape = { [key: string]: any }
 
@@ -28,10 +28,10 @@ type ShapeSchemaInput = { [key: string]: Schema<any, any> }
 
 type ShapeSchemaOutput<T extends ShapeSchemaInput> =
     Compile<Merge<[
-        { readonly [K in keyof T as IsReadonlyNotOptional<T[K], K>]: SchemaOutput<T[K]> },
-        { readonly [K in keyof T as IsReadonlyAndOptional<T[K], K>]?: SchemaOutput<T[K]> },
-        { [K in keyof T as IsOptionalNotReadonly<T[K], K>]?: SchemaOutput<T[K]> },
-        { [K in keyof T as NotOptionalNotReadonly<T[K], K>]: SchemaOutput<T[K]> }
+        { readonly [K in keyof T as NotMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> },
+        { readonly [K in keyof T as IsOptionalNotMutable<T[K], K>]?: SchemaOutput<T[K]> },
+        { [K in keyof T as IsMutableAndOptional<T[K], K>]?: SchemaOutput<T[K]> },
+        { [K in keyof T as IsMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> }
     ]>>
 
 /*** Main ***/
@@ -42,8 +42,8 @@ class ShapeSchema<T extends Shape, F extends Flags[]> extends Schema<T, F> {
     /**/ F, never, () => ShapeSchema<T, [...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => ShapeSchema<T, [...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => ShapeSchema<T, [...F, Flags.Mutable]>
     >
 }
 

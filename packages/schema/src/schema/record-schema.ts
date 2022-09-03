@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { SchemaOutput } from './schema'
 
@@ -19,8 +19,8 @@ class RecordSchema<T, F extends Flags[]> extends Schema<{ [key: string]: T }, F>
     /**/ F, never, () => RecordSchema<T, [...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => RecordSchema<T, [...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => RecordSchema<T, [...F, Flags.Mutable]>
     >
 
 }

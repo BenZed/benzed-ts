@@ -8,14 +8,14 @@ const AddressSchema = $({
         prefix: $.number(),
         postfix: $.number(),
         payload: $.string().optional()
-    }).readonly().optional(),
+    }).mutable().optional(),
     switch: $.boolean()
 })
 
 const VectorSchema = $({
-    x: $.number(),
-    y: $.number(),
-    z: $.number().optional()
+    x: $.number().mutable(),
+    y: $.number().mutable(),
+    z: $.number().mutable().optional()
 })
 
 const EdgeSchema = $(VectorSchema, VectorSchema)
@@ -35,7 +35,7 @@ const VectorTeamSchema = $.and(
 
 const CompositeSchema = $({
     vt: VectorTeamSchema.optional(),
-    range: RangeSchema.readonly(),
+    range: RangeSchema.mutable(),
     edge: EdgeSchema,
     address: AddressSchema.optional()
 })

@@ -1,5 +1,5 @@
 
-import { Flags, HasReadonly, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { SchemaOutput } from './schema'
 
@@ -22,8 +22,8 @@ class TupleSchema<T, F extends Flags[]> extends Schema<T, F> {
     /**/ F, never, () => TupleSchema<T, [...F, Flags.Optional]>
     >
 
-    public override readonly readonly!: HasReadonly<
-    /**/ F, never, () => TupleSchema<T, [...F, Flags.Readonly]>
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => TupleSchema<T, [...F, Flags.Mutable]>
     >
 
 }
