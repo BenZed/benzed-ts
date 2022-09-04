@@ -10,9 +10,10 @@ import { Schema, SchemaOutput } from './schema'
 /*** Types ***/
 
 type IntersectionSchemaInput = readonly Schema<object, any>[]
-type IntersectionSchemaOutput<T extends IntersectionSchemaInput> = Intersect<{
-    [K in keyof T]: SchemaOutput<T[K]>
-}>
+type IntersectionSchemaOutput<T extends IntersectionSchemaInput> =
+    Intersect<{
+        [K in keyof T]: SchemaOutput<T[K]>
+    }>
 
 /*** Main ***/
 

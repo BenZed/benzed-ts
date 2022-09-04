@@ -1,6 +1,12 @@
 
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-import Schema, { SchemaOutput } from './schema'
+
+import Schema from './schema'
+
+import {
+    TupleSchemaInput,
+    TupleSchemaOutput
+} from './tuple-schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -8,15 +14,8 @@ import Schema, { SchemaOutput } from './schema'
 
 /*** Types ***/
 
-type UnionSchemaInput = readonly (string | number | Schema<any, any, any>)[]
-type UnionSchemaOutput<T extends UnionSchemaInput> = {
-    [K in keyof T]: T[K] extends string | number
-    /**/ ? T[K]
-    /**/ : T[K] extends Schema<any, any, any>
-        // @ts-expect-error T[K] is resolving to Schema<any,any, any> & T[K], which I don't get
-            /**/ ? SchemaOutput<T[K]>
-            /**/ : unknown
-}[number]
+type UnionSchemaInput = TupleSchemaInput
+type UnionSchemaOutput<T extends UnionSchemaInput> = TupleSchemaOutput<T>[number]
 
 /*** Main ***/
 

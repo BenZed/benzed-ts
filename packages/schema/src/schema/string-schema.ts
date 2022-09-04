@@ -1,7 +1,14 @@
 
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
+import {
+    AddFlag,
+    Flags,
+    HasMutable,
+    HasOptional
+} from './flags'
 
-import { PrimitiveSchema } from './schema'
+import {
+    PrimitiveSchema
+} from './schema'
 
 /*** Main ***/
 
@@ -12,11 +19,15 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, () => never, () => StringSchema<AddFlag<Flags.Optional, F>>
+    /**/ F,
+    /**/ () => never,
+    /**/ () => StringSchema<AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, () => never, () => StringSchema<AddFlag<Flags.Mutable, F>>
+    /**/ F,
+    /**/ () => never,
+    /**/ () => StringSchema<AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => StringSchema

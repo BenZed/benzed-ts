@@ -1,7 +1,7 @@
 
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
-import Schema, { SchemaOutput } from './schema'
+import Schema, { Primitive, SchemaOutput } from './schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -9,10 +9,15 @@ import Schema, { SchemaOutput } from './schema'
 
 /*** Types ***/
 
-type TupleSchemaInput = readonly Schema<any, any, any>[]
+type TupleSchemaInput = readonly (Primitive | Schema<any, any, any>)[]
 
 type TupleSchemaOutput<T extends TupleSchemaInput> = {
-    [K in keyof T]: SchemaOutput<T[K]>
+    [K in keyof T]: T[K] extends Primitive
+    /**/ ? T[K]
+    /**/ : T[K] extends Schema<any, any, any>
+        // @ts-expect-error T[K] is resolving to Schema<any,any, any> & T[K], which I don't get
+            /**/ ? SchemaOutput<T[K]>
+            /**/ : unknown
 }
 
 /*** Main ***/
@@ -21,7 +26,7 @@ class TupleSchema<
     I extends TupleSchemaInput,
     O extends TupleSchemaOutput<I>,
     F extends Flags[] = []
-/**/> extends Schema<I, O, F> {
+/**/> extends Schema<I, HasMutable<F, O, Readonly<O>>, F> {
 
     public override readonly optional!: HasOptional<
     /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Optional, F>>

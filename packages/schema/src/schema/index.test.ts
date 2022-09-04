@@ -60,11 +60,6 @@ describe('$() shortcut', () => {
         expect($range).toBeInstanceOf(TupleSchema)
     })
 
-    it('allows unions', () => {
-        const $trafficLight = $('green', 'yellow', 'red')
-        expect($trafficLight).toBeInstanceOf(UnionSchema)
-    })
-
 })
 
 describe('shortcut type tests', () => {
@@ -105,7 +100,7 @@ describe('shortcut type tests', () => {
 
     it('arrays', () => {
 
-        const $optionalStringArr = $.array($.string().mutable()).optional()
+        const $optionalStringArr = $.array($.string()).mutable().optional()
         expectTypeOf<Infer<typeof $optionalStringArr>>()
             .toEqualTypeOf<string[] | undefined>()
 
@@ -115,13 +110,12 @@ describe('shortcut type tests', () => {
 
         const $todo = $({
             complete: $.boolean().mutable(),
-            description: $.string().mutable(),
+            description: $.string(),
         })
 
         const $todoArray = $.array($todo)
         expectTypeOf<Infer<typeof $todoArray>>()
-            .toEqualTypeOf<readonly { complete: boolean, description: string }[]>()
-
+            .toEqualTypeOf<readonly { complete: boolean, readonly description: string }[]>()
     })
 
     it('records', () => {
@@ -133,7 +127,41 @@ describe('shortcut type tests', () => {
         const $scores = $.record($.number().mutable())
         expectTypeOf<Infer<typeof $scores>>()
             .toEqualTypeOf<{ [key: string]: number }>()
+    })
 
+    it('tuples', () => {
+        const $range = $.tuple($.number(), $.number())
+        expectTypeOf<Infer<typeof $range>>()
+            .toEqualTypeOf<readonly [number, number]>()
+
+        const $between = $.tuple($.number(), $.or('<', '>'), $.number()).mutable()
+        expectTypeOf<Infer<typeof $between>>()
+            .toEqualTypeOf<[number, '<' | '>', number]>()
+    })
+
+    it('unions', () => {
+        const $trafficLight = $.or('red', 'green', 'yellow')
+        expectTypeOf<Infer<typeof $trafficLight>>()
+            .toEqualTypeOf<'red' | 'green' | 'yellow'>()
+
+        const $id = $.or($.string(), $.number())
+        expectTypeOf<Infer<typeof $id>>()
+            .toEqualTypeOf<string | number>()
+    })
+
+    it('intersections', () => {
+
+        const $quaternion = $.and(
+            $({
+                x: $.number().mutable(),
+                y: $.number().mutable(),
+                z: $.number().mutable()
+            }),
+            $({ w: $.number().mutable().optional() })
+        )
+
+        expectTypeOf<Infer<typeof $quaternion>>()
+            .toEqualTypeOf<{ x: number, y: number, z: number } & { w?: number }>()
     })
 
 })

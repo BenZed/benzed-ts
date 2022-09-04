@@ -10,8 +10,7 @@ import Schema, { SchemaOutput } from './schema'
 /*** Types ***/
 
 type ArraySchemaInput = Schema<any, any, any>
-type ArraySchemaOutput<T extends ArraySchemaInput> =
-    HasMutable<T, SchemaOutput<T>[], readonly SchemaOutput<T>[]>
+type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>[]
 
 /*** Main ***/
 
@@ -21,7 +20,7 @@ class ArraySchema<
     O extends ArraySchemaOutput<I>,
     F extends Flags[] = []
 
-    /**/> extends Schema<I, O, F> {
+    /**/> extends Schema<I, HasMutable<F, O, Readonly<O>>, F> {
 
     public override readonly optional!: HasOptional<
     /**/ F, never, () => ArraySchema<I, O, AddFlag<Flags.Optional, F>>

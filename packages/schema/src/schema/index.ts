@@ -44,7 +44,14 @@ import {
 import StringSchema from './string-schema'
 import NumberSchema from './number-schema'
 import BooleanSchema from './boolean-schema'
-import { isInstanceOf, isNumber, isPlainObject, isString } from '@benzed/is/lib'
+
+import {
+    isBoolean,
+    isInstanceOf,
+    isNumber,
+    isPlainObject,
+    isString
+} from '@benzed/is'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -52,19 +59,14 @@ import { isInstanceOf, isNumber, isPlainObject, isString } from '@benzed/is/lib'
 
 /*** Types ***/
 
-type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput | UnionSchemaInput
+type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput
 
 type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
- /**/ T extends TupleSchemaInput
- /**/ ? TupleSchema<T, TupleSchemaOutput<T>>
-
- /*    */ : T extends UnionSchemaInput
-     /**/ ? UnionSchema<T, UnionSchemaOutput<T>>
-
-     /*    */ : T extends [ShapeSchemaInput]
-         /**/ ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
-
-         /**/ : never
+    /**/ T extends TupleSchemaInput
+    /**/ ? TupleSchema<T, TupleSchemaOutput<T>>
+        /**/ : T extends [ShapeSchemaInput]
+        /**/ ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
+            /**/ : never
 
 interface SchemaInterface {
 
@@ -106,11 +108,13 @@ interface SchemaInterface {
 /*** Helper ***/
 
 function isTupleSchemaInput(args: SchemaInterfaceShortcutSignature): args is TupleSchemaInput {
-    return [...args].every(arg => isInstanceOf(arg, Schema))
-}
-
-function isUnionSchemaInput(args: SchemaInterfaceShortcutSignature): args is UnionSchemaInput {
-    return [...args].some(arg => isString(arg) || isNumber(arg))
+    return [...args].every(arg =>
+        isInstanceOf(arg, Schema) ||
+        arg == null ||
+        isString(arg) ||
+        isNumber(arg) ||
+        isBoolean(arg)
+    )
 }
 
 function isShapeSchemaInput(args: SchemaInterfaceShortcutSignature): args is [ShapeSchemaInput] {
@@ -124,11 +128,9 @@ function createSchemaInterface(): SchemaInterface {
 
         const schema = isTupleSchemaInput(args)
             ? new TupleSchema(args)
-            : isUnionSchemaInput(args)
-                ? new UnionSchema(args)
-                : isShapeSchemaInput(args)
-                    ? new ShapeSchema(args[0] as ShapeSchemaInput)
-                    : null
+            : isShapeSchemaInput(args)
+                ? new ShapeSchema(args[0] as ShapeSchemaInput)
+                : null
 
         if (!schema)
             throw new Error('Input not recognized.')
