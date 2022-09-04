@@ -9,7 +9,7 @@ export enum Flags {
 
 export type GetFlags<T> = T extends Flags[]
     ? T
-    : T extends Schema<any, infer F>
+    : T extends Schema<any, any, infer F>
     /**/ ? F
     /**/ : never
 

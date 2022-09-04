@@ -9,29 +9,29 @@ import Schema, { SchemaOutput } from './schema'
 
 /*** Types ***/
 
-type ArraySchemaInput = Schema<any, any>
-type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>
+type ArraySchemaInput = Schema<any, any, any>
+type ArraySchemaOutput<T extends ArraySchemaInput> =
+    HasMutable<T, SchemaOutput<T>[], readonly SchemaOutput<T>[]>
 
 /*** Main ***/
 
-class ArraySchema<T, F extends Flags[] = []> extends Schema<T[], F> {
+class ArraySchema<
 
-    private readonly _input: ArraySchemaInput
+    I extends ArraySchemaInput,
+    O extends ArraySchemaOutput<I>,
+    F extends Flags[] = []
 
-    public constructor (input: ArraySchemaInput, ...flags: F) {
-        super(...flags)
-        this._input = input
-    }
+    /**/> extends Schema<I, O, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => ArraySchema<T, AddFlag<Flags.Optional, F>>
+    /**/ F, never, () => ArraySchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => ArraySchema<T, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, () => ArraySchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => ArraySchema<T>
+    public override readonly clearFlags!: () => ArraySchema<I, O>
 }
 
 /*** Expors ***/

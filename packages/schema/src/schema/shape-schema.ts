@@ -22,9 +22,7 @@ type IsOptionalNotMutable<I, Y, N = never> =
 type NotMutableNotOptional<I, Y, N = never> =
     HasOptional<I, N, HasMutable<I, N, Y>>
 
-type Shape = { [key: string]: any }
-
-type ShapeSchemaInput = { [key: string]: Schema<any, any> }
+type ShapeSchemaInput = { [key: string]: Schema<any, any, any> }
 
 type ShapeSchemaOutput<T extends ShapeSchemaInput> =
     Compile<Merge<[
@@ -36,24 +34,21 @@ type ShapeSchemaOutput<T extends ShapeSchemaInput> =
 
 /*** Main ***/
 
-class ShapeSchema<T extends Shape, F extends Flags[] = []> extends Schema<T, F> {
-
-    private readonly _input: ShapeSchemaInput
-
-    public constructor (input: ShapeSchemaInput, ...flags: F) {
-        super(...flags)
-        this._input = input
-    }
+class ShapeSchema<
+    I extends ShapeSchemaInput,
+    O extends ShapeSchemaOutput<I>,
+    F extends Flags[] = []
+/**/> extends Schema<I, O, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, () => never, () => ShapeSchema<T, AddFlag<Flags.Optional, F>>
+    /**/ F, () => never, () => ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, () => never, () => ShapeSchema<T, AddFlag<Flags.Mutable, F>>
+    /**/ F, () => never, () => ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => ShapeSchema<T>
+    public override readonly clearFlags!: () => ShapeSchema<I, O>
 
 }
 

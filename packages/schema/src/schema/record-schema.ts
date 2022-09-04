@@ -8,29 +8,33 @@ import Schema, { SchemaOutput } from './schema'
 */
 /*** Types ***/
 
-type RecordSchemaInput = Schema<any, any>
-type RecordSchemaOutput<T extends RecordSchemaInput> = SchemaOutput<T>
+type RecordSchemaInput = Schema<any, any, any>
+type RecordSchemaOutput<T extends RecordSchemaInput> =
+    HasMutable<
+    /**/ T,
+    /**/ { [key: string]: SchemaOutput<T> },
+    /**/ { readonly [key: string]: SchemaOutput<T> }
+    >
 
 /*** Main ***/
 
-class RecordSchema<T, F extends Flags[] = []> extends Schema<{ [key: string]: T }, F> {
+class RecordSchema<
 
-    private readonly _input: RecordSchemaInput
+    I extends RecordSchemaInput,
+    O extends RecordSchemaOutput<I>,
+    F extends Flags[] = []
 
-    public constructor (input: RecordSchemaInput, ...flags: F) {
-        super(...flags)
-        this._input = input
-    }
+    /**/> extends Schema<I, O, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => RecordSchema<T, AddFlag<Flags.Optional, F>>
+    /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => RecordSchema<T, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => RecordSchema<T>
+    public override readonly clearFlags!: () => RecordSchema<I, O>
 
 }
 

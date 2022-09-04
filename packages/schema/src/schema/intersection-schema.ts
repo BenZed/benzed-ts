@@ -16,24 +16,22 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> = Intersect<{
 
 /*** Main ***/
 
-class IntersectionSchema<T, F extends Flags[] = []> extends Schema<T, F> {
+class IntersectionSchema<
+    I extends IntersectionSchemaInput,
+    O extends IntersectionSchemaOutput<I>,
+    F extends Flags[] = []
 
-    private readonly _input: IntersectionSchemaInput
-
-    public constructor (input: IntersectionSchemaInput, ...flags: F) {
-        super(...flags)
-        this._input = input
-    }
+    /**/> extends Schema<I, O, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => IntersectionSchema<T, AddFlag<Flags.Optional, F>>
+    /**/ F, never, () => IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => IntersectionSchema<T, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, () => IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => IntersectionSchema<T>
+    public override readonly clearFlags!: () => IntersectionSchema<I, O>
 
 }
 

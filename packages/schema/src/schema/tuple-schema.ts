@@ -9,7 +9,7 @@ import Schema, { SchemaOutput } from './schema'
 
 /*** Types ***/
 
-type TupleSchemaInput = readonly Schema<any, any>[]
+type TupleSchemaInput = readonly Schema<any, any, any>[]
 
 type TupleSchemaOutput<T extends TupleSchemaInput> = {
     [K in keyof T]: SchemaOutput<T[K]>
@@ -17,24 +17,21 @@ type TupleSchemaOutput<T extends TupleSchemaInput> = {
 
 /*** Main ***/
 
-class TupleSchema<T, F extends Flags[] = []> extends Schema<T, F> {
-
-    private readonly _input: TupleSchemaInput
-
-    public constructor (input: TupleSchemaInput, ...flags: F) {
-        super(...flags)
-        this._input = input
-    }
+class TupleSchema<
+    I extends TupleSchemaInput,
+    O extends TupleSchemaOutput<I>,
+    F extends Flags[] = []
+/**/> extends Schema<I, O, F> {
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => TupleSchema<T, AddFlag<Flags.Optional, F>>
+    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => TupleSchema<T, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => TupleSchema<T>
+    public override readonly clearFlags!: () => TupleSchema<I, O>
 
 }
 

@@ -1,5 +1,5 @@
 import { Flags } from './flags'
-import { Schema } from './schema'
+import Schema from './schema'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],
@@ -8,10 +8,17 @@ for (const [Flag, getFlagKey, addFlagKey] of [
 
     describe(`Flags.${Flags[Flag]}`, () => {
 
-        class GenericSchema<F extends Flags[] = []> extends Schema<unknown, F> { }
+        class NullSchema<F extends Flags[] = []> extends Schema<null, null, F> {
+            public constructor (...flags: F) {
+                super(
+                    null,
+                    ...flags
+                )
+            }
+        }
 
-        const schemaWithFlag = new GenericSchema(Flag)
-        const schemaWithoutFlag = new GenericSchema()
+        const schemaWithFlag = new NullSchema(Flag)
+        const schemaWithoutFlag = new NullSchema()
 
         describe(`.${getFlagKey}`, () => {
 
@@ -31,22 +38,25 @@ for (const [Flag, getFlagKey, addFlagKey] of [
         })
 
         describe(`.${addFlagKey}()`, () => {
+
             it(
                 'creates a new instance of the schema ' +
                 `with ${Flags[Flag]} flag`,
                 () => {
                     expect(schemaWithFlag[getFlagKey]).toBe(true)
                     expect(schemaWithFlag).not.toBe(schemaWithoutFlag)
-                })
+                }
+            )
 
             it('instance is of extended class', () => {
-                expect(schemaWithFlag).toBeInstanceOf(GenericSchema)
+                expect(schemaWithFlag).toBeInstanceOf(NullSchema)
             })
 
             it('cannot be called on instances with flag', () => {
                 expect(() => schemaWithFlag[addFlagKey]())
                     .toThrow(`Schema is already ${Flags[Flag]}`)
             })
+
         })
     })
 }

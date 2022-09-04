@@ -1,11 +1,15 @@
 
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
-import Schema from './schema'
+import { PrimitiveSchema } from './schema'
 
 /*** Main ***/
 
-class StringSchema<F extends Flags[] = []> extends Schema<string, F> {
+class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
+
+    public constructor (def = '', ...flags: F) {
+        super(def, ...flags)
+    }
 
     public override readonly optional!: HasOptional<
     /**/ F, () => never, () => StringSchema<AddFlag<Flags.Optional, F>>

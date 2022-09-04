@@ -1,6 +1,8 @@
 import {
+    NullSchema,
     Schema,
-    SchemaOutput
+    SchemaOutput,
+    UndefinedSchema
 } from './schema'
 
 import {
@@ -54,13 +56,13 @@ type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput | 
 
 type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
  /**/ T extends TupleSchemaInput
- /**/ ? TupleSchema<TupleSchemaOutput<T>>
+ /**/ ? TupleSchema<T, TupleSchemaOutput<T>>
 
  /*    */ : T extends UnionSchemaInput
-     /**/ ? UnionSchema<UnionSchemaOutput<T>>
+     /**/ ? UnionSchema<T, UnionSchemaOutput<T>>
 
      /*    */ : T extends [ShapeSchemaInput]
-         /**/ ? ShapeSchema<ShapeSchemaOutput<T[0]>>
+         /**/ ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
 
          /**/ : never
 
@@ -72,32 +74,33 @@ interface SchemaInterface {
 
     shape<T extends ShapeSchemaInput>(
         input: T
-    ): ShapeSchema<ShapeSchemaOutput<T>>
+    ): ShapeSchema<T, ShapeSchemaOutput<T>>
 
     array<T extends ArraySchemaInput>(
         input: T
-    ): ArraySchema<ArraySchemaOutput<T>>
+    ): ArraySchema<T, ArraySchemaOutput<T>>
 
     record<T extends RecordSchemaInput>(
         input: T
-    ): RecordSchema<RecordSchemaOutput<T>>
+    ): RecordSchema<T, RecordSchemaOutput<T>>
 
     tuple<T extends TupleSchemaInput>(
         ...input: T
-    ): TupleSchema<TupleSchemaOutput<T>>
+    ): TupleSchema<T, TupleSchemaOutput<T>>
 
     or<T extends UnionSchemaInput>(
         ...input: T
-    ): UnionSchema<UnionSchemaOutput<T>>
+    ): UnionSchema<T, UnionSchemaOutput<T>>
 
     and<T extends IntersectionSchemaInput>(
         ...input: T
-    ): IntersectionSchema<IntersectionSchemaOutput<T>>
+    ): IntersectionSchema<T, IntersectionSchemaOutput<T>>
 
     number(): NumberSchema
     string(): StringSchema
     boolean(): BooleanSchema
-
+    null(): NullSchema
+    undefined(): UndefinedSchema
 }
 
 /*** Helper ***/
@@ -144,6 +147,9 @@ function createSchemaInterface(): SchemaInterface {
     $.number = () => new NumberSchema()
     $.string = () => new StringSchema()
     $.boolean = () => new BooleanSchema()
+
+    $.null = () => new NullSchema()
+    $.undefined = () => new UndefinedSchema()
 
     return $
 }

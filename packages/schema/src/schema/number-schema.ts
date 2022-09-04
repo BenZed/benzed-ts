@@ -1,11 +1,15 @@
 
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
-import Schema from './schema'
+import { PrimitiveSchema } from './schema'
 
 /*** Main ***/
 
-class NumberSchema<F extends Flags[] = []> extends Schema<number, F> {
+class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
+
+    public constructor (def = 0, ...flags: F) {
+        super(def, ...flags)
+    }
 
     public override readonly optional!: HasOptional<
     /**/ F, never, () => NumberSchema<AddFlag<Flags.Optional, F>>

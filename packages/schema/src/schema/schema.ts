@@ -8,27 +8,28 @@ import { Flags, HasOptional, HasMutable, AddFlag } from './flags'
 
 /*** Types ***/
 
-type SchemaOutput<S extends Schema<any, any>> = S extends Schema<infer T, infer F>
-    ? HasOptional<F, T | undefined, T>
+type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer O, infer F>
+    ? HasOptional<F, O | undefined, O>
     : never
 
 /*** Main ***/
 
-abstract class Schema<T, F extends Flags[] = []> implements CopyComparable<Schema<T, F>> {
+abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Schema<I, O, F>> {
 
-    private readonly _flags: F
-
-    private readonly _default!: T
+    protected readonly _flags: F
+    protected readonly _input: I
+    protected readonly _output!: O
 
     // Construct
 
-    public constructor (...flags: F) {
+    public constructor (input: I, ...flags: F) {
+        this._input = input
         this._flags = flags
     }
 
     // Data Methods
 
-    public is(input: unknown): input is T {
+    public is(input: unknown): input is O {
         try {
             this.assert(input)
             return true
@@ -37,16 +38,16 @@ abstract class Schema<T, F extends Flags[] = []> implements CopyComparable<Schem
         }
     }
 
-    public assert(input: unknown, _msg = 'incorrect type'): asserts input is T {
+    public assert(input: unknown, _msg = 'incorrect type'): asserts input is O {
         void this._validate(input, false)
     }
 
-    public validate(input: unknown): T {
+    public validate(input: unknown): O {
         return this._validate(input, true)
     }
 
-    public create(): T {
-        return copy(this._default)
+    public create(): O {
+        return copy(this._output)
     }
 
     // Schema Methods
@@ -55,14 +56,14 @@ abstract class Schema<T, F extends Flags[] = []> implements CopyComparable<Schem
      * @returns schema with optional flag
      */
     public readonly optional
-    /**/: HasOptional<F, () => never, () => Schema<T, AddFlag<Flags.Optional, F>>>
+    /**/: HasOptional<F, () => never, () => Schema<I, O, AddFlag<Flags.Optional, F>>>
         = this._copyWithFlag.bind(this, Flags.Optional) as any
 
     /**
      * @returns schema with mutable flag 
      */
     public readonly mutable
-    /**/: HasMutable<F, () => never, () => Schema<T, AddFlag<Flags.Mutable, F>>>
+    /**/: HasMutable<F, () => never, () => Schema<I, O, AddFlag<Flags.Mutable, F>>>
         = this._copyWithFlag.bind(this, Flags.Mutable) as any
 
     public get isOptional(): boolean {
@@ -76,7 +77,7 @@ abstract class Schema<T, F extends Flags[] = []> implements CopyComparable<Schem
     /**
      * @returns schema without optional or mutable flags.
      */
-    public readonly clearFlags: () => Schema<T> = () => {
+    public readonly clearFlags: () => Schema<I, O> = () => {
         const schema = this[$$copy]()
         schema._flags.length = 0
         return schema as any
@@ -84,7 +85,7 @@ abstract class Schema<T, F extends Flags[] = []> implements CopyComparable<Schem
 
     // Helper
 
-    private _validate(input: unknown, sanitize: boolean): T {
+    private _validate(input: unknown, sanitize: boolean): O {
         void input
         void sanitize
         throw new Error('Not yet implemented.')
@@ -104,15 +105,33 @@ abstract class Schema<T, F extends Flags[] = []> implements CopyComparable<Schem
     // CopyComparable 
 
     public [$$copy](): this {
-        const ThisSchema = this.constructor as new (...flags: Flags[]) => this
-        const schema = new ThisSchema(...this._flags)
+        const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
+        const schema = new ThisSchema(this._input, ...this._flags)
         return schema
     }
 
     public [$$equals](input: unknown): input is this {
         throw new Error('Not yet implemented.')
     }
+}
 
+abstract class PrimitiveSchema
+/**/<
+    I extends string | number | boolean | null | undefined,
+    F extends Flags[] = []
+/**/>
+    extends Schema<I, I, F> { }
+
+class NullSchema<F extends Flags[] = []> extends PrimitiveSchema<null, F> {
+    public constructor (...flags: F) {
+        super(null, ...flags)
+    }
+}
+
+class UndefinedSchema<F extends Flags[] = []> extends PrimitiveSchema<undefined, F> {
+    public constructor (...flags: F) {
+        super(undefined, ...flags)
+    }
 }
 
 /*** Exports ***/
@@ -121,6 +140,10 @@ export default Schema
 
 export {
     Schema,
-    SchemaOutput
+    SchemaOutput,
+
+    PrimitiveSchema,
+    NullSchema,
+    UndefinedSchema,
 }
 
