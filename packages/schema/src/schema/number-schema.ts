@@ -1,7 +1,18 @@
 
+import { isNumber, isString } from '@benzed/is/lib'
+import { TypeValidator } from '../validator'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
 import { PrimitiveSchema } from './schema'
+
+/*** Helper ***/
+
+function tryCastToNumber(value: unknown): unknown {
+    if (isString(value))
+        return parseFloat(value)
+
+    return value
+}
 
 /*** Main ***/
 
@@ -10,6 +21,12 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
     public constructor (def = 0, ...flags: F) {
         super(def, ...flags)
     }
+
+    protected _typeValidator = new TypeValidator({
+        name: 'number',
+        is: isNumber,
+        cast: tryCastToNumber
+    })
 
     public override readonly optional!: HasOptional<
     /**/ F, never, () => NumberSchema<AddFlag<Flags.Optional, F>>

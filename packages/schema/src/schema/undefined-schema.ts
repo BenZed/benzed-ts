@@ -12,7 +12,7 @@ function isUndefined(input: unknown): input is undefined {
 
 function tryCastToUndefined(input: unknown): unknown {
     // "undefined" to undefined
-    return !input || input === 'undefined'
+    return input === null || input === 'undefined'
         ? undefined
         : input
 }
@@ -25,7 +25,7 @@ export default class UndefinedSchema<F extends Flags[] = []> extends PrimitiveSc
         super(undefined, ...flags)
     }
 
-    protected _typeValidator: TypeValidator<undefined> = new TypeValidator({
+    protected _typeValidator = new TypeValidator({
         name: 'undefined',
         is: isUndefined,
         cast: tryCastToUndefined

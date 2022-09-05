@@ -11,7 +11,7 @@ function isNull(input: unknown): input is null {
 
 function tryCastToNull(input: unknown): unknown {
     // falsy or "null" to undefined
-    return !input || input === 'null'
+    return input === undefined || input === 'null'
         ? null
         : input
 }

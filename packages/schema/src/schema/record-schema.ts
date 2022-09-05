@@ -19,6 +19,7 @@ type RecordSchemaOutput<T extends RecordSchemaInput> =
 /*** Main ***/
 
 class RecordSchema<
+    /**/
 
     I extends RecordSchemaInput,
     O extends RecordSchemaOutput<I>,
