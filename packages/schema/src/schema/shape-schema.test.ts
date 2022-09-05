@@ -39,13 +39,15 @@ describe('validate()', () => {
     })
 
     it('validates nested children', () => {
-        expectValidationError(() => $todo.validate({
-            completed: true,
-            description: {
-                content: 'Complete this schema validation library',
-                deadline: 'never lol'
-            }
-        })).toHaveProperty('path', ['description', 'deadline'])
+        expectValidationError(
+            () => $todo.validate({
+                completed: true,
+                description: {
+                    content: 'Complete this schema validation library',
+                    deadline: 'never lol'
+                }
+            })
+        ).toHaveProperty('path', ['description', 'deadline'])
     })
 
 })

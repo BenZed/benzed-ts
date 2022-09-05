@@ -5,7 +5,14 @@ import { TypeValidator } from '../validator'
 
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
-import Schema, { ApplyOptional, SchemaOutput, SchemaValidationContext } from './schema'
+import {
+    Schema,
+    ParentSchema,
+
+    SchemaOutput,
+    SchemaValidationContext,
+
+} from './schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -46,32 +53,14 @@ class ShapeSchema<
     I extends ShapeSchemaInput,
     O extends ShapeSchemaOutput<I>,
     F extends Flags[] = []
-/**/> extends Schema<I, O, F> {
+    /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
         name: 'object',
         is: (input): input is O => isPlainObject(input)
     })
 
-    protected override _validate(
-        input: unknown,
-        inputContext: Partial<SchemaValidationContext>
-    ): ApplyOptional<F, O> {
-
-        const context = {
-            path: [],
-            transform: false,
-            ...inputContext,
-        }
-
-        const output = super._validate(input, context)
-        if (output === undefined)
-            return output as ApplyOptional<F, O>
-
-        return this._validateChildren(output, context) as ApplyOptional<F, O>
-    }
-
-    private _validateChildren(
+    protected _validateChildren(
         input: Shape,
         inputContext: Partial<SchemaValidationContext>
     ): O {
@@ -82,14 +71,14 @@ class ShapeSchema<
             ...inputContext,
         }
 
-        const { _input: childSchemas } = this
+        const { _input: propertySchemas } = this
 
-        const output = input
+        const output = { ...input }
 
-        for (const key in childSchemas) {
-            const childSchema = childSchemas[key]
+        for (const key in propertySchemas) {
+            const propertySchema = propertySchemas[key]
 
-            output[key] = childSchema['_validate'](
+            output[key] = propertySchema['_validate'](
                 output[key],
                 {
                     ...context,

@@ -1,7 +1,8 @@
 
-import { isNumber, isNaN, isString } from '@benzed/is/lib'
-import { TypeValidator } from '../validator'
+import { isNumber, isNaN, isString } from '@benzed/is'
+
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
+import { TypeValidator } from '../validator'
 
 import { PrimitiveSchema } from './schema'
 

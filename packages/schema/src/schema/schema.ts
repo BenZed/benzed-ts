@@ -15,13 +15,14 @@ import {
 
 import ValidationError from '../util/validation-error'
 
-import { Flags, HasOptional } from './flags'
+import { Flags, HasMutable, HasOptional } from './flags'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
 type ApplyOptional<F extends Flags[], O> = HasOptional<F, O | undefined, O>
+type ApplyMutable<F extends Flags[], O> = HasMutable<F, O, Readonly<O>>
 
 type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer O, infer F>
     ? ApplyOptional<F, O>
@@ -218,20 +219,45 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     }
 }
 
-abstract class PrimitiveSchema
-/**/<
-    I extends Primitive,
-    F extends Flags[] = []
-/**/>
+abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     extends Schema<I, I, F> {
 
     public constructor (input: I | (() => I), ...flags: F) {
+
         super(isFunction(input) ? input() : input, ...flags)
 
         this._defaultValidator.applySettings({
             default: input
         })
     }
+
+}
+
+abstract class ParentSchema<I, O, F extends Flags[]>
+    extends Schema<I, O, F> {
+
+    protected override _validate(
+        input: unknown,
+        inputContext: Partial<SchemaValidationContext>
+    ): ApplyOptional<F, O> {
+
+        const context = {
+            path: [],
+            transform: false,
+            ...inputContext,
+        }
+
+        const output = super._validate(input, context)
+        if (output === undefined)
+            return output as ApplyOptional<F, O>
+
+        return this._validateChildren(output, context) as ApplyOptional<F, O>
+    }
+
+    protected abstract _validateChildren(
+        input: O,
+        inputContext: SchemaValidationContext
+    ): O
 
 }
 
@@ -249,6 +275,9 @@ export {
     PrimitiveSchema,
     Primitive,
 
-    ApplyOptional
+    ParentSchema,
+
+    ApplyOptional,
+    ApplyMutable
 }
 
