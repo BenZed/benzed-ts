@@ -11,7 +11,8 @@ import IntersectionSchema from './intersection-schema'
 import TupleSchema from './tuple-schema'
 
 import { expectTypeOf } from 'expect-type'
-import { NullSchema, UndefinedSchema } from './schema'
+import NullSchema from './null-schema'
+import UndefinedSchema from './undefined-schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

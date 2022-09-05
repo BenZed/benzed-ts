@@ -1,5 +1,9 @@
-import { Flags } from './flags'
+import { isString } from '@benzed/is'
+import { TypeValidator } from '../validator'
+import { AddFlag, Flags, HasOptional } from './flags'
+
 import Schema from './schema'
+import NullSchema from './null-schema'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],
@@ -7,15 +11,6 @@ for (const [Flag, getFlagKey, addFlagKey] of [
 ] as const) {
 
     describe(`Flags.${Flags[Flag]}`, () => {
-
-        class NullSchema<F extends Flags[] = []> extends Schema<null, null, F> {
-            public constructor (...flags: F) {
-                super(
-                    null,
-                    ...flags
-                )
-            }
-        }
 
         const schemaWithFlag = new NullSchema(Flag)
         const schemaWithoutFlag = new NullSchema()
@@ -39,14 +34,11 @@ for (const [Flag, getFlagKey, addFlagKey] of [
 
         describe(`.${addFlagKey}()`, () => {
 
-            it(
-                'creates a new instance of the schema ' +
-                `with ${Flags[Flag]} flag`,
+            it(`creates a new instance of the schema with ${Flags[Flag]} flag`,
                 () => {
                     expect(schemaWithFlag[getFlagKey]).toBe(true)
                     expect(schemaWithFlag).not.toBe(schemaWithoutFlag)
-                }
-            )
+                })
 
             it('instance is of extended class', () => {
                 expect(schemaWithFlag).toBeInstanceOf(NullSchema)
@@ -56,7 +48,96 @@ for (const [Flag, getFlagKey, addFlagKey] of [
                 expect(() => schemaWithFlag[addFlagKey]())
                     .toThrow(`Schema is already ${Flags[Flag]}`)
             })
-
         })
     })
 }
+
+class FooSchema<F extends Flags[]> extends Schema<void, 'foo', F> {
+
+    protected override _typeValidator = new TypeValidator({
+        name: 'foo',
+        is: (input): input is 'foo' => input === 'foo',
+        cast: input => isString(input) ? 'foo' : input
+    })
+
+    public override readonly optional!: HasOptional<
+    /**/ F, never, () => FooSchema<AddFlag<Flags.Optional, F>>
+    >
+
+}
+const fooSchema = new FooSchema()
+
+describe('cast() method', () => {
+
+    const fooSchemaWithCustomCast = fooSchema.cast(() => 'foo')
+
+    it('instances a new type validator with a different cast setting', () => {
+        expect(fooSchemaWithCustomCast.validate({ this: 'would typically not work' }))
+            .toEqual('foo')
+    })
+
+})
+
+describe('default() method', () => {
+
+    const fooSchemaWithDefault = fooSchema.default(() => 'foo')
+
+    it('instances a new schema with a different default setting', () => {
+
+        expect(() => fooSchema.validate(undefined)).toThrow('undefined is not type foo')
+        expect(fooSchemaWithDefault.validate(undefined)).toEqual('foo')
+    })
+
+})
+
+describe('error() method', () => {
+
+    const fooSchemaWithError = fooSchema.error('you fucked up')
+
+    it('instances a new schema with a different type error setting', () => {
+        expect(() => fooSchemaWithError.validate(undefined)).toThrow('you fucked up')
+    })
+})
+
+describe('validate() method', () => {
+
+    it('validates type', () => {
+        expect(fooSchema.validate('foo')).toEqual('foo')
+    })
+
+    it('casts to type', () => {
+        expect(fooSchema.validate('')).toEqual('foo')
+    })
+
+    it('throws if type cannot be cast', () => {
+        expect(() => fooSchema.validate(1)).toThrow('1 is not type foo')
+    })
+
+    it('considers optional properties', () => {
+        expect(() => fooSchema.optional().validate(undefined)).not.toThrow()
+    })
+
+})
+
+describe('assert() method', () => {
+
+    it('assert() throws if type is incorrect', () => {
+        expect(() => fooSchema.assert('')).toThrow('is not type foo')
+        expect(() => fooSchema.assert('foo')).not.toThrow()
+    })
+
+})
+
+describe('is() method', () => {
+
+    it('is() returns true if type is correct', () => {
+        expect(fooSchema.is('foo')).toBe(true)
+    })
+
+    it('is() returns false if type is incorrect', () => {
+        expect(fooSchema.is('')).toBe(false)
+        expect(fooSchema.is(1)).toBe(false)
+    })
+
+})
+

@@ -1,8 +1,6 @@
 import {
-    NullSchema,
     Schema,
     SchemaOutput,
-    UndefinedSchema
 } from './schema'
 
 import {
@@ -44,6 +42,8 @@ import {
 import StringSchema from './string-schema'
 import NumberSchema from './number-schema'
 import BooleanSchema from './boolean-schema'
+import NullSchema from './null-schema'
+import UndefinedSchema from './undefined-schema'
 
 import {
     isBoolean,
@@ -165,6 +165,7 @@ export default $
 
 export {
     $,
+    Schema,
     SchemaOutput,
     SchemaOutput as Infer
 }

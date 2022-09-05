@@ -3,13 +3,12 @@ import { Intersect } from '@benzed/util'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 import { Schema, SchemaOutput } from './schema'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
 type IntersectionSchemaInput = readonly Schema<object, any>[]
+
 type IntersectionSchemaOutput<T extends IntersectionSchemaInput> =
     Intersect<{
         [K in keyof T]: SchemaOutput<T[K]>
@@ -18,6 +17,7 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> =
 /*** Main ***/
 
 class IntersectionSchema<
+
     I extends IntersectionSchemaInput,
     O extends IntersectionSchemaOutput<I>,
     F extends Flags[] = []

@@ -60,6 +60,7 @@ interface TypeValidatorConfig<T> {
      * type has been ascertained.
      */
     validate?: (Validator<T> | null)[]
+
 }
 
 interface TypeTestValidatorConfig<T> extends TypeValidatorConfig<T> {

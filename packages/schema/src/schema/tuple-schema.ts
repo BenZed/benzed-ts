@@ -16,8 +16,8 @@ type TupleSchemaOutput<T extends TupleSchemaInput> = {
     /**/ ? T[K]
     /**/ : T[K] extends Schema<any, any, any>
         // @ts-expect-error T[K] is resolving to Schema<any,any, any> & T[K], which I don't get
-            /**/ ? SchemaOutput<T[K]>
-            /**/ : unknown
+        /**/ ? SchemaOutput<T[K]>
+        /**/ : unknown
 }
 
 /*** Main ***/

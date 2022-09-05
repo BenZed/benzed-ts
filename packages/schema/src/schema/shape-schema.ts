@@ -24,13 +24,17 @@ type NotMutableNotOptional<I, Y, N = never> =
 
 type ShapeSchemaInput = { [key: string]: Schema<any, any, any> }
 
+/* eslint-disable @typescript-eslint/indent */
+
 type ShapeSchemaOutput<T extends ShapeSchemaInput> =
-    Compile<Merge<[
-        { readonly [K in keyof T as NotMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> },
-        { readonly [K in keyof T as IsOptionalNotMutable<T[K], K>]?: SchemaOutput<T[K]> },
-        { [K in keyof T as IsMutableAndOptional<T[K], K>]?: SchemaOutput<T[K]> },
-        { [K in keyof T as IsMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> }
-    ]>>
+    Compile<
+        Merge<[
+            { readonly [K in keyof T as NotMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> },
+            { readonly [K in keyof T as IsOptionalNotMutable<T[K], K>]?: SchemaOutput<T[K]> },
+            { [K in keyof T as IsMutableAndOptional<T[K], K>]?: SchemaOutput<T[K]> },
+            { [K in keyof T as IsMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> }
+        ]>
+    >
 
 /*** Main ***/
 

@@ -31,6 +31,7 @@ class ArraySchema<
     >
 
     public override readonly clearFlags!: () => ArraySchema<I, O>
+
 }
 
 /*** Expors ***/

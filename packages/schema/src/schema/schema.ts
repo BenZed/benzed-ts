@@ -1,18 +1,41 @@
-import { $$copy, $$equals, copy, CopyComparable } from '@benzed/immutable'
+import { $$copy, $$equals, copy, CopyComparable, equals } from '@benzed/immutable'
 
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
+import { isFunction, isInstanceOf } from '@benzed/is'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+import {
+
+    TypeValidator,
+    TypeValidatorSettings,
+
+    Validator,
+    DefaultValidator,
+    DefaultValidatorSettings
+
+} from '../validator'
+
+import ValidationError from '../util/validation-error'
+
+import { Flags, HasOptional } from './flags'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
+type ApplyOptional<F extends Flags[], O> = HasOptional<F, O | undefined, O>
+
 type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer O, infer F>
-    ? HasOptional<F, O | undefined, O>
+    ? ApplyOptional<F, O>
     : never
 
+type SchemaInput<S extends Schema<any, any, any>> =
+    S extends Schema<infer I, any, any> ? I : unknown
+
 type Primitive = string | number | boolean | null | undefined
+
+interface SchemaValidationContext {
+    readonly transform: boolean
+    readonly path: (string | number)[]
+}
 
 /*** Main ***/
 
@@ -20,7 +43,18 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     protected readonly _flags: F
     protected readonly _input: I
-    protected readonly _output!: O
+
+    protected readonly abstract _typeValidator: TypeValidator<O>
+    protected readonly _defaultValidator: DefaultValidator<O> = new DefaultValidator({})
+    protected _validators: Validator<O>[] = []
+
+    public get validators(): readonly [DefaultValidator<O>, TypeValidator<O>, ...Validator<O>[]] {
+        return [
+            this._defaultValidator,
+            this._typeValidator,
+            ...this._validators
+        ]
+    }
 
     // Construct
 
@@ -31,7 +65,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     // Data Methods
 
-    public is(input: unknown): input is O {
+    public is(input: unknown): input is ApplyOptional<F, O> {
         try {
             this.assert(input)
             return true
@@ -40,34 +74,46 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         }
     }
 
-    public assert(input: unknown, _msg = 'incorrect type'): asserts input is O {
-        void this._validate(input, false)
+    public assert(input: unknown): asserts input is ApplyOptional<F, O> {
+        void this._validate(input, { transform: false })
     }
 
-    public validate(input: unknown): O {
-        return this._validate(input, true)
+    public validate(input: unknown): ApplyOptional<F, O> {
+        return this._validate(input, { transform: true })
     }
 
-    public create(): O {
-        return copy(this._output)
+    public create(): ApplyOptional<F, O> {
+        return this
+            ._defaultValidator
+            .transform(undefined) as ApplyOptional<F, O>
     }
 
     // Schema Methods
+
+    public cast(cast: NonNullable<TypeValidatorSettings<O>['cast']>): this {
+        return this._copyWithTypeValidatorSettings({ cast })
+    }
+
+    public error(error: NonNullable<TypeValidatorSettings<O>['error']>): this {
+        return this._copyWithTypeValidatorSettings({ error })
+    }
+
+    public default(def: NonNullable<DefaultValidatorSettings<O>['default']>): this {
+        return this._copyWithNewDefaultSetting({ default: def })
+    }
 
     /**
      * @returns schema with optional flag
      */
     public readonly optional = this._copyWithFlag.bind(this, Flags.Optional) as unknown
+    public get isOptional(): boolean {
+        return this._flags.includes(Flags.Optional)
+    }
 
     /**
      * @returns schema with mutable flag 
      */
     public readonly mutable = this._copyWithFlag.bind(this, Flags.Mutable) as unknown
-
-    public get isOptional(): boolean {
-        return this._flags.includes(Flags.Optional)
-    }
-
     public get isMutable(): boolean {
         return this._flags.includes(Flags.Mutable)
     }
@@ -81,13 +127,51 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return schema as any
     }) as unknown
 
-    // Helper
+    // Main
 
-    private _validate(input: unknown, sanitize: boolean): O {
-        void input
-        void sanitize
-        throw new Error('Not yet implemented.')
+    protected _validate(
+        input: unknown,
+        inputContext: Partial<SchemaValidationContext>
+    ): ApplyOptional<F, O> {
+
+        const {
+            transform: allowTransform = true,
+            path = []
+        } = inputContext
+
+        const { validators, isOptional } = this
+
+        let output = input
+        for (const validator of validators) {
+
+            try {
+
+                output = validator.validate(output as O, allowTransform)
+
+                const isUndefinedPostDefaultValidation =
+                    // after default validation
+                    validator instanceof DefaultValidator &&
+                    // still undefined 
+                    output === undefined
+
+                if (
+                    isOptional &&
+                    isUndefinedPostDefaultValidation
+                )
+                    return output as unknown as ApplyOptional<F, O>
+
+            } catch ({ message }) {
+                throw new ValidationError(
+                    message as string,
+                    path
+                )
+            }
+        }
+
+        return output as ApplyOptional<F, O>
     }
+
+    // Helper
 
     private _copyWithFlag(flag: Flags): this {
 
@@ -100,16 +184,39 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return schema
     }
 
-    // CopyComparable 
-
-    public [$$copy](): this {
-        const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
-        const schema = new ThisSchema(this._input, ...this._flags)
+    private _copyWithTypeValidatorSettings(settings: Partial<TypeValidatorSettings<O>>): this {
+        const schema = this[$$copy]()
+        schema._typeValidator.applySettings(settings)
         return schema
     }
 
-    public [$$equals](input: unknown): input is this {
-        throw new Error('Not yet implemented.')
+    private _copyWithNewDefaultSetting(settings: Partial<DefaultValidatorSettings<O>>): this {
+        const schema = this[$$copy]()
+        schema._defaultValidator.applySettings(settings)
+        return schema
+    }
+
+    // CopyComparable implementation
+
+    public [$$copy](): this {
+        const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
+
+        const schema = new ThisSchema(this._input, ...this._flags)
+        schema._typeValidator.applySettings(this._typeValidator.settings)
+        schema._defaultValidator.applySettings(this._defaultValidator.settings)
+        schema._validators = copy(this._validators)
+        return schema
+    }
+
+    public [$$equals](other: unknown): other is this {
+        return (
+            // is this schema
+            isInstanceOf(other, this.constructor) &&
+            // flags match
+            equals(other._flags, this._flags) &&
+            // type settings match
+            equals(other.validators, this.validators)
+        )
     }
 }
 
@@ -118,38 +225,16 @@ abstract class PrimitiveSchema
     I extends Primitive,
     F extends Flags[] = []
 /**/>
-    extends Schema<I, I, F> { }
+    extends Schema<I, I, F> {
 
-class NullSchema<F extends Flags[] = []> extends PrimitiveSchema<null, F> {
-    public constructor (...flags: F) {
-        super(null, ...flags)
+    public constructor (input: I | (() => I), ...flags: F) {
+        super(isFunction(input) ? input() : input, ...flags)
+
+        this._defaultValidator.applySettings({
+            default: input
+        })
     }
 
-    public override readonly optional!: HasOptional<
-    /**/ F, () => never, () => NullSchema<AddFlag<Flags.Optional, F>>
-    >
-
-    public override readonly mutable!: HasMutable<
-    /**/ F, () => never, () => NullSchema<AddFlag<Flags.Mutable, F>>
-    >
-
-    public override readonly clearFlags!: () => NullSchema
-}
-
-class UndefinedSchema<F extends Flags[] = []> extends PrimitiveSchema<undefined, F> {
-    public constructor (...flags: F) {
-        super(undefined, ...flags)
-    }
-
-    public override readonly optional!: HasOptional<
-    /**/ F, () => never, () => UndefinedSchema<AddFlag<Flags.Optional, F>>
-    >
-
-    public override readonly mutable!: HasMutable<
-    /**/ F, () => never, () => UndefinedSchema<AddFlag<Flags.Mutable, F>>
-    >
-
-    public override readonly clearFlags!: () => UndefinedSchema
 }
 
 /*** Exports ***/
@@ -158,11 +243,11 @@ export default Schema
 
 export {
     Schema,
+    SchemaInput,
     SchemaOutput,
 
     PrimitiveSchema,
     Primitive,
-    NullSchema,
-    UndefinedSchema,
+
 }
 
