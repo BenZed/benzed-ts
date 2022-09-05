@@ -63,7 +63,7 @@ describe('$() shortcut', () => {
 
 })
 
-describe('shortcut type tests', () => {
+describe.skip('shortcut type tests', () => {
 
     it('primitives', () => {
 

@@ -24,11 +24,13 @@ class DefaultValidator<O> extends TransformValidator<
 
         const { default: _default } = this.settings
 
-        return input === undefined
+        const output = input === undefined
             ? isFunction(_default)
                 ? _default()
                 : _default
             : input
+
+        return output
     }
 
 }

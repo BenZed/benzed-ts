@@ -1,4 +1,5 @@
 import { isString } from '@benzed/is'
+
 import { TypeValidator } from '../validator'
 import { AddFlag, Flags, HasOptional } from './flags'
 
@@ -61,7 +62,9 @@ class FooSchema<F extends Flags[]> extends Schema<void, 'foo', F> {
     })
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => FooSchema<AddFlag<Flags.Optional, F>>
+    /**/ F,
+    /**/ never,
+    /**/ () => FooSchema<AddFlag<Flags.Optional, F>>
     >
 
 }
@@ -84,7 +87,7 @@ describe('default() method', () => {
 
     it('instances a new schema with a different default setting', () => {
 
-        expect(() => fooSchema.validate(undefined)).toThrow('undefined is not type foo')
+        expect(() => fooSchema.validate(undefined)).toThrow('undefined is not foo')
         expect(fooSchemaWithDefault.validate(undefined)).toEqual('foo')
     })
 
@@ -110,7 +113,7 @@ describe('validate() method', () => {
     })
 
     it('throws if type cannot be cast', () => {
-        expect(() => fooSchema.validate(1)).toThrow('1 is not type foo')
+        expect(() => fooSchema.validate(1)).toThrow('1 is not foo')
     })
 
     it('considers optional properties', () => {
@@ -122,7 +125,7 @@ describe('validate() method', () => {
 describe('assert() method', () => {
 
     it('assert() throws if type is incorrect', () => {
-        expect(() => fooSchema.assert('')).toThrow('is not type foo')
+        expect(() => fooSchema.assert('')).toThrow('is not foo')
         expect(() => fooSchema.assert('foo')).not.toThrow()
     })
 

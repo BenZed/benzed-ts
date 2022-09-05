@@ -52,6 +52,7 @@ import {
     isPlainObject,
     isString
 } from '@benzed/is'
+import { Flags } from './flags'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

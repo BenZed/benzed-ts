@@ -121,11 +121,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     /**
      * @returns schema without optional or mutable flags.
      */
-    public readonly clearFlags = (() => {
-        const schema = this[$$copy]()
-        schema._flags.length = 0
-        return schema as any
-    }) as unknown
+    public readonly clearFlags = (() => this._copyConstruct(this._input)) as unknown
 
     // Main
 
@@ -178,10 +174,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         if (this._flags.includes(flag))
             throw new Error(`Schema is already ${Flags[flag]}`)
 
-        const schema = this[$$copy]()
-        schema._flags.push(flag)
-
-        return schema
+        return this._copyConstruct(this._input, ...this._flags, flag)
     }
 
     private _copyWithTypeValidatorSettings(settings: Partial<TypeValidatorSettings<O>>): this {
@@ -196,16 +189,20 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return schema
     }
 
-    // CopyComparable implementation
-
-    public [$$copy](): this {
+    private _copyConstruct(input: I, ...flags: Flags[]): this {
         const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
 
-        const schema = new ThisSchema(this._input, ...this._flags)
+        const schema = new ThisSchema(input, ...flags)
         schema._typeValidator.applySettings(this._typeValidator.settings)
         schema._defaultValidator.applySettings(this._defaultValidator.settings)
         schema._validators = copy(this._validators)
         return schema
+    }
+
+    // CopyComparable implementation
+
+    public [$$copy](): this {
+        return this._copyConstruct(this._input, ...this._flags)
     }
 
     public [$$equals](other: unknown): other is this {

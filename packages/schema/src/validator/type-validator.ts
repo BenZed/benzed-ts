@@ -70,7 +70,7 @@ class TypeValidator<O> extends DuplexValidator<
 
     public constructor (settings: TypeValidatorSettings<O>) {
         super({
-            error: (value, name) => `${String(value)} is not type ${name}`,
+            error: (value, name) => `${String(value)} is not ${name}`,
             ...settings
         })
     }
