@@ -13,6 +13,7 @@ import TupleSchema from './tuple-schema'
 import { expectTypeOf } from 'expect-type'
 import NullSchema from './null-schema'
 import UndefinedSchema from './undefined-schema'
+import { $$excluded } from '@benzed/immutable/lib/symbols'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -63,7 +64,7 @@ describe('$() shortcut', () => {
 
 })
 
-describe.skip('shortcut type tests', () => {
+describe('shortcut type tests', () => {
 
     it('primitives', () => {
 
@@ -95,6 +96,27 @@ describe.skip('shortcut type tests', () => {
             x: number
             y: number
             readonly z?: number
+        }>()
+
+    })
+
+    it('nested shapes', () => {
+
+        const $todo = $({
+            completed: $.boolean().mutable(),
+            description: $({
+                content: $.string(),
+                deadline: $.number()
+            }).mutable()
+        })
+
+        type Todo = Infer<typeof $todo>
+        expectTypeOf<Todo>().toEqualTypeOf<{
+            completed: boolean
+            description: {
+                readonly content: string
+                readonly deadline: number
+            }
         }>()
 
     })

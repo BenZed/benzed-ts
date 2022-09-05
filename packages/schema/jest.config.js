@@ -4,5 +4,9 @@ module.exports = {
         'ts-jest': {
             isolatedModules: true
         }
-    }
+    },
+    modulePathIgnorePatterns: [
+        'util.test.ts',
+        'validators/*'
+    ]
 }

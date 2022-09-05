@@ -30,6 +30,7 @@ type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer
 type SchemaInput<S extends Schema<any, any, any>> =
     S extends Schema<infer I, any, any> ? I : unknown
 
+// TODO Move Me
 type Primitive = string | number | boolean | null | undefined
 
 interface SchemaValidationContext {
@@ -44,8 +45,8 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     protected readonly _flags: F
     protected readonly _input: I
 
-    protected readonly abstract _typeValidator: TypeValidator<O>
     protected readonly _defaultValidator: DefaultValidator<O> = new DefaultValidator({})
+    protected readonly abstract _typeValidator: TypeValidator<O>
     protected _validators: Validator<O>[] = []
 
     public get validators(): readonly [DefaultValidator<O>, TypeValidator<O>, ...Validator<O>[]] {
@@ -239,12 +240,15 @@ abstract class PrimitiveSchema
 export default Schema
 
 export {
+
     Schema,
     SchemaInput,
     SchemaOutput,
+    SchemaValidationContext,
 
     PrimitiveSchema,
     Primitive,
 
+    ApplyOptional
 }
 

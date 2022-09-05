@@ -14,6 +14,9 @@ export default class ValidationError extends Error {
             : msgOrFormat
 
         super(message)
+
+        this.name = 'ValidationError'
+
     }
 
 }

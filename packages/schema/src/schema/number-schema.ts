@@ -1,5 +1,5 @@
 
-import { isNumber, isString } from '@benzed/is/lib'
+import { isNumber, isNaN, isString } from '@benzed/is/lib'
 import { TypeValidator } from '../validator'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
@@ -8,8 +8,11 @@ import { PrimitiveSchema } from './schema'
 /*** Helper ***/
 
 function tryCastToNumber(value: unknown): unknown {
-    if (isString(value))
-        return parseFloat(value)
+    if (isString(value)) {
+        const parsed = parseFloat(value)
+        if (!isNaN(parsed))
+            return parsed
+    }
 
     return value
 }

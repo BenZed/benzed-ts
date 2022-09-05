@@ -1,4 +1,6 @@
-import { isFunction } from '@benzed/is/lib'
+import { copy } from '@benzed/immutable'
+import { isFunction } from '@benzed/is'
+
 import { TransformValidator } from './validator'
 
 /*** Types ***/
@@ -27,7 +29,7 @@ class DefaultValidator<O> extends TransformValidator<
         const output = input === undefined
             ? isFunction(_default)
                 ? _default()
-                : _default
+                : copy(_default)
             : input
 
         return output
