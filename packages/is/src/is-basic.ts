@@ -15,7 +15,7 @@ const BOXABLE_PRIMITIVES = {
 
 /*** Helper ***/
 
-function isBoxedOrPrimitive(
+function isLiteralOrBoxed(
     input: unknown,
     primitive: 'string' | 'boolean' | 'number'
 ): boolean {
@@ -27,15 +27,15 @@ function isBoxedOrPrimitive(
 /*** Main ***/
 
 export function isString(input: unknown): input is string {
-    return isBoxedOrPrimitive(input, 'string')
+    return isLiteralOrBoxed(input, 'string')
 }
 
 export function isBoolean(input: unknown): input is boolean {
-    return isBoxedOrPrimitive(input, 'boolean')
+    return isLiteralOrBoxed(input, 'boolean')
 }
 
 export function isNumber(input: unknown): input is number {
-    return !isNaN(input) && isBoxedOrPrimitive(input, 'number')
+    return !isNaN(input) && isLiteralOrBoxed(input, 'number')
 }
 
 export function isSymbol(input: unknown): input is symbol {
@@ -94,4 +94,15 @@ export function isSortable(input: unknown): input is Sortable {
 
     return isNumber(value) || isString(value) || isBigInt(value)
 
+}
+
+export function isPrimitive(
+    input: unknown
+): input is number | bigint | string | boolean | null | undefined {
+
+    return input == null ||
+        isNumber(input) ||
+        isBigInt(input) ||
+        isString(input) ||
+        isBoolean(input)
 }

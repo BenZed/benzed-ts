@@ -84,7 +84,7 @@ class TupleSchema<
             if (isInstanceOf(schema, Schema))
                 output[i] = schema['_validate'](output[i], subContext)
 
-            // TODO this should be casted to a "Enum Validator" or something
+            // TODO this should be casted to an "Enum Validator" or something
             else if (output[i] !== schema) {
                 throw new ValidationError(
                     `Must be ${output[i]}`,

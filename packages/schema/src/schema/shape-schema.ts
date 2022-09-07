@@ -1,5 +1,5 @@
 import { push } from '@benzed/immutable'
-import { isPlainObject } from '@benzed/is'
+import { isObject } from '@benzed/is'
 import { Compile, Merge } from '@benzed/util'
 import { TypeValidator } from '../validator'
 
@@ -57,7 +57,7 @@ class ShapeSchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'object',
-        is: (input): input is O => isPlainObject(input)
+        is: (input): input is O => isObject(input)
     })
 
     protected _validateChildren(

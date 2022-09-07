@@ -16,6 +16,7 @@ import {
     isSortable,
     isPromise,
     isDate,
+    isPrimitive,
 } from './is-basic'
 
 import isArrayLike from './is-array-like'
@@ -67,6 +68,7 @@ type Is = typeof isInstanceOf & {
     number: typeof isNumber
     int: typeof isInteger
     bigint: typeof isBigInt
+    primitive: typeof isPrimitive
 
     object: typeof isObject
     array: typeof isArray
@@ -137,6 +139,7 @@ let is: Is
     is.number = isNumber
     is.int = isInteger
     is.bigint = isBigInt
+    is.primitive = isPrimitive
 
     is.object = isObject
     is.array = isArray

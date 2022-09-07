@@ -84,7 +84,7 @@ interface SchemaInterface {
     ): ArraySchema<T, ArraySchemaOutput<T>>
 
     record<T extends RecordSchemaInput>(
-        input: T
+        ...input: T
     ): RecordSchema<T, RecordSchemaOutput<T>>
 
     tuple<T extends TupleSchemaInput>(
@@ -141,7 +141,7 @@ function createSchemaInterface(): SchemaInterface {
 
     $.shape = shape => new ShapeSchema(shape)
     $.array = of => new ArraySchema(of)
-    $.record = of => new RecordSchema(of)
+    $.record = (...of) => new RecordSchema(of)
 
     $.tuple = (...of) => new TupleSchema(of)
     $.or = (...options) => new UnionSchema(options)
