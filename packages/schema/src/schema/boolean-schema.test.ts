@@ -16,11 +16,13 @@ describe('validate()', () => {
     })
 
     it('casts "true" to true', () => {
-        expect($bool.validate('true')).toEqual(true)
+        expect($bool.validate('true'))
+            .toEqual(true)
     })
 
     it('casts "false" to false', () => {
-        expect($bool.validate('false')).toEqual(false)
+        expect($bool.validate('false'))
+            .toEqual(false)
     })
 
 })

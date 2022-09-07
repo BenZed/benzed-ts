@@ -1,8 +1,6 @@
 
 import { push } from '@benzed/immutable'
-import { isArray, isInstanceOf } from '@benzed/is'
-
-import ValidationError from '../util/validation-error'
+import { isArray } from '@benzed/is'
 
 import {
     LengthValidator,
@@ -22,8 +20,7 @@ import {
     SchemaValidationContext,
 
     ApplyMutable,
-    ParentSchema,
-    Primitive
+    ParentSchema
 } from './schema'
 
 /* eslint-disable 
@@ -32,15 +29,10 @@ import {
 
 /*** Types ***/
 
-type TupleSchemaInput = readonly (Primitive | Schema<any, any, any>)[]
+type TupleSchemaInput = readonly Schema<any, any, any>[]
 
 type TupleSchemaOutput<T extends TupleSchemaInput> = {
-    [K in keyof T]: T[K] extends Primitive
-    /**/ ? T[K]
-    /**/ : T[K] extends Schema<any, any, any>
-        // @ts-expect-error T[K] is resolving to Schema<any,any,any> & T[K], which I don't get
-        /**/ ? SchemaOutput<T[K]>
-        /**/ : unknown
+    [K in keyof T]: SchemaOutput<T[K]>
 }
 
 /*** Main ***/
@@ -65,6 +57,19 @@ class TupleSchema<
         })
     ]
 
+    public constructor (input: I, ...flags: F) {
+        super(input, ...flags)
+
+        this._setPostTypeValidator(
+            'tuple-length',
+            new LengthValidator({
+                comparator: '==',
+                value: input.length,
+                error: `must have exactly ${input.length} items`
+            })
+        )
+    }
+
     protected _validateChildren(
         input: O,
         context: SchemaValidationContext
@@ -76,21 +81,10 @@ class TupleSchema<
 
             const schema = this._input[i]
 
-            const subContext = {
+            output[i] = schema['_validate'](output[i], {
                 ...context,
                 path: push(context.path, i)
-            }
-
-            if (isInstanceOf(schema, Schema))
-                output[i] = schema['_validate'](output[i], subContext)
-
-            // TODO this should be casted to an "Enum Validator" or something
-            else if (output[i] !== schema) {
-                throw new ValidationError(
-                    `Must be ${output[i]}`,
-                    subContext.path
-                )
-            }
+            })
         }
 
         return output as unknown as ApplyMutable<F, O>

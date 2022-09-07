@@ -13,7 +13,6 @@ import TupleSchema from './tuple-schema'
 import { expectTypeOf } from 'expect-type'
 import NullSchema from './null-schema'
 import UndefinedSchema from './undefined-schema'
-import { $$excluded } from '@benzed/immutable/lib/symbols'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -145,11 +144,17 @@ describe('shortcut type tests', () => {
 
         const $switches = $.record($.boolean())
         expectTypeOf<Infer<typeof $switches>>()
-            .toEqualTypeOf<{ readonly [key: string]: boolean }>()
+            .toEqualTypeOf<Readonly<Record<string, boolean>>>()
 
         const $scores = $.record($.number().mutable())
         expectTypeOf<Infer<typeof $scores>>()
-            .toEqualTypeOf<{ [key: string]: number }>()
+            .toEqualTypeOf<Record<string, number>>()
+    })
+
+    it('enums', () => {
+        const $trafficLight = $('red', 'green', 'yellow')
+        expectTypeOf<Infer<typeof $trafficLight>>()
+            .toEqualTypeOf<'red' | 'green' | 'yellow'>()
     })
 
     it('tuples', () => {
@@ -157,15 +162,12 @@ describe('shortcut type tests', () => {
         expectTypeOf<Infer<typeof $range>>()
             .toEqualTypeOf<readonly [number, number]>()
 
-        const $between = $.tuple($.number(), $.or('<', '>'), $.number()).mutable()
+        const $between = $.tuple($.number(), $.or($('<'), $('>')), $.number()).mutable()
         expectTypeOf<Infer<typeof $between>>()
             .toEqualTypeOf<[number, '<' | '>', number]>()
     })
 
     it('unions', () => {
-        const $trafficLight = $.or('red', 'green', 'yellow')
-        expectTypeOf<Infer<typeof $trafficLight>>()
-            .toEqualTypeOf<'red' | 'green' | 'yellow'>()
 
         const $id = $.or($.string(), $.number())
         expectTypeOf<Infer<typeof $id>>()

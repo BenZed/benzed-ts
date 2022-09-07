@@ -52,7 +52,12 @@ import {
     isPlainObject,
     isString
 } from '@benzed/is'
-import { Flags } from './flags'
+
+import {
+    EnumSchema,
+    EnumSchemaInput,
+    EnumSchemaOutput
+} from './enum-schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -60,14 +65,16 @@ import { Flags } from './flags'
 
 /*** Types ***/
 
-type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput
+type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput
 
 type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
     /**/ T extends TupleSchemaInput
     /**/ ? TupleSchema<T, TupleSchemaOutput<T>>
-        /**/ : T extends [ShapeSchemaInput]
-        /**/ ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
-            /**/ : never
+        /**/ : T extends EnumSchemaInput
+        /**/ ? EnumSchema<T, EnumSchemaOutput<T>>
+        /*  */ : T extends [ShapeSchemaInput]
+            /**/ ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
+            /*    */ : never
 
 interface SchemaInterface {
 
@@ -104,17 +111,26 @@ interface SchemaInterface {
     boolean(): BooleanSchema
     null(): NullSchema
     undefined(): UndefinedSchema
+
+    enum<T extends EnumSchemaInput>(
+        ...input: T
+    ): EnumSchema<T, EnumSchemaOutput<T>>
+
 }
 
 /*** Helper ***/
 
-function isTupleSchemaInput(args: SchemaInterfaceShortcutSignature): args is TupleSchemaInput {
+function isEnumSchemaInput(args: SchemaInterfaceShortcutSignature): args is EnumSchemaInput {
     return [...args].every(arg =>
-        isInstanceOf(arg, Schema) ||
-        arg == null ||
         isString(arg) ||
         isNumber(arg) ||
         isBoolean(arg)
+    )
+}
+
+function isTupleSchemaInput(args: SchemaInterfaceShortcutSignature): args is TupleSchemaInput {
+    return [...args].every(arg =>
+        isInstanceOf(arg, Schema)
     )
 }
 
@@ -129,9 +145,11 @@ function createSchemaInterface(): SchemaInterface {
 
         const schema = isTupleSchemaInput(args)
             ? new TupleSchema(args)
-            : isShapeSchemaInput(args)
-                ? new ShapeSchema(args[0] as ShapeSchemaInput)
-                : null
+            : isEnumSchemaInput(args)
+                ? new EnumSchema(args)
+                : isShapeSchemaInput(args)
+                    ? new ShapeSchema(args[0] as ShapeSchemaInput)
+                    : null
 
         if (!schema)
             throw new Error('Input not recognized.')
@@ -140,12 +158,12 @@ function createSchemaInterface(): SchemaInterface {
     }
 
     $.shape = shape => new ShapeSchema(shape)
-    $.array = of => new ArraySchema(of)
-    $.record = (...of) => new RecordSchema(of)
+    $.array = item => new ArraySchema(item)
+    $.record = (...keyValue) => new RecordSchema(keyValue)
 
-    $.tuple = (...of) => new TupleSchema(of)
-    $.or = (...options) => new UnionSchema(options)
-    $.and = (...objects) => new IntersectionSchema(objects)
+    $.tuple = (...shape) => new TupleSchema(shape)
+    $.or = (...types) => new UnionSchema(types)
+    $.and = (...types) => new IntersectionSchema(types)
 
     $.number = () => new NumberSchema()
     $.string = () => new StringSchema()
@@ -154,8 +172,18 @@ function createSchemaInterface(): SchemaInterface {
     $.null = () => new NullSchema()
     $.undefined = () => new UndefinedSchema()
 
+    $.enum = (...values) => new EnumSchema(values)
+
     return $
 }
+
+function extendSchemaInterface<T extends object, S extends SchemaInterface = SchemaInterface>(
+    addedProperties: T,
+    $?: S
+): S & T {
+    return Object.assign($ ?? createSchemaInterface() as S, addedProperties)
+}
+
 /*** Main ***/
 
 const $ = createSchemaInterface()
@@ -168,5 +196,9 @@ export {
     $,
     Schema,
     SchemaOutput,
-    SchemaOutput as Infer
+    SchemaOutput as Infer,
+
+    SchemaInterface,
+    createSchemaInterface,
+    extendSchemaInterface,
 }

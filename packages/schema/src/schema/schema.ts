@@ -1,6 +1,6 @@
 import { $$copy, $$equals, copy, CopyComparable, equals } from '@benzed/immutable'
 
-import { isFunction, isInstanceOf } from '@benzed/is'
+import { isFunction, isInstanceOf, isNumber } from '@benzed/is'
 
 import {
 
@@ -16,6 +16,7 @@ import {
 import ValidationError from '../util/validation-error'
 
 import { Flags, HasMutable, HasOptional } from './flags'
+import { ascending } from '@benzed/array'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -39,7 +40,7 @@ interface SchemaValidationContext {
     readonly path: (string | number)[]
 }
 
-/*** Main ***/
+/*** Schema Class ***/
 
 abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Schema<I, O, F>> {
 
@@ -48,24 +49,28 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     protected readonly _defaultValidator: DefaultValidator<O> = new DefaultValidator({})
     protected readonly abstract _typeValidator: TypeValidator<O>
-    protected _validators: Validator<O>[] = []
+    private _postTypeValidators: Map<string | number, Validator<O>> = new Map()
 
-    public get validators(): readonly [DefaultValidator<O>, TypeValidator<O>, ...Validator<O>[]] {
+    public get validators(): readonly [
+        DefaultValidator<O>,
+        TypeValidator<O>,
+        ...Validator<O>[]
+    ] {
         return [
             this._defaultValidator,
             this._typeValidator,
-            ...this._validators
+            ...this._postTypeValidators.values()
         ]
     }
 
-    // Construct
+    /*** Construct ***/
 
     public constructor (input: I, ...flags: F) {
         this._input = input
         this._flags = flags
     }
 
-    // Data Methods
+    /*** Data Methods ***/
 
     public is(input: unknown): input is ApplyOptional<F, O> {
         try {
@@ -90,7 +95,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
             .transform(undefined) as ApplyOptional<F, O>
     }
 
-    // Schema Methods
+    /*** Schema Methods ***/
 
     public cast(cast: NonNullable<TypeValidatorSettings<O>['cast']>): this {
         return this._copyWithTypeValidatorSettings({ cast })
@@ -101,7 +106,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     }
 
     public default(def: NonNullable<DefaultValidatorSettings<O>['default']>): this {
-        return this._copyWithNewDefaultSetting({ default: def })
+        return this._copyWithDefaultValidatorSetting({ default: def })
     }
 
     /**
@@ -123,9 +128,9 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     /**
      * @returns schema without optional or mutable flags.
      */
-    public readonly clearFlags = (() => this._copyConstruct(this._input)) as unknown
+    public readonly clearFlags = (() => this._copyWithInputAndFlags(this._input)) as unknown
 
-    // Main
+    /*** Main ***/
 
     protected _validate(
         input: unknown,
@@ -169,14 +174,62 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return output as ApplyOptional<F, O>
     }
 
-    // Helper
+    /*** Mutable Helpers ***/
+
+    protected _getPostTypeValidator(
+        id: string
+    ): Validator<O> | undefined {
+        return this._postTypeValidators.get(id)
+    }
+
+    protected _setPostTypeValidator(
+        id: string,
+        validator: Validator<O>
+    ): void {
+        this._postTypeValidators.set(id, validator)
+    }
+
+    protected _removePostTypeValidator(
+        id: string,
+    ): boolean {
+        if (!this._postTypeValidators.has(id))
+            return false
+
+        this._postTypeValidators.delete(id)
+        return true
+    }
+
+    protected _addLoosePostTypeValidator(
+        validator: Validator<O>
+    ): void {
+
+        const highestExistingNumericalId = [...this._postTypeValidators.keys()]
+            .filter(isNumber)
+            .sort(ascending)
+            .at(-1) ?? -1
+
+        const newNumericalId = highestExistingNumericalId + 1
+
+        this._postTypeValidators.set(newNumericalId, validator)
+    }
+
+    /*** Immutable Helpers ***/
+
+    private _copyWithInputAndFlags(input: I, ...flags: Flags[]): this {
+        const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
+
+        const schema = new ThisSchema(input, ...flags)
+        schema._typeValidator.applySettings(this._typeValidator.settings)
+        schema._defaultValidator.applySettings(this._defaultValidator.settings)
+        schema._postTypeValidators = copy(this._postTypeValidators)
+        return schema
+    }
 
     private _copyWithFlag(flag: Flags): this {
-
         if (this._flags.includes(flag))
             throw new Error(`Schema is already ${Flags[flag]}`)
 
-        return this._copyConstruct(this._input, ...this._flags, flag)
+        return this._copyWithInputAndFlags(this._input, ...this._flags, flag)
     }
 
     private _copyWithTypeValidatorSettings(settings: Partial<TypeValidatorSettings<O>>): this {
@@ -185,26 +238,33 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return schema
     }
 
-    private _copyWithNewDefaultSetting(settings: Partial<DefaultValidatorSettings<O>>): this {
+    private _copyWithDefaultValidatorSetting(settings: Partial<DefaultValidatorSettings<O>>): this {
         const schema = this[$$copy]()
         schema._defaultValidator.applySettings(settings)
         return schema
     }
 
-    private _copyConstruct(input: I, ...flags: Flags[]): this {
-        const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
-
-        const schema = new ThisSchema(input, ...flags)
-        schema._typeValidator.applySettings(this._typeValidator.settings)
-        schema._defaultValidator.applySettings(this._defaultValidator.settings)
-        schema._validators = copy(this._validators)
+    protected _copyWithPostTypeValidator(
+        validator: Validator<O>,
+        id: string
+    ): this {
+        const schema = this[$$copy]()
+        schema._setPostTypeValidator(id, validator)
         return schema
     }
 
-    // CopyComparable implementation
+    protected _copyWithLoosePostTypeValidator(
+        validator: Validator<O>
+    ): this {
+        const schema = this[$$copy]()
+        schema._addLoosePostTypeValidator(validator)
+        return schema
+    }
+
+    /*** CopyComparable Implemention ***/
 
     public [$$copy](): this {
-        return this._copyConstruct(this._input, ...this._flags)
+        return this._copyWithInputAndFlags(this._input, ...this._flags)
     }
 
     public [$$equals](other: unknown): other is this {
@@ -219,6 +279,8 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     }
 }
 
+/*** Primitive Schema ***/
+
 abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     extends Schema<I, I, F> {
 
@@ -230,8 +292,9 @@ abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
             default: input
         })
     }
-
 }
+
+/*** Parent Schema ***/
 
 abstract class ParentSchema<I, O, F extends Flags[]>
     extends Schema<I, O, F> {

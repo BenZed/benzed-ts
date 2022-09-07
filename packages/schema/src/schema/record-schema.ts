@@ -13,6 +13,7 @@ import UnionSchema from './union-schema'
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
+
 /*** Types ***/
 
 type RecordSchemaInput =
@@ -20,7 +21,8 @@ type RecordSchemaInput =
         value: Schema<any, any, any>
     ] |
     [
-        key: NumberSchema<any> |
+        key:
+        NumberSchema<any> |
         StringSchema<any> |
         UnionSchema<any, string | number, any>,
         values: Schema<any, any, any>
