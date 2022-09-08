@@ -11,7 +11,7 @@ import {
     createMP3,
     createMP4,
     createPNG,
-    Metadata
+    RenderMetadata
 } from './ffmpeg'
 
 import { Input, Output } from './ffmpeg/settings'
@@ -58,21 +58,7 @@ interface AddRenderTaskOptions<R extends RenderSettings = RenderSettings> {
     readonly settings?: StringKeys<R>[]
 }
 
-interface RenderTaskResult<R extends RenderSettings = RenderSettings> extends Output {
-
-    /**
-     * Render option that was used to create this task
-     */
-    readonly setting: StringKeys<R>
-
-    /**
-     * Metadata from the output stream
-     */
-    readonly meta: Metadata & { renderTime: number }
-
-}
-
-type RenderTask<R extends RenderSettings = RenderSettings> = () => Promise<RenderTaskResult<R>>
+type RenderTask = () => Promise<RenderMetadata>
 
 /*** Helper ***/
 
@@ -97,19 +83,18 @@ function getOutput<R extends RenderSettings>(
     return output
 }
 
-function createRenderTask<R extends RenderSettings, K extends StringKeys<R>>(
-    setting: K,
+function createRenderTask<R extends RenderSettings>(
     addOptions: AddRenderTaskOptions<R>,
-    renderSetting: R[K]
+    renderSetting: RenderSetting,
+    output: Output['output']
 ): RenderTask {
 
     const { source: input } = addOptions
     const { type } = renderSetting
 
-    const output = getOutput(addOptions, type, setting)
-
     switch (type) {
-        case 'image':
+
+        case 'image': {
 
             const { time, size } = renderSetting
 
@@ -118,33 +103,27 @@ function createRenderTask<R extends RenderSettings, K extends StringKeys<R>>(
                 ...size,
                 input,
                 output
-            }).then(meta => ({
-                setting,
-                output,
-                meta
-            }))
+            })
+        }
 
-        case 'video':
+        case 'video': {
+
+            const { size } = renderSetting
+
             return () => createMP4({
                 ...renderSetting,
+                ...size,
                 input,
                 output
-            }).then(meta => ({
-                setting,
-                output,
-                meta
-            }))
+            })
+        }
 
         case 'audio':
             return () => createMP3({
                 ...renderSetting,
                 input,
                 output
-            }).then(meta => ({
-                setting,
-                output,
-                meta
-            }))
+            })
 
         default: {
             const badType: never = type
@@ -157,9 +136,19 @@ function createRenderTask<R extends RenderSettings, K extends StringKeys<R>>(
 
 /*** Main ***/
 
+interface RenderItem<R extends RenderSettings = RenderSettings>
+    extends QueueItem<RenderMetadata>, Input, Output {
+
+    /**
+     * Render option that was used to create this task
+     */
+    readonly setting: StringKeys<R>
+
+}
+
 class Renderer<R extends RenderSettings = RenderSettings> {
 
-    private readonly _queue: Queue<RenderTaskResult<R>> = new Queue()
+    private readonly _queue: Queue<RenderMetadata> = new Queue()
 
     public readonly settings: R
 
@@ -190,9 +179,9 @@ class Renderer<R extends RenderSettings = RenderSettings> {
 
     public add(
         addOptions: AddRenderTaskOptions<R>,
-    ): QueueItem<RenderTaskResult<R>>[] {
+    ): RenderItem<R>[] {
 
-        const renderItems: QueueItem<RenderTaskResult<R>>[] = []
+        const renderItems: RenderItem<R>[] = []
 
         const settingMask =
             addOptions.settings ??
@@ -204,8 +193,17 @@ class Renderer<R extends RenderSettings = RenderSettings> {
                 continue
 
             const renderSettings = this.settings[setting]
-            const renderTask = createRenderTask(setting, addOptions, renderSettings)
-            const renderItem = this._queue.add(renderTask)
+
+            const output = getOutput(addOptions, renderSettings.type, setting)
+
+            const renderTask = createRenderTask(addOptions, renderSettings, output)
+            const queueItem = this._queue.add(renderTask)
+
+            const renderItem: RenderItem<R> = Object.assign(queueItem, {
+                input: addOptions.source,
+                output,
+                setting
+            })
 
             renderItems.push(renderItem)
         }
@@ -221,7 +219,8 @@ export default Renderer
 
 export {
     Renderer,
+    RenderItem,
+
     RenderTask,
-    RenderTaskResult,
     AddRenderTaskOptions
 }

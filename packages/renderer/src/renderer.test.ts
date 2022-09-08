@@ -1,12 +1,12 @@
 import fs from 'fs'
+import path from 'path'
 
 import { isRenderSetting } from './render-settings'
-import { AddRenderTaskOptions, Renderer, RenderTaskResult } from './renderer'
+import { AddRenderTaskOptions, Renderer, RenderItem } from './renderer'
 
-import { QueueItem } from '@benzed/async'
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
-import path from 'path'
-import { isMetadata } from './ffmpeg'
+import { getMetadata, isMetadata } from './ffmpeg'
+import { floor } from '@benzed/math/lib'
 
 describe('construct', () => {
     it('throws if no render options are provided', () => {
@@ -32,27 +32,32 @@ describe('static from() method', () => {
 
 describe('add() method', () => {
 
+    const MP4_SCALE = 0.25
+    const PNG_SCALE = 0.25
+
     const settings = {
         movie: {
             type: 'video' as const,
             vbr: 500,
             abr: 250,
-            size: { scale: 0.25 }
+            size: { scale: MP4_SCALE }
         },
         picture: {
             type: 'image' as const,
-            size: { scale: 0.5 },
+            size: { scale: PNG_SCALE },
             time: { progress: 0.5 }
         }
     }
 
+    const INPUT_SOURCE = TEST_ASSETS.mp4
+
     let renderer: Renderer<typeof settings>
-    let items: QueueItem<RenderTaskResult<typeof settings>>[]
+    let items: RenderItem<typeof settings>[]
     beforeAll(async () => {
         renderer = new Renderer(settings)
 
         items = renderer.add({
-            source: TEST_ASSETS.mp4,
+            source: INPUT_SOURCE,
             target: RENDER_FOLDER
         })
 
@@ -63,7 +68,7 @@ describe('add() method', () => {
 
         const itemForEachRenderKey = Object
             .keys(renderer.settings)
-            .every(key => items.find(item => item.value?.setting === key))
+            .every(key => items.find(item => item.setting === key))
 
         expect(itemForEachRenderKey).toEqual(true)
     })
@@ -72,7 +77,7 @@ describe('add() method', () => {
 
         const allItemsRendered = items
             .every(item =>
-                fs.existsSync(item.value?.output as string)
+                fs.existsSync(item.output as string)
             )
 
         expect(allItemsRendered).toBe(true)
@@ -96,7 +101,6 @@ describe('add() method', () => {
 
         const allItemsUsedTargetMethod = items
             .every(item => item
-                .value
                 ?.output
                 ?.toString()
                 .includes(CUSTOM_PATH_PART)
@@ -123,12 +127,25 @@ describe('add() method', () => {
         await Promise.all(items.map(item => item.finished()))
 
         expect(items.length).toBe(1)
-        expect(items[0].value?.setting).toBe('picture')
+        expect(items[0].setting).toBe('picture')
     })
 
     it('gets metadata results', () => {
         for (const item of items)
-            expect(isMetadata(item.value?.meta)).toBe(true)
+            expect(isMetadata(item.value)).toBe(true)
+    })
+
+    it('size settings are respected', async () => {
+        const [movie, image] = items
+
+        const meta = await getMetadata({ input: INPUT_SOURCE })
+
+        for (const dimensionKey of ['width', 'height'] as const) {
+            const dimension = meta[dimensionKey] ?? 0
+
+            expect(movie?.value?.[dimensionKey]).toBe(floor(dimension * MP4_SCALE, 2))
+            expect(image?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
+        }
     })
 
     it('has typesafe support for render settings', () => {

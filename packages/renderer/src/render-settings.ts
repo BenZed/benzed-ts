@@ -39,11 +39,16 @@ const isAudioRenderSetting: Validator<AudioRenderSetting> = and(
 
 export interface VideoRenderSetting extends VideoSetting, AudioSetting {
     type: 'video'
+    size?: SizeSetting
 }
+
 const isVideoRenderSetting: Validator<VideoRenderSetting> = and(
     hasType('video'),
     isVideoSetting,
     isAudioSetting,
+    shapeOf({
+        size: optional(isSizeSetting)
+    })
 )
 
 export interface ImageRenderSetting {
