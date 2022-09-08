@@ -105,7 +105,5 @@ it('gets metadata from render', async () => {
         seconds: 0.25
     })
 
-    console.log(meta)
-
     expect(isMetadata(meta)).toBe(true)
 })

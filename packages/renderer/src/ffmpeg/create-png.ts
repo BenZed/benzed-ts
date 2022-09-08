@@ -2,7 +2,7 @@ import ffmpeg from 'fluent-ffmpeg'
 
 import {
     getMetadata,
-    Metadata
+    RenderMetadata
 } from './get-metadata'
 
 import {
@@ -17,14 +17,9 @@ import {
     getFfmpegSizeOptionString
 } from './util'
 
-import {
-    clamp
-} from '@benzed/math'
+import { clamp } from '@benzed/math'
 
-import {
-    isDefined,
-    isNumber
-} from '@benzed/is'
+import { isDefined, isNumber } from '@benzed/is'
 
 /*** Types ***/
 
@@ -74,7 +69,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
 /*** Main ***/
 
-async function createPNG(options: CreatePNGOptions): Promise<Metadata & { renderTime: number }> {
+async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
 
     const { input, output } = options
 
@@ -91,7 +86,9 @@ async function createPNG(options: CreatePNGOptions): Promise<Metadata & { render
     if (isDefined(size))
         cmd.setSize(size)
 
-    const [metaStream, outputStream] = createOutputStreams(output)
+    const [outputStream, metaStream] = createOutputStreams(output)
+
+    const renderStart = Date.now()
 
     const render = new Promise((resolve, reject) => cmd
         .on('end', resolve)
@@ -100,8 +97,6 @@ async function createPNG(options: CreatePNGOptions): Promise<Metadata & { render
         .run()
     )
 
-    const renderStart = Date.now()
-
     const [metadata] = await Promise.all([
         getMetadata({ input: metaStream }),
         render,
@@ -109,7 +104,10 @@ async function createPNG(options: CreatePNGOptions): Promise<Metadata & { render
 
     const renderTime = Date.now() - renderStart
 
-    return { ...metadata, renderTime }
+    return {
+        ...metadata,
+        renderTime
+    }
 }
 
 /*** Exports ***/

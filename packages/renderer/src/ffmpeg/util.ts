@@ -1,6 +1,6 @@
 
-import fs from '@benzed/fs'
 import { isString, isNumber } from '@benzed/is'
+import fs from '@benzed/fs'
 
 import { Output, SizeSetting } from './settings'
 
@@ -36,29 +36,29 @@ export function getFfmpegSizeOptionString(
     return size === '?x?' ? undefined : size
 }
 
-export function createOutputStreams(output: Output['output']): [meta: Readable, output: Writable] {
+export function createOutputStreams(
+    output: Output['output']
+): [outputWriter: Writable, metaReader: Readable] {
 
     const metaReader = new Readable({
-        read: size => void size
+        read() { /**/ }
     })
 
     const outputWriter = isString(output)
         ? fs.createWriteStream(output)
         : output
 
-    const defaultWrite = outputWriter.write.bind(outputWriter)
+    // push any data being written to the meta reader stream
+    const originalWrite = outputWriter.write.bind(outputWriter)
+    const overrideWrite = ((chunk, encoding, next) => {
+        metaReader.push(chunk, encoding)
+        return originalWrite(chunk, encoding, next)
+    }) as typeof originalWrite
 
-    // push the written data to the reader stream
-    outputWriter.write = (
-        (chunk, encoding, next) => {
-            metaReader.push(chunk, encoding)
-            defaultWrite(chunk, encoding, next)
-        }
-    ) as typeof outputWriter.write
+    outputWriter.write = overrideWrite
 
-    outputWriter.on('finish', () => {
-        metaReader.destroy()
-    })
+    // cap read stream when the writer is finished
+    outputWriter.on('close', () => metaReader.push(null))
 
-    return [metaReader, outputWriter]
+    return [outputWriter, metaReader]
 }

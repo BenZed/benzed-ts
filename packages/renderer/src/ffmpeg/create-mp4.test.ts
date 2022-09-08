@@ -9,9 +9,9 @@ import { isMetadata } from './get-metadata'
 
 const input = TEST_ASSETS.mp4
 
-it('converts video using two pass encoding', async () => {
+it('converts video', async () => {
 
-    const output = path.join(RENDER_FOLDER, 'test-render-2pass.mp4')
+    const output = path.join(RENDER_FOLDER, 'test-render.mp4')
 
     await createMP4({
         input,
@@ -25,7 +25,7 @@ it('converts video using two pass encoding', async () => {
 it('receives metadata from render', async () => {
 
     const output = fs.createWriteStream(
-        path.join(RENDER_FOLDER, 'render-for-meta.mp4')
+        path.join(RENDER_FOLDER, 'test-render-for-meta.mp4')
     )
 
     const meta = await createMP4({ input, output })

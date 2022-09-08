@@ -1,8 +1,5 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import os from 'os'
-import path from 'path'
-
 import {
     AudioSetting,
     Input,
@@ -12,7 +9,7 @@ import {
 
 } from './settings'
 
-import getMetadata, { Metadata } from './get-metadata'
+import getMetadata, { RenderMetadata } from './get-metadata'
 
 import { getFfmpegSizeOptionString, createOutputStreams } from './util'
 
@@ -32,7 +29,6 @@ type CreateMP4Options =
 const VIDEO_CODEC = 'libx264'
 const AUDIO_CODEC = 'aac'
 const VIDEO_FORMAT = 'mp4'
-const PASS_LOG_FILE_PREFIX = 'benzed-renderer-passlog'
 const DEFAULT_VIDEO_BIT_RATE = 10000
 const DEFAULT_AUDIO_BIT_RATE = 128
 
@@ -43,7 +39,7 @@ const DEFAULT_AUDIO_BIT_RATE = 128
  */
 async function createMP4(
     options: CreateMP4Options
-): Promise<Metadata & { renderTime: number }> {
+): Promise<RenderMetadata> {
 
     const {
         vbr = DEFAULT_VIDEO_BIT_RATE,
@@ -77,36 +73,15 @@ async function createMP4(
     // Execute First Pass
     const renderStart = Date.now()
 
-    const firstPassUrl = path.join(os.tmpdir(), renderStart.toString())
-
-    // Required for two-pass encoding.
-    const firstPassLogFile = path.join(os.tmpdir(), PASS_LOG_FILE_PREFIX)
-
-    await new Promise((resolve, reject) => {
-        const pass1Cmd = cmd.clone()
-        pass1Cmd
-            .addOutputOptions([
-                `-passlogfile ${firstPassLogFile}`,
-                '-pass 1'
-            ])
-            .on('error', reject)
-            .on('end', resolve)
-            .save(firstPassUrl)
-    })
-
-    const [metaStream, outputStream] = createOutputStreams(output)
+    const [outputStream, metaStream] = createOutputStreams(output)
 
     // Execute Second Pass
     const render = new Promise((resolve, reject) => {
         const pass2Cmd = cmd.clone()
         pass2Cmd
-            .addOutputOptions([
-                `-passlogfile ${firstPassLogFile}`,
-                '-pass 2',
-            ])
             .on('error', reject)
             .on('end', resolve)
-            .outputOptions([
+            .addOptions([
                 '-movflags frag_keyframe+empty_moov' // allows streaming
             ])
             .output(outputStream, { end: true })

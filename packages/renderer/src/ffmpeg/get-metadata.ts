@@ -20,12 +20,15 @@ import { round } from '@benzed/math'
 
 /*** Type ***/
 
-type Metadata =
-    Partial<Width & Height & Duration & {
-        format: string
-        size: number | 'N/A'
-        frameRate: number
-    }>
+interface Metadata extends Partial<Width>, Partial<Height>, Partial<Duration> {
+    format?: string
+    size?: number | 'N/A'
+    frameRate?: number
+}
+
+interface RenderMetadata extends Metadata {
+    renderTime: number
+}
 
 const isNotApplicable = (value: unknown): value is 'N/A' => value === 'N/A'
 
@@ -123,5 +126,7 @@ export {
     GetMetadataOptions,
 
     Metadata,
-    isMetadata
+    isMetadata,
+
+    RenderMetadata
 }

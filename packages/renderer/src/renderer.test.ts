@@ -6,22 +6,18 @@ import { AddRenderTaskOptions, Renderer, RenderTaskResult } from './renderer'
 import { QueueItem } from '@benzed/async'
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
 import path from 'path'
+import { isMetadata } from './ffmpeg'
 
 describe('construct', () => {
-
     it('throws if no render options are provided', () => {
         expect(() => new Renderer({}))
             .toThrow('requires at least one RenderSetting')
     })
-
 })
 
 describe('static from() method', () => {
-
     it('gets a render option from a json url', async () => {
-
         const renderer = await Renderer.from(TEST_ASSETS.settings)
-
         expect(isRenderSetting(renderer.settings['image-low'])).toBe(true)
         expect(isRenderSetting(renderer.settings['image-medium'])).toBe(true)
         expect(isRenderSetting(renderer.settings['image-high'])).toBe(true)
@@ -32,7 +28,6 @@ describe('static from() method', () => {
             .rejects
             .toThrow('not a valid RenderSettings object')
     })
-
 })
 
 describe('add() method', () => {
@@ -129,6 +124,11 @@ describe('add() method', () => {
 
         expect(items.length).toBe(1)
         expect(items[0].value?.setting).toBe('picture')
+    })
+
+    it('gets metadata results', () => {
+        for (const item of items)
+            expect(isMetadata(item.value?.meta)).toBe(true)
     })
 
     it('has typesafe support for render settings', () => {
