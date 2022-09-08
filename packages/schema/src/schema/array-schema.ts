@@ -1,11 +1,23 @@
 
+import { TypeValidator } from '../validator'
+
+import {
+    AddFlag,
+    Flags,
+    HasMutable,
+    HasOptional
+} from './flags'
+
+import {
+    Schema,
+    ParentSchema,
+    SchemaOutput,
+    SchemaValidationContext,
+    ApplyMutable
+} from './schema'
+
 import { push } from '@benzed/immutable'
 import { isArray, isString } from '@benzed/is'
-
-import { TypeValidator } from '../validator'
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-
-import { Schema, ParentSchema, SchemaOutput, SchemaValidationContext, ApplyMutable } from './schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -41,7 +53,7 @@ class ArraySchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'array',
-        is: (input): input is ApplyMutable<F, O> => isArray(input),
+        is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,
         cast: tryCastToArray
     })
 

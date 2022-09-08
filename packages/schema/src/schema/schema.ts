@@ -1,7 +1,3 @@
-import { $$copy, $$equals, copy, CopyComparable, equals } from '@benzed/immutable'
-
-import { isFunction, isInstanceOf, isNumber } from '@benzed/is'
-
 import {
 
     TypeValidator,
@@ -15,15 +11,36 @@ import {
 
 import ValidationError from '../util/validation-error'
 
-import { Flags, HasMutable, HasOptional } from './flags'
-import { ascending } from '@benzed/array'
+import {
+    Flags,
+    HasMutable,
+    HasOptional
+} from './flags'
+
+import {
+    $$copy,
+    $$equals,
+    copy,
+    equals,
+    CopyComparable
+} from '@benzed/immutable'
+
+import {
+    isFunction,
+    isInstanceOf,
+    isNumber
+} from '@benzed/is'
+
+import {
+    ascending
+} from '@benzed/array'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
-type ApplyOptional<F extends Flags[], O> = HasOptional<F, O | undefined, O>
 type ApplyMutable<F extends Flags[], O> = HasMutable<F, O, Readonly<O>>
+type ApplyOptional<F extends Flags[], O> = HasOptional<F, O | undefined, O>
 
 type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer O, infer F>
     ? ApplyOptional<F, O>
@@ -32,13 +49,18 @@ type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer
 type SchemaInput<S extends Schema<any, any, any>> =
     S extends Schema<infer I, any, any> ? I : unknown
 
-// TODO Move Me
 type Primitive = string | number | boolean | null | undefined
 
 interface SchemaValidationContext {
     readonly transform: boolean
     readonly path: (string | number)[]
 }
+
+type TypeSetting<O, K extends keyof TypeValidatorSettings<O>> =
+    NonNullable<TypeValidatorSettings<O>>[K]
+
+type DefaultSetting<O, K extends keyof DefaultValidatorSettings<O>> =
+    NonNullable<DefaultValidatorSettings<O>>[K]
 
 /*** Schema Class ***/
 
@@ -61,6 +83,10 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
             this._typeValidator,
             ...this._postTypeValidators.values()
         ]
+    }
+
+    public get typeName(): string {
+        return this._typeValidator.settings.name
     }
 
     /*** Construct ***/
@@ -97,15 +123,19 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     /*** Schema Methods ***/
 
-    public cast(cast: NonNullable<TypeValidatorSettings<O>['cast']>): this {
+    public name(name: TypeSetting<O, 'name'>): this {
+        return this._copyWithTypeValidatorSettings({ name })
+    }
+
+    public cast(cast: TypeSetting<O, 'cast'>): this {
         return this._copyWithTypeValidatorSettings({ cast })
     }
 
-    public error(error: NonNullable<TypeValidatorSettings<O>['error']>): this {
+    public error(error: TypeSetting<O, 'error'>): this {
         return this._copyWithTypeValidatorSettings({ error })
     }
 
-    public default(def: NonNullable<DefaultValidatorSettings<O>['default']>): this {
+    public default(def: DefaultSetting<O, 'default'>): this {
         return this._copyWithDefaultValidatorSetting({ default: def })
     }
 

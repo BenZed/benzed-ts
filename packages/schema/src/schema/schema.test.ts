@@ -102,6 +102,17 @@ describe('error() method', () => {
     })
 })
 
+describe('name() method', () => {
+
+    const fooSchemaWithName = fooSchema.name('bar')
+
+    it('instances a new schema with a different type name setting', () => {
+        expect(() => fooSchemaWithName.validate(undefined))
+            .toThrow('undefined is not bar')
+    })
+
+})
+
 describe('validate() method', () => {
 
     it('validates type', () => {

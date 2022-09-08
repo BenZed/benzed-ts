@@ -57,7 +57,7 @@ class ShapeSchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'object',
-        is: (input): input is O => isObject(input)
+        is: isObject as (input: unknown) => input is O
     })
 
     protected _validateChildren(

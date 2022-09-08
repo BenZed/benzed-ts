@@ -1,8 +1,15 @@
 
 import { TypeValidator } from '../validator'
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
+import { toOptionsString } from '../util'
 
 import Schema from './schema'
+
+import {
+    Flags,
+    AddFlag,
+    HasMutable,
+    HasOptional
+} from './flags'
 
 /*** Type ***/
 
@@ -16,19 +23,10 @@ function isEnumValue<
     I extends EnumSchemaInput,
     O extends EnumSchemaOutput<I>
 >(values: I): (input: unknown) => input is O {
+
     return (input): input is O =>
         values.some(value => value === input)
-}
 
-function toEnumTypeName(input: EnumSchemaInput): string {
-    const [last, ...first] = [...input].reverse()
-    // c, ...ba
-
-    return first.reverse() // ab
-        .join(', ') // a, b
-        .concat(
-            last ? ` or ${last}` : ''
-        ) // a, b or c
 }
 
 /*** Main ***/
@@ -37,7 +35,7 @@ class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F ext
     extends Schema<I, O, F> {
 
     protected _typeValidator = new TypeValidator<O>({
-        name: toEnumTypeName(this._input),
+        name: toOptionsString(this._input),
         is: isEnumValue(this._input)
     })
 

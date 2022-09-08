@@ -1,9 +1,12 @@
+
 import NumberSchema from './number-schema'
+import StringSchema from './string-schema'
 import ShapeSchema from './shape-schema'
 import BoolSchema from './boolean-schema'
-import StringSchema from './string-schema'
 
-import { expectValidationError } from '../util.test'
+import {
+    expectValidationError
+} from '../util.test'
 
 /*** Input ***/
 

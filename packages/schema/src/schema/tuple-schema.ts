@@ -45,7 +45,7 @@ class TupleSchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'tuple',
-        is: (input): input is ApplyMutable<F, O> => isArray(input)
+        is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>
     })
 
     protected _validators = [
