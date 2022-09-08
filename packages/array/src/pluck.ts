@@ -1,6 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /*** Shortcuts ***/
 
 const { splice } = Array.prototype
+
+/*** Types ***/
+
+type TypeGuardPredicate<T, F extends T> = (item: T, index: number, input: ArrayLike<T>) => item is F
+type Predicate<T> = (item: T, index: number, input: ArrayLike<T>) => boolean
+
+type OptionalPredicate<T, F extends T> =
+    TypeGuardPredicate<T, F> |
+    Predicate<T>
 
 /*** Main ***/
 
@@ -18,13 +29,11 @@ const { splice } = Array.prototype
  *                                     of the array, rather than the beginning.
  * @return {Array}                     items removed via test
  */
-function pluck<T>(
+function pluck<T, P extends OptionalPredicate<T, any>>(
     input: ArrayLike<T>,
-    predicate: (
-        ((item: T, index: number, input: ArrayLike<T>) => boolean)
-    ),
+    predicate: P,
     count = input.length
-): T[] {
+): P extends TypeGuardPredicate<any, infer U> ? U[] : T[] {
 
     const results: T[] = []
     const indexes: number[] = []
@@ -44,14 +53,14 @@ function pluck<T>(
     ) {
 
         const value = input[i]
-        if (!predicate(value as T, i, input as T[]))
+        if (!predicate(value, i, input))
             continue
 
         if (reverse) {
-            results.unshift(value as T)
+            results.unshift(value)
             indexes.push(i)
         } else {
-            results.push(value as T)
+            results.push(value)
             indexes.unshift(i)
         }
 
@@ -61,7 +70,7 @@ function pluck<T>(
     for (const index of indexes)
         spliceInput(index, 1)
 
-    return results
+    return results as P extends TypeGuardPredicate<any, infer F> ? F[] : T[]
 }
 
 /*** Exports ***/

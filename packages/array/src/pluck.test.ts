@@ -1,4 +1,7 @@
+import { isString } from '@benzed/is'
 import pluck from './pluck'
+
+import { expectTypeOf } from 'expect-type'
 
 const arr = [1, 2, 3, 4, 5, 6, 7, 8]
 let even: number[]
@@ -49,4 +52,14 @@ describe('count', () => {
         expect(arr).toEqual([11, 2, 3, 4, 5, 6, 7, 8])
         expect(lastTwoDoubleDigits).toEqual([19, 10])
     })
+})
+
+it('optionally allows type guard predicates', () => {
+
+    const arr = [0, 1, 2, 3, 'four', 'five', 'six']
+
+    const strings = pluck(arr, isString)
+
+    expectTypeOf(strings).toEqualTypeOf<string[]>()
+
 })
