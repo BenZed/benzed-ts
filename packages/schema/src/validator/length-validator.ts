@@ -5,7 +5,7 @@ import RangeValidator, {
     toRangeValidatorSettings
 } from './range-validator'
 
-import { AssertValidator } from './validator'
+import { AssertTransformEqualValidator } from './validator'
 
 /*** Types ***/
 
@@ -15,7 +15,7 @@ type LengthValidatorSettings = RangeValidatorSettings
 
 class LengthValidator<O extends ArrayLike<unknown>>
 
-    extends AssertValidator<O, O, LengthValidatorSettings> {
+    extends AssertTransformEqualValidator<O, O, LengthValidatorSettings> {
 
     private readonly _rangeValidator: RangeValidator<number>
 

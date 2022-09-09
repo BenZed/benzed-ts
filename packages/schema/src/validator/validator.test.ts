@@ -1,14 +1,15 @@
 import { copy, equals } from '@benzed/immutable'
 
 import {
+    AssertTransformEqualValidator,
+    AssertTransformValidator,
     AssertValidator,
-    DuplexValidator,
     ErrorSettings,
     TransformValidator,
     Validator
 } from './validator'
 
-describe('Validator', () => {
+describe(Validator.name, () => {
 
     class IdValidator extends Validator<unknown, string, { id: string }> {
         public validate(input: unknown): string {
@@ -56,7 +57,7 @@ describe('Validator', () => {
 
 })
 
-describe('TransformValidator', () => {
+describe(TransformValidator.name, () => {
 
     class MultiplyValidator extends TransformValidator<number, number, { by: number }> {
         protected transform(input: number): number {
@@ -76,10 +77,10 @@ describe('TransformValidator', () => {
 
 })
 
-describe('AssertValidator', () => {
+describe(AssertValidator.name, () => {
 
     class NonEmptyValidator<T extends ArrayLike<unknown>> extends
-        AssertValidator<T, T, ErrorSettings<[input: T]>> {
+        AssertValidator<T, ErrorSettings<[input: T]>> {
 
         protected assert(input: T): void {
             if (input.length === 0) {
@@ -91,7 +92,7 @@ describe('AssertValidator', () => {
         }
     }
 
-    it('extends Validator', () => {
+    it(`extends ${Validator.name}`, () => {
         expect(new NonEmptyValidator({})).toBeInstanceOf(Validator)
     })
 
@@ -120,43 +121,72 @@ describe('AssertValidator', () => {
 
             expect(() => isntEmpty.validate([])).toThrow('must not be empty')
         })
-
     })
 
 })
 
-describe('DuplexValidator', () => {
+describe(AssertTransformValidator.name, () => {
+
+    class DigitValidator extends AssertTransformValidator<string | number, number> {
+
+        protected transform(input: string | number): number {
+            return typeof input === 'number'
+                ? input
+                : parseInt(input)
+        }
+
+        protected assert(input: string | number): asserts input is number {
+            if (typeof input === 'number' && !Number.isNaN(input) && isFinite(input))
+                return
+
+            this._throwWithErrorSetting(
+                'must be a digit string or a finite number'
+            )
+        }
+
+    }
+
+    it(`extends ${TransformValidator.name}`, () => {
+        expect(new DigitValidator({})).toBeInstanceOf(TransformValidator)
+    })
+
+})
+
+describe(AssertTransformEqualValidator.name, () => {
 
     class MultipleOfValidator extends
-        DuplexValidator<number, number, { modulo: number } & ErrorSettings<[modulo: number]>> {
+        AssertTransformEqualValidator<
+        /**/ number,
+        /**/ { modulo: number } & ErrorSettings<[modulo: number]>
+        > {
+
+        /*** AssertTransformEqual Implementation ***/
 
         protected transform(input: number): number {
             return input - input % this.settings.modulo
         }
 
-        protected assert(input: number): void {
-            this._throwOnTransformInequality(
-                input,
+        protected _getErrorArgs(): [ifUnset: string, modulo: number] {
+            return [
                 `must be a multiple of ${this.settings.modulo}`,
                 this.settings.modulo
-            )
+            ]
         }
+
     }
 
     const isEven = new MultipleOfValidator({ modulo: 2, error: 'must be even' })
 
-    it('extends AssertValidator', () => {
-        expect(isEven).toBeInstanceOf(AssertValidator)
+    it(`extends ${AssertTransformEqualValidator.name}`, () => {
+        expect(isEven).toBeInstanceOf(AssertTransformEqualValidator)
     })
 
     it('transforms', () => {
         expect(isEven.validate(5, true)).toEqual(4)
     })
 
-    describe('_throwOnTransformInequality()', () => {
-        it('throws if input is not equal to the transform of that input', () => {
-            expect(isEven.validate(10, false)).not.toThrow()
-            expect(() => isEven.validate(5, false)).toThrow('must be even')
-        })
+    it('throws if input is not equal to the transform of that input', () => {
+        expect(isEven.validate(10, false)).not.toThrow()
+        expect(() => isEven.validate(5, false)).toThrow('must be even')
     })
 })

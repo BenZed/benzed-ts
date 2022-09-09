@@ -1,5 +1,5 @@
 
-import { DuplexValidator, ErrorSettings } from './validator'
+import { AssertTransformValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
@@ -24,7 +24,7 @@ interface TypeValidatorSettings<T> extends ErrorSettings<[value: unknown, typeNa
 
 /*** Main ***/
 
-class TypeValidator<O> extends DuplexValidator<
+class TypeValidator<O> extends AssertTransformValidator<
 /**/ unknown,
 /**/ O,
 /**/ TypeValidatorSettings<O>

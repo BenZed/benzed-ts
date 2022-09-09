@@ -1,6 +1,6 @@
 import { round, ceil, floor } from '@benzed/math'
 
-import { DuplexValidator, ErrorSettings } from './validator'
+import { AssertTransformValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
@@ -22,7 +22,7 @@ type Rounder = keyof typeof ROUNDER_METHODS
 
 /*** Main ***/
 
-class RoundValidator<K extends Rounder> extends DuplexValidator<
+class RoundValidator<K extends Rounder> extends AssertTransformValidator<
 /**/ number,
 /**/ number,
 /**/ RoundValidatorSettings<K>

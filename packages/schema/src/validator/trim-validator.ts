@@ -1,4 +1,4 @@
-import { DuplexValidator, ErrorSettings } from './validator'
+import { AssertTransformValidator, ErrorSettings } from './validator'
 
 /*** Main ***/
 
@@ -6,7 +6,7 @@ type TrimValidatorSettings = ErrorSettings<[input: string]>
 
 /*** Main ***/
 
-class TrimValidator extends DuplexValidator<string, string, TrimValidatorSettings> {
+class TrimValidator extends AssertTransformValidator<string, string, TrimValidatorSettings> {
 
     /*** DuplexValidator Implementation ***/
 

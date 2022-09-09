@@ -1,7 +1,7 @@
 import { pluck } from '@benzed/array'
 import { isNumber, isObject, isString, Sortable } from '@benzed/is'
 
-import { AssertValidator, ErrorSettings } from './validator'
+import { AssertTransformEqualValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
@@ -174,7 +174,7 @@ function toRangeValidatorSettings(
 
 /*** Main ***/
 
-class RangeValidator<O extends Sortable> extends AssertValidator<
+class RangeValidator<O extends Sortable> extends AssertTransformEqualValidator<
 /**/ O,
 /**/ O,
 /**/ RangeValidatorSettings
