@@ -42,15 +42,13 @@ class RoundValidator<K extends Rounder> extends DuplexValidator<
     public assert(input: number): void {
         if (input !== this.transform(input)) {
 
-            const { error, method, precision } = this.settings
+            const { method, precision } = this.settings
 
-            throw new Error(
-                this._getErrorMsg(
-                    error ?? `${input} must be ${method} to ${precision}`,
-                    input,
-                    method,
-                    precision
-                )
+            this._throwWithErrorSetting(
+                `${input} must be ${method} to ${precision}`,
+                input,
+                method,
+                precision
             )
         }
     }

@@ -16,11 +16,9 @@ class TrimValidator extends DuplexValidator<string, string, TrimValidatorSetting
 
     protected assert(input: string): void {
         if (input !== this.transform(input)) {
-            throw new Error(
-                this._getErrorMsg(
-                    this.settings.error ?? 'cannot begin or end with whitespace',
-                    input
-                )
+            this._throwWithErrorSetting(
+                'cannot begin or end with whitespace',
+                input
             )
         }
     }

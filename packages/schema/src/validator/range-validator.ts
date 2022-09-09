@@ -201,14 +201,10 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
         if (rangeTransgressionDetail === null)
             return
 
-        const { error } = this.settings
-
-        throw new Error(
-            this._getErrorMsg(
-                error ?? `${input} must be ${rangeTransgressionDetail}`,
-                input,
-                rangeTransgressionDetail
-            )
+        this._throwWithErrorSetting(
+            `${input} must be ${rangeTransgressionDetail}`,
+            input,
+            rangeTransgressionDetail
         )
     }
 

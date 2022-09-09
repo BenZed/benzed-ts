@@ -51,15 +51,13 @@ class TypeValidator<O> extends DuplexValidator<
 
     public assert(input: unknown): asserts input is O {
 
-        const { is, error, name } = this.settings
+        const { is, name } = this.settings
 
         if (!is(input)) {
-            throw new Error(
-                this._getErrorMsg(
-                    error ?? `${String(input)} is not ${name}`,
-                    input,
-                    name
-                )
+            this._throwWithErrorSetting(
+                `${String(input)} is not ${name}`,
+                input,
+                name
             )
         }
     }
