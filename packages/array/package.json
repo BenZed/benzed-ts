@@ -1,7 +1,7 @@
 {
     "name": "@benzed/array",
     "description": "Utility and Convenience methods for working with arrays.",
-    "version": "3.2.2",
+    "version": "3.2.3",
     "main": "./lib",
     "scripts": {
         "test": "jest --maxWorkers=1 -o",

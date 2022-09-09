@@ -6,15 +6,11 @@ import first from './first'
 
 /*** Types ***/
 
-type UnwrapIn = any | any[] | readonly any[]
-
-type UnwrapOut<T> = T extends readonly [infer U, ...any]
-    ? U
-    : T extends Array<infer U>
-    /**/ ? U | undefined
-    /**/ : T extends Readonly<Array<infer U>>
-        /**/ ? U
-        /**/ : T
+type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
+    ? V
+    : T extends (infer V)[] | readonly (infer V)[]
+    /**/ ? V | undefined
+    /**/ : T
 
 /*** Main ***/
 
@@ -25,10 +21,10 @@ type UnwrapOut<T> = T extends readonly [infer U, ...any]
  * @return {type}     If input is an array, returns the first value, otherwise
  *                    returns the input.
  */
-function unwrap<T extends UnwrapIn>(array: T): UnwrapOut<T> {
+function unwrap<T>(array: T): Unwrap<T> {
     return (isArray(array)
         ? first(array)
-        : array) as UnwrapOut<T>
+        : array) as Unwrap<T>
 }
 
 /*** Exports ***/
