@@ -18,7 +18,7 @@ interface ErrorSettings<A extends any[]> {
 
 abstract class Validator<
     I,
-    O = I,
+    O extends I = I,
     S extends object = object,
 /**/> implements CopyComparable<Validator<I, O, S>> {
 
@@ -39,14 +39,12 @@ abstract class Validator<
 
     public abstract validate(input: I, allowTransform: boolean): O
 
-    public applySettings(settings: Partial<S>): this {
+    public applySettings(settings: Partial<S>): void {
 
         this._settings = {
             ...this._settings,
             ...settings
         }
-
-        return this
     }
 
     /*** CopyComparable Implementation ***/
@@ -82,7 +80,7 @@ abstract class AssertValidator<
 
     protected abstract assert(input: I): asserts input is O
 
-    public validate(input: I, _allowTransform: boolean): O {
+    public validate(input: I, _allowTransform?: boolean): O {
         this.assert(input)
         return input
     }
@@ -116,11 +114,29 @@ abstract class DuplexValidator<
     protected abstract assert(input: I): asserts input is O
 
     public validate(input: I, allowTransform: boolean): O {
+
         const output = allowTransform
             ? this.transform(input)
             : input
 
         return super.validate(output, allowTransform)
+    }
+
+    /*** Helper ***/
+
+    protected _throwOnTransformInequality(
+        input: I,
+        ifUnset: NonNullable<S['error']>,
+        ...args: S extends ErrorSettings<infer A> ? A : []
+    ): asserts input is O {
+
+        if (!equals(input, this.transform(input))) {
+            this._throwWithErrorSetting(
+                ifUnset,
+                ...args
+            )
+        }
+
     }
 }
 

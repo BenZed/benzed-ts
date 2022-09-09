@@ -189,10 +189,9 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
 
     /*** AssertValidator Implementation ***/
 
-    public override applySettings(settings: Partial<RangeValidatorSettings>): this {
+    public override applySettings(settings: Partial<RangeValidatorSettings>): void {
         super.applySettings(settings)
         this._rangeTest = this._createRangeTest()
-        return this
     }
 
     public assert(input: O): void {

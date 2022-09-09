@@ -30,14 +30,13 @@ class LengthValidator<O extends ArrayLike<unknown>>
         this._validateLengthSettings()
     }
 
-    public override applySettings(settings: object): this {
+    public override applySettings(settings: LengthValidatorSettings): void {
 
         super.applySettings(settings)
 
         this._rangeValidator.applySettings(this.settings)
         this._validateLengthSettings()
 
-        return this
     }
 
     public assert(input: O): void {
