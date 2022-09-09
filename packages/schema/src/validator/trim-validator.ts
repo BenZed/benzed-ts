@@ -1,14 +1,12 @@
-import { DuplexValidator } from './validator'
+import { DuplexValidator, ErrorSettings } from './validator'
 
 /*** Main ***/
 
-class TrimValidator extends DuplexValidator<string> {
+type TrimValidatorSettings = ErrorSettings<[input: string]>
 
-    /*** Construct with no settings ***/
+/*** Main ***/
 
-    public constructor () {
-        super({})
-    }
+class TrimValidator extends DuplexValidator<string, string, TrimValidatorSettings> {
 
     /*** DuplexValidator Implementation ***/
 
@@ -17,8 +15,14 @@ class TrimValidator extends DuplexValidator<string> {
     }
 
     protected assert(input: string): void {
-        if (input !== this.transform(input))
-            throw new Error('Cannot begin or end with any whitespace')
+        if (input !== this.transform(input)) {
+            throw new Error(
+                this._getErrorMsg(
+                    this.settings.error ?? 'cannot begin or end with whitespace',
+                    input
+                )
+            )
+        }
     }
 
 }
@@ -28,5 +32,6 @@ class TrimValidator extends DuplexValidator<string> {
 export default TrimValidator
 
 export {
-    TrimValidator
+    TrimValidator,
+    TrimValidatorSettings
 }

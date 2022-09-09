@@ -32,7 +32,11 @@ describe('trim()', () => {
         const $trimmedString = $string.trim()
 
         expect($trimmedString.validate('  ace  ')).toEqual('ace')
+    })
 
+    it('allows optional error', () => {
+        const $trimmedString = $string.trim({ error: 'no whitespace allowed' })
+        expect(() => $trimmedString.assert('  ace  ')).toThrow('no whitespace allowed')
     })
 
 })

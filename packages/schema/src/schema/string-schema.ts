@@ -1,6 +1,12 @@
 
 import { isArray, isNumber, isString } from '@benzed/is'
-import { TrimValidator, TypeValidator } from '../validator'
+
+import {
+    TrimValidator,
+    TrimValidatorSettings,
+    TypeValidator
+} from '../validator'
+
 import {
     AddFlag,
     Flags,
@@ -41,8 +47,8 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     /*** Chain Schema Methods ***/
 
-    public trim(): this {
-        return this._copyWithPostTypeValidator('trim', new TrimValidator())
+    public trim(settings?: TrimValidatorSettings): this {
+        return this._copyWithPostTypeValidator('trim', new TrimValidator({ ...settings }))
     }
 
     public override readonly optional!: HasOptional<

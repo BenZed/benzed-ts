@@ -1,11 +1,9 @@
 
-import { isFunction } from '@benzed/is/lib'
-import { RequirePartial } from '@benzed/util'
-import { DuplexValidator } from './validator'
+import { DuplexValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
-interface TypeValidatorSettings<T> {
+interface TypeValidatorSettings<T> extends ErrorSettings<[value: unknown, typeName: string]> {
 
     /**
      * Type guard for the given type.
@@ -22,30 +20,18 @@ interface TypeValidatorSettings<T> {
      */
     readonly name: string
 
-    /**
-     * Overrides the default TypeValidationError message
-     */
-    readonly error?: string | ((value: unknown, name: string) => string)
-
 }
-
-type TypeValidatorSettingsWithError<O> =
-    RequirePartial<
-    /**/ TypeValidatorSettings<O>,
-    /**/ 'error'
-    >
 
 /*** Main ***/
 
 class TypeValidator<O> extends DuplexValidator<
 /**/ unknown,
 /**/ O,
-/**/ TypeValidatorSettingsWithError<O>
+/**/ TypeValidatorSettings<O>
 > {
 
     public constructor (settings: TypeValidatorSettings<O>) {
         super({
-            error: (value, name) => `${String(value)} is not ${name}`,
             ...settings
         })
     }
@@ -69,9 +55,11 @@ class TypeValidator<O> extends DuplexValidator<
 
         if (!is(input)) {
             throw new Error(
-                isFunction(error)
-                    ? error(input, name)
-                    : error
+                this._getErrorMsg(
+                    error ?? `${String(input)} is not ${name}`,
+                    input,
+                    name
+                )
             )
         }
     }

@@ -1,7 +1,7 @@
 import { pluck } from '@benzed/array'
-import { isFunction, isNumber, isObject, isString, Sortable } from '@benzed/is'
+import { isNumber, isObject, isString, Sortable } from '@benzed/is'
 
-import { AssertValidator } from './validator'
+import { AssertValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
@@ -14,34 +14,31 @@ const RANGE_STRING_REGEX = new RegExp(
     '(\\d*\\.?\\d+)' // 0 | 0.0 | .0
 )
 
-/*** Errors ***/
-
-type RangeValidationErrorFormat =
-    string | ((input: Sortable, rangeTransgressionDetail: string) => string)
-
 /*** Types ***/
 
 type BetweenComparator = typeof BETWEEN_COMPARATORS[number]
 type RangeComparator = typeof RANGE_COMPARATORS[number]
 
-type RangeValidatorSettings = {
-    readonly min: number
-    readonly max: number
-    readonly comparator?: BetweenComparator
-    readonly error?: RangeValidationErrorFormat
-} | {
-    readonly value: number
-    readonly comparator: RangeComparator
-    readonly error?: RangeValidationErrorFormat
-}
+type RangeValidatorSettings =
+    ErrorSettings<[input: Sortable, rangeTransgressionDetail: string]> &
+    ({
+        readonly min: number
+        readonly max: number
+        readonly comparator?: BetweenComparator
+    } | {
+        readonly value: number
+        readonly comparator: RangeComparator
+    })
+
+type RangeValidatorErrorFormat = NonNullable<RangeValidatorSettings['error']>
 
 type RangeValidatorSettingsArrayShortcut =
     [min: number, max: number] |
-    [min: number, max: number, error: RangeValidationErrorFormat] |
+    [min: number, max: number, error: RangeValidatorErrorFormat] |
     [min: number, comparator: BetweenComparator, max: number] |
-    [min: number, comparator: BetweenComparator, max: number, error: RangeValidationErrorFormat] |
+    [min: number, comparator: BetweenComparator, max: number, error: RangeValidatorErrorFormat] |
     [comparator: RangeComparator, value: number] |
-    [comparator: RangeComparator, value: number, error: RangeValidationErrorFormat] |
+    [comparator: RangeComparator, value: number, error: RangeValidatorErrorFormat] |
     [value: number]
 
 type RangeValidatorSettingsStringShortcut =
@@ -135,14 +132,14 @@ function parseRangeValidatorSettingsArrayShortcut(
     if (numbers.length === 2) {
         const [min, max] = numbers
         const [comparator] = pluck(range, isBetweenComparator) as BetweenComparator[]
-        const [error] = range as string[] // only thing left could be error
+        const [error] = range as RangeValidatorErrorFormat[] // only thing left could be error
 
         return { min, max, comparator, error }
 
     } else {
         const [value] = numbers
         const [comparator = '=='] = pluck(range, isRangeComparator) as RangeComparator[]
-        const [error] = range as string[] // only thing left could be error
+        const [error] = range as RangeValidatorErrorFormat[] // only thing left could be error
 
         return { value, comparator, error }
     }
@@ -204,13 +201,15 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
         if (rangeTransgressionDetail === null)
             return
 
-        const { error: errorFormat } = this.settings
+        const { error } = this.settings
 
-        const errorMessage = isFunction(errorFormat)
-            ? errorFormat(input, rangeTransgressionDetail)
-            : errorFormat ?? `${input} must be ${rangeTransgressionDetail}`
-
-        throw new Error(errorMessage)
+        throw new Error(
+            this._getErrorMsg(
+                error ?? `${input} must be ${rangeTransgressionDetail}`,
+                input,
+                rangeTransgressionDetail
+            )
+        )
     }
 
     /*** Helpers ***/

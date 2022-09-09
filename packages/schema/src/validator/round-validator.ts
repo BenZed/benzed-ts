@@ -1,14 +1,13 @@
-import { isFunction } from '@benzed/is'
 import { round, ceil, floor } from '@benzed/math'
 
-import { DuplexValidator } from './validator'
+import { DuplexValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
-interface RoundValidatorSettings<K extends Rounder> {
+interface RoundValidatorSettings<K extends Rounder>
+    extends ErrorSettings<[value: unknown, method: string, precision: number]> {
     method: K
     precision: number
-    readonly error?: string | ((value: unknown, name: string) => string)
 }
 
 /*** Const ***/
@@ -41,14 +40,17 @@ class RoundValidator<K extends Rounder> extends DuplexValidator<
     }
 
     public assert(input: number): void {
-
         if (input !== this.transform(input)) {
 
             const { error, method, precision } = this.settings
 
-            throw new Error(isFunction(error)
-                ? error(input, method)
-                : error ?? `must be ${method}ed to ${precision}`
+            throw new Error(
+                this._getErrorMsg(
+                    error ?? `${input} must be ${method} to ${precision}`,
+                    input,
+                    method,
+                    precision
+                )
             )
         }
     }
