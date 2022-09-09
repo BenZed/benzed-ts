@@ -29,13 +29,20 @@ class RoundValidator<K extends Rounder> extends DuplexValidator<
 /**/ RoundValidatorSettings<K>
 > {
 
+    /*** DuplexValidator Implementation ***/
+
     public transform(input: number): number {
-        return this._getRounded(input)
+
+        const { method, precision } = this.settings
+
+        const rounder = ROUNDER_METHODS[method]
+
+        return rounder(input, precision)
     }
 
     public assert(input: number): void {
 
-        if (input !== this._getRounded(input)) {
+        if (input !== this.transform(input)) {
 
             const { error, method, precision } = this.settings
 
@@ -44,11 +51,6 @@ class RoundValidator<K extends Rounder> extends DuplexValidator<
                 : error ?? `must be ${method}ed to ${precision}`
             )
         }
-    }
-
-    private _getRounded(input: number): number {
-        const { method, precision } = this.settings
-        return ROUNDER_METHODS[method](input, precision)
     }
 
 }

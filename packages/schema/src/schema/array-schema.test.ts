@@ -42,3 +42,33 @@ describe('validate()', () => {
     })
 
 })
+
+describe('length()', () => {
+
+    const $polygon = new ArraySchema(new ShapeSchema({
+        x: new NumberSchema(),
+        y: new NumberSchema()
+    })).length('3...4')
+
+    it('instances a new schema with a length validator', () => {
+
+        const square = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }]
+
+        expect($polygon.validate(square))
+            .toEqual(square)
+
+        expectValidationError(() => $polygon.validate(square.slice(2)))
+            .toHaveProperty('message', 'length must be from 3 to 4')
+
+    })
+
+    it('length validator settings cant be below 0', () => {
+        expect(() => $polygon.length(-1))
+            .toThrow('cannot validate length below 0')
+    })
+
+    it('length validator settings must be integers', () => {
+        expect(() => $polygon.length(3.5))
+            .toThrow('value must be an integer')
+    })
+})

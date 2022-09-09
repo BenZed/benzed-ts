@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { isFunction, isArray, isNumber, isObject, isString, Sortable } from '@benzed/is'
+import { isFunction, isNumber, isObject, isString, Sortable } from '@benzed/is'
 
 import { AssertValidator } from './validator'
 
@@ -9,9 +9,9 @@ const BETWEEN_COMPARATORS = ['-', '..', '...'] as const
 const RANGE_COMPARATORS = ['>=', '>', '==', '<', '<='] as const
 
 const RANGE_STRING_REGEX = new RegExp(
-    '(\\d*\\.?\\d*)' + // 0 | 0.0 | .0
+    '(\\d*\\.?\\d+)' + // 0 | 0.0 | .0
     '(<|<=|==|>=|>|\\.{2,3}|-)' + // >= | > | == | < | <= | .. | ... | -
-    '(\\d*\\.?\\d*)' // 0 | 0.0 | .0
+    '(\\d*\\.?\\d+)' // 0 | 0.0 | .0
 )
 
 /*** Errors ***/
@@ -40,9 +40,9 @@ type RangeValidatorSettingsArrayShortcut =
     [min: number, max: number, error: RangeValidationErrorFormat] |
     [min: number, comparator: BetweenComparator, max: number] |
     [min: number, comparator: BetweenComparator, max: number, error: RangeValidationErrorFormat] |
-    [value: number] |
     [comparator: RangeComparator, value: number] |
-    [comparator: RangeComparator, value: number, error: RangeValidationErrorFormat]
+    [comparator: RangeComparator, value: number, error: RangeValidationErrorFormat] |
+    [value: number]
 
 type RangeValidatorSettingsStringShortcut =
     `${number}${BetweenComparator}${number}` |
@@ -50,7 +50,8 @@ type RangeValidatorSettingsStringShortcut =
 
 type RangeValidatorSettingsShortcut =
     RangeValidatorSettingsArrayShortcut |
-    RangeValidatorSettingsStringShortcut | RangeValidatorSettings | number
+    [RangeValidatorSettingsStringShortcut] |
+    [RangeValidatorSettings]
 
 /*** Type Guards ***/
 
@@ -137,14 +138,13 @@ function parseRangeValidatorSettingsArrayShortcut(
         const [error] = range as string[] // only thing left could be error
 
         return { min, max, comparator, error }
+
     } else {
         const [value] = numbers
         const [comparator = '=='] = pluck(range, isRangeComparator) as RangeComparator[]
         const [error] = range as string[] // only thing left could be error
 
-        return {
-            value, comparator, error
-        }
+        return { value, comparator, error }
     }
 }
 
@@ -154,22 +154,23 @@ function toRangeValidatorSettings(
 
     let settings: RangeValidatorSettings
 
-    if (isString(input))
-        settings = parseRangeValidatorStringShortcut(input)
+    if (input.length === 1) {
 
-    else if (isArray(input))
+        if (isString(input[0]))
+            settings = parseRangeValidatorStringShortcut(input[0])
+
+        else if (isNumber(input[0])) {
+            settings = {
+                value: input[0],
+                comparator: '=='
+            }
+        } else
+            settings = input[0]
+    } else
         settings = parseRangeValidatorSettingsArrayShortcut(input)
 
-    else if (isNumber(input)) {
-        settings = {
-            value: input,
-            comparator: '=='
-        }
-    } else
-        settings = input
-
     if (!isRangeValidatorSettings(settings))
-        throw new Error('Invalid range options object.')
+        throw new Error('Invalid Range Settings Input')
 
     return settings
 }
@@ -188,6 +189,8 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
         super(settings)
         this._rangeTest = this._createRangeTest()
     }
+
+    /*** AssertValidator Implementation ***/
 
     public override applySettings(settings: Partial<RangeValidatorSettings>): this {
         super.applySettings(settings)
@@ -209,6 +212,8 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
 
         throw new Error(errorMessage)
     }
+
+    /*** Helpers ***/
 
     private _createRangeTest(): (input: O) => string | null {
 
@@ -256,14 +261,14 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
                 const { min, max } = settings
                 return input => input >= min && input <= max
                     ? PASS
-                    : `at least ${min} to at most ${max}`
+                    : `from ${min} to ${max}`
             }
 
             default: { // .. | - | undefined
                 const { min, max } = settings
                 return input => input >= min && input < max
                     ? PASS
-                    : `at least ${min} to less than ${max}`
+                    : `from ${min} to less than ${max}`
             }
         }
     }
@@ -276,6 +281,7 @@ export default RangeValidator
 export {
     RangeValidator,
     RangeValidatorSettings,
+    RangeValidatorSettingsShortcut,
 
     toRangeValidatorSettings
 }

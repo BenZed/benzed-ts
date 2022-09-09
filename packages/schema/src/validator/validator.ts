@@ -46,7 +46,9 @@ abstract class Validator<
     }
 }
 
-abstract class TransformValidator<I, O extends I = I, S extends object = object>
+type NoSettings = { [key: string]: never }
+
+abstract class TransformValidator<I, O extends I = I, S extends object = NoSettings>
     extends Validator<I, I | O, S> {
 
     protected abstract transform(input: I): I | O
@@ -56,7 +58,7 @@ abstract class TransformValidator<I, O extends I = I, S extends object = object>
     }
 }
 
-abstract class AssertValidator<I, O extends I = I, S extends object = object>
+abstract class AssertValidator<I, O extends I = I, S extends object = NoSettings>
     extends Validator<I, O, S> {
 
     protected abstract assert(input: I): asserts input is O
@@ -67,7 +69,7 @@ abstract class AssertValidator<I, O extends I = I, S extends object = object>
     }
 }
 
-abstract class DuplexValidator<I, O extends I = I, S extends object = object>
+abstract class DuplexValidator<I, O extends I = I, S extends object = NoSettings>
     extends TransformValidator<I, O, S> {
 
     protected abstract transform(input: I): I | O

@@ -1,4 +1,10 @@
-import RangeValidator, { RangeValidatorSettings } from './range-validator'
+import { isInteger, isNumber } from '@benzed/is/lib'
+import RangeValidator, {
+    RangeValidatorSettings,
+    RangeValidatorSettingsShortcut,
+    toRangeValidatorSettings
+} from './range-validator'
+
 import { AssertValidator } from './validator'
 
 /*** Types ***/
@@ -21,16 +27,36 @@ class LengthValidator<O extends ArrayLike<unknown>>
         })
 
         this._rangeValidator = new RangeValidator(this.settings)
+        this._validateLengthSettings()
     }
 
     public override applySettings(settings: object): this {
+
         super.applySettings(settings)
+
         this._rangeValidator.applySettings(this.settings)
+        this._validateLengthSettings()
+
         return this
     }
 
     public assert(input: O): void {
         this._rangeValidator.assert(input.length)
+    }
+
+    /*** Helper ***/
+
+    private _validateLengthSettings(): void {
+
+        const lengthBelowZeroIsValid = this._rangeValidator['_rangeTest'](-1) === null
+        if (lengthBelowZeroIsValid)
+            throw new Error('cannot validate length below 0')
+
+        Object.entries(this.settings).forEach(([key, value]) => {
+            if (isNumber(value) && !isInteger(value))
+                throw new Error(`${key} must be an integer.`)
+        })
+
     }
 
 }
@@ -41,5 +67,8 @@ export default LengthValidator
 
 export {
     LengthValidator,
-    LengthValidatorSettings
+    LengthValidatorSettings,
+    RangeValidatorSettingsShortcut as LengthValidatorSettingsShortcut,
+    toRangeValidatorSettings as toLengthValidatorSettings,
+
 }

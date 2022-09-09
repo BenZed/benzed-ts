@@ -25,3 +25,14 @@ describe('validate()', () => {
     })
 
 })
+
+describe('trim()', () => {
+
+    it('transforms strings to remove whitespace', () => {
+        const $trimmedString = $string.trim()
+
+        expect($trimmedString.validate('  ace  ')).toEqual('ace')
+
+    })
+
+})

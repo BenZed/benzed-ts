@@ -1,5 +1,10 @@
 
-import { TypeValidator } from '../validator'
+import {
+    LengthValidator,
+    LengthValidatorSettingsShortcut,
+    toLengthValidatorSettings,
+    TypeValidator
+} from '../validator'
 
 import {
     AddFlag,
@@ -96,6 +101,14 @@ class ArraySchema<
                 default: defaultArr
             })
         }
+    }
+
+    /*** Schema Chain Methods ***/
+
+    public length(...input: LengthValidatorSettingsShortcut): this {
+        const settings = toLengthValidatorSettings(input)
+
+        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
     }
 
     public override readonly optional!: HasOptional<

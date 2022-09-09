@@ -275,8 +275,8 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     }
 
     protected _copyWithPostTypeValidator(
+        id: string,
         validator: Validator<O>,
-        id: string
     ): this {
         const schema = this[$$copy]()
         schema._setPostTypeValidator(id, validator)

@@ -43,6 +43,15 @@ class TypeValidator<O> extends DuplexValidator<
 /**/ TypeValidatorSettingsWithError<O>
 > {
 
+    public constructor (settings: TypeValidatorSettings<O>) {
+        super({
+            error: (value, name) => `${String(value)} is not ${name}`,
+            ...settings
+        })
+    }
+
+    /*** DuplexValidator Implementation ***/
+
     public transform(input: unknown): unknown | O {
 
         const { is, cast } = this.settings
@@ -58,21 +67,13 @@ class TypeValidator<O> extends DuplexValidator<
 
         const { is, error, name } = this.settings
 
-        if (is(input))
-            return
-
-        throw new Error(
-            isFunction(error)
-                ? error(input, name)
-                : error
-        )
-    }
-
-    public constructor (settings: TypeValidatorSettings<O>) {
-        super({
-            error: (value, name) => `${String(value)} is not ${name}`,
-            ...settings
-        })
+        if (!is(input)) {
+            throw new Error(
+                isFunction(error)
+                    ? error(input, name)
+                    : error
+            )
+        }
     }
 
 }

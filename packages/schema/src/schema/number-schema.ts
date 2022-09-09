@@ -2,7 +2,12 @@
 import { isNumber, isNaN, isString } from '@benzed/is'
 
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-import { TypeValidator } from '../validator'
+import {
+    TypeValidator,
+    RangeValidator,
+    RangeValidatorSettingsShortcut,
+    toRangeValidatorSettings
+} from '../validator'
 
 import { PrimitiveSchema } from './schema'
 
@@ -31,6 +36,17 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
         is: isNumber,
         cast: tryCastToNumber
     })
+
+    /*** Chain Methods ***/
+
+    public range(...input: RangeValidatorSettingsShortcut): this {
+        return this._copyWithPostTypeValidator(
+            'range',
+            new RangeValidator(
+                toRangeValidatorSettings(input)
+            )
+        )
+    }
 
     public override readonly optional!: HasOptional<
     /**/ F, never, () => NumberSchema<AddFlag<Flags.Optional, F>>
