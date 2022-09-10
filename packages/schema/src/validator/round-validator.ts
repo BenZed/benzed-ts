@@ -1,11 +1,14 @@
 import { round, ceil, floor } from '@benzed/math'
 
-import { AssertTransformValidator, ErrorSettings } from './validator'
+import { AssertTransformEqualValidator, ErrorDefaultAndArgs, ErrorSettings } from './validator'
 
 /*** Types ***/
 
-interface RoundValidatorSettings<K extends Rounder>
-    extends ErrorSettings<[value: unknown, method: string, precision: number]> {
+interface RoundValidatorSettings<K extends Rounder> extends ErrorSettings<[
+    value: number,
+    method: K,
+    precision: number
+]> {
     method: K
     precision: number
 }
@@ -22,15 +25,14 @@ type Rounder = keyof typeof ROUNDER_METHODS
 
 /*** Main ***/
 
-class RoundValidator<K extends Rounder> extends AssertTransformValidator<
-/**/ number,
+class RoundValidator<K extends Rounder> extends AssertTransformEqualValidator<
 /**/ number,
 /**/ RoundValidatorSettings<K>
 > {
 
     /*** DuplexValidator Implementation ***/
 
-    public transform(input: number): number {
+    protected _transform(input: number): number {
 
         const { method, precision } = this.settings
 
@@ -39,18 +41,18 @@ class RoundValidator<K extends Rounder> extends AssertTransformValidator<
         return rounder(input, precision)
     }
 
-    public assert(input: number): void {
-        if (input !== this.transform(input)) {
+    protected _getErrorDefaultAndArgs(
+        input: number
+    ): ErrorDefaultAndArgs<RoundValidatorSettings<K>> {
 
-            const { method, precision } = this.settings
+        const { method, precision } = this.settings
 
-            this._throwWithErrorSetting(
-                `${input} must be ${method} to ${precision}`,
-                input,
-                method,
-                precision
-            )
-        }
+        return [
+            `${input} must be ${method} to ${precision}`,
+            input,
+            method,
+            precision
+        ]
     }
 
 }

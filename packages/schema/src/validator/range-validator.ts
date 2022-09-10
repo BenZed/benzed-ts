@@ -1,7 +1,7 @@
 import { pluck } from '@benzed/array'
 import { isNumber, isObject, isString, Sortable } from '@benzed/is'
 
-import { AssertTransformEqualValidator, ErrorSettings } from './validator'
+import { AssertValidator, ErrorSettings } from './validator'
 
 /*** Types ***/
 
@@ -174,8 +174,7 @@ function toRangeValidatorSettings(
 
 /*** Main ***/
 
-class RangeValidator<O extends Sortable> extends AssertTransformEqualValidator<
-/**/ O,
+class RangeValidator<O extends Sortable> extends AssertValidator<
 /**/ O,
 /**/ RangeValidatorSettings
 > {
@@ -194,7 +193,7 @@ class RangeValidator<O extends Sortable> extends AssertTransformEqualValidator<
         this._rangeTest = this._createRangeTest()
     }
 
-    public assert(input: O): void {
+    protected _assert(input: O): void {
 
         const rangeTransgressionDetail = this._rangeTest(input)
         if (rangeTransgressionDetail === null)

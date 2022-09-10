@@ -5,7 +5,7 @@ import RangeValidator, {
     toRangeValidatorSettings
 } from './range-validator'
 
-import { AssertTransformEqualValidator } from './validator'
+import { AssertValidator } from './validator'
 
 /*** Types ***/
 
@@ -15,7 +15,7 @@ type LengthValidatorSettings = RangeValidatorSettings
 
 class LengthValidator<O extends ArrayLike<unknown>>
 
-    extends AssertTransformEqualValidator<O, O, LengthValidatorSettings> {
+    extends AssertValidator<O, LengthValidatorSettings> {
 
     private readonly _rangeValidator: RangeValidator<number>
 
@@ -39,8 +39,8 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
     }
 
-    public assert(input: O): void {
-        this._rangeValidator.assert(input.length)
+    protected _assert(input: O): void {
+        this._rangeValidator.validate(input.length)
     }
 
     /*** Helper ***/

@@ -38,7 +38,7 @@ class TypeValidator<O> extends AssertTransformValidator<
 
     /*** DuplexValidator Implementation ***/
 
-    public transform(input: unknown): unknown | O {
+    protected _transform(input: unknown): unknown | O {
 
         const { is, cast } = this.settings
 
@@ -49,7 +49,7 @@ class TypeValidator<O> extends AssertTransformValidator<
         return output
     }
 
-    public assert(input: unknown): asserts input is O {
+    protected _assert(input: unknown): asserts input is O {
 
         const { is, name } = this.settings
 

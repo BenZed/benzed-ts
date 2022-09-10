@@ -1,6 +1,18 @@
 
-import { $$equals, $$copy, CopyComparable, equals } from '@benzed/immutable'
-import { isFunction, isInstanceOf } from '@benzed/is'
+import {
+    $$equals,
+    $$copy,
+
+    equals,
+
+    CopyComparable,
+
+} from '@benzed/immutable'
+
+import {
+    isFunction,
+    isInstanceOf
+} from '@benzed/is'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -17,6 +29,8 @@ interface ErrorSettings<A extends any[]> {
 type ErrorArgs<T> = T extends ErrorSettings<infer A> ? A : []
 
 type ErrorDefault<T extends ErrorSettings<any>> = NonNullable<T['error']>
+
+type ErrorDefaultAndArgs<T extends ErrorSettings<any>> = [ErrorDefault<T>, ...ErrorArgs<T>]
 
 /*** Main ***/
 
@@ -51,12 +65,12 @@ abstract class Validator<
             ...this._settings,
             ...settings
         }
+
     }
 
     /*** CopyComparable Implementation ***/
 
     public [$$equals](other: unknown): other is this {
-
         return isInstanceOf(other, this.constructor) &&
             equals(other.settings, this.settings)
     }
@@ -76,11 +90,12 @@ abstract class Validator<
 abstract class TransformValidator<I, O extends I = I, S extends object = NoSettings>
     extends Validator<I, I | O, S> {
 
-    protected abstract transform(input: I): I | O
+    protected abstract _transform(input: I): I | O
 
     public validate(input: I, allowTransform: boolean): I | O {
-        return allowTransform ? this.transform(input) : input
+        return allowTransform ? this._transform(input) : input
     }
+
 }
 
 /**
@@ -95,29 +110,33 @@ abstract class AssertTransformValidator<
 >
     extends TransformValidator<I, O, S> {
 
-    protected abstract assert(input: I): asserts input is O
+    protected abstract _assert(input: I): asserts input is O
 
     public validate(input: I, allowTransform: boolean): O {
         const output = super.validate(input, allowTransform)
-        this.assert(output)
+
+        this._assert(output)
+
         return output
     }
 
     /*** Helpers ***/
 
     protected _throwWithErrorSetting(
-        ifUnset: NonNullable<S['error']>,
+        errorDefault: ErrorDefault<S>,
         ...args: S extends ErrorSettings<infer A> ? A : []
     ): never {
 
-        const error = this.settings.error ?? ifUnset
+        const error = this.settings.error ?? errorDefault
 
         throw new Error(
             isFunction(error)
                 ? error(...args)
                 : error
         )
+
     }
+
 }
 
 /**
@@ -126,13 +145,14 @@ abstract class AssertTransformValidator<
 abstract class AssertValidator<O, S extends ErrorSettings<any>>
     extends AssertTransformValidator<O, O, S> {
 
-    protected transform(input: O): O {
+    protected _transform(input: O): O {
         return input
     }
 
     public validate(input: O): O {
         return super.validate(input, false)
     }
+
 }
 
 /**
@@ -150,23 +170,26 @@ abstract class AssertTransformEqualValidator<
 
     /*** AssertTransformValidator Implementation ***/
 
-    protected assert(input: O): void {
-        if (!equals(input, this.transform(input))) {
+    protected _assert(
+        input: O
+    ): void {
+        if (!equals(input, this._transform(input))) {
 
-            const [ifUnset, ...args] = this._getErrorArgs(input)
+            const [ifUnset, ...args] = this._getErrorDefaultAndArgs(input)
 
             this._throwWithErrorSetting(
                 ifUnset,
                 ...args
             )
+
         }
     }
 
     /*** Helper ***/
 
-    protected abstract _getErrorArgs(
+    protected abstract _getErrorDefaultAndArgs(
         input: O
-    ): [ifUnset: ErrorDefault<S>, ...args: ErrorArgs<S>]
+    ): ErrorDefaultAndArgs<S>
 
 }
 
@@ -182,5 +205,6 @@ export {
     AssertTransformValidator,
     AssertTransformEqualValidator,
 
-    ErrorSettings
+    ErrorSettings,
+    ErrorDefaultAndArgs
 }
