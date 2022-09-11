@@ -30,21 +30,23 @@ class TypeValidator<O> extends AssertTransformValidator<
 /**/ TypeValidatorSettings<O>
 > {
 
+    /*** Constructor ***/
+
     public constructor (settings: TypeValidatorSettings<O>) {
         super({
             ...settings
         })
     }
 
-    /*** DuplexValidator Implementation ***/
+    /*** AssertTransformValidator Implementation ***/
 
     protected _transform(input: unknown): unknown | O {
 
         const { is, cast } = this.settings
 
-        const output = is(input) || !cast
-            ? input
-            : cast(input)
+        const output = !is(input) && cast
+            ? cast(input)
+            : input
 
         return output
     }

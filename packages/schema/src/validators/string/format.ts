@@ -36,7 +36,7 @@ type FormatValidationErrorFormat = string | ((
     formatTransgressionDetail: string
 ) => string)
 class FormatValidationError extends ValidationError {
-    public constructor(
+    public constructor (
         input: string,
         formatTransgressionDetail: string,
         format: FormatValidationErrorFormat = (input, formatTransgressionDetail) =>
@@ -88,7 +88,6 @@ function isFormatOption(input: unknown): input is FormatOption {
 /*** Helper ***/
 
 function asRegExp(
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
     str: TemplateStringsArray
 ): RegExp {
     return new RegExp(str.raw[0].replace(/\s/gm, ''), '')

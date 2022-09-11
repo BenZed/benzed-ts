@@ -149,7 +149,7 @@ abstract class AssertValidator<O, S extends ErrorSettings<any>>
         return input
     }
 
-    public validate(input: O): O {
+    public override validate(input: O): O {
         return super.validate(input, false)
     }
 
@@ -175,13 +175,12 @@ abstract class AssertTransformEqualValidator<
     ): void {
         if (!equals(input, this._transform(input))) {
 
-            const [ifUnset, ...args] = this._getErrorDefaultAndArgs(input)
+            const [errorDefault, ...errorArgs] = this._getErrorDefaultAndArgs(input)
 
             this._throwWithErrorSetting(
-                ifUnset,
-                ...args
+                errorDefault,
+                ...errorArgs
             )
-
         }
     }
 
