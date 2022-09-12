@@ -1,4 +1,4 @@
-import CaseValidator from './case-validator'
+import CaseValidator from './case'
 
 describe('case attribute sanitizier', () => {
 

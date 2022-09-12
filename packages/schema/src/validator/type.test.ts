@@ -1,5 +1,5 @@
-import { $$copy } from '@benzed/immutable/lib'
-import TypeValidator from './type-validator'
+import { $$copy } from '@benzed/immutable'
+import TypeValidator from './type'
 
 const fooValidator = new TypeValidator<'foo'>({
     name: 'foo',

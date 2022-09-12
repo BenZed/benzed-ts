@@ -1,5 +1,12 @@
-import { isNumber } from '@benzed/is/lib'
-import { round, ceil, floor } from '@benzed/math'
+import {
+    isNumber
+} from '@benzed/is'
+
+import {
+    round,
+    ceil,
+    floor
+} from '@benzed/math'
 
 import {
     AssertTransformEqualValidator,

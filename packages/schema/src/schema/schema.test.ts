@@ -1,6 +1,6 @@
 import { isString } from '@benzed/is'
 
-import { TypeValidator } from '../validator'
+import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasOptional } from './flags'
 
 import Schema from './schema'

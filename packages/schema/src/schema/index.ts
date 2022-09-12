@@ -59,13 +59,12 @@ import {
     EnumSchemaOutput
 } from './enum-schema'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
-type SchemaInterfaceShortcutSignature = [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput
+type SchemaInterfaceShortcutSignature =
+    [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput
 
 type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
     /**/ T extends TupleSchemaInput

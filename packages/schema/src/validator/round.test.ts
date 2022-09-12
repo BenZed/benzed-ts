@@ -1,5 +1,5 @@
 import { $$copy } from '@benzed/immutable'
-import RoundValidator from './round-validator'
+import RoundValidator from './round'
 
 const toTen = new RoundValidator({ method: 'round', precision: 10 })
 const toEven = new RoundValidator({ method: 'round', precision: 2, error: 'must be even' })

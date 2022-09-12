@@ -1,18 +1,29 @@
 
 import { isNumber, isNaN, isString } from '@benzed/is'
 
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 import {
-    TypeValidator,
+    Flags,
+    AddFlag,
+    HasMutable,
+    HasOptional
+} from './flags'
+
+import {
+    TypeValidator
+} from '../validator/type'
+
+import {
     RangeValidator,
     RangeValidatorSettingsShortcut,
     toRangeValidatorSettings,
+} from '../validator/range'
 
+import {
     RoundValidator,
     RoundValidatorSettingsShortcut,
     toRoundValidatorSettings,
     RounderMethod
-} from '../validator'
+} from '../validator/round'
 
 import { PrimitiveSchema } from './schema'
 

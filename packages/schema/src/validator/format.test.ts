@@ -1,5 +1,5 @@
 
-import FormatValidator from './format-validator'
+import FormatValidator from './format'
 
 it('creates a format function', () => {
 

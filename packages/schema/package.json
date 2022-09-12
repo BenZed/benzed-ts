@@ -2,6 +2,7 @@
     "name": "@benzed/schema",
     "description": "Data validation using JSX",
     "main": "./lib",
+    "version": "1.0.0",
     "scripts": {
         "test": "jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",

@@ -1,4 +1,4 @@
-import TrimValidator from './trim-validator'
+import TrimValidator from './trim'
 
 const trimValidator = new TrimValidator({})
 

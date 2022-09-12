@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { isArray } from '@benzed/is/lib'
+import { isArray } from '@benzed/is'
 import { assertDefined } from '@benzed/util'
 import first from './first'
 

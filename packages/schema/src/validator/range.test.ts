@@ -1,4 +1,4 @@
-import RangeValidator from './range-validator'
+import RangeValidator from './range'
 
 describe('unary comparators', () => {
 

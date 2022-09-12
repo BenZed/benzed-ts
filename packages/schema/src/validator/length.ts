@@ -7,8 +7,7 @@ import {
     RangeValidatorSettings,
     RangeValidatorSettingsShortcut,
     toRangeValidatorSettings
-
-} from './range-validator'
+} from './range'
 
 import {
     AssertValidator

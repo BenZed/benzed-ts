@@ -1,4 +1,7 @@
-import { pluck } from '@benzed/array'
+import {
+    pluck
+} from '@benzed/array'
+
 import {
     isNumber,
     isObject,

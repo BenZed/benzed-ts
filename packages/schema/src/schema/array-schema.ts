@@ -1,10 +1,13 @@
 
 import {
+    TypeValidator
+} from '../validator/type'
+
+import {
     LengthValidator,
     LengthValidatorSettingsShortcut,
     toLengthValidatorSettings,
-    TypeValidator
-} from '../validator'
+} from '../validator/length'
 
 import {
     AddFlag,

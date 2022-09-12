@@ -4,18 +4,24 @@ import { isArray, isNumber, isString } from '@benzed/is'
 import {
     FormatValidator,
     FormatValidatorSettingsShortcut,
-    toFormatValidatorSettings,
+    toFormatValidatorSettings
+} from '../validator/format'
 
+import {
     TrimValidator,
-    TrimValidatorSettings,
+    TrimValidatorSettings
+} from '../validator/trim'
 
+import {
     TypeValidator,
+} from '../validator/type'
 
+import {
     Casing,
     CaseValidator,
     CaseValidatorSettingsShortcut,
     toCaseValidatorSettings
-} from '../validator'
+} from '../validator/case'
 
 import {
     AddFlag,

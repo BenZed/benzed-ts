@@ -1,4 +1,4 @@
-import { DefaultValidator } from './default-validator'
+import { DefaultValidator } from './default'
 import { TransformValidator } from './validator'
 
 const defaultValidator = new DefaultValidator({

@@ -1,8 +1,7 @@
 
-import { TypeValidator } from '../validator'
-import { toOptionsString } from '../util'
-
 import Schema from './schema'
+
+import { toOptionsString } from '../util'
 
 import {
     Flags,
@@ -10,6 +9,8 @@ import {
     HasMutable,
     HasOptional
 } from './flags'
+
+import { TypeValidator } from '../validator/type'
 
 /*** Type ***/
 

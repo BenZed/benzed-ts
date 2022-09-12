@@ -1,4 +1,11 @@
 import {
+    AssertTransformEqualValidator,
+    ErrorDefault,
+    ErrorDefaultAndArgs,
+    ErrorSettings
+} from './validator'
+
+import {
     isPlainObject,
     isString
 } from '@benzed/is'
@@ -8,13 +15,6 @@ import {
     toCamelCase,
     toDashCase
 } from '@benzed/string'
-
-import {
-    AssertTransformEqualValidator,
-    ErrorDefault,
-    ErrorDefaultAndArgs,
-    ErrorSettings
-} from './validator'
 
 /*** Types ***/
 

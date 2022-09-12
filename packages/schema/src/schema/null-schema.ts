@@ -1,7 +1,16 @@
 
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-import { PrimitiveSchema } from './schema'
-import { TypeValidator } from '../validator'
+import {
+    PrimitiveSchema
+} from './schema'
+
+import {
+    AddFlag,
+    Flags,
+    HasMutable,
+    HasOptional
+} from './flags'
+
+import { TypeValidator } from '../validator/type'
 
 /*** Helper ***/
 

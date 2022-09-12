@@ -1,9 +1,10 @@
 
-import { isBoolean } from '@benzed/is'
-import { TypeValidator } from '../validator'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-
 import { PrimitiveSchema } from './schema'
+
+import { TypeValidator } from '../validator/type'
+
+import { isBoolean } from '@benzed/is'
 
 /*** Helper ***/
 

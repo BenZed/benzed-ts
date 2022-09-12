@@ -1,11 +1,12 @@
 
-import { TypeValidator } from '../validator'
 import { ParentSchema, Schema, SchemaOutput, SchemaValidationContext } from './schema'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
 import { copy } from '@benzed/immutable'
 import { isObject } from '@benzed/is'
 import { Intersect } from '@benzed/util'
+
+import { TypeValidator } from '../validator/type'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

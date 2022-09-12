@@ -1,5 +1,7 @@
 import { $, Infer } from './index'
 
+import IntersectionSchema from './intersection-schema'
+import UndefinedSchema from './undefined-schema'
 import BooleanSchema from './boolean-schema'
 import NumberSchema from './number-schema'
 import StringSchema from './string-schema'
@@ -7,12 +9,10 @@ import ShapeSchema from './shape-schema'
 import ArraySchema from './array-schema'
 import RecordSchema from './record-schema'
 import UnionSchema from './union-schema'
-import IntersectionSchema from './intersection-schema'
 import TupleSchema from './tuple-schema'
+import NullSchema from './null-schema'
 
 import { expectTypeOf } from 'expect-type'
-import NullSchema from './null-schema'
-import UndefinedSchema from './undefined-schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

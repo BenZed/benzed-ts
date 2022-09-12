@@ -1,5 +1,5 @@
-import { copy } from '@benzed/immutable'
 import { isFunction } from '@benzed/is'
+import { copy } from '@benzed/immutable'
 
 import { TransformValidator } from './validator'
 

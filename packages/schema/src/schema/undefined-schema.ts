@@ -1,4 +1,4 @@
-import { TypeValidator } from '../validator'
+import { TypeValidator } from '../validator/type'
 
 import { Flags, AddFlag, HasOptional, HasMutable } from './flags'
 

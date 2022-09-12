@@ -1,9 +1,15 @@
 import { push } from '@benzed/immutable'
 import { isObject } from '@benzed/is'
 import { Compile, Merge } from '@benzed/util'
-import { TypeValidator } from '../validator'
 
-import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
+import { TypeValidator } from '../validator/type'
+
+import {
+    AddFlag,
+    Flags,
+    HasMutable,
+    HasOptional
+} from './flags'
 
 import {
     Schema,

@@ -3,9 +3,12 @@ import { push } from '@benzed/immutable'
 import { isArray } from '@benzed/is'
 
 import {
-    LengthValidator,
     TypeValidator
-} from '../validator'
+} from '../validator/type'
+
+import {
+    LengthValidator
+} from '../validator/length'
 
 import {
     AddFlag,

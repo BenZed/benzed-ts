@@ -6,7 +6,7 @@ import {
 
 import {
     TypeValidator
-} from '../validator'
+} from '../validator/type'
 
 import {
     Flags,

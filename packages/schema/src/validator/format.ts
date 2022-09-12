@@ -1,5 +1,15 @@
-import { isFunction, isInstanceOf, isObject, isString } from '@benzed/is'
-import { AssertValidator, ErrorDefault, ErrorSettings } from './validator'
+import {
+    AssertValidator,
+    ErrorDefault,
+    ErrorSettings
+} from './validator'
+
+import {
+    isFunction,
+    isInstanceOf,
+    isObject,
+    isString
+} from '@benzed/is'
 
 /*** DATA ***/
 

@@ -1,13 +1,17 @@
+
 import {
-
-    TypeValidator,
-    TypeValidatorSettings,
-
     Validator,
+} from '../validator'
+
+import {
+    TypeValidator,
+    TypeValidatorSettings
+} from '../validator/type'
+
+import {
     DefaultValidator,
     DefaultValidatorSettings
-
-} from '../validator'
+} from '../validator/default'
 
 import ValidationError from '../util/validation-error'
 
