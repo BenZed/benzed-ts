@@ -1,6 +1,6 @@
 import CaseValidator from './case-validator'
 
-describe.only('case attribute sanitizier', () => {
+describe('case attribute sanitizier', () => {
 
     it('creates a case sanitizer function', () => {
 

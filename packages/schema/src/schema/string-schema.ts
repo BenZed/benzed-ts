@@ -5,9 +5,16 @@ import {
     FormatValidator,
     FormatValidatorSettingsShortcut,
     toFormatValidatorSettings,
+
     TrimValidator,
     TrimValidatorSettings,
-    TypeValidator
+
+    TypeValidator,
+
+    Casing,
+    CaseValidator,
+    CaseValidatorSettingsShortcut,
+    toCaseValidatorSettings
 } from '../validator'
 
 import {
@@ -60,6 +67,30 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
         ))
     }
 
+    public upperCase(...input: CaseValidatorSettingsShortcut<'upper'>): this {
+        return this._copyWithCaseValidator(input, 'upper')
+    }
+
+    public lowerCase(...input: CaseValidatorSettingsShortcut<'lower'>): this {
+        return this._copyWithCaseValidator(input, 'lower')
+    }
+
+    public camelCase(...input: CaseValidatorSettingsShortcut<'camel'>): this {
+        return this._copyWithCaseValidator(input, 'camel')
+    }
+
+    public pascalCase(...input: CaseValidatorSettingsShortcut<'pascal'>): this {
+        return this._copyWithCaseValidator(input, 'pascal')
+    }
+
+    public dashCase(...input: CaseValidatorSettingsShortcut<'dash'>): this {
+        return this._copyWithCaseValidator(input, 'dash')
+    }
+
+    public capitalize(...input: CaseValidatorSettingsShortcut<'capital'>): this {
+        return this._copyWithCaseValidator(input, 'capital')
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F,
     /**/ () => never,
@@ -73,6 +104,19 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
     >
 
     public override readonly clearFlags!: () => StringSchema
+
+    /*** CopyComparable ***/
+
+    protected _copyWithCaseValidator<C extends Casing>(
+        input: CaseValidatorSettingsShortcut<C>,
+        casing: C
+    ): this {
+        const settings = toCaseValidatorSettings(input, casing)
+
+        return this._copyWithPostTypeValidator('case',
+            new CaseValidator(settings)
+        )
+    }
 
 }
 

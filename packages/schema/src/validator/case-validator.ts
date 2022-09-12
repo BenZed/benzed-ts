@@ -1,4 +1,8 @@
-import { isString } from '@benzed/is'
+import {
+    isPlainObject,
+    isString
+} from '@benzed/is'
+
 import {
     capitalize,
     toCamelCase,
@@ -33,17 +37,26 @@ type Casing =
     'lower' |
     'capital' |
     'dash' |
-    'snake' |
     'camel' |
     'pascal'
 
-type CaseValidatorSettingsShortcut<C extends Casing> = [
-    casing: C
-] | [
-    casing: C, error: ErrorDefault<CaseValidatorSettings>
-] | [
-    CaseValidatorSettings<C>
-]
+type CaseValidatorSettingsShortcut<C extends Casing> = Delimiter<C> extends never
+    ? [
+        error: ErrorDefault<CaseValidatorSettings<C>>
+    ] | [
+        Omit<CaseValidatorSettings<C>, 'case'>
+    ]
+    : [
+        delimiter: Delimiter<C>
+    ] | [
+        delimiter: Delimiter<C>, error: ErrorDefault<CaseValidatorSettings<C>>
+    ] | [
+        Omit<CaseValidatorSettings<C>, 'case'>
+    ]
+
+function isDelimitedCasing(casing: Casing): casing is 'dash' | 'camel' | 'pascal' {
+    return casing === 'dash' || casing === 'camel' || casing === 'pascal'
+}
 
 /*** Constants ***/
 
@@ -52,14 +65,25 @@ const SPACE_DASH_UNDERSCORE = / |-|_/
 /*** Helper ***/
 
 function toCaseValidatorSettings<C extends Casing>(
-    input: CaseValidatorSettingsShortcut<C>
+    input: CaseValidatorSettingsShortcut<C>,
+    casing: C,
 ): CaseValidatorSettings<C> {
 
-    const [casingOrSettings, error] = input
+    type Error = ErrorDefault<CaseValidatorSettings<C>>
+    type Settings = Omit<CaseValidatorSettings<C>, 'case'>
 
-    return isString(casingOrSettings)
-        ? { case: casingOrSettings, error }
-        : casingOrSettings
+    const [arg1, arg2] = input
+
+    const settings: Settings = isPlainObject<Settings>(arg1)
+        ? arg1
+        : isDelimitedCasing(casing)
+            ? { error: arg2, delimiter: arg1 as Delimiter<C> }
+            : { error: arg1 as Error }
+
+    return {
+        case: casing,
+        ...settings
+    }
 }
 
 /*** Main ***/
@@ -138,5 +162,7 @@ export {
     CaseValidator,
 
     CaseValidatorSettingsShortcut,
-    toCaseValidatorSettings
+    toCaseValidatorSettings,
+
+    Casing
 }

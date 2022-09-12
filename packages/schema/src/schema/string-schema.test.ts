@@ -31,7 +31,6 @@ describe('trim()', () => {
     it('transforms strings to remove whitespace', () => {
         const $trimmedString = $string
             .trim()
-
         expect($trimmedString.validate('  ace  '))
             .toEqual('ace')
     })
@@ -39,11 +38,9 @@ describe('trim()', () => {
     it('allows optional error', () => {
         const $trimmedString = $string
             .trim({ error: 'no whitespace allowed' })
-
         expect(() => $trimmedString.assert('  ace  '))
             .toThrow('no whitespace allowed')
     })
-
 })
 
 describe('format()', () => {
@@ -63,3 +60,49 @@ describe('format()', () => {
     })
 
 })
+
+for (const method of [
+    'upperCase', 'lowerCase', 'pascalCase', 'camelCase', 'capitalize', 'dashCase'
+] as const) {
+
+    describe(`${method}()`, () => {
+
+        it(`validates that a string is ${method}`, () => {
+            const $cased = $string[method]()
+
+            const errorMsg = 'must be ' + method
+                .replace('Case', '')
+                .replace('capitalize', 'capital')
+                + ' cased'
+
+            expect(() => $cased.assert('oh This is DEF incorrect'))
+                .toThrow(errorMsg)
+        })
+
+        it('allows optional error', () => {
+            const $casedWithError = $string[method]({ error: 'wrong case, asshole' })
+            expect(() => $casedWithError.assert('oh This is DEF incorrect'))
+                .toThrow('wrong case, asshole')
+        })
+
+        it('smart delimeter signatures', () => {
+
+            if (method === 'camelCase' || method === 'pascalCase') {
+                $string[method](/_/)
+                $string[method]('_')
+            } else if (method === 'dashCase') {
+                $string[method]('-')
+                $string[method]('-', 'error')
+                // @ts-expect-error RegEx Should not be allowed
+                $string[method](/_/, 'error')
+            } else {
+                // @ts-expect-error RegEx Should not be allowed
+                $string[method](/-/)
+                $string[method]('error')
+            }
+
+        })
+
+    })
+
+}
