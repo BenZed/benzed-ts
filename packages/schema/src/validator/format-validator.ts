@@ -130,6 +130,7 @@ export default FormatValidator
 export {
     FormatValidator,
     FormatValidatorSettings,
+    isFormatValidatorSettings,
 
     FormatValidatorSettingsShortcut,
     toFormatValidatorSettings

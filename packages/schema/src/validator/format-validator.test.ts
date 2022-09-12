@@ -45,7 +45,7 @@ describe('signatures', () => {
         expect(() => urlFormat.validate('Not a url')).toThrow('must be')
     })
 
-    it('alphanumeric.validate shortcut', () => {
+    it('alphanumeric shortcut', () => {
         const alphanumeric =
             new FormatValidator({ format: 'alphanumeric' })
 

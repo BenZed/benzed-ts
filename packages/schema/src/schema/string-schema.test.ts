@@ -29,14 +29,37 @@ describe('validate()', () => {
 describe('trim()', () => {
 
     it('transforms strings to remove whitespace', () => {
-        const $trimmedString = $string.trim()
+        const $trimmedString = $string
+            .trim()
 
-        expect($trimmedString.validate('  ace  ')).toEqual('ace')
+        expect($trimmedString.validate('  ace  '))
+            .toEqual('ace')
     })
 
     it('allows optional error', () => {
-        const $trimmedString = $string.trim({ error: 'no whitespace allowed' })
-        expect(() => $trimmedString.assert('  ace  ')).toThrow('no whitespace allowed')
+        const $trimmedString = $string
+            .trim({ error: 'no whitespace allowed' })
+
+        expect(() => $trimmedString.assert('  ace  '))
+            .toThrow('no whitespace allowed')
+    })
+
+})
+
+describe('format()', () => {
+
+    it('validates that a string is in a given format', () => {
+        const $alpha = $string.format('alpha')
+
+        expect($alpha.validate('abc')).toEqual('abc')
+        expect(() => $alpha.validate('012')).toThrow('must be formatted as alpha')
+    })
+
+    it('allows optional error', () => {
+        const $plural = $string.format(/s$/, 'must be pluralized')
+
+        expect($plural.validate('cats')).toEqual('cats')
+        expect(() => $plural.validate('cat')).toThrow('must be pluralized')
     })
 
 })

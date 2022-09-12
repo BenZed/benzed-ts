@@ -265,7 +265,6 @@ class RangeValidator<O extends Sortable> extends AssertValidator<
                     ? PASS
                     : `from ${min} to less than ${max}`
             }
-
         }
     }
 }

@@ -2,6 +2,9 @@
 import { isArray, isNumber, isString } from '@benzed/is'
 
 import {
+    FormatValidator,
+    FormatValidatorSettingsShortcut,
+    toFormatValidatorSettings,
     TrimValidator,
     TrimValidatorSettings,
     TypeValidator
@@ -49,6 +52,12 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     public trim(settings?: TrimValidatorSettings): this {
         return this._copyWithPostTypeValidator('trim', new TrimValidator({ ...settings }))
+    }
+
+    public format(...input: FormatValidatorSettingsShortcut): this {
+        return this._copyWithPostTypeValidator('format', new FormatValidator(
+            toFormatValidatorSettings(input)
+        ))
     }
 
     public override readonly optional!: HasOptional<
