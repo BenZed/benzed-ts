@@ -4,7 +4,7 @@ import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasOptional } from './flags'
 
 import Schema from './schema'
-import NullSchema from './null-schema'
+import NullSchema from './null'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],

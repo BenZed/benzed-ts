@@ -1,9 +1,10 @@
-import NumberSchema from './number-schema'
-import TupleSchema from './tuple-schema'
+
+import TupleSchema from './tuple'
+import ShapeSchema from './shape'
+import NumberSchema from './number'
+import StringSchema from './string'
 
 import { expectValidationError } from '../util.test'
-import ShapeSchema from './shape-schema'
-import StringSchema from './string-schema'
 
 /*** Input ***/
 

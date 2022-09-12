@@ -1,4 +1,4 @@
-import StringSchema from './string-schema'
+import StringSchema from './string'
 
 const $string = new StringSchema()
 

@@ -1,4 +1,4 @@
-import UndefinedSchema from './undefined-schema'
+import UndefinedSchema from './undefined'
 
 const $undefined = new UndefinedSchema()
 
