@@ -48,15 +48,6 @@ class TupleSchema<
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>
     })
 
-    protected _validators = [
-        new LengthValidator<any>({
-            //              ^ FIXME don't get why this can't be O
-            comparator: '==',
-            value: this._input.length,
-            error: `must have exactly ${this._input.length} items`
-        })
-    ]
-
     public constructor (input: I, ...flags: F) {
         super(input, ...flags)
 

@@ -30,14 +30,6 @@ class TypeValidator<O> extends AssertTransformValidator<
 /**/ TypeValidatorSettings<O>
 > {
 
-    /*** Constructor ***/
-
-    public constructor (settings: TypeValidatorSettings<O>) {
-        super({
-            ...settings
-        })
-    }
-
     /*** AssertTransformValidator Implementation ***/
 
     protected _transform(input: unknown): unknown | O {

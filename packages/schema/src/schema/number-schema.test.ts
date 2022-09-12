@@ -1,6 +1,8 @@
 import NumberSchema from './number-schema'
 import { expectValidationError } from '../util.test'
 
+import * as Math from '@benzed/math'
+
 const $number = new NumberSchema()
 
 describe('validate()', () => {
@@ -50,4 +52,55 @@ describe('range()', () => {
             .toHaveProperty('message', '0 must be from 2 to less than 10')
     })
 
+    it('range() shortcut args', () => {
+
+        const range5to10s = [
+            $number.range({ min: 5, max: 10 }),
+            $number.range('5-10'),
+            $number.range('5..10'),
+            $number.range(5, 10),
+            $number.range(5, '-', 10),
+            $number.range(5, '..', 10),
+            $number.range({ min: 5, max: 10, comparator: '-' }),
+            $number.range({ min: 5, max: 10, comparator: '..' }),
+        ]
+
+        for (const range5to10 of range5to10s) {
+            expect(range5to10.validate(5)).toBe(5)
+            expect(range5to10.validate(7)).toBe(7)
+            expect(() => range5to10.validate(10)).toThrow('must be from 5 to less than 10')
+        }
+    })
 })
+
+for (const method of ['round', 'floor', 'ceil'] as const) {
+
+    describe(`${method}()`, () => {
+
+        it(`creates an instance of the schema with a ${method} validator`, () => {
+            const $evenNumber = $number[method](2)
+
+            const input = 3
+
+            expect($evenNumber.validate(input)).toBe(Math[method](input, 2))
+        })
+
+        it(`${method}() shortcuts`, () => {
+
+            const precision = 0.125
+
+            const toEighths = [
+                $number[method](precision),
+                $number[method]({ precision })
+            ]
+
+            const input = 0.1
+
+            for (const toEigth of toEighths) {
+                expect(toEigth.validate(input))
+                    .toEqual(Math[method](input, precision))
+            }
+        })
+
+    })
+}

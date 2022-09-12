@@ -2,9 +2,7 @@
 import {
     $$equals,
     $$copy,
-
     equals,
-
     CopyComparable,
 
 } from '@benzed/immutable'
@@ -50,7 +48,8 @@ abstract class Validator<
     /*** Construction ***/
 
     public constructor (settings: S) {
-        this._settings = { ...settings }
+        this._settings = this._stripUndefinedSettings(settings) as S
+        this._onApplySettings()
     }
 
     /*** Validation ***/
@@ -63,10 +62,13 @@ abstract class Validator<
 
         this._settings = {
             ...this._settings,
-            ...settings
+            ...this._stripUndefinedSettings(settings)
         }
 
+        this._onApplySettings()
     }
+
+    protected _onApplySettings(): void { /**/ }
 
     /*** CopyComparable Implementation ***/
 
@@ -79,6 +81,22 @@ abstract class Validator<
         const ThisValidator = this.constructor as new (settings: S) => this
         return new ThisValidator(this.settings)
     }
+
+    /*** Helper ***/
+
+    private _stripUndefinedSettings(settings: Partial<S>): Partial<S> {
+
+        const strippedSettings: Partial<S> = {}
+
+        for (const key in settings) {
+            if (settings[key] !== undefined)
+                strippedSettings[key] = settings[key]
+        }
+
+        return strippedSettings
+
+    }
+
 }
 
 /**
@@ -205,5 +223,6 @@ export {
     AssertTransformEqualValidator,
 
     ErrorSettings,
+    ErrorDefault,
     ErrorDefaultAndArgs
 }

@@ -1,27 +1,57 @@
+import { isNumber } from '@benzed/is/lib'
 import { round, ceil, floor } from '@benzed/math'
 
 import {
     AssertTransformEqualValidator,
     ErrorDefaultAndArgs,
-    ErrorSettings
+    ErrorSettings,
+    ErrorDefault
 } from './validator'
 
 /*** Types ***/
 
 interface RoundValidatorSettings extends ErrorSettings<[
     value: number,
-    method: Rounder,
+    method: RounderMethod,
     precision: number
 ]> {
-    method: Rounder
+    method: RounderMethod
     precision: number
 }
+
+type RounderMethod = keyof typeof ROUNDER_METHODS
+
+type RoundValidatorSettingsShortcut = [
+    precision: number,
+    error: ErrorDefault<RoundValidatorSettings>
+] | [
+    precision: number
+] | [
+    Omit<RoundValidatorSettings, 'method'>
+]
 
 /*** Const ***/
 
 const ROUNDER_METHODS = { round, ceil, floor }
 
-type Rounder = keyof typeof ROUNDER_METHODS
+/*** Helper ***/
+
+function toRoundValidatorSettings(
+    method: RounderMethod,
+    shortcut: RoundValidatorSettingsShortcut,
+): RoundValidatorSettings {
+
+    const { precision, error } = isNumber(shortcut[0])
+        ? { precision: shortcut[0], error: shortcut[1] }
+        : shortcut[0]
+
+    return {
+        precision,
+        method,
+        error
+    }
+
+}
 
 /*** Main ***/
 
@@ -63,5 +93,9 @@ export default RoundValidator
 
 export {
     RoundValidator,
-    RoundValidatorSettings
+    RoundValidatorSettings,
+    RoundValidatorSettingsShortcut,
+    toRoundValidatorSettings,
+
+    RounderMethod
 }

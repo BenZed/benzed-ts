@@ -1,15 +1,27 @@
-import { isInteger, isNumber } from '@benzed/is/lib'
-import RangeValidator, {
+import {
+    isInteger
+} from '@benzed/is'
+
+import {
+    RangeValidator,
     RangeValidatorSettings,
     RangeValidatorSettingsShortcut,
     toRangeValidatorSettings
+
 } from './range-validator'
 
-import { AssertValidator } from './validator'
+import {
+    AssertValidator
+} from './validator'
 
 /*** Types ***/
 
 type LengthValidatorSettings = RangeValidatorSettings
+
+/*** Helper ***/
+
+const defaultLengthError = (_input: unknown, lengthTransgressionDetail: string): string =>
+    `length must be ${lengthTransgressionDetail}`
 
 /*** Main ***/
 
@@ -17,26 +29,25 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
     extends AssertValidator<O, LengthValidatorSettings> {
 
-    private readonly _rangeValidator: RangeValidator<number>
+    private _rangeValidator!: RangeValidator<number>
 
     public constructor (settings: LengthValidatorSettings) {
         super({
-            error: (_input, lengthTransgressionDetail) =>
-                `length must be ${lengthTransgressionDetail}`,
+            error: defaultLengthError,
             ...settings
         })
-
-        this._rangeValidator = new RangeValidator(this.settings)
-        this._validateLengthSettings()
     }
 
-    public override applySettings(settings: LengthValidatorSettings): void {
+    /*** AssertValidator implementation ***/
 
-        super.applySettings(settings)
+    protected override _onApplySettings(): void {
 
-        this._rangeValidator.applySettings(this.settings)
+        if (this._rangeValidator)
+            this._rangeValidator.applySettings(this.settings)
+        else
+            this._rangeValidator = new RangeValidator(this.settings)
+
         this._validateLengthSettings()
-
     }
 
     protected _assert(input: O): void {
@@ -47,14 +58,29 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
     private _validateLengthSettings(): void {
 
-        const lengthBelowZeroIsValid = this._rangeValidator['_rangeTest'](-1) === null
-        if (lengthBelowZeroIsValid)
+        const { settings } = this
+
+        let validatesLengthsBelowZero: boolean
+        let nonIntegerConfiguration: string | null
+
+        if ('value' in settings) {
+            validatesLengthsBelowZero = settings.value < 0
+            nonIntegerConfiguration = isInteger(settings.value) ? null : 'value'
+        } else {
+            validatesLengthsBelowZero = settings.min < 0
+            nonIntegerConfiguration = isInteger(settings.min)
+                ? isInteger(settings.max)
+                    ? null
+                    : 'max'
+                : 'min'
+
+        }
+
+        if (validatesLengthsBelowZero)
             throw new Error('cannot validate length below 0')
 
-        Object.entries(this.settings).forEach(([key, value]) => {
-            if (isNumber(value) && !isInteger(value))
-                throw new Error(`${key} must be an integer.`)
-        })
+        if (nonIntegerConfiguration)
+            throw new Error(`${nonIntegerConfiguration} must be an integer.`)
 
     }
 
