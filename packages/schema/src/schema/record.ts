@@ -7,9 +7,9 @@ import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
 
 import Schema, { ParentSchema, SchemaOutput, SchemaValidationContext } from './schema'
 
-import StringSchema from './string-schema'
-import NumberSchema from './number-schema'
-import UnionSchema from './union-schema'
+import StringSchema from './string'
+import NumberSchema from './number'
+import UnionSchema from './union'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

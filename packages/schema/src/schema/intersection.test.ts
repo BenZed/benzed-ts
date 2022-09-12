@@ -1,10 +1,10 @@
 
 import { expectValidationError } from '../util.test'
 
-import IntersectionSchema from './intersection-schema'
+import IntersectionSchema from './intersection'
 
-import ShapeSchema from './shape-schema'
-import NumberSchema from './number-schema'
+import ShapeSchema from './shape'
+import NumberSchema from './number'
 
 /*** Input ***/
 

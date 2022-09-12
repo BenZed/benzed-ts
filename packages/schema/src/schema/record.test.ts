@@ -1,9 +1,9 @@
-import RecordSchema from './record-schema'
-import StringSchema from './string-schema'
-import BooleanSchema from './boolean-schema'
+import RecordSchema from './record'
+import StringSchema from './string'
+import BooleanSchema from './boolean'
 
 import { expectValidationError } from '../util.test'
-import NumberSchema from './number-schema'
+import NumberSchema from './number'
 
 /*** Input ***/
 

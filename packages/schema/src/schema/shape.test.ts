@@ -1,8 +1,8 @@
 
-import NumberSchema from './number-schema'
-import StringSchema from './string-schema'
-import ShapeSchema from './shape-schema'
-import BoolSchema from './boolean-schema'
+import NumberSchema from './number'
+import StringSchema from './string'
+import ShapeSchema from './shape'
+import BoolSchema from './boolean'
 
 import {
     expectValidationError

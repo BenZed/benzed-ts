@@ -18,7 +18,7 @@ import {
 import {
     TupleSchemaInput,
     TupleSchemaOutput
-} from './tuple-schema'
+} from './tuple'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

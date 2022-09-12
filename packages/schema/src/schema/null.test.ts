@@ -1,4 +1,4 @@
-import NullSchema from './null-schema'
+import NullSchema from './null'
 
 const $null = new NullSchema()
 

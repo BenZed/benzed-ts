@@ -1,4 +1,4 @@
-import EnumSchema from './enum-schema'
+import EnumSchema from './enum'
 
 const $trafficLights = new EnumSchema(['red', 'green', 'yellow'] as const)
 

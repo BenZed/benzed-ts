@@ -1,10 +1,10 @@
 
 import { expectValidationError } from '../util.test'
 
-import UnionSchema from './union-schema'
+import UnionSchema from './union'
 
-import StringSchema from './string-schema'
-import BooleanSchema from './boolean-schema'
+import StringSchema from './string'
+import BooleanSchema from './boolean'
 
 /*** Input ***/
 

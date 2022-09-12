@@ -7,43 +7,43 @@ import {
     ShapeSchema,
     ShapeSchemaInput,
     ShapeSchemaOutput
-} from './shape-schema'
+} from './shape'
 
 import {
     ArraySchema,
     ArraySchemaInput,
     ArraySchemaOutput
-} from './array-schema'
+} from './array'
 
 import {
     TupleSchema,
     TupleSchemaInput,
     TupleSchemaOutput
-} from './tuple-schema'
+} from './tuple'
 
 import {
     UnionSchema,
     UnionSchemaInput,
     UnionSchemaOutput
-} from './union-schema'
+} from './union'
 
 import {
     IntersectionSchema,
     IntersectionSchemaInput,
     IntersectionSchemaOutput
-} from './intersection-schema'
+} from './intersection'
 
 import {
     RecordSchema,
     RecordSchemaInput,
     RecordSchemaOutput
-} from './record-schema'
+} from './record'
 
-import StringSchema from './string-schema'
-import NumberSchema from './number-schema'
-import BooleanSchema from './boolean-schema'
-import NullSchema from './null-schema'
-import UndefinedSchema from './undefined-schema'
+import StringSchema from './string'
+import NumberSchema from './number'
+import BooleanSchema from './boolean'
+import NullSchema from './null'
+import UndefinedSchema from './undefined'
 
 import {
     isBoolean,
@@ -57,7 +57,7 @@ import {
     EnumSchema,
     EnumSchemaInput,
     EnumSchemaOutput
-} from './enum-schema'
+} from './enum'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

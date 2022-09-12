@@ -1,4 +1,4 @@
-import BooleanSchema from './boolean-schema'
+import BooleanSchema from './boolean'
 
 const $bool = new BooleanSchema()
 
