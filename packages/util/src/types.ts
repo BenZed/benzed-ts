@@ -9,6 +9,7 @@ export type Json =
     Json[] |
     { [prop: string]: Json }
 
+
 /**
  * Reduce two types to only their matching key values.
  */
@@ -42,7 +43,7 @@ export type Merge<T extends any[]> =
     }
 
 /**
- * 
+ * Remove the optional signature on specific keys of a type.
  */
 export type RequirePartial<T, K extends keyof T> =
     Merge<[
@@ -55,7 +56,7 @@ export type RequirePartial<T, K extends keyof T> =
     ]>
 
 /**
- * Get a type where the given values are optional
+ * Make specific values of a type optional.
  */
 export type Optional<T, V> =
     Merge<[
@@ -68,9 +69,16 @@ export type Optional<T, V> =
     ]>
 
 /**
- * Get a type where any undefined property is optional
+ * Make undefined values of a type optional.
  */
 export type UndefinedToOptional<T> = Optional<T, undefined>
+
+/**
+ * Get a compiled contract of a type.
+ */
+export type Compile<T> = T extends object
+    ? T extends infer O ? { [K in keyof O]: Compile<O[K]> } : never
+    : T
 
 /**
  * Get the string keys of a type.

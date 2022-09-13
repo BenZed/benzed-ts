@@ -4,9 +4,7 @@ import { isArray } from '@benzed/is'
 
 /*** Types ***/
 
-type WrapIn = any | any[] | readonly any[]
-
-type WrapOut<T> = T extends any[] | readonly any[]
+type Wrap<T> = T extends any[] | readonly any[]
     ? T
     : T[]
 
@@ -19,10 +17,10 @@ type WrapOut<T> = T extends any[] | readonly any[]
  * @return {type}       If input is an array, returns the input, otherwise returns
  *                      an array with the input as the first value.
  */
-function wrap<T extends WrapIn>(
+function wrap<T>(
     value: T
-): WrapOut<T> {
-    return (isArray(value) ? value : [value]) as WrapOut<T>
+): Wrap<T> {
+    return (isArray(value) ? value : [value]) as Wrap<T>
 }
 
 /*** Exports ***/

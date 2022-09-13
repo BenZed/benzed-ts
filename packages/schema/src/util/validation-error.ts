@@ -1,25 +1,22 @@
 import { isFunction } from '@benzed/is'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
-
-/*** Types ***/
-
 /*** Exports ***/
 
-export default abstract class ValidationError extends Error {
+export default class ValidationError extends Error {
 
-    public constructor(
-        msgOrFormat: string | ((...args: any[]) => string),
-        ...args: any[]
+    public constructor (
+        msgOrFormat: string | ((path: readonly (string | number)[]) => string),
+        public readonly path: readonly (string | number)[]
     ) {
 
         const message = isFunction(msgOrFormat)
-            ? msgOrFormat(...args)
+            ? msgOrFormat(path)
             : msgOrFormat
 
         super(message)
+
+        this.name = 'ValidationError'
+
     }
 
 }

@@ -2,7 +2,7 @@ import { isFunction, isObject } from './is-basic'
 
 /*** Main ***/
 
-function isPlainObject<T = unknown>(input: unknown): input is Record<string | number, T> {
+function isPlainObject<T extends object>(input: unknown): input is T {
 
     if (!isObject(input))
         return false

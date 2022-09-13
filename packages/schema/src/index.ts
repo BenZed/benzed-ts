@@ -1,9 +1,1 @@
-import $ from './$'
-
-/*** Exports ***/
-
-export default $
-
-export {
-    $
-}
+export * from './schema'
