@@ -9,7 +9,6 @@ export type Json =
     Json[] |
     { [prop: string]: Json }
 
-
 /**
  * Reduce two types to only their matching key values.
  */
@@ -30,14 +29,14 @@ export type Collapse<LEFT, RIGHT> =
 /**
  * Create an interesection out of an arbitrary number of types
  */
-export type Intersect<T extends any[]> = T extends [infer FIRST, ...infer REST]
+export type Intersect<T> = T extends [infer FIRST, ...infer REST]
     ? FIRST & Intersect<REST>
     : unknown
 
 /**
  * Merge an arbitrary number of types into one. 
  */
-export type Merge<T extends any[]> =
+export type Merge<T> =
     {
         [K in keyof Intersect<T>]: Intersect<T>[K]
     }

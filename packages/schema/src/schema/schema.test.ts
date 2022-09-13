@@ -5,7 +5,6 @@ import { AddFlag, Flags, HasOptional } from './flags'
 
 import Schema from './schema'
 import NullSchema from './null'
-import StringSchema from './string'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],
