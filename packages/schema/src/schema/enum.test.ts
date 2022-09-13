@@ -16,3 +16,17 @@ describe('validate()', () => {
     })
 
 })
+
+describe('default()', () => {
+
+    it('creates schema with default enum', () => {
+        expect($trafficLights.default('yellow').validate(undefined))
+            .toEqual('yellow')
+    })
+
+    it('defaults to first input enum', () => {
+        expect($trafficLights.default().validate(undefined))
+            .toBe('red')
+    })
+
+})

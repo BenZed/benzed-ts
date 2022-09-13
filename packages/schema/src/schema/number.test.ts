@@ -41,6 +41,23 @@ describe('validate()', () => {
 
 })
 
+describe('default()', () => {
+
+    it('input can be used as default', () => {
+        const $defaultNum = new NumberSchema(1)
+        expect($defaultNum.validate(undefined)).toEqual(1)
+    })
+
+    it('default()s to 0', () => {
+        expect($number.default().validate(undefined)).toBe(0)
+    })
+
+    it('respects default setting, if valid', () => {
+        expect($number.default(5).validate(undefined)).toEqual(5)
+    })
+
+})
+
 describe('range()', () => {
 
     it('creates an instance of the schema with a range validator', () => {
@@ -70,6 +87,15 @@ describe('range()', () => {
             expect(range5to10.validate(7)).toBe(7)
             expect(() => range5to10.validate(10)).toThrow('must be from 5 to less than 10')
         }
+    })
+
+    it('== shortcut', () => {
+        const equals2 = $number.range(2)
+        expect(equals2.validate(2)).toEqual(2)
+        expectValidationError(() => equals2.validate(1))
+            .toHaveProperty('message', '1 must be equal 2')
+        expectValidationError(() => equals2.validate(3))
+            .toHaveProperty('message', '3 must be equal 2')
     })
 })
 

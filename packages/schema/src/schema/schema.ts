@@ -30,7 +30,6 @@ import {
 } from '@benzed/immutable'
 
 import {
-    isFunction,
     isInstanceOf,
     isNumber
 } from '@benzed/is'
@@ -98,6 +97,9 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     public constructor (input: I, ...flags: F) {
         this._input = input
         this._flags = flags
+        this.is = this.is.bind(this)
+        this.assert = this.assert.bind(this)
+        this.validate = this.validate.bind(this)
     }
 
     /*** Data Methods ***/
@@ -119,12 +121,6 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this._validate(input, { transform: true })
     }
 
-    public create(): ApplyOptional<F, O> {
-        return this
-            ._defaultValidator
-            .transform(undefined) as ApplyOptional<F, O>
-    }
-
     /*** Schema Methods ***/
 
     public name(name: TypeSetting<O, 'name'>): this {
@@ -139,8 +135,11 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this._copyWithTypeValidatorSettings({ error })
     }
 
-    public default(def: DefaultSetting<O, 'default'>): this {
-        return this._copyWithDefaultValidatorSetting({ default: def })
+    public default(defaultValue: DefaultSetting<O, 'default'>): this {
+
+        const newSchema = this[$$copy]()
+        newSchema._applyDefaultValue(defaultValue)
+        return newSchema
     }
 
     /**
@@ -247,6 +246,10 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         this._postTypeValidators.set(newNumericalId, validator)
     }
 
+    protected _applyDefaultValue(defaultValue: DefaultValidatorSettings<O>['default']): void {
+        this._defaultValidator.applySettings({ default: defaultValue })
+    }
+
     /*** Immutable Helpers ***/
 
     private _copyWithInputAndFlags(input: I, ...flags: Flags[]): this {
@@ -254,8 +257,8 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
         const schema = new ThisSchema(input, ...flags)
         schema._typeValidator.applySettings(this._typeValidator.settings)
-        schema._defaultValidator.applySettings(this._defaultValidator.settings)
         schema._postTypeValidators = copy(this._postTypeValidators)
+        schema._defaultValidator.applySettings(this._defaultValidator.settings)
         return schema
     }
 
@@ -269,12 +272,6 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     private _copyWithTypeValidatorSettings(settings: Partial<TypeValidatorSettings<O>>): this {
         const schema = this[$$copy]()
         schema._typeValidator.applySettings(settings)
-        return schema
-    }
-
-    private _copyWithDefaultValidatorSetting(settings: Partial<DefaultValidatorSettings<O>>): this {
-        const schema = this[$$copy]()
-        schema._defaultValidator.applySettings(settings)
         return schema
     }
 
@@ -317,15 +314,6 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
 abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     extends Schema<I, I, F> {
-
-    public constructor (input: I | (() => I), ...flags: F) {
-
-        super(isFunction(input) ? input() : input, ...flags)
-
-        this._defaultValidator.applySettings({
-            default: input
-        })
-    }
 }
 
 /*** Parent Schema ***/

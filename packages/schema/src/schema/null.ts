@@ -29,8 +29,9 @@ function tryCastToNull(input: unknown): unknown {
 
 export default class NullSchema<F extends Flags[] = []> extends PrimitiveSchema<null, F> {
 
-    public constructor (...flags: F) {
+    public constructor (defaultValue?: null, ...flags: F) {
         super(null, ...flags)
+        this._applyDefaultValue(defaultValue)
     }
 
     protected _typeValidator = new TypeValidator({
@@ -48,6 +49,10 @@ export default class NullSchema<F extends Flags[] = []> extends PrimitiveSchema<
     >
 
     public override readonly clearFlags!: () => NullSchema
+
+    public override default(): this {
+        return super.default(null)
+    }
 
 }
 

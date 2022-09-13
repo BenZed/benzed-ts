@@ -26,10 +26,10 @@ import {
 
 import { push } from '@benzed/immutable'
 import { isArray, isString } from '@benzed/is'
+import { safeJsonParse } from '../util'
+import { DefaultValidatorSettings } from '../validator/default'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
@@ -39,14 +39,9 @@ type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>[]
 /*** Helper ***/
 
 function tryCastToArray(input: unknown): unknown {
-
-    if (isString(input)) {
-        const arr = input.split(',')
-        if (isArray(arr))
-            return arr
-    }
-
-    return input
+    return isString(input)
+        ? safeJsonParse(input, isArray) ?? input
+        : input
 }
 
 /*** Main ***/
@@ -93,20 +88,11 @@ class ArraySchema<
         return output as unknown as ApplyMutable<F, O>
     }
 
-    public constructor (input: I, ...flags: F) {
-
-        super(input, ...flags)
-
-        // Default to an empty array if that is valid
-        const defaultArr: unknown = []
-        if (this.is(defaultArr)) {
-            this._defaultValidator.applySettings({
-                default: defaultArr
-            })
-        }
-    }
-
     /*** Schema Chain Methods ***/
+
+    public override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+        return super.default(defaultValue ?? [] as any)
+    }
 
     public length(...input: LengthValidatorSettingsShortcut): this {
         const settings = toLengthValidatorSettings(input)

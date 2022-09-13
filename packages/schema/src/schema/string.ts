@@ -51,8 +51,9 @@ function tryCastToString(value: unknown): unknown {
 
 class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
-    public constructor (def = '', ...flags: F) {
-        super(def, ...flags)
+    public constructor (defaultValue?: string, ...flags: F) {
+        super(defaultValue ?? '', ...flags)
+        this._applyDefaultValue(defaultValue)
     }
 
     protected _typeValidator = new TypeValidator({
@@ -95,6 +96,10 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     public capitalize(...input: CaseValidatorSettingsShortcut<'capital'>): this {
         return this._copyWithCaseValidator(input, 'capital')
+    }
+
+    public default(defaultValue = ''): this {
+        return super.default(defaultValue)
     }
 
     public override readonly optional!: HasOptional<

@@ -41,9 +41,16 @@ class IntersectionSchema<
 
         const { _input: andSchemas } = this
 
-        let output = input
-        for (const schema of andSchemas)
-            output = schema['_validate'](output, copy(inputContext))
+        const output = {} as O
+        for (const schema of andSchemas) {
+
+            const context = copy(inputContext)
+
+            Object.assign(
+                output as any,
+                schema['_validate'](input, context)
+            )
+        }
 
         return output
     }

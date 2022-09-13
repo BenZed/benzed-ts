@@ -23,3 +23,9 @@ describe('validate()', () => {
     })
 
 })
+
+describe('default()', () => {
+    it('overridden to take no arguments', () => {
+        expect($null.default().validate(undefined)).toBe(null)
+    })
+})

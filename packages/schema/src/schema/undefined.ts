@@ -41,6 +41,10 @@ export default class UndefinedSchema<F extends Flags[] = []> extends PrimitiveSc
 
     public override readonly clearFlags!: () => UndefinedSchema
 
+    public override default(): this {
+        return super.default(undefined)
+    }
+
 }
 
 export {

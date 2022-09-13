@@ -45,5 +45,35 @@ describe('validate()', () => {
             ])
         ).toHaveProperty('path', [1, 'y'])
     })
+})
+
+describe('default()', () => {
+
+    it('defaults to constructed tuple', () => {
+
+        expect(
+            $name.default()
+                .validate(undefined)
+        ).toEqual(['', ''])
+    })
+
+    it('default constructed object respects nested default values', () => {
+
+        const $count = new TupleSchema([new StringSchema('default')])
+
+        expect(
+            $count
+                .default()
+                .validate(undefined)
+        ).toEqual(['default'])
+    })
+
+    it('respects default setting, if valid', () => {
+        expect(
+            $name
+                .default(['james', 'mcnaughty'])
+                .validate(undefined)
+        ).toEqual(['james', 'mcnaughty'])
+    })
 
 })

@@ -23,8 +23,10 @@ import {
     SchemaValidationContext,
 
     ApplyMutable,
-    ParentSchema
+    ParentSchema,
+    PrimitiveSchema
 } from './schema'
+import { DefaultValidatorSettings } from '../validator/default'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -54,6 +56,7 @@ class TupleSchema<
     public constructor (input: I, ...flags: F) {
         super(input, ...flags)
 
+        // Set length validator
         this._setPostTypeValidator(
             'tuple-length',
             new LengthValidator({
@@ -63,6 +66,31 @@ class TupleSchema<
             })
         )
     }
+
+    /***  ***/
+
+    public default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
+
+        defaultValue ??= (): ApplyMutable<F, O> => {
+            const output = [] as unknown[]
+            for (const schema of this._input) {
+
+                // first used default validator output
+                let value = schema['_defaultValidator'].transform(undefined)
+
+                // use identify if primitive
+                if (value === undefined && schema instanceof PrimitiveSchema)
+                    value = schema['_input']
+
+                output.push(value)
+            }
+            return output as unknown as ApplyMutable<F, O>
+        }
+
+        return super.default(defaultValue)
+    }
+
+    /***  ***/
 
     protected _validateChildren(
         input: O,

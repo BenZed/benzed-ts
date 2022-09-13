@@ -11,9 +11,7 @@ import StringSchema from './string'
 import NumberSchema from './number'
 import UnionSchema from './union'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
@@ -99,6 +97,10 @@ class RecordSchema<
     >
 
     public override readonly clearFlags!: () => RecordSchema<I, O>
+
+    public override default(defaultValue = {} as O): this {
+        return super.default(defaultValue)
+    }
 
 }
 

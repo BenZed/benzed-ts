@@ -26,6 +26,23 @@ describe('validate()', () => {
 
 })
 
+describe('default()', () => {
+
+    it('input can be used as default', () => {
+        const $defaultStr = new StringSchema('hello')
+        expect($defaultStr.validate(undefined)).toEqual('hello')
+    })
+
+    it('respects default setting, if valid', () => {
+        expect($string.default('str').validate(undefined)).toEqual('str')
+    })
+
+    it('default()s to ""', () => {
+        expect($string.default().validate(undefined)).toBe('')
+    })
+
+})
+
 describe('trim()', () => {
 
     it('transforms strings to remove whitespace', () => {

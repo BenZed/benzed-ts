@@ -29,8 +29,9 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
         cast: tryCastToBoolean
     })
 
-    public constructor (def = false, ...flags: F) {
-        super(def, ...flags)
+    public constructor (defaultValue?: boolean, ...flags: F) {
+        super(defaultValue ?? false, ...flags)
+        this._applyDefaultValue(defaultValue)
     }
 
     public override readonly optional!: HasOptional<
@@ -43,6 +44,9 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
 
     public override readonly clearFlags!: () => BooleanSchema
 
+    public override default(defaultValue = false): this {
+        return super.default(defaultValue)
+    }
 }
 
 /*** Expors ***/

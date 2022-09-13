@@ -53,3 +53,20 @@ describe('validate()', () => {
     })
 
 })
+
+describe('default()', () => {
+
+    it('defaults to empty object', () => {
+        expect($dict.default().validate(undefined)).toEqual({})
+    })
+
+    it('respects default setting, if valid', () => {
+        expect(
+            $dict
+                .default({ word: 'play' })
+                .validate(undefined)
+
+        ).toEqual({ word: 'play' })
+    })
+
+})

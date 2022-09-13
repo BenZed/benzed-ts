@@ -1,6 +1,5 @@
-import { push } from '@benzed/immutable'
-import { isObject } from '@benzed/is'
-import { Compile, Merge } from '@benzed/util'
+
+import { safeJsonParse } from '../util'
 
 import { TypeValidator } from '../validator/type'
 
@@ -17,8 +16,13 @@ import {
 
     SchemaOutput,
     SchemaValidationContext,
-
+    PrimitiveSchema,
 } from './schema'
+
+import { isObject, isString } from '@benzed/is'
+import { Compile, Merge } from '@benzed/util'
+import { push } from '@benzed/immutable'
+import { DefaultValidatorSettings } from '../validator/default'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -53,6 +57,8 @@ type ShapeSchemaOutput<T extends ShapeSchemaInput> =
         ]>
     >
 
+/*** Helper ***/
+
 /*** Main ***/
 
 class ShapeSchema<
@@ -63,7 +69,10 @@ class ShapeSchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'object',
-        is: isObject as (input: unknown) => input is O
+        is: isObject as (input: unknown) => input is O,
+        cast: (input: unknown) => isString(input)
+            ? safeJsonParse(input, isObject) ?? input
+            : input,
     })
 
     protected _validateChildren(
@@ -79,13 +88,13 @@ class ShapeSchema<
 
         const { _input: propertySchemas } = this
 
-        const output = { ...input }
+        const output = {} as Shape
 
         for (const key in propertySchemas) {
             const propertySchema = propertySchemas[key]
 
             output[key] = propertySchema['_validate'](
-                output[key],
+                input[key],
                 {
                     ...context,
                     path: push(context.path, key)
@@ -94,27 +103,6 @@ class ShapeSchema<
         }
 
         return output as O
-    }
-
-    public constructor (input: I, ...flags: F) {
-
-        super(input, ...flags)
-
-        // Create default
-        const defaultShape: Shape = {}
-        for (const key in input) {
-            const childSchema = input[key]
-            const output = childSchema.create()
-            if (output !== undefined)
-                defaultShape[key] = output
-        }
-
-        // Apply default if it is valid
-        if (this.is(defaultShape)) {
-            this._defaultValidator.applySettings({
-                default: defaultShape
-            })
-        }
     }
 
     public override readonly optional!: HasOptional<
@@ -126,6 +114,30 @@ class ShapeSchema<
     >
 
     public override readonly clearFlags!: () => ShapeSchema<I, O>
+
+    public default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+
+        defaultValue ??= (): O => {
+            let output: undefined | O = undefined
+            for (const key in this._input) {
+                const schema = this._input[key]
+
+                // first used default validator output
+                let value = schema['_defaultValidator'].transform(undefined)
+
+                // use identify if primitive
+                if (value === undefined && schema instanceof PrimitiveSchema)
+                    value = schema['_input']
+
+                // assign if value 
+                if (value !== undefined)
+                    (output ??= {} as O)[key as unknown as keyof O] = value
+            }
+            return output as O
+        }
+
+        return super.default(defaultValue)
+    }
 
 }
 

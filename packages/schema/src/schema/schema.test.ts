@@ -5,6 +5,7 @@ import { AddFlag, Flags, HasOptional } from './flags'
 
 import Schema from './schema'
 import NullSchema from './null'
+import StringSchema from './string'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],
@@ -13,7 +14,7 @@ for (const [Flag, getFlagKey, addFlagKey] of [
 
     describe(`Flags.${Flags[Flag]}`, () => {
 
-        const schemaWithFlag = new NullSchema(Flag)
+        const schemaWithFlag = new NullSchema(null, Flag)
         const schemaWithoutFlag = new NullSchema()
 
         describe(`.${getFlagKey}`, () => {
@@ -70,6 +71,71 @@ class FooSchema<F extends Flags[]> extends Schema<void, 'foo', F> {
 }
 const fooSchema = new FooSchema()
 
+describe('is() method', () => {
+
+    it('is() returns true if type is correct', () => {
+        expect(fooSchema.is('foo')).toBe(true)
+    })
+
+    it('is() returns false if type is incorrect', () => {
+        expect(fooSchema.is('')).toBe(false)
+        expect(fooSchema.is(1)).toBe(false)
+    })
+
+    it('works when dangling this context', () => {
+        expect([1, 2, 3, 'foo'].some(fooSchema.is))
+            .toBe(true)
+    })
+
+})
+
+describe('assert() method', () => {
+
+    it('assert() throws if type is incorrect', () => {
+
+        expect(() => fooSchema.assert(''))
+            .toThrow('is not foo')
+
+        expect(() => fooSchema.assert('foo'))
+            .not
+            .toThrow()
+    })
+
+    it('works when dangling this context', () => {
+        expect(() => ['bar'].forEach(fooSchema.assert)).toThrow('bar is not foo')
+    })
+
+})
+
+describe('validate() method', () => {
+
+    it('validates type', () => {
+        expect(fooSchema.validate('foo'))
+            .toEqual('foo')
+    })
+
+    it('casts to type', () => {
+        expect(fooSchema.validate(''))
+            .toEqual('foo')
+    })
+
+    it('throws if type cannot be cast', () => {
+        expect(() => fooSchema.validate(1))
+            .toThrow('1 is not foo')
+    })
+
+    it('considers optional properties', () => {
+        expect(() => fooSchema.optional().validate(undefined))
+            .not
+            .toThrow()
+    })
+
+    it('works when dangling this context', () => {
+        expect(['foo'].map(fooSchema.validate)).toEqual(['foo'])
+    })
+
+})
+
 describe('cast() method', () => {
 
     const fooSchemaWithCustomCast = fooSchema.cast(() => 'foo')
@@ -86,11 +152,12 @@ describe('default() method', () => {
     const fooSchemaWithDefault = fooSchema.default(() => 'foo')
 
     it('instances a new schema with a different default setting', () => {
+        expect(() => fooSchema.validate(undefined))
+            .toThrow('undefined is not foo')
 
-        expect(() => fooSchema.validate(undefined)).toThrow('undefined is not foo')
-        expect(fooSchemaWithDefault.validate(undefined)).toEqual('foo')
+        expect(fooSchemaWithDefault.validate(undefined))
+            .toEqual('foo')
     })
-
 })
 
 describe('error() method', () => {
@@ -112,46 +179,3 @@ describe('name() method', () => {
     })
 
 })
-
-describe('validate() method', () => {
-
-    it('validates type', () => {
-        expect(fooSchema.validate('foo')).toEqual('foo')
-    })
-
-    it('casts to type', () => {
-        expect(fooSchema.validate('')).toEqual('foo')
-    })
-
-    it('throws if type cannot be cast', () => {
-        expect(() => fooSchema.validate(1)).toThrow('1 is not foo')
-    })
-
-    it('considers optional properties', () => {
-        expect(() => fooSchema.optional().validate(undefined)).not.toThrow()
-    })
-
-})
-
-describe('assert() method', () => {
-
-    it('assert() throws if type is incorrect', () => {
-        expect(() => fooSchema.assert('')).toThrow('is not foo')
-        expect(() => fooSchema.assert('foo')).not.toThrow()
-    })
-
-})
-
-describe('is() method', () => {
-
-    it('is() returns true if type is correct', () => {
-        expect(fooSchema.is('foo')).toBe(true)
-    })
-
-    it('is() returns false if type is incorrect', () => {
-        expect(fooSchema.is('')).toBe(false)
-        expect(fooSchema.is(1)).toBe(false)
-    })
-
-})
-

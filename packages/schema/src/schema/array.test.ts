@@ -4,7 +4,9 @@ import ArraySchema from './array'
 import ShapeSchema from './shape'
 import StringSchema from './string'
 
-import { expectValidationError } from '../util.test'
+import {
+    expectValidationError
+} from '../util.test'
 
 /*** Input ***/
 
@@ -44,16 +46,40 @@ describe('validate()', () => {
 
 })
 
+describe('default()', () => {
+
+    it('changes default setting', () => {
+        expect($buffer.default([0]).validate(undefined))
+            .toEqual([0])
+    })
+
+    it('default() defaults to empty array', () => {
+        expect(
+            $buffer
+                .default()
+                .validate(undefined)
+        ).toEqual([])
+    })
+
+})
+
 describe('length()', () => {
 
-    const $polygon = new ArraySchema(new ShapeSchema({
-        x: new NumberSchema(),
-        y: new NumberSchema()
-    })).length('3...4')
+    const $polygon = new ArraySchema(
+        new ShapeSchema({
+            x: new NumberSchema(),
+            y: new NumberSchema()
+        })
+    ).length('3...4')
 
     it('instances a new schema with a length validator', () => {
 
-        const square = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }]
+        const square = [
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+            { x: 1, y: 1 },
+            { x: 0, y: 1 }
+        ]
 
         expect($polygon.validate(square))
             .toEqual(square)
