@@ -1,22 +1,36 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any 
+*/
 
-export type Func<A extends any[] = unknown[], V = unknown, T = void> =
-    (this: T, ...args: A) => V
+export type Func<A extends any[] = unknown[], V = unknown, T = void> = (this: T, ...args: A) => V
 
 export type Json =
     null | string | number | boolean |
     Json[] |
     { [prop: string]: Json }
 
-export type TypeMatchedKeys<T1, K1 extends keyof T1, T2> =
-    {
-        [K2 in keyof T2]: T2[K2] extends T1[K1] ? K2 : never
-    }[keyof T2]
 
 /**
- * Create an interesection out of an arbitrary number of types.
+ * Reduce two types to only their matching key values.
  */
-export type Intersect<T> = T extends [infer FIRST, ...infer REST]
+export type Collapse<LEFT, RIGHT> =
+    {
+        [K in keyof LEFT as
+
+        // Only include key of left if right has the same key and value
+        /**/ K extends keyof RIGHT ?
+            /**/ RIGHT[K] extends LEFT[K]
+                /**/ ? K
+                /**/ : never
+            /**/ : never
+
+        ]: LEFT[K]
+    }
+
+/**
+ * Create an interesection out of an arbitrary number of types
+ */
+export type Intersect<T extends any[]> = T extends [infer FIRST, ...infer REST]
     ? FIRST & Intersect<REST>
     : unknown
 
@@ -66,4 +80,7 @@ export type Compile<T> = T extends object
     ? T extends infer O ? { [K in keyof O]: Compile<O[K]> } : never
     : T
 
+/**
+ * Get the string keys of a type.
+ */
 export type StringKeys<T> = Extract<keyof T, string>

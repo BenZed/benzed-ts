@@ -1,35 +1,36 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import os from 'os'
-import path from 'path'
-
 import {
-    AudioOptions,
+    AudioSetting,
     Input,
     Output,
-    SizeOptions,
-    VideoOptions,
+    SizeSetting,
+    VideoSetting,
 
-} from './options'
-import { getFfmpegSizeOptionString } from './util'
+} from './settings'
+
+import getMetadata, { RenderMetadata } from './get-metadata'
+
+import { getFfmpegSizeOptionString, createOutputStreams } from './util'
 
 import { isDefined } from '@benzed/is'
-import { RequirePartial } from '@benzed/util'
 
 /*** Types ***/
 
 type CreateMP4Options =
-    & Input
+    Input
     & Output
-    & Partial<SizeOptions>
-    & RequirePartial<VideoOptions, 'vbr'>
-    & AudioOptions
+    & Partial<SizeSetting>
+    & VideoSetting
+    & AudioSetting
 
 /*** Constants ***/
 
 const VIDEO_CODEC = 'libx264'
+const AUDIO_CODEC = 'aac'
 const VIDEO_FORMAT = 'mp4'
-const PASS_LOG_FILE_PREFIX = 'benzed-renderer-passlog'
+const DEFAULT_VIDEO_BIT_RATE = 10000
+const DEFAULT_AUDIO_BIT_RATE = 128
 
 /*** Main ***/
 
@@ -38,11 +39,11 @@ const PASS_LOG_FILE_PREFIX = 'benzed-renderer-passlog'
  */
 async function createMP4(
     options: CreateMP4Options
-): Promise<number> {
+): Promise<RenderMetadata> {
 
     const {
-        vbr,
-        abr,
+        vbr = DEFAULT_VIDEO_BIT_RATE,
+        abr = DEFAULT_AUDIO_BIT_RATE,
         fps,
         input,
         output,
@@ -51,59 +52,53 @@ async function createMP4(
     // Create command from options
     const cmd = ffmpeg(input)
         .videoCodec(VIDEO_CODEC)
-        .format(VIDEO_FORMAT)
+        .outputFormat(VIDEO_FORMAT)
 
     // Optionally set bit rate
-    if (isDefined(vbr) && vbr > 0)
-        cmd.videoBitrate(vbr)
+    cmd.videoBitrate(vbr)
     if (isDefined(fps) && fps > 0)
         cmd.outputFPS(fps)
 
-    if (!isDefined(abr) || abr <= 0)
+    if (abr <= 0)
         cmd.noAudio()
-    else
+    else {
+        cmd.audioCodec(AUDIO_CODEC)
         cmd.audioBitrate(abr)
+    }
 
     const size = getFfmpegSizeOptionString(options)
     if (size)
         cmd.size(size)
 
     // Execute First Pass
-    const start = Date.now()
+    const renderStart = Date.now()
 
-    const firstPassUrl = path.join(os.tmpdir(), start.toString())
-
-    // Required for two-pass encoding.
-    const firstPassLogFile = path.join(os.tmpdir(), PASS_LOG_FILE_PREFIX)
-
-    await new Promise((resolve, reject) => {
-        const pass1Cmd = cmd.clone()
-        pass1Cmd
-            .addOutputOptions([
-                `-passlogfile ${firstPassLogFile}`,
-                '-pass 1'
-            ])
-            .on('error', reject)
-            .on('end', resolve)
-            .save(firstPassUrl)
-    })
+    const [outputStream, metaStream] = createOutputStreams(output)
 
     // Execute Second Pass
-    await new Promise((resolve, reject) => {
+    const render = new Promise((resolve, reject) => {
         const pass2Cmd = cmd.clone()
         pass2Cmd
-            .addOutputOptions([
-                `-passlogfile ${firstPassLogFile}`,
-                '-pass 2',
-            ])
             .on('error', reject)
             .on('end', resolve)
-            .output(output)
+            .addOptions([
+                '-movflags frag_keyframe+empty_moov' // allows streaming
+            ])
+            .output(outputStream, { end: true })
             .run()
     })
 
-    const renderTime = Date.now() - start
-    return renderTime
+    const [metadata] = await Promise.all([
+        getMetadata({ input: metaStream }),
+        render
+    ])
+
+    const renderTime = Date.now() - renderStart
+
+    return {
+        ...metadata,
+        renderTime
+    }
 }
 
 /*** Exports ***/

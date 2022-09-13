@@ -1,11 +1,7 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Intersect } from '@benzed/util'
 import { Validator } from './types'
-
-/*** Type ***/
-
-type Intersect<T extends any[]> = T extends [infer A, ...infer B] ? A & Intersect<B> : unknown
 
 /*** Exports ***/
 

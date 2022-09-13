@@ -1,24 +1,33 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import { getMetadata } from './get-metadata'
+import {
+    getMetadata,
+    RenderMetadata
+} from './get-metadata'
+
 import {
     Input,
     Output,
-    SizeOptions,
-    TimeOptions
-} from './options'
-import { getFfmpegSizeOptionString } from './util'
+    SizeSetting,
+    TimeSetting
+} from './settings'
+
+import {
+    createOutputStreams,
+    getFfmpegSizeOptionString
+} from './util'
 
 import { clamp } from '@benzed/math'
-import { isDefined, isNumber, isString } from '@benzed/is'
+
+import { isDefined, isNumber } from '@benzed/is'
 
 /*** Types ***/
 
 type CreatePNGOptions =
     & Input
     & Output
-    & Partial<TimeOptions>
-    & Partial<SizeOptions>
+    & Partial<TimeSetting>
+    & Partial<SizeSetting>
 
 /*** Constants ***/
 
@@ -37,15 +46,15 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     const frameDuration = 1 / frameRate
     const maxFrameDuration = duration - frameDuration
 
-    if ('time' in options && isNumber(options.time)) {
+    if ('seconds' in options && isNumber(options.seconds)) {
 
-        const { time } = options
+        const { seconds } = options
 
-        const timeStamp = time >= 0
+        const timeStamp = seconds >= 0
             // from beginning
-            ? clamp(time, 0, maxFrameDuration)
+            ? clamp(seconds, 0, maxFrameDuration)
             // from end
-            : clamp(duration + time, 0, maxFrameDuration)
+            : clamp(duration + seconds, 0, maxFrameDuration)
 
         return timeStamp
 
@@ -60,7 +69,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
 /*** Main ***/
 
-async function createPNG(options: CreatePNGOptions): Promise<number> {
+async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
 
     const { input, output } = options
 
@@ -71,31 +80,34 @@ async function createPNG(options: CreatePNGOptions): Promise<number> {
     cmd.videoCodec(IMAGE_FORMAT)
         .seek(timeStamp)
         .frames(1)
-
-    if (!isString(output))
-        cmd.format('image2pipe')
+        .outputFormat('image2pipe')
 
     const size = getFfmpegSizeOptionString(options)
     if (isDefined(size))
         cmd.setSize(size)
 
-    const start = Date.now()
+    const [outputStream, metaStream] = createOutputStreams(output)
 
-    try {
+    const renderStart = Date.now()
 
-        await new Promise((resolve, reject) => cmd
-            .on('end', resolve)
-            .on('error', reject)
-            .output(output)
-            .run()
-        )
+    const render = new Promise((resolve, reject) => cmd
+        .on('end', resolve)
+        .on('error', reject)
+        .output(outputStream, { end: true })
+        .run()
+    )
 
-    } catch (e) {
-        throw e
+    const [metadata] = await Promise.all([
+        getMetadata({ input: metaStream }),
+        render,
+    ])
+
+    const renderTime = Date.now() - renderStart
+
+    return {
+        ...metadata,
+        renderTime
     }
-
-    const renderTime = Date.now() - start
-    return renderTime
 }
 
 /*** Exports ***/

@@ -9,7 +9,7 @@ type Dispatcher<A extends any[]> = Func<A, void | Promise<void>>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dispatchAll<A extends any[]>(
-    dispatcher: Dispatcher<A>[]
+    dispatcher: Dispatcher<A> | Dispatcher<A>[]
 ): Dispatcher<A> {
 
     const dispatchers = Array.isArray(dispatcher)

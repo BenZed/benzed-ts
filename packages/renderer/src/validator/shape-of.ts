@@ -1,5 +1,6 @@
-import { isObject } from '@benzed/is'
 import { Validator } from './types'
+
+import { isObject } from '@benzed/is'
 
 /*** Exports ***/
 

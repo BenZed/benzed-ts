@@ -1,19 +1,23 @@
 import ffmpeg from 'fluent-ffmpeg'
 
+import { isDefined } from '@benzed/is'
+
 import {
-    AudioOptions,
+    Metadata
+} from './get-metadata'
+
+import {
+    AudioSetting,
     Input,
     Output
-} from './options'
-
-import { RequirePartial } from '@benzed/util'
+} from './settings'
 
 /*** Types ***/
 
 type CreateMP3Options =
     & Input
     & Output
-    & RequirePartial<AudioOptions, 'abr'>
+    & AudioSetting
 
 /*** Constants ***/
 
@@ -27,7 +31,7 @@ const OUTPUT_FORMAT = 'mp3'
  */
 function createMP3(
     options: CreateMP3Options
-): Promise<number> {
+): Promise<Metadata & { renderTime: number }> {
 
     const {
         abr,
@@ -40,15 +44,15 @@ function createMP3(
         .audioCodec(AUDIO_CODEC)
         .format(OUTPUT_FORMAT)
 
-    cmd.audioBitrate(abr)
+    if (isDefined(abr))
+        cmd.audioBitrate(abr)
 
-    // Execute First Pass
     const start = Date.now()
 
     throw new Error('Not yet implemented.')
-
+    void output
     const renderTime = Date.now() - start
-    return Promise.resolve(renderTime)
+    return Promise.resolve({ renderTime })
 }
 
 /*** Exports ***/

@@ -1,23 +1,23 @@
-import { isSizeOptions, isTimeOptions } from './options'
+import { isSizeSetting, isTimeSetting } from './settings'
 
-describe('isTimeOptions method', () => {
+describe('isTimeSetting method', () => {
 
     for (const [obj, result] of [
         [{ progress: 10 }, true],
-        [{ time: 0 }, true],
-        [{ time: '123' }, false],
+        [{ seconds: 0 }, true],
+        [{ seconds: '123' }, false],
         [{ progress: null }, false],
         [{ progress: undefined }, false],
-        [{ time: undefined }, false],
+        [{ seconds: undefined }, false],
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {
-            expect(isTimeOptions(obj)).toBe(result)
+            expect(isTimeSetting(obj)).toBe(result)
         })
     }
 })
 
-describe('isSizeOptions method', () => {
+describe('isSizeSetting method', () => {
     for (const [obj, result] of [
         [{ width: 10 }, true],
         [{ height: 10 }, true],
@@ -34,7 +34,7 @@ describe('isSizeOptions method', () => {
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {
-            expect(isSizeOptions(obj)).toBe(result)
+            expect(isSizeSetting(obj)).toBe(result)
         })
     }
 })
