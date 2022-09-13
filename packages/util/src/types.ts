@@ -80,6 +80,14 @@ export type Compile<T> = T extends object
     : T
 
 /**
+ * Retreive conditional types if two input types are equal.
+ */
+export type IfEquals<T1, T2, Y, N = never> =
+    // This is some magician shit I got off the internet and did not write.
+    (<T>() => T extends T1 ? 1 : 2) extends
+    (<T>() => T extends T2 ? 1 : 2) ? Y : N
+
+/**
  * Get the string keys of a type.
  */
 export type StringKeys<T> = Extract<keyof T, string>
