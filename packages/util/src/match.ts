@@ -29,7 +29,10 @@ type Ensure<ON, O extends readonly unknown[]> = O extends [infer O1, ...infer OR
 
 interface Match<V, O extends readonly unknown[]> {
 
-    <O1, I extends Input<V>>(...args: [I, Output<V, I, O1>]): Match<V, Ensure<O1, O>>
+    <O1, I extends Input<V>>(...io:
+        [I, Output<V, I, O1>] |
+        [O1 | ((input: V) => O1)]
+    ): Match<V, Ensure<O1, O>>
 
     [Symbol.iterator]: (O extends [] ? never : () => Iterator<O[number]>)
 
@@ -44,6 +47,10 @@ function tryCall(f: unknown, fArg: unknown, fNot: unknown = f): unknown {
         : fNot
 }
 
+function anyPass(): true {
+    return true
+}
+
 /*** Main ***/
 
 function match<A extends readonly any[]>(...values: A) {
@@ -54,34 +61,67 @@ function match<A extends readonly any[]>(...values: A) {
     const cases: { input: unknown, output: unknown }[] = []
 
     // Main
-    const match = (input: unknown, output: unknown) => {
+    const match = (...args: [unknown, unknown] | [unknown]) => {
+
+        let [input, output] = args
+
+        // sorting input-output signature
+        if (args.length === 1) {
+            output = input
+            input = anyPass
+        }
+
         cases.push({ input, output })
         return match
     }
 
+    let error: unknown
+    const outputs: unknown[] = [];
     // Retreive Values
     (match as any)[Symbol.iterator] = function* () {
 
         if (cases.length === 0)
             throw new Error('No cases have been defined')
 
-        for (const value of values) {
+        // results already cache
+        const isOutputCached = error || outputs.length > 0
+        if (isOutputCached) {
+            for (const output of outputs)
+                yield output
 
-            let atLeastOneMatch = false
+            if (error)
+                throw error
 
-            for (const { input, output } of cases) {
+            return
+        }
 
-                const isMatch = tryCall(input, value, input === value)
-                if (!isMatch)
-                    continue
+        // cache and yeild results
+        try {
+            for (const value of values) {
+                let atLeastOneMatch = false
 
-                atLeastOneMatch = true
+                for (const { input, output } of cases) {
 
-                yield tryCall(output, value)
+                    const isMatch = tryCall(input, value, input === value)
+                    if (!isMatch)
+                        continue
+
+                    atLeastOneMatch = true
+
+                    outputs.push(
+                        tryCall(output, value)
+                    )
+
+                    yield outputs.at(-1)
+                    break
+                }
+
+                if (!atLeastOneMatch)
+                    throw new Error(`No match for ${value}`)
             }
-
-            if (!atLeastOneMatch)
-                throw new Error(`No match for ${value}`)
+        } catch (e) {
+            error = e
+            throw e
         }
     }
 
@@ -91,21 +131,24 @@ function match<A extends readonly any[]>(...values: A) {
 
 /*** Extensions ***/
 
-match.any = () => true
+match.any = anyPass
+
+match.default = match.any
 
 match.n = <I>(times: number, input: I): I =>
 
-    ((value: unknown) => {
+    ((value: unknown): boolean => {
 
         const isMatch = tryCall(input, value, input === value)
-        if (isMatch)
-            times--
+        if (!isMatch || times <= 0)
+            return false
 
-        return isMatch ? times >= 0 : false
+        times--
 
+        return true
     }) as unknown as I
 
-match.once = <I>(input: I): I => match.n(1, input)
+match.once = <I>(input: I) => match.n(1, input)
 
 /*** Exports ***/
 

@@ -44,7 +44,7 @@ it('throws if no matches', () => {
 it('can iterate multiple values', () => {
 
     const m1 = match(0, 1, 2)
-        (_ => true, i => i * 10)
+        (i => i * 10)
 
     expect([...m1]).toEqual([0, 10, 20])
 })
@@ -67,7 +67,7 @@ it('match.n helper', () => {
     const [one, two, three] = match(1, 1, 1)
         (match.n(1, 1), 'one')
         (match.once(1), 'two')
-        (1, 'three')
+        ('three')
 
     expect([one, two, three]).toEqual(['one', 'two', 'three'])
 
@@ -81,12 +81,58 @@ it('works on objects', () => {
     expect(best).toEqual({ foo: 'bar' })
 })
 
-it('types flow properly on ambigious inputs', () => {
+it('single signature sends input to output', () => {
 
-    const [eighty] = match(40)(match.any, i => i * 2)
-    //                                    ^ should not be a type error here 
+    const m = match(40, 79)
+        (match.once(match.any), i => i * 2)
+        (i => `${i}`)
 
-    expect(eighty).toEqual(eighty)
+    expect([...m]).toEqual([80, '79'])
+})
+
+it('multiple invocations returns the same output', () => {
+
+    const getRandom = (fraction = 0.5) => () => Math.random() <= fraction
+
+    const m = match(0, 1, 2, 3, 4)
+        (getRandom(0.25), Math.random)
+        (i => `0.${i}`)
+
+    expect([...m]).toEqual([...m])
+})
+
+it('multiple invocations returns the same output, even after error', () => {
+
+    const getRandom = (fraction = 0.5) => () => Math.random() <= fraction
+
+    for (let i = 0; i <= 1000; i++) {
+        const m = match(1, 2, 3)
+            (getRandom(i / 1000), () => {
+                throw new Error('Oy wtf')
+                return 0
+            })
+            (1, 0)
+            (2, 0.5)
+            (3, 1)
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const iterateSafeM = (): unknown[] => {
+            const outputs: unknown[] = []
+            let error: unknown = null
+
+            try {
+                for (const output of m)
+                    outputs.push(output)
+            } catch (e: unknown) {
+                error = e
+            }
+
+            return [outputs, error]
+        }
+
+        expect(iterateSafeM()).toEqual(iterateSafeM())
+    }
+
 })
 
 it('cases are required', () => {
