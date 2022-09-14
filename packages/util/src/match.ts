@@ -85,44 +85,36 @@ function match<A extends readonly any[]>(...values: A) {
 
         // results already cache
         const isOutputCached = error || outputs.length > 0
-        if (isOutputCached) {
-            for (const output of outputs)
-                yield output
+        if (!isOutputCached) {
+            try {
+                for (const value of values) {
+                    let atLeastOneMatch = false
 
-            if (error)
-                throw error
+                    for (const { input, output } of cases) {
 
-            return
-        }
+                        const isMatch = tryCall(input, value, input === value)
+                        if (!isMatch)
+                            continue
 
-        // cache and yeild results
-        try {
-            for (const value of values) {
-                let atLeastOneMatch = false
+                        atLeastOneMatch = true
 
-                for (const { input, output } of cases) {
+                        outputs.push(tryCall(output, value))
+                        break
+                    }
 
-                    const isMatch = tryCall(input, value, input === value)
-                    if (!isMatch)
-                        continue
-
-                    atLeastOneMatch = true
-
-                    outputs.push(
-                        tryCall(output, value)
-                    )
-
-                    yield outputs.at(-1)
-                    break
+                    if (!atLeastOneMatch)
+                        throw new Error(`No match for ${value}`)
                 }
-
-                if (!atLeastOneMatch)
-                    throw new Error(`No match for ${value}`)
+            } catch (e) {
+                error = e
             }
-        } catch (e) {
-            error = e
-            throw e
         }
+
+        for (const output of outputs)
+            yield output
+
+        if (error)
+            throw error
     }
 
     return match as Match<V, []>

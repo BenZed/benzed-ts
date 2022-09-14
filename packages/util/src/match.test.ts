@@ -108,7 +108,7 @@ it('multiple invocations returns the same output, even after error', () => {
     for (let i = 0; i <= 1000; i++) {
         const m = match(1, 2, 3)
             (getRandom(i / 1000), () => {
-                throw new Error('Oy wtf')
+                throw new Error(Math.random().toString())
                 return 0
             })
             (1, 0)
@@ -127,12 +127,24 @@ it('multiple invocations returns the same output, even after error', () => {
                 error = e
             }
 
-            return [outputs, error]
+            return [...outputs, error]
         }
 
         expect(iterateSafeM()).toEqual(iterateSafeM())
     }
 
+})
+
+it('doesnt throw if all values are not iterated', () => {
+
+    const m = match(1, 2, 3)
+        (1, 'one')
+        (2, 'two')
+
+    const [a1, a2] = m
+    const [b1, b2] = m
+
+    expect([a1, a2]).toEqual([b1, b2])
 })
 
 it('cases are required', () => {
