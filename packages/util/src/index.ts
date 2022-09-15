@@ -6,6 +6,8 @@ export * from './assert-defined'
 export * from './promisify'
 export * from './event-emitter'
 
+export * from './match'
+
 export {
     createLogger,
     Logger,
