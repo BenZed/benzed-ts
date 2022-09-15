@@ -1,4 +1,4 @@
-import { Merge } from './types'
+import { Merge } from '@benzed/util'
 
 /* 
     eslint-disable 

@@ -1,10 +1,7 @@
-import match from './match'
-import { primes } from '../../math/src/prime'
+import match from './index'
 
-/*** TypeGuards ***/
-
-const isString = (i: unknown): i is string => typeof i === 'string'
-const isBool = (i: unknown): i is boolean => typeof i === 'boolean'
+import { primes } from '@benzed/math'
+import { isString, isBoolean } from '@benzed/is'
 
 /*** Tests ***/
 
@@ -63,7 +60,7 @@ it('can use type guards', () => {
     const expectBool = (input: boolean): string => `gottem: ${input}`
 
     const [, , f3] = match('ace', 2, true)
-        (isBool, expectBool)
+        (isBoolean, expectBool)
         .default('dont gottem')
 
     expect(f3).toEqual('gottem: true')
@@ -169,7 +166,7 @@ it(
 
         const output = match('1', 2, '3', 4, true)
             .fall(isString, i => parseFloat(i))
-            .fall(isBool, i => i ? 1 : 0)
+            .fall(isBoolean, i => i ? 1 : 0)
             .default(i => i * 10)
             //       ^ there should not be a type error here, because numbers
             //         are the only input type to remain
@@ -183,7 +180,7 @@ it('.fall() can also accept a single input that becomes output', () => {
     const m = match(false, true, 79, 89)
         .fall(i => i === true ? 69 : i)
         .fall(i => i === false ? 0 : i)
-        .fall(i => [i + 1, '!'])
+        .fall(i => [(1 as number) + (i as number), '!'])
         .default(i => i.join(''))
 
     expect([...m]).toEqual(['1!', '70!', '80!', '90!'])
@@ -204,7 +201,7 @@ it('.fall() can take non-function inputs, however', () => {
 it('.discard() prevents values from receiving an output', () => {
 
     const [...output] = match(0, 1, 2, 3, 4, true, 'string')
-        .discard(isBool)
+        .discard(isBoolean)
         .discard(isString)
         .default(i => i)
 
@@ -227,7 +224,7 @@ it('.keep() opposite of discard', () => {
 })
 
 it('match cannot be composed entirely of discard cases', () => {
-    expect(() => match(0).discard(isBool).next())
+    expect(() => match(0).discard(isBoolean).next())
         .toThrow('No output cases have been defined.')
 })
 
