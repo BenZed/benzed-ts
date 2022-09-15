@@ -1,7 +1,7 @@
 import match from './index'
 
 import { primes } from '@benzed/math'
-import { isString, isBoolean } from '@benzed/is'
+import { isString, isBoolean, isNumber } from '@benzed/is'
 
 /*** Tests ***/
 
@@ -17,6 +17,16 @@ it('creates a match expression syntax', () => {
     const [value] = m1
 
     expect(value).toBe('zero')
+})
+
+it('uses deep equality to compare value input cases', () => {
+
+    const [fb] = match({ foo: 'bar' })
+        ({ foo: 'baz' }, 'wrong')
+        ({ foo: 'foo' }, 'wrong')
+        ({ foo: 'bar' }, 'right')
+
+    expect(fb).toEqual('right')
 })
 
 it('allows methods as input', () => {
@@ -85,6 +95,27 @@ it('match.n helper', () => {
     expect(found).toEqual(['a', 'b', 'b', 0])
 })
 
+it('match.after helper', () => {
+
+    let iterations = 0
+    let lastRandomNumber = 0
+    function* randoms(): Generator<number> {
+        while (true) {
+            iterations++
+            lastRandomNumber = Math.random()
+            yield lastRandomNumber
+        }
+    }
+
+    const [random] = match.each(randoms())
+        (match.after(1000), i => `the thousandth random number is: ${i}`)
+        .discard()
+
+    expect(iterations).toEqual(1000)
+    expect(random).toEqual(`the thousandth random number is: ${lastRandomNumber}`)
+
+})
+
 it('match.once helper', () => {
 
     const m = match(40, 79)
@@ -129,16 +160,33 @@ it('optional call signature takes an iterable', () => {
         (i => i <= 125, i => [i, 'primes-below-125'])
 
     expect(allPrimes).toHaveLength([...primes(250)].length)
-
 })
 
 it('.default() for verbose definition of default clause', () => {
-
     expect(
         match(1)
             .default(0)
             .next()
     ).toEqual(0)
+})
+
+it('.default() without argument just outputs whatever the input is', () => {
+    expect(
+        match(100)
+            .default()
+            .next()
+    ).toEqual(100)
+})
+
+it('.default() correctly sorts arguments', () => {
+
+    expect(
+        match('true', false)
+            (true, 'yes')
+            (false, 'no')
+            .default(undefined)
+            .next()
+    ).toEqual(undefined)
 
 })
 
@@ -148,6 +196,22 @@ it('.break() for verbose definition of standard case', () => {
             .break(1, 0)
             .next()
     ).toEqual(0)
+})
+
+it('.break() without an output argument just passes whatever the input is to the output', () => {
+    expect(
+        match(1)
+            .break(1, 0)
+            .next()
+    ).toEqual(0)
+})
+
+it('.break() correctly sorts arguments', () => {
+    expect(
+        match(1)
+            .break(1, undefined)
+            .next()
+    ).toEqual(undefined)
 })
 
 it('.fall() for cases that do not return, put pass their output to remaining cases', () => {
@@ -192,10 +256,20 @@ it('.fall() type def doesn\'t allow for non-function inputs', () => {
 })
 
 it('.fall() can take non-function inputs, however', () => {
-
     expect(
         match(10).fall(5 as unknown as () => 5).default(i => i).next()
     ).toEqual(5)
+})
+
+it('.fall() correclty sorts arguments', () => {
+
+    expect(
+        match(undefined)
+            .fall(i => i === undefined, undefined)
+            .default(i => i)
+            .next()
+    ).toEqual(undefined)
+
 })
 
 it('.discard() prevents values from receiving an output', () => {
@@ -208,9 +282,42 @@ it('.discard() prevents values from receiving an output', () => {
     expect(output).toEqual([0, 1, 2, 3, 4])
 })
 
+it('.discard() works with values', () => {
+
+    const [...output] = match(3, 2, 1, 0, { foo: 'bar' }, 0, 1, 2, 3,)
+        .discard({ foo: 'bar' })
+        .discard(match.once(3))
+        .discard(match.once(2))
+        .discard(match.once(1))
+        .discard(0)
+        .fall(i => i * 2)
+        .break(i => i > 0, i => i)
+
+    expect(output).toEqual([2, 4, 6])
+
+})
+
 it('.discard() may not discard all values', () => {
     expect(() => match(0).discard(() => true).default(0).next())
         .toThrow('All values discarded.')
+})
+
+it('.discard() without output discards all values', () => {
+
+    const [num] = match(true, true, true, true, true, 0, false)
+        (isNumber, i => i)
+        .discard()
+
+    expect(num).toEqual(0)
+})
+
+it('.discard() properly sorts args', () => {
+
+    const [num] = match(undefined, 1)
+        .discard(undefined)
+        .default()
+
+    expect(num).toBe(1)
 })
 
 it('.keep() opposite of discard', () => {
@@ -221,6 +328,22 @@ it('.keep() opposite of discard', () => {
         .rest()
 
     expect(strings).toEqual(['HEY', 'MOMMY'])
+})
+
+it('.keep() throws without args', () => {
+
+    // @ts-expect-error type expects an arg too
+    expect(() => match(1).keep()).toThrow('Invalid signature, requires 1 parameters.')
+})
+
+it('handles infinite iterators', () => {
+
+    const [prime] = match
+        .each(primes(Infinity))
+        .keep(i => i > 1000)
+        .default(i => i)
+
+    expect(prime).toEqual(1009)
 })
 
 it('match cannot be composed entirely of discard cases', () => {
@@ -259,7 +382,7 @@ it('.remaining() to retreive all remaining outputs', () => {
         match(...values)
             .fall(i => i < 0, i => -i)
             .break(i => i > 10, 10)
-            .default(i => i)
+            .default()
             .rest()
 
     const values = normalizeRanges(-1, -11, 11, 5)
@@ -295,7 +418,7 @@ it('thrown errors do not impede further matching', () => {
 })
 
 it('cannot finalize a match without cases', () => {
-    // @ts-expect-error typescript knows that done() shouldn't be called without cases
+    // @ts-expect-error typescript knows that finalize() shouldn't be called without cases
     expect(() => match(0).finalize())
         .toThrow('No output cases have been defined.')
 })
@@ -319,6 +442,5 @@ it('can match template strings', () => {
         .rest()
 
     expect([...output]).toEqual([1, 2, true])
-
 })
 

@@ -3,27 +3,16 @@ import type { Match, MatchFinalized } from './types'
 import MatchState from './match-state'
 
 import createMatch from './create-match'
-import { $$iterable, matchAnyInput, matchCheck } from './util'
+import { matchAnyInput, matchCheck } from './util'
 
-/* 
-    eslint-disable 
-    @typescript-eslint/indent,
-*/
+/* eslint-disable @typescript-eslint/indent */
 
 /*** Main Interface Method ***/
 
 function match<A extends readonly unknown[]>(...values: A): Match<A[number], []> {
 
     type T = A[number]
-
-    const iterable = (
-        values[1] === $$iterable
-            ? values[0]
-            : values
-    ) as Iterable<never>
-
-    const state = new MatchState<T, []>(iterable)
-
+    const state = new MatchState<T, []>(values as Iterable<never>)
     return createMatch<T, []>(state)
 }
 
@@ -46,6 +35,23 @@ match.n = <I = typeof matchAnyInput>(times: number, input?: I): I =>
     }) as unknown as I
 
 /**
+* Wait until a specified number of matches before matching this input
+*/
+match.after = <I = typeof matchAnyInput>(iterations: number, input?: I): I =>
+
+    ((value: unknown): boolean => {
+
+        const isMatch = matchCheck(input ?? matchAnyInput, value)
+        if (isMatch && iterations > 0)
+            iterations--
+
+        if (!isMatch || iterations > 0)
+            return false
+
+        return true
+    }) as unknown as I
+
+/**
 * Match the provided input only once
 */
 match.once = <I = typeof matchAnyInput>(input?: I): I =>
@@ -55,7 +61,7 @@ match.once = <I = typeof matchAnyInput>(input?: I): I =>
 * Match each item in a provided iterator
 */
 match.each = <I>(iterable: Iterable<I>): Match<I, []> =>
-    match(iterable, $$iterable)
+    createMatch(new MatchState<I, []>(iterable as Iterable<never>))
 
 /**
 * Match each of the provided values

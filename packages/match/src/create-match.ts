@@ -1,16 +1,48 @@
-import type MatchState from './match-state'
+import type { MatchState } from './match-state'
 import type { Match, Outputs } from './types'
 
 import {
-    invertMatchCheck,
     matchAnyInput,
-    matchIterateOutput,
+    passThrough,
 
-    $$discard,
-    $$fall
+    matchCheck,
 } from './util'
 
-import { isSymbol } from '@benzed/is'
+import { isNumber } from '@benzed/is'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/*** Helper ***/
+
+function signatureToOptions<I, O>(
+    args: unknown[],
+    config: {
+        [numArgs: number]: {
+            input?: number
+            output?: number
+            finalize?: boolean
+        }
+    }
+): { input: I, output: O } {
+
+    const option = config[args.length]
+    if (!option) {
+        throw new Error(
+            'Invalid signature, requires ' +
+            `${Object.keys(config).join(' or ')} parameters.`
+        )
+    }
+
+    const { input, output, finalize } = option
+
+    return {
+        input: isNumber(input) ? args[input] : matchAnyInput,
+        output: isNumber(output) ? args[output] : passThrough,
+        finalize
+    } as any
+}
+
+const SIGNATURE_OK = {}
 
 /*** Main ***/
 
@@ -18,51 +50,64 @@ function createMatch<I, O extends Outputs>(
     state: MatchState<I, O>
 ): Match<I, O> {
 
-    // Match Shortcut Main Interface
-    const match: Match<I, O> = ((...args: unknown[]) => {
+    // Match Dynamic Signature
 
-        // check for final cases
-        if (state.finalized)
-            throw new Error('No more cases may be defined.')
+    const match: Match<I, any> = ((...args: unknown[]) =>
+        state.addMatchCase(
+            signatureToOptions<I, any>(args, {
+                1: { output: 0, finalize: true },
+                2: { input: 0, output: 1 }
+            }),
+        ) ?? match
 
-        // get symbolic modifier
-        const $$symbol = isSymbol(args.at(-1))
-            ? args.pop() as symbol
-            : null
+    ) as Match<I, any>
 
-        // sort arguments
-        let [input, output] = args as unknown as [I, O[number]]
-        const isPipeArg = args.length === 1 && $$symbol !== $$discard
-        if (isPipeArg) {
-            output = input as unknown as O
-            input = matchAnyInput as unknown as I
-        }
+    // Match Interface
 
-        // handle cases
-        state.cases.push({ input, output, $$symbol })
-        state.finalized = isPipeArg && !$$symbol
+    match.default = (...args: unknown[]) =>
+        state.addMatchCase({
+            ...signatureToOptions(args, {
+                0: SIGNATURE_OK,
+                1: { output: 0 }
+            }),
+            finalize: true
+        }) ?? match
 
-        // return interface
-        return match
-    }) as unknown as Match<I, O>
+    match.break = (...args: unknown[]) =>
+        state.addMatchCase(
+            signatureToOptions(args, {
+                1: { input: 0 },
+                2: { input: 0, output: 1 }
+            })
+        ) ?? match
 
-    // Match Methods Interface
+    match.fall = (...args: unknown[]) =>
+        state.addMatchCase({
+            ...signatureToOptions(args, {
+                1: { output: 0 },
+                2: { input: 0, output: 1 }
+            }),
+            operation: 'fall'
+        }) ?? match
 
-    match.default = input => match(input)
+    match.discard = (...args: unknown[]) =>
+        state.addMatchCase({
+            ...signatureToOptions(args, {
+                0: SIGNATURE_OK,
+                1: { input: 0 }
+            }),
+            operation: 'discard'
+        }) ?? match as ReturnType<Match<I, any>['discard']>
 
-    match.break = (input, output) => match(input, output)
+    match.keep = ((...args) => {
 
-    match.fall = ((...args: unknown[]) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (match as any)(...args, $$fall)
-    ) as Match<I, O>['fall']
+        const { input } = signatureToOptions(args, { 1: { input: 0 } })
 
-    match.discard = input => match(input, $$discard) as ReturnType<Match<I, O>['discard']>
+        const invertDiscard = (value: unknown): boolean => !matchCheck(input, value)
 
-    match.keep = input => {
-        const invertDiscard = (value: unknown): boolean => invertMatchCheck(input, value)
         return match.discard(invertDiscard)
-    }
+
+    }) as Match<I, O>['keep']
 
     match.finalize = (() => {
         state.assertOutputCases()
@@ -73,18 +118,16 @@ function createMatch<I, O extends Outputs>(
     // Match Finalized Interface
 
     match.next = () => {
-        const [output] = match
+        const [output] = state
         return output
     }
 
     match.rest = () => {
-        const [...output] = match
+        const [...output] = state
         return output
     }
 
-    match[Symbol.iterator] = (
-        () => matchIterateOutput(state)
-    ) as unknown as Match<I, O>[typeof Symbol.iterator]
+    match[Symbol.iterator] = state[Symbol.iterator]
 
     return match
 }

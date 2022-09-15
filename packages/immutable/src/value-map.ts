@@ -19,7 +19,6 @@ class ValueMap<K, V> implements CopyComparable<ValueMap<K, V>> {
     // State 
 
     private _keys: K[] = []
-
     private _values: V[] = []
 
     // Constructor 

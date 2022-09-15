@@ -14,12 +14,12 @@ type Predicate<T> = (input: T) => boolean
 type DiscardValue<V, I> =
     I extends TypeGuard<any, infer T>
     ? Exclude<V, T>
-    : V
+    : Exclude<V, I>
 
 type KeepValue<V, I> =
     I extends TypeGuard<any, infer T>
     ? Extract<V, T>
-    : V
+    : Extract<V, I>
 
 /**
  * Fall should be smart enough to use type guards to eliminate
@@ -94,6 +94,13 @@ export interface Match<V, O extends Outputs> extends MatchFinalized<O> {
     ): Match<V, EnsureOutput<O1, O>>
 
     /**
+     * Create new case that breaks on match.
+     */
+    break<I extends Input<V>>(
+        input: I,
+    ): Match<V, EnsureOutput<V, O>>
+
+    /**
      * Create a new case that passes the output to input on match
      */
     fall<O1, I extends Input<V>>(
@@ -111,6 +118,7 @@ export interface Match<V, O extends Outputs> extends MatchFinalized<O> {
     discard<I extends Input<V>>(
         input: I
     ): Match<DiscardValue<V, I>, O>
+    discard(): Match<never, O>
 
     /**
      * Only create outputs for this match
@@ -126,6 +134,8 @@ export interface Match<V, O extends Outputs> extends MatchFinalized<O> {
     default<O1, I extends Input<V>>(
         output: Output<V, I, O1>
     ): MatchFinalized<EnsureOutput<O1, O>>
+
+    default(): MatchFinalized<EnsureOutput<V, O>>
 
     /**
      * Prevent any further cases from being added
