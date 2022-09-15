@@ -1,5 +1,7 @@
 import type { MatchState } from './match-state'
-import { Outputs } from './types'
+import type { Outputs } from './types'
+
+import { isFunction } from '@benzed/is'
 
 /*** Symbols ***/
 
@@ -17,7 +19,7 @@ export function resolveOutput<I, O>(
     _default = output
 ): O {
 
-    return typeof output === 'function'
+    return isFunction(output)
         ? output(input)
         : _default
 }
@@ -57,10 +59,10 @@ export function* matchIterateOutput<I, O extends Outputs>(
         let valueDiscarded = false
 
         // check value against all cases
-        for (const { input, output, $$ymbol } of state.cases) {
+        for (const { input, output, $$symbol } of state.cases) {
 
-            const discard = $$ymbol === $$discard
-            const fall = $$ymbol === $$fall
+            const discard = $$symbol === $$discard
+            const fall = $$symbol === $$fall
 
             const isMatch = matchCheck(input, value)
             if (isMatch && !discard)
@@ -80,7 +82,7 @@ export function* matchIterateOutput<I, O extends Outputs>(
                 break
         }
 
-        // ensure no value was must
+        // unless discarded, every value needs a match
         if (!valueYielded && !valueDiscarded)
             throw new Error(`No match for value: ${value}.`)
 

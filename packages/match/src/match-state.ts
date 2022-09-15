@@ -2,7 +2,7 @@ import { Outputs } from './types'
 
 /*** Types ***/
 
-type MatchCase<I, O> = { input: I, output: O, $$ymbol: symbol | null }
+type MatchCase<I, O> = { input: I, output: O, $$symbol: symbol | null }
 
 /*** Main ***/
 
@@ -25,7 +25,7 @@ class MatchState<I, O extends Outputs> {
 
     public assertOutputCases(): void {
         // $$symbols prevent output
-        if (this.cases.filter(c => !c.$$ymbol).length === 0)
+        if (this.cases.filter(c => !c.$$symbol).length === 0)
             throw new Error('No output cases have been defined.')
     }
 

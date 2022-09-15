@@ -25,7 +25,6 @@ function match<A extends readonly unknown[]>(...values: A): Match<A[number], []>
     const state = new MatchState<T, []>(iterable)
 
     return createMatch<T, []>(state)
-
 }
 
 /*** Extensions ***/

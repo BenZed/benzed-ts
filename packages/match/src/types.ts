@@ -55,7 +55,7 @@ export type Input<T> = Predicate<T> | TypeGuard<T, T> | T
 export interface MatchFinalized<O extends readonly unknown[]> {
 
     /**
-     * Return values provided output cases are not empty
+     * Iterate output provided output cases are not empty
      */
     [Symbol.iterator]: (O extends [] ? never : () => Iterator<O[number]>)
 
@@ -67,7 +67,7 @@ export interface MatchFinalized<O extends readonly unknown[]> {
     /**
      * Returns the remaining outputs as an array
      */
-    remaining(): O[number][]
+    rest(): O[number][]
 
 }
 

@@ -2,6 +2,8 @@ import equals from './equals'
 import copy from './copy'
 import indexOf from './array/index-of'
 
+import { CopyComparable } from './index'
+
 import { $$copy, $$equals } from './symbols'
 
 /* eslint-disable 
@@ -12,9 +14,17 @@ import { $$copy, $$equals } from './symbols'
 
 /*** Main ***/
 
-class ValueMap<K, V> {
+class ValueMap<K, V> implements CopyComparable<ValueMap<K, V>> {
 
-    public constructor(keyValues: [K, V][] = []) {
+    // State 
+
+    private _keys: K[] = []
+
+    private _values: V[] = []
+
+    // Constructor 
+
+    public constructor (keyValues: [K, V][] = []) {
 
         if (keyValues) {
             for (const keyValue of keyValues) {
@@ -23,6 +33,8 @@ class ValueMap<K, V> {
             }
         }
     }
+
+    // Interface
 
     public get(key: K): V | undefined {
         const index = indexOf(this._keys, key)
@@ -102,6 +114,8 @@ class ValueMap<K, V> {
         return 'ValueMap'
     }
 
+    //  CopyComparable Implementation
+
     public [$$copy](): ValueMap<K, V> {
         const Type = this.constructor
 
@@ -112,7 +126,7 @@ class ValueMap<K, V> {
         return new (Type as any)(args) as ValueMap<K, V>
     }
 
-    public [$$equals](right: unknown): boolean {
+    public [$$equals](right: unknown): right is ValueMap<K, V> {
         const left = this
 
         if (!(right instanceof ValueMap))
@@ -123,10 +137,6 @@ class ValueMap<K, V> {
 
         return equals([...left], [...right])
     }
-
-    private _keys: K[] = []
-
-    private _values: V[] = []
 
 }
 

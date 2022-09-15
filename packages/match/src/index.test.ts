@@ -155,7 +155,7 @@ it('.fall() for cases that do not return, put pass their output to remaining cas
     const output = match('1', 2, '3', 4)
         .fall(isString, i => parseFloat(i))
         .default(i => i * 10)
-        .remaining()
+        .rest()
 
     expect(output).toEqual([10, 20, 30, 40])
 })
@@ -165,12 +165,12 @@ it(
     'and extract ones caught via type guards', () => {
 
         const output = match('1', 2, '3', 4, true)
-            .fall(isString, i => parseFloat(i))
+            .fall(isString, parseFloat)
             .fall(isBoolean, i => i ? 1 : 0)
             .default(i => i * 10)
             //       ^ there should not be a type error here, because numbers
             //         are the only input type to remain
-            .remaining()
+            .rest()
 
         expect(output).toEqual([10, 20, 30, 40, 10])
     })
@@ -218,7 +218,7 @@ it('.keep() opposite of discard', () => {
     const strings = match(0, 1, 2, 3, true, false, 'hey', 'mommy')
         .keep(isString)
         .default(i => i.toUpperCase())
-        .remaining()
+        .rest()
 
     expect(strings).toEqual(['HEY', 'MOMMY'])
 })
@@ -260,7 +260,7 @@ it('.remaining() to retreive all remaining outputs', () => {
             .fall(i => i < 0, i => -i)
             .break(i => i > 10, 10)
             .default(i => i)
-            .remaining()
+            .rest()
 
     const values = normalizeRanges(-1, -11, 11, 5)
 
@@ -316,7 +316,7 @@ it('can match template strings', () => {
     const output = match.template`one:${1} two:${2} three:${true}`
         .fall(([, v]) => v)
         .default(v => v)
-        .remaining()
+        .rest()
 
     expect([...output]).toEqual([1, 2, true])
 

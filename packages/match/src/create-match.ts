@@ -10,6 +10,8 @@ import {
     $$fall
 } from './util'
 
+import { isSymbol } from '@benzed/is'
+
 /*** Main ***/
 
 function createMatch<I, O extends Outputs>(
@@ -17,69 +19,74 @@ function createMatch<I, O extends Outputs>(
 ): Match<I, O> {
 
     // Match Shortcut Main Interface
-    const match = (...args: unknown[]): unknown => {
+    const match: Match<I, O> = ((...args: unknown[]) => {
 
         // check for final cases
         if (state.finalized)
             throw new Error('No more cases may be defined.')
 
-        const $$ymbol = typeof args.at(-1) === 'symbol'
+        // get symbolic modifier
+        const $$symbol = isSymbol(args.at(-1))
             ? args.pop() as symbol
             : null
 
         // sort arguments
-        let [input, output] = args as [I, O]
-        const isPipeArg = args.length === 1 && $$ymbol !== $$discard
+        let [input, output] = args as unknown as [I, O[number]]
+        const isPipeArg = args.length === 1 && $$symbol !== $$discard
         if (isPipeArg) {
             output = input as unknown as O
             input = matchAnyInput as unknown as I
         }
 
         // handle cases
-        state.cases.push({ input, output, $$ymbol })
-        state.finalized = isPipeArg && !$$ymbol
+        state.cases.push({ input, output, $$symbol })
+        state.finalized = isPipeArg && !$$symbol
 
         // return interface
         return match
-    }
+    }) as unknown as Match<I, O>
 
     // Match Methods Interface
 
-    match.default = (input: unknown) => match(input)
+    match.default = input => match(input)
 
-    match.break = (input: unknown, output: unknown) => match(input, output)
+    match.break = (input, output) => match(input, output)
 
-    match.fall = (...args: unknown[]) => match(...args, $$fall)
+    match.fall = ((...args: unknown[]) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (match as any)(...args, $$fall)
+    ) as Match<I, O>['fall']
 
-    match.discard = (input: unknown) => match(input, $$discard)
+    match.discard = input => match(input, $$discard) as ReturnType<Match<I, O>['discard']>
 
-    match.keep = (input: unknown) => {
+    match.keep = input => {
         const invertDiscard = (value: unknown): boolean => invertMatchCheck(input, value)
         return match.discard(invertDiscard)
     }
 
-    match.finalize = () => {
+    match.finalize = (() => {
         state.assertOutputCases()
         state.finalized = true
         return match
-    }
+    }) as unknown as Match<I, O>['finalize']
 
     // Match Finalized Interface
 
     match.next = () => {
-        const [output] = match as unknown as Iterable<O>
+        const [output] = match
         return output
     }
 
-    match.remaining = () => {
-        const [...output] = match as unknown as Iterable<O>
+    match.rest = () => {
+        const [...output] = match
         return output
     }
 
-    (match as unknown as Iterable<unknown>)[Symbol.iterator] = () =>
-        matchIterateOutput(state)
+    match[Symbol.iterator] = (
+        () => matchIterateOutput(state)
+    ) as unknown as Match<I, O>[typeof Symbol.iterator]
 
-    return match as unknown as Match<I, O>
+    return match
 }
 
 /*** Exports ***/
