@@ -294,7 +294,6 @@ it('.discard() works with values', () => {
         .break(i => i > 0, i => i)
 
     expect(output).toEqual([2, 4, 6])
-
 })
 
 it('.discard() may not discard all values', () => {
@@ -368,15 +367,19 @@ it('.next() to retreive the next output', () => {
         ERROR
     }
 
-    const getStatusMessage = (status: Status): string => match(status)
+    const matchStatusToMessage = match(Status.IDLE, Status.SUCCESS, Status.ERROR)
         (Status.IDLE, 'Download has not yet started')
         (Status.SUCCESS, 'Download succeeded')
-        (Status.ERROR, 'Download Failed')
-        .next()
+        (Status.ERROR, 'Download failed')
 
-    expect(getStatusMessage(Status.IDLE)).toEqual('Download has not yet started')
-    expect(getStatusMessage(Status.SUCCESS)).toEqual('Download succeeded')
-    expect(getStatusMessage(Status.ERROR)).toEqual('Download Failed')
+    expect(matchStatusToMessage.next())
+        .toEqual('Download has not yet started')
+
+    expect(matchStatusToMessage.next())
+        .toEqual('Download succeeded')
+
+    expect(matchStatusToMessage.next())
+        .toEqual('Download failed')
 })
 
 it('.remaining() to retreive all remaining outputs', () => {
@@ -560,7 +563,7 @@ describe('.reusable() match instance', () => {
     it('allows match expressions to be reused with new values', () => {
 
         const matchEven = match.for<number | string, number>(match => match
-            (is.string, parseInt)
+            .break(is.string, parseInt)
             .keep(i => i % 2 === 0)
             .default()
         )

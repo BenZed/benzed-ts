@@ -80,6 +80,8 @@ function* createDiffs(
 
 }
 
+/*** Helper ***/
+
 const matchCommonDiffOptions =
     match.for<undefined | number | boolean | Partial<CommonDiffOptions>, CommonDiffOptions>(
         cases => cases
