@@ -48,7 +48,7 @@ type IsMethod<T> =
 type ValidateMethod<T> =
     Typed<T> & ((input: unknown) => T)
 
-type TypeMethod<F extends Flag.Is | Flag.Assert | Flag.Validate, T> =
+type TypeMethod<T, F extends Flag.Is | Flag.Assert | Flag.Validate> =
     F extends Flag.Is
     ? IsMethod<T>
 

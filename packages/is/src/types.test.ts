@@ -21,8 +21,8 @@ const fakeSchema = <T>(): Schema<T> => {
     return null as unknown as Schema<T>
 }
 
-const fakeMethod = <T, F extends Flag.Is | Flag.Assert | Flag.Validate>(): TypeMethod<F, T> => {
-    return null as unknown as TypeMethod<F, T>
+const fakeMethod = <T, F extends Flag.Is | Flag.Assert | Flag.Validate>(): TypeMethod<T, F> => {
+    return null as unknown as TypeMethod<T, F>
 }
 
 const isString = (input: unknown, minLength: number): input is string => {

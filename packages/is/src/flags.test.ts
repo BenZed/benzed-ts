@@ -1,5 +1,16 @@
 import { expectTypeOf } from 'expect-type'
-import { DefaultFlags, SetFlag, IsFlag, F, Flags, Flag } from './flags'
+import {
+    DefaultFlags,
+    SetFlag, IsFlag,
+    F,
+    Flags,
+    Flag,
+    GetMethodFlag,
+    GetWriteFlag,
+    GetExistFlag
+} from './flags'
+
+import { Schema } from './schema'
 
 /*** Types ***/
 
@@ -15,52 +26,38 @@ describe('IsFlag', () => {
     type HasFlag<FS extends Flags, F extends Flag> = IsFlag<FS, F, true, false>
 
     it('conditionally types depending on existing of is flag', () => {
-
         expectTypeOf<HasFlag<AssertFlags, F.Is>>().toMatchTypeOf<false>()
         expectTypeOf<HasFlag<DefaultFlags, F.Is>>().toMatchTypeOf<true>()
-
     })
 
     it('conditionally types depending on assert of is flag', () => {
-
         expectTypeOf<HasFlag<AssertFlags, F.Assert>>().toMatchTypeOf<true>()
         expectTypeOf<HasFlag<DefaultFlags, F.Assert>>().toMatchTypeOf<false>()
-
     })
 
     it('conditionally types depending on assert of validate flag', () => {
-
         expectTypeOf<HasFlag<ValidateFlags, F.Validate>>().toMatchTypeOf<true>()
         expectTypeOf<HasFlag<DefaultFlags, F.Validate>>().toMatchTypeOf<false>()
-
     })
 
     it('conditionally types depending on assert of mutable flag', () => {
-
         expectTypeOf<HasFlag<MutableFlags, F.Mutable>>().toMatchTypeOf<true>()
         expectTypeOf<HasFlag<DefaultFlags, F.Mutable>>().toMatchTypeOf<false>()
-
     })
 
     it('conditionally types depending on assert of readonly flag', () => {
-
         expectTypeOf<HasFlag<DefaultFlags, F.Readonly>>().toMatchTypeOf<true>()
         expectTypeOf<HasFlag<MutableFlags, F.Readonly>>().toMatchTypeOf<false>()
-
     })
 
     it('conditionally types depending on assert of required flag', () => {
-
         expectTypeOf<HasFlag<DefaultFlags, F.Required>>().toMatchTypeOf<true>()
         expectTypeOf<HasFlag<OptionalFlags, F.Required>>().toMatchTypeOf<false>()
-
     })
 
     it('conditionally types depending on assert of optional flag', () => {
-
         expectTypeOf<HasFlag<OptionalFlags, F.Optional>>().toMatchTypeOf<true>()
         expectTypeOf<HasFlag<DefaultFlags, F.Optional>>().toMatchTypeOf<false>()
-
     })
 
 })
@@ -117,6 +114,48 @@ describe('SetFlag', () => {
             [F.Is, F.Readonly, F.Required]
 
         expectTypeOf(requiredFlags).toEqualTypeOf<[F.Is, F.Readonly, F.Required]>()
+    })
+
+})
+
+describe('GetMethodFlag', () => {
+
+    it('gets the method flag from a flag array', () => {
+        type IsFlag = GetMethodFlag<DefaultFlags>
+        expectTypeOf<IsFlag>().toMatchTypeOf<Flag.Is>()
+    })
+
+    it('gets the method flag from a schema', () => {
+        type AssertFlag = GetMethodFlag<Schema<string, AssertFlags>>
+        expectTypeOf<AssertFlag>().toMatchTypeOf<Flag.Assert>()
+    })
+
+})
+
+describe('GetWriteFlag', () => {
+
+    it('gets the method flag from a flag array', () => {
+        type ReadonlyFlag = GetWriteFlag<DefaultFlags>
+        expectTypeOf<ReadonlyFlag>().toMatchTypeOf<Flag.Readonly>()
+    })
+
+    it('gets the method flag from a schema', () => {
+        type ReadonlyFlag = GetWriteFlag<Schema<string, AssertFlags>>
+        expectTypeOf<ReadonlyFlag>().toMatchTypeOf<ReadonlyFlag>()
+    })
+
+})
+
+describe('GetExistFlag', () => {
+
+    it('gets the method flag from a flag array', () => {
+        type RequiredFlag = GetExistFlag<DefaultFlags>
+        expectTypeOf<RequiredFlag>().toMatchTypeOf<Flag.Required>()
+    })
+
+    it('gets the method flag from a schema', () => {
+        type RequiredFlag = GetExistFlag<Schema<string, AssertFlags>>
+        expectTypeOf<RequiredFlag>().toMatchTypeOf<Flag.Required>()
     })
 
 })

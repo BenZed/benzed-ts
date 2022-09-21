@@ -10,7 +10,7 @@ import { TypeMethod, IsMethod, AssertMethod, ValidateMethod, ATS } from './type-
 
 /*** Schema Types ***/
 
-type Schema<T = any, F extends Flags = DefaultFlags> = TypeMethod<F[0], T> & {
+type Schema<T = any, F extends Flags = DefaultFlags> = TypeMethod<T, F[0]> & {
     is: F[0] extends F.Is ? never : IsMethod<T>
     assert: F[0] extends F.Assert ? never : AssertMethod<T, ATS.Off>
     validate: F[0] extends F.Validate ? never : ValidateMethod<T>
