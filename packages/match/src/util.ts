@@ -24,5 +24,9 @@ export function matchAnyInput(): boolean {
 }
 
 export function matchCheck(input: unknown, value: unknown): boolean {
-    return !!resolveOutput(input, value, equals(input, value))
+    return !!resolveOutput(
+        input,
+        value,
+        equals(input, value)
+    )
 }

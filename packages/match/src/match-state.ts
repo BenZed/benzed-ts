@@ -99,7 +99,7 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
 
     // State 
 
-    private _atLeastOneSuccess = false
+    private _yieldAtLeastOneValue = false
 
     private _iterator: Iterator<I | O> | null = null
     public get iterator(): Iterator<I | O> {
@@ -123,9 +123,10 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
         this.assertOutputCases()
 
         let result = this.iterator.next()
+        // ensure we haven't already iterated everything
         if (result.done) {
             throw new Error(
-                this._atLeastOneSuccess
+                this._yieldAtLeastOneValue
                     ? 'All values matched.'
                     : 'No values to match.'
             )
@@ -134,17 +135,17 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
         // get values
         while (!result.done) {
 
-            const success = this.match(result.value)
-            if (success) {
-                this._atLeastOneSuccess = true
-                yield success.output
+            const shouldYield = this.match(result.value)
+            if (shouldYield) {
+                this._yieldAtLeastOneValue = true
+                yield shouldYield.output
             }
 
             result = this.iterator.next()
         }
 
         // discard check
-        if (!this._atLeastOneSuccess)
+        if (!this._yieldAtLeastOneValue)
             throw new Error('All values discarded.')
     }
 
