@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import match from '@benzed/match/lib'
+import match from '@benzed/match'
 
 /* eslint-disable @typescript-eslint/unified-signatures */
 
@@ -80,16 +80,13 @@ function* createDiffs(
 
 }
 
-function getCommonDiffOptions(input: unknown): CommonDiffOptions {
-
-    const [{ offset = 0, fromEnd = false }] = match<Partial<CommonDiffOptions>>(input)
-        .break(is.number, offset => ({ offset }))
-        .break(is.boolean, fromEnd => ({ fromEnd }))
-        .break(is.object)
-        .default({})
-
-    return { offset, fromEnd }
-}
+const matchCommonDiffOptions =
+    match.for<undefined | number | boolean | Partial<CommonDiffOptions>, CommonDiffOptions>(
+        cases => cases
+            .fall(is.number, offset => ({ offset }))
+            .fall(is.boolean, fromEnd => ({ fromEnd }))
+            .default(i => ({ offset: 0, fromEnd: false, ...i }))
+    )
 
 /*** Main ***/
 
@@ -99,15 +96,18 @@ function getCommonDiffOptions(input: unknown): CommonDiffOptions {
 function commonDiff(input: string[], options?: Partial<CommonDiffOptions>): CommonDiff
 function commonDiff(input: string[], fromEnd?: boolean): CommonDiff
 function commonDiff(input: string[], offset?: number): CommonDiff
-function commonDiff(input: string[], options?: unknown): CommonDiff {
+function commonDiff(
+    input: string[],
+    options?: number | boolean | Partial<CommonDiffOptions>
+): CommonDiff {
 
-    const { offset, fromEnd } = getCommonDiffOptions(options)
+    const { offset, fromEnd } = matchCommonDiffOptions(options)
 
     const common = createCommon(input, offset, fromEnd)
 
     return [
         common,
-        ...createDiffs(input, common.length + offset, fromEnd)
+        ...createDiffs(input, offset + common.length, fromEnd)
     ]
 }
 
