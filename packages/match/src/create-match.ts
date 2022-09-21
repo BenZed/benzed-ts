@@ -1,5 +1,5 @@
 import type { MatchState } from './match-state'
-import type { Match, Outputs } from './types'
+import type { Match, OutputArray } from './types'
 
 import {
     matchAnyInput,
@@ -46,9 +46,9 @@ const SIGNATURE_OK = {}
 
 /*** Main ***/
 
-function createMatch<I, O extends Outputs>(
+function createMatch<I, O extends OutputArray, OT>(
     state: MatchState<I, O>
-): Match<I, O> {
+): Match<I, O, OT> {
 
     // Match Dynamic Signature
 
@@ -64,14 +64,14 @@ function createMatch<I, O extends Outputs>(
 
     // Match Interface
 
-    match.default = (...args: unknown[]) =>
+    match.default = ((...args: unknown[]) =>
         state.addMatchCase({
             ...signatureToOptions(args, {
                 0: SIGNATURE_OK,
                 1: { output: 0 }
             }),
             finalize: true
-        }) ?? match
+        }) ?? match) as unknown as Match<I, any>['default']
 
     match.break = (...args: unknown[]) =>
         state.addMatchCase(
@@ -129,7 +129,7 @@ function createMatch<I, O extends Outputs>(
 
     match[Symbol.iterator] = state[Symbol.iterator]
 
-    return match
+    return match as Match<I, O, OT>
 }
 
 /*** Exports ***/

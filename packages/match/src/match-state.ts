@@ -1,22 +1,22 @@
-import { Outputs } from './types'
+import { OutputArray } from './types'
 import { matchCheck, resolveOutput } from './util'
 
 /*** Types ***/
 
-interface MatchCase<I, O extends Outputs> {
+interface MatchCase<I, O extends OutputArray> {
     input: I
     output: O[number]
     operation: 'fall' | 'discard' | 'output'
 }
 
-interface AddMatchCaseOptions<I, O extends Outputs> extends Omit<MatchCase<I, O>, 'operation'> {
+interface AddMatchCaseOptions<I, O extends OutputArray> extends Omit<MatchCase<I, O>, 'operation'> {
     operation?: MatchCase<I, O>['operation']
     finalize?: boolean
 }
 
 /*** Main ***/
 
-class MatchState<I, O extends Outputs> implements Iterable<O[number]> {
+class MatchState<I, O extends OutputArray> implements Iterable<O[number]> {
 
     // State 
 

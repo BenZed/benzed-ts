@@ -1,7 +1,7 @@
 import match from './index'
 
 import { primes } from '@benzed/math'
-import { isString, isBoolean, isNumber } from '@benzed/is'
+import is from '@benzed/is'
 
 /*** Tests ***/
 
@@ -70,7 +70,7 @@ it('can use type guards', () => {
     const expectBool = (input: boolean): string => `gottem: ${input}`
 
     const [, , f3] = match('ace', 2, true)
-        (isBoolean, expectBool)
+        (is.boolean, expectBool)
         .default('dont gottem')
 
     expect(f3).toEqual('gottem: true')
@@ -217,7 +217,7 @@ it('.break() correctly sorts arguments', () => {
 it('.fall() for cases that do not return, put pass their output to remaining cases', () => {
 
     const output = match('1', 2, '3', 4)
-        .fall(isString, i => parseFloat(i))
+        .fall(is.string, i => parseFloat(i))
         .default(i => i * 10)
         .rest()
 
@@ -229,8 +229,8 @@ it(
     'and extract ones caught via type guards', () => {
 
         const output = match('1', 2, '3', 4, true)
-            .fall(isString, parseFloat)
-            .fall(isBoolean, i => i ? 1 : 0)
+            .fall(is.string, parseFloat)
+            .fall(is.boolean, i => i ? 1 : 0)
             .default(i => i * 10)
             //       ^ there should not be a type error here, because numbers
             //         are the only input type to remain
@@ -275,8 +275,8 @@ it('.fall() correclty sorts arguments', () => {
 it('.discard() prevents values from receiving an output', () => {
 
     const [...output] = match(0, 1, 2, 3, 4, true, 'string')
-        .discard(isBoolean)
-        .discard(isString)
+        .discard(is.boolean)
+        .discard(is.string)
         .default(i => i)
 
     expect(output).toEqual([0, 1, 2, 3, 4])
@@ -305,7 +305,7 @@ it('.discard() may not discard all values', () => {
 it('.discard() without output discards all values', () => {
 
     const [num] = match(true, true, true, true, true, 0, false)
-        (isNumber, i => i)
+        (is.number, i => i)
         .discard()
 
     expect(num).toEqual(0)
@@ -323,7 +323,7 @@ it('.discard() properly sorts args', () => {
 it('.keep() opposite of discard', () => {
 
     const strings = match(0, 1, 2, 3, true, false, 'hey', 'mommy')
-        .keep(isString)
+        .keep(is.string)
         .default(i => i.toUpperCase())
         .rest()
 
@@ -338,21 +338,24 @@ it('.keep() throws without args', () => {
 
 it('handles infinite iterators', () => {
 
-    const [prime] = match
-        .each(primes(Infinity))
+    const matcher = match.each(primes(Infinity))
         .keep(i => i > 1000)
         .default(i => i)
+
+    const [prime] = matcher
 
     expect(prime).toEqual(1009)
 })
 
 it('match cannot be composed entirely of discard cases', () => {
-    expect(() => match(0).discard(isBoolean).next())
+    // @ts-expect-error next() will be inaccessible without output
+    expect(() => match(0).discard(is.boolean).next())
         .toThrow('No output cases have been defined.')
 })
 
 it('a match composed only of fall cases throws', () => {
     const m = match(1).fall(i => i * 10)
+    // @ts-expect-error next() will be inaccessible without output
     expect(() => m.next())
         .toThrow('No output cases have been defined.')
 })
@@ -424,6 +427,7 @@ it('cannot finalize a match without cases', () => {
 })
 
 it('cases are required', () => {
+
     expect(() =>
         // @ts-expect-error typing is supposed to fail without cases
         [...match(0)]
@@ -431,7 +435,8 @@ it('cases are required', () => {
 })
 
 it('iterator must have at least one value', () => {
-    expect(() => match.each([])(i => i).next()).toThrow('No values to match.')
+    expect(() => match.each([])(1).next())
+        .toThrow('No values to match.')
 })
 
 it('can match template strings', () => {
@@ -444,3 +449,108 @@ it('can match template strings', () => {
     expect([...output]).toEqual([1, 2, true])
 })
 
+describe('handles explicit output types', () => {
+
+    interface Todo {
+        completed?: boolean
+        index?: number
+        content: string | string[]
+    }
+
+    function isTodo(input: unknown): input is Todo {
+        return isPartialTodo(input) &&
+            (
+                is.string(input.content) ||
+                is.arrayOf.string(input.content)
+            )
+    }
+
+    function isPartialTodo(input: unknown): input is Partial<Todo> {
+        return is.object(input)
+    }
+
+    it('match<Type>(...values)', () => {
+
+        const input: unknown[] = [undefined, undefined]
+
+        const [{ index = 0, content = '' }] = match<Todo>(...input)
+            (is.number, index => ({ index, content: '' }))
+            (is.string, content => ({ content }))
+            (is.arrayOf.string, content => ({ content }))
+            .default({ content: '' })
+
+        expect(index).toEqual(0)
+        expect(content).toEqual('')
+
+    })
+
+    it('outputs must conform', () => {
+
+        // @ts-expect-error output is not of type TODO
+        match<Todo>(true)(is.boolean, complete => ({ complete }))
+    })
+
+    it('preserves functions broken due to no output cases', () => {
+
+        const matchTodos = match<Todo>(0)
+
+        // @ts-expect-error should not be able to finalize
+        expect(() => matchTodos.finalize())
+            .toThrow('No output cases have been defined.')
+
+        // @ts-expect-error should not be able to iterate
+        expect(() => matchTodos.next())
+            .toThrow('No output cases have been defined.')
+
+    })
+
+    it('.break() single method must output target type', () => {
+
+        // @ts-expect-error output is not of type Todo
+        match<Todo>().break(isPartialTodo)
+
+        // should not break, is of type Todo
+        match<Todo>().break(isTodo)
+    })
+
+    it('.match<Type, Inputs>()', () => {
+
+        const isCompletedString = (input: unknown): input is { completed: string } => {
+            return (
+                is.object<{ completed: unknown }>(input) &&
+                is.string(input.completed)
+            )
+        }
+
+        const isArrayOfString = (input: unknown): input is (string[] | readonly string[]) =>
+            is.arrayOf.string(input)
+
+        const inputs = [
+            true,
+            false,
+            'content', ['content'],
+            { completed: 'town' },
+            { completed: false }
+        ] as const
+
+        const [...todos] = match<Todo, typeof inputs>(...inputs)
+
+            .fall(is.boolean, completed => ({ completed }))
+            .fall(is.string, content => ({ content }))
+            .fall(isArrayOfString, content => ({ content: [...content] }))
+
+            .discard(isCompletedString)
+
+            .default(remaining => ({
+                completed: false,
+                content: '',
+
+                // without the explicit value signature, this type would be undefined
+                ...remaining
+            }))
+
+        expect(todos.every(isTodo))
+            .toBe(true)
+    })
+
+})

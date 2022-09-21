@@ -9,11 +9,15 @@ import { matchAnyInput, matchCheck } from './util'
 
 /*** Main Interface Method ***/
 
-function match<A extends readonly unknown[]>(...values: A): Match<A[number], []> {
-
-    type T = A[number]
-    const state = new MatchState<T, []>(values as Iterable<never>)
-    return createMatch<T, []>(state)
+function match<A extends readonly unknown[]>(...values: A): Match<A[number], []>
+function match<OT, A extends readonly unknown[]>(...values: A): Match<A[number], [], OT>
+function match<OT, V>(value: V): Match<V, [], OT>
+function match<OT>(value: unknown): Match<unknown, [], OT>
+function match<OT>(...values: unknown[]): Match<unknown, [], OT>
+function match(...values: unknown[]): unknown {
+    return createMatch(
+        new MatchState(values)
+    )
 }
 
 /*** Extensions ***/
@@ -60,7 +64,7 @@ match.once = <I = typeof matchAnyInput>(input?: I): I =>
 /**
 * Match each item in a provided iterator
 */
-match.each = <I>(iterable: Iterable<I>): Match<I, []> =>
+match.each = <I, OT = void>(iterable: Iterable<I>): Match<I, [], OT> =>
     createMatch(new MatchState<I, []>(iterable as Iterable<never>))
 
 /**
