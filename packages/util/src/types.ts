@@ -2,6 +2,14 @@
     @typescript-eslint/no-explicit-any 
 */
 
+/*** Value Types ***/
+
+export type Constructor<T> = (new (...args: any[]) => T) | { prototype: T }
+
+export type Falsy = null | undefined | false | 0 | ''
+
+export type Sortable = string | bigint | number | { valueOf(): string | bigint | number }
+
 export type Func<A extends any[] = unknown[], V = unknown, T = void> = (this: T, ...args: A) => V
 
 export type TypeGuard<I, O extends I> = (input: I) => input is O
@@ -10,6 +18,8 @@ export type Json =
     null | string | number | boolean |
     Json[] |
     { [prop: string]: Json }
+
+/*** Utility Types ***/
 
 /**
  * Reduce two types to only their matching key values.
