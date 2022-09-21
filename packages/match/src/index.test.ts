@@ -533,7 +533,7 @@ describe('handles explicit output types', () => {
             { completed: false }
         ] as const
 
-        const [...todos] = match<Todo, typeof inputs>(...inputs)
+        const [...todos] = match<typeof inputs, Todo>(...inputs)
 
             .fall(is.boolean, completed => ({ completed }))
             .fall(is.string, content => ({ content }))
@@ -551,6 +551,29 @@ describe('handles explicit output types', () => {
 
         expect(todos.every(isTodo))
             .toBe(true)
+    })
+
+})
+
+describe('.reusable() match instance', () => {
+
+    it('allows match expressions to be reused with new values', () => {
+
+        const matchEven = match.for<number | string, number>(match => match
+            (is.string, parseInt)
+            .keep(i => i % 2 === 0)
+            .default()
+        )
+
+        expect(matchEven('4')).toBe(4)
+        expect(matchEven(2)).toBe(2)
+
+        expect(() => matchEven(3)).toThrow('Value was discarded.')
+
+    })
+
+    it('match must have cases', () => {
+        expect(() => match.for(m => m)).toThrow('No output cases have been defined.')
     })
 
 })

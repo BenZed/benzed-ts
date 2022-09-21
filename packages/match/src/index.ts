@@ -1,22 +1,23 @@
-import type { Match, MatchFinalized } from './types'
+import type { MatchInProgress, Match, MatchOutput } from './types'
 
-import MatchState from './match-state'
+import MatchIterableState, { MatchState } from './match-state'
 
-import createMatch from './create-match'
+import matchCreateInstance from './match-create-instance'
 import { matchAnyInput, matchCheck } from './util'
 
 /* eslint-disable @typescript-eslint/indent */
 
 /*** Main Interface Method ***/
 
-function match<A extends readonly unknown[]>(...values: A): Match<A[number], []>
-function match<OT, A extends readonly unknown[]>(...values: A): Match<A[number], [], OT>
-function match<OT, V>(value: V): Match<V, [], OT>
-function match<OT>(value: unknown): Match<unknown, [], OT>
-function match<OT>(...values: unknown[]): Match<unknown, [], OT>
+function match<A extends readonly unknown[]>(...values: A): MatchInProgress<A[number], []>
+function match<A extends readonly unknown[], O>(...values: A): MatchInProgress<A[number], [], O>
+function match<O>(...values: unknown[]): MatchInProgress<unknown, [], O>
 function match(...values: unknown[]): unknown {
-    return createMatch(
-        new MatchState(values)
+
+    const iterable: Iterable<unknown> = values
+
+    return matchCreateInstance(
+        new MatchIterableState(iterable)
     )
 }
 
@@ -64,8 +65,10 @@ match.once = <I = typeof matchAnyInput>(input?: I): I =>
 /**
 * Match each item in a provided iterator
 */
-match.each = <I, OT = void>(iterable: Iterable<I>): Match<I, [], OT> =>
-    createMatch(new MatchState<I, []>(iterable as Iterable<never>))
+match.each = <I, OT = void>(iterable: Iterable<I>): MatchInProgress<I, [], OT> =>
+    matchCreateInstance(
+        new MatchIterableState<I, MatchOutput<OT, []>>(iterable)
+    )
 
 /**
 * Match each of the provided values
@@ -94,12 +97,38 @@ match.template = <A extends readonly unknown[]>(
     return match(...zipped)
 }
 
+/**
+ * Creates a reusable match expression that is
+ * given values after the fact
+ */
+match.for = <I, O>(
+    defineCases: (m: MatchInProgress<I, [], O>) => Match<O>
+): ((value: I) => O) => {
+
+    const state = new MatchState<I, never>()
+
+    defineCases(
+        matchCreateInstance(state)
+    )
+
+    state.assertOutputCases()
+
+    return value => {
+        const success = state.match(value)
+        if (!success)
+            throw new Error('Value was discarded.')
+
+        return success.output
+    }
+
+}
+
 /*** Exports ***/
 
 export default match
 
 export {
     match,
-    Match,
-    MatchFinalized
+    MatchInProgress,
+    Match
 }

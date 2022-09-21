@@ -68,9 +68,9 @@ export type MatchOutput<OT, O extends OutputArray> = O extends []
 
 type BreakOutputMethod<O1, V> = TypeGuard<unknown, O1> | ((input: V) => O1)
 
-type FuncIfOutput<O, R> = O extends never ? never : () => R
+type FuncIfOutput<O, R, A extends unknown[] = []> = O extends never ? never : (...args: A) => R
 
-export interface MatchFinalized<O> {
+export interface Match<O> {
 
     /**
      * Iterate output provided output cases are not empty
@@ -89,12 +89,12 @@ export interface MatchFinalized<O> {
 
 }
 
-export interface Match<
+export interface MatchInProgress<
     V,
     O extends OutputArray,
     OT = void
 
-> extends MatchFinalized<MatchOutput<OT, O>> {
+> extends Match<MatchOutput<OT, O>> {
 
     /**
      * Create new case that breaks on match.
@@ -102,11 +102,11 @@ export interface Match<
     <O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
         input: I,
         output: OutputOptions<V, I, O1>
-    ): Match<BreakValue<V, I>, AddOutput<O1, O>, OT>
+    ): MatchInProgress<BreakValue<V, I>, AddOutput<O1, O>, OT>
 
     <O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
         defaultOutput: OutputOptions<V, I, O1>
-    ): MatchFinalized<
+    ): Match<
         MatchOutput<
             OT,
             AddOutput<O1, O>
@@ -119,14 +119,14 @@ export interface Match<
     break<O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
         input: I,
         output: OutputOptions<V, I, O1>
-    ): Match<BreakValue<V, I>, AddOutput<O1, O>, OT>
+    ): MatchInProgress<BreakValue<V, I>, AddOutput<O1, O>, OT>
 
     /**
      * Create new case that breaks on match.
      */
     break<O1 extends OutputTarget<OT>>(
         pass: BreakOutputMethod<O1, V>
-    ): Match<
+    ): MatchInProgress<
         Exclude<V, O1>,
         AddOutput<
             O1,
@@ -141,10 +141,10 @@ export interface Match<
     fall<O1, I extends InputOptions<V>>(
         input: I,
         output: OutputOptions<V, I, O1>
-    ): Match<FallValue<V, I, O1>, O, OT>
+    ): MatchInProgress<FallValue<V, I, O1>, O, OT>
     fall<O1, I extends InputOptions<V>>(
         pass: OutputMethod<V, I, O1>
-    ): Match<O1, O, OT>
+    ): MatchInProgress<O1, O, OT>
 
     /**
      * Do not create outputs for the match
@@ -152,8 +152,8 @@ export interface Match<
      */
     discard<I extends InputOptions<V>>(
         input: I
-    ): Match<DiscardValue<V, I>, O, OT>
-    discard(): Match<never, O, OT>
+    ): MatchInProgress<DiscardValue<V, I>, O, OT>
+    discard(): MatchInProgress<never, O, OT>
 
     /**
      * Only create outputs for this match
@@ -161,21 +161,21 @@ export interface Match<
      */
     keep<I extends InputOptions<V>>(
         input: I
-    ): Match<KeepValue<V, I>, O, OT>
+    ): MatchInProgress<KeepValue<V, I>, O, OT>
 
     /**
      * Create a final case that handles any remaining cases
      */
     default<O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
         output: OutputOptions<V, I, O1>
-    ): MatchFinalized<
+    ): Match<
         MatchOutput<
             OT,
             AddOutput<V, O>
         >
     >
 
-    default(): MatchFinalized<
+    default(): Match<
         MatchOutput<
             OT,
             AddOutput<V, O>
@@ -187,7 +187,7 @@ export interface Match<
      */
     finalize: FuncIfOutput<
         O[number],
-        MatchFinalized<
+        Match<
             MatchOutput<
                 OT,
                 AddOutput<V, O>

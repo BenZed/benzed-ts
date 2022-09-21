@@ -1,5 +1,5 @@
 import type { MatchState } from './match-state'
-import type { Match, OutputArray } from './types'
+import type { MatchInProgress, MatchOutput, OutputArray } from './types'
 
 import {
     matchAnyInput,
@@ -46,35 +46,35 @@ const SIGNATURE_OK = {}
 
 /*** Main ***/
 
-function createMatch<I, O extends OutputArray, OT>(
-    state: MatchState<I, O>
-): Match<I, O, OT> {
+function matchCreateInstance<I, O extends OutputArray, OT>(
+    state: MatchState<I, MatchOutput<OT, O>>
+): MatchInProgress<I, O, OT> {
 
     // Match Dynamic Signature
 
-    const match: Match<I, any> = ((...args: unknown[]) =>
-        state.addMatchCase(
+    const match: MatchInProgress<I, any> = ((...args: unknown[]) =>
+        state.addCase(
             signatureToOptions<I, any>(args, {
                 1: { output: 0, finalize: true },
                 2: { input: 0, output: 1 }
             }),
         ) ?? match
 
-    ) as Match<I, any>
+    ) as MatchInProgress<I, any>
 
     // Match Interface
 
     match.default = ((...args: unknown[]) =>
-        state.addMatchCase({
+        state.addCase({
             ...signatureToOptions(args, {
                 0: SIGNATURE_OK,
                 1: { output: 0 }
             }),
             finalize: true
-        }) ?? match) as unknown as Match<I, any>['default']
+        }) ?? match) as unknown as MatchInProgress<I, any>['default']
 
     match.break = (...args: unknown[]) =>
-        state.addMatchCase(
+        state.addCase(
             signatureToOptions(args, {
                 1: { input: 0 },
                 2: { input: 0, output: 1 }
@@ -82,7 +82,7 @@ function createMatch<I, O extends OutputArray, OT>(
         ) ?? match
 
     match.fall = (...args: unknown[]) =>
-        state.addMatchCase({
+        state.addCase({
             ...signatureToOptions(args, {
                 1: { output: 0 },
                 2: { input: 0, output: 1 }
@@ -91,13 +91,13 @@ function createMatch<I, O extends OutputArray, OT>(
         }) ?? match
 
     match.discard = (...args: unknown[]) =>
-        state.addMatchCase({
+        state.addCase({
             ...signatureToOptions(args, {
                 0: SIGNATURE_OK,
                 1: { input: 0 }
             }),
             operation: 'discard'
-        }) ?? match as ReturnType<Match<I, any>['discard']>
+        }) ?? match as ReturnType<MatchInProgress<I, any>['discard']>
 
     match.keep = ((...args) => {
 
@@ -107,13 +107,13 @@ function createMatch<I, O extends OutputArray, OT>(
 
         return match.discard(invertDiscard)
 
-    }) as Match<I, O>['keep']
+    }) as MatchInProgress<I, O>['keep']
 
     match.finalize = (() => {
         state.assertOutputCases()
-        state.finalized = true
+        state.finalize()
         return match
-    }) as unknown as Match<I, O>['finalize']
+    }) as unknown as MatchInProgress<I, O>['finalize']
 
     // Match Finalized Interface
 
@@ -129,13 +129,13 @@ function createMatch<I, O extends OutputArray, OT>(
 
     match[Symbol.iterator] = state[Symbol.iterator]
 
-    return match as Match<I, O, OT>
+    return match as MatchInProgress<I, O, OT>
 }
 
 /*** Exports ***/
 
-export default createMatch
+export default matchCreateInstance
 
 export {
-    createMatch
+    matchCreateInstance
 }
