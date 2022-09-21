@@ -1,4 +1,13 @@
+
 export {
+
+    TypeOf,
+    TypesOf
+
+} from './types'
+
+export {
+
     is,
     Is,
 
@@ -7,11 +16,7 @@ export {
 
     validate,
     Validate
+
 } from './schema'
 
 export * from './type-methods'
-
-export {
-    TypeOf,
-    TypesOf
-} from './types'

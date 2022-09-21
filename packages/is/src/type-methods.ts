@@ -1,5 +1,5 @@
 import { Typed } from './types'
-import { F } from './flags'
+import { Flag } from './flags'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -16,7 +16,7 @@ import { F } from './flags'
  * one method into another. This is a work around to keep the run
  * time assertion functionality while losing it's type safety
  */
-enum AssertionTypeSafety {
+enum ATS {
 
     /**
      * Assert methods will be given the 
@@ -35,26 +35,27 @@ enum AssertionTypeSafety {
 
 /*** Types ***/
 
-type AssertMethod<T, A extends AssertionTypeSafety = AssertionTypeSafety.On> = Typed<T> &
-    (A extends AssertionTypeSafety.On
-        ? (input: unknown) => asserts input is T
-        : (input: unknown) => void)
+type AssertMethod<T, A extends ATS = ATS.On> =
+    Typed<T> & (
+        A extends ATS.On
+        ? ((input: unknown) => asserts input is T)
+        : (input: unknown) => void
+    )
 
-type IsMethod<T> = Typed<T> & ((input: unknown) => input is T)
+type IsMethod<T> =
+    Typed<T> & ((input: unknown) => input is T)
 
-type ValidateMethod<T> = Typed<T> & ((input: unknown) => T)
+type ValidateMethod<T> =
+    Typed<T> & ((input: unknown) => T)
 
-type TypeMethod<F extends F.Is | F.Assert | F.Validate, T> =
-    F extends F.Is
+type TypeMethod<F extends Flag.Is | Flag.Assert | Flag.Validate, T> =
+    F extends Flag.Is
     ? IsMethod<T>
 
-    : F extends F.Assert
+    : F extends Flag.Assert
     ? AssertMethod<T>
 
-    : F extends F.Validate
-    ? ValidateMethod<T>
-
-    : unknown
+    : ValidateMethod<T>
 
 /*** Exports ***/
 
@@ -67,6 +68,6 @@ export {
     ValidateMethod,
     AssertMethod,
 
-    AssertionTypeSafety,
-    AssertionTypeSafety as ATS,
+    ATS,
+    ATS as AssertionTypeSafety,
 }

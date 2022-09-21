@@ -1,7 +1,8 @@
 import { Constructor } from '@benzed/util'
 
 /* eslint-disable 
-    @typescript-eslint/indent 
+    @typescript-eslint/indent,
+    @typescript-eslint/no-explicit-any
 */
 
 /**
@@ -19,6 +20,10 @@ interface Typed<T> {
     [$$type]: T
 }
 
+type TypeGuard<T> = (input: unknown, ...args: any[]) => input is T
+
+type TypeAssertion<T> = (input: unknown, ...args: any[]) => asserts input is T
+
 /**
  * Value by which the type can be inferred via TypeOf<T>
  */
@@ -28,11 +33,15 @@ type Typeable<T> = Constructor<T> | Typed<T>
 
 type TypeOf<T> = T extends Typed<infer T1>
     ? T1
-    : T extends Constructor<infer T2>
+    : T extends TypeGuard<infer T2>
     ? T2
+    : T extends TypeAssertion<infer T3>
+    ? T3
+    : T extends Constructor<infer T4>
+    ? T4
     : unknown
 
-type TypesOf<T extends readonly Typed<unknown>[]> = {
+type TypesOf<T extends readonly unknown[]> = {
     [K in keyof T]: TypeOf<T[K]>
 }
 
@@ -43,6 +52,8 @@ export {
     Typeable,
     TypeOf,
     TypesOf,
+    TypeGuard,
+    TypeAssertion,
 
     Typed,
     $$type
