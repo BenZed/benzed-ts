@@ -27,7 +27,11 @@ type TypeAssertion<T> = (input: unknown, ...args: any[]) => asserts input is T
 /**
  * Value by which the type can be inferred via TypeOf<T>
  */
-type Typeable<T> = Constructor<T> | Typed<T>
+type Typeable<T> =
+    Typed<T> |
+    TypeGuard<T> |
+    TypeAssertion<T> |
+    Constructor<T>
 
 /*** Type Of ***/
 

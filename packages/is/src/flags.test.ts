@@ -1,13 +1,19 @@
 import { expectTypeOf } from 'expect-type'
 import {
+
     DefaultFlags,
-    SetFlag, IsFlag,
+
+    SetFlag,
+    IsFlag,
+
     F,
     Flags,
     Flag,
+
     GetMethodFlag,
     GetWriteFlag,
     GetExistFlag
+
 } from './flags'
 
 import { Schema } from './schema'
