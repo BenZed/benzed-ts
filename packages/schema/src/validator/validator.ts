@@ -40,7 +40,7 @@ abstract class Validator<
 
     /*** State ***/
 
-    private _settings: S
+    private _settings!: S
     public get settings(): Readonly<S> {
         return this._settings
     }
@@ -48,8 +48,7 @@ abstract class Validator<
     /*** Construction ***/
 
     public constructor (settings: S) {
-        this._settings = this._stripUndefinedSettings(settings) as S
-        this._onApplySettings()
+        this.applySettings(settings)
     }
 
     /*** Validation ***/
@@ -58,17 +57,21 @@ abstract class Validator<
 
     /*** Helpers ***/
 
-    public applySettings(settings: Partial<S>): void {
+    public applySettings(nextSettings: Partial<S>): void {
+
+        const prevSettings = this._settings
 
         this._settings = {
-            ...this._settings,
-            ...this._stripUndefinedSettings(settings)
+            ...prevSettings,
+            ...this._stripUndefinedSettings(nextSettings)
         }
 
-        this._onApplySettings()
+        this._onApplySettings(prevSettings ?? null)
     }
 
-    protected _onApplySettings(): void { /**/ }
+    protected _onApplySettings(previousSettings: S | null): void {
+        void previousSettings
+    }
 
     /*** CopyComparable Implementation ***/
 

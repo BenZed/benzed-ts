@@ -8,9 +8,9 @@ describe('chaining', () => {
 
     it('schemas can be chained', () => {
 
-        const validate = is.string.or.boolean.or.array(is.number)
+        const isStringOrBooleanOrArray = is.string.or.boolean
 
-        const a = validate([])
+        const a = isStringOrBooleanOrArray([])
         expectTypeOf<TypeOf<typeof validate>>()
             .toEqualTypeOf<string | boolean | unknown[]>()
     })

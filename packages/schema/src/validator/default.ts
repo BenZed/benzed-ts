@@ -28,7 +28,7 @@ class DefaultValidator<O> extends TransformValidator<
 
     /*** TransformValidator Implementation ***/
 
-    protected _transform(input: unknown): O | unknown {
+    protected _transform(input: unknown): unknown {
 
         const { default: _default } = this.settings
 
