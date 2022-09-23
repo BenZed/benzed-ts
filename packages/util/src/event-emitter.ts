@@ -184,7 +184,7 @@ class EventEmitter<T extends Events> {
     ): void {
         const listeners = this._subscriptions[event] ?? []
 
-        for (const { listener } of [...listeners])
+        for (const { listener } of listeners)
             this.removeListener(event, listener)
     }
 
@@ -216,8 +216,8 @@ class EventEmitter<T extends Events> {
 
         const subscriptions = this._subscriptions[event] ?? []
 
-        for (const subscription of [...subscriptions]) {
-            //                     ^ shallow copy so that removing non-persitent
+        for (const subscription of [...subscriptions] as typeof subscriptions) {
+            //                     ^ shallow copy so that removing non-persistent
             //                       listeners doesn't cause any skipping.
             subscription.listener.apply(this, args)
 
