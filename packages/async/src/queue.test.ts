@@ -5,15 +5,15 @@ jest.setTimeout(500)
 
 it('executes a series of tasks in order', async () => {
 
-    const queue = new Queue()
+    const queue = new Queue<string>()
 
     const task = (): Promise<string> => Promise.resolve('complete')
 
     const item = queue.add(task)
 
-    await new Promise(resolve => queue.once('complete', resolve))
+    await queue.complete()
 
-    expect(item.value).toEqual('complete')
+    expect(item.result?.value).toEqual('complete')
 })
 
 describe('maxListeners option', () => {
@@ -21,10 +21,7 @@ describe('maxListeners option', () => {
     it('provides the max number of listeners to the Queue and item emitters', () => {
 
         const queue = new Queue({ maxListeners: 64 })
-        const item = queue.add(jest.fn())
-
         expect(queue.maxListeners).toBe(64)
-        expect(item.maxListeners).toBe(64)
 
     })
 })
@@ -92,17 +89,23 @@ describe('maxConcurrent option', () => {
 
         beforeAll(async () => {
 
-            const queue = new Queue({ maxConcurrent: MAX_CONCURRENT })
+            const queue = new Queue({ maxConcurrent: MAX_CONCURRENT, maxListeners: 1000 })
 
             for (let taskId = 0; taskId < TOTAL_TASKS; taskId++) {
                 const item = queue.add(() => milliseconds(taskId * 5))
                 //       progressivly more difficult tasks ^
 
-                item.once('start', () => addTaskState(taskId, '🏃'))
-                item.once('complete', () => addTaskState(taskId, '🛑'))
+                queue.on('start', (payload) => {
+                    if (item === payload.item)
+                        addTaskState(taskId, '🏃')
+                })
+                queue.on('complete', (payload) => {
+                    if (item === payload.item)
+                        addTaskState(taskId, '🛑')
+                })
             }
 
-            await queue.finished()
+            await queue.complete()
 
             // UnComment the following block to see the state visualization
             // ⌛ represents waiting tasks 
@@ -164,6 +167,46 @@ describe('add()', () => {
             .toBe(true)
     })
 
+    it('returns an array if given an array', () => {
+        const queue = new Queue<string>({ initiallyPaused: true })
+
+        const items = queue.add([() => 'sup', () => 'b'])
+        expect(items).toHaveLength(2)
+    })
+
+    describe('QueueItem', () => {
+
+        it('stage is updated', async () => {
+            const queue = new Queue<string>({ initiallyPaused: true })
+
+            const item = queue.add(() => milliseconds(50).then(() => 'sup'))
+
+            expect(item.stage).toEqual('queued')
+            expect(item.isQueued).toBe(true)
+
+            queue.resume()
+
+            await milliseconds(0)
+
+            expect(item.stage).toEqual('current')
+            expect(item.isCurrent).toEqual(true)
+
+            await milliseconds(100)
+            expect(item.stage).toEqual('complete')
+            expect(item.isComplete).toEqual(true)
+        })
+
+        it('complete() resolves even if item has already been completed', async () => {
+
+            const queue = new Queue<string>()
+            const item = queue.add(() => 'sup')
+            await queue.complete()
+            const sup = await item.complete()
+            expect(sup).toEqual('sup')
+        })
+
+    })
+
 })
 
 describe('remove()', () => {
@@ -179,21 +222,20 @@ describe('remove()', () => {
         queue.add(threeTask)
     ]
     const removeViaItem = queue.remove(items[0])
-    const removedViaTask = queue.remove(items[3].task)
+    const removedViaTask = queue.remove(threeTask)
 
     it('removes items from the queue via item input', () => {
         expect(queue.queuedItems.includes(items[0])).toBe(false)
     })
 
     it('removes items from the queue via task task input', () => {
-        expect(queue.queuedItems.some(item => item.task === threeTask)).toBe(false)
+        expect(queue.queuedItems.some(item => item === items[1] || item === items[3])).toBe(false)
     })
 
     it('returns the number of tasks removed', () => {
         expect(removeViaItem).toBe(1)
         expect(removedViaTask).toBe(2)
     })
-
 })
 
 describe('clear()', () => {
@@ -247,18 +289,16 @@ describe('pausing', () => {
         const queue = new Queue()
 
         const itemPrePause = queue.add(jest.fn())
-
-        queue.isPaused = true
-
-        const itemPostPause = queue.add(jest.fn())
-
         await milliseconds(25)
 
-        expect(itemPrePause.isStarted).toBe(true)
-        expect(itemPrePause.isFinished).toBe(true)
+        queue.isPaused = true
+        const itemPostPause = queue.add(jest.fn())
 
-        expect(itemPostPause.isStarted).toBe(false)
-        expect(itemPostPause.isFinished).toBe(false)
+        expect(itemPrePause.isQueued).toBe(false)
+        expect(itemPrePause.isComplete).toBe(true)
+
+        expect(itemPostPause.isQueued).toBe(true)
+        expect(itemPostPause.isComplete).toBe(false)
     })
 })
 
@@ -272,11 +312,11 @@ describe('events', () => {
 
         const item = queue.add(getNumberTask)
 
-        item.on('start', ({ item }) => {
-            expect(item.value).toBe(undefined)
+        queue.on('start', ({ item }) => {
+            expect(item.result).toBe(null)
         })
 
-        await item.finished()
+        await item.complete()
 
         expect.assertions(1)
 
@@ -292,21 +332,21 @@ describe('events', () => {
 
         const callback = jest.fn()
 
-        item.on('complete', callback)
+        queue.on('complete', callback)
 
-        await item.finished()
+        await item.complete()
 
         expect(callback).toHaveBeenCalledTimes(1)
 
     })
 
-    it('"complete" event first argument is a payload if queue type is void or undefined',
+    it('"complete" event second argument is value',
         async () => {
 
             const callback = jest.fn()
 
             const strQ = new Queue<string>()
-            strQ.on('complete', (output) => {
+            strQ.on('complete', (_, output) => {
                 expect(typeof output).toBe('string')
             })
             const strItem = strQ.add(() => {
@@ -335,14 +375,14 @@ describe('events', () => {
             funQ.on('complete', (output) => void output)
 
             await Promise.all([
-                strQ.finished(),
-                voidQ.finished(),
-                undefQ.finished()
+                strQ.complete(),
+                voidQ.complete(),
+                undefQ.complete()
             ])
 
-            expect(strItem.error).toEqual(undefined)
-            expect(voidItem.error).toEqual(undefined)
-            expect(undefItem.error).toEqual(undefined)
+            expect(strItem.error).toEqual(null)
+            expect(voidItem.error).toEqual(null)
+            expect(undefItem.error).toEqual(null)
             expect(callback).toBeCalledTimes(3)
 
         })
@@ -359,9 +399,9 @@ describe('events', () => {
 
         const callback = jest.fn()
 
-        item.on('error', callback)
+        queue.on('error', callback)
 
-        await queue.finished()
+        await queue.complete()
 
         expect(callback).toHaveBeenCalledTimes(1)
         expect(item.error).toHaveProperty('message', 'Done fucked up there bud')
@@ -369,21 +409,20 @@ describe('events', () => {
 
     it('.removeAllListeners() does not break internal events', async () => {
 
-        const queue = new Queue<'ham'>()
+        const queue = new Queue<'ham'>({})
 
         const getHam = (): 'ham' => 'ham'
 
-        const item = queue.add(getHam)
-        item.removeAllListeners('start')
-        item.removeAllListeners('complete')
-        item.removeAllListeners('error')
+        const item = queue.add(getHam).complete()
 
-        await item.finished()
+        queue.removeAllListeners('start')
+        queue.removeAllListeners('complete')
+        queue.removeAllListeners('error')
 
-        expect(item.isStarted).toBe(true)
+        expect(await item).toBe('ham')
     })
 
-    it('.finished() returns value', async () => {
+    it('.complete() returns value', async () => {
 
         const VALUE = 'string-value'
 
@@ -393,24 +432,43 @@ describe('events', () => {
             return VALUE
         })
 
-        const output = await item.finished()
+        const output = await item.complete()
         expect(output).toBe(VALUE)
     })
 
-    it('.finished() promises resolve when already finished', async () => {
+    it('.complete() promises resolve when already finished', async () => {
 
         const queue = new Queue()
 
         const item = queue.add(() => void 0)
 
         await Promise.all([
-            item.finished(),
-            queue.finished()
+            item.complete(),
+            queue.complete()
         ])
 
         await Promise.all([
-            item.finished(),
-            queue.finished()
+            item.complete(),
+            queue.complete()
         ])
     })
+})
+
+describe('extend item', () => {
+
+    const queue = new Queue<number, { count: number }>()
+
+    it('changes the add signature', async () => {
+
+        const item = queue.add({
+            count: 10,
+            task: (data) => ++data.count
+        })
+
+        expect(item).toHaveProperty('count', 10)
+        expect(await item.complete()).toEqual(11)
+        expect(item).toHaveProperty('count', 11)
+
+    })
+
 })

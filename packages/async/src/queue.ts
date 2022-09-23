@@ -4,10 +4,12 @@ import {
     isInteger,
     isFinite,
     isObject,
-    isNaN
+    isNaN,
+    isArray
 } from '@benzed/is'
 
-import { EventEmitter } from '@benzed/util'
+import { EventEmitter, Merge } from '@benzed/util'
+import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
 
@@ -16,16 +18,18 @@ import untilNextTick from './until-next-tick'
 /**
  * Function that can be added to a queue as a task.
  */
-type QueueTask<T> = () => T | Promise<T>
+type QueueTask<V, T extends object | void> = T extends void
+    ? () => V | Promise<V>
+    : (data: T) => V | Promise<V>
 
 /**
  * Data that is provided to a listener on either a Queue
  * or a QueueItem
  */
-type QueuePayload<T> = {
-    item: QueueItem<T>
+type QueuePayload<V, T extends object | void> = {
+    item: QueueItem<V, T>
     time: Date
-    queue: Queue<T>
+    queue: Queue<V, T>
 }
 
 /**
@@ -33,22 +37,25 @@ type QueuePayload<T> = {
  * @param input 
  * @returns 
  */
-function isQueuePayload<T>(input: unknown): input is QueuePayload<T> {
+function isQueuePayload<V, T extends object | void>(
+    input: unknown
+): input is QueuePayload<V, T> {
+
     return isObject<{ [key: string]: unknown }>(input) &&
-        isInstanceOf(input.item, QueueItem) &&
         isDate(input.time) &&
         isInstanceOf(input.queue, Queue)
+
 }
 
 /**
  * Events that either a Queue or a QueueItem will emit.
  */
-type QueueEvents<T> = {
-    start: [payload: QueuePayload<T>]
-    complete: T extends void | undefined
-    /**/ ? [payload: QueuePayload<T>]
-    /**/ : [value: T, payload: QueuePayload<T>]
-    error: [error: Error, payload: QueuePayload<T>]
+type QueueEvents<V, T extends object | void> = {
+    start: [payload: QueuePayload<V, T>]
+    complete: V extends void | undefined
+    /**/ ? [payload: QueuePayload<V, T>]
+    /**/ : [payload: QueuePayload<V, T>, value: V]
+    error: [payload: QueuePayload<V, T>, error: Error]
 }
 
 interface QueueOptions {
@@ -85,104 +92,59 @@ interface QueueOptions {
 
 }
 
-/*** QueueItem ***/
-
-class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
-
-    public constructor (
-        public readonly task: QueueTask<T>,
-        maxListeners: number
-    ) {
-        super(maxListeners)
-
-        this._addListener('start', () => {
-            this._isStarted = true
-        }, { invocations: 1, internal: true })
-
-        this._addListener('complete', (...[arg]) => {
-            const value = isQueuePayload(arg) ? undefined : arg
-            this._value = value as T
-            this._isFinished = true
-        }, { invocations: 1, internal: true })
-
-        this._addListener('error', error => {
-            this._error = error
-            this._isFinished = true
-        }, { invocations: 1, internal: true })
-    }
-
-    private _value?: T
-    public get value(): T | undefined {
-        return this._value
-    }
-
-    private _error?: Error
-    public get error(): Error | undefined {
-        return this._error
-    }
-
-    private _isStarted = false
-    /**
-     * Has the task been started by the queue?
-     */
-    public get isStarted(): boolean {
-        return this._isStarted
-    }
-
-    /**
-     * Has the task finished?
-     */
-    private _isFinished = false
-    public get isFinished(): boolean {
-        return this._isFinished
-    }
-
-    public finished(): Promise<T> {
-        return new Promise((resolve, reject) => {
-
-            // In case item is already finished
-            if (this._isFinished) {
-                return this._error
-                    ? reject(this._error)
-                    : resolve(this._value as T)
-            }
-
-            this._addListener(
-                'error',
-                reject,
-                { internal: true, invocations: 1 })
-
-            this._addListener(
-                'complete',
-                (...[arg]) => {
-                    const value = isQueuePayload<T>(arg) ? undefined : arg
-                    resolve(value as T)
-                },
-                { internal: true, invocations: 1 })
-        })
-    }
+interface QueueState<V, T extends object | void> {
+    task: QueueTask<V, T>
+    stage: 'queued' | 'current' | 'complete'
+    error: null | Error
+    result: V extends void ? null : null | { value: V }
+    complete: null | Promise<V>
+    data: T
 }
+
+type QueueItem<V, T extends object | void> = Merge<[
+    (T extends void ? { /**/ } : T) &
+    {
+        readonly [
+        /**/ K in keyof QueueState<V, T> as K extends 'task' | 'complete'
+        /*    */ ? never
+        /*    */ : K
+        ]: QueueState<V, T>[K]
+    } & {
+        get isQueued(): boolean
+        get isCurrent(): boolean
+        get isComplete(): boolean
+        complete(): Promise<V>
+    }
+]>
+
+type QueueAddInput<V, T extends object | void> =
+    T extends void ? QueueTask<V, T> : ({ task: QueueTask<V, T> } & T)
 
 /*** Queue ***/
 
-class Queue<T> extends EventEmitter<QueueEvents<T>> {
+class Queue<
 
-    private readonly _items: QueueItem<T>[] = []
+    V = void,
+    T extends object | void = void
+
+> extends EventEmitter<QueueEvents<V, T>> {
+
+    private readonly _queued: { item: QueueItem<V, T>, state: QueueState<V, T> }[] = []
 
     /**
      * Items waiting to be executed.
      */
-    public get queuedItems(): readonly QueueItem<T>[] {
-        return this._items
+    public get queuedItems(): readonly QueueItem<V, T>[] {
+        return this._queued.map(q => q.item)
     }
 
-    private readonly _currentItems: QueueItem<T>[] = []
+    private readonly _current: { item: QueueItem<V, T>, state: QueueState<V, T> }[] = []
 
     /**
      * Currently executing items.
      */
-    public get currentItems(): readonly QueueItem<T>[] {
-        return this._currentItems
+    public get currentItems(): readonly QueueItem<V, T>[] {
+        return this._current.map(q => q.item)
     }
 
     /**
@@ -190,7 +152,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * Number of items waiting to be executed.
      */
     public get numQueuedItems(): number {
-        return this._items.length
+        return this._queued.length
     }
 
     /**
@@ -198,7 +160,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * Number of items currently executing.
      */
     public get numCurrentItems(): number {
-        return this._currentItems.length
+        return this._current.length
     }
 
     /**
@@ -229,7 +191,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
 
         this.maxConcurrent = options?.maxConcurrent ?? 1
         this.maxTotalItems = options?.maxTotalItems ?? Infinity
-        this.isPaused = options?.initiallyPaused ?? false
+        this._isPaused = options?.initiallyPaused ?? false
 
         for (const maxOption of ['maxConcurrent', 'maxTotalItems'] as const) {
             if (this[maxOption] < 1 || isNaN(this[maxOption]))
@@ -252,22 +214,125 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
     /*** Main ***/
 
     /**
-     * Adds a task to the queue
+     * Adds multiple tasks to the queue
      * @param task 
-     * @returns A queue item object containing the given task.
+     * @returns An array of QueueItems
      */
     public add(
-        task: QueueTask<T>,
-    ): QueueItem<T> {
+        task: QueueAddInput<V, T>
+    ): QueueItem<V, T>
 
-        const item = new QueueItem(task, this.maxListeners)
+    /**
+     * Adds a task to the queue
+     * @param task 
+     * @returns A QueueItem 
+     */
+    public add(
+        task: QueueAddInput<V, T>[],
+    ): QueueItem<V, T>[]
 
-        if (this.numTotalItems + 1 > this.maxTotalItems)
+    public add(
+        input: QueueAddInput<V, T> | QueueAddInput<V, T>[]
+    ): unknown {
+
+        const inputWasArray = isArray(input)
+
+        const tasks = wrap(input) as QueueAddInput<V, T>[]
+
+        if (this.numTotalItems + tasks.length > this.maxTotalItems)
             throw new Error(`Cannot queue more than ${this.maxTotalItems} items.`)
 
-        this._items.unshift(item)
+        const items = tasks.map(task => this._createQueuedItem(task))
 
         void this._updateCurrentItems()
+
+        return inputWasArray ? items : first(items)
+    }
+
+    private _createQueuedItem(input: QueueAddInput<V, T>): QueueItem<V, T> {
+
+        const { task, ...data } = typeof input === 'function' ? { task: input } : input
+
+        const state: QueueState<V, T> = {
+            task: task as QueueTask<V, T>,
+            stage: 'queued',
+            error: null,
+            result: null as QueueState<V, T>['result'],
+            complete: null,
+            data: data as T
+        }
+
+        const item = {
+
+            get stage() {
+                return state.stage
+            },
+
+            get error() {
+                return state.error
+            },
+
+            get result() {
+                return state.result
+            },
+
+            get isQueued() {
+                return state.stage === 'queued'
+            },
+
+            get isCurrent() {
+                return state.stage === 'current'
+            },
+
+            get isComplete() {
+                return state.stage === 'complete'
+            },
+
+            complete: () => {
+
+                const promise = state.complete ??= new Promise((resolve, reject) => {
+
+                    const onComplete = (): void => {
+                        if (state.stage !== 'complete')
+                            return
+
+                        this._removeListener('complete', onComplete, { internal: true })
+                        this._removeListener('error', onComplete, { internal: true })
+
+                        if (state.error)
+                            reject(state.error)
+                        else
+                            resolve(state.result?.value as V)
+                    }
+
+                    this._addListener('complete', onComplete, { internal: true })
+                    this._addListener('error', onComplete, { internal: true })
+
+                    onComplete()
+                })
+
+                return promise
+            }
+
+        } as QueueItem<V, T>
+
+        if (data) {
+            for (const key in data) {
+                if (key in item === false) {
+                    Object.defineProperty(item, key, {
+                        get() {
+                            return state.data[key as keyof T]
+                        },
+                        set(value) {
+                            state.data[key as keyof T] = value
+                        },
+                        enumerable: true
+                    })
+                }
+            }
+        }
+
+        this._queued.push({ item, state })
 
         return item
     }
@@ -277,23 +342,21 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * Returns the number of removed tasks.
      */
     public remove(
-        item: QueueItem<T> | QueueTask<T>
+        item: QueueTask<V, T> | QueueItem<V, T>
     ): number {
 
-        const task = 'task' in item ? item.task : item
-
-        const numItems = this._items.length
+        const numItems = this._queued.length
 
         let i = numItems
         while (i--) {
 
-            const item = this._items[i]
-            if (item.task === task)
-                this._items.splice(i, 1)
+            const queued = this._queued[i]
+            if (queued.item === item || queued.state.task === item)
+                this._queued.splice(i, 1)
 
         }
 
-        return numItems - this._items.length
+        return numItems - this._queued.length
     }
 
     /**
@@ -301,8 +364,8 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * Returns the number of removed items.
      */
     public clear(): number {
-        const count = this._items.length
-        this._items.length = 0
+        const count = this._queued.length
+        this._queued.length = 0
 
         return count
     }
@@ -311,49 +374,60 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * A paused queue will not execute additional tasks, but
      * currently executing tasks will complete.
      */
-    public isPaused = false
+    public get isPaused(): boolean {
+        return this._isPaused
+    }
+    public set isPaused(value: boolean) {
+        if (value)
+            this.resume()
+        else
+            this.pause()
+
+    }
+    private _isPaused: boolean
 
     /**
      * Pauses the Queue, if it isn't already
      */
     public pause(): void {
-        this.isPaused = true
+        this._isPaused = true
     }
 
     /**
      * Resumes the Queue, if it isn't already.
      */
     public resume(): void {
-        this.isPaused = false
+        this._isPaused = false
+        this._updateCurrentItems()
     }
 
     /**
      * Is the queue empty?
      */
-    public get isFinished(): boolean {
+    public get isComplete(): boolean {
         return this.numTotalItems === 0
     }
 
     /**
      * @returns Promise that resolves when the queue is finished.
      */
-    public finished(): Promise<void> {
+    public complete(): Promise<void> {
         return new Promise(resolve => {
 
-            const onFinish = (): void => {
-                if (!this.isFinished)
+            const onComplete = (): void => {
+                if (!this.isComplete)
                     return
 
-                this.off('complete', onFinish)
-                this.off('error', onFinish)
+                this._removeListener('complete', onComplete, { internal: true })
+                this._removeListener('error', onComplete, { internal: true })
 
                 resolve()
             }
 
-            this._addListener('complete', onFinish, { internal: true })
-            this._addListener('error', onFinish, { internal: true })
+            this._addListener('complete', onComplete, { internal: true })
+            this._addListener('error', onComplete, { internal: true })
 
-            onFinish() // <- in case queue is already finished
+            onComplete() // <- in case queue is already finished
         })
     }
 
@@ -361,71 +435,81 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
 
     private async _updateCurrentItems(): Promise<void> {
 
-        while (!this.isPaused && this._currentItems.length < this.maxConcurrent) {
-            const item = this._items.pop()
+        while (!this.isPaused && this._current.length < this.maxConcurrent) {
+            const item = this._queued.pop()
             if (!item)
                 break
 
-            this._currentItems.push(item)
+            this._current.push(item)
         }
 
         // Wait until next frame so that 'start' event handlers can be
         // registered
         await untilNextTick()
 
-        for (const item of this._currentItems) {
-            if (!item.isStarted)
-                void this._executeCurrentItem(item)
+        for (const current of this._current) {
+            if (current.item.stage === 'queued')
+                void this._executeCurrentItem(current)
         }
 
     }
 
-    private _removeCurrentItem(item: QueueItem<T>): void {
-        const index = this._currentItems.indexOf(item)
+    private _removeCurrentItem(
+        current: { item: QueueItem<V, T>, state: QueueState<V, T> }
+    ): void {
+        const index = this._current.indexOf(current)
         if (index < 0)
-            throw new Error(`Item ${item} is not currently executing.`)
+            throw new Error('Item is not currently executing.')
 
-        this._currentItems.splice(
+        this._current.splice(
             index,
             1
         )
     }
 
-    private async _executeCurrentItem(item: QueueItem<T>): Promise<void> {
+    private async _executeCurrentItem(
+        current: { item: QueueItem<V, T>, state: QueueState<V, T> }
+    ): Promise<void> {
 
         const time = new Date()
 
-        item.emit('start', { item, time, queue: this })
+        const { item, state } = current
+
+        // item.emit('start', { item, time, queue: this })
+        state.stage = 'current'
         this.emit('start', { item, time, queue: this })
 
         try {
-            const value = await item.task()
 
-            this._removeCurrentItem(item)
+            const { data, task } = state
+            const value = await task(data as object)
+
+            state.stage = 'complete'
+            state.result = { value } as unknown as QueueState<V, T>['result']
+
+            this._removeCurrentItem(current)
 
             const time = new Date()
             const payload = { item, time, queue: this }
 
-            const args = (
-                value === undefined
-                    ? [payload]
-                    : [value, payload]
-            ) as unknown as QueueEvents<T>['complete']
-            //           ^ don't really understand the 
-            //             unknown cast, but w/e
+            const args: unknown[] = [payload]
+            if (value !== undefined)
+                args.push(value)
 
-            item.emit('complete', ...args)
-            this.emit('complete', ...args)
+            this.emit('complete', ...args as QueueEvents<V, T>['complete'])
 
         } catch (e) {
+
             const error = e as Error
 
-            if (this._currentItems.includes(item))
-                this._removeCurrentItem(item)
+            state.stage = 'complete'
+            state.error = error
+
+            if (this._current.includes(current))
+                this._removeCurrentItem(current)
 
             const time = new Date()
-            item.emit('error', error, { item, time, queue: this })
-            this.emit('error', error, { item, time, queue: this })
+            this.emit('error', { item, time, queue: this }, error)
         }
 
         this._updateCurrentItems()
@@ -438,13 +522,13 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
 export default Queue
 
 export {
+
     Queue,
-    QueueItem,
-
     QueueOptions,
-
     QueuePayload,
+
     isQueuePayload,
 
     QueueTask,
+    QueueItem
 }
