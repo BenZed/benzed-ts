@@ -61,7 +61,7 @@ describe('add() method', () => {
             target: RENDER_FOLDER
         })
 
-        await Promise.all(items.map(item => item.finished()))
+        await Promise.all(items.map(item => item.complete()))
     })
 
     it('creates an item for each render option', () => {
@@ -97,7 +97,7 @@ describe('add() method', () => {
             }
         })
 
-        await Promise.all(items.map(item => item.finished()))
+        await Promise.all(items.map(item => item.complete()))
 
         const allItemsUsedTargetMethod = items
             .every(item => item
@@ -124,7 +124,7 @@ describe('add() method', () => {
             }
         })
 
-        await Promise.all(items.map(item => item.finished()))
+        await Promise.all(items.map(item => item.complete()))
 
         expect(items.length).toBe(1)
         expect(items[0].setting).toBe('picture')
@@ -132,7 +132,7 @@ describe('add() method', () => {
 
     it('gets metadata results', () => {
         for (const item of items)
-            expect(isMetadata(item.value)).toBe(true)
+            expect(isMetadata(item.result?.value)).toBe(true)
     })
 
     it('size settings are respected', async () => {
@@ -143,8 +143,8 @@ describe('add() method', () => {
         for (const dimensionKey of ['width', 'height'] as const) {
             const dimension = meta[dimensionKey] ?? 0
 
-            expect(movie?.value?.[dimensionKey]).toBe(floor(dimension * MP4_SCALE, 2))
-            expect(image?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
+            expect(movie.result?.value?.[dimensionKey]).toBe(floor(dimension * MP4_SCALE, 2))
+            expect(image.result?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
         }
     })
 

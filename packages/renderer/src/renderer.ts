@@ -26,7 +26,8 @@ import fs from '@benzed/fs'
 const EXT = {
     audio: '.mp3',
     video: '.mp4',
-    image: '.png'
+    image: '.png',
+    //
 } as const
 
 /**
@@ -136,19 +137,15 @@ function createRenderTask<R extends RenderSettings>(
 
 /*** Main ***/
 
-interface RenderItem<R extends RenderSettings = RenderSettings>
-    extends QueueItem<RenderMetadata>, Input, Output {
-
-    /**
-     * Render option that was used to create this task
-     */
-    readonly setting: StringKeys<R>
-
+interface RenderData<R extends RenderSettings> extends Input, Output {
+    setting: StringKeys<R>
 }
+
+type RenderItem<R extends RenderSettings> = QueueItem<RenderMetadata, RenderData<R>>
 
 class Renderer<R extends RenderSettings = RenderSettings> {
 
-    private readonly _queue: Queue<RenderMetadata> = new Queue()
+    private readonly _queue: Queue<RenderMetadata, RenderData<R>> = new Queue()
 
     public readonly settings: R
 
@@ -197,12 +194,11 @@ class Renderer<R extends RenderSettings = RenderSettings> {
             const output = getOutput(addOptions, renderSettings.type, setting)
 
             const renderTask = createRenderTask(addOptions, renderSettings, output)
-            const queueItem = this._queue.add(renderTask)
-
-            const renderItem: RenderItem<R> = Object.assign(queueItem, {
+            const renderItem = this._queue.add({
+                task: renderTask,
+                setting,
                 input: addOptions.source,
                 output,
-                setting
             })
 
             renderItems.push(renderItem)
