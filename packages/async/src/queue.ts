@@ -138,7 +138,6 @@ class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
     }
 
     public finished(): Promise<T> {
-
         return new Promise((resolve, reject) => {
 
             // In case item is already finished
@@ -162,7 +161,6 @@ class QueueItem<T> extends EventEmitter<QueueEvents<T>> {
                 { internal: true, invocations: 1 })
         })
     }
-
 }
 
 /*** Queue ***/
@@ -174,8 +172,8 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
     /**
      * Items waiting to be executed.
      */
-    public get items(): readonly QueueItem<T>[] {
-        return [...this._items]
+    public get queuedItems(): readonly QueueItem<T>[] {
+        return this._items
     }
 
     private readonly _currentItems: QueueItem<T>[] = []
@@ -184,14 +182,14 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * Currently executing items.
      */
     public get currentItems(): readonly QueueItem<T>[] {
-        return [...this._currentItems]
+        return this._currentItems
     }
 
     /**
      * 
      * Number of items waiting to be executed.
      */
-    public get numItems(): number {
+    public get numQueuedItems(): number {
         return this._items.length
     }
 
@@ -208,7 +206,7 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
      * to be executed.
      */
     public get numTotalItems(): number {
-        return this.numItems + this.numCurrentItems
+        return this.numQueuedItems + this.numCurrentItems
     }
 
     /**
@@ -272,6 +270,41 @@ class Queue<T> extends EventEmitter<QueueEvents<T>> {
         void this._updateCurrentItems()
 
         return item
+    }
+
+    /**
+     * Removes all items in the queue with a given task.
+     * Returns the number of removed tasks.
+     */
+    public remove(
+        item: QueueItem<T> | QueueTask<T>
+    ): number {
+
+        const task = 'task' in item ? item.task : item
+
+        const numItems = this._items.length
+
+        let i = numItems
+        while (i--) {
+
+            const item = this._items[i]
+            if (item.task === task)
+                this._items.splice(i, 1)
+
+        }
+
+        return numItems - this._items.length
+    }
+
+    /**
+     * Removes all items in the queue.
+     * Returns the number of removed items.
+     */
+    public clear(): number {
+        const count = this._items.length
+        this._items.length = 0
+
+        return count
     }
 
     /**
