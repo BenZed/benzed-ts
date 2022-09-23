@@ -5,6 +5,7 @@ export * from './reduce-to-void'
 export * from './assert-defined'
 export * from './promisify'
 export * from './event-emitter'
+export * from './benchmark'
 
 export {
     createLogger,
