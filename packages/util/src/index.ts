@@ -7,16 +7,25 @@ export * from './promisify'
 export * from './event-emitter'
 export * from './benchmark'
 
+export * from './iterate'
+
+export * from './linked-list'
+export * from './stack'
+
 export {
     createLogger,
+
     Logger,
     isLogger,
+
     LoggerOptions,
     LogHandler
 } from './logger'
 
 export {
+
     ansi,
     AnsiColor,
     AnsiOptions
+
 } from './ansi'
