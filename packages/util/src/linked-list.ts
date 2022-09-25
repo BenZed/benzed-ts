@@ -37,17 +37,21 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
     private _first: _LinkedItem<T> | null = null
     public get first(): LinkedItem<T> {
-        return this._find(this._first, true)
+        return this._find(this._first, true).item
     }
 
     private _last: _LinkedItem<T> | null = null
     public get last(): LinkedItem<T> {
-        return this._find(this._last, true)
+        return this._find(this._last, true).item
     }
 
     private _size = 0
     public get size(): number {
         return this._size
+    }
+
+    public get isEmpty(): boolean {
+        return this._size === 0
     }
 
     // Construct 
@@ -77,7 +81,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
         } else if (!isInitialInsert && !isAppendIndex) {
 
-            const oldItem = this._find(index, true)
+            const { item: oldItem } = this._find(index, true)
 
             newItem.prev = oldItem.prev
             if (newItem.prev)
@@ -98,17 +102,15 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         return newItem
     }
 
-    public remove(input: number | LinkedItem<T>): T {
+    public remove(input: number | LinkedItem<T> = Math.max(this.size - 1, 0)): T {
 
-        const item = this._find(input, true)
+        const { item } = this._find(input, true)
 
-        //
         if (item.next)
             item.next.prev = item.prev
         else
             this._last = item.prev
 
-        //
         if (item.prev)
             item.prev.next = item.next
         else
@@ -121,12 +123,44 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         return item.value
     }
 
-    public at(index: number): LinkedItem<T> | null {
-        return this._find(index, false)
+    public clear(): T[] {
+        const values: T[] = []
+
+        while (this._first) {
+            values.push(
+                this.remove(this._first)
+            )
+        }
+
+        return values
     }
 
-    public get isEmpty(): boolean {
-        return this._size === 0
+    public at(index: number): LinkedItem<T> | null {
+        const result = this._find(index, false)
+        return result ? result.item : null
+    }
+
+    public has(value: T): boolean {
+        return this.indexOf(value) >= 0
+    }
+
+    public indexOf(value: T): number {
+        // Fix this TODO
+        for (const [item, index] of this.entries()) {
+            if (item.value === value)
+                return index
+        }
+
+        return -1
+    }
+
+    public find(predicate: (input: LinkedItem<T>, index: number) => boolean): LinkedItem<T> | null {
+        for (const [item, index] of this.entries()) {
+            if (predicate(item, index))
+                return item
+        }
+
+        return null
     }
 
     // Iterable 
@@ -170,7 +204,12 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
     private _find<A extends boolean = true>(
         at: _LinkedItem<T> | number | null,
         assert: A
-    ): A extends true ? _LinkedItem<T> : _LinkedItem<T> | null {
+    ): { item: A extends true ? _LinkedItem<T> : _LinkedItem<T> | null, index: number } {
+
+        type Output = {
+            item: A extends true ? _LinkedItem<T> : _LinkedItem<T> | null
+            index: number
+        }
 
         const isIndex = typeof at === 'number'
         if (isIndex && at as number < 0)
@@ -183,27 +222,25 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
             ? at as number <= this._size / 2
             : at !== this._last
 
-        let found: _LinkedItem<T> | null = null
+        let found = { item: null, index: -1 } as Output
         for (const [item, index] of this._iterate(forward)) {
             if (at === item || at === index) {
-                found = item
+                found = { item, index } as Output
                 break
             }
         }
 
-        if (assert && !found) {
+        if (assert && !found.item) {
             throw new Error(
                 typeof at === 'object'
                     ? 'Item not in list.'
-                    : at === 0 || at === this._size
+                    : this.isEmpty
                         ? 'List is empty.'
                         : `No value at index ${at}.`
             )
         }
 
-        return found as A extends true
-            ? _LinkedItem<T>
-            : _LinkedItem<T> | null
+        return found
     }
 
 }

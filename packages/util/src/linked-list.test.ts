@@ -68,8 +68,11 @@ describe('.insert()', () => {
         const numbers = new LinkedList<number>()
 
         for (const badIndex of [-1, 1]) {
-            expect(() => numbers.insert(100, badIndex))
-                .toThrow(`No value at index ${badIndex}`)
+            expect(
+
+                () => numbers.insert(100, badIndex)
+
+            ).toThrow(`No value at index ${badIndex}`)
         }
     })
 
@@ -91,7 +94,9 @@ describe('.insert()', () => {
 
         const item = numbers1.at(0) as LinkedItem<number>
 
-        expect(() => numbers2.insert(3, item)).toThrow('Item not in list')
+        expect(() => {
+            console.log(numbers2.insert(3, item))
+        }).toThrow('Item not in list')
 
     })
 })
@@ -156,6 +161,25 @@ describe('remove', () => {
         expect(second?.prev).toBeNull()
     })
 
+    it('remove with no input removes the last item on the list', () => {
+        const numbers = new LinkedList(1, 2)
+
+        const two = numbers.remove()
+
+        expect(two).toBe(2)
+    })
+
+})
+
+it('clear() to empty a list', () => {
+
+    const numbers = new LinkedList(1, 2, 3)
+
+    const values = numbers.clear()
+
+    expect(values).toEqual([1, 2, 3])
+    expect(numbers.size).toBe(0)
+
 })
 
 describe('at()', () => {
@@ -204,12 +228,10 @@ describe('iteration', () => {
             ].map(
                 ([{ value }, index]) => ({ value, index })
             )
-            //
         ).toEqual(
             values.map(
                 (value, index) => ({ value, index })
             )
-            //
         )
     })
 })
@@ -236,4 +258,15 @@ describe('LinkedList.from', () => {
             .toEqual([true, false])
     })
 
+})
+
+it('indexOf()', () => {
+
+    const vector1 = { x: 1 }
+    const vector2 = { x: 2 }
+
+    const vectors = new LinkedList(vector1, vector2)
+
+    expect(vectors.indexOf(vector1)).toBe(0)
+    expect(vectors.indexOf(vector2)).toBe(1)
 })

@@ -8,7 +8,7 @@ import {
     isArray
 } from '@benzed/is'
 
-import { EventEmitter, Merge } from '@benzed/util'
+import { EventEmitter, Merge, LinkedList } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
@@ -85,7 +85,7 @@ interface QueueOptions {
      * const queue = new Queue()
      * queue.pause()
      * ```
-     * 
+     *
      * Defaults to false.
      */
     initiallyPaused?: boolean
@@ -110,6 +110,7 @@ type QueueItem<V, T extends object | void> = Merge<[
         /*    */ : K
         ]: QueueState<V, T>[K]
     } & {
+
         get isQueued(): boolean
         get isCurrent(): boolean
         get isComplete(): boolean
@@ -129,22 +130,24 @@ class Queue<
 
 > extends EventEmitter<QueueEvents<V, T>> {
 
-    private readonly _queued: { item: QueueItem<V, T>, state: QueueState<V, T> }[] = []
+    private readonly _queued: LinkedList<{ item: QueueItem<V, T>, state: QueueState<V, T> }> =
+        new LinkedList
 
     /**
      * Items waiting to be executed.
      */
     public get queuedItems(): readonly QueueItem<V, T>[] {
-        return this._queued.map(q => q.item)
+        return Array.from(this._queued).map(q => q.value.item)
     }
 
-    private readonly _current: { item: QueueItem<V, T>, state: QueueState<V, T> }[] = []
+    private readonly _current: LinkedList<{ item: QueueItem<V, T>, state: QueueState<V, T> }> =
+        new LinkedList
 
     /**
      * Currently executing items.
      */
     public get currentItems(): readonly QueueItem<V, T>[] {
-        return this._current.map(q => q.item)
+        return Array.from(this._current).map(q => q.value.item)
     }
 
     /**
@@ -152,7 +155,7 @@ class Queue<
      * Number of items waiting to be executed.
      */
     public get numQueuedItems(): number {
-        return this._queued.length
+        return this._queued.size
     }
 
     /**
@@ -160,7 +163,7 @@ class Queue<
      * Number of items currently executing.
      */
     public get numCurrentItems(): number {
-        return this._current.length
+        return this._current.size
     }
 
     /**
@@ -332,7 +335,7 @@ class Queue<
             }
         }
 
-        this._queued.push({ item, state })
+        this._queued.append({ item, state })
 
         return item
     }
@@ -345,18 +348,19 @@ class Queue<
         item: QueueTask<V, T> | QueueItem<V, T>
     ): number {
 
-        const numItems = this._queued.length
+        const numItems = this._queued.size
 
-        let i = numItems
-        while (i--) {
+        const indexes: number[] = []
 
-            const queued = this._queued[i]
+        for (const [{ value: queued }, index] of this._queued.entries()) {
             if (queued.item === item || queued.state.task === item)
-                this._queued.splice(i, 1)
-
+                indexes.push(index)
         }
 
-        return numItems - this._queued.length
+        while (indexes.length > 0)
+            this._queued.remove(indexes.pop())
+
+        return numItems - this._queued.size
     }
 
     /**
@@ -364,8 +368,8 @@ class Queue<
      * Returns the number of removed items.
      */
     public clear(): number {
-        const count = this._queued.length
-        this._queued.length = 0
+        const count = this._queued.size
+        this._queued.clear()
 
         return count
     }
@@ -435,19 +439,21 @@ class Queue<
 
     private async _updateCurrentItems(): Promise<void> {
 
-        while (!this.isPaused && this._current.length < this.maxConcurrent) {
-            const item = this._queued.pop()
-            if (!item)
-                break
-
-            this._current.push(item)
+        while (
+            !this.isPaused &&
+            this._current.size < this.maxConcurrent &&
+            !this._queued.isEmpty
+        ) {
+            this._current.append(
+                this._queued.remove()
+            )
         }
 
         // Wait until next frame so that 'start' event handlers can be
         // registered
         await untilNextTick()
 
-        for (const current of this._current) {
+        for (const { value: current } of this._current) {
             if (current.item.stage === 'queued')
                 void this._executeCurrentItem(current)
         }
@@ -455,16 +461,16 @@ class Queue<
     }
 
     private _removeCurrentItem(
-        current: { item: QueueItem<V, T>, state: QueueState<V, T> }
+        current: {
+            item: QueueItem<V, T>
+            state: QueueState<V, T>
+        }
     ): void {
         const index = this._current.indexOf(current)
         if (index < 0)
             throw new Error('Item is not currently executing.')
 
-        this._current.splice(
-            index,
-            1
-        )
+        this._current.remove(index)
     }
 
     private async _executeCurrentItem(
@@ -505,7 +511,7 @@ class Queue<
             state.stage = 'complete'
             state.error = error
 
-            if (this._current.includes(current))
+            if (this._current.has(current))
                 this._removeCurrentItem(current)
 
             const time = new Date()
