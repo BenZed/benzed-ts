@@ -1,4 +1,5 @@
 
+import { isNumber } from '@benzed/is/lib'
 import {
     isSizeSetting,
     isTimeSetting,
@@ -71,12 +72,19 @@ export const isRenderSetting = or(
     isImageRenderSetting
 )
 
-export interface RenderSettings {
-    [key: string]: RenderSetting
+export interface RendererConfig {
+    readonly maxConcurrent?: number
+    readonly settings: {
+        readonly [key: string]: RenderSetting
+    }
 }
-export const isRenderSettings: Validator<RenderSettings> = recordOf(isRenderSetting)
 
-export const assertRenderSettings = assertify(
-    isRenderSettings,
-    'not a valid RenderSettings object'
+export const isRendererConfig: Validator<RendererConfig> = shapeOf({
+    maxConcurrent: optional(isNumber),
+    settings: recordOf(isRenderSetting)
+})
+
+export const assertRenderConfig = assertify(
+    isRendererConfig,
+    'not a valid RenderConfig object'
 )

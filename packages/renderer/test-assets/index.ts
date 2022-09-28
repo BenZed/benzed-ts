@@ -9,6 +9,6 @@ export const TEST_ASSETS = {
     gif: path.join(__dirname, 'boss-media-pneumonic.gif'),
     png: path.join(__dirname, 'boss-media-logo.png'),
     jpg: path.join(__dirname, 'boss-media-logo.jpg'),
-    settings: path.join(__dirname, 'render-settings.json'),
-    badSettings: path.join(__dirname, 'render-settings-bad.json'),
+    config: path.join(__dirname, 'render-config.json'),
+    badConfig: path.join(__dirname, 'render-config-bad.json'),
 } as const

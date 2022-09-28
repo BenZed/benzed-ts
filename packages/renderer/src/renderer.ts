@@ -2,8 +2,8 @@
 import path from 'path'
 
 import {
-    assertRenderSettings,
-    RenderSettings,
+    assertRenderConfig,
+    RendererConfig,
     RenderSetting
 } from './render-settings'
 
@@ -34,7 +34,7 @@ const EXT = {
  * Given a file name and render option key, return a writable stream or 
  * a location on the local file system to write the rendered file.
  */
-type TargetMethod = <R extends RenderSettings = RenderSettings>(
+type TargetMethod = <R extends RendererConfig['settings'] = RendererConfig['settings']>(
     data: {
         fileName: string
         ext: string
@@ -42,7 +42,7 @@ type TargetMethod = <R extends RenderSettings = RenderSettings>(
     }
 ) => Output['output']
 
-interface AddRenderTaskOptions<R extends RenderSettings = RenderSettings> {
+interface AddRenderItemOptions<S extends RendererConfig['settings'] = RendererConfig['settings']> {
     /**
      * Source file or stream
      */
@@ -56,15 +56,21 @@ interface AddRenderTaskOptions<R extends RenderSettings = RenderSettings> {
     /**
      * Render specific settings
      */
-    readonly settings?: StringKeys<R>[]
+    readonly settings?: StringKeys<S>[]
 }
 
 type RenderTask = () => Promise<RenderMetadata>
 
+interface RenderData<R extends RendererConfig['settings']> extends Input, Output {
+    setting: StringKeys<R>
+}
+
+type RenderItem<R extends RendererConfig['settings']> = QueueItem<RenderMetadata, RenderData<R>>
+
 /*** Helper ***/
 
-function getOutput<R extends RenderSettings>(
-    options: AddRenderTaskOptions<R>,
+function getOutput<R extends RendererConfig['settings']>(
+    options: AddRenderItemOptions<R>,
     type: RenderSetting['type'],
     setting: StringKeys<R>
 ): Output['output'] {
@@ -84,8 +90,8 @@ function getOutput<R extends RenderSettings>(
     return output
 }
 
-function createRenderTask<R extends RenderSettings>(
-    addOptions: AddRenderTaskOptions<R>,
+function createRenderTask<R extends RendererConfig['settings']>(
+    addOptions: AddRenderItemOptions<R>,
     renderSetting: RenderSetting,
     output: Output['output']
 ): RenderTask {
@@ -137,59 +143,55 @@ function createRenderTask<R extends RenderSettings>(
 
 /*** Main ***/
 
-interface RenderData<R extends RenderSettings> extends Input, Output {
-    setting: StringKeys<R>
-}
+class Renderer<R extends RendererConfig = RendererConfig> {
 
-type RenderItem<R extends RenderSettings> = QueueItem<RenderMetadata, RenderData<R>>
+    private readonly _queue: Queue<RenderMetadata, RenderData<R['settings']>> = new Queue()
 
-class Renderer<R extends RenderSettings = RenderSettings> {
-
-    private readonly _queue: Queue<RenderMetadata, RenderData<R>> = new Queue()
-
-    public readonly settings: R
+    public readonly config: R
 
     /**
      * Create a render instance from a json config.
      */
-    public static async from(configUrl: string): Promise<Renderer<RenderSettings>> {
+    public static async from(configUrl: string): Promise<Renderer<RendererConfig>> {
 
         const options = await fs.readJson(
             configUrl,
-            assertRenderSettings
+            assertRenderConfig
         )
 
         return new Renderer(options)
     }
 
-    public constructor (settings: R) {
+    public constructor (config: R) {
 
         const numOptions = Object
-            .keys(settings)
+            .keys(config.settings)
             .length
 
         if (numOptions === 0)
             throw new Error('requires at least one RenderSetting')
 
-        this.settings = { ...settings }
+        this.config = { ...config }
     }
 
     public add(
-        addOptions: AddRenderTaskOptions<R>,
-    ): RenderItem<R>[] {
+        addOptions: AddRenderItemOptions<R['settings']>,
+    ): RenderItem<R['settings']>[] {
 
-        const renderItems: RenderItem<R>[] = []
+        const renderItems: RenderItem<R['settings']>[] = []
+
+        const settings = Object.keys(this.config.settings) as StringKeys<R['settings']>[]
 
         const settingMask =
             addOptions.settings ??
-            Object.keys(this.settings) as StringKeys<R>[]
+            settings
 
-        for (const setting in this.settings) {
+        for (const setting of settings) {
 
             if (!settingMask.includes(setting))
                 continue
 
-            const renderSettings = this.settings[setting]
+            const renderSettings = this.config.settings[setting]
 
             const output = getOutput(addOptions, renderSettings.type, setting)
 
@@ -218,5 +220,5 @@ export {
     RenderItem,
 
     RenderTask,
-    AddRenderTaskOptions
+    AddRenderItemOptions
 }

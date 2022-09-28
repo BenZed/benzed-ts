@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 
 import { isRenderSetting } from './render-settings'
-import { AddRenderTaskOptions, Renderer, RenderItem } from './renderer'
+import { AddRenderItemOptions, Renderer, RenderItem } from './renderer'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
 import { getMetadata, isMetadata } from './ffmpeg'
@@ -10,23 +10,23 @@ import { floor } from '@benzed/math'
 
 describe('construct', () => {
     it('throws if no render options are provided', () => {
-        expect(() => new Renderer({}))
+        expect(() => new Renderer({ settings: {} }))
             .toThrow('requires at least one RenderSetting')
     })
 })
 
 describe('static from() method', () => {
     it('gets a render option from a json url', async () => {
-        const renderer = await Renderer.from(TEST_ASSETS.settings)
-        expect(isRenderSetting(renderer.settings['image-low'])).toBe(true)
-        expect(isRenderSetting(renderer.settings['image-medium'])).toBe(true)
-        expect(isRenderSetting(renderer.settings['image-high'])).toBe(true)
+        const renderer = await Renderer.from(TEST_ASSETS.config)
+        expect(isRenderSetting(renderer.config.settings['image-low'])).toBe(true)
+        expect(isRenderSetting(renderer.config.settings['image-medium'])).toBe(true)
+        expect(isRenderSetting(renderer.config.settings['image-high'])).toBe(true)
     })
 
     it('throws if provided json is not formatted correctly', async () => {
-        await expect(Renderer.from(TEST_ASSETS.badSettings))
+        await expect(Renderer.from(TEST_ASSETS.badConfig))
             .rejects
-            .toThrow('not a valid RenderSettings object')
+            .toThrow('not a valid RenderConfig object')
     })
 })
 
@@ -35,26 +35,30 @@ describe('add() method', () => {
     const MP4_SCALE = 0.25
     const PNG_SCALE = 0.25
 
-    const settings = {
-        movie: {
-            type: 'video' as const,
-            vbr: 500,
-            abr: 250,
-            size: { scale: MP4_SCALE }
-        },
-        picture: {
-            type: 'image' as const,
-            size: { scale: PNG_SCALE },
-            time: { progress: 0.5 }
+    const config = {
+        settings: {
+            movie: {
+                type: 'video' as const,
+                vbr: 500,
+                abr: 250,
+                size: { scale: MP4_SCALE }
+            },
+            picture: {
+                type: 'image' as const,
+                size: { scale: PNG_SCALE },
+                time: { progress: 0.5 }
+            }
         }
     }
 
+    const { settings } = config
+
     const INPUT_SOURCE = TEST_ASSETS.mp4
 
-    let renderer: Renderer<typeof settings>
+    let renderer: Renderer<typeof config>
     let items: RenderItem<typeof settings>[]
     beforeAll(async () => {
-        renderer = new Renderer(settings)
+        renderer = new Renderer(config)
 
         items = renderer.add({
             source: INPUT_SOURCE,
@@ -67,7 +71,7 @@ describe('add() method', () => {
     it('creates an item for each render option', () => {
 
         const itemForEachRenderKey = Object
-            .keys(renderer.settings)
+            .keys(renderer.config.settings)
             .every(key => items.find(item => item.setting === key))
 
         expect(itemForEachRenderKey).toEqual(true)
@@ -150,7 +154,7 @@ describe('add() method', () => {
 
     it('has typesafe support for render settings', () => {
 
-        const options: AddRenderTaskOptions<typeof settings> = {
+        const options: AddRenderItemOptions<typeof settings> = {
             source: '',
             target: '',
             settings: [

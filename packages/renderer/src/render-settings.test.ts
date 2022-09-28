@@ -1,39 +1,46 @@
 import {
     isRenderSetting,
-    isRenderSettings
+    isRendererConfig
 } from './render-settings'
 
 import { describeValidator } from './util.test'
 
 describeValidator({
-    describe: 'isRendererSettings validator',
-    factory: () => isRenderSettings,
+    describe: 'isRenderConfig validator',
+    factory: () => isRendererConfig,
     input: [],
     data: [
         [
             {
-                music: {
-                    type: 'audio',
-                    abr: 100
+                settings: {
+                    music: {
+                        type: 'audio',
+                        abr: 100
+                    }
                 }
             },
             true
         ],
         [
             {
-                movie: {
-                    type: 'video',
-                    vbr: 100
+                settings: {
+                    movie: {
+                        type: 'video',
+                        vbr: 100
+                    }
                 }
             },
             true
         ],
         [
             {
-                picture: {
-                    type: 'image',
-                    size: { scale: 1 },
-                    time: { seconds: 0 }
+                settings: {
+
+                    picture: {
+                        type: 'image',
+                        size: { scale: 1 },
+                        time: { seconds: 0 }
+                    }
                 }
             },
             true
@@ -44,6 +51,20 @@ describeValidator({
         ],
         [
             null,
+            false
+        ],
+        [
+            {
+                maxConcurrent: 'none',
+                settings: {
+
+                    picture: {
+                        type: 'image',
+                        size: { scale: 1 },
+                        time: { seconds: 0 }
+                    }
+                }
+            },
             false
         ]
     ],
