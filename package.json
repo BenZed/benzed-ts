@@ -2,15 +2,17 @@
     "name": "benzed-ts",
     "description": "TypeScript mono repo for all BenZed's code.",
     "scripts": {
+        "postinstall": "npm run bootstrap && npm run build",
         "bootstrap": "lerna bootstrap --force-local",
-        "build": "lerna run build",
-        "test": "lerna run test",
-        "tsc": "lerna run tsc",
-        "lint": "eslint ./packages/** --fix",
         "update-deps": "npx npm-check -u",
-        "publish-packages": "npm run sync-package-versions; ts-node ./scripts/publish-packages.ts",
-        "sync-package-versions": "ts-node ./scripts/sync-package-versions.ts",
-        "postinstall": "npm run bootstrap && npm run build"
+        "packages:build": "lerna run build",
+        "packages:test": "lerna run test",
+        "packages:tsc": "lerna run tsc",
+        "packages:lint": "eslint ./packages/** --fix",
+        "packages:publish": "npm run packages:sync-versions; ts-node ./scripts/packages-publish.ts",
+        "packages:sync-versions": "ts-node ./scripts/packages-sync-versions.ts",
+        "start:file-server": "node ./packages/file-server/lib/scripts/start-file-server.js",
+        "start:render-node": "node ./packages/renderer/lib/scripts/start-render-node.js"
     },
     "repository": {
         "type": "git",
