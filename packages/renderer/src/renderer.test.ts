@@ -159,6 +159,14 @@ describe('add() method', () => {
         expect(items[0].setting).toBe('picture')
     })
 
+    it('settings option throws if key does not exist', () => {
+        expect(() => renderer.add({
+            source: TEST_ASSETS.png,
+            settings: ['bad-setting'],
+            target: './no-where'
+        })).toThrow('bad-setting is not a valid setting')
+    })
+
     it('gets metadata results', () => {
         for (const item of items)
             expect(isMetadata(item.result?.value)).toBe(true)

@@ -160,9 +160,11 @@ class Renderer {
 
         const settings = Object.keys(this.config.settings)
 
-        const settingMask =
-            addOptions.settings ??
-            settings
+        const settingMask = addOptions.settings ?? settings
+
+        const badSetting = settingMask.find(setting => !settings.includes(setting))
+        if (badSetting)
+            throw new Error(`${badSetting} is not a valid setting, must be one of: ${settings}`)
 
         for (const setting of settings) {
 
