@@ -3,13 +3,13 @@ import path from 'path'
 import { cpus } from 'os'
 
 import { isRenderSetting } from './render-settings'
-import { AddRenderItemOptions, Renderer, RenderItem } from './renderer'
+import { Renderer, RenderItem } from './renderer'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
 import { getMetadata, isMetadata } from './ffmpeg'
 
 import { floor } from '@benzed/math'
-
+//
 describe('construct', () => {
     it('throws if no render options are provided', () => {
         expect(() => new Renderer({ settings: {} }))
@@ -78,12 +78,10 @@ describe('add() method', () => {
         }
     }
 
-    const { settings } = config
-
     const INPUT_SOURCE = TEST_ASSETS.mp4
 
-    let renderer: Renderer<typeof config>
-    let items: RenderItem<typeof settings>[]
+    let renderer: Renderer
+    let items: RenderItem[]
     beforeAll(async () => {
         renderer = new Renderer(config)
 
@@ -177,20 +175,6 @@ describe('add() method', () => {
             expect(movie.result?.value?.[dimensionKey]).toBe(floor(dimension * MP4_SCALE, 2))
             expect(image.result?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
         }
-    })
-
-    it('has typesafe support for render settings', () => {
-
-        const options: AddRenderItemOptions<typeof settings> = {
-            source: '',
-            target: '',
-            settings: [
-                'movie',
-                // @ts-expect-error picture should not be a valid render setting
-                'song'
-            ]
-        }
-        void options
     })
 
 })

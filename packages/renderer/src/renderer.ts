@@ -17,7 +17,6 @@ import {
 import { Input, Output } from './ffmpeg/settings'
 
 import { Queue, QueueItem } from '@benzed/async'
-import { StringKeys } from '@benzed/util'
 import { isString } from '@benzed/is'
 import fs from '@benzed/fs'
 import { cpus } from 'os'
@@ -35,15 +34,15 @@ const EXT = {
  * Given a file name and render option key, return a writable stream or 
  * a location on the local file system to write the rendered file.
  */
-type TargetMethod = <R extends RendererConfig['settings'] = RendererConfig['settings']>(
+type TargetMethod = (
     data: {
         fileName: string
         ext: string
-        setting: StringKeys<R>
+        setting: string
     }
 ) => Output['output']
 
-interface AddRenderItemOptions<S extends RendererConfig['settings'] = RendererConfig['settings']> {
+interface AddRenderItemOptions {
     /**
      * Source file or stream
      */
@@ -57,27 +56,25 @@ interface AddRenderItemOptions<S extends RendererConfig['settings'] = RendererCo
     /**
      * Render specific settings
      */
-    readonly settings?: StringKeys<S>[]
+    readonly settings?: string[]
 }
 
 type RenderTask = () => Promise<RenderMetadata>
 
-interface RenderData<R extends RendererConfig['settings'] = RendererConfig['settings']>
+interface RenderData
     extends Input, Output {
-
-    setting: StringKeys<R>
-
+    setting: string
 }
 
-type RenderItem<R extends RendererConfig['settings'] = RendererConfig['settings']> =
-    QueueItem<RenderMetadata, RenderData<R>>
+type RenderItem =
+    QueueItem<RenderMetadata, RenderData>
 
 /*** Helper ***/
 
-function getOutput<R extends RendererConfig['settings']>(
-    options: AddRenderItemOptions<R>,
+function getOutput(
+    options: AddRenderItemOptions,
     type: RenderSetting['type'],
-    setting: StringKeys<R>
+    setting: string
 ): Output['output'] {
 
     const { source, target } = options
@@ -95,69 +92,18 @@ function getOutput<R extends RendererConfig['settings']>(
     return output
 }
 
-function createRenderTask<R extends RendererConfig['settings']>(
-    addOptions: AddRenderItemOptions<R>,
-    renderSetting: RenderSetting,
-    output: Output['output']
-): RenderTask {
-
-    const { source: input } = addOptions
-    const { type } = renderSetting
-
-    switch (type) {
-
-        case 'image': {
-
-            const { time, size } = renderSetting
-
-            return () => createPNG({
-                ...time,
-                ...size,
-                input,
-                output
-            })
-        }
-
-        case 'video': {
-
-            const { size } = renderSetting
-
-            return () => createMP4({
-                ...renderSetting,
-                ...size,
-                input,
-                output
-            })
-        }
-
-        case 'audio':
-            return () => createMP3({
-                ...renderSetting,
-                input,
-                output
-            })
-
-        default: {
-            const badType: never = type
-            throw new Error(
-                `${badType} is not a valid render options type.`
-            )
-        }
-    }
-}
-
 /*** Main ***/
 
-class Renderer<R extends RendererConfig = RendererConfig> {
+class Renderer {
 
-    private readonly _queue: Queue<RenderMetadata, RenderData<R['settings']>>
+    private readonly _queue: Queue<RenderMetadata, RenderData>
 
-    public readonly config: Required<R>
+    public readonly config: Required<RendererConfig>
 
     /**
      * Create a render instance from a json config.
      */
-    public static async from(configUrl: string): Promise<Renderer<RendererConfig>> {
+    public static async from(configUrl: string): Promise<Renderer> {
 
         const options = await fs.readJson(
             configUrl,
@@ -167,7 +113,7 @@ class Renderer<R extends RendererConfig = RendererConfig> {
         return new Renderer(options)
     }
 
-    public constructor (config: R) {
+    public constructor (config: RendererConfig) {
 
         const numOptions = Object
             .keys(config.settings)
@@ -189,7 +135,7 @@ class Renderer<R extends RendererConfig = RendererConfig> {
         }
 
         this._queue = new Queue({ maxConcurrent, maxListeners: Infinity })
-        this.config = { settings, maxConcurrent } as Required<R>
+        this.config = { settings, maxConcurrent }
     }
 
     /**
@@ -207,12 +153,12 @@ class Renderer<R extends RendererConfig = RendererConfig> {
     }
 
     public add(
-        addOptions: AddRenderItemOptions<R['settings']>,
-    ): RenderItem<R['settings']>[] {
+        addOptions: AddRenderItemOptions,
+    ): RenderItem[] {
 
-        const renderItems: RenderItem<R['settings']>[] = []
+        const renderItems: RenderItem[] = []
 
-        const settings = Object.keys(this.config.settings) as StringKeys<R['settings']>[]
+        const settings = Object.keys(this.config.settings)
 
         const settingMask =
             addOptions.settings ??
@@ -227,7 +173,7 @@ class Renderer<R extends RendererConfig = RendererConfig> {
 
             const output = getOutput(addOptions, renderSettings.type, setting)
 
-            const renderTask = createRenderTask(addOptions, renderSettings, output)
+            const renderTask = this._createRenderTask(addOptions, renderSettings, output)
             const renderItem = this._queue.add({
                 task: renderTask,
                 setting,
@@ -239,6 +185,57 @@ class Renderer<R extends RendererConfig = RendererConfig> {
         }
 
         return renderItems
+    }
+
+    protected _createRenderTask(
+        addOptions: AddRenderItemOptions,
+        renderSetting: RenderSetting,
+        output: Output['output']
+    ): RenderTask {
+
+        const { source: input } = addOptions
+        const { type } = renderSetting
+
+        switch (type) {
+
+            case 'image': {
+
+                const { time, size } = renderSetting
+
+                return () => createPNG({
+                    ...time,
+                    ...size,
+                    input,
+                    output
+                })
+            }
+
+            case 'video': {
+
+                const { size } = renderSetting
+
+                return () => createMP4({
+                    ...renderSetting,
+                    ...size,
+                    input,
+                    output
+                })
+            }
+
+            case 'audio':
+                return () => createMP3({
+                    ...renderSetting,
+                    input,
+                    output
+                })
+
+            default: {
+                const badType: never = type
+                throw new Error(
+                    `${badType} is not a valid render options type.`
+                )
+            }
+        }
     }
 
 }
