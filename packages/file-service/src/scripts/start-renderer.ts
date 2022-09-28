@@ -1,7 +1,7 @@
-import { ClusterRenderer } from '@benzed/renderer'
+import { NetworkRenderer } from '@benzed/renderer'
 
 void function startRenderer() {
 
-    const clusterRenderer = new ClusterRenderer()
+    const clusterRenderer = new NetworkRenderer()
 
 }()

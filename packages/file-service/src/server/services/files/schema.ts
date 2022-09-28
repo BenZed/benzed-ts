@@ -1,29 +1,6 @@
 
 import { Id, IdType, schema, Infer, queryProperty } from '@benzed/feathers'
 
-/**
- * Json description of File properties to be used in other schemas
- */
-const FILE_PROPERTIES = {
-    name: {
-        type: 'string'
-    },
-
-    uploader: {
-        type: 'string',
-    },
-
-    size: {
-        type: 'integer',
-        minimum: 0
-    },
-
-    uploaded: {
-        type: ['integer', 'null'],
-        minimum: 0
-    }
-} as const
-
 /*** File Schemas ***/
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -37,7 +14,25 @@ const createFileSchema = <S extends string, R extends readonly string[]>(
         additionalProperties: false,
 
         required,
-        properties: FILE_PROPERTIES,
+        properties: {
+            name: {
+                type: 'string'
+            },
+
+            uploader: {
+                type: 'string',
+            },
+
+            size: {
+                type: 'integer',
+                minimum: 0
+            },
+
+            uploaded: {
+                type: ['integer', 'null'],
+                minimum: 0
+            }
+        },
     } as const)
 
 export interface FileData extends Infer<typeof FileSchema> {
@@ -66,7 +61,7 @@ export const FilePatchDataSchema = schema({
     additionalProperties: false,
     required: ['uploaded'],
     properties: {
-        uploaded: FILE_PROPERTIES.uploaded
+        uploaded: FileSchema.properties.uploaded
     }
 } as const)
 
@@ -77,9 +72,9 @@ export const FileCreateDataSchema = schema({
     additionalProperties: false,
     required: ['name', 'uploader', 'size'],
     properties: {
-        name: FILE_PROPERTIES.name,
-        uploader: FILE_PROPERTIES.uploader,
-        size: FILE_PROPERTIES.size
+        name: FileSchema.properties.name,
+        uploader: FileSchema.properties.uploader,
+        size: FileSchema.properties.size
     }
 } as const)
 
@@ -105,12 +100,12 @@ export const FileQuerySchema = schema({
 
         _id: queryProperty({ type: 'string' }),
 
-        name: queryProperty(FILE_PROPERTIES.name),
-        uploader: queryProperty(FILE_PROPERTIES.uploader),
+        name: queryProperty(FileSchema.properties.name),
+        uploader: queryProperty(FileSchema.properties.uploader),
         ext: queryProperty({ type: 'string' }),
         mime: queryProperty({ type: 'string' }),
-        size: queryProperty(FILE_PROPERTIES.size),
-        uploaded: queryProperty(FILE_PROPERTIES.uploaded),
+        size: queryProperty(FileSchema.properties.size),
+        uploaded: queryProperty(FileSchema.properties.uploaded),
 
         created: queryProperty({ type: 'integer', minimum: 0 }),
         updated: queryProperty({ type: 'integer', minimum: 0 }),

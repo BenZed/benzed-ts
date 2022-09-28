@@ -85,7 +85,7 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
 
 /*** Main ***/
 
-export default function createMongoApplication<S, C extends MongoDBApplicationConfig>(
+export default function createMongoDBApplication<S, C extends MongoDBApplicationConfig>(
     configSchema?: Schema<C>
 ): MongoDBApplication<S, C> {
 
@@ -103,4 +103,4 @@ export default function createMongoApplication<S, C extends MongoDBApplicationCo
     return mongoApp
 }
 
-export { createMongoApplication }
+export { createMongoDBApplication }

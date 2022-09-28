@@ -15,7 +15,7 @@ declare module '../create-file-server-app' {
 
 /*** Main ***/
 
-export default function (app: FileServerApp): void {
+export default function setupAuthenticationService(app: FileServerApp): void {
 
     const authentication = new AuthenticationService(app)
     authentication.register('jwt', new JWTStrategy())

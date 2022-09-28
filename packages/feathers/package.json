@@ -30,17 +30,17 @@
         "ajv-errors": "^3.0.0"
     },
     "peerDependencies": {
-        "@feathersjs/feathers": "^5.0.0-pre.28",
-        "@feathersjs/schema": "^5.0.0-pre.28",
-        "@feathersjs/authentication": "^5.0.0-pre.28",
-        "@feathersjs/authentication-local": "^5.0.0-pre.28",
-        "@feathersjs/configuration": "^5.0.0-pre.28",
-        "@feathersjs/koa": "5.0.0-pre.28",
-        "@feathersjs/socketio": "^5.0.0-pre.28",
-        "@feathersjs/mongodb": "^5.0.0-pre.28",
+        "@feathersjs/feathers": "^5.0.0-pre.29",
+        "@feathersjs/schema": "^5.0.0-pre.29",
+        "@feathersjs/authentication": "^5.0.0-pre.29",
+        "@feathersjs/authentication-local": "^5.0.0-pre.29",
+        "@feathersjs/configuration": "^5.0.0-pre.29",
+        "@feathersjs/koa": "5.0.0-pre.29",
+        "@feathersjs/socketio": "^5.0.0-pre.29",
+        "@feathersjs/mongodb": "^5.0.0-pre.29",
         "mongodb": "^4.9.0"
     },
     "devDependencies": {
-        "@feathersjs/memory": "^5.0.0-pre.28"
+        "@feathersjs/memory": "^5.0.0-pre.29"
     }
 }

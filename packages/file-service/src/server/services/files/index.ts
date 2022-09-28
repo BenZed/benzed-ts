@@ -1,12 +1,9 @@
 import {
-    Application,
     IdType,
-    Params
 } from '@benzed/feathers'
 
-import FileService from './service'
-
 import * as hooks from './hooks'
+import { Application, Params } from '@feathersjs/feathers'
 
 /*** Main ***/
 
@@ -17,9 +14,9 @@ export default function setupFileService<
     app: Application
 ): void {
 
-    const service = new FileService(app)
+    // const service = new FileService(app)
 
-    app.use('/files', service)
+    // app.use('/files', service)
 }
 
 /*** Exports ***/

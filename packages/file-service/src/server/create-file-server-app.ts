@@ -1,25 +1,31 @@
 
-import { createMongoApplication, MongoApplication, MongoApplicationConfig } from '@benzed/feathers'
+import {
+    createMongoDBApplication,
+    MongoDBApplication,
+    MongoDBApplicationConfig
+} from '@benzed/feathers'
 
 import services from './services'
 import middleware from './middleware'
 
 /*** Types ***/
 
-type FileServerConfig = MongoApplicationConfig
+type FileServerConfig = MongoDBApplicationConfig
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface FileServices { }
 
-type FileServerApp = MongoApplication<FileServices, FileServerConfig>
+type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
 
 /*** Main ***/
 
 function createFileServerApp(): FileServerApp {
-    return createMongoApplication({
-        services,
-        middleware
-    })
+    const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>()
+
+    fileServerApp.configure(services)
+    fileServerApp.configure(middleware)
+
+    return fileServerApp
 }
 
 /*** Exports ***/

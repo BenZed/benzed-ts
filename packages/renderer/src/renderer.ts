@@ -43,6 +43,7 @@ type TargetMethod = (
 ) => Output['output']
 
 interface AddRenderItemOptions {
+
     /**
      * Source file or stream
      */
@@ -239,7 +240,6 @@ class Renderer {
             }
         }
     }
-
 }
 
 /*** Exports ***/
@@ -248,8 +248,10 @@ export default Renderer
 
 export {
     Renderer,
+    RendererConfig,
+
     RenderItem,
+    AddRenderItemOptions,
 
     RenderTask,
-    AddRenderItemOptions
 }
