@@ -8,6 +8,7 @@
         "test:dev": "npm run test -- --verbose --watch",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
+        "build:dev": "npm run tsc -- -w",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {

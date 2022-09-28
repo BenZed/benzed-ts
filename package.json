@@ -6,7 +6,6 @@
         "bootstrap": "lerna bootstrap --force-local",
         "update-deps": "npx npm-check -u",
         "packages:build": "lerna run build",
-        "packages:build:dev": "lerna run build:dev --parallel",
         "packages:test": "lerna run test",
         "packages:tsc": "lerna run tsc",
         "packages:lint": "eslint ./packages/** --fix",

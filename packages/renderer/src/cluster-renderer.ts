@@ -1,5 +1,4 @@
 /*** Main ***/
-
 class ClusterRenderer {
 
 }
