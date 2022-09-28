@@ -6,7 +6,7 @@ import { AddRenderTaskOptions, Renderer, RenderItem } from './renderer'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
 import { getMetadata, isMetadata } from './ffmpeg'
-import { floor } from '@benzed/math/lib'
+import { floor } from '@benzed/math'
 
 describe('construct', () => {
     it('throws if no render options are provided', () => {
