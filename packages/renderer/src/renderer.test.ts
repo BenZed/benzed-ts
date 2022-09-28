@@ -1,17 +1,44 @@
 import fs from 'fs'
 import path from 'path'
+import { cpus } from 'os'
 
 import { isRenderSetting } from './render-settings'
 import { AddRenderItemOptions, Renderer, RenderItem } from './renderer'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
 import { getMetadata, isMetadata } from './ffmpeg'
+
 import { floor } from '@benzed/math'
 
 describe('construct', () => {
     it('throws if no render options are provided', () => {
         expect(() => new Renderer({ settings: {} }))
             .toThrow('requires at least one RenderSetting')
+    })
+
+    it('defaults maxConcurrent to number of processors - 1 if not provided', () => {
+
+        const renderer = new Renderer({
+            maxConcurrent: undefined,
+            settings: {
+                thumbnail: {
+                    type: 'image'
+                }
+            }
+        })
+
+        expect(renderer.config.maxConcurrent).toEqual(cpus().length - 1)
+    })
+
+    it('throws if maxConcurrent is higher than the number of processors', () => {
+        expect(() => new Renderer({
+            maxConcurrent: cpus().length + 1,
+            settings: {
+                thumbnail: {
+                    type: 'image'
+                }
+            }
+        })).toThrow(`processors on this system (${cpus().length})`)
     })
 })
 
@@ -165,5 +192,26 @@ describe('add() method', () => {
         }
         void options
     })
+
+})
+
+it('stress test', async () => {
+
+    const renderer = await Renderer.from(TEST_ASSETS.config)
+
+    const items: RenderItem[] = []
+    for (let i = 0; i < cpus().length / 2; i++) {
+        items.push(
+            ...renderer.add({
+                source: TEST_ASSETS.mp4,
+                target: ({ ext, setting }) =>
+                    path.join(RENDER_FOLDER, `stress-test_${setting}_${i}${ext}`)
+            })
+        )
+    }
+
+    await expect(Promise.all(items.map(i => i.complete())))
+        .resolves
+        .toHaveLength(items.length)
 
 })

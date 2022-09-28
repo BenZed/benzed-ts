@@ -20,6 +20,7 @@ import { Queue, QueueItem } from '@benzed/async'
 import { StringKeys } from '@benzed/util'
 import { isString } from '@benzed/is'
 import fs from '@benzed/fs'
+import { cpus } from 'os'
 
 /*** Constants ***/
 
@@ -61,11 +62,15 @@ interface AddRenderItemOptions<S extends RendererConfig['settings'] = RendererCo
 
 type RenderTask = () => Promise<RenderMetadata>
 
-interface RenderData<R extends RendererConfig['settings']> extends Input, Output {
+interface RenderData<R extends RendererConfig['settings'] = RendererConfig['settings']>
+    extends Input, Output {
+
     setting: StringKeys<R>
+
 }
 
-type RenderItem<R extends RendererConfig['settings']> = QueueItem<RenderMetadata, RenderData<R>>
+type RenderItem<R extends RendererConfig['settings'] = RendererConfig['settings']> =
+    QueueItem<RenderMetadata, RenderData<R>>
 
 /*** Helper ***/
 
@@ -145,9 +150,9 @@ function createRenderTask<R extends RendererConfig['settings']>(
 
 class Renderer<R extends RendererConfig = RendererConfig> {
 
-    private readonly _queue: Queue<RenderMetadata, RenderData<R['settings']>> = new Queue()
+    private readonly _queue: Queue<RenderMetadata, RenderData<R['settings']>>
 
-    public readonly config: R
+    public readonly config: Required<R>
 
     /**
      * Create a render instance from a json config.
@@ -171,7 +176,34 @@ class Renderer<R extends RendererConfig = RendererConfig> {
         if (numOptions === 0)
             throw new Error('requires at least one RenderSetting')
 
-        this.config = { ...config }
+        const numCpus = cpus().length
+
+        const { maxConcurrent = numCpus - 1, settings } = config
+
+        if (maxConcurrent > numCpus) {
+            throw new Error(
+                'config.maxConcurrent cannot be higher ' +
+                'than the number of processors on this system ' +
+                `(${numCpus})`
+            )
+        }
+
+        this._queue = new Queue({ maxConcurrent, maxListeners: Infinity })
+        this.config = { settings, maxConcurrent } as Required<R>
+    }
+
+    /**
+     * Returns true if the render queue is complete
+     */
+    public get isComplete(): boolean {
+        return this._queue.isComplete
+    }
+
+    /**
+     * Returns a promise that fulfills when the queue completes.
+     */
+    public complete(): Promise<void> {
+        return this._queue.complete()
     }
 
     public add(
