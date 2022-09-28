@@ -2,7 +2,7 @@ import createFileServerApp from '../server'
 
 /*** Execute ***/
 
-void async function serve() {
+void async function startFileServer() {
 
     const fileServerApp = createFileServerApp()
 

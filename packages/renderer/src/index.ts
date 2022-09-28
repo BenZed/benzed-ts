@@ -4,5 +4,6 @@ import Renderer from './renderer'
 
 export default Renderer
 
+export * from './cluster-renderer'
 export * from './renderer'
 export * from './ffmpeg'

@@ -1,5 +1,5 @@
-const BEFORE_ALL_TESTS = './src/all-before.test.ts'
 const AFTER_ALL_TESTS = './src/all-after.test.ts'
+const BEFORE_ALL_TESTS = './src/all-before.test.ts'
 
 module.exports = {
 
@@ -13,7 +13,7 @@ module.exports = {
 
     globals: {
         'ts-jest': {
-            'tsconfig': '../../tsconfig.test.json'
+            tsconfig: '../../tsconfig.test.json'
         }
     },
     globalSetup: BEFORE_ALL_TESTS,

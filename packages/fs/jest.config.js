@@ -1,13 +1,13 @@
 module.exports = {
-    'roots': [
+    roots: [
         './src'
     ],
-    'transform': {
+    transform: {
         '^.+\\\.tsx?$': 'ts-jest'
     },
-    'globals': {
+    globals: {
         'ts-jest': {
-            'tsconfig': '../../tsconfig.test.json'
+            tsconfig: '../../tsconfig.test.json'
         }
     }
 }

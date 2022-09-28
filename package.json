@@ -6,13 +6,14 @@
         "bootstrap": "lerna bootstrap --force-local",
         "update-deps": "npx npm-check -u",
         "packages:build": "lerna run build",
+        "packages:build:dev": "lerna run build:dev --parallel",
         "packages:test": "lerna run test",
         "packages:tsc": "lerna run tsc",
         "packages:lint": "eslint ./packages/** --fix",
         "packages:publish": "npm run packages:sync-versions; ts-node ./scripts/packages-publish.ts",
         "packages:sync-versions": "ts-node ./scripts/packages-sync-versions.ts",
         "start:file-server": "node ./packages/file-server/lib/scripts/start-file-server.js",
-        "start:render-node": "node ./packages/renderer/lib/scripts/start-render-node.js"
+        "start:renderer": "node ./packages/file-server/lib/scripts/start-renderer.js"
     },
     "repository": {
         "type": "git",

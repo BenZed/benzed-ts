@@ -13,7 +13,7 @@ module.exports = {
 
     globals: {
         'ts-jest': {
-            'tsconfig': '../../tsconfig.test.json'
+            tsconfig: '../../tsconfig.test.json'
         }
     },
     globalSetup: BEFORE_ALL_TESTS,

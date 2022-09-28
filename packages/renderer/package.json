@@ -7,6 +7,7 @@
         "test": "NODE_ENV=test jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
         "build": "npm run lint && npm run tsc",
+        "build:dev": "npm run tsc -- -w",
         "lint": "eslint src/**/*.ts --fix",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },

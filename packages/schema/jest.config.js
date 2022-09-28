@@ -6,7 +6,6 @@ module.exports = {
         }
     },
     modulePathIgnorePatterns: [
-        'util.test.ts',
-        'validators/*'
+        'util.test.ts'
     ]
 }
