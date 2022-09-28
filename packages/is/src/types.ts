@@ -30,8 +30,8 @@ type TypeAssertion<T> = (input: unknown, ...args: any[]) => asserts input is T
 type Typeable<T> =
     Typed<T> |
     TypeGuard<T> |
-    TypeAssertion<T> |
-    Constructor<T>
+    TypeAssertion<T>
+// | Constructor<T>
 
 /*** Type Of ***/
 

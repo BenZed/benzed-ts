@@ -55,7 +55,9 @@ type TypeMethod<T, F extends Flag.Is | Flag.Assert | Flag.Validate> =
     : F extends Flag.Assert
     ? AssertMethod<T>
 
-    : ValidateMethod<T>
+    : F extends Flag.Validate
+    ? ValidateMethod<T>
+    : never
 
 /*** Exports ***/
 
