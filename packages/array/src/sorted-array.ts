@@ -1,5 +1,5 @@
 import { Sortable, isSortedArray } from '@benzed/is'
-
+import { max as _max } from './min-max'
 /*** Types ***/
 
 type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
@@ -27,7 +27,7 @@ function descending<T>(a: T, b: T): number {
 /*** Main ***/
 class SortedArray<T extends Sortable> extends Array<T> {
 
-    public constructor (...params: readonly T[]) {
+    public constructor (...params: T[]) {
 
         // initialize array with length
         super(params.length)
@@ -106,7 +106,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      */
     public lastIndexOf(value: T): number {
 
-        let index = this._getIndexViaBinarySearch(value)
+        let index = this._getIndexViaBinarySearch(value, false)
 
         // in case the array is in descending order
         while (this[index + 1] === value)
@@ -123,13 +123,23 @@ class SortedArray<T extends Sortable> extends Array<T> {
      */
     public indexOf(value: T): number {
 
-        let index = this._getIndexViaBinarySearch(value)
+        let index = this._getIndexViaBinarySearch(value, false)
 
         // in case the array is in ascending order
         while (this[index - 1] === value)
             index--
 
         return index
+    }
+
+    /**
+     * Returns the index of the value in the array, or the index of the item
+     * closest to it.
+     */
+    public closestIndexOf(
+        value: T,
+    ): number {
+        return this._getIndexViaBinarySearch(value, true)
     }
 
     public reverse(): this {
@@ -140,7 +150,15 @@ class SortedArray<T extends Sortable> extends Array<T> {
 
     /*** Helper ***/
 
-    private _getIndexViaBinarySearch(value: T): number {
+    private _getIndexViaBinarySearch(
+        value: T,
+
+        /**
+         * Returns the index of the value in the array that was
+         * higher than the provided.
+         */
+        getClosest: boolean
+    ): number {
 
         let min = 0
         let max = this.length
@@ -162,7 +180,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
                 max = mid
         }
 
-        return -1
+        return getClosest ? _max(min - 1, 0) : -1
     }
 
 }
