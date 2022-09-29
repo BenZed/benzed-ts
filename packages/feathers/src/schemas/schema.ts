@@ -47,7 +47,7 @@ const schema = <S extends JSONSchemaDefinition>(input: S, ajv?: Ajv) => {
  * @param input 
  * @returns 
  */
-const getSchemaDefinition = <S extends { definition: { $id: string, async?: boolean } }>(
+const useSchemaDefinition = <S extends { definition: { $id: string, async?: boolean } }>(
     input: S
 ): Omit<S['definition'], '$id' | 'async'> => {
 
@@ -65,7 +65,7 @@ export default schema
 export {
 
     schema,
-    getSchemaDefinition,
+    useSchemaDefinition,
     JSONSchemaDefinition,
 
     queryProperty,

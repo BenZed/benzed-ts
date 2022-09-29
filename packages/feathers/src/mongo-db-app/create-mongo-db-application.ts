@@ -16,15 +16,10 @@ import {
 
 import { createLogger, Logger } from '@benzed/util'
 
-import setupMongoDB, { MongoDBConfig } from './setup-mongo-db'
+import setupMongoDB from './setup-mongo-db'
+import { MongoDBApplicationConfig, mongoDBApplicationConfigSchema } from './schemas'
 
 /*** Types ***/
-
-export interface MongoDBApplicationConfig {
-    name: string
-    port: number
-    db: MongoDBConfig
-}
 
 type Env = 'test' | 'development' | 'production'
 
@@ -86,7 +81,7 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
 /*** Main ***/
 
 export default function createMongoDBApplication<S, C extends MongoDBApplicationConfig>(
-    configSchema?: Schema<C>
+    configSchema: Schema<C> = mongoDBApplicationConfigSchema
 ): MongoDBApplication<S, C> {
 
     // Create feathers instance and configure it
@@ -103,4 +98,7 @@ export default function createMongoDBApplication<S, C extends MongoDBApplication
     return mongoApp
 }
 
-export { createMongoDBApplication }
+export {
+    createMongoDBApplication,
+    MongoDBApplicationConfig
+}

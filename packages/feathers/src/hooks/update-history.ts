@@ -9,7 +9,7 @@ import {
     Service
 } from '@feathersjs/feathers'
 
-import { schema, Infer, getSchemaDefinition } from '../schemas'
+import { schema, Infer, useSchemaDefinition } from '../schemas'
 
 import { getInternalServiceMethods } from '../util'
 
@@ -219,7 +219,7 @@ function updateHistory<T extends object>(
 }
 
 const historyQueryParam = (): Omit<typeof HistoryQueryParamSchema.definition, '$id'> =>
-    getSchemaDefinition(HistoryQueryParamSchema)
+    useSchemaDefinition(HistoryQueryParamSchema)
 
 /*** Exports ***/
 

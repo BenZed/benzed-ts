@@ -50,10 +50,10 @@ function setupMongoDBService<
         Model: mongoApp.db(collection)
     })
 
-    mongoApp.use(path, service)
+    mongoApp.use(path, service as Service)
     mongoApp.log`${path} service configured`
 
-    return mongoApp.service(path)
+    return mongoApp.service(path) as FeathersService<MongoDBApplication, Service<T, D, P>>
 }
 
 /*** Exports ***/
