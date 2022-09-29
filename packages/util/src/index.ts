@@ -8,6 +8,7 @@ export * from './event-emitter'
 export * from './benchmark'
 
 export * from './iterate'
+export * from './pipe'
 
 export * from './linked-list'
 export * from './stack'
