@@ -2,7 +2,7 @@
     "name": "benzed-ts",
     "description": "TypeScript mono repo for all BenZed's code.",
     "scripts": {
-        "postinstall": "npm run bootstrap && npm run build",
+        "postinstall": "npm run bootstrap && npm run packages:build",
         "bootstrap": "lerna bootstrap --force-local",
         "update-deps": "npx npm-check -u",
         "packages:build": "lerna run build",
