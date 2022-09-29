@@ -28,10 +28,10 @@ function setupHandlers(client: ClientRenderer): void {
 
     /**
      * TODO:
-     * - register as renderer on server
+     * - register as renderer on server, tell server how many maxConcurrent renders can be handled
      * - create renderer out of render settings received from server
-     * - on sokcetio.render request:
-     *      - download stream file
+     * - on socketio.render request:
+     *      - download/stream file
      *      - convert file
      *      - upload converted file back to server
      */

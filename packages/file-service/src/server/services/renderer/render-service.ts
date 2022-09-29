@@ -1,45 +1,43 @@
 import {
-
     Renderer,
     RenderSetting,
     RendererConfig
-
 } from '@benzed/renderer'
 
 import { Params } from '@feathersjs/feathers'
-
-import ServerRenderer from './server-renderer'
 
 import { FileServerApp } from '../../create-file-server-app'
 
 /*** Types ***/
 
 interface RenderServiceConfig extends RendererConfig {
-
     app: FileServerApp
-
 }
 
 /*** Main ***/
 
 class RenderService {
 
-    private readonly _renderers: [Renderer, ...ServerRenderer[]]
+    private readonly _renderers: [...Renderer[]]
     private readonly _app: FileServerApp
+
+    private readonly _renderSettings: RendererConfig['settings']
 
     public constructor (config: RenderServiceConfig) {
         const {
             app,
             maxConcurrent = 1,
-            // 
-            ...rest
+            settings,
         } = config
 
-        // Renders handled by this machine specifically
-        const local = new Renderer({ maxConcurrent, ...rest })
-
         this._app = app
-        this._renderers = [local]
+        this._renderSettings = settings
+        this._renderers = maxConcurrent > 0
+            ? [
+                // renders done by the server itself
+                new Renderer({ maxConcurrent, settings })
+            ]
+            : []
     }
 
     public create(data: string, params: Params): Promise<RenderSetting> {

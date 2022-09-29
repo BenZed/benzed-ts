@@ -4,14 +4,14 @@ import {
     RendererConfig,
     RenderTask
 } from '@benzed/renderer'
-import { resolve } from 'path'
+
 import { Socket } from 'socket.io-client'
 
 import { Writable } from 'stream'
 
 /*** Types ***/
 
-interface NetworkRendererConfig extends RendererConfig {
+interface ClientRendererAgentConfig extends RendererConfig {
     socket: Socket
 }
 
@@ -21,11 +21,11 @@ interface NetworkRendererConfig extends RendererConfig {
  * Doesn't actually do any rendering, acts as an agent representing a client
  * renderer.
  */
-class ServerRenderer extends Renderer {
+class ClientRendererAgent extends Renderer {
 
     private readonly _socket: Socket
 
-    public constructor (config: NetworkRendererConfig) {
+    public constructor (config: ClientRendererAgentConfig) {
         const { socket, ...rest } = config
 
         super(rest)
@@ -48,9 +48,9 @@ class ServerRenderer extends Renderer {
 
 /*** Exports ***/
 
-export default ServerRenderer
+export default ClientRendererAgent
 
 export {
-    ServerRenderer,
-    NetworkRendererConfig
+    ClientRendererAgent,
+    ClientRendererAgentConfig
 }

@@ -2,16 +2,13 @@ import createFileServerApp from '../server'
 
 /*** Execute ***/
 
-void async function startFileServer() {
+const fileServerApp = createFileServerApp()
 
-    const fileServerApp = createFileServerApp()
+process.on('unhandledRejection', (reason, p) =>
+    fileServerApp
+        .log
+        .error`Unhandled Rejection at: Promise ${p} ${reason}`
+)
 
-    process.on('unhandledRejection', (reason, p) =>
-        fileServerApp
-            .log
-            .error`Unhandled Rejection at: Promise ${p} ${reason}`
-    )
+void fileServerApp.start()
 
-    await fileServerApp.start()
-
-}()

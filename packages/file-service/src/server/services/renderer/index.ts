@@ -3,7 +3,7 @@ import { RendererConfig } from '@benzed/renderer'
 import { FileServerApp } from '../../create-file-server-app'
 import { RenderService } from './render-service'
 
-/***  ***/
+/*** Declare ***/
 
 declare module '../../create-file-server-app' {
 
