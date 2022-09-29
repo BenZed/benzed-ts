@@ -153,6 +153,13 @@ class Renderer {
         return this._queue.complete()
     }
 
+    /**
+     * Total number of files being rendered.
+     */
+    public count(): number {
+        return this._queue.numTotalItems
+    }
+
     public add(
         addOptions: AddRenderItemOptions,
     ): RenderItem[] {

@@ -20,6 +20,7 @@ export default function setupAuthenticationService(app: FileServerApp): void {
     const authentication = new AuthenticationService(app)
     authentication.register('jwt', new JWTStrategy())
     authentication.register('local', new LocalStrategy())
+    // authentication.register('renderer', new RendererStrategy())
 
     app.use('authentication', authentication)
 

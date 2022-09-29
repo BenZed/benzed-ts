@@ -8,12 +8,17 @@ import {
 import services from './services'
 import middleware from './middleware'
 
+/* eslint-disable @typescript-eslint/no-empty-interface */
+
 /*** Types ***/
 
-type FileServerConfig = MongoDBApplicationConfig
+interface FileServerConfig extends MongoDBApplicationConfig {
+    //
+}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface FileServices { }
+interface FileServices {
+    //
+}
 
 type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
 

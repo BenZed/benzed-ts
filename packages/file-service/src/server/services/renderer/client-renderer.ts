@@ -1,0 +1,60 @@
+
+import { Renderer } from '@benzed/renderer'
+
+import { Application, feathers } from '@feathersjs/feathers'
+import feathersSocketio from '@feathersjs/socketio-client'
+import socketio from 'socket.io-client'
+
+import { FileServices } from '../../create-file-server-app'
+
+/*** Types ***/
+
+type ClientRenderer = Application<FileServices, { renderer: Renderer | null }>
+
+/*** Helper ***/
+
+function createFeathersClient(host: string): ClientRenderer {
+
+    return feathers()
+        .configure(
+            feathersSocketio(
+                socketio(host)
+            )
+        )
+        .set('renderer', null) // so not initially undefined
+}
+
+function setupHandlers(client: ClientRenderer): void {
+
+    /**
+     * TODO:
+     * - register as renderer on server
+     * - create renderer out of render settings received from server
+     * - on sokcetio.render request:
+     *      - download stream file
+     *      - convert file
+     *      - upload converted file back to server
+     */
+    void client
+}
+
+/*** Main ***/
+
+function createClientRenderer(host: string): ClientRenderer {
+
+    const client = createFeathersClient(host)
+
+    setupHandlers(client)
+
+    return client
+}
+
+/*** Exports ***/
+
+export default createClientRenderer
+
+export {
+    createClientRenderer,
+    ClientRenderer
+}
+

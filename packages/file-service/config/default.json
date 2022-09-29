@@ -20,5 +20,10 @@
             "usernameField": "email",
             "passwordField": "password"
         }
+    },
+    "renderer": {
+        "thumbnail-small": {},
+        "thumbnail-medium": {},
+        "thumbnail-large": {}
     }
 }
