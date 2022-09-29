@@ -1,13 +1,13 @@
 
 import { Collection } from 'mongodb'
-import { MongoDBApplication, createMongoApplication } from './mongo-db-app'
+import { MongoDBApplication, createMongoDBApplication } from './mongo-db-app'
 
 import { isLogger } from '@benzed/util'
 
 let mongoApplication: MongoDBApplication
 
 beforeAll(() => {
-    mongoApplication = createMongoApplication()
+    mongoApplication = createMongoDBApplication()
 })
 
 it('creates a mongo application', () => {
