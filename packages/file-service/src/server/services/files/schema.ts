@@ -2,6 +2,10 @@
 import { Id, IdType, schema } from '@benzed/feathers'
 import { Infer, querySyntax } from '@feathersjs/schema'
 
+/* eslint-disable
+    @typescript-eslint/no-empty-interface
+*/
+
 /*** File Schemas ***/
 
 export const fileSchema = schema({
@@ -9,8 +13,19 @@ export const fileSchema = schema({
     type: 'object',
     additionalProperties: false,
 
-    required: ['name', 'uploader', 'size', 'uploaded'],
+    required: [
+        'name',
+        'uploader',
+        'uploaded',
+        'size',
+        'ext',
+        'mime',
+        'created',
+        'updated'
+    ],
+
     properties: {
+
         name: {
             type: 'string'
         },
@@ -19,26 +34,43 @@ export const fileSchema = schema({
             type: 'string',
         },
 
-        size: {
+        uploaded: {
             type: 'integer',
             minimum: 0
         },
 
-        uploaded: {
-            type: ['integer', 'null'],
-            minimum: 0
+        size: {
+            type: 'integer',
+            minimum: 1
+        },
+
+        ext: {
+            type: 'string'
+        },
+
+        mime: {
+            type: 'string'
+        },
+
+        created: {
+            type: 'number'
+        },
+
+        updated: {
+            type: 'number'
         }
+
     },
 } as const)
 
-export interface FileData extends Infer<typeof fileSchema> {
-    ext: string
-    mime: string
+const { properties: FILE_PROPERTIES } = fileSchema
 
-    created: number
-    updated: number
+export interface FileData extends Infer<typeof fileSchema> {
+    /**/
 }
-export type File<I extends IdType> = FileData & Id<I>
+export interface File<I extends IdType> extends FileData, Id<I> {
+    /**/
+}
 
 export type FilePatchData = Infer<typeof filePatchDataSchema>
 export const filePatchDataSchema = schema({
@@ -47,7 +79,7 @@ export const filePatchDataSchema = schema({
     additionalProperties: false,
     required: ['uploaded'],
     properties: {
-        uploaded: fileSchema.properties.uploaded
+        uploaded: FILE_PROPERTIES.uploaded
     }
 } as const)
 
@@ -58,9 +90,9 @@ export const fileCreateDataSchema = schema({
     additionalProperties: false,
     required: ['name', 'uploader', 'size'],
     properties: {
-        name: fileSchema.properties.name,
-        uploader: fileSchema.properties.uploader,
-        size: fileSchema.properties.size
+        name: FILE_PROPERTIES.name,
+        uploader: FILE_PROPERTIES.uploader,
+        size: FILE_PROPERTIES.size
     }
 } as const)
 
@@ -70,9 +102,10 @@ export const fileQuerySchema = schema({
     $id: 'FileQuery',
     type: 'object',
     additionalProperties: false,
-    properties: {
-        ...querySyntax(fileSchema.properties)
-    }
+    properties: querySyntax({
+        ...FILE_PROPERTIES
+    })
+
 } as const)
 
 export type FileQuery = Infer<typeof fileQuerySchema>

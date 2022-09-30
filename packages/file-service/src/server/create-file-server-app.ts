@@ -4,7 +4,7 @@ import {
     MongoDBApplication
 } from '@benzed/feathers'
 
-import services from './services'
+import services, { FileServices } from './services'
 import middleware from './middleware'
 
 import {
@@ -12,13 +12,13 @@ import {
     FileServerConfig
 } from './schemas/file-server-config-schema'
 
-/* eslint-disable @typescript-eslint/no-empty-interface */
+import { HookContext, Service } from '@feathersjs/feathers'
 
-interface FileServices {
-    //
-}
+/*** Types ***/
 
 type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
+
+type FileServerHookContext = HookContext<FileServerApp, Service>
 
 /*** Main ***/
 
@@ -43,5 +43,5 @@ export {
     createFileServerApp,
 
     FileServerApp,
-    FileServices
+    FileServerHookContext
 }

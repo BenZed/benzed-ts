@@ -1,22 +1,35 @@
-import {
-    IdType,
-} from '@benzed/feathers'
 
-import * as hooks from './hooks'
-import { Application, Params } from '@feathersjs/feathers'
+import { setupMongoDBService } from '@benzed/feathers'
+import { MongoDBAdapterParams } from '@feathersjs/mongodb'
 
-/*** Main ***/
+import { FileServerApp } from '../../create-file-server-app'
 
-export default function setupFileService<
-    I extends IdType,
-    P = Params
->(
-    app: Application
-): void {
+import * as userHooks from './hooks'
 
-    // const service = new FileService(app)
+import { FileData, FileQuery, File } from './schema'
 
-    // app.use('/files', service)
+export type FilesParams = MongoDBAdapterParams<FileQuery>
+
+// A configure function that registers the service and its hooks via `app.configure`
+export default function setupUserService(app: FileServerApp): void {
+
+    const fileService = setupMongoDBService<File, FileData, FilesParams>(
+        app,
+
+        // mongo service options
+        {
+            collection: 'files',
+        },
+
+        // feathers service options
+        {
+            methods: ['create', 'find', 'get', 'patch', 'remove'],
+            // You can add additional custom events to be sent to clients here
+            events: []
+        }
+    )
+
+    fileService.hooks(userHooks)
 }
 
 /*** Exports ***/

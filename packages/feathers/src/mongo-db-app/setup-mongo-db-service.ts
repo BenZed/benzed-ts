@@ -1,20 +1,9 @@
 import { FeathersService, Service, ServiceOptions } from '@feathersjs/feathers'
 import { MongoDBService, MongoDBAdapterOptions, MongoDBAdapterParams } from '@feathersjs/mongodb'
+
 import { MongoDBApplication } from './create-mongo-db-application'
 
-declare module '@feathersjs/mongodb' {
-    interface MongoDBService
-    /**/ //eslint-disable-next-line @typescript-eslint/no-explicit-any        
-    /**/ <T = any, D = Partial<T>, P extends MongoDBAdapterParams<any> = MongoDBAdapterParams> {
-
-        update(id: null, data: D, params?: P): Promise<T[]>
-        // TODO FIXME
-        // I don't know how long this will be necessary for, but the current MongoDBService 
-        // definition doesn't match that of other services, which causes type errors
-
-    }
-}
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface MongoDBServiceOptions extends Omit<MongoDBAdapterOptions, 'Model'> {
 
     /**
@@ -33,7 +22,7 @@ interface MongoDBServiceOptions extends Omit<MongoDBAdapterOptions, 'Model'> {
 function setupMongoDBService<
     T,
     D = Partial<T>,
-    P extends MongoDBAdapterParams = MongoDBAdapterParams
+    P extends MongoDBAdapterParams<any> = MongoDBAdapterParams<any>
 >(
     mongoApp: MongoDBApplication,
     mongoServiceOptions: MongoDBServiceOptions,
@@ -51,7 +40,7 @@ function setupMongoDBService<
         Model: mongoApp.db(collection)
     })
 
-    mongoApp.use(path, service as Service, feathersServiceOptions)
+    mongoApp.use(path, service as unknown as Service, feathersServiceOptions)
     mongoApp.log`${path} service configured`
 
     return mongoApp.service(path) as FeathersService<MongoDBApplication, Service<T, D, P>>

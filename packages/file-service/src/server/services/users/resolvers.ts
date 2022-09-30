@@ -4,22 +4,24 @@ import { passwordHash } from '@feathersjs/authentication-local'
 import {
 
     UsersData,
-    UsersPatch,
+    UserPatchData,
     UsersResult,
-    UsersQuery,
+    UserQuery,
 
-    usersDataSchema,
-    usersPatchSchema,
+    userSchema,
+    userPatchDataSchema,
     usersResultSchema,
     usersQuerySchema
 
 } from './schema'
 
-import { HookContext } from '@feathersjs/feathers'
+// this is only here to shut ts up about it
+import 'json-schema-to-ts/lib/utils'
+import { FileServerHookContext } from '../../create-file-server-app'
 
 // Resolver for the basic data model (e.g. creating new entries)
-export const usersDataResolver = resolve<UsersData, HookContext>({
-    schema: usersDataSchema,
+export const usersDataResolver = resolve<UsersData, FileServerHookContext>({
+    schema: userSchema,
     validate: 'before',
     properties: {
         password: passwordHash({ strategy: 'local' })
@@ -27,8 +29,8 @@ export const usersDataResolver = resolve<UsersData, HookContext>({
 })
 
 // Resolver for making partial updates
-export const usersPatchResolver = resolve<UsersPatch, HookContext>({
-    schema: usersPatchSchema,
+export const usersPatchResolver = resolve<UserPatchData, FileServerHookContext>({
+    schema: userPatchDataSchema,
     validate: 'before',
     properties: {
         password: passwordHash({ strategy: 'local' })
@@ -36,14 +38,14 @@ export const usersPatchResolver = resolve<UsersPatch, HookContext>({
 })
 
 // Resolver for the data that is being returned
-export const usersResultResolver = resolve<UsersResult, HookContext>({
+export const usersResultResolver = resolve<UsersResult, FileServerHookContext>({
     schema: usersResultSchema,
     validate: false,
     properties: {}
 })
 
 // Resolver for the "safe" version that external clients are allowed to see
-export const usersDispatchResolver = resolve<UsersResult, HookContext>({
+export const usersDispatchResolver = resolve<UsersResult, FileServerHookContext>({
     schema: usersResultSchema,
     validate: false,
     properties: {
@@ -53,17 +55,17 @@ export const usersDispatchResolver = resolve<UsersResult, HookContext>({
 })
 
 // Resolver for allowed query properties
-export const usersQueryResolver = resolve<UsersQuery, HookContext>({
+export const usersQueryResolver = resolve<UserQuery, FileServerHookContext>({
     schema: usersQuerySchema,
     validate: 'before',
     properties: {
         // If there is a user (e.g. with authentication), 
         // they are only allowed to see their own data
-        _id: async (value, user, context) => {
+        _id: (value, _user, context) => {
             if (context.params.user)
-                return context.params.user._id
+                return Promise.resolve(context.params.user._id)
 
-            return value
+            return Promise.resolve(value)
         }
     }
 })

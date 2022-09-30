@@ -25,7 +25,7 @@ describe('log() method', () => {
 
 })
 
-describe('runtime', () => {
+describe('running', () => {
     beforeAll(async () => {
         try {
             await fileServer.start()

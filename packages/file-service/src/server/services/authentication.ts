@@ -3,16 +3,6 @@ import { LocalStrategy } from '@feathersjs/authentication-local'
 
 import type { FileServerApp } from '../create-file-server-app'
 
-/*** Type Extensions ***/
-
-declare module '../create-file-server-app' {
-
-    interface FileServices {
-        'authentication': AuthenticationService
-    }
-
-}
-
 /*** Main ***/
 
 export default function setupAuthenticationService(app: FileServerApp): void {
