@@ -7,10 +7,11 @@ import BoolSchema from './boolean'
 import {
     expectValidationError
 } from '../util.test'
+import $ from '.'
 
 /*** Input ***/
 
-const $vector = new ShapeSchema({
+const $vector2 = new ShapeSchema({
     x: new NumberSchema(),
     y: new NumberSchema()
 })
@@ -28,15 +29,15 @@ const $todo = new ShapeSchema({
 describe('validate()', () => {
 
     it('validates shapes', () => {
-        expect($vector.validate({ x: 0, y: 0 }))
+        expect($vector2.validate({ x: 0, y: 0 }))
             .toEqual({ x: 0, y: 0 })
 
-        expect(() => $vector.validate(false))
+        expect(() => $vector2.validate(false))
             .toThrow('false is not object')
     })
 
     it('validates children', () => {
-        const expectError = expectValidationError(() => $vector.validate({ x: 0, y: 'One' }))
+        const expectError = expectValidationError(() => $vector2.validate({ x: 0, y: 'One' }))
         expectError.toHaveProperty('path', ['y'])
         expectError.toHaveProperty('message', 'One is not number')
     })
@@ -54,7 +55,7 @@ describe('validate()', () => {
     })
 
     it('omits unspecified properties', () => {
-        expect($vector.validate({ x: 10, y: 20, z: 100 }))
+        expect($vector2.validate({ x: 10, y: 20, z: 100 }))
             .toEqual({ x: 10, y: 20 })
     })
 
@@ -92,10 +93,21 @@ describe('default()', () => {
 
     it('respects default setting, if valid', () => {
         expect(
-            $vector
+            $vector2
                 .default({ x: 10, y: 10 })
                 .validate(undefined)
         ).toEqual({ x: 10, y: 10 })
     })
+
+})
+
+it('properties can be spread into new schemas', () => {
+
+    const $vector3 = new ShapeSchema({
+        ...$vector2.properties,
+        z: $.number()
+    })
+
+    expect($vector3.validate({ x: 0, y: 0, z: 0 })).toEqual({ x: 0, y: 0, z: 0 })
 
 })

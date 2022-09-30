@@ -190,3 +190,28 @@ describe('shortcut type tests', () => {
     })
 
 })
+
+describe('compositing', () => {
+
+    it('shape composite type safety', () => {
+
+        const $v2 = $({ x: $.number().mutable(), y: $.number().mutable() })
+
+        const $v3 = $({ ...$v2.properties, z: $.number().mutable() })
+
+        expectTypeOf<Infer<typeof $v3>>()
+            .toEqualTypeOf<{ x: number, y: number, z: number }>()
+
+    })
+
+    it('tuple composite type safety', () => {
+
+        const $range = $($.number(), $.number())
+        const $op = $('>', '==', '<')
+        const $rangeWithOp = $.tuple(...$range.values, $op)
+
+        expectTypeOf<Infer<typeof $rangeWithOp>>()
+            .toEqualTypeOf<readonly [number, number, '<' | '>' | '==']>()
+    })
+
+})

@@ -67,7 +67,13 @@ class TupleSchema<
         )
     }
 
-    /***  ***/
+    /*** Helper ***/
+
+    public get values(): I {
+        return this._input
+    }
+
+    /*** Chain Interface ***/
 
     public default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
 
@@ -90,7 +96,17 @@ class TupleSchema<
         return super.default(defaultValue)
     }
 
-    /***  ***/
+    public override readonly optional!: HasOptional<
+    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Optional, F>>
+    >
+
+    public override readonly mutable!: HasMutable<
+    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
+    >
+
+    public override readonly clearFlags!: () => TupleSchema<I, O>
+
+    /*** Implementation ***/
 
     protected _validateChildren(
         input: O,
@@ -111,17 +127,6 @@ class TupleSchema<
 
         return output as unknown as ApplyMutable<F, O>
     }
-
-    public override readonly optional!: HasOptional<
-    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Optional, F>>
-    >
-
-    public override readonly mutable!: HasMutable<
-    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
-    >
-
-    public override readonly clearFlags!: () => TupleSchema<I, O>
-
 }
 
 /*** Expors ***/

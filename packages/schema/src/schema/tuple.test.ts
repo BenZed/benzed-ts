@@ -5,12 +5,12 @@ import NumberSchema from './number'
 import StringSchema from './string'
 
 import { expectValidationError } from '../util.test'
+import EnumSchema from './enum'
+import { Infer } from './index'
 
 /*** Input ***/
 
 const $name = new TupleSchema([new StringSchema(), new StringSchema()])
-
-// TODO move me
 
 describe('validate()', () => {
 
@@ -76,4 +76,13 @@ describe('default()', () => {
         ).toEqual(['james', 'mcnaughty'])
     })
 
+})
+
+it('values can be spread into new schemas', () => {
+
+    const $fancyName = new TupleSchema(
+        [new EnumSchema(['Dr.', 'Mr.', 'Sir', 'Maam']).default('Dr.'), ...$name.values] as const
+    )
+
+    expect($fancyName.validate([undefined, 'Joe', 'James'])).toEqual(['Dr.', 'Joe', 'James'])
 })

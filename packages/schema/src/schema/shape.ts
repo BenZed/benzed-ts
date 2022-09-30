@@ -115,6 +115,10 @@ class ShapeSchema<
 
     public override readonly clearFlags!: () => ShapeSchema<I, O>
 
+    public get properties(): Readonly<I> {
+        return this._input
+    }
+
     public default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
 
         defaultValue ??= (): O => {
