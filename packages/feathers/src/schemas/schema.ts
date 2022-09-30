@@ -3,12 +3,8 @@ import Ajv from 'ajv'
 
 import {
     schema as feathersSchema,
-    Infer,
     JSONSchemaDefinition,
 
-    Schema,
-    SchemaWrapper,
-    queryProperty,
 } from '@feathersjs/schema'
 
 /*** Module State ***/
@@ -65,13 +61,6 @@ export default schema
 export {
 
     schema,
-    useSchemaDefinition,
-    JSONSchemaDefinition,
-
-    queryProperty,
-
-    Schema,
-    SchemaWrapper,
-    Infer
+    useSchemaDefinition
 
 }

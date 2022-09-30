@@ -1,5 +1,6 @@
 
-import { Id, IdType, schema, Infer, queryProperty } from '@benzed/feathers'
+import { Id, IdType, schema } from '@benzed/feathers'
+import { Infer, querySyntax } from '@feathersjs/schema'
 
 /*** File Schemas ***/
 
@@ -70,30 +71,7 @@ export const fileQuerySchema = schema({
     type: 'object',
     additionalProperties: false,
     properties: {
-
-        $limit: {
-            type: 'integer',
-            default: 100,
-            minimum: 0,
-            maximum: 1000
-        },
-
-        $skip: {
-            type: 'integer',
-            minimum: 0
-        },
-
-        _id: queryProperty({ type: 'string' }),
-
-        name: queryProperty(fileSchema.properties.name),
-        uploader: queryProperty(fileSchema.properties.uploader),
-        ext: queryProperty({ type: 'string' }),
-        mime: queryProperty({ type: 'string' }),
-        size: queryProperty(fileSchema.properties.size),
-        uploaded: queryProperty(fileSchema.properties.uploaded),
-
-        created: queryProperty({ type: 'integer', minimum: 0 }),
-        updated: queryProperty({ type: 'integer', minimum: 0 }),
+        ...querySyntax(fileSchema.properties)
     }
 } as const)
 

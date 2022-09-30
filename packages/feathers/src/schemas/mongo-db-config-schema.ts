@@ -1,5 +1,6 @@
 
-import { Infer, schema } from './schema'
+import { Infer } from '@feathersjs/schema'
+import { schema } from './schema'
 
 /*** Exports ***/
 

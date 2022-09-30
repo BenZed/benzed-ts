@@ -8,8 +8,9 @@ import {
     Params,
     Service
 } from '@feathersjs/feathers'
+import { Infer } from '@feathersjs/schema'
 
-import { schema, Infer, useSchemaDefinition } from '../schemas'
+import { schema, useSchemaDefinition } from '../schemas'
 
 import { getInternalServiceMethods } from '../util'
 

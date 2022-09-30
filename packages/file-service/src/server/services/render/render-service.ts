@@ -21,7 +21,7 @@ class RenderService {
     private readonly _renderers: [...Renderer[]]
     private readonly _app: FileServerApp
 
-    private readonly _renderSettings: RendererConfig['settings']
+    public readonly settings: RendererConfig['settings']
 
     public constructor (config: RenderServiceConfig) {
         const {
@@ -30,8 +30,9 @@ class RenderService {
             settings,
         } = config
 
+        this.settings = settings
+
         this._app = app
-        this._renderSettings = settings
         this._renderers = maxConcurrent > 0
             ? [
                 // renders done by the server itself
@@ -40,7 +41,7 @@ class RenderService {
             : []
     }
 
-    public create(data: string, params: Params): Promise<RenderSetting> {
+    public create(data: string, params: Params): void {
         /**
          * TODO
          * - create renderer from data or create render request from data? unsure.

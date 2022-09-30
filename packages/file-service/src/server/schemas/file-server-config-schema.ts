@@ -1,8 +1,9 @@
 import {
-    Infer,
     mongoDBApplicationConfigSchema,
     schema
 } from '@benzed/feathers'
+
+import { Infer } from '@feathersjs/schema'
 
 /*** Schema ***/
 
@@ -16,16 +17,23 @@ const fileServerConfigSchema = schema({
 
     properties: {
         ...mongoDBApplicationConfigSchema.properties,
-        authentication: {
-            type: 'object'
-        },
+
         renderer: {
-            type: 'object',
+
+            type: ['null', 'object'],
+
+            required: ['settings'],
+
+            additionalProperties: false,
+
             properties: {
-                maxConcurrent: { type: 'number', minimum: 0 }
-            },
-            additionalProperties: {
-                type: 'object',
+                maxConcurrent: { type: 'number', minimum: 0 },
+                settings: {
+                    type: 'object',
+                    additionalProperties: {
+                        type: 'object',
+                    }
+                }
             }
         }
     }

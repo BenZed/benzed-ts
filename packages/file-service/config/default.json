@@ -1,4 +1,5 @@
 {
+    "name": "benzed-file-server",
     "port": 4000,
     "db": {
         "uri": "mongodb://localhost:<port>/<database>",
@@ -27,8 +28,10 @@
         }
     },
     "renderer": {
-        "thumbnail-small": {},
-        "thumbnail-medium": {},
-        "thumbnail-large": {}
+        "settings": {
+            "thumbnail-small": {},
+            "thumbnail-medium": {},
+            "thumbnail-large": {}
+        }
     }
 }

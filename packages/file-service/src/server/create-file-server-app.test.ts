@@ -27,7 +27,12 @@ describe('log() method', () => {
 
 describe('runtime', () => {
     beforeAll(async () => {
-        await fileServer.start()
+        try {
+            await fileServer.start()
+        } catch (e) {
+            console.error(e)
+            throw e
+        }
     })
 
     afterAll(async () => {
@@ -35,6 +40,7 @@ describe('runtime', () => {
     })
 
     it('connects to database', async () => {
+
         const db = await fileServer.db('any-collection')
         expect(db).toBeInstanceOf(Collection)
     })

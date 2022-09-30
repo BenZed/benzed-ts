@@ -1,4 +1,4 @@
-import { RendererConfig } from '@benzed/renderer'
+import { assertRenderConfig, RendererConfig } from '@benzed/renderer'
 
 import { FileServerApp } from '../../create-file-server-app'
 import { RenderService } from './render-service'
@@ -23,9 +23,15 @@ export default function setupRenderService(
     app: FileServerApp
 ): void {
 
-    const settings = app.get('renderer')
+    const renderer = app.get('renderer')
+    if (!renderer) {
+        app.log`renderer service not enabled`
+        return
+    }
 
-    const service = new RenderService({ app, ...settings })
+    assertRenderConfig(renderer)
+
+    const service = new RenderService({ app, ...renderer })
 
     app.use('files/render', service)
     app.log`renderer service configured`

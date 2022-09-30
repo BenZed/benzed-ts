@@ -33,17 +33,17 @@ class ClientRendererAgent extends Renderer {
         this._socket = socket
     }
 
-    protected _createRenderTask(
-        addOptions: AddRenderItemOptions,
-        renderSetting: RendererConfig['settings'][string],
-        output: string | Writable
-    ): RenderTask {
-        /**
-         * TODO
-         * - receive render request
-         * - send signed download urls/upload urls to client socket
-         */
-    }
+    // protected _createRenderTask(
+    //     addOptions: AddRenderItemOptions,
+    //     renderSetting: RendererConfig['settings'][string],
+    //     output: string | Writable
+    // ): RenderTask {
+    //     /**
+    //      * TODO
+    //      * - receive render request
+    //      * - send signed download urls/upload urls to client socket
+    //      */
+    // }
 }
 
 /*** Exports ***/

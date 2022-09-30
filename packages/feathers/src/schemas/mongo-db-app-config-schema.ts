@@ -1,5 +1,7 @@
 
-import { useSchemaDefinition, Infer, schema } from './schema'
+import { Infer } from '@feathersjs/schema'
+import { useSchemaDefinition, schema } from './schema'
+
 import { mongoDBConfigSchema } from './mongo-db-config-schema'
 
 /*** Exports ***/

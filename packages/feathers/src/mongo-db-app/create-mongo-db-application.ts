@@ -1,7 +1,7 @@
 
 import type { Collection } from 'mongodb'
-import type { Schema } from '../schemas'
 
+import { Schema } from '@feathersjs/schema'
 import { feathers } from '@feathersjs/feathers'
 import configuration from '@feathersjs/configuration'
 import {
