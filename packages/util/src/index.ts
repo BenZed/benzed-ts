@@ -9,6 +9,7 @@ export * from './benchmark'
 
 export * from './iterate'
 export * from './pipe'
+export * from './sort'
 
 export * from './linked-list'
 export * from './stack'

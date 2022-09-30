@@ -51,5 +51,6 @@ function pipe<I, O = I>(f: Pipe<I, O>): PipeBuilder<I, I, O> {
 export default pipe
 
 export {
-    pipe
+    pipe,
+    Pipe
 }

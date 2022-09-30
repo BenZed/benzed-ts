@@ -93,3 +93,4 @@ export type IfEquals<T1, T2, Y, N = never> =
  * Get the string keys of a type.
  */
 export type StringKeys<T> = Extract<keyof T, string>
+
