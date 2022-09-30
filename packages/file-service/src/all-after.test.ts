@@ -1,4 +1,10 @@
+import { ensureMongoDbInstance } from '../../feathers/src/scripts/util'
 
-export default (): void => {
-    // nothing yet
-}
+/*** Config ***/
+
+/**
+ * Ensure a mongo db instance is running in the test cluster
+ */
+export default (): Promise<void> => ensureMongoDbInstance({
+    isRunning: false
+})

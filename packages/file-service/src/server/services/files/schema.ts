@@ -3,39 +3,34 @@ import { Id, IdType, schema, Infer, queryProperty } from '@benzed/feathers'
 
 /*** File Schemas ***/
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createFileSchema = <S extends string, R extends readonly string[]>(
-    $id: S,
-    required: R
-) =>
-    schema({
-        $id,
-        type: 'object',
-        additionalProperties: false,
+export const fileSchema = schema({
+    $id: 'File',
+    type: 'object',
+    additionalProperties: false,
 
-        required,
-        properties: {
-            name: {
-                type: 'string'
-            },
-
-            uploader: {
-                type: 'string',
-            },
-
-            size: {
-                type: 'integer',
-                minimum: 0
-            },
-
-            uploaded: {
-                type: ['integer', 'null'],
-                minimum: 0
-            }
+    required: ['name', 'uploader', 'size', 'uploaded'],
+    properties: {
+        name: {
+            type: 'string'
         },
-    } as const)
 
-export interface FileData extends Infer<typeof FileSchema> {
+        uploader: {
+            type: 'string',
+        },
+
+        size: {
+            type: 'integer',
+            minimum: 0
+        },
+
+        uploaded: {
+            type: ['integer', 'null'],
+            minimum: 0
+        }
+    },
+} as const)
+
+export interface FileData extends Infer<typeof fileSchema> {
     ext: string
     mime: string
 
@@ -44,43 +39,33 @@ export interface FileData extends Infer<typeof FileSchema> {
 }
 export type File<I extends IdType> = FileData & Id<I>
 
-export const FileSchema = createFileSchema(
-    'File',
-    [
-        'name',
-        'uploader',
-        'size',
-        'uploaded'
-    ] as const
-)
-
-export type FilePatchData = Infer<typeof FilePatchDataSchema>
-export const FilePatchDataSchema = schema({
+export type FilePatchData = Infer<typeof filePatchDataSchema>
+export const filePatchDataSchema = schema({
     $id: 'FilePatchData',
     type: 'object',
     additionalProperties: false,
     required: ['uploaded'],
     properties: {
-        uploaded: FileSchema.properties.uploaded
+        uploaded: fileSchema.properties.uploaded
     }
 } as const)
 
-export type FileCreateData = Infer<typeof FileCreateDataSchema>
-export const FileCreateDataSchema = schema({
+export type FileCreateData = Infer<typeof fileCreateDataSchema>
+export const fileCreateDataSchema = schema({
     $id: 'FileCreateData',
     type: 'object',
     additionalProperties: false,
     required: ['name', 'uploader', 'size'],
     properties: {
-        name: FileSchema.properties.name,
-        uploader: FileSchema.properties.uploader,
-        size: FileSchema.properties.size
+        name: fileSchema.properties.name,
+        uploader: fileSchema.properties.uploader,
+        size: fileSchema.properties.size
     }
 } as const)
 
 /*** File Query ***/
 
-export const FileQuerySchema = schema({
+export const fileQuerySchema = schema({
     $id: 'FileQuery',
     type: 'object',
     additionalProperties: false,
@@ -100,16 +85,16 @@ export const FileQuerySchema = schema({
 
         _id: queryProperty({ type: 'string' }),
 
-        name: queryProperty(FileSchema.properties.name),
-        uploader: queryProperty(FileSchema.properties.uploader),
+        name: queryProperty(fileSchema.properties.name),
+        uploader: queryProperty(fileSchema.properties.uploader),
         ext: queryProperty({ type: 'string' }),
         mime: queryProperty({ type: 'string' }),
-        size: queryProperty(FileSchema.properties.size),
-        uploaded: queryProperty(FileSchema.properties.uploaded),
+        size: queryProperty(fileSchema.properties.size),
+        uploaded: queryProperty(fileSchema.properties.uploaded),
 
         created: queryProperty({ type: 'integer', minimum: 0 }),
         updated: queryProperty({ type: 'integer', minimum: 0 }),
     }
 } as const)
 
-export type FileQuery = Infer<typeof FileQuerySchema>
+export type FileQuery = Infer<typeof fileQuerySchema>

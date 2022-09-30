@@ -17,7 +17,7 @@ import {
 import { createLogger, Logger } from '@benzed/util'
 
 import setupMongoDB from './setup-mongo-db'
-import { MongoDBApplicationConfig, mongoDBApplicationConfigSchema } from './schemas'
+import { MongoDBApplicationConfig, mongoDBApplicationConfigSchema } from '../schemas'
 
 /*** Types ***/
 

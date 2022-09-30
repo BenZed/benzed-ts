@@ -1,5 +1,5 @@
 
-import { Infer, schema } from '../../schemas'
+import { Infer, schema } from './schema'
 
 /*** Exports ***/
 

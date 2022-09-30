@@ -1,5 +1,5 @@
 
-import { useSchemaDefinition, Infer, schema } from '../../schemas'
+import { useSchemaDefinition, Infer, schema } from './schema'
 import { mongoDBConfigSchema } from './mongo-db-config-schema'
 
 /*** Exports ***/
@@ -13,7 +13,8 @@ export const mongoDBApplicationConfigSchema = schema({
     properties: {
         name: { type: 'string' },
         port: { type: 'number' },
-        db: useSchemaDefinition(mongoDBConfigSchema)
+        db: useSchemaDefinition(mongoDBConfigSchema),
+        authentication: { type: 'object' }
     }
 } as const)
 

@@ -83,4 +83,4 @@ export {
     Db
 }
 
-export { MongoDBConfig } from './schemas'
+export { MongoDBConfig } from '../schemas'

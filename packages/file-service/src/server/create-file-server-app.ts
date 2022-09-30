@@ -1,20 +1,18 @@
 
 import {
     createMongoDBApplication,
-    MongoDBApplication,
-    MongoDBApplicationConfig
+    MongoDBApplication
 } from '@benzed/feathers'
 
 import services from './services'
 import middleware from './middleware'
 
+import {
+    fileServerConfigSchema,
+    FileServerConfig
+} from './schemas/file-server-config-schema'
+
 /* eslint-disable @typescript-eslint/no-empty-interface */
-
-/*** Types ***/
-
-interface FileServerConfig extends MongoDBApplicationConfig {
-    //
-}
 
 interface FileServices {
     //
@@ -25,7 +23,10 @@ type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
 /*** Main ***/
 
 function createFileServerApp(): FileServerApp {
-    const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>()
+
+    const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>(
+        fileServerConfigSchema
+    )
 
     fileServerApp.configure(services)
     fileServerApp.configure(middleware)
@@ -42,6 +43,5 @@ export {
     createFileServerApp,
 
     FileServerApp,
-    FileServerConfig,
     FileServices
 }
