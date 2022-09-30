@@ -1,4 +1,4 @@
-import { FeathersService, Service } from '@feathersjs/feathers'
+import { FeathersService, Service, ServiceOptions } from '@feathersjs/feathers'
 import { MongoDBService, MongoDBAdapterOptions, MongoDBAdapterParams } from '@feathersjs/mongodb'
 import { MongoDBApplication } from './create-mongo-db-application'
 
@@ -36,21 +36,22 @@ function setupMongoDBService<
     P extends MongoDBAdapterParams = MongoDBAdapterParams
 >(
     mongoApp: MongoDBApplication,
-    options: MongoDBServiceOptions
+    mongoServiceOptions: MongoDBServiceOptions,
+    feathersServiceOptions?: ServiceOptions
 ): FeathersService<MongoDBApplication, Service<T, D, P>> {
 
     const {
         collection,
         path = collection,
         ...rest
-    } = options
+    } = mongoServiceOptions
 
     const service = new MongoDBService<T, D, P>({
         ...rest,
         Model: mongoApp.db(collection)
     })
 
-    mongoApp.use(path, service as Service)
+    mongoApp.use(path, service as Service, feathersServiceOptions)
     mongoApp.log`${path} service configured`
 
     return mongoApp.service(path) as FeathersService<MongoDBApplication, Service<T, D, P>>
