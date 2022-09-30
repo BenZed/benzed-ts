@@ -1,14 +1,13 @@
 {
-    "name": "@benzed/async",
-    "version": "3.5.0",
+    "name": "@benzed/timeline",
+    "description": "Efficiently store scalar data over time",
     "main": "./lib",
-    "description": "Asyncronous and Promise-related tools, classes and helpers",
     "scripts": {
-        "test": "jest --maxWorkers=1 -o",
+        "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
-        "lint": "eslint src/**/*.ts --fix",
+        "lint": "../../node_modules/.bin/eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
-        "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
+        "tsc": "rm -rf lib; mkdir lib; ../../node_modules/.bin/tsc"
     },
     "repository": {
         "type": "git",
@@ -21,7 +20,8 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/array": "^3.3.0",
-        "@benzed/is": "^3.1.2"
+        "@benzed/array": "*",
+        "@benzed/math": "*",
+        "@benzed/immutable": "*"
     }
 }

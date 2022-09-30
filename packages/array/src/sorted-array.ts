@@ -190,6 +190,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
 export default SortedArray
 
 export {
+    SortedArray,
     ascending,
     descending
 }

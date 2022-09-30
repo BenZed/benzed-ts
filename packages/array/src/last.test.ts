@@ -1,13 +1,13 @@
 import last from './last'
 import { expectTypeOf } from 'expect-type'
 
-it('returns the first element of an array', () => {
-    expect(last([1, 2, 3, 4, 5])).toEqual(1)
+it('returns the last element of an array', () => {
+    expect(last([1, 2, 3, 4, 5])).toEqual(5)
 })
 
 it('works on array-likes', () => {
-    expect(last('string')).toEqual('s')
-    expect(last({ 0: 'zero', length: 1 })).toEqual('zero')
+    expect(last('string')).toEqual('g')
+    expect(last({ 0: 'zero', 1: 'one', length: 2 })).toEqual('one')
 })
 
 it('return type for arrays is typeof array or undefined', () => {

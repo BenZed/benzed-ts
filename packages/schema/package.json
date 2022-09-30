@@ -1,6 +1,6 @@
 {
     "name": "@benzed/schema",
-    "description": "Data validation using JSX",
+    "description": "Date validation syntax",
     "main": "./lib",
     "scripts": {
         "test": "../../node_modules/.bin/jest --maxWorkers=1 -o",

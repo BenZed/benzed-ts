@@ -8,7 +8,7 @@
         ],
         // Build Options
         "build": true,
-        "target": "es5",
+        "target": "ES6",
         "outDir": "",
         "declaration": true,
         // Decorators are tight
