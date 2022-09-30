@@ -15,7 +15,8 @@ import {
 
 /*** Types ***/
 
-type LengthValidatorSettings = RangeValidatorSettings
+type LengthValidatorSettings = RangeValidatorSettings<number>
+type LengthValidatorSettingsShortcut = RangeValidatorSettingsShortcut<number>
 
 /*** Helper ***/
 
@@ -92,7 +93,7 @@ export default LengthValidator
 export {
     LengthValidator,
     LengthValidatorSettings,
-    RangeValidatorSettingsShortcut as LengthValidatorSettingsShortcut,
+    LengthValidatorSettingsShortcut,
     toRangeValidatorSettings as toLengthValidatorSettings,
 
 }

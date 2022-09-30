@@ -14,7 +14,7 @@ const $buffer = new ArraySchema(new NumberSchema())
 
 // TODO move me
 
-describe('validate()', () => {
+describe.only('validate()', () => {
 
     it('validates arrays', () => {
         expect($buffer.validate([0, 1, 2, 3, 4, 5, 6]))
@@ -70,7 +70,7 @@ describe('length()', () => {
             x: new NumberSchema(),
             y: new NumberSchema()
         })
-    ).length('3...4')
+    ).length(3, '..', 4)
 
     it('instances a new schema with a length validator', () => {
 

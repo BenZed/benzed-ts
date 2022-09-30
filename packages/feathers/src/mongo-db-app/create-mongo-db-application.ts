@@ -1,9 +1,7 @@
 
 import type { Collection } from 'mongodb'
 
-import { Schema } from '@feathersjs/schema'
 import { feathers } from '@feathersjs/feathers'
-import configuration from '@feathersjs/configuration'
 import {
     koa,
     rest,
@@ -11,19 +9,25 @@ import {
     errorHandler,
     parseAuthentication as authParser,
 
-    Application as KoaApplication
+    Application as KoaApplication,
 } from '@feathersjs/koa'
 
 import { createLogger, Logger } from '@benzed/util'
+import { SchemaFor } from '@benzed/schema'
 
 import setupMongoDB from './setup-mongo-db'
-import { MongoDBApplicationConfig, mongoDBApplicationConfigSchema } from '../schemas'
+import { configure } from '../util'
+import {
+    $mongoDBApplicationConfig,
+    MongoDBApplicationConfig
+} from '../schemas'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
 type Env = 'test' | 'development' | 'production'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
 
     log: Logger
@@ -81,13 +85,14 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
 /*** Main ***/
 
 export default function createMongoDBApplication<S, C extends MongoDBApplicationConfig>(
-    configSchema: Schema<C> = mongoDBApplicationConfigSchema
+    config: C | SchemaFor<C> = $mongoDBApplicationConfig as unknown as SchemaFor<C>,
 ): MongoDBApplication<S, C> {
 
     // Create feathers instance and configure it
     const mongoApp = applyMongoAddons(koa(feathers()))
 
-    mongoApp.configure(configuration(configSchema))
+    mongoApp.configure(configure(config))
+
     mongoApp.configure(setupMongoDB)
     mongoApp.configure(rest())
 

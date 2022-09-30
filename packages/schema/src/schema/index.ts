@@ -58,10 +58,13 @@ import {
     EnumSchemaInput,
     EnumSchemaOutput
 } from './enum'
+import DateSchema from './date'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
+
+type SchemaFor<T> = Schema<any, T, any>
 
 type SchemaInterfaceShortcutSignature =
     [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput
@@ -105,9 +108,10 @@ interface SchemaInterface {
         ...input: T
     ): IntersectionSchema<T, IntersectionSchemaOutput<T>>
 
-    number(): NumberSchema
-    string(): StringSchema
-    boolean(): BooleanSchema
+    number(def?: number): NumberSchema
+    string(def?: string): StringSchema
+    boolean(def?: boolean): BooleanSchema
+    date(def?: Date): DateSchema
     null(): NullSchema
     undefined(): UndefinedSchema
 
@@ -164,9 +168,10 @@ function createSchemaInterface(): SchemaInterface {
     $.or = (...types) => new UnionSchema(types)
     $.and = (...types) => new IntersectionSchema(types)
 
-    $.number = () => new NumberSchema()
-    $.string = () => new StringSchema()
-    $.boolean = () => new BooleanSchema()
+    $.number = (def?: number) => new NumberSchema(def)
+    $.string = (def?: string) => new StringSchema(def)
+    $.boolean = (def?: boolean) => new BooleanSchema(def)
+    $.date = (def?: Date) => new DateSchema(def)
 
     $.null = () => new NullSchema()
     $.undefined = () => new UndefinedSchema()
@@ -194,6 +199,7 @@ export default $
 export {
     $,
     Schema,
+    SchemaFor,
     SchemaOutput,
     SchemaOutput as Infer,
 

@@ -8,9 +8,6 @@ import {
     Params,
     Service
 } from '@feathersjs/feathers'
-import { Infer } from '@feathersjs/schema'
-
-import { schema, useSchemaDefinition } from '../schemas'
 
 import { getInternalServiceMethods } from '../util'
 
@@ -21,6 +18,8 @@ import {
     HistoryScribeOptions,
     HistoryInvalidError
 } from '@benzed/history-scribe'
+
+import $, { Infer, SchemaFor } from '@benzed/schema'
 
 /*** Types ***/
 
@@ -36,30 +35,23 @@ interface UpdateHistoryOptions<H> extends HistoryScribeOptions<H> {
 
 }
 
-const HistoryQueryParamSchema = schema({
-    $id: 'HistoryQueryParam',
-    type: 'object',
-    additionalProperties: false,
+const $historyQueryParam = (({ or, string, shape, tuple, number }) => {
+    /*
+        // New syntax
+        shape({ 
+            splice: optional.tuple(string.or.number, number),
+            revert: optional.string.or.number
+        })
+    */
 
-    properties: {
-        splice: {
-            type: 'array',
-            minItems: 2,
-            maxItems: 2,
-            items: [{
-                type: ['string', 'number'],
-            }, {
-                type: 'number'
-            }]
-        },
-        revert: {
-            type: ['string', 'number']
-        },
-    }
+    const stringOrNumber = or(string(), number())
+    const splice = tuple(stringOrNumber, number()).optional()
+    const revert = stringOrNumber.optional()
 
-} as const)
+    return shape({ splice, revert }).default({})
+})($)
 
-type HistoryQueryParam = Infer<typeof HistoryQueryParamSchema>
+type HistoryQueryParam = Infer<typeof $historyQueryParam>
 
 /*** Constants ***/
 
@@ -109,17 +101,24 @@ function applyMask<T>(input: T, mask?: ((data: unknown) => T)): T {
     return output
 }
 
+// TODO move me
+function consumeQueryParam<T>(
+    query: Params['query'],
+    name: string,
+    $schema: SchemaFor<T>
+): T {
+    if (query && name in query) {
+        const historyParam = query[name]
+        delete query[name]
+        return $schema.validate(historyParam)
+    }
+    return $schema.validate(undefined)
+}
+
 function consumeHistoryQueryParam(
     query: Params['query'],
 ): HistoryQueryParam {
-
-    if (query && HISTORY_QUERY_PARAM in query) {
-        const historyParam = query[HISTORY_QUERY_PARAM]
-        delete query[HISTORY_QUERY_PARAM]
-        return historyParam
-    }
-
-    return {}
+    return consumeQueryParam(query, HISTORY_QUERY_PARAM, $historyQueryParam)
 }
 
 async function applyScribeData<T extends object>(
@@ -202,7 +201,7 @@ function updateHistory<T extends object>(
 
             const { revert, splice } = consumeHistoryQueryParam(ctx.params.query)
             if (is.defined(splice))
-                scribe = scribe.splice(...splice as Parameters<typeof scribe.splice>)
+                scribe = scribe.splice(...splice)
             if (is.defined(revert))
                 scribe = scribe.revert(revert)
 
@@ -219,9 +218,6 @@ function updateHistory<T extends object>(
     }
 }
 
-const historyQueryParam = (): Omit<typeof HistoryQueryParamSchema.definition, '$id'> =>
-    useSchemaDefinition(HistoryQueryParamSchema)
-
 /*** Exports ***/
 
 export default updateHistory
@@ -231,8 +227,6 @@ export {
     updateHistory,
     UpdateHistoryOptions,
 
-    HistoryQueryParamSchema,
+    $historyQueryParam,
     HistoryQueryParam,
-    historyQueryParam
-
 }

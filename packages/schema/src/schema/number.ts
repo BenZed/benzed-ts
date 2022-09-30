@@ -60,7 +60,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
     /*** Chain Methods ***/
 
-    public range(...input: RangeValidatorSettingsShortcut): this {
+    public range(...input: RangeValidatorSettingsShortcut<number>): this {
         return this._copyWithPostTypeValidator(
             'range',
             new RangeValidator(

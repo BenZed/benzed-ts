@@ -3,9 +3,9 @@ import { passwordHash } from '@feathersjs/authentication-local'
 
 import {
 
-    UsersData,
+    UserData,
     UserPatchData,
-    UsersResult,
+    UserResult,
     UserQuery,
 
     userSchema,
@@ -15,12 +15,15 @@ import {
 
 } from './schema'
 
+import { 
+    FileServerHookContext 
+} from '../../create-file-server-app'
+
 // this is only here to shut ts up about it
 import 'json-schema-to-ts/lib/utils'
-import { FileServerHookContext } from '../../create-file-server-app'
 
 // Resolver for the basic data model (e.g. creating new entries)
-export const usersDataResolver = resolve<UsersData, FileServerHookContext>({
+export const usersDataResolver = resolve<UserData, FileServerHookContext>({
     schema: userSchema,
     validate: 'before',
     properties: {
@@ -38,14 +41,14 @@ export const usersPatchResolver = resolve<UserPatchData, FileServerHookContext>(
 })
 
 // Resolver for the data that is being returned
-export const usersResultResolver = resolve<UsersResult, FileServerHookContext>({
+export const usersResultResolver = resolve<UserResult, FileServerHookContext>({
     schema: usersResultSchema,
     validate: false,
     properties: {}
 })
 
 // Resolver for the "safe" version that external clients are allowed to see
-export const usersDispatchResolver = resolve<UsersResult, FileServerHookContext>({
+export const usersDispatchResolver = resolve<UserResult, FileServerHookContext>({
     schema: usersResultSchema,
     validate: false,
     properties: {

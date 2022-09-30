@@ -1,4 +1,6 @@
-import RangeValidator from './range'
+import RangeValidatorGeneric from './range'
+
+const RangeValidator = RangeValidatorGeneric<number>
 
 describe('unary comparators', () => {
 

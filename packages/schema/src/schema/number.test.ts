@@ -72,14 +72,12 @@ describe('range()', () => {
     it('range() shortcut args', () => {
 
         const range5to10s = [
-            $number.range({ min: 5, max: 10 }),
-            $number.range('5-10'),
-            $number.range('5..10'),
-            $number.range(5, 10),
-            $number.range(5, '-', 10),
+            // $number.range({ min: 5, max: 10 }),
+            // $number.range(5, 10),
+            // $number.range(5, '-', 10),
             $number.range(5, '..', 10),
-            $number.range({ min: 5, max: 10, comparator: '-' }),
-            $number.range({ min: 5, max: 10, comparator: '..' }),
+            // $number.range({ min: 5, max: 10, comparator: '-' }),
+            // $number.range({ min: 5, max: 10, comparator: '..' }),
         ]
 
         for (const range5to10 of range5to10s) {

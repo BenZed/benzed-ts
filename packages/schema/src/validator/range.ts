@@ -3,8 +3,9 @@ import {
 } from '@benzed/array'
 
 import {
-    isNumber,
     isObject,
+    isSortable,
+
     isString,
 
     Sortable
@@ -17,50 +18,42 @@ import { AssertValidator, ErrorSettings } from './validator'
 const BINARY_COMPARATORS = ['-', '..', '...'] as const
 const UNARY_COMPARATORS = ['>=', '>', '==', '<', '<='] as const
 
-const RANGE_STRING_REGEX = new RegExp(
-    '(\\d*\\.?\\d+)' + // 0 | 0.0 | .0
-    '(<|<=|==|>=|>|\\.{2,3}|-)' + // >= | > | == | < | <= | .. | ... | -
-    '(\\d*\\.?\\d+)' // 0 | 0.0 | .0
-)
-
 /*** Types ***/
 
 type BinaryComparator = typeof BINARY_COMPARATORS[number]
 type UnaryComparator = typeof UNARY_COMPARATORS[number]
 
-type RangeValidatorSettings =
-    ErrorSettings<[input: Sortable, rangeTransgressionDetail: string]> &
+type RangeValidatorSettings<O extends Sortable> =
+    ErrorSettings<[input: O, rangeTransgressionDetail: string]> &
     ({
-        readonly min: number
-        readonly max: number
+        readonly min: O
+        readonly max: O
         readonly comparator?: BinaryComparator
     } | {
-        readonly value: number
+        readonly value: O
         readonly comparator: UnaryComparator
     })
 
-type RangeValidatorErrorFormat = NonNullable<RangeValidatorSettings['error']>
+type RangeValidatorErrorFormat<O extends Sortable> = NonNullable<RangeValidatorSettings<O>['error']>
 
-type RangeValidatorSettingsArrayShortcut =
-    [min: number, max: number] |
-    [min: number, max: number, error: RangeValidatorErrorFormat] |
-    [min: number, comparator: BinaryComparator, max: number] |
-    [min: number, comparator: BinaryComparator, max: number, error: RangeValidatorErrorFormat] |
-    [comparator: UnaryComparator, value: number] |
-    [comparator: UnaryComparator, value: number, error: RangeValidatorErrorFormat] |
-    [value: number]
+type RangeValidatorSettingsArrayShortcut<O extends Sortable> =
+    [min: O, max: O] |
+    [min: O, max: O, error: RangeValidatorErrorFormat<O>] |
+    [min: O, comparator: BinaryComparator, max: O] |
+    [min: O, comparator: BinaryComparator, max: O, error: RangeValidatorErrorFormat<O>] |
+    [comparator: UnaryComparator, value: O] |
+    [comparator: UnaryComparator, value: O, error: RangeValidatorErrorFormat<O>] |
+    [value: O]
 
-type RangeValidatorSettingsStringShortcut =
-    `${number}${BinaryComparator}${number}` |
-    `${UnaryComparator}${number}`
-
-type RangeValidatorSettingsShortcut =
-    RangeValidatorSettingsArrayShortcut |
-    [RangeValidatorSettingsStringShortcut] |
-    [RangeValidatorSettings]
+type RangeValidatorSettingsShortcut<O extends Sortable> =
+    RangeValidatorSettingsArrayShortcut<O> |
+    [RangeValidatorSettings<O>]
 
 /*** Type Guards ***/
 
+const isNumericSortable = (input: unknown): input is Sortable => 
+    !isString(input) && isSortable(input)
+    
 function isBinaryComparator(input: unknown): input is BinaryComparator {
     return BINARY_COMPARATORS.includes(input as BinaryComparator)
 }
@@ -69,12 +62,14 @@ function isUnaryComparator(input: unknown): input is UnaryComparator {
     return UNARY_COMPARATORS.includes(input as UnaryComparator)
 }
 
-function isRangeValidatorSettings(input: unknown): input is RangeValidatorSettings {
+function isRangeValidatorSettings<O extends Sortable>(
+    input: unknown
+): input is RangeValidatorSettings<O> {
 
     if (!isObject(input))
         return false
 
-    const option = input as RangeValidatorSettings
+    const option = input as RangeValidatorSettings<O>
     if ('value' in option) {
         return typeof option.value === 'number' &&
             isUnaryComparator(option.comparator)
@@ -90,84 +85,42 @@ function isRangeValidatorSettings(input: unknown): input is RangeValidatorSettin
     return false
 }
 
+/*** MoveMe ***/
+
 /*** Helper ***/
 
-function parseRangeValidatorStringShortcut(
-    range: RangeValidatorSettingsStringShortcut
-): RangeValidatorSettings {
-
-    const match = range.match(RANGE_STRING_REGEX)
-
-    let min = NaN
-    let comparator = ''
-    let max = NaN
-
-    if (match) {
-        min = parseFloat(match[1])
-        comparator = match[2]
-        max = parseFloat(match[3])
-    }
-
-    if (
-        !Number.isNaN(min) &&
-        BINARY_COMPARATORS.includes(comparator as BinaryComparator) &&
-        !Number.isNaN(max)
-    ) {
-        return {
-            min,
-            max,
-            comparator: comparator as BinaryComparator
-        }
-    }
-
-    if (
-        UNARY_COMPARATORS.includes(comparator as UnaryComparator) &&
-        !Number.isNaN(max)
-    ) {
-        return {
-            value: max,
-            comparator: comparator as UnaryComparator
-        }
-    }
-
-    throw new Error(`"${range}" is not a valid range string.`)
-}
-
-function parseRangeValidatorSettingsArrayShortcut(
-    range: RangeValidatorSettingsArrayShortcut
-): RangeValidatorSettings {
+function parseRangeValidatorSettingsArrayShortcut<O extends Sortable>(
+    range: RangeValidatorSettingsArrayShortcut<O>
+): RangeValidatorSettings<O> {
 
     range = [...range] // don't mutate input array
 
-    const numbers = pluck(range, isNumber) as number[]
+    const numbers = pluck(range, isNumericSortable) as O[]
     if (numbers.length === 2) {
         const [min, max] = numbers
         const [comparator] = pluck(range, isBinaryComparator) as BinaryComparator[]
-        const [error] = range as RangeValidatorErrorFormat[] // only thing left could be error
+        const [error] = range as RangeValidatorErrorFormat<O>[] // only thing left could be error
 
         return { min, max, comparator, error }
 
     } else {
         const [value] = numbers
         const [comparator = '=='] = pluck(range, isUnaryComparator) as UnaryComparator[]
-        const [error] = range as RangeValidatorErrorFormat[] // only thing left could be error
+        const [error] = range as RangeValidatorErrorFormat<O>[] // only thing left could be error
 
         return { value, comparator, error }
     }
 }
 
-function toRangeValidatorSettings(
-    input: RangeValidatorSettingsShortcut
-): RangeValidatorSettings {
+function toRangeValidatorSettings<O extends Sortable>(
+    input: RangeValidatorSettingsShortcut<O>
+): RangeValidatorSettings<O> {
 
-    let settings: RangeValidatorSettings
+    let settings: RangeValidatorSettings<O>
 
     if (input.length === 1) {
 
-        if (isString(input[0]))
-            settings = parseRangeValidatorStringShortcut(input[0])
-
-        else if (isNumber(input[0])) {
+        if (isNumericSortable(input[0])) {
             settings = {
                 value: input[0],
                 comparator: '=='
@@ -185,9 +138,9 @@ function toRangeValidatorSettings(
 
 /*** Main ***/
 
-class RangeValidator<O extends Sortable> extends AssertValidator<
+class RangeValidator<O extends Sortable = number> extends AssertValidator<
 /**/ O,
-/**/ RangeValidatorSettings
+/**/ RangeValidatorSettings<O>
 > {
 
     private _rangeTest!: (input: O) => string | null
