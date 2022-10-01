@@ -5,13 +5,13 @@ import {
 
     UserData,
     UserPatchData,
-    UserResult,
+    User,
     UserQuery,
 
-    userSchema,
-    userPatchDataSchema,
-    usersResultSchema,
-    usersQuerySchema
+    $userData,
+    $userPatchData,
+    $user,
+    $usersQuery
 
 } from './schema'
 
@@ -24,7 +24,7 @@ import 'json-schema-to-ts/lib/utils'
 
 // Resolver for the basic data model (e.g. creating new entries)
 export const usersDataResolver = resolve<UserData, FileServerHookContext>({
-    schema: userSchema,
+    schema: $userData,
     validate: 'before',
     properties: {
         password: passwordHash({ strategy: 'local' })
@@ -33,7 +33,7 @@ export const usersDataResolver = resolve<UserData, FileServerHookContext>({
 
 // Resolver for making partial updates
 export const usersPatchResolver = resolve<UserPatchData, FileServerHookContext>({
-    schema: userPatchDataSchema,
+    schema: $userPatchData,
     validate: 'before',
     properties: {
         password: passwordHash({ strategy: 'local' })
@@ -41,15 +41,17 @@ export const usersPatchResolver = resolve<UserPatchData, FileServerHookContext>(
 })
 
 // Resolver for the data that is being returned
-export const usersResultResolver = resolve<UserResult, FileServerHookContext>({
-    schema: usersResultSchema,
+export const usersResultResolver = resolve<User, FileServerHookContext>({
+    schema: $user,
     validate: false,
-    properties: {}
+    properties: {
+
+    }
 })
 
 // Resolver for the "safe" version that external clients are allowed to see
-export const usersDispatchResolver = resolve<UserResult, FileServerHookContext>({
-    schema: usersResultSchema,
+export const usersDispatchResolver = resolve<User, FileServerHookContext>({
+    schema: $user,
     validate: false,
     properties: {
         // The password should never be visible externally
@@ -59,7 +61,7 @@ export const usersDispatchResolver = resolve<UserResult, FileServerHookContext>(
 
 // Resolver for allowed query properties
 export const usersQueryResolver = resolve<UserQuery, FileServerHookContext>({
-    schema: usersQuerySchema,
+    schema: $usersQuery,
     validate: 'before',
     properties: {
         // If there is a user (e.g. with authentication), 

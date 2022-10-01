@@ -1,13 +1,9 @@
 import {
-    AddRenderItemOptions,
-    Renderer,
     RendererConfig,
-    RenderTask
+    Renderer,
 } from '@benzed/renderer'
 
 import { Socket } from 'socket.io-client'
-
-import { Writable } from 'stream'
 
 /*** Types ***/
 

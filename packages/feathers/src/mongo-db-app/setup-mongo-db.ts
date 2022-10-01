@@ -12,9 +12,30 @@ import type {
     MongoDBApplicationConfig
 } from './create-mongo-db-application'
 
+import { $, Infer } from '@benzed/schema'
+import { $port } from '../schemas/util'
+
 /*** Constants ***/
 
 const DEFAULT_MONGODB_PORT = 27017
+
+/*** Exports ***/
+
+const $mongoDBConfig = $.shape({
+
+    uri: $.string(),
+    database: $.string(),
+
+    port: $port.optional(),
+
+    user: $.string().optional(),
+    password: $.string().optional(),
+})
+
+/**
+ * Items required for mongodb
+ */
+type MongoDBConfig = Infer<typeof $mongoDBConfig>
 
 /*** Main ***/
 
@@ -78,9 +99,10 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
 export {
 
     setupMongoDB,
+    
+    $mongoDBConfig,
+    MongoDBConfig,
 
     ObjectId,
     Db
 }
-
-export { MongoDBConfig } from '../schemas'

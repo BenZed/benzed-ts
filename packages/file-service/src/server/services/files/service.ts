@@ -1,10 +1,4 @@
-import { Renderer, RendererConfig } from '@benzed/renderer'
-
-import {
-    File,
-    FileCreateData,
-    FilePatchData
-} from './schema'
+import { RendererConfig } from '@benzed/renderer'
 
 /* eslint-disable @typescript-eslint/indent, require-await */
 

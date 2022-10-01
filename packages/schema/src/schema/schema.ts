@@ -142,6 +142,10 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return newSchema
     }
 
+    public map<O extends Schema<any,any,any>>(map: (i: this) => O): O {
+        return map(this)
+    }
+
     /**
      * @returns schema with optional flag
      */
@@ -337,6 +341,10 @@ abstract class ParentSchema<I, O, F extends Flags[]>
             return output as ApplyOptional<F, O>
 
         return this._validateChildren(output, context) as ApplyOptional<F, O>
+    }
+
+    public get $(): I {
+        return this._input
     }
 
     protected abstract _validateChildren(

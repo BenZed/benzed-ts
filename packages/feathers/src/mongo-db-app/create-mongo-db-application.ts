@@ -13,22 +13,30 @@ import {
 } from '@feathersjs/koa'
 
 import { createLogger, Logger } from '@benzed/util'
-import { SchemaFor } from '@benzed/schema'
+import {$, Infer, SchemaFor } from '@benzed/schema'
 
-import setupMongoDB from './setup-mongo-db'
+import setupMongoDB,{ $mongoDBConfig } from './setup-mongo-db'
+
 import { configure } from '../util'
-import {
-    $mongoDBApplicationConfig,
-    MongoDBApplicationConfig
-} from '../schemas'
+import { $port } from '../schemas'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/*** Schemas ***/
+
+const $mongoDBApplicationConfig = $({
+    name: $.string(),
+    port: $port,
+    db: $mongoDBConfig
+})
+
 /*** Types ***/
+
+type MongoDBApplicationConfig = Infer<typeof $mongoDBApplicationConfig>
 
 type Env = 'test' | 'development' | 'production'
 
-export interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
+interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
 
     log: Logger
 
@@ -104,6 +112,10 @@ export default function createMongoDBApplication<S, C extends MongoDBApplication
 }
 
 export {
+    
     createMongoDBApplication,
-    MongoDBApplicationConfig
+
+    MongoDBApplication,
+    MongoDBApplicationConfig,
+    $mongoDBApplicationConfig
 }

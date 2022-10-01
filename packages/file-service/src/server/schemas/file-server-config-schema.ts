@@ -1,52 +1,25 @@
-import {
-    mongoDBApplicationConfigSchema,
-    schema
-} from '@benzed/feathers'
-
-import { Infer } from '@feathersjs/schema'
+import { $mongoDBApplicationConfig } from '@benzed/feathers'
+import $, { Infer } from '@benzed/schema'
 
 /*** Schema ***/
 
-const fileServerConfigSchema = schema({
-    $id: 'FileServerConfig',
-    type: 'object',
+const $fileServerConfig = $({
 
-    additionalProperties: false,
+    ...$mongoDBApplicationConfig.properties,
 
-    required: [...mongoDBApplicationConfigSchema.required],
+    renderer: $({
+        maxConcurrent: $.number().floor(1).range('>', 0),
+        settings: $.record($.string())
+    })
+})
 
-    properties: {
-        ...mongoDBApplicationConfigSchema.properties,
-
-        renderer: {
-
-            type: ['null', 'object'],
-
-            required: ['settings'],
-
-            additionalProperties: false,
-
-            properties: {
-                maxConcurrent: { type: 'number', minimum: 0 },
-                settings: {
-                    type: 'object',
-                    additionalProperties: {
-                        type: 'object',
-                    }
-                }
-            }
-        }
-    }
-
-} as const)
-
-type FileServerConfig = Infer<typeof fileServerConfigSchema>
+type FileServerConfig = Infer<typeof $fileServerConfig>
 
 /*** Exports ***/
 
-export default fileServerConfigSchema
+export default $fileServerConfig
 
 export {
-    fileServerConfigSchema,
+    $fileServerConfig,
     FileServerConfig
 }

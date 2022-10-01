@@ -197,7 +197,7 @@ describe('compositing', () => {
 
         const $v2 = $({ x: $.number().mutable(), y: $.number().mutable() })
 
-        const $v3 = $({ ...$v2.properties, z: $.number().mutable() })
+        const $v3 = $({ ...$v2.$, z: $.number().mutable() })
 
         expectTypeOf<Infer<typeof $v3>>()
             .toEqualTypeOf<{ x: number, y: number, z: number }>()
@@ -208,10 +208,18 @@ describe('compositing', () => {
 
         const $range = $($.number(), $.number())
         const $op = $('>', '==', '<')
-        const $rangeWithOp = $.tuple(...$range.values, $op)
+        const $rangeWithOp = $.tuple(...$range.$, $op)
 
         expectTypeOf<Infer<typeof $rangeWithOp>>()
             .toEqualTypeOf<readonly [number, number, '<' | '>' | '==']>()
+    })
+
+})
+
+describe('mapping', () => {
+
+    it('allows you to change one schema into another', () => {
+        const $number = $({ x: $.number(), y: $.number() })
     })
 
 })

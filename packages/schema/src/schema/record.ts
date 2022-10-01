@@ -88,6 +88,14 @@ class RecordSchema<
         return output
     }
 
+    public get $key() : I[0] {
+        return this._input[0]
+    }
+
+    public get $value() : I[1] {
+        return this._input[1]
+    }
+
     public override readonly optional!: HasOptional<
     /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Optional, F>>
     >

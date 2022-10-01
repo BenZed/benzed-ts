@@ -8,7 +8,7 @@ import services, { FileServices } from './services'
 import middleware from './middleware'
 
 import {
-    fileServerConfigSchema,
+    $fileServerConfig,
     FileServerConfig
 } from './schemas/file-server-config-schema'
 
@@ -25,7 +25,7 @@ type FileServerHookContext = HookContext<FileServerApp, Service>
 function createFileServerApp(): FileServerApp {
 
     const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>(
-        fileServerConfigSchema
+        $fileServerConfig
     )
 
     fileServerApp.configure(services)
