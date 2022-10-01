@@ -54,6 +54,10 @@ class ArraySchema<
 
     /**/> extends ParentSchema<I, ApplyMutable<F, O>, F> {
 
+    public get $item(): I {
+        return this._input
+    }
+
     protected _typeValidator = new TypeValidator({
         name: 'array',
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,

@@ -2,7 +2,7 @@
 import path from 'path'
 
 import {
-    assertRenderConfig,
+    $rendererConfig,
     RendererConfig,
     RenderSetting
 } from './render-settings'
@@ -108,7 +108,7 @@ class Renderer {
 
         const options = await fs.readJson(
             configUrl,
-            assertRenderConfig
+            $rendererConfig.assert
         )
 
         return new Renderer(options)

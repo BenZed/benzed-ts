@@ -1,22 +1,16 @@
 import ffmpeg, { FfprobeData, FfprobeStream } from 'fluent-ffmpeg'
 
 import {
-    optional,
-    or,
-    shapeOf,
-    Validator
-} from '../validator'
-
-import {
     Duration,
     Width,
     Height,
-    Input,
+    Input
 } from './settings'
 
-import { isNaN, isNumber, isString } from '@benzed/is'
+import { isNaN, isString } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
+import $ from '@benzed/schema/lib'
 
 /*** Type ***/
 
@@ -30,15 +24,13 @@ interface RenderMetadata extends Metadata {
     renderTime: number
 }
 
-const isNotApplicable = (value: unknown): value is 'N/A' => value === 'N/A'
-
-const isMetadata: Validator<Metadata> = shapeOf({
-    width: optional(isNumber),
-    height: optional(isNumber),
-    duration: optional(isNumber),
-    format: optional(isString),
-    size: optional(or(isNumber, isNotApplicable)),
-    frameRate: optional(isNumber)
+const $metaData = $.shape({
+    width: $.number().optional(),
+    height:$.number().optional(),
+    duration: $.number().optional(),
+    format: $.string().optional(),
+    size: $.or($.number(), $('N/A')).optional(),
+    frameRate: $.number().optional()
 })
 
 type GetMetadataOptions = Input
@@ -126,7 +118,7 @@ export {
     GetMetadataOptions,
 
     Metadata,
-    isMetadata,
+    $metaData,
 
     RenderMetadata
 }

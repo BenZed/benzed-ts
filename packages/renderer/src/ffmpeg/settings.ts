@@ -1,7 +1,6 @@
 import type { Writable, Readable } from 'stream'
 
-import { isNumber } from '@benzed/is'
-import { oneOf, optional, shapeOf, Validator } from '../validator'
+import $ from '@benzed/schema'
 
 /*** IO ***/
 export interface Input {
@@ -42,9 +41,9 @@ export interface VideoSetting {
 
 }
 
-export const isVideoSetting: Validator<VideoSetting> = shapeOf({
-    vbr: optional(isNumber),
-    fps: optional(isNumber)
+export const $videoSetting = $.shape({
+    vbr: $.number().optional(),
+    fps: $.number().optional()
 })
 
 export interface AudioSetting {
@@ -56,8 +55,8 @@ export interface AudioSetting {
 
 }
 
-export const isAudioSetting: Validator<AudioSetting> = shapeOf({
-    abr: optional(isNumber)
+export const $audioSetting = $.shape({
+    abr: $.number().optional()
 })
 
 export type SizeSetting =
@@ -77,11 +76,11 @@ export type SizeSetting =
         scale: number
     }
 
-export const isSizeSetting: Validator<SizeSetting> = oneOf(
-    shapeOf({ height: isNumber }),
-    shapeOf({ width: isNumber }),
-    shapeOf({ dimensions: isNumber }),
-    shapeOf({ scale: isNumber })
+export const $sizeSetting = $.or(
+    $({ height: $.number() }),
+    $({ width: $.number() }),
+    $({ dimensions: $.number() }),
+    $({ scale: $.number() })
 )
 
 export type TimeSetting = {
@@ -108,7 +107,7 @@ export type TimeSetting = {
     progress: number
 }
 
-export const isTimeSetting: Validator<TimeSetting> = oneOf(
-    shapeOf({ seconds: isNumber }),
-    shapeOf({ progress: isNumber })
+export const $timeSetting = $.or(
+    $({ seconds: $.number() }),
+    $({ progress: $.number() })
 )
