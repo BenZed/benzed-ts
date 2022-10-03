@@ -2,7 +2,7 @@
     "name": "@benzed/history-scribe",
     "description": "Structure for tracking historical changes to data.",
     "main": "./lib",
-    "version": "1.2.0",
+    "version": "1.2.2",
     "scripts": {
         "test": "NODE_ENV=test jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/array": "^3.3.0",
+        "@benzed/array": "^3.3.3",
         "@benzed/immutable": "^3.1.3",
         "@benzed/math": "^3.1.4",
         "@benzed/is": "^3.1.2"
