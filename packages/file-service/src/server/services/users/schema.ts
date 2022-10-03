@@ -12,7 +12,7 @@ export const $userData = $({
     email: $.string().format('email'),
     password: $.string(),
     created: $.date(),
-    updated:  $.date()
+    updated: $.date()
 })
 
 export type User = Infer<typeof $user>
@@ -25,7 +25,8 @@ export const $user = $({
 
 export type UserPatchData = Infer<typeof $userPatchData>
 export const $userPatchData = $({
-    email: $user.$.email.optional()
+    email: $user.$.email.optional(),
+    password: $user.$.password.optional()
 })
 
 export type UseCreateData = Infer<typeof $userPatchData>
@@ -36,6 +37,7 @@ export const $userCreateData = $({
 
 // Schema for allowed query properties
 export const $usersQuery = $querySyntax({
+    _id: $user.$._id,
     email: $user.$.email.optional(),
     updated: $user.$.updated.optional(),
     created: $user.$.created.optional()

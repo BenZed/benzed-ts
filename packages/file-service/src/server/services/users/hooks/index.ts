@@ -1,5 +1,5 @@
 
-import { resolveAll } from '@feathersjs/schema'
+import { resolveAll } from '@benzed/feathers'
 import { authenticate } from '@feathersjs/authentication'
 import '@feathersjs/hooks'
 

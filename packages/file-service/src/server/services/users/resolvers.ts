@@ -1,4 +1,4 @@
-import { resolve } from '@feathersjs/schema'
+import { resolve } from '@benzed/feathers'
 import { passwordHash } from '@feathersjs/authentication-local'
 
 import {
@@ -15,9 +15,7 @@ import {
 
 } from './schema'
 
-import { 
-    FileServerHookContext 
-} from '../../create-file-server-app'
+import { FileServerHookContext } from '../../create-file-server-app'
 
 // this is only here to shut ts up about it
 import 'json-schema-to-ts/lib/utils'
