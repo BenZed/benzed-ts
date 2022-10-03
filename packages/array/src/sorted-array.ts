@@ -154,14 +154,15 @@ class SortedArray<T extends Sortable> extends Array<T> {
         value: T,
 
         /**
-         * Returns the index of the value in the array that was
-         * higher than the provided.
+         * If the value is not in the array, get the index
+         * of the value closest to where it would have been.
          */
         getClosest: boolean
     ): number {
 
         let min = 0
         let max = this.length
+        const searchValue = value.valueOf()
 
         const isAscending = this[0] < this[this.length - 1]
         // Even with a custom sorter, the array can only be in ascending order
@@ -170,11 +171,11 @@ class SortedArray<T extends Sortable> extends Array<T> {
 
         while (min < max) {
             const mid = min + max >> 1
-            const _value = this[mid]
-            if (_value === value)
+            const midValue = this[mid].valueOf()
+            if (midValue === searchValue)
                 return mid
 
-            if (isAscending ? _value < value : _value > value)
+            if (isAscending ? midValue < searchValue : midValue > searchValue)
                 min = mid + 1
             else
                 max = mid

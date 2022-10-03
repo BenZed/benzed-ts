@@ -1,4 +1,4 @@
-import SortedArray, { descending } from './sorted-array'
+import SortedArray, { descending, Sortable } from './sorted-array'
 
 // eslint-disable-next-line no-unused-vars
 /* global describe it  */
@@ -201,48 +201,90 @@ describe('Sorted Array', () => {
 
     describe('closestIndexOf()', () => {
 
-        const up = new SortedArray<number>(10, 20, 20, 30, 30, 40)
+        const input = [10, 20, 20, 30, 30, 40]
 
-        it('gets the index closest to the provided value', () => {
+        for (const { name, array } of [
+            { 
+                name: 'ascending number', 
+                array: new SortedArray<number>(...input)
+            },
+            { 
+                name: 'ascending sortable', 
+                array: new SortedArray<Sortable>(...input.map(n => ({ valueOf: () => n })))
+            }
+        ]) {
+            describe(`${name} array`, () => {
+                it('gets the index closest to the provided value', () => {
 
-            const closestIndex = up.closestIndexOf(25)
-            expect(up[closestIndex]).toEqual(20)
-            expect(closestIndex).toEqual(2)
-        })
+                    const closestIndex = array.closestIndexOf(25)
+                    expect(array[closestIndex].valueOf()).toEqual(20)
+                    expect(closestIndex).toEqual(2)
+                })
+    
+                it('gets the actual index if there is a value present', () => {
+    
+                    const closestIndex = array.closestIndexOf(20)
+                    expect(array[closestIndex].valueOf()).toEqual(20)
+                    expect(closestIndex).toEqual(1)
+                })
+    
+                it('gets the final item if value too high', () => {
+    
+                    const closestIndex = array.closestIndexOf(45)
+                    expect(array[closestIndex].valueOf()).toEqual(40)
+                    expect(closestIndex).toEqual(5)
+                })
+    
+                it('gets the first item if value too low', () => {
+                    const closestIndex = array.closestIndexOf(5)
+                    expect(array[closestIndex].valueOf()).toEqual(10)
+                    expect(closestIndex).toEqual(0)
+                })
+            })
 
-        it('gets the final item if value too high', () => {
+        }
 
-            const closestIndex = up.closestIndexOf(45)
-            expect(up[closestIndex]).toEqual(40)
-            expect(closestIndex).toEqual(5)
-        })
+        for (const { name, array } of [
+            { 
+                name: 'descending number', 
+                array: new SortedArray<number>(...input)
+            },
+            { 
+                name: 'descending sortable', 
+                array: new SortedArray<Sortable>(...input.map(n => ({ valueOf: () => n })))
+            }
+        ]) {
 
-        it('gets the first item if value too low', () => {
-            const closestIndex = up.closestIndexOf(5)
-            expect(up[closestIndex]).toEqual(10)
-            expect(closestIndex).toEqual(0)
-        })
+            array.sort(descending)
+            
+            describe(`${name} array`, () => {
 
-        const down = new SortedArray<number>(40, 30, 30, 20, 20, 10).sort(descending)
+                it('gets the index closest to the provided value on descending arrays', () => {
 
-        it('gets the index closest to the provided value on descending arrays', () => {
+                    const closestIndex = array.closestIndexOf(25)
+                    expect(array[closestIndex].valueOf()).toEqual(30)
+                    expect(closestIndex).toEqual(2)
+                })
 
-            const closestIndex = down.closestIndexOf(25)
-            expect(down[closestIndex]).toEqual(30)
-            expect(closestIndex).toEqual(2)
-        })
+                it('gets the actual index if there is a value present', () => {
 
-        it('gets the final item if value is too low on descending arrays', () => {
-            const closestIndex = down.closestIndexOf(-10)
-            expect(down[closestIndex]).toEqual(10)
-            expect(closestIndex).toEqual(5)
-        })
+                    const closestIndex = array.closestIndexOf(30)
+                    expect(array[closestIndex].valueOf()).toEqual(30)
+                    expect(closestIndex).toEqual(1)
+                })
 
-        it('gets the first item if value is too high on descending arrays', () => {
-            const closestIndex = down.closestIndexOf(50)
-            expect(down[closestIndex]).toEqual(40)
-            expect(closestIndex).toEqual(0)
-        })
+                it('gets the final item if value is too low on descending arrays', () => {
+                    const closestIndex = array.closestIndexOf(-10)
+                    expect(array[closestIndex].valueOf()).toEqual(10)
+                    expect(closestIndex).toEqual(5)
+                })
 
+                it('gets the first item if value is too high on descending arrays', () => {
+                    const closestIndex = array.closestIndexOf(50)
+                    expect(array[closestIndex].valueOf()).toEqual(40)
+                    expect(closestIndex).toEqual(0)
+                })
+            })
+        }
     })
 })
