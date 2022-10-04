@@ -59,6 +59,7 @@ import {
     EnumSchemaOutput
 } from './enum'
 import DateSchema from './date'
+import UnknownSchema from './unknown'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -114,6 +115,10 @@ interface SchemaInterface {
     date(def?: Date): DateSchema
     null(): NullSchema
     undefined(): UndefinedSchema
+    
+    unknown(): UnknownSchema
+
+    object(def?: object): RecordSchema<[UnknownSchema], RecordSchemaOutput<[UnknownSchema]>>
 
     enum<T extends EnumSchemaInput>(
         ...input: T
@@ -172,6 +177,8 @@ function createSchemaInterface(): SchemaInterface {
     $.string = (def?: string) => new StringSchema(def)
     $.boolean = (def?: boolean) => new BooleanSchema(def)
     $.date = (def?: Date) => new DateSchema(def)
+    $.object = (def?: object) => new RecordSchema([new UnknownSchema(def)])
+    $.unknown = (def?: unknown) => new UnknownSchema(def)
 
     $.null = () => new NullSchema()
     $.undefined = () => new UndefinedSchema()

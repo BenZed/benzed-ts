@@ -15,9 +15,9 @@ import UnionSchema from './union'
 
 /*** Types ***/
 
-type RecordSchemaInput =
-    [
-        value: Schema<any, any, any>
+type RecordSchemaInput = 
+    [ 
+        value: Schema<any, any, any> 
     ] |
     [
         key:

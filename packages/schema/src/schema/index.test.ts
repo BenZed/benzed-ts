@@ -219,7 +219,8 @@ describe('compositing', () => {
 describe('mapping', () => {
 
     it('allows you to change one schema into another', () => {
-        const $number = $({ x: $.number(), y: $.number() })
+        const $number = $({ x: $.number(), y: $.number() }).map($vector => $vector.$.x)
+        expect($number).toBeInstanceOf(NumberSchema)
     })
 
 })

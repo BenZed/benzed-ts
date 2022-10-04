@@ -6,7 +6,6 @@ import StringSchema from './string'
 
 import { expectValidationError } from '../util.test'
 import EnumSchema from './enum'
-import { Infer } from './index'
 
 /*** Input ***/
 
