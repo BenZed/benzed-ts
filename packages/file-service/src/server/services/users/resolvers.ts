@@ -8,10 +8,10 @@ import {
     User,
     UserQuery,
 
+    $user,
     $userData,
     $userPatchData,
-    $user,
-    $usersQuery
+    $userQuery
 
 } from './schema'
 
@@ -27,7 +27,9 @@ export const userDataResolver = resolve<UserData, UserServiceHookContext>({
     schema: $userData,
     validate: 'before',
     properties: {
+
         password: passwordHash({ strategy: 'local' })
+
     }
 })
 
@@ -36,7 +38,9 @@ export const userPatchResolver = resolve<UserPatchData, UserServiceHookContext>(
     schema: $userPatchData,
     validate: 'before',
     properties: {
+
         password: passwordHash({ strategy: 'local' })
+
     }
 })
 
@@ -54,16 +58,19 @@ export const userDispatchResolver = resolve<User, UserServiceHookContext>({
     schema: $user,
     validate: false,
     properties: {
+
         // The password should never be visible externally
         password: () => Promise.resolve(undefined)
+
     }
 })
 
 // Resolver for allowed query properties
 export const userQueryResolver = resolve<UserQuery, UserServiceHookContext>({
-    schema: $usersQuery,
+    schema: $userQuery,
     validate: 'before',
     properties: {
+
         // If there is a user (e.g. with authentication), 
         // they are only allowed to see their own data
         _id: (value, _user, context) => {
@@ -72,6 +79,7 @@ export const userQueryResolver = resolve<UserQuery, UserServiceHookContext>({
 
             return Promise.resolve(value)
         }
+
     }
 })
 

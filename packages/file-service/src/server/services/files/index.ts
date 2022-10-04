@@ -7,12 +7,12 @@ import {
 
 import type { FileServerApp } from '../../create-file-server-app'
 
-import * as userHooks from './hooks'
+import * as fileHooks from './hooks'
 
 import { 
     File,
     FileData,
-    FileQuery 
+    FileQuery
 } from './schema'
 
 /*** Types ***/
@@ -29,19 +29,18 @@ function setupFileService(app: FileServerApp): void {
         app,
 
         // mongo service options
-        {
-            collection: 'files',
-        },
+        { collection: 'files' },
 
         // feathers service options
         {
             methods: ['create', 'find', 'get', 'patch', 'remove'],
+
             // You can add additional custom events to be sent to clients here
             events: []
         }
     )
 
-    fileService.hooks(userHooks)
+    fileService.hooks(fileHooks)
 }
 
 /*** Exports ***/
@@ -54,6 +53,5 @@ export {
 }
 
 export * from './schema'
-export * from './service'
 export * from './hooks'
 export * from './middleware'

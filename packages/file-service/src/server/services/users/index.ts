@@ -32,9 +32,11 @@ export default function setupUserService(app: FileServerApp): void {
         // feathers service options
         {
             methods: ['find', 'get', 'create', 'update', 'patch', 'remove'],
-            // You can add additional custom events to be sent to clients here
+            // You can add additional custom 
+            // events to be sent to clients here
             events: [],
         }
+
     )
 
     userService.hooks(userHooks)

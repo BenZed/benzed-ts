@@ -11,7 +11,7 @@ const $hashedPassword = $.string()
 /**
  * Password from the user, unhashed
  */
-const $password = $hashedPassword//.length('>', 8)
+const $password = $.string().length('>=', 8)
 
 /*** Schemas ***/
 
@@ -42,8 +42,8 @@ export const $userPatchData = $({
 })
 
 // Schema for allowed query properties
-export type UserQuery = Infer<typeof $usersQuery>
-export const $usersQuery = $querySyntax({
+export type UserQuery = Infer<typeof $userQuery>
+export const $userQuery = $querySyntax({
     _id: $user.$._id,
     email: $user.$.email.optional(),
     updated: $user.$.updated.optional(),

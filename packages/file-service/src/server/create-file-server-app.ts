@@ -16,12 +16,16 @@ import { HookContext } from '@feathersjs/feathers'
 import services, { FileServices } from './services'
 import middleware from './middleware'
 
+import { $fileServiceConfig } from './schemas'
+
 /*** Types ***/
 
 type FileServerConfig = Infer<typeof $fileServerConfig>
 const $fileServerConfig = $({
     
-    ...$mongoDBApplicationConfig.properties,
+    ...$mongoDBApplicationConfig.$,
+
+    ...$fileServiceConfig.$,
 
     pagination: $pagination,
     renderer: $rendererConfig,

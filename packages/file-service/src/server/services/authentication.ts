@@ -7,15 +7,12 @@ import type { FileServerApp } from '../create-file-server-app'
 
 export default function setupAuthenticationService(app: FileServerApp): void {
 
-    if (app.get('authentication')) {
-        const authentication = new AuthenticationService(app)
-        authentication.register('jwt', new JWTStrategy())
-        authentication.register('local', new LocalStrategy())
-        // authentication.register('renderer', new RendererStrategy())
+    const authentication = new AuthenticationService(app)
+    authentication.register('jwt', new JWTStrategy())
+    authentication.register('local', new LocalStrategy())
+    // authentication.register('renderer', new RendererStrategy())
 
-        app.use('authentication', authentication)
-
-        app.log`authentication service configured`
-    }
+    app.use('authentication', authentication)
+    app.log`authentication service configured`
 
 }
