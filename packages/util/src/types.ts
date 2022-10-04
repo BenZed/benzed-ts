@@ -77,9 +77,30 @@ export type UndefinedToOptional<T> = Optional<T, undefined>
 /**
  * Get a compiled contract of a type.
  */
-export type Compile<T> = T extends object
-    ? T extends infer O ? { [K in keyof O]: Compile<O[K]> } : never
-    : T
+export type Compile<TYPE, EXCEPTIONS = void> = 
+    TYPE extends EXCEPTIONS 
+        ? TYPE
+
+        : TYPE extends Map<infer K, infer V>
+            ? Map<Compile<K, EXCEPTIONS>, Compile<V, EXCEPTIONS>>
+
+            : TYPE extends Set<infer V> 
+                ? Set<V>
+
+                : TYPE extends Promise<infer A> 
+                    ? Promise<Compile<A, EXCEPTIONS>>
+
+                    : TYPE extends object 
+
+                        ? TYPE extends Date | RegExp | Func<any,any,any> | Error
+                            ? TYPE
+
+                            : TYPE extends infer O 
+
+                                ? { [K in keyof O]: Compile<O[K], EXCEPTIONS> } 
+                                : never
+
+                        : TYPE 
 
 /**
  * Retreive conditional types if two input types are equal.
