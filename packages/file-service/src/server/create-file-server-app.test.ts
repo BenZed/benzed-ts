@@ -1,5 +1,4 @@
 
-import { Collection } from 'mongodb'
 import {
     createFileServerApp,
     FileServerApp
@@ -26,6 +25,7 @@ describe('log() method', () => {
 })
 
 describe('running', () => {
+
     beforeAll(async () => {
         try {
             await fileServer.start()

@@ -1,20 +1,33 @@
 
 import {
     createMongoDBApplication,
-    MongoDBApplication
+    MongoDBApplication,
+
+    $mongoDBApplicationConfig,
+    $pagination
+    
 } from '@benzed/feathers'
+
+import $, { Infer } from '@benzed/schema'
+
+import { $rendererConfig } from '@benzed/renderer'
+import { HookContext } from '@feathersjs/feathers'
 
 import services, { FileServices } from './services'
 import middleware from './middleware'
 
-import {
-    $fileServerConfig,
-    FileServerConfig
-} from './schemas/file-server-config-schema'
-
-import { HookContext } from '@feathersjs/feathers'
-
 /*** Types ***/
+
+type FileServerConfig = Infer<typeof $fileServerConfig>
+const $fileServerConfig = $({
+    
+    ...$mongoDBApplicationConfig.properties,
+
+    pagination: $pagination,
+    renderer: $rendererConfig,
+    authentication: $.object(),
+
+})
 
 type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
 
@@ -44,5 +57,8 @@ export {
     createFileServerApp,
 
     FileServerApp,
-    FileServerHookContext
+    FileServerHookContext,
+
+    $fileServerConfig,
+    FileServerConfig
 }

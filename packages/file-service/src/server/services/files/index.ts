@@ -1,17 +1,24 @@
 
-import { setupMongoDBService, MongoDBService, MongoDBAdapterParams } from '@benzed/feathers'
+import { 
+    setupMongoDBService, 
+    MongoDBService, 
+    MongoDBAdapterParams 
+} from '@benzed/feathers'
 
 import type { FileServerApp } from '../../create-file-server-app'
 
 import * as userHooks from './hooks'
 
-import { FileData, FileQuery, File } from './schema'
+import { 
+    File,
+    FileData,
+    FileQuery 
+} from './schema'
 
 /*** Types ***/
 
-type FileParams = MongoDBAdapterParams<FileQuery>
-
 type FileService = MongoDBService<File, FileData, FileParams>
+type FileParams = MongoDBAdapterParams<FileQuery>
 
 /*** Main ***/
 

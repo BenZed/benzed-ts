@@ -9,12 +9,11 @@ import render, { RenderService } from './render'
 
 export interface FileServices {
 
-    'authentication': AuthenticationService
+    'authentication'?: AuthenticationService
+    'users'?: UserService
 
-    'users': UserService
-
+    'files/render'?: RenderService
     'files': FileService
-    'files/render': RenderService
 
 }
 

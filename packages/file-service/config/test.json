@@ -3,6 +3,5 @@
     "port": 3000,
     "db": {
         "port": 3250
-    },
-    "renderer": null
+    }
 }

@@ -1,11 +1,12 @@
 import { milliseconds } from '@benzed/async'
 
-import {
-    MongoClient,
+import type {
     Db,
     ObjectId,
     Collection
 } from 'mongodb'
+
+import { MongoClient } from 'mongodb'
 
 import type {
     MongoDBApplication,
@@ -13,6 +14,7 @@ import type {
 } from './create-mongo-db-application'
 
 import { $, Infer } from '@benzed/schema'
+
 import { $port } from '../schemas/util'
 
 /*** Constants ***/

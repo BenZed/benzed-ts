@@ -1,22 +1,22 @@
 import createFileServerApp from '../create-file-server-app'
 
-/*** File Service Tests ***/
+/*** User Service Tests ***/
 
-describe('File Service', () => {
+describe('User Service', () => {
 
     const fileServer = createFileServerApp()
-    const files = fileServer.service('users')
+    const users = fileServer.service('users')
     
     beforeAll(() => fileServer.start())
     afterAll(() => fileServer.teardown())
 
     it('is registered', () => {
-        expect(files).toBeDefined()
+        expect(users).toBeDefined()
     })
 
     it('uses pagination', async () => {
 
-        const found = await files.find({})
+        const found = await users.find({})
 
         expect(found).toHaveProperty('total')
         expect(found).toHaveProperty('skip')

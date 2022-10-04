@@ -34,5 +34,6 @@ function configure<C>(
 export default configure
 
 export {
-    configure
+    configure,
+    getDefaultConfiguration
 }

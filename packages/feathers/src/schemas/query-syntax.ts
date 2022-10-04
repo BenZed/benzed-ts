@@ -111,8 +111,8 @@ const $querySyntax = <I extends QueryInput>(
     ): Schema<I, QuerySyntaxOutput<I>, []> =>
     
     $.shape({
-        $limit: $.number().range('>', 0).optional(),
-        $skip: $.number().range('>', 0).optional(),
+        $limit: $.number().range('>=', 0).optional(),
+        $skip: $.number().range('>=', 0).optional(),
         $sort: $querySort(input),
         $select: $querySelect(input),
         ...($queryProperties(input) as any).properties

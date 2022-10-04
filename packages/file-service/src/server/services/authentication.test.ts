@@ -8,7 +8,7 @@ describe('Authentication Service', () => {
 
     const auth = fileServer.service('authentication')
 
-    it('Is registered', () => {
+    it('is registered', () => {
         expect(auth).toBeDefined()
     })
 

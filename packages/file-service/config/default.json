@@ -6,6 +6,10 @@
         "port": 4250,
         "database": "benzed-file-server"
     },
+    "pagination": {
+        "default": 100,
+        "max": 1000
+    },
     "authentication": {
         "entity": "user",
         "service": "users",
@@ -28,10 +32,35 @@
         }
     },
     "renderer": {
+        "maxConcurrent": 1,
         "settings": {
-            "thumbnail-small": {},
-            "thumbnail-medium": {},
-            "thumbnail-large": {}
+            "thumbnail-small": {
+                "type": "image",
+                "time": {
+                    "progress": 0.5
+                },
+                "size": {
+                    "width": 128
+                }
+            },
+            "thumbnail-medium": {
+                "type": "image",
+                "time": {
+                    "progress": 0.5
+                },
+                "size": {
+                    "width": 256
+                }
+            },
+            "thumbnail-large": {
+                "type": "image",
+                "time": {
+                    "progress": 0.5
+                },
+                "size": {
+                    "width": 512
+                }
+            }
         }
     }
 }

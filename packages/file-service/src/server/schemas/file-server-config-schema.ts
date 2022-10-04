@@ -1,5 +1,5 @@
+import { $mongoDBApplicationConfig, $pagination } from '@benzed/feathers'
 import $, { Infer } from '@benzed/schema'
-import { $mongoDBApplicationConfig } from '@benzed/feathers'
 import { $rendererConfig } from '@benzed/renderer'
 
 /*** Schema ***/
@@ -7,7 +7,12 @@ import { $rendererConfig } from '@benzed/renderer'
 const $fileServerConfig = $({
     ...$mongoDBApplicationConfig.properties,
 
-    renderer: $.or($rendererConfig, $.null())
+    pagination: $pagination,
+    
+    renderer: $.or($rendererConfig, $.null()),
+
+    authentication: $.or($.object(), $.null()),
+
 })
 
 type FileServerConfig = Infer<typeof $fileServerConfig>

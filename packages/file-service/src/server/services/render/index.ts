@@ -8,11 +8,6 @@ function setupRenderService(
 ): void {
 
     const renderer = app.get('renderer')
-    if (!renderer) {
-        app.log`renderer service not enabled`
-        return
-    }
-
     const service = new RenderService({ app, ...renderer })
 
     app.use('files/render', service)

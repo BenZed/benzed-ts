@@ -18,19 +18,22 @@ export type UserService = Service<User, UserData, UsersParams>
 // A configure function that registers the service and its hooks via `app.configure`
 export default function setupUserService(app: FileServerApp): void {
 
+    const paginate = app.get('pagination')
+
     const userService = setupMongoDBService<User, UserData, UsersParams>(
         app,
 
         // mongo service options
         {
             collection: 'users',
+            paginate
         },
 
         // feathers service options
         {
             methods: ['find', 'get', 'create', 'update', 'patch', 'remove'],
             // You can add additional custom events to be sent to clients here
-            events: []
+            events: [],
         }
     )
 
