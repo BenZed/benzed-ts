@@ -26,7 +26,7 @@ const $mongoDBConfig = $.shape({
     uri: $.string(),
     database: $.string(),
 
-    port: $port.optional(),
+    port: $port.default(DEFAULT_MONGODB_PORT),
 
     user: $.string().optional(),
     password: $.string().optional(),
@@ -46,7 +46,7 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
     const config = app.get('db')
 
     const uri = config.uri
-        .replaceAll('<port>', (config.port ?? DEFAULT_MONGODB_PORT).toString())
+        .replaceAll('<port>', config.port.toString())
         .replaceAll('<user>', config.user ?? '')
         .replaceAll('<password>', config.password ?? '')
         .replaceAll('<database>', config.database)
@@ -97,7 +97,6 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
 }
 
 export {
-
     setupMongoDB,
     
     $mongoDBConfig,

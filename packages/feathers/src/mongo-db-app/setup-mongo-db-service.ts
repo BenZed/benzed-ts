@@ -53,5 +53,7 @@ export default setupMongoDBService
 export {
     setupMongoDBService,
     MongoDBServiceOptions,
-    MongoDBService
+    MongoDBService,
+
+    MongoDBAdapterParams
 }

@@ -7,3 +7,7 @@ import { $ } from '@benzed/schema'
  */
 export const $port = $.number().range(1024, 65535)
 
+/**
+ * TODO make this an object id
+ */
+export const $id = $.string()
