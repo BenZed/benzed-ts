@@ -1,15 +1,19 @@
+import { setupMongoDBService, MongoDBAdapterParams } from '@benzed/feathers'
 
-import { MongoDBService, setupMongoDBService } from '@benzed/feathers'
-import { MongoDBAdapterParams } from '@feathersjs/mongodb'
+import { Service } from '@feathersjs/feathers'
 
-import * as userHooks from './hooks'
 import { UserData, UserQuery, User } from './schema'
+import * as userHooks from './hooks'
 
 import { FileServerApp } from '../../create-file-server-app'
 
-export type UsersParams = MongoDBAdapterParams<UserQuery>
+/*** Types ***/
 
-export type UserService = MongoDBService<User, UserData, UsersParams>
+export type UsersParams = MongoDBAdapterParams<UserQuery> & { user?: User }
+
+export type UserService = Service<User, UserData, UsersParams>
+
+/*** Setup ***/
 
 // A configure function that registers the service and its hooks via `app.configure`
 export default function setupUserService(app: FileServerApp): void {
@@ -32,6 +36,8 @@ export default function setupUserService(app: FileServerApp): void {
 
     userService.hooks(userHooks)
 }
+
+/*** Exports ***/
 
 export * from './schema'
 export * from './hooks'

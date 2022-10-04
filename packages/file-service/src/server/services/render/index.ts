@@ -1,25 +1,9 @@
-import { assertRenderConfig, RendererConfig } from '@benzed/renderer'
-
-import { FileServerApp } from '../../create-file-server-app'
+import type { FileServerApp } from '../../create-file-server-app'
 import { RenderService } from './render-service'
 
-/*** Declare ***/
+/*** Main ***/
 
-declare module '../../create-file-server-app' {
-
-    interface FileServices {
-        'files/render': RenderService
-    }
-
-    interface FileServerConfig {
-        'renderer': RendererConfig
-    }
-
-}
-
-/*** Exports ***/
-
-export default function setupRenderService(
+function setupRenderService(
     app: FileServerApp
 ): void {
 
@@ -29,11 +13,17 @@ export default function setupRenderService(
         return
     }
 
-    assertRenderConfig(renderer)
-
     const service = new RenderService({ app, ...renderer })
 
     app.use('files/render', service)
     app.log`renderer service configured`
 
+}
+
+/*** Exports ***/
+
+export default setupRenderService
+
+export {
+    RenderService
 }

@@ -16,12 +16,14 @@ import {
 } from './schema'
 
 import { FileServerHookContext } from '../../create-file-server-app'
+import { UserService } from './index'
 
 // this is only here to shut ts up about it
-import 'json-schema-to-ts/lib/utils'
+
+type UserServiceHookContext = FileServerHookContext<UserService>
 
 // Resolver for the basic data model (e.g. creating new entries)
-export const usersDataResolver = resolve<UserData, FileServerHookContext>({
+export const userDataResolver = resolve<UserData, UserServiceHookContext>({
     schema: $userData,
     validate: 'before',
     properties: {
@@ -30,7 +32,7 @@ export const usersDataResolver = resolve<UserData, FileServerHookContext>({
 })
 
 // Resolver for making partial updates
-export const usersPatchResolver = resolve<UserPatchData, FileServerHookContext>({
+export const userPatchResolver = resolve<UserPatchData, UserServiceHookContext>({
     schema: $userPatchData,
     validate: 'before',
     properties: {
@@ -39,7 +41,7 @@ export const usersPatchResolver = resolve<UserPatchData, FileServerHookContext>(
 })
 
 // Resolver for the data that is being returned
-export const usersResultResolver = resolve<User, FileServerHookContext>({
+export const userResolver = resolve<User, UserServiceHookContext>({
     schema: $user,
     validate: false,
     properties: {
@@ -48,7 +50,7 @@ export const usersResultResolver = resolve<User, FileServerHookContext>({
 })
 
 // Resolver for the "safe" version that external clients are allowed to see
-export const usersDispatchResolver = resolve<User, FileServerHookContext>({
+export const userDispatchResolver = resolve<User, UserServiceHookContext>({
     schema: $user,
     validate: false,
     properties: {
@@ -58,7 +60,7 @@ export const usersDispatchResolver = resolve<User, FileServerHookContext>({
 })
 
 // Resolver for allowed query properties
-export const usersQueryResolver = resolve<UserQuery, FileServerHookContext>({
+export const userQueryResolver = resolve<UserQuery, UserServiceHookContext>({
     schema: $usersQuery,
     validate: 'before',
     properties: {
@@ -75,14 +77,14 @@ export const usersQueryResolver = resolve<UserQuery, FileServerHookContext>({
 
 // Export all resolvers in a format that can be used with the resolveAll hook
 const usersResolvers = {
-    result: usersResultResolver,
-    dispatch: usersDispatchResolver,
+    result: userResolver,
+    dispatch: userDispatchResolver,
     data: {
-        create: usersDataResolver,
-        update: usersDataResolver,
-        patch: usersPatchResolver
+        create: userDataResolver,
+        update: userDataResolver,
+        patch: userPatchResolver
     },
-    query: usersQueryResolver
+    query: userQueryResolver
 }
 
 export default usersResolvers

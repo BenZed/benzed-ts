@@ -1,4 +1,3 @@
-import is from '@benzed/is'
 
 import { BadRequest } from '@feathersjs/errors'
 import {
@@ -9,8 +8,6 @@ import {
     Service
 } from '@feathersjs/feathers'
 
-import { getInternalServiceMethods } from '../util'
-
 import {
     Historical,
     HistoryEntry,
@@ -20,6 +17,9 @@ import {
 } from '@benzed/history-scribe'
 
 import $, { Infer, SchemaFor } from '@benzed/schema'
+import is from '@benzed/is'
+
+import { getInternalServiceMethods } from '../util'
 
 /*** Types ***/
 

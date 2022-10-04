@@ -1,41 +1,48 @@
-import { $querySyntax } from '@benzed/feathers/lib'
+import { $id, $querySyntax } from '@benzed/feathers'
 import { $, Infer } from '@benzed/schema'
 
-/* eslint-disable
-    @typescript-eslint/no-empty-interface
-*/
+/*** Helper ***/
+
+/**
+ * Password in the database, hashed.
+ */
+const $hashedPassword = $.string()
+
+/**
+ * Password from the user, unhashed
+ */
+const $password = $hashedPassword//.length('>', 8)
 
 /*** Schemas ***/
 
 export type UserData = Infer<typeof $userData> 
 export const $userData = $({
     email: $.string().format('email'),
-    password: $.string(),
+    password: $hashedPassword,
     created: $.date(),
     updated: $.date()
 })
 
 export type User = Infer<typeof $user>
 export const $user = $({
-    _id: $.string(),
+    _id: $id,
     ...$userData.$
-})
-
-// Schema for making partial updates
-
-export type UserPatchData = Infer<typeof $userPatchData>
-export const $userPatchData = $({
-    email: $user.$.email.optional(),
-    password: $user.$.password.optional()
 })
 
 export type UseCreateData = Infer<typeof $userPatchData>
 export const $userCreateData = $({
     email: $user.$.email,
-    password: $user.$.password
+    password: $password
+})
+
+export type UserPatchData = Infer<typeof $userPatchData>
+export const $userPatchData = $({
+    email: $user.$.email.optional(),
+    password: $password
 })
 
 // Schema for allowed query properties
+export type UserQuery = Infer<typeof $usersQuery>
 export const $usersQuery = $querySyntax({
     _id: $user.$._id,
     email: $user.$.email.optional(),
@@ -43,4 +50,3 @@ export const $usersQuery = $querySyntax({
     created: $user.$.created.optional()
 })
 
-export type UserQuery = Infer<typeof $usersQuery>

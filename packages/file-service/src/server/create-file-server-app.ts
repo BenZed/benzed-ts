@@ -12,20 +12,21 @@ import {
     FileServerConfig
 } from './schemas/file-server-config-schema'
 
-import { HookContext, Service } from '@feathersjs/feathers'
+import { HookContext } from '@feathersjs/feathers'
 
 /*** Types ***/
 
 type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
 
-type FileServerHookContext = HookContext<FileServerApp, Service>
+type FileServerHookContext<S extends FileServices[keyof FileServices]> = 
+    HookContext<FileServerApp, S>
 
 /*** Main ***/
 
-function createFileServerApp(): FileServerApp {
+function createFileServerApp(config?: FileServerConfig): FileServerApp {
 
     const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>(
-        $fileServerConfig
+        config ?? $fileServerConfig
     )
 
     fileServerApp.configure(services)

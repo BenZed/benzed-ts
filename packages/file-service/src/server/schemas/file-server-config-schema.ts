@@ -1,16 +1,13 @@
-import { $mongoDBApplicationConfig } from '@benzed/feathers'
 import $, { Infer } from '@benzed/schema'
+import { $mongoDBApplicationConfig } from '@benzed/feathers'
+import { $rendererConfig } from '@benzed/renderer'
 
 /*** Schema ***/
 
 const $fileServerConfig = $({
-
     ...$mongoDBApplicationConfig.properties,
 
-    renderer: $({
-        maxConcurrent: $.number().floor(1).range('>', 0),
-        settings: $.record($.string())
-    })
+    renderer: $.or($rendererConfig, $.null())
 })
 
 type FileServerConfig = Infer<typeof $fileServerConfig>

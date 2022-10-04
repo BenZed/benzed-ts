@@ -1,4 +1,4 @@
-import createFileServerApp from '../server'
+import { createFileServerApp } from '../server'
 
 /*** Execute ***/
 
@@ -11,4 +11,3 @@ process.on('unhandledRejection', (reason, p) =>
 )
 
 void fileServerApp.start()
-

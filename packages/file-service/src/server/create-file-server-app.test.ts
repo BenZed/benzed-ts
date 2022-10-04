@@ -42,7 +42,7 @@ describe('running', () => {
     it('connects to database', async () => {
 
         const db = await fileServer.db('any-collection')
-        expect(db).toBeInstanceOf(Collection)
+        expect(db.constructor.name).toBe('Collection')
     })
 
 })

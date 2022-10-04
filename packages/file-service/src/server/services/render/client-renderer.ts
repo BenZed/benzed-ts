@@ -1,11 +1,11 @@
-
 import { Renderer } from '@benzed/renderer'
 
-import { Application, feathers } from '@feathersjs/feathers'
+import { feathers, Application } from '@feathersjs/feathers'
 import feathersSocketio from '@feathersjs/socketio-client'
+
 import socketio from 'socket.io-client'
 
-import { FileServices } from '../../create-file-server-app'
+import type { FileServices } from '../index'
 
 /*** Types ***/
 

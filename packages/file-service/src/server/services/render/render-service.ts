@@ -1,6 +1,5 @@
 import {
     Renderer,
-    RenderSetting,
     RendererConfig
 } from '@benzed/renderer'
 
