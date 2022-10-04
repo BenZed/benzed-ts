@@ -33,6 +33,11 @@ import {
 import {
     PrimitiveSchema
 } from './schema'
+import { 
+    LengthValidator,
+    LengthValidatorSettingsShortcut, 
+    toLengthValidatorSettings 
+} from '../validator/length'
 
 /*** Helper ***/
 
@@ -96,6 +101,11 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     public capitalize(...input: CaseValidatorSettingsShortcut<'capital'>): this {
         return this._copyWithCaseValidator(input, 'capital')
+    }
+
+    public length(...input: LengthValidatorSettingsShortcut): this {
+        const settings = toLengthValidatorSettings(input)
+        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
     }
 
     public default(defaultValue = ''): this {

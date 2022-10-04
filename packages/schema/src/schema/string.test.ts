@@ -23,7 +23,6 @@ describe('validate()', () => {
         expect($string.validate([0, 1, 2, 3, 4]))
             .toEqual('0,1,2,3,4')
     })
-
 })
 
 describe('default()', () => {
@@ -78,8 +77,21 @@ describe('format()', () => {
 
 })
 
+describe('length()', () => {
+    it('validates string length', () => {
+        const $password = $string.length('>=', 8)
+        expect($password.validate('12345678')).toEqual('12345678')
+        expect(() => $password.validate('1234')).toThrow('length must be above or equal 8')
+    })
+})
+
 for (const method of [
-    'upperCase', 'lowerCase', 'pascalCase', 'camelCase', 'capitalize', 'dashCase'
+    'upperCase', 
+    'lowerCase', 
+    'pascalCase', 
+    'camelCase', 
+    'capitalize', 
+    'dashCase'
 ] as const) {
 
     describe(`${method}()`, () => {
@@ -117,9 +129,6 @@ for (const method of [
                 $string[method](/-/)
                 $string[method]('error')
             }
-
         })
-
     })
-
 }

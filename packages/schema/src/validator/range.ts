@@ -85,8 +85,6 @@ function isRangeValidatorSettings<O extends Sortable>(
     return false
 }
 
-/*** MoveMe ***/
-
 /*** Helper ***/
 
 function parseRangeValidatorSettingsArrayShortcut<O extends Sortable>(

@@ -110,6 +110,7 @@ interface SchemaInterface {
     ): IntersectionSchema<T, IntersectionSchemaOutput<T>>
 
     number(def?: number): NumberSchema
+    integer(def?: number): NumberSchema
     string(def?: string): StringSchema
     boolean(def?: boolean): BooleanSchema
     date(def?: Date): DateSchema
@@ -174,6 +175,7 @@ function createSchemaInterface(): SchemaInterface {
     $.and = (...types) => new IntersectionSchema(types)
 
     $.number = (def?: number) => new NumberSchema(def)
+    $.integer = (def?: number) => new NumberSchema(def).floor(1)
     $.string = (def?: string) => new StringSchema(def)
     $.boolean = (def?: boolean) => new BooleanSchema(def)
     $.date = (def?: Date) => new DateSchema(def)

@@ -31,9 +31,9 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
     private _rangeValidator!: RangeValidator<number>
 
-    public constructor (settings: LengthValidatorSettings) {
+    public constructor ({ error = defaultLengthError, ...settings }: LengthValidatorSettings) {
         super({
-            error: defaultLengthError,
+            error,
             ...settings
         })
     }
@@ -73,7 +73,6 @@ class LengthValidator<O extends ArrayLike<unknown>>
                     ? null
                     : 'max'
                 : 'min'
-
         }
 
         if (validatesLengthsBelowZero)
@@ -81,9 +80,7 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
         if (nonIntegerConfiguration)
             throw new Error(`${nonIntegerConfiguration} must be an integer.`)
-
     }
-
 }
 
 /*** Exports ***/
