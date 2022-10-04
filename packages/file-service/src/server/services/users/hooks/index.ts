@@ -22,6 +22,7 @@ export const around = {
     ],
 
     create: [
+        authenticate('jwt'),
         resolveAll(usersResolvers)
     ],
 

@@ -29,7 +29,9 @@ function setupFileService(app: FileServerApp): void {
         app,
 
         // mongo service options
-        { collection: 'files' },
+        { 
+            collection: 'files' 
+        },
 
         // feathers service options
         {
@@ -52,6 +54,6 @@ export {
     FileParams 
 }
 
-export * from './schema'
 export * from './hooks'
 export * from './middleware'
+export * from './schema'

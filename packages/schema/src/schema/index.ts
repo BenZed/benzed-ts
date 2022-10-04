@@ -175,11 +175,13 @@ function createSchemaInterface(): SchemaInterface {
     $.and = (...types) => new IntersectionSchema(types)
 
     $.number = (def?: number) => new NumberSchema(def)
-    $.integer = (def?: number) => new NumberSchema(def).floor(1)
     $.string = (def?: string) => new StringSchema(def)
     $.boolean = (def?: boolean) => new BooleanSchema(def)
+    $.integer = (def?: number) => new NumberSchema(def).floor(1, 'Must be an integer')
+
     $.date = (def?: Date) => new DateSchema(def)
     $.object = (def?: object) => new RecordSchema([new UnknownSchema(def)])
+
     $.unknown = (def?: unknown) => new UnknownSchema(def)
 
     $.null = () => new NullSchema()

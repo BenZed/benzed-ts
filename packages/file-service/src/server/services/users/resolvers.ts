@@ -11,7 +11,7 @@ import {
     $user,
     $userData,
     $userPatchData,
-    $userQuery
+    $userQuery,
 
 } from './schema'
 
@@ -60,7 +60,7 @@ export const userDispatchResolver = resolve<User, UserServiceHookContext>({
     properties: {
 
         // The password should never be visible externally
-        password: () => Promise.resolve(undefined)
+        password: () => Promise.resolve('')
 
     }
 })

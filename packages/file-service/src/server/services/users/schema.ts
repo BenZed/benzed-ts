@@ -1,7 +1,7 @@
 import { $id, $querySyntax } from '@benzed/feathers'
 import { $, Infer } from '@benzed/schema'
 
-/*** Helper ***/
+/*** Helper Schemas ***/
 
 /**
  * Password in the database, hashed.
@@ -13,7 +13,7 @@ const $hashedPassword = $.string()
  */
 const $password = $.string().length('>=', 8)
 
-/*** Schemas ***/
+/*** User Schemas ***/
 
 export type UserData = Infer<typeof $userData> 
 export const $userData = $({

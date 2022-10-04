@@ -1,5 +1,5 @@
 
-import { $querySyntax } from '@benzed/feathers'
+import { $id, $querySyntax, $ref } from '@benzed/feathers'
 import $, { Infer } from '@benzed/schema'
 import { $awsConfig } from '../../schemas/aws-config'
 
@@ -24,19 +24,19 @@ export const $fileServiceConfig = $({
 
 })
 
-/*** File Schemas ***/
+/*** File ***/
 
 export type FileData = Infer<typeof $fileData>
 export const $fileData = $({
 
     name: $.string(),
 
-    uploader: $.string(),
-    uploaded: $.integer().range('>=',0),
+    uploader: $ref,
+    uploaded: $.boolean(),
 
-    size: $.integer().range('>',0),
+    size: $.integer().range('>', 0),
 
-    ext: $.string(),
+    ext: $.string().format(/^\./),
     mime: $.string(),
 
     created: $.date(),
@@ -47,10 +47,9 @@ export const $fileData = $({
 export type File = Infer<typeof $file>
 export const $file = $({
 
-    _id: $.string(),
+    _id: $id,
 
     ...$fileData.$
-
 })
 
 export type FilePatchData = Infer<typeof $filePatchData>
@@ -70,8 +69,5 @@ export const $fileCreateData = $({
 
 })
 
-/*** File Query ***/
-
-export const $fileQuery = $querySyntax($fileData.$)
-
 export type FileQuery = Infer<typeof $fileQuery>
+export const $fileQuery = $querySyntax($fileData.$)
