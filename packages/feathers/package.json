@@ -28,6 +28,7 @@
         "@benzed/history-scribe": "^1.0.0",
         "@benzed/schema": "^0.3.0",
         "@benzed/async": "^3.3.6",
+        "@benzed/string": "^3.2.3",
         "ajv-errors": "^3.0.0"
     },
     "peerDependencies": {

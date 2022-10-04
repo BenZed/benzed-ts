@@ -15,8 +15,11 @@ export const $port = $.integer().range(1024, 65535)
 /**
  * TODO make this an object id
  */
-export const $id = $.string()
+export const $id = $.string().format(/^[a-f\d]{24}$/i, 'Must be an ObjectId')
 
+/**
+ * Nullable id
+ */
 export const $ref = $.or($id, $.null())
 
 /**

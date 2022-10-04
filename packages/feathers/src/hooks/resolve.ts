@@ -1,6 +1,6 @@
 import { HookContext, NextFunction } from '@feathersjs/feathers'
 import { compose } from '@feathersjs/hooks'
-import { Resolver, ResolverStatus } from '../util/resolver'
+import { Resolver, ResolverStatus } from '../resolvers/resolver'
 
 /*
     This is straight up ripped off from 
@@ -67,11 +67,11 @@ export type ResolveAllSettings<H extends HookContext> = {
     dispatch?: Resolver<any, H>
 }
 
-export const DISPATCH = Symbol('@feathersjs/schema/dispatch')
+export const $$dispatch = Symbol('@benzed/feathers/resolver/dispatch')
 
 export const getDispatch = (value: any) =>
-    typeof value === 'object' && value !== null && value[DISPATCH] !== undefined 
-        ? value[DISPATCH] 
+    typeof value === 'object' && value !== null && value[$$dispatch] !== undefined 
+        ? value[$$dispatch] 
         : value
 
 export const resolveQuery =
@@ -190,7 +190,7 @@ export const resolveDispatch =
               : result
 
           context.dispatch = dispatch
-          Object.defineProperty(context.result, DISPATCH, {
+          Object.defineProperty(context.result, $$dispatch, {
               value: dispatch,
               enumerable: false,
               configurable: false
