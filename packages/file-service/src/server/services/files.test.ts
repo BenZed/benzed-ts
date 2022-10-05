@@ -22,10 +22,11 @@ describe('File Service', () => {
         expect(found).toHaveProperty('total')
         expect(found).toHaveProperty('skip')
         expect(found).toHaveProperty('limit')
-
     })
 
     describe('create', () => {
+
+        const now = new Date()
 
         let file: File
         beforeAll(async () => {
@@ -43,5 +44,11 @@ describe('File Service', () => {
         it('removes extension from name', () => {
             expect(file.name).not.toContain(file.ext)
         })
+
+        it('fills timestamps', () => {
+            expect(file.created > now).toBe(true)
+            expect(file.updated > now).toBe(true)
+        })
+
     })
 })

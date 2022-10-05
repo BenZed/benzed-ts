@@ -19,12 +19,14 @@ import {
 
 import type { FileServerHookContext } from '../../create-file-server-app'
 import type { FileService } from './index'
-import path from 'path'
+import { basename as nameOf, extname as extOf } from 'path'
 import mime from 'mime'
 
 /*
     eslint-disable require-await
 */
+
+const DEFAULT_MIME_TYPE = 'application/octet-stream'
 
 // this is only here to shut ts up about it
 
@@ -40,7 +42,7 @@ export const filePatchResolver = resolve<File, FileServiceHookContext>({
     }
 })
 
-export const fileCreateResolver = resolve<FileData, FileServiceHookContext>({
+export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileServiceHookContext>({
     schema: $fileCreateData,
     validate: 'before',
     properties: {
@@ -49,13 +51,15 @@ export const fileCreateResolver = resolve<FileData, FileServiceHookContext>({
         uploaded: async () => false,
 
         // name without extension
-        name: async (value) => value && path.basename(value, path.extname(value)),
+        name: async (value) => value && nameOf(value, extOf(value)),
 
         // extension from name
-        ext: async (_, file) => path.extname(file.name),
+        ext: async (_, file) => extOf(file.name),
 
         // mime type from extension
-        mime: async (_, file) => mime.getType(path.extname(file.name)) ?? 'application/octet-stream'
+        mime: async (_, file) => mime.getType(nameOf(file.name)) ?? DEFAULT_MIME_TYPE,
+
+        urls: async (_) => ['go']
     }
 })
 
