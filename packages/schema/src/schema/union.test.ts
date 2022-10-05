@@ -22,7 +22,7 @@ describe('validate()', () => {
             .toEqual(true)
 
         expectValidationError(() => $stringOrBool.validate(100))
-            .toHaveProperty('message', '100 is not string or boolean')
+            .toHaveProperty('message', 'must be string or boolean')
     })
 
 })

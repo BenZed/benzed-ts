@@ -54,6 +54,7 @@ class RecordSchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'object',
+        article: 'an',
         is: (input): input is O => isObject(input),
     })
 

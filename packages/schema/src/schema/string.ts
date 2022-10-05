@@ -63,6 +63,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     protected _typeValidator = new TypeValidator({
         name: 'string',
+        article: 'a',
         is: isString,
         cast: tryCastToString
     })

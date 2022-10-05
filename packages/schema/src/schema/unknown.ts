@@ -12,9 +12,8 @@ import { TypeValidator } from '../validator/type'
 
 /*** Type ***/
 
-// lol
 function isUnknown(input: unknown): input is unknown {
-    return true
+    return true // lol
 }
 
 /*** Main ***/

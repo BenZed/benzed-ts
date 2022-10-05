@@ -13,7 +13,7 @@ describe('validate()', () => {
         //     .toThrow('what is not date')
 
         expect(() => $date.validate(new Date(NaN)))
-            .toThrow('Invalid Date is not date')
+            .toThrow('must be a date')
     })
 
     it('casts date strings to Dates', () => {

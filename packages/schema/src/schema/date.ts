@@ -43,6 +43,7 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     protected _typeValidator = new TypeValidator({
         name: 'date',
+        article: 'a',
         is: isValidDate,
         cast: tryCastToDate
     })

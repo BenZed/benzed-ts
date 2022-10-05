@@ -12,7 +12,7 @@ describe('validate()', () => {
             .toEqual(false)
 
         expect(() => $bool.validate('what'))
-            .toThrow('what is not boolean')
+            .toThrow('must be a boolean')
     })
 
     it('casts "true" to true', () => {

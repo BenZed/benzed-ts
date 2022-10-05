@@ -12,7 +12,7 @@ describe('validate()', () => {
             .toEqual('red')
 
         expect(() => $trafficLights.validate('what'))
-            .toThrow('what is not red, green or yellow')
+            .toThrow('must be red, green or yellow')
     })
 
 })

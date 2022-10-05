@@ -1,7 +1,6 @@
 import { $, Infer } from './index'
 
 import IntersectionSchema from './intersection'
-import UndefinedSchema from './undefined'
 import BooleanSchema from './boolean'
 import NumberSchema from './number'
 import StringSchema from './string'
@@ -10,7 +9,6 @@ import ArraySchema from './array'
 import RecordSchema from './record'
 import UnionSchema from './union'
 import TupleSchema from './tuple'
-import NullSchema from './null'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -32,9 +30,7 @@ for (const [key, SchemaType, ...args] of [
         new ShapeSchema({ x: new NumberSchema() }),
         new ShapeSchema({ y: new NumberSchema() })
     ],
-    ['or', UnionSchema, new NumberSchema(), new StringSchema()],
-    ['null', NullSchema],
-    ['undefined', UndefinedSchema]
+    ['or', UnionSchema, new NumberSchema(), new StringSchema()]
 
 ] as const) {
 

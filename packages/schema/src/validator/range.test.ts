@@ -63,6 +63,7 @@ describe('binary comparators', () => {
 })
 
 it('handles an error configuration', () => {
+
     const belowZero = new RangeValidator({
         value: 0,
         comparator: '<',

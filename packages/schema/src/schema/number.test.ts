@@ -17,12 +17,12 @@ describe('validate()', () => {
 
     it('does not allow NaN', () => {
         expect(() => $number.validate(NaN))
-            .toThrow('NaN is not number')
+            .toThrow('must be a number')
     })
 
     it('does not allow Infinity', () => {
         expect(() => $number.validate('NaN'))
-            .toThrow('NaN is not number')
+            .toThrow('must be a number')
     })
 
     it('casts strings to numbers', () => {

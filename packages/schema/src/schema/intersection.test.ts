@@ -24,13 +24,13 @@ describe('validate()', () => {
         expectValidationError(() => $vector.validate('ace'))
             .toHaveProperty(
                 'message',
-                'ace is not object'
+                'must be an object'
             )
 
         const expectError = expectValidationError(() => $vector.validate({ x: 'One', y: 1 }))
         expectError.toHaveProperty(
             'message',
-            'One is not number'
+            'must be a number'
         )
         expectError.toHaveProperty(
             'path',

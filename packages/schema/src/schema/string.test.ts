@@ -9,7 +9,7 @@ describe('validate()', () => {
             .toEqual('hello')
 
         expect(() => $string.validate(true))
-            .toThrow('true is not string')
+            .toThrow('must be a string')
     })
 
     it('casts numbers to strings', () => {

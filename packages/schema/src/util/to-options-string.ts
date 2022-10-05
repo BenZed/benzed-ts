@@ -2,7 +2,7 @@
 /*** Main ***/
 
 function toOptionsString(
-    input: readonly (string | number | boolean)[]
+    input: readonly (string | number | boolean | null | undefined)[]
 ): string {
 
     const [last, ...first] = [...input].reverse()

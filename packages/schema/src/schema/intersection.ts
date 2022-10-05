@@ -30,8 +30,8 @@ class IntersectionSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator<O>({
-        name: 'intersection',
-        error: value => `${value} is not object`,
+        name: 'object',
+        article: 'an',
         is: isObject as (input: unknown) => input is O
     })
 

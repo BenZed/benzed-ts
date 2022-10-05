@@ -33,13 +33,13 @@ describe('validate()', () => {
             .toEqual({ x: 0, y: 0 })
 
         expect(() => $vector2.validate(false))
-            .toThrow('false is not object')
+            .toThrow('must be an object')
     })
 
     it('validates children', () => {
         const expectError = expectValidationError(() => $vector2.validate({ x: 0, y: 'One' }))
         expectError.toHaveProperty('path', ['y'])
-        expectError.toHaveProperty('message', 'One is not number')
+        expectError.toHaveProperty('message', 'must be a number')
     })
 
     it('validates nested children', () => {

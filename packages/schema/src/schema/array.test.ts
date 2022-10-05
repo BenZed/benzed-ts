@@ -25,7 +25,7 @@ describe('validate()', () => {
     it('validates children', () => {
         const expectError = expectValidationError(() => $buffer.validate([0, 'One', 2]))
         expectError.toHaveProperty('path', [1])
-        expectError.toHaveProperty('message', 'One is not number')
+        expectError.toHaveProperty('message', 'must be a number')
     })
 
     it('validates nested children', () => {

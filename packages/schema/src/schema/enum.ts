@@ -14,7 +14,7 @@ import { TypeValidator } from '../validator/type'
 
 /*** Type ***/
 
-type EnumSchemaInput = readonly (string | number | boolean)[]
+type EnumSchemaInput = readonly (string | number | boolean | null | undefined)[]
 
 type EnumSchemaOutput<I extends EnumSchemaInput> = I[number]
 

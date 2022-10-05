@@ -42,8 +42,6 @@ import {
 import StringSchema from './string'
 import NumberSchema from './number'
 import BooleanSchema from './boolean'
-import NullSchema from './null'
-import UndefinedSchema from './undefined'
 
 import {
     isBoolean,
@@ -114,8 +112,8 @@ interface SchemaInterface {
     string(def?: string): StringSchema
     boolean(def?: boolean): BooleanSchema
     date(def?: Date): DateSchema
-    null(): NullSchema
-    undefined(): UndefinedSchema
+    null(): EnumSchema<[null], null>
+    undefined(): EnumSchema<[undefined], undefined>
     
     unknown(): UnknownSchema
 
@@ -182,12 +180,10 @@ function createSchemaInterface(): SchemaInterface {
     $.date = (def?: Date) => new DateSchema(def)
     $.object = (def?: object) => new RecordSchema([new UnknownSchema(def)])
 
-    $.unknown = (def?: unknown) => new UnknownSchema(def)
-
-    $.null = () => new NullSchema()
-    $.undefined = () => new UndefinedSchema()
-
     $.enum = (...values) => new EnumSchema(values)
+    $.null = () => new EnumSchema([null])
+    $.undefined = () => new EnumSchema([undefined])
+    $.unknown = (def?: unknown) => new UnknownSchema(def)
 
     return $
 }

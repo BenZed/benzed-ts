@@ -4,7 +4,7 @@ import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasOptional } from './flags'
 
 import Schema from './schema'
-import NullSchema from './null'
+import EnumSchema from './enum'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],
@@ -13,8 +13,8 @@ for (const [Flag, getFlagKey, addFlagKey] of [
 
     describe(`Flags.${Flags[Flag]}`, () => {
 
-        const schemaWithFlag = new NullSchema(null, Flag)
-        const schemaWithoutFlag = new NullSchema()
+        const schemaWithFlag = new EnumSchema([null], Flag)
+        const schemaWithoutFlag = new EnumSchema([null])
 
         describe(`.${getFlagKey}`, () => {
 
@@ -42,7 +42,7 @@ for (const [Flag, getFlagKey, addFlagKey] of [
                 })
 
             it('instance is of extended class', () => {
-                expect(schemaWithFlag).toBeInstanceOf(NullSchema)
+                expect(schemaWithFlag).toBeInstanceOf(EnumSchema)
             })
 
             it('cannot be called on instances with flag', () => {
@@ -93,7 +93,7 @@ describe('assert() method', () => {
     it('assert() throws if type is incorrect', () => {
 
         expect(() => fooSchema.assert(''))
-            .toThrow('is not foo')
+            .toThrow('must be foo')
 
         expect(() => fooSchema.assert('foo'))
             .not
@@ -101,7 +101,7 @@ describe('assert() method', () => {
     })
 
     it('works when dangling this context', () => {
-        expect(() => ['bar'].forEach(fooSchema.assert)).toThrow('bar is not foo')
+        expect(() => ['bar'].forEach(fooSchema.assert)).toThrow('must be foo')
     })
 
 })
@@ -120,13 +120,14 @@ describe('validate() method', () => {
 
     it('throws if type cannot be cast', () => {
         expect(() => fooSchema.validate(1))
-            .toThrow('1 is not foo')
+            .toThrow('must be foo')
     })
 
     it('considers optional properties', () => {
-        expect(() => fooSchema.optional().validate(undefined))
-            .not
-            .toThrow()
+        expect(() => fooSchema
+            .optional() 
+            .validate(undefined)
+        ).not.toThrow()
     })
 
     it('works when dangling this context', () => {
@@ -152,7 +153,7 @@ describe('default() method', () => {
 
     it('instances a new schema with a different default setting', () => {
         expect(() => fooSchema.validate(undefined))
-            .toThrow('undefined is not foo')
+            .toThrow('is required')
 
         expect(fooSchemaWithDefault.validate(undefined))
             .toEqual('foo')
@@ -164,7 +165,10 @@ describe('error() method', () => {
     const fooSchemaWithError = fooSchema.error('you fucked up')
 
     it('instances a new schema with a different type error setting', () => {
-        expect(() => fooSchemaWithError.validate(undefined)).toThrow('you fucked up')
+        expect(() => 
+            fooSchemaWithError
+                .validate(100)
+        ).toThrow('you fucked up')
     })
 })
 
@@ -173,8 +177,8 @@ describe('name() method', () => {
     const fooSchemaWithName = fooSchema.name('bar')
 
     it('instances a new schema with a different type name setting', () => {
-        expect(() => fooSchemaWithName.validate(undefined))
-            .toThrow('undefined is not bar')
+        expect(() => fooSchemaWithName.validate(200))
+            .toThrow('must be bar')
     })
 
 })

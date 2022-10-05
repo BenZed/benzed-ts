@@ -3,6 +3,7 @@ import TypeValidator from './type'
 
 const fooValidator = new TypeValidator<'foo'>({
     name: 'foo',
+    error: 'must be foo',
     is: (input): input is 'foo' => input === 'foo',
 })
 
@@ -19,7 +20,7 @@ it('validates input data', () => {
 
 it('uses name setting in default error', () => {
     expect(() => fooValidator.validate('bar', false))
-        .toThrow('bar is not foo')
+        .toThrow('must be foo')
 })
 
 it('allows error setting', () => {

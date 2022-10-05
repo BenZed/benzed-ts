@@ -25,7 +25,7 @@ describe('validate()', () => {
             }
         }, 'one']))
         expectError.toHaveProperty('path', [0])
-        expectError.toHaveProperty('message', 'object is not string')
+        expectError.toHaveProperty('message', 'must be a string')
     })
 
     it('validates nested children', () => {

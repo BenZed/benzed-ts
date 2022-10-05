@@ -18,13 +18,13 @@ describe('validate()', () => {
             .toEqual({ word: 'definition' })
 
         expect(() => $dict.validate(false))
-            .toThrow('false is not object')
+            .toThrow('must be an object')
     })
 
     it('validates children', () => {
         const expectError = expectValidationError(() => $dict.validate({ power: {} }))
         expectError.toHaveProperty('path', ['power'])
-        expectError.toHaveProperty('message', '[object Object] is not string')
+        expectError.toHaveProperty('message', 'must be a string')
     })
 
     it('validates nested children', () => {

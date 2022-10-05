@@ -25,6 +25,7 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
 
     protected _typeValidator = new TypeValidator({
         name: 'boolean',
+        article: 'a',
         is: isBoolean,
         cast: tryCastToBoolean
     })

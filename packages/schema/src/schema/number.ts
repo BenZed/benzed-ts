@@ -54,6 +54,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
     protected _typeValidator = new TypeValidator({
         name: 'number',
+        article: 'a',
         is: isNumber,
         cast: tryCastToNumber
     })

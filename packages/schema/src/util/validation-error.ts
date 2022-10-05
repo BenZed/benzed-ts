@@ -6,7 +6,8 @@ export default class ValidationError extends Error {
 
     public constructor (
         msgOrFormat: string | ((path: readonly (string | number)[]) => string),
-        public readonly path: readonly (string | number)[]
+        public readonly path: readonly (string | number)[],
+        public readonly value: unknown
     ) {
 
         const message = isFunction(msgOrFormat)
@@ -18,6 +19,8 @@ export default class ValidationError extends Error {
         this.name = 'ValidationError'
 
     }
-
 }
 
+export {
+    ValidationError
+}

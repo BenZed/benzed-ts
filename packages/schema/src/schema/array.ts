@@ -60,6 +60,7 @@ class ArraySchema<
 
     protected _typeValidator = new TypeValidator({
         name: 'array',
+        article: 'an',
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,
         cast: tryCastToArray
     })
