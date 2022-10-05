@@ -45,8 +45,8 @@ const $historyQueryParam = (({ or, string, shape, tuple, number }) => {
     */
 
     const stringOrNumber = or(string(), number())
-    const splice = tuple(stringOrNumber, number()).optional()
-    const revert = stringOrNumber.optional()
+    const splice = tuple(stringOrNumber, number()).optional
+    const revert = stringOrNumber.optional
 
     return shape({ splice, revert }).default({})
 })($)

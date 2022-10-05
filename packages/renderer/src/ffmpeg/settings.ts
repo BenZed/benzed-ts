@@ -42,8 +42,8 @@ export interface VideoSetting {
 }
 
 export const $videoSetting = $.shape({
-    vbr: $.number.optional(),
-    fps: $.number.optional()
+    vbr: $.number.optional,
+    fps: $.number.optional
 })
 
 export interface AudioSetting {
@@ -56,7 +56,7 @@ export interface AudioSetting {
 }
 
 export const $audioSetting = $.shape({
-    abr: $.number.optional()
+    abr: $.number.optional
 })
 
 export type SizeSetting =

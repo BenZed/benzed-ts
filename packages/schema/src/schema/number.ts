@@ -82,11 +82,11 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => NumberSchema<AddFlag<Flags.Optional, F>>
+    /**/ F, never, NumberSchema<AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => NumberSchema<AddFlag<Flags.Mutable, F>>
+    /**/ F, never, NumberSchema<AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => NumberSchema

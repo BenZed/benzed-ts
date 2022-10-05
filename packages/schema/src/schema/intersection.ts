@@ -60,13 +60,13 @@ class IntersectionSchema<
     public override readonly optional!: HasOptional<
     /**/ F,
     /**/ never,
-    /**/ () => IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
+    /**/ IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
     /**/ F,
     /**/ never,
-    /**/ () => IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
+    /**/ IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => IntersectionSchema<I, O>

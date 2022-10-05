@@ -25,12 +25,12 @@ interface RenderMetadata extends Metadata {
 }
 
 const $metaData = $.shape({
-    width: $.number.optional(),
-    height:$.number.optional(),
-    duration: $.number.optional(),
-    format: $.string.optional(),
-    size: $.or($.number, $('N/A')).optional(),
-    frameRate: $.number.optional()
+    width: $.number.optional,
+    height:$.number.optional,
+    duration: $.number.optional,
+    format: $.string.optional,
+    size: $.or($.number, $('N/A')).optional,
+    frameRate: $.number.optional
 })
 
 type GetMetadataOptions = Input

@@ -114,14 +114,14 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     public override readonly optional!: HasOptional<
     /**/ F,
-    /**/ () => never,
-    /**/ () => StringSchema<AddFlag<Flags.Optional, F>>
+    /**/ never,
+    /**/ StringSchema<AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
     /**/ F,
-    /**/ () => never,
-    /**/ () => StringSchema<AddFlag<Flags.Mutable, F>>
+    /**/ never,
+    /**/ StringSchema<AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => StringSchema

@@ -35,11 +35,11 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => BooleanSchema<AddFlag<Flags.Optional, F>>
+    /**/ F, never, BooleanSchema<AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => BooleanSchema<AddFlag<Flags.Mutable, F>>
+    /**/ F, never, BooleanSchema<AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => BooleanSchema

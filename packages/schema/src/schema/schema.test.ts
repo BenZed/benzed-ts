@@ -125,7 +125,7 @@ describe('validate() method', () => {
 
     it('considers optional properties', () => {
         expect(() => fooSchema
-            .optional() 
+            .optional 
             .validate(undefined)
         ).not.toThrow()
     })

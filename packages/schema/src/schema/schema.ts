@@ -100,6 +100,21 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         this.is = this.is.bind(this)
         this.assert = this.assert.bind(this)
         this.validate = this.validate.bind(this)
+
+        Object.defineProperties(this, {
+            optional: {
+                get() {
+                    return this._copyWithFlag(Flags.Optional) 
+                },
+                enumerable: true
+            },
+            mutable: {
+                get() {
+                    return this._copyWithFlag(Flags.Mutable) 
+                },
+                enumerable: true,
+            }
+        })
     }
 
     /*** Data Methods ***/
@@ -149,7 +164,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     /**
      * @returns schema with optional flag
      */
-    public readonly optional = this._copyWithFlag.bind(this, Flags.Optional) as unknown
+    public abstract readonly optional: unknown 
     public get isOptional(): boolean {
         return this._flags.includes(Flags.Optional)
     }
@@ -157,7 +172,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     /**
      * @returns schema with mutable flag 
      */
-    public readonly mutable = this._copyWithFlag.bind(this, Flags.Mutable) as unknown
+    public abstract readonly mutable: unknown 
     public get isMutable(): boolean {
         return this._flags.includes(Flags.Mutable)
     }

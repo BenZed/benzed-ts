@@ -17,11 +17,11 @@ const $vector2 = new ShapeSchema({
 })
 
 const $todo = new ShapeSchema({
-    completed: new BoolSchema().mutable(),
+    completed: new BoolSchema().mutable,
     description: new ShapeSchema({
         content: new StringSchema(),
         deadline: new NumberSchema()
-    }).mutable()
+    }).mutable
 })
 
 // TODO move me

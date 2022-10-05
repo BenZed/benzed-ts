@@ -30,8 +30,8 @@ const $mongoDBConfig = $.shape({
 
     port: $port.default(DEFAULT_MONGODB_PORT),
 
-    user: $.string.optional(),
-    password: $.string.optional(),
+    user: $.string.optional,
+    password: $.string.optional,
 })
 
 /**

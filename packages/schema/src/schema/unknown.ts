@@ -33,11 +33,11 @@ class UnknownSchema<
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => UnknownSchema<AddFlag<Flags.Optional, F>>
+    /**/ F, never, UnknownSchema<AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => UnknownSchema<AddFlag<Flags.Mutable, F>>
+    /**/ F, never, UnknownSchema<AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => UnknownSchema

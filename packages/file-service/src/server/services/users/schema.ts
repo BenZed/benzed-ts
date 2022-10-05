@@ -37,7 +37,7 @@ export const $userCreateData = $({
 
 export type UserPatchData = Infer<typeof $userPatchData>
 export const $userPatchData = $({
-    email: $user.$.email.optional(),
+    email: $user.$.email.optional,
     password: $password
 })
 
@@ -45,8 +45,8 @@ export const $userPatchData = $({
 export type UserQuery = Infer<typeof $userQuery>
 export const $userQuery = $querySyntax({
     _id: $user.$._id,
-    email: $user.$.email.optional(),
-    updated: $user.$.updated.optional(),
-    created: $user.$.created.optional()
+    email: $user.$.email.optional,
+    updated: $user.$.updated.optional,
+    created: $user.$.created.optional
 })
 

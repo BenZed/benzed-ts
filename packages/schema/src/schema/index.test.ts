@@ -72,16 +72,17 @@ describe('shortcut type tests', () => {
         const $boolean = $.boolean
         expectTypeOf<Infer<typeof $boolean>>().toEqualTypeOf<boolean>()
 
-        const $string = $.string.optional()
+        const $string = $.string.optional
+        console.log($string)
         expectTypeOf<Infer<typeof $string>>().toEqualTypeOf<string | undefined>()
     })
 
     it('shapes', () => {
 
         const $vector = $({
-            x: $.number.mutable(),
-            y: $.number.mutable(),
-            z: $.number.optional()
+            x: $.number.mutable,
+            y: $.number.mutable,
+            z: $.number.optional
         })
 
         expectTypeOf<Infer<typeof $vector>>().toEqualTypeOf<{
@@ -95,11 +96,11 @@ describe('shortcut type tests', () => {
     it('nested shapes', () => {
 
         const $todo = $({
-            completed: $.boolean.mutable(),
+            completed: $.boolean.mutable,
             description: $({
                 content: $.string,
                 deadline: $.number
-            }).mutable()
+            }).mutable
         })
 
             type Todo = Infer<typeof $todo>
@@ -115,16 +116,16 @@ describe('shortcut type tests', () => {
 
     it('arrays', () => {
 
-        const $optionalStringArr = $.array($.string).mutable().optional()
+        const $optionalStringArr = $.array($.string).mutable.optional
         expectTypeOf<Infer<typeof $optionalStringArr>>()
             .toEqualTypeOf<string[] | undefined>()
 
-        const $optionalNumArr = $.array($.number.optional())
+        const $optionalNumArr = $.array($.number.optional)
         expectTypeOf<Infer<typeof $optionalNumArr>>()
             .toEqualTypeOf<readonly (number | undefined)[]>()
 
         const $todo = $({
-            complete: $.boolean.mutable(),
+            complete: $.boolean.mutable,
             description: $.string,
         })
 
@@ -139,7 +140,7 @@ describe('shortcut type tests', () => {
         expectTypeOf<Infer<typeof $switches>>()
             .toEqualTypeOf<Readonly<Record<string, boolean>>>()
 
-        const $scores = $.record($.number.mutable())
+        const $scores = $.record($.number.mutable)
         expectTypeOf<Infer<typeof $scores>>()
             .toEqualTypeOf<Record<string, number>>()
     })
@@ -155,7 +156,7 @@ describe('shortcut type tests', () => {
         expectTypeOf<Infer<typeof $range>>()
             .toEqualTypeOf<readonly [number, number]>()
 
-        const $between = $.tuple($.number, $.or($('<'), $('>')), $.number).mutable()
+        const $between = $.tuple($.number, $.or($('<'), $('>')), $.number).mutable
         expectTypeOf<Infer<typeof $between>>()
             .toEqualTypeOf<[number, '<' | '>', number]>()
     })
@@ -171,11 +172,11 @@ describe('shortcut type tests', () => {
 
         const $quaternion = $.and(
             $({
-                x: $.number.mutable(),
-                y: $.number.mutable(),
-                z: $.number.mutable()
+                x: $.number.mutable,
+                y: $.number.mutable,
+                z: $.number.mutable
             }),
-            $({ w: $.number.mutable().optional() })
+            $({ w: $.number.mutable.optional })
         )
 
         expectTypeOf<Infer<typeof $quaternion>>()
@@ -188,9 +189,9 @@ describe('compositing', () => {
 
     it('shape composite type safety', () => {
 
-        const $v2 = $({ x: $.number.mutable(), y: $.number.mutable() })
+        const $v2 = $({ x: $.number.mutable, y: $.number.mutable })
 
-        const $v3 = $({ ...$v2.$, z: $.number.mutable() })
+        const $v3 = $({ ...$v2.$, z: $.number.mutable })
 
         expectTypeOf<Infer<typeof $v3>>()
             .toEqualTypeOf<{ x: number, y: number, z: number }>()

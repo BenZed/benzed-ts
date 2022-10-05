@@ -31,8 +31,8 @@ describe('validate()', () => {
     it('validates nested children', () => {
 
         const $vector = new ShapeSchema({
-            x: new NumberSchema().mutable(),
-            y: new NumberSchema().mutable()
+            x: new NumberSchema().mutable,
+            y: new NumberSchema().mutable
         })
 
         const $edge = new TupleSchema([$vector, $vector] as const)

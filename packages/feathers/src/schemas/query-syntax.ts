@@ -56,7 +56,7 @@ const $querySort = <I extends QueryInput>(
     for (const key in input)
         sortShape[key] = $(1, -1)
 
-    return $.shape(sortShape).optional() as any
+    return $.shape(sortShape).optional as any
 }
 
 const $querySelect = <I extends QueryInput>(
@@ -66,7 +66,7 @@ const $querySelect = <I extends QueryInput>(
         $.enum(
             ...Object.keys(input)
         )
-    ).optional() as any
+    ).optional as any
 
 const $queryProperty = <I extends Queryable>(input: I): 
     Schema<
@@ -77,7 +77,7 @@ const $queryProperty = <I extends Queryable>(input: I):
 
         const inputOptional = input.isOptional 
             ? input 
-            : (input as any).optional()
+            : (input as any).optional
                 
         return $.or(
             input,
@@ -87,10 +87,10 @@ const $queryProperty = <I extends Queryable>(input: I):
                 $lt: inputOptional,
                 $lte: inputOptional,
                 $ne: inputOptional,
-                $in: $.array(input).optional(),
-                $nin: $.array(input).optional()
+                $in: $.array(input).optional,
+                $nin: $.array(input).optional
             })
-        ).optional() as any
+        ).optional as any
     }
 
 const $queryProperties = <I extends QueryInput>(
@@ -111,8 +111,8 @@ const $querySyntax = <I extends QueryInput>(
     ): Schema<I, QuerySyntaxOutput<I>, []> =>
     
     $.shape({
-        $limit: $.number.range('>=', 0).optional(),
-        $skip: $.number.range('>=', 0).optional(),
+        $limit: $.number.range('>=', 0).optional,
+        $skip: $.number.range('>=', 0).optional,
         $sort: $querySort(input),
         $select: $querySelect(input),
         ...($queryProperties(input) as any).properties

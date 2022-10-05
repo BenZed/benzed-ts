@@ -37,7 +37,7 @@ const $videoRenderSetting = $({
     type: $('video' as const),
     ...$videoSetting.$,
     ...$audioSetting.$,
-    size: $sizeSetting.optional()
+    size: $sizeSetting.optional
 
 })
 
@@ -48,8 +48,8 @@ export interface ImageRenderSetting {
 }
 const $imageRenderSetting = $({
     type: $('image' as const),
-    size: $sizeSetting.optional(),
-    time: $timeSetting.optional()
+    size: $sizeSetting.optional,
+    time: $timeSetting.optional
 })
 
 /*** Expots ***/
@@ -69,6 +69,6 @@ export interface RendererConfig {
 }
 
 export const $rendererConfig = $({
-    maxConcurrent: $.number.optional(),
+    maxConcurrent: $.number.optional,
     settings: $.record($renderSetting)
 })

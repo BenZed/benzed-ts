@@ -98,11 +98,11 @@ class TupleSchema<
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Optional, F>>
+    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => TupleSchema<I, O>

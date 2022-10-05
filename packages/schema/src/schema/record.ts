@@ -98,11 +98,11 @@ class RecordSchema<
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Optional, F>>
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => RecordSchema<I, O>

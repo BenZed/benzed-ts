@@ -106,11 +106,11 @@ class ArraySchema<
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, never, () => ArraySchema<I, O, AddFlag<Flags.Optional, F>>
+    /**/ F, never, ArraySchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, never, () => ArraySchema<I, O, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, ArraySchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => ArraySchema<I, O>

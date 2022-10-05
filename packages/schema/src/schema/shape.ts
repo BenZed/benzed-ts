@@ -107,11 +107,11 @@ class ShapeSchema<
     }
 
     public override readonly optional!: HasOptional<
-    /**/ F, () => never, () => ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
+    /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
     public override readonly mutable!: HasMutable<
-    /**/ F, () => never, () => ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
+    /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
     public override readonly clearFlags!: () => ShapeSchema<I, O>
