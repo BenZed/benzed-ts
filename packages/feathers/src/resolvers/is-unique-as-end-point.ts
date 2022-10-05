@@ -6,7 +6,7 @@ import {
 
 import { toEndPoint } from '../util'
 
-import { isUnique } from './util'
+import { isUnique } from './is-unique'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any, 

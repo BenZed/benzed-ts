@@ -37,7 +37,7 @@ export type ResolverConverter<T, C> = (
 ) => Promise<T | undefined>
 
 export interface ResolverConfig<T, C> {
-    schema?: SchemaFor<T>
+    schema?: SchemaFor<Partial<T>>
     validate?: 'before' | 'after' | false
     properties: PropertyResolverMap<T, C>
     converter?: ResolverConverter<T, C>
