@@ -90,8 +90,6 @@ describe('File Service', () => {
                 name: 'data.json'
             }).catch(e => e)
 
-            console.log($fileCreateData.$.size)
-
             expect(err).toBeInstanceOf(Error)
             expect(err.name).toBe(BadRequest.name)
             expect(err.message).toContain('size is required')

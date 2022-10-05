@@ -13,12 +13,12 @@ export type FileServiceConfig = Infer<typeof $fileData>
 export const $fileServiceConfig = $({
     
     fs: $.or(
-        $.null(), 
+        $.null, 
         $.string
     ).name('fs-config'),
 
     s3: $.or(
-        $.null(), 
+        $.null, 
         $awsConfig
     ).name('aws-config')
 
@@ -34,7 +34,7 @@ export const $fileData = $({
     uploader: $ref,
     uploaded: $.boolean,
 
-    size: $.integer().range('>', 0),
+    size: $.integer.range('>', 0),
 
     ext: $.string.format(/^\./, 'must be a file extension'),
     type: $.string,

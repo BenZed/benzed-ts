@@ -11,7 +11,7 @@ import { $ } from '@benzed/schema'
  * Number in port range, 1024 - 65535
  */
 export const $port = $
-    .integer()
+    .integer
     .range(1024, 65535, port => `${port} is not a valid port`)
     .name('port')
 
@@ -25,7 +25,7 @@ export const $id = $.string
 /**
  * Nullable id
  */
-export const $ref = $.or($id, $.null())
+export const $ref = $.or($id, $.null)
     .default(null)
     .name('object-id-ref')
 
@@ -33,6 +33,6 @@ export const $ref = $.or($id, $.null())
  * Pagination object.
  */
 export const $pagination = $({
-    default: $.integer(),
-    max: $.integer()
+    default: $.integer,
+    max: $.integer
 }).name('pagination settings')
