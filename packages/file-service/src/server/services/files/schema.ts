@@ -36,7 +36,7 @@ export const $fileData = $({
 
     size: $.integer().range('>', 0),
 
-    ext: $.string().format(/^\./),
+    ext: $.string().format(/^\./, 'Must be a file extension'),
     mime: $.string(),
 
     created: $.date(),
@@ -54,19 +54,14 @@ export const $file = $({
 
 export type FilePatchData = Infer<typeof $filePatchData>
 export const $filePatchData = $({
-
-    uploaded: $file.$.uploaded
-
+    uploaded: $file.$.uploaded,
 } as const)
 
 export type FileCreateData = Infer<typeof $fileCreateData>
 export const $fileCreateData = $({
-
-    name: $file.$.name,
-
+    name: $file.$.name.format(/\.[a-z]+$/i, 'Must have file extension.'),
     uploader: $file.$.uploader,
-    size: $file.$.size
-
+    size: $file.$.size,
 })
 
 export type FileQuery = Infer<typeof $fileQuery>

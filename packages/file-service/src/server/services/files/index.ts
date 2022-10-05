@@ -1,11 +1,11 @@
 
 import { 
     setupMongoDBService, 
-    MongoDBService, 
-    MongoDBAdapterParams 
+    MongoDBAdapterParams, 
+    MongoDBApplication
 } from '@benzed/feathers'
 
-import type { FileServerApp } from '../../create-file-server-app'
+import { Service } from '@feathersjs/feathers'
 
 import * as fileHooks from './hooks'
 
@@ -17,20 +17,23 @@ import {
 
 /*** Types ***/
 
-type FileService = MongoDBService<File, FileData, FileParams>
 type FileParams = MongoDBAdapterParams<FileQuery>
+type FileService = Service<File, Partial<FileData>, FileParams>
 
 /*** Main ***/
 
 // A configure function that registers the service and its hooks via `app.configure`
-function setupFileService(app: FileServerApp): void {
+function setupFileService<A extends MongoDBApplication>(app: A): void {
+
+    const paginate = app.get('pagination')
 
     const fileService = setupMongoDBService<File, FileData, FileParams>(
         app,
 
         // mongo service options
         { 
-            collection: 'files' 
+            collection: 'files' ,
+            paginate
         },
 
         // feathers service options

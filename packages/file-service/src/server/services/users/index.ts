@@ -9,32 +9,34 @@ import { FileServerApp } from '../../create-file-server-app'
 
 /*** Types ***/
 
-export type UsersParams = MongoDBAdapterParams<UserQuery> & { user?: User }
-
-export type UserService = Service<User, UserData, UsersParams>
+type UserParams = MongoDBAdapterParams<UserQuery> & { user?: User }
+type UserService = Service<User, UserData, UserParams>
 
 /*** Setup ***/
 
 // A configure function that registers the service and its hooks via `app.configure`
-export default function setupUserService(app: FileServerApp): void {
+function setupUserService(app: FileServerApp): void {
 
     const paginate = app.get('pagination')
 
-    const userService = setupMongoDBService<User, UserData, UsersParams>(
+    const userService = setupMongoDBService<User, UserData, UserParams>(
         app,
 
-        // mongo service options
+        // Mongo Service Options
         {
             collection: 'users',
             paginate
         },
 
-        // feathers service options
+        // Feathers Service Options
         {
-            methods: ['find', 'get', 'create', 'update', 'patch', 'remove'],
+
+            methods: ['find', 'get', 'create', 'patch', 'remove'],
+
             // You can add additional custom 
             // events to be sent to clients here
-            events: [],
+            events: []
+
         }
 
     )
@@ -44,6 +46,12 @@ export default function setupUserService(app: FileServerApp): void {
 
 /*** Exports ***/
 
+export default setupUserService
+
+export {
+    UserService,
+    UserParams 
+}
 export * from './hooks'
 export * from './resolvers'
 export * from './schema'
