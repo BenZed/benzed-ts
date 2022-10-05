@@ -64,9 +64,10 @@ class FooSchema<F extends Flags[]> extends Schema<void, 'foo', F> {
     public override readonly optional!: HasOptional<
     /**/ F,
     /**/ never,
-    /**/ () => FooSchema<AddFlag<Flags.Optional, F>>
+    /**/ FooSchema<AddFlag<Flags.Optional, F>>
     >
 
+    public override readonly mutable: unknown
 }
 const fooSchema = new FooSchema()
 
@@ -124,9 +125,12 @@ describe('validate() method', () => {
     })
 
     it('considers optional properties', () => {
-        expect(() => fooSchema
-            .optional 
-            .validate(undefined)
+        expect(() => 
+
+            fooSchema
+                .optional 
+                .validate(undefined)
+
         ).not.toThrow()
     })
 

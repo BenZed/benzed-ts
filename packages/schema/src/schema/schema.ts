@@ -283,7 +283,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return schema
     }
 
-    private _copyWithFlag(flag: Flags): this {
+    protected _copyWithFlag(flag: Flags): this {
         if (this._flags.includes(flag))
             throw new Error(`Schema is already ${Flags[flag]}`)
 

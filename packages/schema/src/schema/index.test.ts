@@ -73,7 +73,6 @@ describe('shortcut type tests', () => {
         expectTypeOf<Infer<typeof $boolean>>().toEqualTypeOf<boolean>()
 
         const $string = $.string.optional
-        console.log($string)
         expectTypeOf<Infer<typeof $string>>().toEqualTypeOf<string | undefined>()
     })
 
