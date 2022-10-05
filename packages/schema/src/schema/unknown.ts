@@ -28,9 +28,8 @@ class UnknownSchema<
         is: isUnknown
     })
 
-    public constructor (defaultValue?: unknown, ...flags: F) {
-        super(defaultValue, ...flags)
-        this._applyDefaultValue(defaultValue)
+    public constructor (...flags: F) {
+        super(undefined, ...flags)
     }
 
     public override readonly optional!: HasOptional<

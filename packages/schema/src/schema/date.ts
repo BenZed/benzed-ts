@@ -36,11 +36,6 @@ function tryCastToDate(value: unknown): unknown {
 
 class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
-    public constructor (defaultValue?: Date, ...flags: F) {
-        super(defaultValue ?? new Date(), ...flags)
-        this._applyDefaultValue(defaultValue)
-    }
-
     protected _typeValidator = new TypeValidator({
         name: 'date',
         article: 'a',
@@ -48,11 +43,11 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
         cast: tryCastToDate
     })
 
-    /*** Chain Schema Methods ***/
-
-    public default(defaultValue: Date): this {
-        return super.default(defaultValue)
+    public constructor (...flags: F) {
+        super( new Date(), ...flags)
     }
+
+    /*** Chain Schema Methods ***/
 
     public range(...input: RangeValidatorSettingsShortcut<Date>): this {
         return this._copyWithPostTypeValidator(

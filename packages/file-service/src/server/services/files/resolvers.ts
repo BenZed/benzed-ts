@@ -1,9 +1,11 @@
+import { basename as baseNameOf, extname as extOf } from 'path'
+import { getType as getMimeType } from 'mime'
+
 import { resolve, timestamp } from '@benzed/feathers'
 
 import {
 
     // FileData,
-    FilePatchData,
     File,
     FileQuery,
 
@@ -12,33 +14,34 @@ import {
     $filePatchData,
     $fileQuery,
     $fileCreateData,
-    FileCreateData,
     FileData,
 
 } from './schema'
 
 import type { FileServerHookContext } from '../../create-file-server-app'
 import type { FileService } from './index'
-import { basename as nameOf, extname as extOf } from 'path'
-import mime from 'mime'
 
 /*
     eslint-disable require-await
 */
 
+/*** Constants ***/
+
 const DEFAULT_MIME_TYPE = 'application/octet-stream'
 
-// this is only here to shut ts up about it
+/*** Types ***/
 
 type FileServiceHookContext = FileServerHookContext<FileService>
 
-// Resolver for the basic data model (e.g. creating new entries)
+/*** Exports ***/
 
 export const filePatchResolver = resolve<File, FileServiceHookContext>({
     schema: $filePatchData,
     validate: 'before',
     properties: {
+
         updated: timestamp
+
     }
 })
 
@@ -46,20 +49,21 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
     schema: $fileCreateData,
     validate: 'before',
     properties: {
+
         updated: timestamp,
         created: timestamp,
+
         uploaded: async () => false,
 
-        // name without extension
-        name: async (value) => value && nameOf(value, extOf(value)),
+        // name without ext
+        name: async (fileName) => fileName && baseNameOf(fileName, extOf(fileName)),
 
-        // extension from name
+        // ext from name
         ext: async (_, file) => extOf(file.name),
 
-        // mime type from extension
-        mime: async (_, file) => mime.getType(nameOf(file.name)) ?? DEFAULT_MIME_TYPE,
+        // mime type from ext
+        type: async (_, file) => getMimeType(baseNameOf(file.name)) ?? DEFAULT_MIME_TYPE
 
-        urls: async (_) => ['go']
     }
 })
 
@@ -91,7 +95,7 @@ export const fileQueryResolver = resolve<FileQuery, FileServiceHookContext>({
 })
 
 // Export all resolvers in a format that can be used with the resolveAll hook
-const filesResolvers = {
+const fileResolveAll = {
     result: fileResolver,
     dispatch: fileDispatchResolver,
     data: {
@@ -102,4 +106,4 @@ const filesResolvers = {
     query: fileQueryResolver
 }
 
-export default filesResolvers
+export default fileResolveAll

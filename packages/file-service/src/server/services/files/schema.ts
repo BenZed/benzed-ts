@@ -14,13 +14,13 @@ export const $fileServiceConfig = $({
     
     fs: $.or(
         $.null(), 
-        $.string()
-    ),
+        $.string
+    ).name('fs-config'),
 
     s3: $.or(
         $.null(), 
         $awsConfig
-    )
+    ).name('aws-config')
 
 })
 
@@ -29,26 +29,24 @@ export const $fileServiceConfig = $({
 export type FileData = Infer<typeof $fileData>
 export const $fileData = $({
 
-    name: $.string(),
+    name: $.string,
 
     uploader: $ref,
-    uploaded: $.boolean(),
+    uploaded: $.boolean,
 
     size: $.integer().range('>', 0),
 
-    ext: $.string().format(/^\./, 'Must be a file extension'),
-    mime: $.string(),
+    ext: $.string.format(/^\./, 'must be a file extension'),
+    type: $.string,
 
-    created: $.date(),
-    updated: $.date(),
+    created: $.date,
+    updated: $.date,
 
 })
 
 export type File = Infer<typeof $file>
 export const $file = $({
-
     _id: $id,
-
     ...$fileData.$
 })
 
@@ -59,7 +57,7 @@ export const $filePatchData = $({
 
 export type FileCreateData = Infer<typeof $fileCreateData>
 export const $fileCreateData = $({
-    name: $file.$.name.format(/\.[a-z]+$/i, 'Must have file extension.'),
+    name: $file.$.name.format(/\.[a-z]+$/i, 'must have file extension'),
     uploader: $file.$.uploader,
     size: $file.$.size,
 })

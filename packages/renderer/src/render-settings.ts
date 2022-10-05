@@ -69,6 +69,6 @@ export interface RendererConfig {
 }
 
 export const $rendererConfig = $({
-    maxConcurrent: $.number().optional(),
+    maxConcurrent: $.number.optional(),
     settings: $.record($renderSetting)
 })

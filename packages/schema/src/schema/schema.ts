@@ -320,6 +320,10 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
 abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     extends Schema<I, I, F> {
+
+    public get $identity(): I {
+        return this._input
+    }
 }
 
 /*** Parent Schema ***/

@@ -58,7 +58,7 @@ describe('default()', () => {
 
     it('default constructed object respects nested default values', () => {
 
-        const $count = new TupleSchema([new StringSchema('default')])
+        const $count = new TupleSchema([new StringSchema().default('default')])
 
         expect(
             $count

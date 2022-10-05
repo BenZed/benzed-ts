@@ -45,9 +45,8 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
     /*** Constructor ***/
 
-    public constructor (input?: number, ...flags: F) {
-        super(input ?? 0, ...flags)
-        this._applyDefaultValue(input)
+    public constructor (...flags: F) {
+        super(0, ...flags)
     }
 
     /*** Schema Implementation ***/

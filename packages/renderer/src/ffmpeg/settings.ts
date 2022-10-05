@@ -42,8 +42,8 @@ export interface VideoSetting {
 }
 
 export const $videoSetting = $.shape({
-    vbr: $.number().optional(),
-    fps: $.number().optional()
+    vbr: $.number.optional(),
+    fps: $.number.optional()
 })
 
 export interface AudioSetting {
@@ -56,7 +56,7 @@ export interface AudioSetting {
 }
 
 export const $audioSetting = $.shape({
-    abr: $.number().optional()
+    abr: $.number.optional()
 })
 
 export type SizeSetting =
@@ -77,10 +77,10 @@ export type SizeSetting =
     }
 
 export const $sizeSetting = $.or(
-    $({ height: $.number() }),
-    $({ width: $.number() }),
-    $({ dimensions: $.number() }),
-    $({ scale: $.number() })
+    $({ height: $.number }),
+    $({ width: $.number }),
+    $({ dimensions: $.number }),
+    $({ scale: $.number })
 )
 
 export type TimeSetting = {
@@ -108,6 +108,6 @@ export type TimeSetting = {
 }
 
 export const $timeSetting = $.or(
-    $({ seconds: $.number() }),
-    $({ progress: $.number() })
+    $({ seconds: $.number }),
+    $({ progress: $.number })
 )

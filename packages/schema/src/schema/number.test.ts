@@ -43,17 +43,17 @@ describe('validate()', () => {
 
 describe('default()', () => {
 
-    it('input can be used as default', () => {
-        const $defaultNum = new NumberSchema(1)
-        expect($defaultNum.validate(undefined)).toEqual(1)
-    })
-
     it('default()s to 0', () => {
         expect($number.default().validate(undefined)).toBe(0)
     })
 
     it('respects default setting, if valid', () => {
         expect($number.default(5).validate(undefined)).toEqual(5)
+    })
+
+    it('defaults are respected across copies', () => {
+        expect(() => $number.validate(undefined)).toThrow('is required')
+        expect(() => $number.floor(1).validate(undefined)).toThrow('is required')
     })
 
 })

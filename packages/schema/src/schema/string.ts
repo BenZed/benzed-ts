@@ -56,17 +56,16 @@ function tryCastToString(value: unknown): unknown {
 
 class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
-    public constructor (defaultValue?: string, ...flags: F) {
-        super(defaultValue ?? '', ...flags)
-        this._applyDefaultValue(defaultValue)
-    }
-
     protected _typeValidator = new TypeValidator({
         name: 'string',
         article: 'a',
         is: isString,
         cast: tryCastToString
     })
+
+    public constructor (...flags: F) {
+        super('', ...flags)
+    }
 
     /*** Chain Schema Methods ***/
 

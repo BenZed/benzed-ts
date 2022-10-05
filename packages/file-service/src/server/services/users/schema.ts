@@ -6,21 +6,21 @@ import { $, Infer } from '@benzed/schema'
 /**
  * Password in the database, hashed.
  */
-const $hashedPassword = $.string()
+const $hashedPassword = $.string
 
 /**
  * Password from the user, unhashed
  */
-const $password = $.string().length('>=', 8)
+const $password = $.string.length('>=', 8)
 
 /*** User Schemas ***/
 
 export type UserData = Infer<typeof $userData> 
 export const $userData = $({
-    email: $.string().format('email'),
+    email: $.string.format('email'),
     password: $hashedPassword,
-    created: $.date(),
-    updated: $.date()
+    created: $.date,
+    updated: $.date
 })
 
 export type User = Infer<typeof $user>

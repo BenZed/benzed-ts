@@ -31,11 +31,6 @@ describe('validate()', () => {
 
 describe('default()', () => {
 
-    it('input can be used as default', () => {
-        const $defaultDate = new DateSchema(today)
-        expect($defaultDate.validate(undefined)).toEqual(today)
-    })
-
     it('respects default setting, if valid', () => {
         expect($date.default(today).validate(undefined)).toEqual(today)
     })

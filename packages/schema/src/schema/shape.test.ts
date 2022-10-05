@@ -81,7 +81,7 @@ describe('default()', () => {
     it('default constructed object respects nested default values', () => {
 
         const $count = new ShapeSchema({
-            value: new NumberSchema(10)
+            value: new NumberSchema().default(10)
         })
 
         expect(
@@ -105,7 +105,7 @@ it('properties can be spread into new schemas', () => {
 
     const $vector3 = new ShapeSchema({
         ...$vector2.properties,
-        z: $.number()
+        z: $.number
     })
 
     expect($vector3.validate({ x: 0, y: 0, z: 0 })).toEqual({ x: 0, y: 0, z: 0 })

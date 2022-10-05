@@ -25,13 +25,13 @@ const DEFAULT_MONGODB_PORT = 27017
 
 const $mongoDBConfig = $.shape({
 
-    uri: $.string(),
-    database: $.string(),
+    uri: $.string,
+    database: $.string,
 
     port: $port.default(DEFAULT_MONGODB_PORT),
 
-    user: $.string().optional(),
-    password: $.string().optional(),
+    user: $.string.optional(),
+    password: $.string.optional(),
 })
 
 /**

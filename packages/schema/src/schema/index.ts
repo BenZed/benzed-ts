@@ -107,15 +107,15 @@ interface SchemaInterface {
         ...input: T
     ): IntersectionSchema<T, IntersectionSchemaOutput<T>>
 
-    number(def?: number): NumberSchema
-    integer(def?: number): NumberSchema
-    string(def?: string): StringSchema
-    boolean(def?: boolean): BooleanSchema
-    date(def?: Date): DateSchema
-    null(): EnumSchema<[null], null>
-    undefined(): EnumSchema<[undefined], undefined>
+    number: NumberSchema
+    integer: NumberSchema
+    string: StringSchema
+    boolean: BooleanSchema
+    date: DateSchema
+    null: EnumSchema<[null], null>
+    undefined: EnumSchema<[undefined], undefined>
     
-    unknown(): UnknownSchema
+    unknown: UnknownSchema
 
     object(def?: object): RecordSchema<[UnknownSchema], RecordSchemaOutput<[UnknownSchema]>>
 
@@ -172,18 +172,19 @@ function createSchemaInterface(): SchemaInterface {
     $.or = (...types) => new UnionSchema(types)
     $.and = (...types) => new IntersectionSchema(types)
 
-    $.number = (def?: number) => new NumberSchema(def)
-    $.string = (def?: string) => new StringSchema(def)
-    $.boolean = (def?: boolean) => new BooleanSchema(def)
-    $.integer = (def?: number) => new NumberSchema(def).floor(1, 'Must be an integer')
+    $.number = new NumberSchema()
+    $.string = new StringSchema()
+    $.boolean = new BooleanSchema()
+    $.integer = $.number.floor(1).name('integer')
+    $.date = new DateSchema()
+    $.null = new EnumSchema([null])
+    $.undefined = new EnumSchema([undefined])
+    $.unknown = new UnknownSchema()
 
-    $.date = (def?: Date) => new DateSchema(def)
-    $.object = (def?: object) => new RecordSchema([new UnknownSchema(def)])
+    $.object = (def?: object) => new RecordSchema([$.unknown])
+        .default(def as { [key:string]: unknown })
 
     $.enum = (...values) => new EnumSchema(values)
-    $.null = () => new EnumSchema([null])
-    $.undefined = () => new EnumSchema([undefined])
-    $.unknown = (def?: unknown) => new UnknownSchema(def)
 
     return $
 }

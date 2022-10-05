@@ -1,5 +1,5 @@
 import { BadRequest } from '@feathersjs/errors'
-import { SchemaFor } from '@benzed/schema'
+import { Schema, SchemaFor, ValidationError } from '@benzed/schema'
 
 /*
     This is straight up ripped off from 
@@ -7,15 +7,27 @@ import { SchemaFor } from '@benzed/schema'
 
     So that I don't need to install the feathersjs/schema package, and can instead use
     @benzed/schema.
-
-    Aside from removing some unneccessary await statements and changing some type annotations,
-    it is completely unchanged.
 */
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any, 
     @typescript-eslint/explicit-function-return-type
 */
+
+/*** Helper ***/
+
+function validateSchema(schema: Schema<any,any,any>, value: unknown) {
+    try {
+        return schema.validate(value)
+    } catch (err) {
+
+        const { path, message } = err as ValidationError
+
+        throw new BadRequest(
+            `Validation failed: ${path.join('.')} ${message}`
+        )
+    }
+}
 
 /*** Types ***/
 
@@ -51,6 +63,7 @@ export interface ResolverStatus<T, C> {
 }
 
 export class Resolver<T, C> {
+
     protected readonly _type!: T
 
     public constructor(public options: ResolverConfig<T, C>) {}
@@ -99,7 +112,7 @@ export class Resolver<T, C> {
     ): Promise<T> {
         const { properties: resolvers, schema, validate } = this.options
         const payload = await this.convert(_data, context, status)
-        const data = schema && validate === 'before' ? schema.validate(payload) : payload
+        const data = schema && validate === 'before' ? validateSchema(schema, payload) : payload
         const propertyList = (
             Array.isArray(status?.properties)
                 ? status?.properties
@@ -147,7 +160,7 @@ export class Resolver<T, C> {
             )
         }
 
-        return schema && validate === 'after' ? schema.validate(result) : result
+        return schema && validate === 'after' ? validateSchema(schema, payload) : result
     }
 }
 

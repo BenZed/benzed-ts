@@ -29,11 +29,6 @@ describe('validate()', () => {
 
 describe('default()', () => {
 
-    it('input can be used as default', () => {
-        const $defaultBool = new BooleanSchema(false)
-        expect($defaultBool.validate(undefined)).toEqual(false)
-    })
-
     it('default()s to false', () => {
         expect($bool.default().validate(undefined)).toBe(false)
     })

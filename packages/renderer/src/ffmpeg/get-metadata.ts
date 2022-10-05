@@ -10,7 +10,7 @@ import {
 import { isNaN, isString } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
-import $ from '@benzed/schema/lib'
+import $ from '@benzed/schema'
 
 /*** Type ***/
 
@@ -25,12 +25,12 @@ interface RenderMetadata extends Metadata {
 }
 
 const $metaData = $.shape({
-    width: $.number().optional(),
-    height:$.number().optional(),
-    duration: $.number().optional(),
-    format: $.string().optional(),
-    size: $.or($.number(), $('N/A')).optional(),
-    frameRate: $.number().optional()
+    width: $.number.optional(),
+    height:$.number.optional(),
+    duration: $.number.optional(),
+    format: $.string.optional(),
+    size: $.or($.number, $('N/A')).optional(),
+    frameRate: $.number.optional()
 })
 
 type GetMetadataOptions = Input

@@ -24,7 +24,7 @@ import { $, Infer, SchemaFor } from '@benzed/schema'
 /*** Schemas ***/
 
 const $mongoDBApplicationConfig = $({
-    name: $.string(),
+    name: $.string,
     port: $port,
     db: $mongoDBConfig,
 })
