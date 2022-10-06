@@ -1,18 +1,18 @@
 import type { FileServerApp } from '../create-file-server-app'
 
-import authentication from './authentication'
-import { AuthenticationService } from '@feathersjs/authentication'
+import setupAuthenticationService, { AuthenticationService } from './authentication'
 
-import files, { FileService } from './files'
-import users, { UserService } from './users'
-import render, { RenderService } from './render'
+import setupFileService, { FileService } from './files'
+import setupUserService, { UserService } from './users'
+import setupRenderService, { RenderService } from './render'
 
 export interface FileServices {
 
-    'authentication'?: AuthenticationService
-    'users'?: UserService
+    'authentication': AuthenticationService
 
-    'files/render'?: RenderService
+    'users': UserService
+
+    'files/render': RenderService
     'files': FileService
 
 }
@@ -21,9 +21,30 @@ export interface FileServices {
 
 export default function setupFileServices(app: FileServerApp): void {
 
-    app.configure(authentication)
-    app.configure(users)
-    app.configure(files)
-    app.configure(render)
+    setupUserService(app)
+
+    const auth = setupAuthenticationService(app)
+
+    const render = setupRenderService(
+        {
+            app,
+            path: 'files/render'
+        },
+        app.get('renderer')
+    )
+
+    setupFileService(
+        {
+            app,
+            auth,
+            render,
+            path: 'files'
+        },
+        {
+            pagination: app.get('pagination'),
+            s3: app.get('s3'),
+            fs: app.get('fs')
+        }
+    )
 
 }

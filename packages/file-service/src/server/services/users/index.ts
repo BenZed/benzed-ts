@@ -10,7 +10,7 @@ import { FileServerApp } from '../../create-file-server-app'
 /*** Types ***/
 
 type UserParams = MongoDBAdapterParams<UserQuery> & { user?: User }
-type UserService = Service<User, UserData, UserParams>
+type UserService = Service<User, Partial<UserData>, UserParams>
 
 /*** Setup ***/
 
@@ -19,10 +19,10 @@ function setupUserService(app: FileServerApp): void {
 
     const paginate = app.get('pagination')
 
-    const userService = setupMongoDBService<User, UserData, UserParams>(
+    const userService = setupMongoDBService<User, Partial<UserData>, UserParams>(
         app,
 
-        // Mongo Service Options
+        // MongoDB Service Options
         {
             collection: 'users',
             paginate

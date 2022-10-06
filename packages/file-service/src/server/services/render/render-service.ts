@@ -40,11 +40,13 @@ class RenderService {
             : []
     }
 
-    public create(data: string, params: Params): void {
+    public create(data: any, params: any): any {
+
         /**
          * TODO
          * - create renderer from data or create render request from data? unsure.
          */
+
     }
 
 }

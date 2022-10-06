@@ -1,6 +1,4 @@
 
-import { HookContext } from '@feathersjs/feathers'
-
 /* eslint-disable 
     @typescript-eslint/no-explicit-any, 
     @typescript-eslint/explicit-function-return-type
@@ -11,10 +9,10 @@ import { HookContext } from '@feathersjs/feathers'
  */
 export const timestamp = () => Promise.resolve(new Date())
 
-export const pipeResolvers = <T, R>(
-    ...resolvers: ((value: T | undefined, record: R, context: HookContext) =>
+export const pipeResolvers = <T, R, C>(
+    ...resolvers: ((value: T | undefined, record: R, context: C) =>
     Promise<T | undefined>)[]
-) => async (value: T | undefined, record: R, context: HookContext) => {
+) => async (value: T | undefined, record: R, context: C) => {
 
     for (const resolver of resolvers)
         value = await resolver(value, record, context)

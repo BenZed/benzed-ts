@@ -1,39 +1,61 @@
 
 import { 
     setupMongoDBService, 
-    MongoDBAdapterParams, 
+    MongoDBAdapterParams,
     MongoDBApplication
 } from '@benzed/feathers'
 
-import { Service } from '@feathersjs/feathers'
+import { 
+    FeathersService,
+    Service
+} from '@feathersjs/feathers'
+
+import { AuthenticationService } from '../authentication'
+import { RenderService } from '../render'
 
 import * as fileHooks from './hooks'
 
 import { 
     File,
     FileData,
-    FileQuery
+    FileQuery,
+    FileServiceConfig
 } from './schema'
 
 /*** Types ***/
 
-type FileParams = MongoDBAdapterParams<FileQuery>
+type FileParams = MongoDBAdapterParams<FileQuery> & { user?: { _id: string } }
+
 type FileService = Service<File, Partial<FileData>, FileParams>
+
+type FileServiceRefs<A extends MongoDBApplication> = {
+    app: A
+    auth?: FeathersService<A, AuthenticationService>
+    render?: FeathersService<A, RenderService>
+    path: string
+}
 
 /*** Main ***/
 
 // A configure function that registers the service and its hooks via `app.configure`
-function setupFileService<A extends MongoDBApplication>(app: A): void {
+function addFileService<A extends MongoDBApplication>(
+    
+    refs: FileServiceRefs<A>,
+    config: FileServiceConfig
 
-    const paginate = app.get('pagination')
+): FeathersService<A, FileService> {
 
-    const fileService = setupMongoDBService<File, FileData, FileParams>(
+    const { app, auth, render, path } = refs
+    const { pagination } = config 
+
+    const fileService = setupMongoDBService<File, Partial<FileData>, FileParams>(
         app,
 
         // mongo service options
         { 
-            collection: 'files' ,
-            paginate
+            path: path,
+            collection: path,
+            paginate: pagination
         },
 
         // feathers service options
@@ -46,14 +68,19 @@ function setupFileService<A extends MongoDBApplication>(app: A): void {
     )
 
     fileService.hooks(fileHooks)
+
+    app.log`file service configured`
+
+    return app.service(path)
 }
 
 /*** Exports ***/
 
-export default setupFileService
+export default addFileService
 
 export {
     FileService,
+    FileServiceRefs,
     FileParams 
 }
 

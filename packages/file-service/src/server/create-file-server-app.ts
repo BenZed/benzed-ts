@@ -4,19 +4,19 @@ import {
     MongoDBApplication,
 
     $mongoDBApplicationConfig,
-    $pagination
+    $pagination,
     
 } from '@benzed/feathers'
 
 import $, { Infer } from '@benzed/schema'
 
-import { $rendererConfig } from '@benzed/renderer'
 import { HookContext } from '@feathersjs/feathers'
 
 import services, { FileServices } from './services'
 import middleware from './middleware'
 
 import { $fileServiceConfig } from './schemas'
+import { $rendererConfig } from '@benzed/renderer/lib'
 
 /*** Types ***/
 

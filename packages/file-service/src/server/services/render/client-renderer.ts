@@ -4,12 +4,11 @@ import { feathers, Application } from '@feathersjs/feathers'
 import feathersSocketio from '@feathersjs/socketio-client'
 
 import socketio from 'socket.io-client'
-
-import type { FileServices } from '../index'
+import { FileService } from '../files'
 
 /*** Types ***/
 
-type ClientRenderer = Application<FileServices, { renderer: Renderer | null }>
+type ClientRenderer = Application<{ files: FileService }, { renderer: Renderer | null }>
 
 /*** Helper ***/
 
@@ -35,6 +34,7 @@ function setupHandlers(client: ClientRenderer): void {
      *      - convert file
      *      - upload converted file back to server
      */
+
     void client
 }
 

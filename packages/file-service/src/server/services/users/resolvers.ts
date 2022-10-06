@@ -3,33 +3,33 @@ import { passwordHash } from '@feathersjs/authentication-local'
 
 import {
 
-    UserData,
     UserPatchData,
     User,
     UserQuery,
 
     $user,
-    $userData,
     $userPatchData,
     $userQuery,
+    UseCreateData,
+    $userCreateData,
 
 } from './schema'
 
 import { FileServerHookContext } from '../../create-file-server-app'
 import { UserService } from './index'
 
-// this is only here to shut ts up about it
+/*
+    eslint-disable require-await
+*/
 
 type UserServiceHookContext = FileServerHookContext<UserService>
 
 // Resolver for the basic data model (e.g. creating new entries)
-export const userDataResolver = resolve<UserData, UserServiceHookContext>({
-    schema: $userData,
+export const userCreateResolver = resolve<UseCreateData, UserServiceHookContext>({
+    schema: $userCreateData,
     validate: 'before',
     properties: {
-
         password: passwordHash({ strategy: 'local' })
-
     }
 })
 
@@ -49,7 +49,7 @@ export const userResolver = resolve<User, UserServiceHookContext>({
     schema: $user,
     validate: false,
     properties: {
-
+        _id: async id => id?.toString()
     }
 })
 
@@ -58,9 +58,9 @@ export const userDispatchResolver = resolve<User, UserServiceHookContext>({
     schema: $user,
     validate: false,
     properties: {
-
+        ...userResolver.options.properties,
         // The password should never be visible externally
-        password: () => Promise.resolve('')
+        password: async () => ''
 
     }
 })
@@ -73,12 +73,7 @@ export const userQueryResolver = resolve<UserQuery, UserServiceHookContext>({
 
         // If there is a user (e.g. with authentication), 
         // they are only allowed to see their own data
-        _id: (value, _user, context) => {
-            if (context.params.user)
-                return Promise.resolve(context.params.user._id)
-
-            return Promise.resolve(value)
-        }
+        _id: async (value, _user, context) => context.params.user?._id ?? value
 
     }
 })
@@ -88,8 +83,8 @@ const usersResolvers = {
     result: userResolver,
     dispatch: userDispatchResolver,
     data: {
-        create: userDataResolver,
-        update: userDataResolver,
+        create: userCreateResolver,
+        update: userCreateResolver,
         patch: userPatchResolver
     },
     query: userQueryResolver

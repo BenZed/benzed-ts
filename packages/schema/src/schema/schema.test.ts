@@ -185,4 +185,9 @@ describe('name() method', () => {
             .toThrow('must be bar')
     })
 
+    it('has optional article property', () => {
+        expect(() => fooSchemaWithName.name({ article: 'a'}).validate(200))
+            .toThrow('must be a bar')
+    })
+
 })

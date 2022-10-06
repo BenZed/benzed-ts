@@ -31,7 +31,8 @@ import {
 
 import {
     isInstanceOf,
-    isNumber
+    isNumber,
+    isString
 } from '@benzed/is'
 
 import {
@@ -138,8 +139,13 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     /*** Schema Methods ***/
 
-    public name(name: TypeSetting<O, 'name'>): this {
-        return this._copyWithTypeValidatorSettings({ name })
+    public name(
+        option: TypeSetting<O, 'name'> | Partial<Pick<TypeValidatorSettings<O>, 'name' | 'article'>>
+    ): this {
+
+        const { name, article } = isString(option) ? { name: option, article: undefined } : option
+
+        return this._copyWithTypeValidatorSettings({ name, article })
     }
 
     public cast(cast: TypeSetting<O, 'cast'>): this {

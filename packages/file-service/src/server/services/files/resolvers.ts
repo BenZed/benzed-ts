@@ -1,29 +1,34 @@
+import { 
+    MongoDBApplication, 
+    pipeResolvers, 
+    recordMustExist, 
+    resolve, 
+    timestamp 
+} from '@benzed/feathers'
+
 import { basename as baseNameOf, extname as extOf } from 'path'
 import { getType as getMimeType } from 'mime'
 
-import { resolve, timestamp } from '@benzed/feathers'
-
 import {
 
-    // FileData,
     File,
-    FileQuery,
-
     $file,
-    // $fileData,
-    $filePatchData,
-    $fileQuery,
-    $fileCreateData,
+
     FileData,
+
+    $filePatchData,
+
+    FileQuery,
+    $fileQuery,
+
+    $fileCreateData,
 
 } from './schema'
 
-import type { FileServerHookContext } from '../../create-file-server-app'
 import type { FileService } from './index'
+import { HookContext } from '@feathersjs/feathers/lib'
 
-/*
-    eslint-disable require-await
-*/
+/* eslint-disable require-await */
 
 /*** Constants ***/
 
@@ -31,7 +36,7 @@ const DEFAULT_MIME_TYPE = 'application/octet-stream'
 
 /*** Types ***/
 
-type FileServiceHookContext = FileServerHookContext<FileService>
+type FileServiceHookContext = HookContext<MongoDBApplication, FileService>
 
 /*** Exports ***/
 
@@ -55,6 +60,15 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
 
         uploaded: async () => false,
 
+        uploader: pipeResolvers(
+            
+            // favour authenticated id
+            async (value, _, ctx) => ctx.params.user?._id ?? value ?? null,
+
+            // 
+            recordMustExist('users')
+        ),
+
         // name without ext
         name: async (fileName) => fileName && baseNameOf(fileName, extOf(fileName)),
 
@@ -62,7 +76,7 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
         ext: async (_, file) => extOf(file.name),
 
         // mime type from ext
-        type: async (_, file) => getMimeType(baseNameOf(file.name)) ?? DEFAULT_MIME_TYPE
+        type: async (_, file) => getMimeType(extOf(file.name)) ?? DEFAULT_MIME_TYPE
 
     }
 })

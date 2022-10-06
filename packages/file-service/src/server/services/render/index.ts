@@ -1,18 +1,32 @@
-import type { FileServerApp } from '../../create-file-server-app'
+import { FeathersService } from '@feathersjs/feathers'
+import { MongoDBApplication } from '@benzed/feathers'
+import { RendererConfig } from '@benzed/renderer'
+
 import { RenderService } from './render-service'
+
+/*** Types ***/
+
+interface RenderServiceRefs<A extends MongoDBApplication> {
+    app: A
+    path: string
+}
 
 /*** Main ***/
 
-function setupRenderService(
-    app: FileServerApp
-): void {
+function setupRenderService<A extends MongoDBApplication>(
+    refs: RenderServiceRefs<A>,
+    config: RendererConfig
+): FeathersService<A, RenderService> {
 
-    const renderer = app.get('renderer')
-    const service = new RenderService({ app, ...renderer })
+    const { app, path } = refs
 
-    app.use('files/render', service)
-    app.log`renderer service configured`
+    const service = new RenderService({ app, ...config })
 
+    app.use(path, service)
+    
+    app.log`render service configured`
+
+    return app.service(path) as unknown as FeathersService<A, RenderService> 
 }
 
 /*** Exports ***/

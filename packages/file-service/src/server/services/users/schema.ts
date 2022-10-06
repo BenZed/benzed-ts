@@ -17,6 +17,7 @@ const $password = $.string.length('>=', 8)
 
 export type UserData = Infer<typeof $userData> 
 export const $userData = $({
+    name: $.string.optional,
     email: $.string.format('email'),
     password: $hashedPassword,
     created: $.date,
@@ -38,7 +39,7 @@ export const $userCreateData = $({
 export type UserPatchData = Infer<typeof $userPatchData>
 export const $userPatchData = $({
     email: $user.$.email.optional,
-    password: $password
+    password: $password.optional
 })
 
 // Schema for allowed query properties

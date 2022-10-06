@@ -40,6 +40,7 @@ export const around = {
         authenticate('jwt'),
         resolveAll(fileResolvers)
     ]
+
 }
 
 export const before = {}

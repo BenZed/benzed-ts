@@ -2,3 +2,7 @@
 !lib/**/*
 lib/scripts
 storage
+services/users
+services/authentication*
+services/index*
+create-file-server-app*
