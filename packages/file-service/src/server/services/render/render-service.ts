@@ -3,8 +3,6 @@ import {
     RendererConfig
 } from '@benzed/renderer'
 
-import { Params } from '@feathersjs/feathers'
-
 import { FileServerApp } from '../../create-file-server-app'
 
 /*** Types ***/
@@ -40,6 +38,7 @@ class RenderService {
             : []
     }
 
+    // eslint-disable-next-line
     public create(data: any, params: any): any {
 
         /**

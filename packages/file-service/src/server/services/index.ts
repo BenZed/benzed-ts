@@ -4,7 +4,6 @@ import setupAuthenticationService, { AuthenticationService } from './authenticat
 
 import setupFileService, { FileService } from './files'
 import setupUserService, { UserService } from './users'
-import setupRenderService, { RenderService } from './render'
 
 export interface FileServices {
 
@@ -12,7 +11,6 @@ export interface FileServices {
 
     'users': UserService
 
-    'files/render': RenderService
     'files': FileService
 
 }
@@ -25,19 +23,10 @@ export default function setupFileServices(app: FileServerApp): void {
 
     const auth = setupAuthenticationService(app)
 
-    const render = setupRenderService(
-        {
-            app,
-            path: 'files/render'
-        },
-        app.get('renderer')
-    )
-
     setupFileService(
         {
             app,
             auth,
-            render,
             path: 'files'
         },
         {

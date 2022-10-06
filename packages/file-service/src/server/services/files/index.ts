@@ -1,68 +1,58 @@
 
 import { 
-    setupMongoDBService, 
-    MongoDBAdapterParams,
     MongoDBApplication
 } from '@benzed/feathers'
 
 import { 
-    FeathersService,
-    Service
+    Service,
+    FeathersService
 } from '@feathersjs/feathers'
 
 import { AuthenticationService } from '../authentication'
-import { RenderService } from '../render'
 
 import * as fileHooks from './hooks'
 
-import { 
-    File,
-    FileData,
-    FileQuery,
-    FileServiceConfig
-} from './schema'
+import { File, FileData, FileServiceConfig } from './schema'
+
+import { FileService, FileParams } from './service'
 
 /*** Types ***/
 
-type FileParams = MongoDBAdapterParams<FileQuery> & { user?: { _id: string } }
-
-type FileService = Service<File, Partial<FileData>, FileParams>
-
-type FileServiceRefs<A extends MongoDBApplication> = {
+interface FileServiceRefs<A extends MongoDBApplication> {
     app: A
-    auth?: FeathersService<A, AuthenticationService>
-    render?: FeathersService<A, RenderService>
+    auth: FeathersService<A, AuthenticationService>
     path: string
 }
 
 /*** Main ***/
 
-// A configure function that registers the service and its hooks via `app.configure`
-function addFileService<A extends MongoDBApplication>(
+function setupFileService<A extends MongoDBApplication>(
     
     refs: FileServiceRefs<A>,
     config: FileServiceConfig
 
-): FeathersService<A, FileService> {
+): FeathersService<A, Service<File, Partial<FileData>, FileParams>> {
 
-    const { app, auth, render, path } = refs
-    const { pagination } = config 
+    const { app, auth, path } = refs
+    const { pagination, fs, s3 } = config 
 
-    const fileService = setupMongoDBService<File, Partial<FileData>, FileParams>(
-        app,
+    const fileService = app.use(
 
-        // mongo service options
-        { 
-            path: path,
-            collection: path,
-            paginate: pagination
-        },
+        path, 
+        
+        new FileService({
 
-        // feathers service options
+            auth,
+
+            paginate: pagination,
+            multi: false,
+
+            Model: app.db(path)
+
+        }),
+        
         {
             methods: ['create', 'find', 'get', 'patch', 'remove'],
-
-            // You can add additional custom events to be sent to clients here
             events: []
         }
     )
@@ -76,7 +66,7 @@ function addFileService<A extends MongoDBApplication>(
 
 /*** Exports ***/
 
-export default addFileService
+export default setupFileService
 
 export {
     FileService,

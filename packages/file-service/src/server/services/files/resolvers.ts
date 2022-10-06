@@ -26,7 +26,8 @@ import {
 } from './schema'
 
 import type { FileService } from './index'
-import { HookContext } from '@feathersjs/feathers/lib'
+
+import { HookContext } from '@feathersjs/feathers'
 
 /* eslint-disable require-await */
 
@@ -58,19 +59,17 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
         updated: timestamp,
         created: timestamp,
 
-        uploaded: async () => false,
-
         uploader: pipeResolvers(
             
             // favour authenticated id
-            async (value, _, ctx) => ctx.params.user?._id ?? value ?? null,
+            async (id, _, ctx) => ctx.params.user?._id ?? id ?? null,
 
             // 
             recordMustExist('users')
         ),
 
         // name without ext
-        name: async (fileName) => fileName && baseNameOf(fileName, extOf(fileName)),
+        name: async (fn) => fn && baseNameOf(fn, extOf(fn)),
 
         // ext from name
         ext: async (_, file) => extOf(file.name),

@@ -16,11 +16,11 @@ import services, { FileServices } from './services'
 import middleware from './middleware'
 
 import { $fileServiceConfig } from './schemas'
-import { $rendererConfig } from '@benzed/renderer/lib'
+import { $rendererConfig } from '@benzed/renderer'
 
 /*** Types ***/
 
-type FileServerConfig = Infer<typeof $fileServerConfig>
+interface FileServerConfig extends Infer<typeof $fileServerConfig> {}
 const $fileServerConfig = $({
     
     ...$mongoDBApplicationConfig.$,
@@ -33,10 +33,10 @@ const $fileServerConfig = $({
 
 })
 
-type FileServerApp = MongoDBApplication<FileServices, FileServerConfig>
+interface FileServerApp extends MongoDBApplication<FileServices, FileServerConfig> {}
 
-type FileServerHookContext<S extends FileServices[keyof FileServices]> = 
-    HookContext<FileServerApp, S>
+interface FileServerHookContext<S extends FileServices[keyof FileServices]> extends
+    HookContext<FileServerApp, S> {}
 
 /*** Main ***/
 

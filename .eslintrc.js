@@ -40,6 +40,7 @@ module.exports = {
         '@typescript-eslint/await-thenable': 'error',
         '@typescript-eslint/no-implied-eval': 'error',
         '@typescript-eslint/no-explicit-any': 'error',
+        '@typescript-eslint/no-empty-interface': 'off',
         '@typescript-eslint/unified-signatures': 'error',
         '@typescript-eslint/no-duplicate-imports': 'error',
         '@typescript-eslint/explicit-member-accessibility': 'error',

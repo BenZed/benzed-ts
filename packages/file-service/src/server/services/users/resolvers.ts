@@ -10,7 +10,7 @@ import {
     $user,
     $userPatchData,
     $userQuery,
-    UseCreateData,
+    UserCreateData,
     $userCreateData,
 
 } from './schema'
@@ -25,7 +25,7 @@ import { UserService } from './index'
 type UserServiceHookContext = FileServerHookContext<UserService>
 
 // Resolver for the basic data model (e.g. creating new entries)
-export const userCreateResolver = resolve<UseCreateData, UserServiceHookContext>({
+export const userCreateResolver = resolve<UserCreateData, UserServiceHookContext>({
     schema: $userCreateData,
     validate: 'before',
     properties: {

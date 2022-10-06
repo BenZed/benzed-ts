@@ -37,7 +37,7 @@ const $mongoDBConfig = $.shape({
 /**
  * Items required for mongodb
  */
-type MongoDBConfig = Infer<typeof $mongoDBConfig>
+interface MongoDBConfig extends Infer<typeof $mongoDBConfig> {}
 
 /*** Main ***/
 

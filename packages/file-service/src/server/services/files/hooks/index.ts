@@ -23,7 +23,7 @@ export const around = {
 
     create: [
         authenticate('jwt'),
-        resolveAll(fileResolvers)
+        resolveAll(fileResolvers),
     ],
 
     patch: [

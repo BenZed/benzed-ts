@@ -1,6 +1,6 @@
 import { AuthenticationService, JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { FeathersService } from '@feathersjs/feathers/lib'
+import { FeathersService } from '@feathersjs/feathers'
 
 import type { FileServerApp } from '../create-file-server-app'
 

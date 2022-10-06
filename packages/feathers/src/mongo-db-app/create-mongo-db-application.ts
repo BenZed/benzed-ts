@@ -19,7 +19,9 @@ import { $port } from '../schemas'
 import { createLogger, Logger } from '@benzed/util'
 import { $, Infer, SchemaFor } from '@benzed/schema'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable 
+@typescript-eslint/no-explicit-any
+*/
 
 /*** Schemas ***/
 
@@ -31,7 +33,7 @@ const $mongoDBApplicationConfig = $({
 
 /*** Types ***/
 
-type MongoDBApplicationConfig = Infer<typeof $mongoDBApplicationConfig>
+interface MongoDBApplicationConfig extends Infer<typeof $mongoDBApplicationConfig> {}
 
 type Env = 'test' | 'development' | 'production'
 

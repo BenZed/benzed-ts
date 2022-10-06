@@ -31,7 +31,7 @@ export const $ref = $.or($id, $.null)
 /**
  * Pagination object.
  */
-export type Pagination = Infer<typeof $pagination>
+export interface Pagination extends Infer<typeof $pagination> {}
 export const $pagination = $({
     default: $.integer.range('>', 0),
     max: $.integer.range('>', 0)

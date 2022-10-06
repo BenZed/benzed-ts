@@ -15,7 +15,7 @@ const $password = $.string.length('>=', 8)
 
 /*** User Schemas ***/
 
-export type UserData = Infer<typeof $userData> 
+export interface UserData extends Infer<typeof $userData> {}
 export const $userData = $({
     name: $.string.optional,
     email: $.string.format('email'),
@@ -24,26 +24,26 @@ export const $userData = $({
     updated: $.date
 })
 
-export type User = Infer<typeof $user>
+export interface User extends Infer<typeof $user> {}
 export const $user = $({
     _id: $id,
     ...$userData.$
 })
 
-export type UseCreateData = Infer<typeof $userPatchData>
+export interface UserCreateData extends Infer<typeof $userPatchData> {}
 export const $userCreateData = $({
     email: $user.$.email,
     password: $password
 })
 
-export type UserPatchData = Infer<typeof $userPatchData>
+export interface UserPatchData extends Infer<typeof $userPatchData> {}
 export const $userPatchData = $({
     email: $user.$.email.optional,
     password: $password.optional
 })
 
 // Schema for allowed query properties
-export type UserQuery = Infer<typeof $userQuery>
+export interface UserQuery extends Infer<typeof $userQuery> {}
 export const $userQuery = $querySyntax({
     _id: $user.$._id,
     email: $user.$.email.optional,

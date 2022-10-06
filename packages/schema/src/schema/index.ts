@@ -131,7 +131,8 @@ function isEnumSchemaInput(args: SchemaInterfaceShortcutSignature): args is Enum
     return [...args].every(arg =>
         isString(arg) ||
         isNumber(arg) ||
-        isBoolean(arg)
+        isBoolean(arg) || 
+        arg == null
     )
 }
 

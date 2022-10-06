@@ -51,7 +51,7 @@ const $historyQueryParam = (({ or, string, shape, tuple, number }) => {
     return shape({ splice, revert }).default({})
 })($)
 
-type HistoryQueryParam = Infer<typeof $historyQueryParam>
+interface HistoryQueryParam extends Infer<typeof $historyQueryParam> {}
 
 /*** Constants ***/
 
