@@ -24,7 +24,12 @@ function validateSchema(schema: Schema<any,any,any>, value: unknown) {
         const { path, message } = err as ValidationError
 
         throw new BadRequest(
-            `Validation failed: ${path.join('.')} ${message}`
+            `Validation failed: ${path.join('.')} ${message}`,
+            {
+                data: {
+                    [path.join('.')]: message
+                }
+            }
         )
     }
 }

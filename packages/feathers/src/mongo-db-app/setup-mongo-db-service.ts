@@ -7,14 +7,15 @@ import { MongoDBApplication } from './create-mongo-db-application'
 interface MongoDBServiceOptions extends Omit<MongoDBAdapterOptions, 'Model'> {
 
     /**
+     * Path the service should be registered, uses the collection name if not specified.
+     */
+    path?: string
+         
+    /**
      * Name of the database collection to store documents
      */
     collection: string
 
-    /**
-     * Path the service should be registered, uses the collection name if not specified.
-     */
-    path?: string
 }
 
 /*** Main ***/
@@ -42,7 +43,7 @@ function setupMongoDBService<
 
     mongoApp.use(
         path,
-        service , 
+        service as unknown as Service, 
         feathersServiceOptions
     )
     mongoApp.log`${path} service configured`
