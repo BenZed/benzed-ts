@@ -30,12 +30,11 @@
         "@benzed/schema": "^0.3.0",
         "@benzed/feathers": "^1.0.0",
         "@benzed/renderer": "^0.1.0",
-        "node-localstorage": "^2.2.1",
         "socket.io-client": "^4.5.2",
         "mime": "3.0.0"
     },
     "devDependencies": {
-        "@types/mime": "3.0.1",
+        "@types/mime": "^3.0.1",
         "@types/compression": "^1.7.2"
     }
 }

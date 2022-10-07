@@ -24,16 +24,13 @@ export default function setupFileServices(app: FileServerApp): void {
     const auth = setupAuthenticationService(app)
 
     setupFileService(
+        app,
+        auth,
         {
-            app,
-            auth,
-            path: 'files'
-        },
-        {
+            path: '/files',
             pagination: app.get('pagination'),
             s3: app.get('s3'),
             fs: app.get('fs')
         }
     )
-
 }

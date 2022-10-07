@@ -38,9 +38,7 @@ export const userPatchResolver = resolve<UserPatchData, UserServiceHookContext>(
     schema: $userPatchData,
     validate: 'before',
     properties: {
-
         password: passwordHash({ strategy: 'local' })
-
     }
 })
 
@@ -58,7 +56,7 @@ export const userDispatchResolver = resolve<User, UserServiceHookContext>({
     schema: $user,
     validate: false,
     properties: {
-        ...userResolver.options.properties,
+        _id: async id => id?.toString(),
         // The password should never be visible externally
         password: async () => ''
 

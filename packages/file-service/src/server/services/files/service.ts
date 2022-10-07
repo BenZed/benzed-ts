@@ -1,29 +1,24 @@
-import { first, wrap } from '@benzed/array'
-import { isArray } from '@benzed/is'
 
-import { FeathersService } from '@feathersjs/feathers'
-import { MongoDBAdapterOptions } from '@feathersjs/mongodb'
+import { first, wrap } from '@benzed/array'
+import { isArray, isNumber } from '@benzed/is'
+import { ceil } from '@benzed/math'
 
 import { 
     MongoDBAdapterParams, 
-    MongoDBApplication, 
     MongoDBService 
 } from '@benzed/feathers'
 
-import { AuthenticationService } from '../authentication'
-import { FileData, File, FileQuery } from './schema'
+import { MongoDBAdapterOptions } from '@feathersjs/mongodb'
+import { BadRequest } from '@feathersjs/errors'
+
+import { FileData, File, FileQuery, FileServiceConfig, FilePayload } from './schema'
+import { MAX_UPLOAD_PART_SIZE, UPLOAD_QUERY_PARAM } from './constants'
 
 /*** Types ***/
 
 interface FileParams extends MongoDBAdapterParams<FileQuery> { 
 
     user?: { _id: string } 
-
-}
-
-interface FileServiceSettings extends MongoDBAdapterOptions {
-
-    auth: FeathersService<MongoDBApplication, AuthenticationService>
 
 }
 
@@ -37,44 +32,111 @@ interface SignedFile extends File {
 
 }
 
-/*** Main ***/
+interface FileServiceSettings extends MongoDBAdapterOptions {
 
-class FileService extends MongoDBService<File, FileData, FileParams> {
+    path: FileServiceConfig['path']
+    sign: (payload: FilePayload) => string | Promise<string>
 
-    private readonly _auth: FileServiceSettings['auth']
+}
 
-    public constructor({ auth, ...settings }: FileServiceSettings) {
-        super(settings)
-        this._auth = auth
+/*** Helper ***/
+
+function* eachFilePart(
+    file: File | number
+): Generator<{ readonly index: number, readonly total: number }> {
+
+    const size = isNumber(file) ? file : file.size
+
+    const part = {
+        index: 0,
+        total: ceil(size / MAX_UPLOAD_PART_SIZE)
     }
 
-    public override async create( data: FileData, params?: FileParams ): Promise<SignedFile>
-    public override async create( data: FileData[], params?: FileParams ): Promise<SignedFile[]>
+    for (part.index = 0; part.index < part.total; part.index++) 
+        yield part
+}
+
+/*** Main ***/
+
+class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
+
+    private readonly _path: FileServiceSettings['path']
+    private readonly _sign: FileServiceSettings['sign']
+
+    public constructor({ path, sign, ...settings }: FileServiceSettings) {
+        super(settings)
+        this._path = path
+        this._sign = sign
+    }
+
     public override async create( 
-        data: FileData | FileData[], 
+        data: Partial<FileData>, 
+        params?: FileParams 
+    ): Promise<SignedFile>
+
+    public override async create( 
+        data: Partial<FileData>[], 
+        params?: FileParams 
+    ): Promise<SignedFile[]>
+
+    public override async create( 
+        data: Partial<FileData> | Partial<FileData>[], 
         params?: FileParams
     ): Promise<SignedFile | SignedFile[]> {
 
-        const results: SignedFile[] = []
+        const signedFiles: SignedFile[] = []
 
-        for (const datum of wrap(data)) {
+        const files = wrap(
+            await super._create(data, params)
+        )
+
+        for (const file of files) {
             
-            const file = await super.create(datum, params)
-
-            // Add Shit here
-            const urls = {
-                uploadParts: [],
-                complete: '',
-                local: true
-            }
-
-            results.push({
+            signedFiles.push({
                 ...file,
-                urls
+                urls: await this.createSignedUrls(file)
             })
         }
 
-        return isArray(data) ? first(results) ?? [] : results
+        return isArray(data) ? signedFiles : first(signedFiles) as SignedFile
+    }
+
+    public async createSignedUrls(file: File): Promise<SignedFile['urls']> {
+
+        return {
+            uploadParts: await this._createUploadPartUrls(file),
+            complete: await this._createUrl(file, { complete: true }),
+            local: true
+        }
+    }
+
+    // HELPER
+
+    private async _createUploadPartUrls(file: File): Promise<string[]> {
+
+        const partUrls: string[] = []
+
+        for (const { index } of eachFilePart(file)) {
+            partUrls.push(
+                await this._createUrl(file, { part: index })
+            )
+        }
+
+        return partUrls
+    }
+
+    private async _createUrl(file: File, action: FilePayload['action']): Promise<string> {
+
+        if (!file.uploader)
+            throw new BadRequest('Uploader is required.')
+        
+        const payload: FilePayload = {
+            uploader: file.uploader,
+            file: file._id,
+            action
+        }
+        
+        return `${this._path}?${UPLOAD_QUERY_PARAM}=` + await this._sign(payload)
     }
 
 }
@@ -84,6 +146,10 @@ class FileService extends MongoDBService<File, FileData, FileParams> {
 export default FileService
 
 export {
+    SignedFile,
+
     FileService,
+    FileServiceSettings,
+
     FileParams
 }

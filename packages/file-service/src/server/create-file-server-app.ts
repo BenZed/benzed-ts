@@ -25,7 +25,8 @@ const $fileServerConfig = $({
     
     ...$mongoDBApplicationConfig.$,
 
-    ...$fileServiceConfig.$,
+    s3: $fileServiceConfig.$.s3,
+    fs: $fileServiceConfig.$.fs,
 
     pagination: $pagination,
     renderer: $rendererConfig,

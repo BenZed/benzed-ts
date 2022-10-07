@@ -1,3 +1,6 @@
+import { basename as baseNameOf, extname as extOf } from 'path'
+import { getType as getMimeType } from 'mime'
+
 import { 
     MongoDBApplication, 
     pipeResolvers, 
@@ -5,9 +8,6 @@ import {
     resolve, 
     timestamp 
 } from '@benzed/feathers'
-
-import { basename as baseNameOf, extname as extOf } from 'path'
-import { getType as getMimeType } from 'mime'
 
 import {
 
@@ -58,6 +58,7 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
 
         updated: timestamp,
         created: timestamp,
+        uploaded: async () => null,
 
         uploader: pipeResolvers(
             
@@ -75,8 +76,9 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
         ext: async (_, file) => extOf(file.name),
 
         // mime type from ext
-        type: async (_, file) => getMimeType(extOf(file.name)) ?? DEFAULT_MIME_TYPE
+        type: async (_, file) => getMimeType(extOf(file.name)) ?? DEFAULT_MIME_TYPE,
 
+        renders: async () => [],
     }
 })
 

@@ -17,8 +17,30 @@ export const $fileServiceConfig = $({
 
     s3: $.or( $awsConfig, $.null ).name('aws-config'),
 
+    path: $.string.format(/\/[a-z]+/),
+
     pagination: $pagination
 
+})
+
+/*** File Payload ***/
+
+export interface FilePayload extends Infer<typeof $filePayload> {}
+export const $filePayload = $({
+    uploader: $id,
+    file: $id,
+    action: $.or(
+        
+        $({ 
+            render: $.string.optional,
+            part: $.number 
+        }), 
+
+        $({ 
+            render: $.string.optional,
+            complete: $(true) 
+        })
+    )
 })
 
 /*** File ***/
@@ -30,7 +52,7 @@ export const $fileData = $({
 
     uploader: $ref,
 
-    ext: $.string.format(/^\.[a-z]+$/i, 'must be a file extension'),
+    ext: $.string.format(/^\.([a-z]|\d)+$/i, 'must be a file extension'),
     type: $.string,
     size: $size,
 
@@ -70,11 +92,9 @@ export const $filePatchData = $({
 export interface FileCreateData extends Infer<typeof $fileCreateData> {}
 export const $fileCreateData = $({
 
-    name: $file.$.name.format(/\.[a-z]+$/i, 'must have file extension'),
-
+    name: $file.$.name.format(/\.([a-z]|\d)+$/i, 'must have file extension'),
     uploader: $file.$.uploader,
-
-    size: $file.$.size
+    size: $file.$.size,
 
 })
 

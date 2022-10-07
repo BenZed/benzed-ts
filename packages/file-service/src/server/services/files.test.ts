@@ -1,66 +1,86 @@
 import mime from 'mime'
+import fs from 'fs'
 import path from 'path'
+
 import createFileServerApp from '../create-file-server-app'
-import { $file, File } from '../schemas'
+import { $file, FileData } from '../schemas'
 
 import { BadRequest } from '@feathersjs/errors'
 import { User } from './users'
 import { ObjectID } from 'bson'
+import { SignedFile } from './files/service'
+import { MAX_UPLOAD_PART_SIZE } from './files/constants'
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore 
+import fetch from 'node-fetch'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */ 
 
 /*** File Service Tests ***/
 
-describe('File Service', () => {
-
-    const fileServer = createFileServerApp()
-    const files = fileServer.service('files')
-    const users = fileServer.service('users')
+const fileServer = createFileServerApp()
+const files = fileServer.service('files')
+const users = fileServer.service('users')
     
-    beforeAll(() => fileServer.start())
+beforeAll(() => fileServer.start())
 
-    let uploader: User
+let uploader: User
+beforeAll(async () => {
+    uploader = await users.create({
+        name: 'Test User',
+        email: 'test@user.com',
+        password: 'password'
+    })
+})
+
+afterAll(() => fileServer.teardown())
+
+it('is registered', () => {
+    expect(files).toBeDefined()
+})
+
+it('uses pagination', async () => {
+
+    const found = await files.find({})
+
+    expect(found).toHaveProperty('total')
+    expect(found).toHaveProperty('skip')
+    expect(found).toHaveProperty('limit')
+})
+
+describe('create', () => {
+
+    const fileName = 'manifest.mov'
+
+    const now = new Date()
+
+    let file: SignedFile
     beforeAll(async () => {
-        uploader = await users.create({
-            name: 'Test User',
-            email: 'test@user.com',
-            password: 'password'
+        file = await files.create({ 
+            name: fileName, 
+            uploader: uploader._id,
+            size: 1024 * 1024 * 22, // 20 mb
         })
     })
 
-    afterAll(() => fileServer.teardown())
-
-    it('is registered', () => {
-        expect(files).toBeDefined()
+    it('does not return an array', () => {
+        expect(file).not.toBeInstanceOf(Array)
     })
 
-    it('uses pagination', async () => {
+    it('creates valid files', () => {
 
-        const found = await files.find({})
+        try {
+            void $file.assert(file)
+        } catch (e) {
+            console.error(e)
+        }
+            
+        expect(() => $file.assert(file)).not.toThrow()
 
-        expect(found).toHaveProperty('total')
-        expect(found).toHaveProperty('skip')
-        expect(found).toHaveProperty('limit')
     })
 
-    describe('create', () => {
-
-        const fileName = 'manifest.txt'
-
-        const now = new Date()
-
-        let file: File
-        beforeAll(async () => {
-            file = await files.create({ 
-                name: fileName, 
-                uploader: uploader._id, 
-                size: 100,
-            })
-        })
-
-        it('creates valid files', () => {
-            expect(() => $file.validate(file))
-                .not
-                .toThrow()
-        })
+    describe('validation', () => {
 
         it('removes extension from name', () => {
             expect(file.name)
@@ -88,7 +108,7 @@ describe('File Service', () => {
         })
 
         it('requires file extension in name', async () => {
-            
+                
             const err = await files.create({
                 name: 'Peach'
             }).catch(e => e)
@@ -141,9 +161,97 @@ describe('File Service', () => {
             const file = await files.create({
                 name: 'data.json',
                 size: 1000
-            }, { user: uploader })
+            }, { 
+                user: uploader
+            })
 
             expect(file.uploader).toEqual(uploader._id)
         })
+
+        it('ignores fields other than "name", "uploader" and "size"', async () => {
+
+            const data: FileData = {
+                name: 'a-long-file-name.mp4',
+                ext: '.notmp4',
+                type: 'application/json',
+                size: 1000,
+                uploader: uploader._id,
+                renders: [{ key: 'not-real', size: -10, rendered: new Date(0) }],
+                created: new Date(0),
+                updated: new Date(0),
+                uploaded: new Date(0)
+            }
+
+            const file = await files.create(data)
+
+            const { name, uploader: uploaderId, size , ...rest } = file 
+
+            expect(name).toEqual(data.name.replace(/\.([a-z]|\d)+$/, ''))
+            expect(uploaderId).toEqual(data.uploader)
+            expect(size).toEqual(data.size)
+
+            for (const key in rest)
+                expect((rest as any)[key]).not.toEqual((data as any)[key])
+        })
     })
+
+    describe('signed urls', () => {
+
+        it('result data includes signed urls', () => {
+            expect(file.urls.local).toBe(true)
+            expect(file.urls.uploadParts).toBeInstanceOf(Array)
+            expect(typeof file.urls.complete).toBe('string')
+        })
+
+        it('one file part for each 10mb chunk', () => {
+            expect(file.urls.uploadParts)
+                .toHaveLength(Math.ceil(file.size / MAX_UPLOAD_PART_SIZE))
+        })
+
+    })
+})
+
+describe('upload', () => {
+
+    it('uploads', async () => {
+
+        const file = await files.create({
+            size: 1024 * 1024 * 40,
+            name: 'New File.mov',
+            uploader: uploader._id
+        })
+
+        const res = await fetch(
+            `http://localhost:${fileServer.get('port')}` + file.urls.uploadParts[0],
+            {
+                method: 'PUT'
+            }
+        )
+
+        console.log(await res.text())
+    })
+
+    it.todo('handles malformed payloads')
+})
+
+describe.only('serving', () => {
+        
+    it('serves files', async () => {
+            
+        const file = await files.create({
+            size: 1024 * 1024 * 40,
+            name: 'New File.mov',
+            uploader: uploader._id
+        })
+
+        const res = await fetch(
+            `http://localhost:${fileServer.get('port')}/files?download=${file._id}`,
+            {
+                method: 'GET'
+            }
+        )
+
+        console.log(await res.json())
+    })
+
 })

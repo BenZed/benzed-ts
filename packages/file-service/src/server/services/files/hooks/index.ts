@@ -1,6 +1,7 @@
 
 import { resolveAll } from '@benzed/feathers'
 import { authenticate } from '@feathersjs/authentication'
+//
 import '@feathersjs/hooks'
 
 import fileResolvers from '../resolvers'
@@ -9,37 +10,22 @@ import fileResolvers from '../resolvers'
 
 export const around = {
 
-    all: [],
-
-    get: [
+    all: [
         authenticate('jwt'),
         resolveAll(fileResolvers)
     ],
 
-    find: [
-        authenticate('jwt'),
-        resolveAll(fileResolvers)
-    ],
+    get: [],
 
-    create: [
-        authenticate('jwt'),
-        resolveAll(fileResolvers),
-    ],
+    find: [],
 
-    patch: [
-        authenticate('jwt'),
-        resolveAll(fileResolvers)
-    ],
+    create: [],
 
-    update: [
-        authenticate('jwt'),
-        resolveAll(fileResolvers)
-    ],
+    patch: [],
 
-    remove: [
-        authenticate('jwt'),
-        resolveAll(fileResolvers)
-    ]
+    update: [],
+
+    remove: []
 
 }
 
