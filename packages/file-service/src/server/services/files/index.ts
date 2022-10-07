@@ -7,11 +7,15 @@ import {
     FeathersService
 } from '@feathersjs/feathers'
 
+import {
+    BadRequest 
+} from '@feathersjs/errors'
+
 import type { AuthenticationService } from '../authentication'
 
 import * as fileHooks from './hooks'
 import { 
-    createFileRoutingMiddleware,
+    createFileHandlingMiddleware,
     FileRoutingMiddlewareSettings 
 } from './middleware/file-routing'
 
@@ -29,9 +33,14 @@ function encodeBase64Payload(payload: FilePayload): string {
 
 function decodeBase64Payload(token: string): FilePayload {
 
-    const stringified = Buffer.from(token, 'base64').toString()
-    const payload = JSON.parse(stringified)
-    return $filePayload.validate(payload)
+    try {
+        const stringified = Buffer.from(token, 'base64').toString()
+        const payload = JSON.parse(stringified)
+        return $filePayload.validate(payload)
+
+    } catch {
+        throw new BadRequest('Invalid payload.')
+    }
 }
 
 function createSignAndVerify(
@@ -44,7 +53,11 @@ function createSignAndVerify(
     return auth 
         ? {
             sign: payload => auth.createAccessToken(payload),
-            verify: token => auth.verifyAccessToken(token).then($filePayload.validate)
+            verify: token => auth.verifyAccessToken(token)
+                .then($filePayload.validate)
+                .catch(() => {
+                    throw new BadRequest('Invalid payload.')
+                })
         } : {
             sign: encodeBase64Payload,
             verify: decodeBase64Payload
@@ -64,6 +77,13 @@ function setupFileService<A extends MongoDBApplication>(
     const { path, pagination, fs, s3 } = config 
 
     const { sign, verify } = createSignAndVerify(auth)
+
+    const fileHandling = createFileHandlingMiddleware({ 
+        verify, 
+        path,
+        fs, 
+        s3 
+    })
 
     app.use(
 
@@ -88,7 +108,7 @@ function setupFileService<A extends MongoDBApplication>(
             events: [],
             koa: {
                 before: [
-                    createFileRoutingMiddleware({ verify, path, fs, s3 })
+                    fileHandling
                 ]
             }
         }

@@ -10,7 +10,15 @@ import { FileService } from '../files'
 
 type ClientRenderer = Application<{ files: FileService }, { renderer: Renderer | null }>
 
+interface ClientUploadOptions {
+
+}
+
 /*** Helper ***/
+
+async function clientUpload(options: ClientUploadOptions): Promise<void> {
+    //
+}
 
 function createFeathersClient(host: string): ClientRenderer {
 
@@ -55,6 +63,8 @@ export default createClientRenderer
 
 export {
     createClientRenderer,
-    ClientRenderer
+    ClientRenderer,
+
+    clientUpload
 }
 

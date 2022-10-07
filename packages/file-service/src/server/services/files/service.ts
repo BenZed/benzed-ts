@@ -91,7 +91,6 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
         )
 
         for (const file of files) {
-            
             signedFiles.push({
                 ...file,
                 urls: await this.createSignedUrls(file)

@@ -6,12 +6,6 @@
         "port": 4250,
         "database": "benzed-file-server"
     },
-    "pagination": {
-        "default": 100,
-        "max": 1000
-    },
-    "fs": null,
-    "s3": null,
     "authentication": {
         "entity": "user",
         "service": "users",
@@ -33,6 +27,12 @@
             "passwordField": "password"
         }
     },
+    "pagination": {
+        "default": 100,
+        "max": 1000
+    },
+    "fs": "./storage/development/files",
+    "s3": null,
     "renderer": {
         "maxConcurrent": 1,
         "settings": {

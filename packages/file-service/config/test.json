@@ -3,5 +3,6 @@
     "port": 3000,
     "db": {
         "port": 3250
-    }
+    },
+    "fs": "./storage/test/files"
 }

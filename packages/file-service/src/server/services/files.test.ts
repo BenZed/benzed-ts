@@ -1,29 +1,33 @@
-import mime from 'mime'
-import fs from 'fs'
+import fs from '@benzed/fs'
 import path from 'path'
+import mime from 'mime'
+import { ObjectId } from 'mongodb'
 
 import createFileServerApp from '../create-file-server-app'
-import { $file, FileData } from '../schemas'
+import { $file, File, FileData } from '../schemas'
 
 import { BadRequest } from '@feathersjs/errors'
+
 import { User } from './users'
-import { ObjectID } from 'bson'
 import { SignedFile } from './files/service'
-import { MAX_UPLOAD_PART_SIZE } from './files/constants'
+import { MAX_UPLOAD_PART_SIZE, PART_DIR_NAME } from './files/constants'
+
+import { TEST_ASSETS } from '../../../../renderer/test-assets'
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore 
 import fetch from 'node-fetch'
+import { min } from '@benzed/array/lib'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */ 
 
 /*** File Service Tests ***/
 
-const fileServer = createFileServerApp()
-const files = fileServer.service('files')
-const users = fileServer.service('users')
+const server = createFileServerApp()
+const files = server.service('files')
+const users = server.service('users')
     
-beforeAll(() => fileServer.start())
+beforeAll(() => server.start())
 
 let uploader: User
 beforeAll(async () => {
@@ -34,14 +38,13 @@ beforeAll(async () => {
     })
 })
 
-afterAll(() => fileServer.teardown())
+afterAll(() => server.teardown())
 
 it('is registered', () => {
     expect(files).toBeDefined()
 })
 
 it('uses pagination', async () => {
-
     const found = await files.find({})
 
     expect(found).toHaveProperty('total')
@@ -142,7 +145,7 @@ describe('create', () => {
 
         it('uploader id must point to an existing user', async () => {
 
-            const badId = new ObjectID().toString()
+            const badId = new ObjectId().toString()
 
             const err = await files.create({
                 name: 'data.json',
@@ -174,9 +177,11 @@ describe('create', () => {
                 name: 'a-long-file-name.mp4',
                 ext: '.notmp4',
                 type: 'application/json',
+
                 size: 1000,
                 uploader: uploader._id,
                 renders: [{ key: 'not-real', size: -10, rendered: new Date(0) }],
+    
                 created: new Date(0),
                 updated: new Date(0),
                 uploaded: new Date(0)
@@ -213,28 +218,134 @@ describe('create', () => {
 
 describe('upload', () => {
 
-    it('uploads', async () => {
+    const createSignedFile = async (
+        localFileUrl: string
+    ): Promise<SignedFile> => {
+
+        const stat = fs.sync.stat(localFileUrl)
 
         const file = await files.create({
-            size: 1024 * 1024 * 40,
-            name: 'New File.mov',
+            size: stat.size,
+            name: path.basename(localFileUrl),
             uploader: uploader._id
         })
 
-        const res = await fetch(
-            `http://localhost:${fileServer.get('port')}` + file.urls.uploadParts[0],
-            {
-                method: 'PUT'
-            }
-        )
+        return file
+    }
 
-        console.log(await res.text())
+    const uploadPart = (
+        partUrl: string, 
+        sourceFileUrl: string,
+        sourceFileSize: number, 
+        partIndex: number
+    ): any => fetch(
+        `http://localhost:${server.get('port')}` + partUrl,
+        {
+            method: 'PUT',
+            body: fs.createReadStream(sourceFileUrl, { 
+                start: partIndex * MAX_UPLOAD_PART_SIZE,
+                end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
+            })
+        }
+    )
+
+    const uploadParts = async (
+        localFileUrl: string,
+        { urls, size }: SignedFile
+    ): Promise<string[]> => {
+
+        const etags: string[] = []
+        for (let i = 0; i < urls.uploadParts.length; i++) {
+
+            const partUrl = urls.uploadParts[i]
+
+            const res = await uploadPart(partUrl, localFileUrl, size, i)
+
+            etags.push(res.headers.get('etag') as string)
+        }
+
+        return etags
+    }
+
+    const output: { 
+        partEtags: string[]
+        signedFile: SignedFile
+        sourceFileUrl: string
+        partNames: string[]
+    }[] = []
+    beforeAll(async () => {
+        for (const sourceFileUrl of Object.values(TEST_ASSETS)) {
+
+            const signedFile = await createSignedFile(sourceFileUrl)
+
+            const partEtags = await uploadParts(sourceFileUrl, signedFile)
+
+            const partNames = fs.sync.readDir(
+                path.join(
+                    server.get('fs') as string, 
+                    signedFile._id, 
+                    PART_DIR_NAME
+                )
+            )
+
+            output.push({ 
+                signedFile, 
+                sourceFileUrl,
+                partEtags, 
+                partNames 
+            })
+        }
     })
 
-    it.todo('handles malformed payloads')
+    for (const out of output) {
+        describe(`${out.signedFile.name} test upload`, () => {
+
+            it('part upload responds with etags', () => {
+                expect(out.partEtags).not.toHaveLength(0)
+            })
+
+            it('creates file parts on the server', () => {
+                expect(out.partNames).not.toHaveLength(0)
+                expect(out.partNames.every(p => p.includes(out.signedFile._id)))
+            })
+
+            it.todo('marking uploads as complete compiles')
+
+        })
+    }
+
+    it('part uploads are idempotent', async () => {
+
+        const { gif } = TEST_ASSETS
+
+        const gifFile = await createSignedFile(gif)
+
+        const etags = await uploadParts(gif, gifFile)
+
+        return expect(uploadParts(gif, gifFile)).resolves.toEqual(etags)
+    })
+
+    it.todo('parts cannot be uploaded once file is completed')
+
+    it.todo('file cannot be completed until all parts are accounted for')
+
+    it.only('handles malformed payloads', async () => {
+
+        const res = await uploadPart(
+            '/files?upload=notasignedurl',
+            TEST_ASSETS.gif, 
+            fs.sync.stat(TEST_ASSETS.gif).size, 
+            0
+        )
+
+        expect(res.status).toEqual(400)
+        expect(res.statusText).toEqual('BadRequest')
+
+    })
+
 })
 
-describe.only('serving', () => {
+describe('serving', () => {
         
     it('serves files', async () => {
             
@@ -245,13 +356,13 @@ describe.only('serving', () => {
         })
 
         const res = await fetch(
-            `http://localhost:${fileServer.get('port')}/files?download=${file._id}`,
+            `http://localhost:${server.get('port')}/files?download=${file._id}`,
             {
                 method: 'GET'
             }
         )
 
-        console.log(await res.json())
+        console.log(await res.text())
     })
 
 })
