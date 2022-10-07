@@ -214,12 +214,10 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
                     validator instanceof DefaultValidator &&
                     // still undefined 
                     output === undefined
-                if (!isUndefinedPostDefaultValidation)
-                    continue
 
-                if (isOptional)
+                if (isUndefinedPostDefaultValidation && isOptional)
                     return output as ApplyOptional<F, O>
-                else 
+                else if (isUndefinedPostDefaultValidation && !isOptional)
                     throw new Error('is required')
 
             } catch ({ message }) {
