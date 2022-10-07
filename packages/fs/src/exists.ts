@@ -1,5 +1,6 @@
 
-import { stat, StatOptions, PathLike } from './overrides'
+import { stat } from './export'
+import { StatOptions, PathLike } from './types'
 
 /*** Main ***/
 
