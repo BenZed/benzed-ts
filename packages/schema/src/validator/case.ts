@@ -1,5 +1,5 @@
 import {
-    AssertTransformEqualValidator,
+    AssertValidTransformValidator,
     ErrorDefault,
     ErrorDefaultAndArgs,
     ErrorSettings
@@ -89,7 +89,7 @@ function toCaseValidatorSettings<C extends Casing>(
 /*** Main ***/
 
 class CaseValidator<C extends Casing>
-    extends AssertTransformEqualValidator<string, CaseValidatorSettings<C>> {
+    extends AssertValidTransformValidator<string, CaseValidatorSettings<C>> {
 
     protected _getErrorDefaultAndArgs(
         input: string

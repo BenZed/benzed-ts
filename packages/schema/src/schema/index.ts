@@ -59,11 +59,17 @@ import {
 import DateSchema from './date'
 import UnknownSchema from './unknown'
 
+import { Compile } from '@benzed/util'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
 
-type SchemaFor<T> = Schema<any, T, any>
+type SchemaFor<T> = Compile<{ 
+    validate: Schema<any,T,any>['validate']
+    assert: Schema<any,T,any>['assert']
+    is: Schema<any,T,any>['is']
+}>
 
 type SchemaInterfaceShortcutSignature =
     [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput
