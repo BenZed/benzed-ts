@@ -1,10 +1,13 @@
 import { isString } from '@benzed/is'
+import { log } from '@benzed/math'
 
 import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasOptional } from './flags'
 
 import Schema from './schema'
 import EnumSchema from './enum'
+import StringSchema from './string'
+import NumberSchema from './number'
 
 for (const [Flag, getFlagKey, addFlagKey] of [
     [Flags.Optional, 'isOptional', 'optional'],
@@ -188,6 +191,44 @@ describe('name() method', () => {
     it('has optional article property', () => {
         expect(() => fooSchemaWithName.name({ article: 'a'}).validate(200))
             .toThrow('must be a bar')
+    })
+
+})
+
+describe('custom validator methods', () => {
+
+    it('.validates() allows the addition of custom validators', () => {
+        
+        const doctorName = new StringSchema().validates(
+            i => i.startsWith('Dr.') ? i : 'Dr. ' + i.trimStart(), 
+            i => `${i} must be a doctor`
+        )
+
+        expect(doctorName.validate('James')).toEqual('Dr. James')
+        expect(() => doctorName.assert('James')).toThrow('James must be a doctor')
+    })
+
+    it('.transforms() allows the addition of custom transformers', () => {
+
+        const exclaim = new StringSchema().transforms(i => i + '!')
+
+        expect(exclaim.validate('Hello?')).toEqual('Hello?!')
+        expect(() => exclaim.assert('Hello?')).not.toThrow()
+        
+    })
+
+    it('.asserts() allows the addition of custom asserters', () => {
+
+        const powerOfTwo = new NumberSchema().asserts(
+            i => log(i) / log(2) % 1 === 0, 
+            'must be a power of 2'
+        )
+
+        expect(powerOfTwo.validate(8))  
+            .toEqual(8)
+
+        expect(() => powerOfTwo.validate(12))
+            .toThrow('must be a power of 2')
     })
 
 })

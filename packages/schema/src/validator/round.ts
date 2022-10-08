@@ -9,7 +9,7 @@ import {
 } from '@benzed/math'
 
 import {
-    AssertTransformEqualValidator,
+    AssertValidTransformValidator,
     ErrorDefaultAndArgs,
     ErrorSettings,
     ErrorDefault
@@ -62,7 +62,7 @@ function toRoundValidatorSettings(
 
 /*** Main ***/
 
-class RoundValidator extends AssertTransformEqualValidator<
+class RoundValidator extends AssertValidTransformValidator<
 /**/ number,
 /**/ RoundValidatorSettings
 > {

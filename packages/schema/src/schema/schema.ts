@@ -39,6 +39,15 @@ import {
     ascending
 } from '@benzed/array'
 
+import {
+    CustomAssert,
+    CustomTransform,
+    CustomValidator, 
+    CustomValidatorSettings, 
+    CustomValidatorSettingsShortcut,
+    toCustomValidatorSettings 
+} from '../validator/custom'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** Types ***/
@@ -46,9 +55,10 @@ import {
 type ApplyMutable<F extends Flags[], O> = HasMutable<F, O, Readonly<O>>
 type ApplyOptional<F extends Flags[], O> = HasOptional<F, O | undefined, O>
 
-type SchemaOutput<S extends Schema<any, any, any>> = S extends Schema<any, infer O, infer F>
-    ? ApplyOptional<F, O>
-    : never
+type SchemaOutput<S extends Schema<any, any, any>> =
+ S extends Schema<any, infer O, infer F>
+     ? ApplyOptional<F, O>
+     : never
 
 type SchemaInput<S extends Schema<any, any, any>> =
     S extends Schema<infer I, any, any> ? I : unknown
@@ -163,12 +173,59 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return newSchema
     }
 
-    public map<O extends Schema<any,any,any>>(map: (i: this) => O): O {
-        return map(this)
+    /**
+     * Adds a custom configurable validator.
+     */
+    public validates(
+        ...input: CustomValidatorSettingsShortcut<O>
+    ): this {
+        return this._copyWithLoosePostTypeValidator(
+            new CustomValidator(
+                toCustomValidatorSettings(input)
+            )
+        )
     }
 
     /**
-     * @returns schema with optional flag
+     * Adds a custom validator that transforms the given input if transformations
+     * are enabled. Does NOT throw. 
+     * 
+     * Shortcut for:
+     * ```ts 
+     *     schema.validates({ transform, isValid: () => true })
+     * ```
+     */
+    public transforms(
+        transform: CustomTransform<O>['transform']
+    ): this {
+        return this.validates({
+            transform,
+            isValid: () => true,
+            error: '' // validator will never throw.
+        })
+    }
+
+    /**
+     * Adds a custom validator that throws if the input being validated does not satisfy
+     * the given predicate.
+     * 
+     * Shortcut for: 
+     * ```ts 
+     *      schema.validates({ isValid, error: i => `${i} is invalid` })
+     * ```
+     */
+    public asserts(
+        isValid: CustomAssert<O>['isValid'],
+        error: CustomValidatorSettings<O>['error'] = i => `${i} is invalid`
+    ): this {
+        return this.validates({
+            isValid,
+            error
+        })
+    }
+
+    /**
+     * get schema with optional flag
      */
     public abstract readonly optional: unknown 
     public get isOptional(): boolean {
@@ -176,7 +233,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     }
 
     /**
-     * @returns schema with mutable flag 
+     * gets schema with mutable flag 
      */
     public abstract readonly mutable: unknown 
     public get isMutable(): boolean {

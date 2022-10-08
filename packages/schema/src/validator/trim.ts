@@ -1,4 +1,4 @@
-import { AssertTransformEqualValidator, ErrorDefaultAndArgs, ErrorSettings } from './validator'
+import { AssertValidTransformValidator, ErrorDefaultAndArgs, ErrorSettings } from './validator'
 
 /*** Main ***/
 
@@ -6,7 +6,7 @@ type TrimValidatorSettings = ErrorSettings<[input: string]>
 
 /*** Main ***/
 
-class TrimValidator extends AssertTransformEqualValidator<string, TrimValidatorSettings> {
+class TrimValidator extends AssertValidTransformValidator<string, TrimValidatorSettings> {
 
     /*** AssertTransformEqualValidator Implementation ***/
 
