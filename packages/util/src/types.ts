@@ -4,7 +4,7 @@
 
 export type Func<A extends any[] = unknown[], V = unknown, T = void> = (this: T, ...args: A) => V
 
-export type TypeGuard<I, O extends I> = (input: I) => input is O
+export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
 export type Json =
     null | string | number | boolean |

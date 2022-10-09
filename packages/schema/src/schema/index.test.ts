@@ -11,6 +11,7 @@ import UnionSchema from './union'
 import TupleSchema from './tuple'
 
 import { expectTypeOf } from 'expect-type'
+import { isSymbol } from '@benzed/is'
 
 /* eslint-disable 
         @typescript-eslint/no-explicit-any
@@ -52,6 +53,29 @@ describe('$() shortcut', () => {
     it('allows tuples', () => {
         const $range = $($.number, $.number)
         expect($range).toBeInstanceOf(TupleSchema)
+    })
+
+    it.todo('allows enums')
+
+    it('allows constructors', () => {
+        class Foo {}
+        class Bar {}
+
+        const foo = new Foo()
+
+        const $foo = $(Foo)
+        
+        expect($foo.validate(foo))
+            .toEqual(foo)
+        
+        expect(() => $foo.validate(new Bar()))
+            .toThrow('must be Foo')
+        
+    })
+
+    it('does not allow Symbol', () => {
+        // @ts-expect-error Symbol is not a constructor
+        $(Symbol)
     })
 
 })
@@ -205,6 +229,20 @@ describe('compositing', () => {
 
         expectTypeOf<Infer<typeof $rangeWithOp>>()
             .toEqualTypeOf<readonly [number, number, '<' | '>' | '==']>()
+    })
+
+})
+
+describe('$.typeOf', () => {
+
+    it('allows typeguards', () => {
+        const $foo = $.typeOf(isSymbol)
+       
+        const symbol = Symbol()
+    
+        expect($foo.validate(symbol)).toEqual(symbol)
+        expect(() => $foo.validate('not a symbol'))
+            .toThrow('must be Symbol')
     })
 
 })

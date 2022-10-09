@@ -44,22 +44,30 @@ import NumberSchema from './number'
 import BooleanSchema from './boolean'
 
 import {
+    Constructor,
     isBoolean,
+    isFunction,
     isInstanceOf,
     isNumber,
     isPlainObject,
-    isString
+    isString,
+    isSymbol
 } from '@benzed/is'
+
+import { 
+    Compile, 
+    TypeGuard 
+} from '@benzed/util'
 
 import {
     EnumSchema,
     EnumSchemaInput,
     EnumSchemaOutput
 } from './enum'
-import DateSchema from './date'
-import UnknownSchema from './unknown'
 
-import { Compile } from '@benzed/util'
+import DateSchema from './date'
+
+import GenericSchema from './generic'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -72,16 +80,34 @@ type SchemaFor<T> = Compile<{
 }>
 
 type SchemaInterfaceShortcutSignature =
-    [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput
+    [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput | [Constructor<unknown>]
 
 type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
-    /**/ T extends TupleSchemaInput
-    /**/ ? TupleSchema<T, TupleSchemaOutput<T>>
-        /**/ : T extends EnumSchemaInput
-        /**/ ? EnumSchema<T, EnumSchemaOutput<T>>
-        /*  */ : T extends [ShapeSchemaInput]
-            /**/ ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
-            /*    */ : never
+     T extends TupleSchemaInput
+         ? TupleSchema<T, TupleSchemaOutput<T>>
+         : T extends EnumSchemaInput
+             ? EnumSchema<T, EnumSchemaOutput<T>>
+             : T extends [ShapeSchemaInput]
+                 ? ShapeSchema<T[0], ShapeSchemaOutput<T[0]>>
+                 : T extends [Constructor<infer O>]
+                     ? GenericSchema<TypeGuard<O>, O>
+                     : never
+
+/*** Convenience Type Defs ***/
+     
+type UndefinedSchema = EnumSchema<[undefined], undefined>
+
+type NullSchema = EnumSchema<[null], null>
+
+type RegExpSchema = GenericSchema<TypeGuard<RegExp>, RegExp>
+
+type SymbolSchema = GenericSchema<TypeGuard<symbol>, symbol>
+
+type ObjectSchema = RecordSchema<[UnknownSchema], RecordSchemaOutput<[UnknownSchema]>>
+
+type UnknownSchema = GenericSchema<TypeGuard<unknown>, unknown> 
+
+/*** Interface ***/
 
 interface SchemaInterface {
 
@@ -118,12 +144,16 @@ interface SchemaInterface {
     string: StringSchema
     boolean: BooleanSchema
     date: DateSchema
-    null: EnumSchema<[null], null>
-    undefined: EnumSchema<[undefined], undefined>
+    null: NullSchema
+    symbol: SymbolSchema
+    regexp: RegExpSchema
+    undefined: UndefinedSchema
     
     unknown: UnknownSchema
 
-    object(def?: object): RecordSchema<[UnknownSchema], RecordSchemaOutput<[UnknownSchema]>>
+    object: ObjectSchema
+    instanceOf<T>(constructor: Constructor<T>): GenericSchema<TypeGuard<T>, T>
+    typeOf<T>(guard: TypeGuard<T>): GenericSchema<TypeGuard<T>, T>
 
     enum<T extends EnumSchemaInput>(
         ...input: T
@@ -152,18 +182,26 @@ function isShapeSchemaInput(args: SchemaInterfaceShortcutSignature): args is [Sh
     return args.length === 1 && isPlainObject(args[0])
 }
 
+function isConstructorInput(
+    args: SchemaInterfaceShortcutSignature
+): args is [Constructor<unknown>] {
+    return args.length === 1 && isFunction(args[0])
+}
+
 function createSchemaInterface(): SchemaInterface {
     const $: SchemaInterface = <T extends SchemaInterfaceShortcutSignature>(
-        ...args: T
+        ...arg: T
     ): SchemaInterfaceShortcutOuput<T> => {
 
-        const schema = isTupleSchemaInput(args)
-            ? new TupleSchema(args)
-            : isEnumSchemaInput(args)
-                ? new EnumSchema(args)
-                : isShapeSchemaInput(args)
-                    ? new ShapeSchema(args[0] as ShapeSchemaInput)
-                    : null
+        const schema = isTupleSchemaInput(arg)
+            ? new TupleSchema(arg)
+            : isEnumSchemaInput(arg)
+                ? new EnumSchema(arg)
+                : isShapeSchemaInput(arg)
+                    ? new ShapeSchema(arg[0] as ShapeSchemaInput)
+                    : isConstructorInput(arg)
+                        ? $.instanceOf(arg[0])
+                        : null
 
         if (!schema)
             throw new Error('Input not recognized.')
@@ -180,18 +218,26 @@ function createSchemaInterface(): SchemaInterface {
     $.and = (...types) => new IntersectionSchema(types)
 
     $.number = new NumberSchema()
+    $.integer = $.number.floor(1).name('integer')
+
     $.string = new StringSchema()
     $.boolean = new BooleanSchema()
-    $.integer = $.number.floor(1).name('integer')
     $.date = new DateSchema()
-    $.null = new EnumSchema([null])
-    $.undefined = new EnumSchema([undefined])
-    $.unknown = new UnknownSchema()
-
-    $.object = (def?: object) => new RecordSchema([$.unknown])
-        .default(def as { [key:string]: unknown })
-
+ 
     $.enum = (...values) => new EnumSchema(values)
+    $.undefined = $.enum(undefined)
+    $.null = $.enum(null)
+
+    $.typeOf = guard => new GenericSchema(guard)
+    $.symbol = $.typeOf(isSymbol).name({ name: 'symbol', article: 'a' })
+    $.unknown = $.typeOf((_): _ is unknown => true)
+
+    $.object = $.record($.unknown)
+
+    $.instanceOf = (constructor) => 
+        $.typeOf((instance): instance is any => instance instanceof constructor)
+            .name(constructor.name)
+    $.regexp = $.instanceOf(RegExp)
 
     return $
 }
