@@ -26,7 +26,12 @@ import { min } from '@benzed/array'
 const server = createFileServerApp()
 const files = server.service('files')
 const users = server.service('users')
-    
+
+const UPLOAD_TEST_ASSETS = {
+    ...TEST_ASSETS,
+    large: path.resolve(server.get('fs') as string, '../large-binary-list.json')
+}
+
 beforeAll(() => server.start())
 
 let uploader: User
@@ -36,6 +41,36 @@ beforeAll(async () => {
         email: 'test@user.com',
         password: 'password'
     })
+})
+
+/**
+ * Create a file larger than the max upload part size to ensure part 
+ */
+beforeAll(async () => {
+
+    const { large } = UPLOAD_TEST_ASSETS
+
+    const binaryList: { index: number, binary: string }[] = []
+
+    let i = 0
+    let size = 0
+    while (size < MAX_UPLOAD_PART_SIZE * 3) {
+        const binaryListItem = { 
+            index: i++, 
+            binary: i.toString(2) 
+        }
+        binaryList.push(binaryListItem)
+        size += JSON.stringify(binaryListItem, null, 4).length + 16 //
+    }
+
+    await fs.appendFile(
+        large,
+        JSON.stringify(
+            binaryList,
+            null, 
+            4
+        )
+    )
 })
 
 afterAll(() => server.teardown())
@@ -164,9 +199,9 @@ describe('create', () => {
             const fakeId = new ObjectId().toString()
 
             const file = await files.create({
+                uploader: fakeId,
                 name: 'data.json',
                 size: 1000,
-                uploader: fakeId
             }, { 
                 user: uploader
             })
@@ -221,6 +256,8 @@ describe('create', () => {
 
 describe('upload', () => {
 
+    const HOST = `http://localhost:${server.get('port')}` 
+
     const createSignedFile = async (
         localFileUrl: string
     ): Promise<SignedFile> => {
@@ -236,21 +273,54 @@ describe('upload', () => {
         return file
     }
 
-    const uploadPart = (
+    const uploadPart = async (
         partUrl: string, 
         sourceFileUrl: string,
         sourceFileSize: number, 
         partIndex: number
-    ): any => fetch(
-        `http://localhost:${server.get('port')}` + partUrl,
-        {
-            method: 'PUT',
-            body: fs.createReadStream(sourceFileUrl, { 
-                start: partIndex * MAX_UPLOAD_PART_SIZE,
-                end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
-            })
-        }
-    )
+    ): Promise<string> => {
+
+        const res = await fetch(
+            HOST + partUrl,
+            {
+                method: 'PUT',
+                body: fs.createReadStream(sourceFileUrl, { 
+                    start: partIndex * MAX_UPLOAD_PART_SIZE,
+                    end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
+                })
+            }
+        )
+
+        const json = await res.json()
+        if (json.code >= 400)
+            throw json
+
+        return res.headers.get('etag') as string
+
+    }
+
+    const uploadComplete = async (
+        completeUrl: string,
+        etags: string[]
+    ): Promise<{ code: number }> => {
+
+        const res = await fetch(
+            HOST + completeUrl,
+            {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: etags
+            }
+        )
+
+        const json = await res.json()
+        if (json.code >= 400)
+            throw json
+
+        return json
+    }
 
     const uploadParts = async (
         localFileUrl: string,
@@ -262,25 +332,25 @@ describe('upload', () => {
 
             const partUrl = urls.uploadParts[i]
 
-            const res = await uploadPart(partUrl, localFileUrl, size, i)
-
-            etags.push(res.headers.get('etag') as string)
+            etags.push(
+                await uploadPart(partUrl, localFileUrl, size, i)
+            ) 
         }
 
         return etags
     }
 
-    const output: { 
+    const uploadData: { 
         partEtags: string[]
         signedFile: SignedFile
         sourceFileUrl: string
         partNames: string[]
     }[] = []
+
     beforeAll(async () => {
-        for (const sourceFileUrl of Object.values(TEST_ASSETS)) {
+        for (const sourceFileUrl of Object.values(UPLOAD_TEST_ASSETS)) {
 
             const signedFile = await createSignedFile(sourceFileUrl)
-
             const partEtags = await uploadParts(sourceFileUrl, signedFile)
 
             const partNames = fs.sync.readDir(
@@ -291,7 +361,9 @@ describe('upload', () => {
                 )
             )
 
-            output.push({ 
+            const lil = await uploadComplete(signedFile.urls.complete, partEtags)
+
+            uploadData.push({ 
                 signedFile, 
                 sourceFileUrl,
                 partEtags, 
@@ -300,49 +372,118 @@ describe('upload', () => {
         }
     })
 
-    for (const out of output) {
-        describe(`${out.signedFile.name} test upload`, () => {
+    for (const testAssetUrl of Object.values(UPLOAD_TEST_ASSETS)) {
+        describe(`${path.basename(testAssetUrl)} test upload`, () => {
+
+            const dir = server.get('fs') as string
+
+            let uploadDatum: typeof uploadData[number]
+            let fsFilePath: string
+            beforeAll(() => {
+                
+                uploadDatum = uploadData.find(o => 
+                    o.sourceFileUrl === testAssetUrl
+                ) as typeof uploadData[number]
+                
+                fsFilePath = path.join(
+                    dir,
+                    uploadDatum.signedFile._id,
+                    uploadDatum.signedFile.name + uploadDatum.signedFile.ext
+                )
+            })
 
             it('part upload responds with etags', () => {
-                expect(out.partEtags).not.toHaveLength(0)
+                expect(uploadDatum.partEtags).not.toHaveLength(0)
             })
 
             it('creates file parts on the server', () => {
-                expect(out.partNames).not.toHaveLength(0)
-                expect(out.partNames.every(p => p.includes(out.signedFile._id)))
+                expect(uploadDatum.partNames).not.toHaveLength(0)
+                expect(uploadDatum.partNames.every(p => p.includes(uploadDatum.signedFile._id)))
             })
 
-            it.todo('marking uploads as complete compiles')
+            it('completing downloads merges them into a single file', async () => {
+                const stat = await fs.stat(fsFilePath)
+
+                // within 100 bytes
+                expect(stat.size / 100).toBeCloseTo(uploadDatum.signedFile.size / 100, 1)
+            })
+
+            it('completing downloads removes the file\'s part folder', () => {
+                expect(
+                    !fs.sync.exists(
+                        path.join(
+                            path.dirname(fsFilePath), 
+                            PART_DIR_NAME
+                        )
+                    )
+                )
+            })
+
+            it('completing download fills file uploaded date', async () => {
+                const file = await server.service('files').get(uploadDatum.signedFile._id)
+                expect(file.uploaded).toBeInstanceOf(Date)
+            })
 
         })
     }
 
     it('part uploads are idempotent', async () => {
-
-        const { gif } = TEST_ASSETS
-
-        const gifFile = await createSignedFile(gif)
-
-        const etags = await uploadParts(gif, gifFile)
-
-        return expect(uploadParts(gif, gifFile)).resolves.toEqual(etags)
+        const { large } = UPLOAD_TEST_ASSETS
+        const largeFile = await createSignedFile(large)
+        const etags = await uploadParts(large, largeFile)
+        return expect(uploadParts(large, largeFile)).resolves.toEqual(etags)
     })
 
-    it.todo('parts cannot be uploaded once file is completed')
+    it('uploads cannot be completed more than once', async () => {
 
-    it.todo('file cannot be completed until all parts are accounted for')
+        const { mp4 } = UPLOAD_TEST_ASSETS
 
-    it.only('handles malformed payloads', async () => {
+        const movie = await createSignedFile(mp4)
+        const etags = await uploadParts(mp4, movie)
+                
+        await uploadComplete(movie.urls.complete, etags)
 
-        const res = await uploadPart(
+        const err = await uploadComplete(movie.urls.complete, etags).catch(e => e)
+        expect(err.name).toBe('BadRequest')
+        expect(err.message).toContain('File upload is already complete')
+    })
+
+    it('parts cannot be uploaded once file is completed', async () => {
+
+        const { gif } = UPLOAD_TEST_ASSETS
+
+        const animation = await createSignedFile(gif)
+        const etags = await uploadParts(gif, animation)
+        await uploadComplete(animation.urls.complete, etags)
+
+        const err = await uploadParts(gif, animation).catch(e => e)
+        expect(err.name).toBe('BadRequest')
+        expect(err.message).toContain('File upload is already complete')
+    })
+
+    it('file cannot be completed until all parts are accounted for', async () => {
+
+        const { large } = UPLOAD_TEST_ASSETS
+        const data = await createSignedFile(large)
+        const etag = await uploadPart(data.urls.uploadParts[0], large, data.size, 0)
+
+        const err = await uploadComplete(data.urls.complete, [etag]).catch(e => e)
+        expect(err.name).toBe('BadRequest')
+        expect(err.message).toContain('File upload is already complete')
+
+    })
+
+    it('handles malformed payloads', async () => {
+
+        const err = await uploadPart(
             '/files?upload=notasignedurl',
-            TEST_ASSETS.gif, 
-            fs.sync.stat(TEST_ASSETS.gif).size, 
+            UPLOAD_TEST_ASSETS.gif, 
+            fs.sync.stat(UPLOAD_TEST_ASSETS.gif).size, 
             0
-        )
+        ).catch(e => e)
 
-        expect(res.status).toEqual(400)
-        expect(res.statusText).toEqual('BadRequest')
+        expect(err.code).toEqual(400)
+        expect(err.name).toEqual('Bad Request')
 
     })
 
@@ -367,5 +508,7 @@ describe('serving', () => {
 
         console.log(await res.text())
     })
+
+    it.todo('file cannot be downloaded until it is complete')
 
 })

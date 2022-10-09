@@ -15,7 +15,7 @@ import serve from './serve'
 
 /*** Types ***/
 
-interface FileRoutingMiddlewareSettings {
+interface FileRoutingSettings {
 
     fs: FileServiceConfig['fs']
     s3: FileServiceConfig['s3']
@@ -43,6 +43,7 @@ function assertFsConfig(
         const stat = fsConfig && fs.sync.stat(fsConfig)
         if (!stat || !stat.isDirectory())
             throw new Error('Not a directory.')
+
     } catch {
         throw new Error(
             `fs configuration invalid: ${fsConfig}`
@@ -52,51 +53,54 @@ function assertFsConfig(
 
 /*** Main ***/
 
-function createFileHandlingMiddleware(
+function fileRouter(
     { 
         verify, 
         path, 
         fs: fsConfig, 
         s3: s3Config 
-    }: FileRoutingMiddlewareSettings
+    }: FileRoutingSettings
 ): Middleware {
 
     void s3Config // TODO check that s3 is valid 
 
     assertFsConfig(fsConfig)
 
-    return async (ctx, next) => {
+    return async (ctx, toServiceRoutes) => {
 
         const isAtPath = ctx.path === path
         if (isAtPath) {
 
-            const files = getFileService(ctx, path)
             const uploadToken = ctx.query[UPLOAD_QUERY_PARAM]
             const downloadId = ctx.query[DOWNLOAD_QUERY_PARAM]
 
-            if (ctx.method === 'PUT' && isString(uploadToken)) {
+            const files = getFileService(ctx, path)
 
-                const payload = await verify(uploadToken)
+            const payload = isString(uploadToken)
+                ? await verify(uploadToken)
+                : null
 
-                return 'complete' in payload.action
-                    ? uploadComplete(ctx, files, payload)
-                    : uploadPart(ctx, files, payload, fsConfig)
-            } 
+            if (ctx.method === 'POST' && payload) 
+                return uploadComplete(ctx, files, payload, fsConfig)
+
+            if (ctx.method === 'PUT' && payload) 
+                return uploadPart(ctx, files, payload, fsConfig)
 
             if (ctx.method === 'GET' && isString(downloadId)) 
                 return serve(ctx, files, downloadId, fsConfig)
-
         }
 
-        return next()
+        if (ctx.body === undefined)
+            await toServiceRoutes()
+
     }
 }
 
 /*** Exports ***/
 
-export default createFileHandlingMiddleware
+export default fileRouter
 
 export {
-    createFileHandlingMiddleware,
-    FileRoutingMiddlewareSettings
+    fileRouter,
+    FileRoutingSettings
 }

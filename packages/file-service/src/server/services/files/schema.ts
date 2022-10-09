@@ -41,7 +41,7 @@ export const $filePayload = $({
             complete: $(true) 
         })
     )
-})
+}).name('file-payload')
 
 /*** File ***/
 

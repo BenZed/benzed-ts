@@ -47,13 +47,10 @@ function* eachFilePart(
 
     const size = isNumber(file) ? file : file.size
 
-    const part = {
-        index: 0,
-        total: ceil(size / MAX_UPLOAD_PART_SIZE)
-    }
+    const total = ceil(size / MAX_UPLOAD_PART_SIZE)
 
-    for (part.index = 0; part.index < part.total; part.index++) 
-        yield part
+    for (let index = 0; index < total; index++) 
+        yield { index, total }
 }
 
 /*** Main ***/
@@ -150,5 +147,7 @@ export {
     FileService,
     FileServiceSettings,
 
-    FileParams
+    FileParams,
+
+    eachFilePart
 }

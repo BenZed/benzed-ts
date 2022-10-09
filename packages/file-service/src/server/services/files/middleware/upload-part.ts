@@ -1,20 +1,15 @@
-import { MongoDBApplication } from '@benzed/feathers'
+import path from 'path'
+
 import fs from '@benzed/fs'
+import { MongoDBApplication } from '@benzed/feathers'
 
 import { FeathersService } from '@feathersjs/feathers'
 import { FeathersKoaContext } from '@feathersjs/koa'
-import { BadRequest } from '@feathersjs/errors'
-
-import path from 'path'
 
 import { FilePayload } from '../schema'
 import FileService from '../service'
+import { throwInvalidPayload, validatePayload } from './upload-complete'
 import { PART_DIR_NAME } from '../constants'
-
-/*** Types ***/
-
-type FeathersFileService = FeathersService<MongoDBApplication, FileService>
-
 /*** Helper ***/
 
 function writePart(
@@ -35,26 +30,24 @@ function writePart(
 }
 
 async function validatePayloadPart(
-    files: FeathersFileService,
+    files: FeathersService<MongoDBApplication, FileService>,
     payload: FilePayload
 ): Promise<number> {
 
-    if (!('part' in payload.action))
-        throw new BadRequest('Invalid payload.')
+    await validatePayload(files, payload)
 
-    const file = await files.get(payload.file)
-    if (file.uploader !== payload.uploader)
-        throw new BadRequest('Invalid payload.')
+    if (!('part' in payload.action))
+        throwInvalidPayload()
 
     const { part } = payload.action
     return part
 }
 
 async function ensurePartDir(
-    localDir: string,
-    payload: FilePayload
+    fileId: string,
+    localDir: string
 ): Promise<string> {
-    const fileDir = path.join(localDir, payload.file)
+    const fileDir = path.join(localDir, fileId)
     const partDir = path.join(fileDir, PART_DIR_NAME)
 
     await fs.ensureDir(partDir)
@@ -66,22 +59,24 @@ async function ensurePartDir(
 
 async function uploadPart(
     ctx: FeathersKoaContext, 
-    files: FeathersFileService,
+    files: FeathersService<MongoDBApplication, FileService>,
     payload: FilePayload,
     localDir: string
 ): Promise<void> {
 
     const part = await validatePayloadPart(files, payload)
-    const partDir = await ensurePartDir(localDir, payload)
+    const partDir = await ensurePartDir(payload.file, localDir)
 
     await writePart(ctx, partDir, part)
 
-    ctx.response.set({ Etag: `${payload.file}-${part}` })
+    ctx.response.set({ 
+        Etag: `${payload.file}-${part}` 
+    })
 
     ctx.body = {
         file: payload.file,
         part,
-        status: 200
+        code: 200
     }
 
 }

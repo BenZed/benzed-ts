@@ -1,26 +1,32 @@
 
-import { 
-    MongoDBApplication
-} from '@benzed/feathers'
+import { MongoDBApplication } from '@benzed/feathers'
 
-import { 
-    FeathersService
-} from '@feathersjs/feathers'
-
-import {
-    BadRequest 
-} from '@feathersjs/errors'
+import { FeathersService } from '@feathersjs/feathers'
+import { errorHandler } from '@feathersjs/koa'
 
 import type { AuthenticationService } from '../authentication'
 
 import * as fileHooks from './hooks'
 import { 
-    createFileHandlingMiddleware,
-    FileRoutingMiddlewareSettings 
-} from './middleware/file-routing'
+    fileRouter,
+    FileRoutingSettings 
+} from './middleware/file-router'
 
-import { FileServiceConfig, FilePayload, $filePayload } from './schema'
-import { FileService, FileParams, FileServiceSettings } from './service'
+import { 
+    FileServiceConfig, 
+    FilePayload, 
+    $filePayload 
+} from './schema'
+
+import {
+    FileService,
+    FileParams, 
+    FileServiceSettings 
+} from './service'
+
+import { 
+    throwInvalidPayload 
+} from './middleware/upload-complete'
 
 /*** Helper ***/
 
@@ -39,15 +45,16 @@ function decodeBase64Payload(token: string): FilePayload {
         return $filePayload.validate(payload)
 
     } catch {
-        throw new BadRequest('Invalid payload.')
+        throwInvalidPayload()
     }
 }
 
 function createSignAndVerify(
     auth?: AuthenticationService
-): { 
+): 
+    {
         sign: FileServiceSettings['sign']
-        verify: FileRoutingMiddlewareSettings['verify']
+        verify: FileRoutingSettings['verify']
     } {
 
     return auth 
@@ -55,9 +62,8 @@ function createSignAndVerify(
             sign: payload => auth.createAccessToken(payload),
             verify: token => auth.verifyAccessToken(token)
                 .then($filePayload.validate)
-                .catch(() => {
-                    throw new BadRequest('Invalid payload.')
-                })
+                .catch(throwInvalidPayload)
+
         } : {
             sign: encodeBase64Payload,
             verify: decodeBase64Payload
@@ -78,39 +84,29 @@ function setupFileService<A extends MongoDBApplication>(
 
     const { sign, verify } = createSignAndVerify(auth)
 
-    const fileHandling = createFileHandlingMiddleware({ 
-        verify, 
-        path,
-        fs, 
-        s3 
-    })
+    const collection = app.db(
+        // '/files' -> 'files'
+        path.replace('/', '')
+    ) 
 
     app.use(
-
         path, 
-        
         new FileService({
-
             path,
             sign,
-
             paginate: pagination,
             multi: false,
-
-            Model: app.db(
-                path.replace('/', '') // '/files' -> 'files'
-            )
-
+            Model: collection
         }),
-        
         {
-            methods: ['create', 'find', 'get', 'patch', 'remove'],
-            events: [],
             koa: {
                 before: [
-                    fileHandling
+                    errorHandler(),
+                    fileRouter({ verify, path, fs, s3 })
                 ]
-            }
+            },
+            methods: ['create', 'find', 'get', 'patch', 'remove'],
+            events: [],
         }
     )
 
