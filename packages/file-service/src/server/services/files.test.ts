@@ -4,7 +4,7 @@ import mime from 'mime'
 import { ObjectId } from 'mongodb'
 
 import createFileServerApp from '../create-file-server-app'
-import { $file, File, FileData } from '../schemas'
+import { $file, FileData } from '../schemas'
 
 import { BadRequest } from '@feathersjs/errors'
 
@@ -17,7 +17,7 @@ import { TEST_ASSETS } from '../../../../renderer/test-assets'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore 
 import fetch from 'node-fetch'
-import { min } from '@benzed/array/lib'
+import { min } from '@benzed/array'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */ 
 
@@ -161,9 +161,12 @@ describe('create', () => {
 
         it('uploader is automatically inferred from authenticated user', async () => {
 
+            const fakeId = new ObjectId().toString()
+
             const file = await files.create({
                 name: 'data.json',
-                size: 1000
+                size: 1000,
+                uploader: fakeId
             }, { 
                 user: uploader
             })

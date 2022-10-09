@@ -2,6 +2,7 @@ import { Schema, SchemaFor } from '@benzed/schema'
 
 import feathersConfiguration from '@feathersjs/configuration'
 import { Application } from '@feathersjs/koa'
+import { StringKeys } from '../types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -25,7 +26,7 @@ function configure<C>(
 
     return (app: Application<any, C>): void => {
         for (const key in config)
-            app.set(key, config[key])
+            app.set(key as StringKeys<C>, config[key])
     }
 }
 

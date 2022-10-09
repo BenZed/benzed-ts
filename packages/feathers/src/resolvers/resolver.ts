@@ -1,5 +1,5 @@
 import { BadRequest } from '@feathersjs/errors'
-import { Schema, SchemaFor, ValidationError } from '@benzed/schema'
+import { SchemaFor, ValidationError } from '@benzed/schema'
 
 /*
     This is straight up ripped off from 
@@ -16,7 +16,7 @@ import { Schema, SchemaFor, ValidationError } from '@benzed/schema'
 
 /*** Helper ***/
 
-function validateSchema(schema: Schema<any,any,any>, value: unknown) {
+function validateSchema(schema: SchemaFor<unknown>, value: unknown) {
     try {
         return schema.validate(value)
     } catch (err) {

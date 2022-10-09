@@ -17,7 +17,7 @@ export const $fileServiceConfig = $({
 
     s3: $.or( $awsConfig, $.null ).name('aws-config'),
 
-    path: $.string.format(/\/[a-z]+/),
+    path: $.string.format(/\/[a-z]+/ ),
 
     pagination: $pagination
 

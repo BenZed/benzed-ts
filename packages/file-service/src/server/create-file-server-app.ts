@@ -1,4 +1,3 @@
-
 import {
     createMongoDBApplication,
     MongoDBApplication,
@@ -7,16 +6,15 @@ import {
     $pagination,
     
 } from '@benzed/feathers'
-
+import { $rendererConfig } from '@benzed/renderer'
 import $, { Infer } from '@benzed/schema'
+import '@benzed/util'
 
 import { HookContext } from '@feathersjs/feathers'
 
 import services, { FileServices } from './services'
-import middleware from './middleware'
-
 import { $fileServiceConfig } from './schemas'
-import { $rendererConfig } from '@benzed/renderer'
+import middleware from './middleware'
 
 /*** Types ***/
 
@@ -30,7 +28,7 @@ const $fileServerConfig = $({
 
     pagination: $pagination,
     renderer: $rendererConfig,
-    authentication: $.object(),
+    authentication: $.object,
 
 })
 
