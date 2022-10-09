@@ -31,7 +31,7 @@ function readRequestBody(ctx: FeathersKoaContext): Promise<string> {
 }
 
 function throwInvalidPayload(): never {
-    throw new BadRequest('Invalid payload.')
+    throw new BadRequest('Invalid file upload payload.')
 }
 
 async function validatePayload(
@@ -96,8 +96,8 @@ async function validateUploadCompleteSignal(
             throw new Error('Part signal does not match parts expected')
 
         return parts
-    } catch (e) {
-        console.warn(e)
+
+    } catch {
         throw new BadRequest('Upload complete signal invalid.')
     }
 }
@@ -112,14 +112,14 @@ async function validateParts(
         .from(eachFilePart(file), v => v.index)
         .sort(descending)
 
-    await validateUploadCompleteSignal(ctx, file, partsExpected)
-
     const partsFromFs = (await fs.readDir(partsDirPath))
         .map(parseFloat)
         .sort(descending)
 
     if (!equals(partsFromFs, partsExpected))
-        throw new BadRequest('All parts have not yet been uploaded.')
+        throw new BadRequest('Not all file parts have been uploaded.')
+
+    await validateUploadCompleteSignal(ctx, file, partsExpected)
 
     return partsFromFs
 }
@@ -135,8 +135,9 @@ async function validatePartsPath(
         file._id, 
         PART_DIR_NAME
     )
+
     if (!await fs.exists(partDirPath))   
-        throw new BadRequest('No parts have been uploaded.')
+        throw new BadRequest('No file parts have been uploaded.')
 
     return partDirPath
 }
@@ -163,7 +164,11 @@ async function mergePartsIntoFile(
     localDirPath: string
 ): Promise<void> {
 
-    const filePath = path.join(localDirPath, file._id, file.name + file.ext)
+    const filePath = path.join(
+        localDirPath, 
+        file._id, 
+        file.name + file.ext
+    )
 
     // write parts
     while (parts.length > 0) {
@@ -187,17 +192,19 @@ async function uploadComplete(
     const file = await validatePayloadComplete(files, payload)
 
     const partsDirPath = await validatePartsPath(file, localDirPath)
+
     const parts = await validateParts(ctx, file, partsDirPath)
 
     await mergePartsIntoFile(file, parts, partsDirPath, localDirPath)
-    
-    ctx.body = {
-        file: payload.file,
-        complete: true,
-        status: 200
-    }
 
     await files.patch(file._id, { uploaded: new Date() })
+
+    ctx.body = {
+        file: file._id,
+        complete: true,
+        code: 200
+    }
+
 }
 /*** Exports ***/
 
