@@ -1,17 +1,31 @@
 import { $$copy, $$equals, CopyComparable, equals } from '@benzed/immutable'
 import { Component } from './component'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */ 
+
 /*** Types ***/
 
 type Components = readonly Component[]
 
-type ComponentName<T> = T extends Component<infer N> 
-    ? N 
+type ComponentOutput<T> = T extends Component<unknown, infer O> 
+    ? O
     : unknown
 
-type ComponentNames<T> = {
-    [K in keyof GetComponents<T>]: ComponentName<GetComponents<T>[K]>
-}
+type ComponentInput<T> = T extends Component<infer I, unknown> 
+    ? I
+    : unknown
+
+type LastComponent<C extends Components> = C extends [...unknown[], infer L] | [infer L]
+    ? L 
+    : never
+
+type FirstComponent<C extends Components> = C extends [infer F, ...unknown[]] | [infer F]
+    ? F 
+    : never
+
+type PipeComponent<C extends Components> = LastComponent<C> extends never 
+    ? Component 
+    : Component<ComponentOutput<LastComponent<C>>, unknown>
 
 type GetComponents<T> = T extends Components    
     ? T 
@@ -19,16 +33,19 @@ type GetComponents<T> = T extends Components
         ? C 
         : []
 
-type GetComponentsNamed<C extends Components, N> = 
-    C extends [ infer C1, ...infer CR ]
-        ? CR extends Components 
-            ? N extends ComponentName<C1>   
-                ? [C1, ...GetComponentsNamed<CR, N>]
-                : GetComponentsNamed<CR, N>
-            : N extends ComponentName<C1> 
-                ? [C1]
-                : []
-        : []
+type NodeInput<N extends Node> = 
+    ComponentInput<
+    /**/ FirstComponent<
+    /*    */ GetComponents<N>
+    /**/ >
+    >
+
+type NodeOutput<N extends Node> = 
+    ComponentOutput<
+    /**/ LastComponent<
+    /*    */ GetComponents<N>
+    /**/ >
+    >
 
 /*** Main ***/
 
@@ -36,8 +53,12 @@ class Node<
     C extends Components = Components,
 > implements CopyComparable<Node<C>> {
 
-    public static create<C1 extends Components>(...components: C1): Node<C1> {
-        return new Node(...components)
+    public static create<C1 extends Component>(component: C1): Node<[C1]> {
+        return new Node(component)
+    }
+
+    public static empty(): Node<[]> {
+        return new Node()
     }
 
     public readonly components: C
@@ -48,7 +69,7 @@ class Node<
 
     // Component Interface
 
-    public add<C1 extends Component>(
+    public push<C1 extends PipeComponent<C>>(
         component: C1
     ): Node<[...C, C1]> {
         return new Node(
@@ -57,14 +78,12 @@ class Node<
         )
     }
 
-    public get<N extends ComponentNames<C>[number]>(
-        name: N
-    ): GetComponentsNamed<C, N> {
-        const components = this
-            .components
-            .filter(c => c.name === name)
+    public execute(data: ComponentInput<C>): ComponentOutput<C> {
         
-        return components as GetComponentsNamed<C,N>
+        for (const component of this.components) 
+            data = component.execute(data) as ComponentInput<C>
+
+        return data as ComponentOutput<C>
     }
 
     // Copy Comparable Implementation 
@@ -86,5 +105,8 @@ export default Node
 
 export {
     Node,
-    GetComponents
+    NodeInput,
+    NodeOutput,
+    GetComponents,
+    Components
 }

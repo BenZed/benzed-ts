@@ -1,19 +1,14 @@
 import { $$copy, $$equals, CopyComparable } from '@benzed/immutable'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */ 
-
-/*** Types ***/
-
-/*** Helper ***/
+import type { Node } from './node'
 
 /*** Main ***/
 
-abstract class Component<N extends string = any> implements CopyComparable<Component<N>> {
+abstract class Component<I = unknown, O = I> 
+implements CopyComparable<Component<I, O>> {
 
-    protected abstract readonly _name: N
-    public get name(): N {
-        return this._name
-    }
+    protected _node: Node | null = null
+
+    public abstract execute(...args: I extends void ? [] : [I]): O 
 
     public [$$copy](): this {
         const ThisEntity = this.constructor as (new () => this)

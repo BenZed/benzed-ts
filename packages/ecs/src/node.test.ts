@@ -1,33 +1,28 @@
 import { Node } from './node'
 import { Component } from './component'
 
-import { expectTypeOf } from 'expect-type'
-
 /*** Types ***/
 
-class Foo extends Component<'foo'> {
-    protected readonly _name = 'foo'
+class ToString extends Component<number, string> {
+    public execute(input: number): string {
+        return `${input}`
+    }
 }
 
-class Bar extends Component<'bar'> {
-    protected readonly _name = 'bar'
+class ToNumber extends Component<string, number> {
+    public execute(_input: string): number {
+        return parseInt(_input)
+    }
 }
 
-const node = Node.create().add(new Foo())
+const n1 = Node.create(new ToString())
 
 /*** Test ***/
 
 it('immutably adds components', () => {
 
-    const node2 = node.add(new Bar())
-    expect(node2).not.toBe(node)
-})
+    const n2 = n1.push(new ToNumber())
+    expect(n2).not.toBe(n1)
 
-it('typesafe get component', () => {
-
-    const [foo] = node.get('foo')
-
-    expect(foo).toBeInstanceOf(Foo)
-    expectTypeOf(foo).toMatchTypeOf<Foo>()
 })
 
