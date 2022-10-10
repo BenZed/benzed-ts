@@ -114,9 +114,4 @@ class System<
 
 export default System 
 
-export {
-    System,
-    Inputs,
-    Outputs,
-    LinksFrom
-}
+export { System }

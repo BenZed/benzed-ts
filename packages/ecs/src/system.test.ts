@@ -1,5 +1,5 @@
-import { Node, NodeInput, NodeOutput } from './node'
-import { LinksFrom, Outputs, System } from './system'
+import { Node } from './node'
+import { System } from './system'
 import { Component } from './component'
 
 /*** Components ***/
@@ -44,8 +44,6 @@ it('allows a table of nodes to be linked together', () => {
     const server = System.create({ listener, rest, responder})
         .link('listener', 'rest')
         .link('rest', 'responder')
-
-    type O = LinksFrom<typeof server.nodes, NodeInput<typeof server.nodes.responder>>
 
 })
 
