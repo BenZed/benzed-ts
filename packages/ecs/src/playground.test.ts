@@ -1,5 +1,5 @@
-
 import { Node } from './node'
+import { Graph } from './graph'
 import { Component } from './component'
 
 class Rest extends Component<'rest'> {
@@ -10,19 +10,20 @@ class SocketIo extends Component<'socket-io'> {
     protected readonly _name = 'socket-io'
 }
 
-type Providers = Rest | SocketIo
-
-class Server<
-    C extends readonly Providers[] = [], 
-    N extends readonly Server[] = []
-> extends Node<C, N> {
-    
+class Listener extends Component<'listener'> {
+    protected readonly _name = 'listener'
 }
 
-class _BadNode extends Component<'not-a-server-node'> {
-    protected readonly _name = 'not-a-server-node'
-}
-const node = new Node(new Rest())
-    .addComponent(new _BadNode())
+type Provider = Node<[Rest, SocketIo]>
 
-const server = new Server()
+const listener = Node.create(new Listener())
+
+const provider: Provider = Node.create(new Rest(), new SocketIo())
+
+it('adds a table of linkable nodes', () => {
+
+    const server = Graph
+        .create({ listener })
+        .add('listener', { provider })
+
+})

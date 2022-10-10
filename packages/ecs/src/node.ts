@@ -1,8 +1,6 @@
 import { $$copy, $$equals, CopyComparable, equals } from '@benzed/immutable'
 import { Component } from './component'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */ 
-
 /*** Types ***/
 
 type Components = readonly Component[]
@@ -17,7 +15,7 @@ type ComponentNames<T> = {
 
 type GetComponents<T> = T extends Components    
     ? T 
-    : T extends Node<infer C, any> 
+    : T extends Node<infer C> 
         ? C 
         : []
 
@@ -35,44 +33,49 @@ type GetComponentsNamed<C extends Components, N> =
 /*** Main ***/
 
 class Node<
-    C extends Components = [],
-    N extends readonly Node<any, any>[] = []
-> implements CopyComparable<Node<C, N>> {
+    C extends Components = Components,
+> implements CopyComparable<Node<C>> {
 
-    private readonly _components: C
+    public static create<C1 extends Components>(...components: C1): Node<C1> {
+        return new Node(...components)
+    }
 
-    public constructor(
-        ..._components: C
-    ) {
-        this._components = _components
+    public readonly components: C
+
+    private constructor(...components: C) { 
+        this.components = components
     }
 
     // Component Interface
 
-    public addComponent<C1 extends Component>(
+    public add<C1 extends Component>(
         component: C1
-    ): Node<[...C, C1], N> {
+    ): Node<[...C, C1]> {
         return new Node(
-            ...this._components, component
-        ) as Node<[...C, C1], N> 
+            ...this.components, 
+            component
+        )
     }
 
-    public getComponents<N extends ComponentNames<C>[number]>(
+    public get<N extends ComponentNames<C>[number]>(
         name: N
     ): GetComponentsNamed<C, N> {
-        const components = this._components.filter(c => c.name === name)
+        const components = this
+            .components
+            .filter(c => c.name === name)
+        
         return components as GetComponentsNamed<C,N>
     }
 
     // Copy Comparable Implementation 
 
-    public [$$copy](): Node<C, N> {
-        return new Node(...this._components)
+    public [$$copy](): Node<C> {
+        return new Node(...this.components)
     }
 
-    public [$$equals](other: unknown): other is Node<C, N> {
+    public [$$equals](other: unknown): other is Node<C> {
         return other instanceof Node && 
-            equals(this._components, other._components)
+            equals(this.components, other.components)
     }
 
 }
@@ -82,5 +85,6 @@ class Node<
 export default Node
 
 export {
-    Node
+    Node,
+    GetComponents
 }
