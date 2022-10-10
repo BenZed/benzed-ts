@@ -34,16 +34,20 @@ type AddLink<
     ] 
     : MergeLinks<MergeNodes<N1, N2>, L>
 
-type NodeOutputs<N extends Nodes> = {
+type Outputs<N extends Nodes> = {
     [K in keyof N]: NodeOutput<N[K]>
 }
 
-type NodeInputs<N extends Nodes> = {
+type Inputs<N extends Nodes> = {
     [K in keyof N]: NodeInput<N[K]>
 }
 
-type LinkOutput<N extends Nodes, I> = keyof {
-    [K in keyof N as NodeOutputs<N>[K] extends I ? K : never]: unknown
+type LinksFrom<N extends Nodes, F> = keyof {
+    [K in keyof N as Outputs<N>[K] extends F ? K : never]: unknown
+}
+
+type LinksTo<N extends Nodes, T> = keyof {
+    [K in keyof N as Inputs<N>[K] extends T ? K : never]: unknown
 }
 
 /*** Main ***/
@@ -72,22 +76,22 @@ class System<
         ) as any
     }
 
-    public link<I extends keyof N, O extends LinkOutput<N, I>>(
-        input: I,
-        output: O
-    ): System<N, [...L, [I,O]]> {
+    public link<F extends keyof N, T extends LinksTo<N, Outputs<N>[F]>>(
+        from: F,
+        to: T
+    ): System<N, [...L, [F,T]]> {
         return new System(
             this.nodes, 
-            [...this.links, [input, output]]
+            [...this.links, [from, to]]
         )
     }
 
-    public add<O extends LinkOutput<N, NodeInputs<N1>[keyof N1]>, N1 extends Nodes>(
-        output: O, 
+    public add<N1 extends Nodes, F extends LinksFrom<N, Inputs<N1>[keyof N1]>,>(
+        from: F, 
         nodes: N1
     ): System<
         MergeNodes<N, N1>, 
-        AddLink<N, N1, L, [O, keyof N1]>
+        AddLink<N, N1, L, [F, keyof N1]>
         > {
         return new System(
             {
@@ -98,7 +102,7 @@ class System<
             },
             [
                 ...this.links, 
-                ...Object.keys(nodes).map(key => [output, key])
+                ...Object.keys(nodes).map(key => [from, key])
 
             ] as readonly Link<N & N1>[]
         ) as any
@@ -111,5 +115,8 @@ class System<
 export default System 
 
 export {
-    System
+    System,
+    Inputs,
+    Outputs,
+    LinksFrom
 }

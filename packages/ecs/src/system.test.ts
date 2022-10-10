@@ -1,5 +1,5 @@
-import { Node } from './node'
-import { System } from './system'
+import { Node, NodeInput, NodeOutput } from './node'
+import { LinksFrom, Outputs, System } from './system'
 import { Component } from './component'
 
 /*** Components ***/
@@ -31,30 +31,41 @@ class Responder extends Component<{ response: string }, void> {
 
 /*** Types ***/
 
-const listener = Node.create(new Listener())
 const responder = Node.create(new Responder())
-const rest = Node.create(new Rest())
+const listener = Node.create(new Listener())
+
 const socketio = Node.create(new SocketIo())
+const rest = Node.create(new Rest())
 
 /*** Tests ***/
 
-it('adds a table of linkable nodes', () => {
+it('allows a table of nodes to be linked together', () => {
+
+    const server = System.create({ listener, rest, responder})
+        .link('listener', 'rest')
+        .link('rest', 'responder')
+
+    type O = LinksFrom<typeof server.nodes, NodeInput<typeof server.nodes.responder>>
+
+})
+
+it('nodes can be added after the fact', () => {
 
     const server = System
         .create({ listener })
         .add('listener', { rest })
         .add('rest', { responder })
 
-    expect(server.nodes).toHaveProperty('connection')
+    expect(server.nodes).toHaveProperty('listener')
     expect(server.nodes).toHaveProperty('rest')
-    expect(server.nodes).toHaveProperty('socketio')
-    expect(server.links).toContain(['connection', 'rest'])
+
+    expect(server.links).toEqual([['listener', 'rest'], ['rest', 'responder']])
 })
 
 it('can only connect nodes with applicable input', () => {
-    const server = System
+    System
         .create({ listener, socketio })
-        // @ts-expect-error should not be able to link to socketio
+        // @ts-expect-error Cant link listener to socketio
         .link('listener', 'socketio')
     
 })
