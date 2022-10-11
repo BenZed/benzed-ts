@@ -1,6 +1,7 @@
-import { Node } from './node'
-import { System } from './system'
+import { Node, NodeOutput } from './node'
+import { System, SystemOutput } from './system'
 import { Component } from './component'
+import { expectTypeOf } from 'expect-type'
 
 /*** Components ***/
 
@@ -66,4 +67,37 @@ it('can only connect nodes with applicable input', () => {
         // @ts-expect-error Cant link listener to socketio
         .link('listener', 'socketio')
     
+})
+
+it('systems can be linked', () => {
+    
+    type Provider = System<{ rest: Node<[Rest]> }, [], 'rest'>
+    const provider: Provider = System
+        .create({ rest })
+        .setInputNode('rest')
+
+    const server1 = System   
+        .create({ listener, responder, provider })
+        .link('listener', 'provider')
+        .link('provider', 'responder')
+
+    const server2 = System  
+        .create({ listener })
+        .add('listener', { provider })
+        .add('provider', { responder })
+
+    expect(server1).toEqual(server2)
+})
+
+it('correct calculation of system output', () => {
+
+    const provider = System 
+        .create({ rest })
+        .add('rest', { responder })
+        .setInputNode('rest')
+
+        type ProviderOutput = SystemOutput<typeof provider>
+        type ResponderOutput = NodeOutput<typeof responder>
+
+        expectTypeOf<ProviderOutput>().toMatchTypeOf<ResponderOutput>()
 })
