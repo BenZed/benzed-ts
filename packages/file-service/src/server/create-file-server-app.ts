@@ -42,7 +42,7 @@ interface FileServerHookContext<S extends FileServices[keyof FileServices]> exte
 function createFileServerApp(config?: FileServerConfig): FileServerApp {
 
     const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>(
-        config ?? $fileServerConfig
+        config ? $fileServerConfig.validate(config) : $fileServerConfig
     )
 
     fileServerApp.configure(services)

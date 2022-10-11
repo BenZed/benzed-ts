@@ -1,8 +1,8 @@
 import path from 'path'
 
 import { MongoDBApplication } from '@benzed/feathers'
-import fs from '@benzed/fs'
 import { isString } from '@benzed/is'
+import fs from '@benzed/fs'
 
 import { FeathersService } from '@feathersjs/feathers'
 import { FeathersKoaContext } from '@feathersjs/koa'

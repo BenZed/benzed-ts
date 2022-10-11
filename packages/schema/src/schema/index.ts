@@ -218,7 +218,9 @@ function createSchemaInterface(): SchemaInterface {
     $.and = (...types) => new IntersectionSchema(types)
 
     $.number = new NumberSchema()
-    $.integer = $.number.floor(1).name('integer')
+    $.integer = $.number
+        .floor(1, 'must be an integer')
+        .name('integer')
 
     $.string = new StringSchema()
     $.boolean = new BooleanSchema()

@@ -1,4 +1,3 @@
-import fs from '@benzed/fs'
 import { isString } from '@benzed/is'
 import { MongoDBApplication } from '@benzed/feathers'
 
@@ -39,12 +38,7 @@ function assertFsConfig(
     fsConfig: FileServiceConfig['fs']
 ): asserts fsConfig is string {
 
-    try {
-        const stat = fsConfig && fs.sync.stat(fsConfig)
-        if (!stat || !stat.isDirectory())
-            throw new Error('Not a directory.')
-
-    } catch {
+    if (!fsConfig) {
         throw new Error(
             `fs configuration invalid: ${fsConfig}`
         )

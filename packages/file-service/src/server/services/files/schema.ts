@@ -1,6 +1,6 @@
-
-import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
+import fs from '@benzed/fs'
 import $, { Infer } from '@benzed/schema'
+import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
 
 import { $awsConfig } from '../../schemas/aws-config'
 
@@ -8,16 +8,23 @@ import { $awsConfig } from '../../schemas/aws-config'
 
 const $size = $.integer.range('>', 0)
 
+const $directory = $.string
+    .asserts(fs.sync.exists, dir => `'${dir}' does not exist`)
+    .asserts(dir => fs.sync.stat(dir).isDirectory(), 'must be a directory')
+    .name('directory')
+
 /*** File Service Config ***/
 
 export interface FileServiceConfig extends Infer<typeof $fileServiceConfig> {}
 export const $fileServiceConfig = $({
     
-    fs: $.or( $.string, $.null ).name('fs-config'),
+    fs: $.or( $directory, $.null ).name('fs-config'),
 
     s3: $.or( $awsConfig, $.null ).name('aws-config'),
 
-    path: $.string.format(/\/[a-z]+/ ),
+    path: $.string
+        .format(/\/([a-z]|-)+/, 'must be a path')
+        .name('path'),
 
     pagination: $pagination
 
