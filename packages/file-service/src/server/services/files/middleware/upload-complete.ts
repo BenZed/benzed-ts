@@ -116,8 +116,11 @@ async function validateParts(
         .map(parseFloat)
         .sort(descending)
 
-    if (!equals(partsFromFs, partsExpected))
-        throw new BadRequest('Not all file parts have been uploaded.')
+    if (!equals(partsFromFs, partsExpected)) {
+        throw new BadRequest(
+            `Upload incomplete for id '${file._id}'`
+        )
+    }
 
     await validateUploadCompleteSignal(ctx, file, partsExpected)
 
@@ -136,8 +139,11 @@ async function validatePartsPath(
         PART_DIR_NAME
     )
 
-    if (!await fs.exists(partDirPath))   
-        throw new BadRequest('No file parts have been uploaded.')
+    if (!await fs.exists(partDirPath)) {
+        throw new BadRequest(
+            `Upload has not been started for id '${file._id}'`
+        )
+    }
 
     return partDirPath
 }
@@ -190,9 +196,7 @@ async function uploadComplete(
 ): Promise<void> {
 
     const file = await validatePayloadComplete(files, payload)
-
     const partsDirPath = await validatePartsPath(file, localDirPath)
-
     const parts = await validateParts(ctx, file, partsDirPath)
 
     await mergePartsIntoFile(file, parts, partsDirPath, localDirPath)

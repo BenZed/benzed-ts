@@ -8,9 +8,7 @@ import setupUserService, { UserService } from './users'
 export interface FileServices {
 
     'authentication': AuthenticationService
-
     'users': UserService
-
     'files': FileService
 
 }

@@ -7,15 +7,23 @@ import fs from '@benzed/fs'
 import { min } from '@benzed/array'
 
 import { SignedFile } from '../service'
-import { MAX_UPLOAD_PART_SIZE, PART_DIR_NAME } from '../constants'
+import { MAX_UPLOAD_PART_SIZE, ONE_YEAR, PARTIAL_STATUS_CODE, PART_DIR_NAME } from '../constants'
 
 import createFileServerApp from '../../../create-file-server-app'
 import { TEST_ASSETS } from '../../../../../../renderer/test-assets'
 import { User } from '../../users'
 
+/*** Eslint ***/
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/*** Server ***/
+
 const server = createFileServerApp()
 const files = server.service('files')
 const users = server.service('users')
+
+const HOST = `http://localhost:${server.get('port')}` 
 
 const UPLOAD_TEST_ASSETS = {
     ...TEST_ASSETS,
@@ -64,123 +72,127 @@ beforeAll(async () => {
     )
 })
 
-describe('upload', () => {
+/*** File Uploading ***/
 
-    const HOST = `http://localhost:${server.get('port')}` 
+const createSignedFile = async (
+    localFileUrl: string
+): Promise<SignedFile> => {
 
-    const createSignedFile = async (
-        localFileUrl: string
-    ): Promise<SignedFile> => {
+    const stat = fs.sync.stat(localFileUrl)
 
-        const stat = fs.sync.stat(localFileUrl)
+    const file = await files.create({
+        size: stat.size,
+        name: path.basename(localFileUrl),
+        uploader: uploader._id
+    })
 
-        const file = await files.create({
-            size: stat.size,
-            name: path.basename(localFileUrl),
-            uploader: uploader._id
-        })
+    return file
+}
 
-        return file
-    }
+const uploadPart = async (
+    partUrl: string, 
+    sourceFileUrl: string,
+    sourceFileSize: number, 
+    partIndex: number
+): Promise<string> => {
 
-    const uploadPart = async (
-        partUrl: string, 
-        sourceFileUrl: string,
-        sourceFileSize: number, 
-        partIndex: number
-    ): Promise<string> => {
-
-        const res = await fetch(
-            HOST + partUrl,
-            {
-                method: 'PUT',
-                body: fs.createReadStream(sourceFileUrl, { 
-                    start: partIndex * MAX_UPLOAD_PART_SIZE,
-                    end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
-                })
-            }
-        )
-
-        const json = await res.json()
-        if (json.code >= 400)
-            throw json
-
-        return res.headers.get('etag') as string
-
-    }
-
-    const uploadComplete = async (
-        completeUrl: string,
-        etags: string[]
-    ): Promise<{ code: number }> => {
-
-        const res = await fetch(
-            HOST + completeUrl,
-            {
-                method: 'POST',
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: etags
-            }
-        )
-
-        const json = await res.json()
-        if (json.code >= 400)
-            throw json
-
-        return json
-    }
-
-    const uploadParts = async (
-        localFileUrl: string,
-        { urls, size }: SignedFile
-    ): Promise<string[]> => {
-
-        const etags: string[] = []
-        for (let i = 0; i < urls.uploadParts.length; i++) {
-
-            const partUrl = urls.uploadParts[i]
-
-            etags.push(
-                await uploadPart(partUrl, localFileUrl, size, i)
-            ) 
-        }
-
-        return etags
-    }
-
-    const uploadData: { 
-        partEtags: string[]
-        signedFile: SignedFile
-        sourceFileUrl: string
-        partNames: string[]
-    }[] = []
-
-    beforeAll(async () => {
-        for (const sourceFileUrl of Object.values(UPLOAD_TEST_ASSETS)) {
-
-            const signedFile = await createSignedFile(sourceFileUrl)
-            const partEtags = await uploadParts(sourceFileUrl, signedFile)
-
-            const partNames = fs.sync.readDir(
-                path.join(
-                    server.get('fs') as string, 
-                    signedFile._id, 
-                    PART_DIR_NAME
-                )
-            )
-
-            const lil = await uploadComplete(signedFile.urls.complete, partEtags)
-
-            uploadData.push({ 
-                signedFile, 
-                sourceFileUrl,
-                partEtags, 
-                partNames 
+    const res = await fetch(
+        HOST + partUrl,
+        {
+            method: 'PUT',
+            body: fs.createReadStream(sourceFileUrl, { 
+                start: partIndex * MAX_UPLOAD_PART_SIZE,
+                end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
             })
         }
-    })
+    )
+
+    const json = await res.json()
+    if (res.status >= 400)
+        throw json
+
+    return res.headers.get('etag') as string
+
+}
+
+const uploadComplete = async (
+    completeUrl: string,
+    etags: string[]
+): Promise<{ code: number }> => {
+
+    const res = await fetch(
+        HOST + completeUrl,
+        {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: etags
+        }
+    )
+
+    const json = await res.json()
+    if (res.status >= 400)
+        throw json
+
+    return json
+}
+
+const uploadParts = async (
+    localFileUrl: string,
+    { urls, size }: SignedFile
+): Promise<string[]> => {
+
+    const etags: string[] = []
+    for (let i = 0; i < urls.uploadParts.length; i++) {
+
+        const partUrl = urls.uploadParts[i]
+
+        etags.push(
+            await uploadPart(partUrl, localFileUrl, size, i)
+        ) 
+    }
+
+    return etags
+}
+
+const uploadData: { 
+    partEtags: string[]
+    signedFile: SignedFile
+    sourceFileUrl: string
+    partNames: string[]
+}[] = []
+
+beforeAll(async () => {
+
+    for (const sourceFileUrl of Object.values(UPLOAD_TEST_ASSETS)) {
+
+        const signedFile = await createSignedFile(sourceFileUrl)
+
+        const partEtags = await uploadParts(sourceFileUrl, signedFile).catch(e => e)
+
+        const partNames = fs.sync.readDir(
+            path.join(
+                server.get('fs') as string, 
+                signedFile._id, 
+                PART_DIR_NAME
+            )
+        )
+
+        await uploadComplete(signedFile.urls.complete, partEtags)
+
+        uploadData.push({ 
+            signedFile, 
+            sourceFileUrl,
+            partEtags, 
+            partNames 
+        })
+    }
+})
+
+/*** Tests ***/
+
+describe('upload', () => {
 
     for (const testAssetUrl of Object.values(UPLOAD_TEST_ASSETS)) {
         describe(`${path.basename(testAssetUrl)} test upload`, () => {
@@ -278,7 +290,7 @@ describe('upload', () => {
 
         const err = await uploadComplete(data.urls.complete, [etag]).catch(e => e)
         expect(err.name).toBe('BadRequest')
-        expect(err.message).toContain('Not all file parts have been uploaded')
+        expect(err.message).toContain('Upload incomplete for id')
     })
 
     it('handles malformed payloads', async () => {
@@ -298,25 +310,92 @@ describe('upload', () => {
 })
 
 describe('serving', () => {
-        
-    it('serves files', async () => {
-            
-        const file = await files.create({
-            size: 1024 * 1024 * 40,
-            name: 'New File.mov',
-            uploader: uploader._id
-        })
 
+    const download = async (
+        file: SignedFile,
+        range?: { start: number, end: number }
+    ): Promise<any> => {
+     
         const res = await fetch(
             `http://localhost:${server.get('port')}/files?download=${file._id}`,
-            {
-                method: 'GET'
+            { 
+                method: 'GET',
+                headers: range ? {
+                    'content-range': `bytes=${range.start}-${range.end}`
+                } : null
             }
         )
 
-        console.log(await res.text())
+        if (res.status >= 400)
+            throw await res.json()
+
+        return res
+    }
+
+    let file: SignedFile
+    let res: any
+    beforeAll(async () => {
+        file = uploadData.find(d => d.signedFile.ext === '.json')?.signedFile as SignedFile
+        res = await download(file) 
+    })
+        
+    it('serves files', async () => {
+        const json = await fs.readJson(UPLOAD_TEST_ASSETS.config)
+        expect(await res.json()).toEqual(json)
     })
 
-    it.todo('file cannot be downloaded until it is complete')
+    it('file cannot be downloaded until it is complete', async () => {
+
+        const file = await createSignedFile(UPLOAD_TEST_ASSETS.png)
+        const err = await download(file).catch(e => e)
+
+        expect(err).toHaveProperty(
+            'code', 
+            400
+        )
+
+        expect(err).toHaveProperty(
+            'message', 
+            `Upload is not complete for id '${file._id}'`
+        )
+    })
+
+    it('sets content type', () => {
+        expect(res.headers.get('content-type'))
+            .toEqual(file.type)
+    })
+
+    it('sets content-length', () => {
+        expect(res.headers.get('content-length')).toEqual(`${file.size}`)
+    })
+
+    it('sets cache control', () => {
+        expect(res.headers.get('cache-control'))
+            .toEqual(`public, max-age=${ONE_YEAR}`)
+    })
+
+    it('sets content disposition', () => {
+        expect(res.headers.get('content-disposition'))
+            .toEqual(`inline; filename="${file.name + file.ext}"`)
+    })
+
+    it('supports ranges', async () => {
+
+        const file = uploadData.find(d => d.signedFile.ext === '.mp4')?.signedFile as SignedFile
+
+        const start = 100
+        const end = 999 
+
+        const res = await download(file, { start, end })
+        const content = await res.text()
+        const length = end - start + 1
+
+        expect(content.length).toBe(length)
+        expect(res.status).toEqual(PARTIAL_STATUS_CODE)
+        expect(res.headers.get('accept-ranges')).toEqual('bytes')
+        expect(res.headers.get('content-range')).toEqual(`bytes ${start}-${end}/${file.size}`)
+        expect(res.headers.get('content-length')).toEqual(`${length}`)
+
+    })
 
 })
