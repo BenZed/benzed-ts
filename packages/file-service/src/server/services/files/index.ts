@@ -7,10 +7,13 @@ import { errorHandler } from '@feathersjs/koa'
 import type { AuthenticationService } from '../authentication'
 
 import * as fileHooks from './hooks'
+
 import { 
-    fileRouter,
-    FileRoutingSettings 
-} from './middleware/file-router'
+    serveMiddleware as serve, 
+    uploadCompleteMiddleware as uploadComplete, 
+    uploadPartMiddleware as uploadPart 
+} from './middleware'
+import { FileRoutingSettings, throwInvalidPayload } from './middleware/util'
 
 import { 
     FileServiceConfig, 
@@ -23,10 +26,6 @@ import {
     FileParams, 
     FileServiceSettings 
 } from './service'
-
-import { 
-    throwInvalidPayload 
-} from './middleware/upload-complete'
 
 /*** Helper ***/
 
@@ -89,6 +88,8 @@ function setupFileService<A extends MongoDBApplication>(
         path.replace('/', '')
     ) 
 
+    const middleware = { verify, path, fs, s3 }
+
     app.use(
         path, 
         new FileService({
@@ -102,7 +103,9 @@ function setupFileService<A extends MongoDBApplication>(
             koa: {
                 before: [
                     errorHandler(),
-                    fileRouter({ verify, path, fs, s3 })
+                    uploadPart({ ...middleware, method: 'update'}),
+                    uploadComplete({ ...middleware, method: 'create'}),
+                    serve({ ...middleware, method: 'get' })
                 ]
             },
             methods: ['create', 'find', 'get', 'patch', 'remove'],

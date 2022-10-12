@@ -15,3 +15,4 @@ export const ONE_HOUR = 60 * 60 // seconds
 export const ONE_YEAR = ONE_HOUR * 24 * 365 // seconds
 
 export const PARTIAL_STATUS_CODE = 206
+export const OK_STATUS_CODE = 200

@@ -1,15 +1,21 @@
-import path from 'path'
 
-import { MongoDBApplication } from '@benzed/feathers'
 import { isString } from '@benzed/is'
 import fs from '@benzed/fs'
 
-import { FeathersService } from '@feathersjs/feathers'
-import { FeathersKoaContext } from '@feathersjs/koa'
 import { BadRequest } from '@feathersjs/errors'
+import '@feathersjs/koa'
 
-import FileService from '../service'
-import { ONE_YEAR, PARTIAL_STATUS_CODE } from '../constants'
+import { 
+    DOWNLOAD_QUERY_PARAM, 
+    ONE_YEAR, 
+    PARTIAL_STATUS_CODE 
+} from '../constants'
+
+import { 
+    createFileRoutingMiddleware, 
+    getCtxFileService, 
+    getFsFilePath 
+} from './util'
 
 /*** Types ***/
 
@@ -45,49 +51,48 @@ function parseRange(str: string | undefined, size: number): Range | undefined {
 
 /*** Main ***/
 
-async function serve(
-    ctx: FeathersKoaContext,
-    files: FeathersService<MongoDBApplication, FileService>,
-    fileId: string,
-    localDirPath: string
-): Promise<void> {
+const serveMiddleware = createFileRoutingMiddleware(({ path, fs: localDirPath }) => 
+    async (ctx, toServiceRoutes) => {
+   
+        const fileId = ctx.query[DOWNLOAD_QUERY_PARAM]
+        if (!isString(fileId))
+            return toServiceRoutes()
 
-    const file = await files.get(fileId)
-    if (!file.uploaded)
-        throw new BadRequest(`Upload is not complete for id '${fileId}'`)
+        const files = getCtxFileService(ctx, path)
+        const file = await files.get(fileId)
+        if (!file.uploaded)
+            throw new BadRequest(`Upload is not complete for id '${fileId}'`)
 
-    const fileName = file.name + file.ext
-    const filePath = path.join(
-        localDirPath, 
-        file._id, 
-        fileName
-    )
+        const filePath = getFsFilePath(file, localDirPath)
 
-    const range = parseRange(ctx.request.get('content-range'), file.size)
-    if (range) {
+        const range = parseRange(
+            ctx.get('content-range'), 
+            file.size
+        )
+        if (range) {
 
-        const { start, end } = range
-        const chunk = end - start + 1
+            const { start, end } = range
+            const chunk = end - start + 1
 
-        ctx.status = PARTIAL_STATUS_CODE
-        ctx.set('accept-ranges', 'bytes')
-        ctx.set('content-range', `bytes ${start}-${end}/${file.size}`)
-        ctx.set('content-length', `${chunk}`)
-    } else 
-        ctx.set('content-length', `${file.size}`)
+            ctx.status = PARTIAL_STATUS_CODE
+            ctx.set('accept-ranges', 'bytes')
+            ctx.set('content-range', `bytes ${start}-${end}/${file.size}`)
+            ctx.set('content-length', `${chunk}`)
+        } else 
+            ctx.set('content-length', `${file.size}`)
 
-    ctx.set('content-type', file.type)
-    ctx.set('content-disposition', `inline; filename="${fileName}"`)
-    ctx.set('cache-control', `public, max-age=${ONE_YEAR}`)
+        ctx.set('content-type', file.type)
+        ctx.set('content-disposition', `inline; filename="${file.name + file.ext}"`)
+        ctx.set('cache-control', `public, max-age=${ONE_YEAR}`)
 
-    ctx.body = fs.createReadStream(filePath, range)
+        ctx.body = fs.createReadStream(filePath, range)
 
-}
+    })
 
 /*** Exports ***/
 
-export default serve
+export default serveMiddleware
 
 export {
-    serve
+    serveMiddleware
 }

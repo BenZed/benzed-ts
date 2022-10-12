@@ -6,10 +6,18 @@ import { MongoDBApplication } from '@benzed/feathers'
 import { FeathersService } from '@feathersjs/feathers'
 import { FeathersKoaContext } from '@feathersjs/koa'
 
-import { FilePayload } from '../schema'
 import FileService from '../service'
-import { throwInvalidPayload, validatePayload } from './upload-complete'
-import { PART_DIR_NAME } from '../constants'
+import { FilePayload } from '../schema'
+import { OK_STATUS_CODE, PART_DIR_NAME } from '../constants'
+
+import { 
+    createFileRoutingMiddleware, 
+    getCtxFileService,
+    getCtxPayload,
+    throwInvalidPayload, 
+    validatePayload 
+} from './util'
+
 /*** Helper ***/
 
 function writePart(
@@ -57,34 +65,36 @@ async function ensurePartDir(
 
 /*** Main ***/
 
-async function uploadPart(
-    ctx: FeathersKoaContext, 
-    files: FeathersService<MongoDBApplication, FileService>,
-    payload: FilePayload,
-    localDir: string
-): Promise<void> {
+const uploadPartMiddleware = createFileRoutingMiddleware(({ path, verify, fs: localDir }) =>
 
-    const part = await validatePayloadPart(files, payload)
-    const partDir = await ensurePartDir(payload.file, localDir)
+    async (ctx, toService) => {
 
-    await writePart(ctx, partDir, part)
+        const payload = await getCtxPayload(ctx, verify)
+        if (!payload) 
+            return toService()
 
-    ctx.response.set({ 
-        Etag: `${payload.file}-${part}` 
+        const files = getCtxFileService(ctx, path)
+        const part = await validatePayloadPart(files, payload)
+        const partDir = await ensurePartDir(payload.file, localDir)
+        
+        await writePart(ctx, partDir, part)
+        
+        ctx.response.set({ 
+            Etag: `${payload.file}-${part}` 
+        })
+        
+        ctx.body = {
+            file: payload.file,
+            part,
+            code: OK_STATUS_CODE
+        }
+        
     })
-
-    ctx.body = {
-        file: payload.file,
-        part,
-        code: 200
-    }
-
-}
 
 /*** Exports ***/
 
-export default uploadPart
+export default uploadPartMiddleware
 
 export {
-    uploadPart
+    uploadPartMiddleware
 }

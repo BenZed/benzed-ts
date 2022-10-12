@@ -1,4 +1,4 @@
-import type { TypeGuard } from '@benzed/util'
+import type { Func, TypeGuard } from '@benzed/util'
 
 /* 
     eslint-disable 
@@ -26,7 +26,7 @@ type KeepValue<V, I> =
 type BreakValue<V, I> =
     I extends TypeGuard<any, infer O>
     ? Exclude<V, O>
-    : V
+    : I extends Func<any,any,any> ? V : Exclude<V,I>
 
 // nested in .value to prevent ugliness
 type FallValue<V, I, O> = { value: BreakValue<V, I> | O }['value']
@@ -66,7 +66,7 @@ export type MatchOutput<OT, O extends OutputArray> = O extends []
         : never
     >
 
-type BreakOutputMethod<O1, V> = TypeGuard<unknown, O1> | ((input: V) => O1)
+type BreakOutputMethod<O1, V> = TypeGuard<any, O1> | ((input: V) => O1)
 
 type FuncIfOutput<O, R, A extends unknown[] = []> = O extends never ? never : (...args: A) => R
 
@@ -194,5 +194,4 @@ export interface MatchInProgress<
             >
         >
     >
-
 }

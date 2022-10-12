@@ -6,12 +6,12 @@ import fetch from 'node-fetch'
 import fs from '@benzed/fs'
 import { min } from '@benzed/array'
 
-import { SignedFile } from '../service'
-import { MAX_UPLOAD_PART_SIZE, ONE_YEAR, PARTIAL_STATUS_CODE, PART_DIR_NAME } from '../constants'
+import { SignedFile } from './service'
+import { MAX_UPLOAD_PART_SIZE, ONE_YEAR, PARTIAL_STATUS_CODE, PART_DIR_NAME } from './constants'
 
-import { User } from '../../users'
-import createFileServerApp from '../../../create-file-server-app'
-import { TEST_ASSETS } from '../../../../../../renderer/test-assets'
+import { User } from '../users'
+import createFileServerApp from '../../create-file-server-app'
+import { TEST_ASSETS } from '@benzed/renderer/test-assets'
 
 /*** Eslint ***/
 

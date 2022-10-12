@@ -12,7 +12,15 @@ import { BadRequest } from '@feathersjs/errors'
 
 import { File, FilePayload } from '../schema'
 import { FileService, eachFilePart } from '../service'
-import { PART_DIR_NAME } from '../constants'
+import { OK_STATUS_CODE, PART_DIR_NAME } from '../constants'
+
+import { 
+    createFileRoutingMiddleware, 
+    getCtxFileService, 
+    getCtxPayload, 
+    throwInvalidPayload,
+    validatePayload 
+} from './util'
 
 /*** Helper ***/
 
@@ -28,25 +36,6 @@ function readRequestBody(ctx: FeathersKoaContext): Promise<string> {
             .once('error', reject)
             .once('end', () => resolve(result))
     })
-}
-
-function throwInvalidPayload(): never {
-    throw new BadRequest('Invalid file upload payload.')
-}
-
-async function validatePayload(
-    files: FeathersService<MongoDBApplication, FileService>,
-    payload: FilePayload
-): Promise<File> {
-
-    const file = await files.get(payload.file)
-    if (file.uploader !== payload.uploader)
-        throwInvalidPayload()
-
-    if (file.uploaded)
-        throw new BadRequest('File upload is already completed.')
-
-    return file
 }
 
 async function validatePayloadComplete(
@@ -188,34 +177,34 @@ async function mergePartsIntoFile(
 
 /*** Main ***/
 
-async function uploadComplete(
-    ctx: FeathersKoaContext, 
-    files: FeathersService<MongoDBApplication, FileService>,
-    payload: FilePayload,
-    localDirPath: string
-): Promise<void> {
+const uploadCompleteMiddleware = createFileRoutingMiddleware(({ verify, path, fs: localDir }) => 
+    async (ctx, toService) => {
+        
+        const payload = await getCtxPayload(ctx, verify)
+        if (!payload) 
+            return toService()
 
-    const file = await validatePayloadComplete(files, payload)
-    const partsDirPath = await validatePartsPath(file, localDirPath)
-    const parts = await validateParts(ctx, file, partsDirPath)
+        const files = getCtxFileService(ctx, path)
 
-    await mergePartsIntoFile(file, parts, partsDirPath, localDirPath)
+        const file = await validatePayloadComplete(files, payload)
+        const partsDirPath = await validatePartsPath(file, localDir)
+        const parts = await validateParts(ctx, file, partsDirPath)
 
-    await files.patch(file._id, { uploaded: new Date() })
+        await mergePartsIntoFile(file, parts, partsDirPath, localDir)
 
-    ctx.body = {
-        file: file._id,
-        complete: true,
-        code: 200
-    }
+        await files.patch(file._id, { uploaded: new Date() })
 
-}
+        ctx.body = {
+            file: file._id,
+            complete: true,
+            code: OK_STATUS_CODE
+        }
+    })
+
 /*** Exports ***/
 
-export default uploadComplete
+export default uploadCompleteMiddleware
 
 export {
-    uploadComplete,
-    validatePayload,
-    throwInvalidPayload
+    uploadCompleteMiddleware
 }
