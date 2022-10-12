@@ -3,11 +3,13 @@ import { MongoDBApplication } from '@benzed/feathers'
 import { RendererConfig } from '@benzed/renderer'
 
 import { RenderService } from './render-service'
+import { FeathersFileService } from '../middleware/util'
 
 /*** Types ***/
 
 interface RenderServiceSettings {
     path: string
+    files: FeathersFileService
     renderer: RendererConfig
 }
 
@@ -18,14 +20,14 @@ function setupRenderService<A extends MongoDBApplication>(
     settings: RenderServiceSettings
 ): FeathersService<A, RenderService> {
 
-    const { renderer, path } = settings
+    const { renderer, files, path } = settings
 
     app.use(
 
         path, 
 
         new RenderService({ 
-            app, 
+            files,
             ...renderer 
         })
 

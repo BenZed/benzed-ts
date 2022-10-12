@@ -28,9 +28,9 @@ export default function setupFileServices(app: FileServerApp): void {
         auth,
         {
             path: '/files',
-            pagination: app.get('pagination'),
             s3: app.get('s3'),
             fs: app.get('fs'),
+            pagination: app.get('pagination'),
             renderer: app.get('renderer')
         }
     )

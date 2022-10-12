@@ -3,6 +3,8 @@ import path from 'path'
 // @ts-ignore 
 import fetch from 'node-fetch'
 
+import configuration from '@feathersjs/configuration'
+
 import fs from '@benzed/fs'
 import { min } from '@benzed/array'
 import { TEST_ASSETS } from '@benzed/renderer/test-assets'
@@ -15,7 +17,7 @@ import {
     PART_DIR_NAME 
 } from './constants'
 
-import createFileServerApp from '../../create-file-server-app'
+import createFileServerApp, { FileServerConfig } from '../../create-file-server-app'
 
 /*** Eslint ***/
 
@@ -23,7 +25,11 @@ import createFileServerApp from '../../create-file-server-app'
 
 /*** Server ***/
 
-const server = createFileServerApp()
+const server = createFileServerApp({
+    ...configuration()() as unknown as FileServerConfig,
+    renderer: null
+})
+
 const files = server.service('files')
 const users = server.service('users')
 

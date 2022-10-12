@@ -4,13 +4,14 @@ import {
 } from '@benzed/renderer'
 
 import { 
-    FileServerApp 
-} from '../../../create-file-server-app'
+    FeathersFileService
+} from '../middleware/util'
+import { File } from '../schema'
 
 /*** Types ***/
 
 interface RenderServiceConfig extends RendererConfig {
-    app: FileServerApp
+    files: FeathersFileService
 }
 
 /*** Main ***/
@@ -18,20 +19,20 @@ interface RenderServiceConfig extends RendererConfig {
 class RenderService {
 
     private readonly _renderers: [...Renderer[]]
-    private readonly _app: FileServerApp
+    private readonly _files: FeathersFileService
 
     public readonly settings: RendererConfig['settings']
 
     public constructor (config: RenderServiceConfig) {
         const {
-            app,
+            files,
             maxConcurrent = 1,
             settings,
         } = config
 
         this.settings = settings
 
-        this._app = app
+        this._files = files
 
         this._renderers = maxConcurrent > 0
             ? [
@@ -41,17 +42,37 @@ class RenderService {
                 })
             ]
             : []
+
+        this._applyFileHandlers()
     }
 
     // eslint-disable-next-line
-    public create(data: any, params: any): any {
+    public create(data: any, params?: any): any {
 
-        console.log(params)
+        console.log({params})
 
         /**
          * TODO
          * - create renderer from data or create render request from data? unsure.
          */
+
+    }
+
+    // Helper
+
+    private _applyFileHandlers(): void {
+
+        this._files.on('patch', (file: File) => {
+            // - if renderable file
+            // - if renders not already queued
+            // - if renders not already made
+            // - send to queue
+        })
+
+        this._files.on('remove', (file: File) => {
+            // - if renders queued
+            // - remove from queue
+        })
 
     }
 

@@ -131,6 +131,7 @@ function setupFileService<A extends MongoDBApplication>(
         setupRenderService(
             app, 
             {
+                files,
                 renderer,
                 path: path + '/render'
             }

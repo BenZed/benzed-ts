@@ -134,6 +134,8 @@ export {
     createFileRoutingMiddleware,
     FileRoutingSettings,
 
+    FeathersFileService,
+
     getCtxFileService,
     getCtxPayload,
     getFsFilePath
