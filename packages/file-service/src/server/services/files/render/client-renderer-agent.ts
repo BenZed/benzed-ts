@@ -34,12 +34,14 @@ class ClientRendererAgent extends Renderer {
     //     renderSetting: RendererConfig['settings'][string],
     //     output: string | Writable
     // ): RenderTask {
-    //     /**
-    //      * TODO
-    //      * - receive render request
-    //      * - send signed download urls/upload urls to client socket
-    //      */
     // }
+
+    /**
+     * TODO
+     * - receive render request
+     * - send signed download urls/upload urls to client socket
+     */
+
 }
 
 /*** Exports ***/

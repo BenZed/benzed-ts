@@ -6,23 +6,30 @@ import { RenderService } from './render-service'
 
 /*** Types ***/
 
-interface RenderServiceRefs<A extends MongoDBApplication> {
-    app: A
+interface RenderServiceSettings {
     path: string
+    renderer: RendererConfig
 }
 
 /*** Main ***/
 
 function setupRenderService<A extends MongoDBApplication>(
-    refs: RenderServiceRefs<A>,
-    config: RendererConfig
+    app: A,
+    settings: RenderServiceSettings
 ): FeathersService<A, RenderService> {
 
-    const { app, path } = refs
+    const { renderer, path } = settings
 
-    const service = new RenderService({ app, ...config })
+    app.use(
 
-    app.use(path, service)
+        path, 
+
+        new RenderService({ 
+            app, 
+            ...renderer 
+        })
+
+    )
     
     app.log`render service configured`
 

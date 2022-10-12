@@ -13,7 +13,11 @@ import {
     uploadCompleteMiddleware as uploadComplete, 
     uploadPartMiddleware as uploadPart 
 } from './middleware'
-import { FileRoutingSettings, throwInvalidPayload } from './middleware/util'
+
+import { 
+    FileRoutingSettings, 
+    throwInvalidPayload 
+} from './middleware/util'
 
 import { 
     FileServiceConfig, 
@@ -26,6 +30,8 @@ import {
     FileParams, 
     FileServiceSettings 
 } from './service'
+
+import setupRenderService from './render'
 
 /*** Helper ***/
 
@@ -79,42 +85,60 @@ function setupFileService<A extends MongoDBApplication>(
 
 ): FeathersService<A, FileService> {
 
-    const { path, pagination, fs, s3 } = config 
+    const { path, pagination, fs, s3, renderer } = config 
 
     const { sign, verify } = createSignAndVerify(auth)
 
-    const collection = app.db(
-        // '/files' -> 'files'
-        path.replace('/', '')
-    ) 
-
-    const middleware = { verify, path, fs, s3 }
-
     app.use(
+
         path, 
+
         new FileService({
             path,
             sign,
             paginate: pagination,
             multi: false,
-            Model: collection
+            Model: app.db(
+                // '/files' -> 'files'
+                path.replace('/', '')
+            ) 
         }),
+
         {
             koa: {
                 before: [
                     errorHandler(),
-                    uploadPart({ ...middleware, method: 'update'}),
-                    uploadComplete({ ...middleware, method: 'create'}),
-                    serve({ ...middleware, method: 'get' })
+                    serve({ verify, path, fs, s3, method: 'get' }),
+                    uploadPart({ verify, path, fs, s3, method: 'update'}),
+                    uploadComplete({ verify, path, fs, s3, method: 'create'})
+                ],
+                after: [
+                    // deleteFileAfterRemoval({ method: 'remove' })
                 ]
             },
             methods: ['create', 'find', 'get', 'patch', 'remove'],
             events: [],
         }
+
     )
 
-    const fileService = app.service(path) as unknown as FeathersService<A, FileService>
-    return fileService.hooks(fileHooks)
+    const files = app.service(path) as unknown as FeathersService<A, FileService>
+    files.hooks(fileHooks)
+
+    app.log`file service configured`
+
+    if (renderer) {
+        setupRenderService(
+            app, 
+            {
+                renderer,
+                path: path + '/render'
+            }
+        )
+    }
+
+    return files
+
 }
 
 /*** Exports ***/

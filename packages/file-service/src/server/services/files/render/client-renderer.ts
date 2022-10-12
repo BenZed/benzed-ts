@@ -4,15 +4,13 @@ import { feathers, Application } from '@feathersjs/feathers'
 import feathersSocketio from '@feathersjs/socketio-client'
 
 import socketio from 'socket.io-client'
-import { FileService } from '../files'
+import { FileService } from '../service'
 
 /*** Types ***/
 
 type ClientRenderer = Application<{ files: FileService }, { renderer: Renderer | null }>
 
-interface ClientUploadOptions {
-
-}
+interface ClientUploadOptions { /**/ }
 
 /*** Helper ***/
 

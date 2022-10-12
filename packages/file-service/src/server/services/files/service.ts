@@ -13,6 +13,7 @@ import { BadRequest } from '@feathersjs/errors'
 
 import { FileData, File, FileQuery, FileServiceConfig, FilePayload } from './schema'
 import { MAX_UPLOAD_PART_SIZE, UPLOAD_QUERY_PARAM } from './constants'
+import { Id } from '@feathersjs/feathers/lib'
 
 /*** Types ***/
 

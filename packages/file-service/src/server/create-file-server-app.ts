@@ -6,7 +6,6 @@ import {
     $pagination,
     
 } from '@benzed/feathers'
-import { $rendererConfig } from '@benzed/renderer'
 import $, { Infer } from '@benzed/schema'
 import '@benzed/util'
 
@@ -25,9 +24,9 @@ const $fileServerConfig = $({
 
     s3: $fileServiceConfig.$.s3,
     fs: $fileServiceConfig.$.fs,
+    renderer: $fileServiceConfig.$.renderer,
 
     pagination: $pagination,
-    renderer: $rendererConfig,
     authentication: $.object,
 
 })

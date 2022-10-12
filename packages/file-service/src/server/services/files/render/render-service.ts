@@ -3,7 +3,9 @@ import {
     RendererConfig
 } from '@benzed/renderer'
 
-import { FileServerApp } from '../../create-file-server-app'
+import { 
+    FileServerApp 
+} from '../../../create-file-server-app'
 
 /*** Types ***/
 
@@ -30,16 +32,21 @@ class RenderService {
         this.settings = settings
 
         this._app = app
+
         this._renderers = maxConcurrent > 0
             ? [
-                // renders done by the server itself
-                new Renderer({ maxConcurrent, settings })
+                new Renderer({ 
+                    maxConcurrent, 
+                    settings 
+                })
             ]
             : []
     }
 
     // eslint-disable-next-line
     public create(data: any, params: any): any {
+
+        console.log(params)
 
         /**
          * TODO

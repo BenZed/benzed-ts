@@ -1,6 +1,7 @@
 import fs from '@benzed/fs'
 import $, { Infer } from '@benzed/schema'
 import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
+import { $rendererConfig } from '@benzed/renderer'
 
 import { $awsConfig } from '../../schemas/aws-config'
 
@@ -18,26 +19,30 @@ const $directory = $.string
 export interface FileServiceConfig extends Infer<typeof $fileServiceConfig> {}
 export const $fileServiceConfig = $({
     
-    fs: $.or( $directory, $.null ).name('fs-config'),
+    fs: $.or( $directory, $.null )
+        .name('fs-config'),
 
-    s3: $.or( $awsConfig, $.null ).name('aws-config'),
+    s3: $.or( $awsConfig, $.null )
+        .name('aws-config'),
 
     path: $.string
         .format(/\/([a-z]|-)+/, 'must be a path')
         .name('path'),
 
-    pagination: $pagination
+    pagination: $pagination,
 
+    renderer: $.or($rendererConfig, $.null)
 })
 
 /*** File Payload ***/
 
 export interface FilePayload extends Infer<typeof $filePayload> {}
 export const $filePayload = $({
+
     uploader: $id,
     file: $id,
+    
     action: $.or(
-        
         $({ 
             render: $.string.optional,
             part: $.number 
@@ -48,6 +53,7 @@ export const $filePayload = $({
             complete: $(true) 
         })
     )
+
 }).name('file-payload')
 
 /*** File ***/
@@ -59,7 +65,9 @@ export const $fileData = $({
 
     uploader: $ref,
 
-    ext: $.string.format(/^\.([a-z]|\d)+$/i, 'must be a file extension'),
+    ext: $.string
+        .format(/^\.([a-z]|\d)+$/i, 'must be a file extension'),
+    
     type: $.string,
     size: $size,
 
@@ -100,7 +108,9 @@ export interface FileCreateData extends Infer<typeof $fileCreateData> {}
 export const $fileCreateData = $({
 
     name: $file.$.name.format(/\.([a-z]|\d)+$/i, 'must have file extension'),
+
     uploader: $file.$.uploader,
+
     size: $file.$.size,
 
 })
