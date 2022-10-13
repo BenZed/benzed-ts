@@ -1,6 +1,5 @@
 
 import memoize from './memoize'
-import { primes } from '../../math/src'
 
 describe('memoize', () => {
     const add = (a: number, b: number): number => {
@@ -21,21 +20,21 @@ describe('memoize', () => {
         expect(addCalls).toEqual(2)
     })
 
-    it('no arguments is also considered value-equal', () => {
+    // it('no arguments is also considered value-equal', () => {
 
-        const memoizedPrimes = memoize(() => [...primes(2, 50000)])
+    //     const memoizedPrimes = memoize(() => [...primes(2, 50000)])
 
-        const timedMemoizedPrimes = (): number => {
-            const start = Date.now()
-            memoizedPrimes()
-            return Date.now() - start
-        }
+    //     const timedMemoizedPrimes = (): number => {
+    //         const start = Date.now()
+    //         memoizedPrimes()
+    //         return Date.now() - start
+    //     }
 
-        expect(
-            timedMemoizedPrimes() >
-            timedMemoizedPrimes(),
-        ).toBeTruthy()
-    })
+    //     expect(
+    //         timedMemoizedPrimes() >
+    //         timedMemoizedPrimes(),
+    //     ).toBeTruthy()
+    // })
 
     it('works asyncronously', async () => {
         const getWaitTime = (time: number): Promise<number> =>

@@ -1,4 +1,5 @@
-import ValueMap from './value-map'
+import { Func } from '@benzed/util'
+import { ValueMap } from './value-map'
 
 /*** Helper ***/
 
@@ -26,27 +27,27 @@ function trimCacheToSize(
  * @param maxCacheSize Maximum number of argument variants to cache.
  * @returns Memoized method.
  */
-function memoize<K extends unknown[], V>(
-    method: (...args: K) => V,
+function memoize<T extends Func>(
+    method: T,
     maxCacheSize = Infinity
-): typeof method {
+): T {
 
-    const cache = new ValueMap<K, V>()
+    const cache = new ValueMap<Parameters<T>, ReturnType<T>>()
 
-    return (...args: K): V => {
+    return ((...args: Parameters<T>): ReturnType<T> => {
 
-        let result: V
+        let result: ReturnType<T>
         if (cache.has(args))
-            result = cache.get(args) as V
+            result = cache.get(args) as ReturnType<T>
         else {
-            result = method(...args)
+            result = method(...args as unknown[]) as ReturnType<T>
             cache.set(args, result)
 
             trimCacheToSize(cache, maxCacheSize)
         }
 
         return result
-    }
+    }) as T
 }
 
 /*** Exports ***/
