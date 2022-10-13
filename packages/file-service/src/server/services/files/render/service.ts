@@ -18,7 +18,6 @@ import {
 } from '@benzed/schema'
 
 import {
-    MongoDBApplication,
     validationErrorToBadRequest
 } from '@benzed/feathers'
 
@@ -29,8 +28,6 @@ import {
     BadRequest, 
     MethodNotAllowed
 } from '@feathersjs/errors'
-
-import { RealTimeConnection } from '@feathersjs/transport-commons'
 
 import { File } from '../schema'
 
@@ -46,14 +43,8 @@ import { SERVER_RENDERER_ID } from '../constants'
 /*** Types ***/
 
 interface RenderServiceConfig extends RendererConfig {
-    app: MongoDBApplication
+    io: Server | Promise<Server>
     files: FeathersFileService
-
-    /**
-     * Channel that renderer clients are placed in to receive
-     * render service related events
-     */
-    channel: string
 }
 
 export interface RendererRecord extends RendererRecordCreateData, RendererRecordPatchData {
@@ -83,27 +74,21 @@ class RenderService {
 
     private readonly _renderers: Map<string, Renderer | ClientRendererAgent>
     private readonly _files: FeathersFileService
-    private readonly _app: MongoDBApplication
-
-    private readonly _channel: string
-
-    public readonly events = ['updated']
+    private readonly _io: Server | Promise<Server>
 
     public readonly settings: RendererConfig['settings']
 
     public constructor (config: RenderServiceConfig) {
         const {
-            app,
+            io,
             files,
-            channel,
             maxConcurrent = 0,
             settings,
         } = config
 
         this.settings = settings
 
-        this._app = app
-        this._channel = channel
+        this._io = io
         this._renderers = new Map() 
         if (maxConcurrent > 0) {
             this._renderers.set(
@@ -116,8 +101,8 @@ class RenderService {
         }
 
         this._files = files
-        this._files.on('patch', this._addFileToQueue)
-        this._files.on('remove', this._removeFileFromQueue)
+        this._files.on('patched', this._addFileToQueue)
+        this._files.on('removed', this._removeFileFromQueue)
     }
 
     // eslint-disable-next-line
@@ -129,11 +114,11 @@ class RenderService {
             throw validationErrorToBadRequest(e as ValidationError)
         }
         
-        const [socket, connection] = this._getConnectionSocket(params)
+        const socket = await this._getConnectionSocket(params)
         if (!socket)
             throw new MethodNotAllowed('only socket.io clients may create a renderer')
 
-        const existing = this._getRenderer(socket.id)
+        const existing = this._renderers.get(socket.id)
         if (existing)
             throw new BadRequest('renderer already created for this connection')
 
@@ -148,10 +133,8 @@ class RenderService {
             })
         )
 
-        this._app.channel(this._channel).join(connection)
-
         socket.once('disconnect', () => {
-            if (this._getRenderer(socket.id)) 
+            if (this._renderers.has(socket.id)) 
                 this.remove(socket.id)
         })
 
@@ -230,35 +213,31 @@ class RenderService {
         // - remove from queue
     }
 
-    private _rebalanceQueue(additionalItems: RenderItem[] = []): void {
+    private _rebalanceQueue(items: RenderItem[] = []): void {
         // Ensure each renderer has an equal load of work
     }
 
-    private _getConnectionSocket(params?: Params): [Socket, RealTimeConnection] | [null, null] {
+    private async _getConnectionSocket(params?: Params): Promise<Socket | null> {
 
         if (!params?.connection || params?.provider !== 'socketio')
-            return [null, null]
+            return null
 
-        const { io } = this._app as unknown as { io: Server }
+        const io = await this._io
 
         for (const socket of io.sockets.sockets.values()) {
             if ((socket as any).feathers === params.connection)
-                return [socket, params.connection]
+                return socket
         }
 
-        return [null, null]
+        return null
 
-    }
-
-    private _getRenderer(id: string): Renderer | ClientRendererAgent | null {
-        return this._renderers.get(id) ?? null
     }
 
     private _assertGetRenderer (
         id: RendererRecord['_id']
     ): Promise<Renderer | ClientRendererAgent> {
 
-        const renderer = this._getRenderer(id)
+        const renderer = this._renderers.get(id)
         if (!renderer) {
             return Promise.reject(
                 new NotFound(
@@ -271,7 +250,6 @@ class RenderService {
         
         return Promise.resolve(renderer)
     }
-
 }
 
 /*** Exports ***/
