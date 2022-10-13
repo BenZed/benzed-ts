@@ -25,9 +25,14 @@ function setupSocketIO(app: FileServerApp): void {
         app.channel('authenticated').join(connection)
     })
 
-    app.publish((_data: unknown, _ctx: HookContext) => {
-        return app.channel('authenticated')
-    })
+    // app.service('files/render')
+
+    app.publish((_data: unknown, _ctx: HookContext) => 
+        app.channel(
+            'authenticated', 
+            'renderer'
+        )
+    )
 
 }
 

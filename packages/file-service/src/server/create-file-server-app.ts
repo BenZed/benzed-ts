@@ -1,27 +1,28 @@
 import '@benzed/util'
 import {
+
     createMongoDBApplication,
     MongoDBApplication,
 
     $mongoDBApplicationConfig,
     $pagination,
-    
+
 } from '@benzed/feathers'
 import $, { Infer } from '@benzed/schema'
 
 import { HookContext } from '@feathersjs/feathers'
 
-import socketio from './socket-io'
-
 import services, { FileServices } from './services'
 import { $fileServiceConfig } from './schemas'
 import middleware from './middleware'
+import socketio from './socket-io'
 
 /*** Types ***/
 
-interface FileServerConfig extends Infer<typeof $fileServerConfig> {}
+interface FileServerConfig extends Infer<typeof $fileServerConfig> { }
+
 const $fileServerConfig = $({
-    
+
     ...$mongoDBApplicationConfig.$,
 
     s3: $fileServiceConfig.$.s3,
@@ -47,7 +48,6 @@ function createFileServerApp(config?: FileServerConfig): FileServerApp {
     )
 
     fileServerApp.configure(socketio)
-
     fileServerApp.configure(services)
     fileServerApp.configure(middleware)
 

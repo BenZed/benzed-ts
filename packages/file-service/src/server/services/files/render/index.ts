@@ -10,9 +10,14 @@ import { FeathersFileService } from '../middleware/util'
 /*** Types ***/
 
 interface RenderServiceSettings {
+
     path: string
+    channel: string
+
     files: FeathersFileService
+
     renderer: RendererConfig
+
 }
 
 /*** Main ***/
@@ -22,11 +27,12 @@ function setupRenderService<A extends MongoDBApplication>(
     settings: RenderServiceSettings
 ): FeathersService<A, RenderService> {
 
-    const { renderer, files, path } = settings
+    const { renderer, files, path, channel } = settings
 
     app.use(
         path, 
         new RenderService({ 
+            channel,
             app,
             files,
             ...renderer 

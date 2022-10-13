@@ -48,24 +48,34 @@ import { SERVER_RENDERER_ID } from '../constants'
 interface RenderServiceConfig extends RendererConfig {
     app: MongoDBApplication
     files: FeathersFileService
+
+    /**
+     * Channel that renderer clients are placed in to receive
+     * render service related events
+     */
+    channel: string
 }
 
-export interface RendererRecord extends RendererRecordData {
+export interface RendererRecord extends RendererRecordCreateData, RendererRecordPatchData {
     _id: string
-    current: { file: string, setting: string }[]
-    queued: { file: string, setting: string }[]
 }
 
 /*** Schema ***/
 
-interface RendererRecordData extends Infer<typeof rendererRecordData> {}
-const rendererRecordData = $({
+type RenderItemState = Pick<RenderItem, 'id' | 'stage' | 'setting'>
+
+interface RendererRecordPatchData {
+    items: RenderItemState[]
+}
+
+interface RendererRecordCreateData extends Infer<typeof rendererRecordClientData> {}
+const rendererRecordClientData = $({
     maxConcurrent: $rendererConfig.$.maxConcurrent.clearFlags()
 })
 
 const { is: isClientRenderAgent } = $.instanceOf(ClientRendererAgent)
 
-const assertCreateData: Asserts<typeof rendererRecordData> = rendererRecordData.assert
+const assertCreateData: Asserts<typeof rendererRecordClientData> = rendererRecordClientData.assert
 
 /*** Main ***/
 
@@ -75,12 +85,15 @@ class RenderService {
     private readonly _files: FeathersFileService
     private readonly _app: MongoDBApplication
 
+    private readonly _channel: string
+
     public readonly settings: RendererConfig['settings']
 
     public constructor (config: RenderServiceConfig) {
         const {
             app,
             files,
+            channel,
             maxConcurrent = 0,
             settings,
         } = config
@@ -88,7 +101,7 @@ class RenderService {
         this.settings = settings
 
         this._app = app
-
+        this._channel = channel
         this._renderers = new Map() 
         if (maxConcurrent > 0) {
             this._renderers.set(
@@ -106,7 +119,7 @@ class RenderService {
     }
 
     // eslint-disable-next-line
-    public async create(data: { maxConcurrent: number }, params?: Params): Promise<RendererRecord> {
+    public async create(data: RendererRecordCreateData, params?: Params): Promise<RendererRecord> {
 
         try {
             assertCreateData(data)
@@ -114,7 +127,7 @@ class RenderService {
             throw validationErrorToBadRequest(e as ValidationError)
         }
         
-        const [socket] = this._getConnectionSocket(params)
+        const [socket, connection] = this._getConnectionSocket(params)
         if (!socket)
             throw new MethodNotAllowed('only socket.io clients may create a renderer')
 
@@ -133,13 +146,14 @@ class RenderService {
             })
         )
 
-        this._rebalanceQueue()
+        this._app.channel(this._channel).join(connection)
 
         socket.once('disconnect', () => {
             if (this._getRenderer(socket.id)) 
                 this.remove(socket.id)
-            
         })
+
+        this._rebalanceQueue()
 
         return this.get(socket.id)
     }
@@ -155,6 +169,20 @@ class RenderService {
         return Promise.all(
             Array.from(this._renderers.values(), this._toRenderRecord)
         )
+    }
+
+    public async patch(
+        id: RendererRecord['_id'], 
+        data: Partial<RendererRecordPatchData>, 
+        params?: Params
+    ): Promise<RendererRecord> {
+
+        if (params?.provider)
+            throw new MethodNotAllowed('renderers cannot be patched')
+
+        const renderer = await this._assertGetRenderer(id)
+
+        return this._toRenderRecord(renderer)
     }
 
     public async remove(id: RendererRecord['_id'], params?: Params): Promise<RendererRecord> {
@@ -187,14 +215,16 @@ class RenderService {
 
         const _id = isClientRenderAgent(renderer) ? renderer.socket.id : SERVER_RENDERER_ID
         const maxConcurrent = renderer.config.maxConcurrent
-        const current: RendererRecord['current'] = []
-        const queued: RendererRecord['queued'] = []
+        const items = renderer.items().map(({ stage, id, setting }) => ({
+            stage,
+            id,
+            setting
+        }))
 
         return {
             _id,
             maxConcurrent,
-            current,
-            queued
+            items
         }
     }
 

@@ -2,6 +2,7 @@
 import { milliseconds } from '@benzed/async'
 
 import configuration from '@feathersjs/configuration'
+import { FeathersService } from '@feathersjs/feathers'
 
 import RenderService, { RendererRecord } from './service'
 import createClientRenderer, { ClientRenderer } from './client-renderer'
@@ -20,7 +21,7 @@ const HOST = `http://localhost:${server.get('port')}`
 beforeAll(() => server.start())
 
 let client: ClientRenderer
-let clientRenderService: RenderService
+let clientRenderService: FeathersService<ClientRenderer, RenderService>
 let clientRendererRecord: RendererRecord
 
 //
@@ -119,8 +120,7 @@ describe('get()', () => {
         expect(serverRecord).toEqual({
             _id: 'local',
             maxConcurrent: 1,
-            current: [],
-            queued: []
+            items: []
         })
     })
 })
@@ -130,13 +130,37 @@ describe('find()', () => {
     it('resolves an array of all renderers', async () => {
         const records = await clientRenderService.find()
 
-        console.log(records)
         expect(records.length).toBeGreaterThan(0)
     })
 
 })
 
+describe('patch()', () => {
+
+    it('disabled for clients', async () => {
+
+        const err = await clientRenderService.patch(
+            clientRendererRecord._id,
+            {
+                items: []
+            }
+        ).catch(e => e)
+
+        expect(err.message).toContain('renderers cannot be patched')
+        expect(err.name).toBe('MethodNotAllowed')
+
+    })
+
+})
+
 describe('remove()', () => {
+
+    let removeEventArg: RendererRecord
+    beforeAll(() => {
+        clientRenderService.on('removed', (r: RendererRecord) => {
+            removeEventArg = r
+        })
+    })
 
     it('disallowed by client', async () => {
         const err = await clientRenderService
@@ -189,6 +213,12 @@ describe('remove()', () => {
             .catch((e: Error) => e) as Error
 
         expect(error.message).toContain('renderer could not be found for id')
+
+    })
+
+    it('emits remove event', () => {
+
+        expect(removeEventArg).toBeTruthy()
 
     })
 

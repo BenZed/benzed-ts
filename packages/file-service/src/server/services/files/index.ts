@@ -133,6 +133,7 @@ function setupFileService<A extends MongoDBApplication>(
             {
                 files,
                 renderer,
+                channel: 'renderer',
                 path: path + '/render'
             }
         )
