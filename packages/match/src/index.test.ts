@@ -2,6 +2,7 @@ import match from './index'
 
 import { primes } from '@benzed/math'
 import is from '@benzed/is'
+import { toTrue } from '@benzed/util'
 
 /*** Tests ***/
 
@@ -297,7 +298,7 @@ it('.discard() works with values', () => {
 })
 
 it('.discard() may not discard all values', () => {
-    expect(() => match(0).discard(() => true).default(0).next())
+    expect(() => match(0).discard(toTrue).default(0).next())
         .toThrow('All values discarded.')
 })
 

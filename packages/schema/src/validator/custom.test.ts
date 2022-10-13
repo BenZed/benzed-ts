@@ -1,4 +1,5 @@
 
+import { toTrue } from '@benzed/util'
 import {
     CustomValidator, 
     CustomValidatorSettingsShortcut,
@@ -54,7 +55,7 @@ describe('custom transform validator', () => {
     beforeAll(() => {
         suspensful = custom<string>({ 
             transform: i => i.endsWith('...') ? i : i + '...',
-            isValid: () => true, 
+            isValid: toTrue, 
         })
     })
 

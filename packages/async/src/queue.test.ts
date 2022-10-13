@@ -1,3 +1,4 @@
+import { toFalse, toTrue } from '@benzed/util'
 import milliseconds from './milliseconds'
 import { isQueuePayload, Queue } from './queue'
 
@@ -241,8 +242,8 @@ describe('remove()', () => {
 describe('clear()', () => {
 
     const queue = new Queue<boolean>({ initiallyPaused: true })
-    queue.add(() => true)
-    queue.add(() => false)
+    queue.add(toTrue)
+    queue.add(toFalse)
 
     const removed = queue.clear()
 

@@ -47,6 +47,7 @@ import {
     CustomValidatorSettingsShortcut,
     toCustomValidatorSettings 
 } from '../validator/custom'
+import { pass } from '@benzed/util'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -200,7 +201,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     ): this {
         return this.validates({
             transform,
-            isValid: () => true,
+            isValid: pass,
             error: '' // validator will never throw.
         })
     }
