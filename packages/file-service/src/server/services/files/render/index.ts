@@ -2,8 +2,9 @@ import { FeathersService } from '@feathersjs/feathers'
 import { MongoDBApplication } from '@benzed/feathers'
 import { RendererConfig } from '@benzed/renderer'
 
-import { RenderService } from './render-service'
+import { RenderService } from './service'
 import { FeathersFileService } from '../middleware/util'
+import { Server } from 'socket.io'
 
 /*** Types ***/
 
@@ -23,15 +24,22 @@ function setupRenderService<A extends MongoDBApplication>(
     const { renderer, files, path } = settings
 
     app.use(
-
         path, 
-
         new RenderService({ 
+            app,
             files,
             ...renderer 
         })
 
     )
+
+    app.on('listen', () => {
+        const { io } = app as { io?: Server }
+        if (!io) {
+            void app.teardown()
+            throw new Error('render service requires app be configured with socket.io')
+        }
+    })
     
     app.log`render service configured`
 

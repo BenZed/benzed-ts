@@ -1,3 +1,4 @@
+import '@benzed/util'
 import {
     createMongoDBApplication,
     MongoDBApplication,
@@ -7,9 +8,10 @@ import {
     
 } from '@benzed/feathers'
 import $, { Infer } from '@benzed/schema'
-import '@benzed/util'
 
 import { HookContext } from '@feathersjs/feathers'
+
+import socketio from './socket-io'
 
 import services, { FileServices } from './services'
 import { $fileServiceConfig } from './schemas'
@@ -43,6 +45,8 @@ function createFileServerApp(config?: FileServerConfig): FileServerApp {
     const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>(
         config ? $fileServerConfig.validate(config) : $fileServerConfig
     )
+
+    fileServerApp.configure(socketio)
 
     fileServerApp.configure(services)
     fileServerApp.configure(middleware)

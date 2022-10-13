@@ -39,3 +39,19 @@ describe('mode()', () => {
             .toEqual('test')
     })
 })
+
+describe('start()', () => {
+    it('emits listen method with port and nev', async () => {
+        let listen!: [number, string]
+        mongoDBApplication.on('listen', (port,env) => {
+            listen = [port,env]
+        })
+        await mongoDBApplication.start()
+        await mongoDBApplication.teardown()
+
+        expect(listen).toEqual([
+            mongoDBApplication.get('port'), 
+            'test'
+        ])
+    })
+})

@@ -16,21 +16,25 @@ import { SchemaFor, ValidationError } from '@benzed/schema'
 
 /*** Helper ***/
 
+function validationErrorToBadRequest(err: ValidationError): BadRequest {
+
+    const { path, message } = err 
+
+    return new BadRequest(
+        `Validation failed: ${path.join('.')} ${message}`,
+        {
+            data: {
+                [path.join('.')]: message
+            }
+        }
+    )
+}
+
 function validateSchema(schema: SchemaFor<unknown>, value: unknown) {
     try {
         return schema.validate(value)
     } catch (err) {
-
-        const { path, message } = err as ValidationError
-
-        throw new BadRequest(
-            `Validation failed: ${path.join('.')} ${message}`,
-            {
-                data: {
-                    [path.join('.')]: message
-                }
-            }
-        )
+        throw validationErrorToBadRequest(err as ValidationError) 
     }
 }
 
@@ -171,4 +175,8 @@ export class Resolver<T, C> {
 
 export function resolve<T, C>(options: ResolverConfig<T, C>): Resolver<T,C> {
     return new Resolver<T, C>(options)
+}
+
+export {
+    validationErrorToBadRequest
 }

@@ -13,7 +13,6 @@ import { BadRequest } from '@feathersjs/errors'
 
 import { FileData, File, FileQuery, FileServiceConfig, FilePayload } from './schema'
 import { MAX_UPLOAD_PART_SIZE, UPLOAD_QUERY_PARAM } from './constants'
-import { Id } from '@feathersjs/feathers/lib'
 
 /*** Types ***/
 
@@ -105,6 +104,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
             complete: await this._createUrl(file, { complete: true }),
             local: true
         }
+
     }
 
     // HELPER

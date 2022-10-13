@@ -3,14 +3,22 @@ import { Renderer } from '@benzed/renderer'
 import { feathers, Application } from '@feathersjs/feathers'
 import feathersSocketio from '@feathersjs/socketio-client'
 
-import socketio from 'socket.io-client'
+import socketio, { Socket } from 'socket.io-client'
 import { FileService } from '../service'
+import { RenderService } from './service'
 
 /*** Types ***/
 
-type ClientRenderer = Application<{ files: FileService }, { renderer: Renderer | null }>
+type ClientRenderer =
+    Application<
+    { files: FileService, 'files/render': RenderService }, 
+    { renderer: Renderer | null }
+    > & 
+    { io: Socket }
 
-interface ClientUploadOptions { /**/ }
+interface ClientUploadOptions { 
+    /**/ 
+}
 
 /*** Helper ***/
 
@@ -26,7 +34,7 @@ function createFeathersClient(host: string): ClientRenderer {
                 socketio(host)
             )
         )
-        .set('renderer', null) // so not initially undefined
+        .set('renderer', null) as ClientRenderer
 }
 
 function setupHandlers(client: ClientRenderer): void {
@@ -46,13 +54,18 @@ function setupHandlers(client: ClientRenderer): void {
 
 /*** Main ***/
 
-function createClientRenderer(host: string): ClientRenderer {
+function createClientRenderer(host: string): Promise<ClientRenderer> {
 
     const client = createFeathersClient(host)
 
     setupHandlers(client)
 
-    return client
+    return new Promise(resolve => 
+        client.io.on(
+            'connect', 
+            () => resolve(client)
+        )
+    )
 }
 
 /*** Exports ***/

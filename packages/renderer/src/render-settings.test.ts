@@ -1,13 +1,13 @@
 import {
-    isRenderSetting,
-    isRendererConfig
+    $renderSetting,
+    $rendererConfig
 } from './render-settings'
 
 import { describeValidator } from './util.test'
 
 describeValidator({
-    describe: 'isRenderConfig validator',
-    factory: () => isRendererConfig,
+    describe: '$rendererConfig.is validator',
+    factory: () => $rendererConfig.is,
     input: [],
     data: [
         [
@@ -71,8 +71,8 @@ describeValidator({
 })
 
 describeValidator({
-    describe: 'isRenderSetting validator',
-    factory: () => isRenderSetting,
+    describe: '$renderSetting.is validator',
+    factory: () => $renderSetting.is,
     input: [],
     data: [
         [

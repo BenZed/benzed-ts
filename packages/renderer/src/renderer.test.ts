@@ -2,11 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import { cpus } from 'os'
 
-import { isRenderSetting } from './render-settings'
+import { $renderSetting } from './render-settings'
 import { Renderer, RenderItem } from './renderer'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
-import { getMetadata, isMetadata } from './ffmpeg'
+import { getMetadata, $metaData } from './ffmpeg'
 
 import { floor } from '@benzed/math'
 //
@@ -45,15 +45,16 @@ describe('construct', () => {
 describe('static from() method', () => {
     it('gets a render option from a json url', async () => {
         const renderer = await Renderer.from(TEST_ASSETS.config)
-        expect(isRenderSetting(renderer.config.settings['image-low'])).toBe(true)
-        expect(isRenderSetting(renderer.config.settings['image-medium'])).toBe(true)
-        expect(isRenderSetting(renderer.config.settings['image-high'])).toBe(true)
+        expect($renderSetting.is(renderer.config.settings['image-low'])).toBe(true)
+        expect($renderSetting.is(renderer.config.settings['image-medium'])).toBe(true)
+        expect($renderSetting.is(renderer.config.settings['image-high'])).toBe(true)
     })
 
     it('throws if provided json is not formatted correctly', async () => {
-        await expect(Renderer.from(TEST_ASSETS.badConfig))
-            .rejects
-            .toThrow('not a valid RenderConfig object')
+        const err = await Renderer.from(TEST_ASSETS.badConfig).catch(e => e)
+
+        expect(err.path).toEqual(['settings'])
+        expect(err.message).toContain('is required')
     })
 })
 
@@ -169,7 +170,7 @@ describe('add() method', () => {
 
     it('gets metadata results', () => {
         for (const item of items)
-            expect(isMetadata(item.result?.value)).toBe(true)
+            expect($metaData.is(item.result?.value)).toBe(true)
     })
 
     it('size settings are respected', async () => {

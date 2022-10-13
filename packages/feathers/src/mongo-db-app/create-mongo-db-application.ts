@@ -81,7 +81,7 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
         const env = this.mode()
 
         await this.listen(port)
-
+        this.emit('listen', port, env)
         this.log`${name} listening on port ${port} in ${env} mode`
     }
 

@@ -6,6 +6,8 @@ export type Func<A extends any[] = unknown[], V = unknown, T = void> = (this: T,
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
+export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
+
 export type Json =
     null | string | number | boolean |
     Json[] |

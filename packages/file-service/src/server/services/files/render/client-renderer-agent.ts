@@ -3,12 +3,12 @@ import {
     Renderer,
 } from '@benzed/renderer'
 
-import { Socket } from 'socket.io-client'
+import { Socket } from 'socket.io'
 
 /*** Types ***/
 
 interface ClientRendererAgentConfig extends RendererConfig {
-    socket: Socket
+    socket: Socket 
 }
 
 /*** Main ***/
@@ -17,16 +17,16 @@ interface ClientRendererAgentConfig extends RendererConfig {
  * Doesn't actually do any rendering, acts as an agent representing a client
  * renderer.
  */
-class ClientRendererAgent extends Renderer {
+class ClientRendererAgent extends Renderer{
 
-    private readonly _socket: Socket
+    public readonly socket: Socket 
 
     public constructor (config: ClientRendererAgentConfig) {
         const { socket, ...rest } = config
 
         super(rest)
 
-        this._socket = socket
+        this.socket = socket
     }
 
     // protected _createRenderTask(
