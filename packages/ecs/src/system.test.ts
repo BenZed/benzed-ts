@@ -18,7 +18,7 @@ class SocketIo extends Component<{connection: string}, void> {
     }
 }
 
-class Listener extends Component<void, { request: string}> {
+class Listener extends Component<void, { request: string }> {
     public execute(): { request: string } {
         return { request: 'hello world' }
     }
@@ -30,6 +30,12 @@ class Responder extends Component<{ response: string }, void> {
     }
 }
 
+class ErrorHandler extends Component<{ response: string }, Error> {
+    public execute(input: { response: string }) : Error {
+        return new Error(input.response)
+    }
+}
+
 /*** Types ***/
 
 const responder = Node.create(new Responder())
@@ -37,6 +43,7 @@ const listener = Node.create(new Listener())
 
 const socketio = Node.create(new SocketIo())
 const rest = Node.create(new Rest())
+const error = Node.create(new ErrorHandler())
 
 /*** Tests ***/
 
@@ -54,6 +61,7 @@ it('nodes can be added after the fact', () => {
         .create({ listener })
         .add('listener', { rest })
         .add('rest', { responder })
+        .add('rest', { error })
 
     expect(server.nodes).toHaveProperty('listener')
     expect(server.nodes).toHaveProperty('rest')
@@ -71,20 +79,23 @@ it('can only connect nodes with applicable input', () => {
 
 it('systems can be linked', () => {
     
-    type Provider = System<{ rest: Node<[Rest]> }, [], 'rest'>
-    const provider: Provider = System
-        .create({ rest })
+    const provider = System
+        .create({ rest, responder, error })
+        .link('rest', 'responder')
+        .link('rest', 'error')
+        .link('rest','')
         .setInputNode('rest')
 
-    const server1 = System   
-        .create({ listener, responder, provider })
+    const server1 = System
+        .create({ 
+            listener, 
+            provider 
+        })
         .link('listener', 'provider')
-        .link('provider', 'responder')
 
     const server2 = System  
         .create({ listener })
         .add('listener', { provider })
-        .add('provider', { responder })
 
     expect(server1).toEqual(server2)
 })
@@ -96,8 +107,9 @@ it('correct calculation of system output', () => {
         .add('rest', { responder })
         .setInputNode('rest')
 
-        type ProviderOutput = SystemOutput<typeof provider>
-        type ResponderOutput = NodeOutput<typeof responder>
+    type ProviderOutput = SystemOutput<typeof provider>
+    type ResponderOutput = NodeOutput<typeof responder>
 
-        expectTypeOf<ProviderOutput>().toMatchTypeOf<ResponderOutput>()
+    expectTypeOf<ProviderOutput>()
+        .toMatchTypeOf<ResponderOutput>()
 })

@@ -6,6 +6,9 @@ import type { Node } from './node'
 abstract class Component<I = unknown, O = I> 
 implements CopyComparable<Component<I, O>> {
 
+    private readonly _input!: I
+    private readonly _output!: O
+
     protected _node: Node | null = null
 
     public abstract execute(...args: I extends void ? [] : [I]): O 

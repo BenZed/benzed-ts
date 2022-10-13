@@ -7,11 +7,11 @@ import { Component } from './component'
 
 type Components = readonly Component[]
 
-type ComponentOutput<T> = T extends Component<unknown, infer O> 
+type ComponentOutput<T> = T extends Component<any, infer O> 
     ? O
     : unknown
 
-type ComponentInput<T> = T extends Component<infer I, unknown> 
+type ComponentInput<T> = T extends Component<infer I, any> 
     ? I
     : unknown
 
@@ -23,8 +23,12 @@ type FirstComponent<C extends Components> = C extends [infer F, ...unknown[]] | 
     ? F 
     : never
 
+type PopComponents<C extends Components> = C extends [...infer F, Component] 
+    ? F
+    : []
+
 type PipeComponent<C extends Components> = LastComponent<C> extends never 
-    ? Component 
+    ? Component
     : Component<ComponentOutput<LastComponent<C>>, unknown>
 
 type GetComponents<T> = T extends Components    
@@ -78,6 +82,17 @@ class Node<
         )
     }
 
+    public pop(): Node<PopComponents<C>> {
+
+        const components = [...this.components]
+        components.pop()
+
+        return new Node(
+            ...components
+        ) as Node<PopComponents<C>>
+
+    }
+
     public execute(data: ComponentInput<C>): ComponentOutput<C> {
         
         for (const component of this.components) 
@@ -108,5 +123,7 @@ export {
     NodeInput,
     NodeOutput,
     GetComponents,
-    Components
+    Components,
+    ComponentInput,
+    ComponentOutput
 }
