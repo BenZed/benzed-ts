@@ -16,7 +16,7 @@ import { ValueMap as _ValueMap } from '@benzed/util'
 
 class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K, V>> {
 
-    protected _keyEquality(l: K, r: K): boolean {
+    protected _keysEqual(l: K, r: K): boolean {
         return equals(l,r)
     }
 
