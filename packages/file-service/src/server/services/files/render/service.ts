@@ -87,6 +87,8 @@ class RenderService {
 
     private readonly _channel: string
 
+    public readonly events = ['updated']
+
     public readonly settings: RendererConfig['settings']
 
     public constructor (config: RenderServiceConfig) {
@@ -171,27 +173,13 @@ class RenderService {
         )
     }
 
-    public async patch(
-        id: RendererRecord['_id'], 
-        data: Partial<RendererRecordPatchData>, 
-        params?: Params
-    ): Promise<RendererRecord> {
-
-        if (params?.provider)
-            throw new MethodNotAllowed('renderers cannot be patched')
-
-        const renderer = await this._assertGetRenderer(id)
-
-        return this._toRenderRecord(renderer)
-    }
-
     public async remove(id: RendererRecord['_id'], params?: Params): Promise<RendererRecord> {
 
         if (params?.provider)
             throw new MethodNotAllowed('renderers cannot be removed')
 
         if (id === SERVER_RENDERER_ID)
-            throw new BadRequest('server renderer cannot be removed')
+            throw new MethodNotAllowed('server renderer cannot be removed')
 
         const renderer = await this._assertGetRenderer(id)
 

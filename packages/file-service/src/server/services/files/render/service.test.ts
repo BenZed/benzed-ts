@@ -135,20 +135,44 @@ describe('find()', () => {
 
 })
 
-describe('patch()', () => {
+describe('update() & patch()', () => {
 
-    it('disabled for clients', async () => {
+    let updateEventArg: RendererRecord
+    beforeAll(() => {
+        clientRenderService.on('updated', (renderer: RendererRecord) => {
+            updateEventArg = renderer
+        })
+    })
 
-        const err = await clientRenderService.patch(
-            clientRendererRecord._id,
-            {
-                items: []
-            }
-        ).catch(e => e)
+    for (const method of ['patch', 'update']) {
+        it('patch disabled', async () => {
 
-        expect(err.message).toContain('renderers cannot be patched')
-        expect(err.name).toBe('MethodNotAllowed')
+            const err = await (clientRenderService as any)[method](
+                clientRendererRecord._id,
+                {
+                    items: []
+                }
+            ).catch((e: Error) => e)
 
+            expect(err.message).toContain(`Method \'${method}\' not allowed`)
+            expect(err.name).toBe('MethodNotAllowed')
+
+        })
+    }
+
+    it('updated events are still emitted', async () => {
+
+        const renderer: RendererRecord = await clientRenderService
+            .get(clientRendererRecord._id)
+        
+        server
+            .service('files/render')
+            .emit('updated', renderer)
+       
+        await milliseconds(25)
+
+        expect(updateEventArg).toEqual(renderer)
+        
     })
 
 })
@@ -201,15 +225,16 @@ describe('remove()', () => {
 
         const client = await createClientRenderer(HOST)
         
-        const r = await client
+        const renderer = await client
             .service('files/render')
             .create({ maxConcurrent: 1 })
-        
+
         client.io.disconnect()
+
         await milliseconds(50)
 
         const error = await server.service('files/render')
-            .get(r._id)
+            .get(renderer._id)
             .catch((e: Error) => e) as Error
 
         expect(error.message).toContain('renderer could not be found for id')
