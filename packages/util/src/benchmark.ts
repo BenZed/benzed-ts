@@ -89,8 +89,6 @@ function benchmark<A extends any[], R, T = void>(
 
 }
 
-benchmark(() => 0, (t, n) => `got ${n} in ${t} ms`)
-
 /*** Exports ***/
 
 export default benchmark

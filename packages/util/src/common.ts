@@ -11,7 +11,7 @@ export function memoize<T extends Func>(func: T): T {
         if (memoize.cache.has(args)) 
             return memoize.cache.get(args)
 
-        const value = func(...args)
+        const value = func(...args as unknown[])
         if (value instanceof Promise)
             value.then(result => memoize.cache.set(args, result))
 
@@ -20,7 +20,7 @@ export function memoize<T extends Func>(func: T): T {
         return value as ReturnType<T>
     }) as T
 }
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 memoize.cache = new ValuesMap<any,any>()
 
 /**
@@ -37,19 +37,30 @@ returns.cache = new Map()
 /**
  * Returns true
  */
+export const pass = returns(true)
+
 export const toTrue = returns(true)
-export {
-    toTrue as pass
-}
 
 /**
  * returns false
  */
+export const fail = returns(false)
+
 export const toFalse = returns(false)
-export {
-    toFalse as fail
-}
 
 export const toVoid = returns(undefined) as () => void
 
+export const noop = returns(undefined) as () => void
+
 export const toUndefined = returns(undefined)
+
+export const toNull = returns(null)
+
+/**
+ * input to output
+ */
+export const through = <T>(i:T): T => i
+export {
+    through as io,
+    through as inputToOutput
+}

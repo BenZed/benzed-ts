@@ -7,7 +7,7 @@
 
 /*** Main ***/
 
-abstract class ValueMap<K, V> {
+abstract class ValueMap<K, V> implements Map<K,V> {
 
     // State 
 
@@ -31,7 +31,7 @@ abstract class ValueMap<K, V> {
     /**
      * Should return true of both keys are equal.
      */
-    protected abstract _keyEquality(l: K, r: K): boolean
+    protected abstract _keysEqual(l: K, r: K): boolean
 
     // Interface
 
@@ -86,17 +86,26 @@ abstract class ValueMap<K, V> {
         return this._keys.length
     }
 
-    public * keys(): Iterator<K> {
+    public * keys(): IterableIterator<K> {
         for (let i = 0; i < this.size; i++) {
             const id = this._keys[i]
             yield id
         }
     }
 
-    public * values(): Iterator<V> {
+    public * values(): IterableIterator<V> {
         for (let i = 0; i < this.size; i++) {
             const value = this._values[i]
             yield value
+        }
+    }
+
+    public * entries(): IterableIterator<[K,V]> {
+
+        for (let i = 0; i < this.size; i++) {
+            const value = this._values[i]
+            const key = this._keys[i]
+            yield [key, value]
         }
     }
 
@@ -105,7 +114,7 @@ abstract class ValueMap<K, V> {
     protected _getValueIndex(key: K): number {
         for (let i = 0; i < this.size; i++) {
             const _key = this._keys[i]
-            if (this._keyEquality(key, _key))
+            if (this._keysEqual(key, _key))
                 return i 
         }
         return -1
@@ -113,18 +122,11 @@ abstract class ValueMap<K, V> {
 
     /*** Symolic ***/
 
-    public *[Symbol.iterator](): Iterator<[K, V]> {
-        for (let i = 0; i < this.size; i++) {
-            const key = this._keys[i]
-            const value = this._values[i]
-
-            yield [key, value]
-        }
+    public *[Symbol.iterator](): IterableIterator<[K, V]> {
+        yield* this.entries()
     }
 
-    public [Symbol.toStringTag](): 'ValueMap' {
-        return 'ValueMap'
-    }
+    public [Symbol.toStringTag] = 'ValueMap'
 
 }
 
@@ -135,7 +137,7 @@ abstract class ValueMap<K, V> {
  */
 class ValuesMap<K extends unknown[], V> extends ValueMap<K, V> {
 
-    protected _keyEquality(l: K, r: K): boolean {
+    protected _keysEqual(l: K, r: K): boolean {
         if (l.length !== r.length)
             return false 
             

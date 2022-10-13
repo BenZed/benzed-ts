@@ -8,10 +8,11 @@ export * from './event-emitter'
 export * from './benchmark'
 
 export * from './iterate'
+export * from './json-map'
+export * from './linked-list'
 export * from './pipe'
 export * from './sort'
 export * from './common'
-export * from './linked-list'
 export * from './stack'
 export * from './value-map'
 

@@ -18,8 +18,8 @@ const pairs: [unknown, unknown][] = [
     [[-Infinity, Number], 'minus-infinity'],
     [['0', 'string'], 'zero-string'],
     [['1', 'string'], 'one-string'],
-    [[1, Symbol('id-1')], 'symbol-1'],
-    [[Symbol('id-2'), 1], 'symbol-2'],
+    [[false, true, '100', 100], 'args-1'],
+    [[true, false, 100, '100'], 'args-2'],
 ]
 /* eslint-enable no-multi-spaces */
 
@@ -90,17 +90,6 @@ describe('ValueMap', () => {
                 })
             })
 
-            describe('equivalent object ids work', () => {
-                forEachPair(k => {
-                    if (typeof k !== 'object')
-                        return
-                    it(`sets copy of ${k.toString()} to false`, () => {
-                        const ki = new k.constructor(k.id)
-                        map.set(ki, false)
-                        return expect(map.has(ki)).toBe(true)
-                    })
-                })
-            })
         })
 
         describe('.delete()', () => {
@@ -120,16 +109,6 @@ describe('ValueMap', () => {
                 )
             })
 
-            describe('equivalent object ids work', () => {
-                forEachPair(k => {
-                    if (typeof k !== 'object')
-                        return
-                    it(`sets copy of ${k.toString()} to false`, () => {
-                        const ki = new k.constructor(k.id)
-                        return expect(map.delete(ki)).toBe(true)
-                    })
-                })
-            })
         })
 
         describe('.clear()', () => {
@@ -210,5 +189,4 @@ describe('ValueMap', () => {
             })
         })
     })
-
 })
