@@ -1,5 +1,6 @@
 
 import path from 'path'
+import { cpus } from 'os'
 
 import {
     $rendererConfig,
@@ -16,10 +17,10 @@ import {
 
 import { Input, Output } from './ffmpeg/settings'
 
-import { Queue, QueueItem } from '@benzed/async'
-import { isString } from '@benzed/is'
 import fs from '@benzed/fs'
-import { cpus } from 'os'
+import { isString } from '@benzed/is'
+import { Queue, QueueItem } from '@benzed/async'
+import { pass } from '@benzed/util'
 
 /*** Constants ***/
 
@@ -44,6 +45,8 @@ type TargetMethod = (
 
 interface AddRenderItemOptions {
 
+    readonly id?: string | number
+
     /**
      * Source file or stream
      */
@@ -64,6 +67,7 @@ type RenderTask = () => Promise<RenderMetadata>
 
 interface RenderData
     extends Input, Output {
+    id?: string | number
     setting: string
 }
 
@@ -160,6 +164,9 @@ class Renderer {
         return this._queue.numTotalItems
     }
 
+    /**
+     * 
+     */
     public add(
         addOptions: AddRenderItemOptions,
     ): RenderItem[] {
@@ -183,9 +190,15 @@ class Renderer {
 
             const output = getOutput(addOptions, renderSettings.type, setting)
 
-            const renderTask = this._createRenderTask(addOptions, renderSettings, output)
+            const renderTask = this._createRenderTask(
+                addOptions, 
+                renderSettings,
+                output
+            )
+
             const renderItem = this._queue.add({
                 task: renderTask,
+                id: addOptions.id,
                 setting,
                 input: addOptions.source,
                 output,
@@ -197,6 +210,18 @@ class Renderer {
         return renderItems
     }
 
+    public items(
+        predicate: (item: RenderItem) => boolean = pass
+    ): RenderItem[] {
+        return [
+            ...this._queue.queuedItems,
+            ...this._queue.currentItems
+        ].filter(predicate)
+    }
+
+    /**
+     * 
+     */
     protected _createRenderTask(
         addOptions: AddRenderItemOptions,
         renderSetting: RenderSetting,

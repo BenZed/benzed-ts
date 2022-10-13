@@ -2,9 +2,10 @@ import { FeathersService } from '@feathersjs/feathers'
 import { MongoDBApplication } from '@benzed/feathers'
 import { RendererConfig } from '@benzed/renderer'
 
+import { Server } from 'socket.io'
+
 import { RenderService } from './service'
 import { FeathersFileService } from '../middleware/util'
-import { Server } from 'socket.io'
 
 /*** Types ***/
 
@@ -30,7 +31,6 @@ function setupRenderService<A extends MongoDBApplication>(
             files,
             ...renderer 
         })
-
     )
 
     app.on('listen', () => {

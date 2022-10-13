@@ -1,20 +1,19 @@
 
+import { milliseconds } from '@benzed/async'
+
 import configuration from '@feathersjs/configuration'
 
 import RenderService, { RendererRecord } from './service'
-
-import createFileServer, { FileServerConfig } from '../../../create-file-server-app'
 import createClientRenderer, { ClientRenderer } from './client-renderer'
-
-import { milliseconds } from '@benzed/async'
+import createFileServer, { FileServerConfig } from '../../../create-file-server-app'
 
 /*** Eslint ***/
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Test Server ***/
-
 const server = createFileServer()
+
+/*** Test Server ***/
 
 const HOST = `http://localhost:${server.get('port')}`
 
@@ -23,12 +22,11 @@ beforeAll(() => server.start())
 let client: ClientRenderer
 let clientRenderService: RenderService
 let clientRendererRecord: RendererRecord
+
 //
 beforeAll(async () => {
 
-    client = await createClientRenderer(
-        HOST
-    )
+    client = await createClientRenderer(HOST)
 
     clientRenderService = client.service('files/render')
 
@@ -114,7 +112,7 @@ describe('get()', () => {
         expect(record).toEqual(clientRendererRecord)
     })
 
-    it('use id "server" to get server renderer', async () => {
+    it('use id "server" to get salerver renderer', async () => {
 
         const serverRecord = await clientRenderService.get('local')
 

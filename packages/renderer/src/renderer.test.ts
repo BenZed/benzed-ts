@@ -9,6 +9,7 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
 import { getMetadata, $metaData } from './ffmpeg'
 
 import { floor } from '@benzed/math'
+
 //
 describe('construct', () => {
     it('throws if no render options are provided', () => {
@@ -185,7 +186,24 @@ describe('add() method', () => {
             expect(image.result?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
         }
     })
+})
 
+describe('items', () => {
+
+    it('retrieves items in queue', async () => {
+        
+        const renderer = await Renderer.from(TEST_ASSETS.config)
+        renderer['_queue'].pause()
+
+        for (let id = 0; id < 10; id++) {
+            renderer.add({
+                id,
+                source: TEST_ASSETS.mp4,
+                target: path.join(RENDER_FOLDER, 'item-test-1.mp4')
+            })
+        }
+        expect(renderer.items.length).toBeGreaterThan(0)
+    })
 })
 
 it('stress test', async () => {
