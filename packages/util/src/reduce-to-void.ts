@@ -4,7 +4,7 @@ const isPromise = (i: unknown): i is Promise<unknown> => i instanceof Promise
 
 /*** reduceToVoid ***/
 
-function reduceToVoid(input: unknown): void | Promise<void> {
+function reduceToVoid(input?: unknown): void | Promise<void> {
 
     if (isPromise(input))
         return input.then(reduceToVoid)
