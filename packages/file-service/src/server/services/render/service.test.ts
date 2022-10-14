@@ -1,5 +1,6 @@
 
 import { milliseconds } from '@benzed/async'
+import { omit } from '@benzed/util'
 
 import configuration from '@feathersjs/configuration'
 import { FeathersService } from '@feathersjs/feathers'
@@ -29,7 +30,12 @@ beforeAll(() => server.start())
 
 beforeAll(async () => {
     const users = server.service('users')
-    await users.create(CLIENT.auth)
+    
+    await users.create({
+        name: 'Test User',
+        ...omit(CLIENT.auth, 'strategy'),
+    })
+
 })
 
 let client: ClientRenderer
@@ -45,7 +51,8 @@ beforeAll(async () => {
 
     clientRendererRecord = await clientRenderService.create({
         maxConcurrent: 1
-    })
+    }).catch(e => e)
+
 })
 
 afterAll(() => client.io.connected && client.io.disconnect())
@@ -121,27 +128,24 @@ describe('get()', () => {
 
     it('gets render records by id', async () => {
         const record = await clientRenderService.get(clientRendererRecord._id)
-
         expect(record).toEqual(clientRendererRecord)
     })
 
     it('use id "server" to get salerver renderer', async () => {
-
         const serverRecord = await clientRenderService.get('local')
-
         expect(serverRecord).toEqual({
             _id: 'local',
             maxConcurrent: 1,
             items: []
         })
     })
+
 })
 
 describe('find()', () => {
 
     it('resolves an array of all renderers', async () => {
         const records = await clientRenderService.find()
-
         expect(records.length).toBeGreaterThan(0)
     })
 
@@ -254,9 +258,7 @@ describe('remove()', () => {
     })
 
     it('emits remove event', () => {
-
         expect(removeEventArg).toBeTruthy()
-
     })
 
 })

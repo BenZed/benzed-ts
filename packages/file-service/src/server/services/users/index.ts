@@ -36,9 +36,7 @@ function setupUserService(app: FileServerApp): void {
             // You can add additional custom 
             // events to be sent to clients here
             events: []
-
         }
-
     )
 
     userService.hooks(userHooks)

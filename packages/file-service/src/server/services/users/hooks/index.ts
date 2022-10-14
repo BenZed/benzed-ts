@@ -9,37 +9,23 @@ import usersResolvers from '../resolvers'
 
 export const around = {
 
-    all: [],
-
-    get: [
+    all: [
         authenticate('jwt'),
         resolveAll(usersResolvers)
     ],
 
-    find: [
-        authenticate('jwt'),
-        resolveAll(usersResolvers)
-    ],
+    get: [],
 
-    create: [
-        authenticate('jwt'),
-        resolveAll(usersResolvers)
-    ],
+    find: [],
 
-    patch: [
-        authenticate('jwt'),
-        resolveAll(usersResolvers)
-    ],
+    create: [],
 
-    update: [
-        authenticate('jwt'),
-        resolveAll(usersResolvers)
-    ],
+    patch: [],
 
-    remove: [
-        authenticate('jwt'),
-        resolveAll(usersResolvers)
-    ]
+    update: [],
+
+    remove: []
+
 }
 
 export const before = {}

@@ -8,10 +8,12 @@ import setupRenderService, { RenderService } from './render'
 
 export interface FileServices {
 
+    'authentication': AuthenticationService
+
     'users': UserService
+
     'files': FileService
     'files/render': RenderService
-    'authentication': AuthenticationService
 
 }
 
@@ -43,7 +45,7 @@ export default function setupFileServices(app: FileServerApp): void {
                 files,
                 auth,
 
-                path: '/files/renderer',
+                path: '/files/render',
                 channel: 'renderer',
                 renderer
             })

@@ -40,8 +40,11 @@ function joinChannel(channel: string): AroundHookFunction {
     return async ({ params, app }, next) => {
         await next()
 
-        if (params.connection)
-            app.channel(channel).join(params.connection)
+        if (params.connection) {
+            app.channel(channel)
+                .join(params.connection)
+        }
+
     }
 }
 
@@ -77,7 +80,7 @@ function setupRenderService<A extends MongoDBApplication>(
     render.hooks({
         around: {
             all: auth 
-                ? [authenticate('jwt')] 
+                ? [ authenticate('jwt') ] 
                 : [],
 
             create: [ joinChannel(channel) ]

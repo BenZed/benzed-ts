@@ -107,7 +107,6 @@ class RenderService {
         try {
             assertCreateData(data)
         } catch (e) {
-            console.log(e)
             throw validationErrorToBadRequest(e as ValidationError)
         }
         
@@ -143,7 +142,6 @@ class RenderService {
     public async get (id: RendererRecord['_id']): Promise<RendererRecord> {
 
         const renderer = await this._assertGetRenderer(id)
-        
         return this._toRenderRecord(renderer)
     }
 
