@@ -1,5 +1,8 @@
-import { Compile } from '@benzed/util/lib'
-import { Node, Component, EntityOutput, Entity } from './ecs'
+import { Node } from './node'
+import Component from './component'
+
+import { expectTypeOf } from 'expect-type'
+import { OutputOf } from './entity'
 
 /*** Components ***/
 
@@ -48,15 +51,11 @@ class Error extends Component<{ value: number, operation: Operation }, Error> {
 /*** Tests ***/
 
 it('Node.create to create nodes', () => {
-    const operate = new Operate()
-
-    const operator = Node.create('input', operate)
-
-    type OperatorOutput = EntityOutput<typeof operate>
-
+    const operator = Node.create('input', new Operate())
+    expect(operator).toBeInstanceOf(Node)
 })
 
-it('nodes are comprised of entities; components or other nodes', () => {
+it('nodes can be comprised of components', () => {
     
     const calculator = Node
         .create('input', new Operate())
@@ -67,8 +66,35 @@ it('nodes are comprised of entities; components or other nodes', () => {
         .add(['+', '*', '/', '-'], '>>', new Log())
         .add(['input'], 'error', new Error())
 
-    type CalcSys = (typeof calculator) extends Node<infer S, infer I> ? [S,I] : unknown
+    type CalculatorOutput = OutputOf<typeof calculator>
 
-    type CalcOutput = EntityOutput<typeof calculator>
+    expectTypeOf<CalculatorOutput>().toEqualTypeOf<string | Error>()
  
+})
+
+it('nodes can be comprised of other nodes', () => {
+
+    const arithemtic = Node.create('input', new Operate())
+        .add(['input'], '+', new Add())
+        .add(['input'], '*', new Multiply())
+        .add(['input'], '/', new Divide())
+        .add(['input'], '-', new Subtract())
+
+    const calculator = Node.create('operate', new Operate())
+        .add(['operate'], 'arithmetic', arithemtic)
+        .add(['operate'], 'error', new Error())
+        .add(['arithmetic'], '>>', new Log())
+
+    type CalculatorOutput = OutputOf<typeof calculator>
+
+    expectTypeOf<CalculatorOutput>().toEqualTypeOf<string | Error>()
+
+})
+
+it('nodes can only add links with correct input', () => {
+
+    Node.create('+', new Add())
+        // @ts-expect-error Operate input type mismatch 
+        .add(['+'], 'operate', new Operate())
+
 })
