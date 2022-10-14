@@ -81,6 +81,13 @@ it('render service is not attached if a renderer config is not provided', () => 
 
 describe('create()', () => {
 
+    let createEventArg: RendererRecord
+    beforeAll(() => {
+        clientRenderService.on('created', (r: RendererRecord) => {
+            createEventArg = r
+        })
+    })
+
     it('can only be called by client', async () => {
         const err = await server
             .service('files/render')
@@ -120,6 +127,19 @@ describe('create()', () => {
 
         expect(invalid.message)
             .toContain('must be above 0')
+    })
+
+    it('emits created event', async () => {
+
+        const client2 = await createClientRenderer(CLIENT)
+
+        await client2.service('files/render').create({ 
+            maxConcurrent: 1
+        })
+
+        client2.io.disconnect()
+
+        expect(createEventArg).toBeTruthy()
     })
 
 })
