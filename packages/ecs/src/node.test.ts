@@ -74,14 +74,14 @@ it('nodes can be comprised of components', () => {
 
 it('nodes can be comprised of other nodes', () => {
 
-    const arithemtic = Node.create('input', new Operate())
+    const arithmetic = Node.create('input', new Operate())
         .add(['input'], '+', new Add())
         .add(['input'], '*', new Multiply())
         .add(['input'], '/', new Divide())
         .add(['input'], '-', new Subtract())
 
     const calculator = Node.create('operate', new Operate())
-        .add(['operate'], 'arithmetic', arithemtic)
+        .add(['operate'], 'arithmetic', arithmetic)
         .add(['operate'], 'error', new Error())
         .add(['arithmetic'], '>>', new Log())
 
