@@ -79,27 +79,35 @@ export type UndefinedToOptional<T> = Optional<T, undefined>
 /**
  * Get a compiled contract of a type.
  */
-export type Compile<TYPE, EXCEPTIONS = void> = 
+export type Compile<TYPE, EXCEPTIONS = void, RECURSIVE extends boolean = true> = 
     TYPE extends EXCEPTIONS 
         ? TYPE
 
         : TYPE extends Map<infer K, infer V>
-            ? Map<Compile<K, EXCEPTIONS>, Compile<V, EXCEPTIONS>>
+            ? RECURSIVE extends true 
+                ? Map<Compile<K, EXCEPTIONS>, Compile<V, EXCEPTIONS>>
+                : Map<K,V>
 
             : TYPE extends Set<infer V> 
                 ? Set<V>
 
                 : TYPE extends Promise<infer A> 
-                    ? Promise<Compile<A, EXCEPTIONS>>
+                    ? RECURSIVE extends true 
+                        ? Promise<Compile<A, EXCEPTIONS>>
+                        : Promise<A>
 
                     : TYPE extends object 
 
                         ? TYPE extends Date | RegExp | Func<any,any,any> | Error
+
                             ? TYPE
 
                             : TYPE extends infer O 
 
-                                ? { [K in keyof O]: Compile<O[K], EXCEPTIONS> } 
+                                ? { [K in keyof O]: RECURSIVE extends true 
+                                    ? Compile<O[K], EXCEPTIONS> 
+                                    : O[K] 
+                                } 
                                 : never
 
                         : TYPE 

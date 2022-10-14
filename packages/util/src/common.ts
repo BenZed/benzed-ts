@@ -1,5 +1,55 @@
-import { Func } from './types'
+import { Compile, Func } from './types'
 import { ValuesMap } from './value-map'
+
+/*** Eslint ***/
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/*** Types ***/
+
+type _Keys<T> = (keyof T)[]
+
+/*** Main ***/
+
+type _Pick<T extends object, TK extends _Keys<T>> = Compile<Pick<T, TK[number]>, void, false>
+function _pick<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Pick<T, TK> {
+
+    const output: Partial<T> = {}
+
+    for (const key of keys)
+        output[key] = input[key]
+
+    return output as any
+}
+
+export function pick<T extends object, TK extends _Keys<T>>(...keys: TK): (input:T) => _Pick<T, TK>
+export function pick<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Pick<T, TK> {
+    if (typeof input === 'object')
+        return _pick(input, ...keys)
+
+    const firstKey = input
+    return ((input: T) => _pick(input, firstKey, ...keys)) as any
+}
+
+type _Omit<T extends object, TK extends _Keys<T>> = Compile<Omit<T, TK[number]>, void, false>
+function _omit<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Omit<T, TK> {
+    const output: Partial<T> = {}
+
+    for (const key in input) {
+        if (!keys.includes(key))
+            output[key] = input[key]
+    }
+
+    return output as any
+}
+export function omit<T extends object, TK extends _Keys<T>>(...keys: TK): (input:T) => _Omit<T, TK>
+export function omit<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Omit<T, TK> {
+    if (typeof input === 'object')
+        return _omit(input, ...keys)
+
+    const firstKey = input
+    return ((input: T) => _omit(input, firstKey, ...keys)) as any
+}
 
 /**
  * get a method that caches it's output based in the identicality of it's arguments
@@ -64,3 +114,4 @@ export {
     through as io,
     through as inputToOutput
 }
+
