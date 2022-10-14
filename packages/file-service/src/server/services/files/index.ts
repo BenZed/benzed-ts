@@ -1,12 +1,11 @@
 
-import { MongoDBApplication } from '@benzed/feathers'
+import { MongoDBApplication, resolveAll } from '@benzed/feathers'
+import { authenticate } from '@feathersjs/authentication/lib'
 
 import { FeathersService } from '@feathersjs/feathers'
 import { errorHandler } from '@feathersjs/koa'
 
 import type { AuthenticationService } from '../authentication'
-
-import * as fileHooks from './hooks'
 
 import { 
     serveMiddleware as serve, 
@@ -18,6 +17,7 @@ import {
     FileRoutingSettings, 
     throwInvalidPayload 
 } from './middleware/util'
+import fileResolveAll from './resolvers'
 
 import { 
     FileServiceConfig, 
@@ -30,8 +30,6 @@ import {
     FileParams, 
     FileServiceSettings 
 } from './service'
-
-import setupRenderService from './render'
 
 /*** Helper ***/
 
@@ -78,14 +76,14 @@ function createSignAndVerify(
 /*** Main ***/
 
 function setupFileService<A extends MongoDBApplication>(
-    
-    app: A,
-    auth: AuthenticationService,
-    config: FileServiceConfig
+    setingsAndRefs: FileServiceConfig & {
+        app: A
+        auth: AuthenticationService
+    }
 
 ): FeathersService<A, FileService> {
 
-    const { path, pagination, fs, s3, renderer } = config 
+    const { app, auth, path, pagination, fs, s3 } = setingsAndRefs 
 
     const { sign, verify } = createSignAndVerify(auth)
 
@@ -123,21 +121,16 @@ function setupFileService<A extends MongoDBApplication>(
     )
 
     const files = app.service(path) as unknown as FeathersService<A, FileService>
-    files.hooks(fileHooks)
+    files.hooks({
+        around: {
+            all: [
+                ...auth ? [authenticate('jwt')] : [],
+                resolveAll(fileResolveAll)
+            ]
+        }
+    })
 
     app.log`file service configured`
-
-    if (renderer) {
-        setupRenderService(
-            app, 
-            {
-                files,
-                renderer,
-                channel: 'renderer',
-                path: path + '/render'
-            }
-        )
-    }
 
     return files
 
@@ -152,7 +145,6 @@ export {
     FileParams 
 }
 
-export * from './hooks'
 export * from './middleware'
 export * from './schema'
 export * from './service'

@@ -6,7 +6,7 @@ import { FeathersService } from '@feathersjs/feathers'
 
 import RenderService, { RendererRecord } from './service'
 import createClientRenderer, { ClientRenderer } from './client-renderer'
-import createFileServer, { FileServerConfig } from '../../../create-file-server-app'
+import createFileServer, { FileServerConfig } from '../../create-file-server-app'
 
 /*** Eslint ***/
 
@@ -16,9 +16,21 @@ const server = createFileServer()
 
 /*** Test Server ***/
 
-const HOST = `http://localhost:${server.get('port')}`
+const CLIENT = {
+    host: `http://localhost:${server.get('port')}`,
+    auth: {
+        strategy: 'local',
+        email: 'render-test-user@email.com',
+        password: 'password'
+    }
+}
 
 beforeAll(() => server.start())
+
+beforeAll(async () => {
+    const users = server.service('users')
+    await users.create(CLIENT.auth)
+})
 
 let client: ClientRenderer
 let clientRenderService: FeathersService<ClientRenderer, RenderService>
@@ -27,7 +39,7 @@ let clientRendererRecord: RendererRecord
 //
 beforeAll(async () => {
 
-    client = await createClientRenderer(HOST)
+    client = await createClientRenderer(CLIENT)
 
     clientRenderService = client.service('files/render')
 
@@ -205,7 +217,7 @@ describe('remove()', () => {
     })
 
     it('removes the renderer from the list of renders', async () => {
-        const client = await createClientRenderer(HOST)
+        const client = await createClientRenderer(CLIENT)
 
         const r = await client.service('files/render').create({ maxConcurrent: 1 })
         await server.service('files/render').remove(r._id)
@@ -223,7 +235,7 @@ describe('remove()', () => {
 
     it('disconnected clients are automatically removed', async () => {
 
-        const client = await createClientRenderer(HOST)
+        const client = await createClientRenderer(CLIENT)
         
         const renderer = await client
             .service('files/render')

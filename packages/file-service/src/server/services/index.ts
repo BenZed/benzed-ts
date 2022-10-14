@@ -4,7 +4,7 @@ import setupAuthenticationService, { AuthenticationService } from './authenticat
 
 import setupUserService, { UserService } from './users'
 import setupFileService, { FileService } from './files'
-import { RenderService } from './files/render'
+import setupRenderService, { RenderService } from './render'
 
 export interface FileServices {
 
@@ -23,15 +23,29 @@ export default function setupFileServices(app: FileServerApp): void {
 
     const auth = setupAuthenticationService(app)
 
-    setupFileService(
-        app,
-        auth,
+    const files = setupFileService(
         {
+            app,
+            auth,
+            
             path: '/files',
             s3: app.get('s3'),
             fs: app.get('fs'),
-            pagination: app.get('pagination'),
-            renderer: app.get('renderer')
+            pagination: app.get('pagination')
         }
     )
+
+    const renderer = app.get('renderer')
+    if (renderer) {
+        setupRenderService(
+            {
+                app,
+                files,
+                auth,
+
+                path: '/files/renderer',
+                channel: 'renderer',
+                renderer
+            })
+    }
 }

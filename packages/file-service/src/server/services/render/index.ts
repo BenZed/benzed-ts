@@ -3,31 +3,19 @@ import {
     AroundHookFunction
 } from '@feathersjs/feathers'
 
+import { 
+    authenticate, 
+    AuthenticationService
+} from '@feathersjs/authentication'
+
 import { MongoDBApplication } from '@benzed/feathers'
-import { RendererConfig } from '@benzed/renderer'
 
 import { Server } from 'socket.io'
 
 import { RenderService } from './service'
-import { FeathersFileService } from '../middleware/util'
+import { RenderServiceConfig } from './schema'
 
-/*** Types ***/
-
-interface RenderServiceSettings {
-
-    path: string
-
-    /**
-     * Channel that renderer clients are placed in to receive
-     * render service related events
-     */
-    channel: string
-
-    files: FeathersFileService
-
-    renderer: RendererConfig
-
-}
+import { FeathersFileService } from '../files/middleware/util'
 
 /*** Helper ***/
 
@@ -60,11 +48,21 @@ function joinChannel(channel: string): AroundHookFunction {
 /*** Main ***/
 
 function setupRenderService<A extends MongoDBApplication>(
-    app: A,
-    settings: RenderServiceSettings
+    configAndRefs: RenderServiceConfig & { 
+        app: A
+        files: FeathersFileService
+        auth?: AuthenticationService
+    }
 ): FeathersService<A, RenderService> {
 
-    const { renderer, files, path, channel } = settings
+    const { 
+        app, 
+        files, 
+        auth, 
+        renderer,
+        path, 
+        channel 
+    } = configAndRefs
 
     app.use(
         path, 
@@ -75,16 +73,20 @@ function setupRenderService<A extends MongoDBApplication>(
         })
     )
 
-    const renderService = app.service(path) 
-    renderService.hooks({
-        create: [
-            joinChannel(channel)
-        ]
+    const render = app.service(path) 
+    render.hooks({
+        around: {
+            all: auth 
+                ? [authenticate('jwt')] 
+                : [],
+
+            create: [ joinChannel(channel) ]
+        }
     })
 
     app.log`render service configured`
 
-    return renderService as unknown as FeathersService<A, RenderService> 
+    return render as unknown as FeathersService<A, RenderService> 
 }
 
 /*** Exports ***/
@@ -92,5 +94,10 @@ function setupRenderService<A extends MongoDBApplication>(
 export default setupRenderService
 
 export {
-    RenderService
-}
+    RenderService,
+    RenderServiceSettings,
+} from './service'
+
+export * from './schema'
+
+export * from './client-renderer'

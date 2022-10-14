@@ -143,11 +143,11 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
 export default FileService
 
 export {
-    SignedFile,
 
     FileService,
     FileServiceSettings,
 
+    SignedFile,
     FileParams,
 
     eachFilePart

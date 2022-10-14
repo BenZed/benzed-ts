@@ -1,18 +1,15 @@
 import { Server, Socket } from 'socket.io'
 
 import {
-
     Renderer,
 
     $rendererConfig,
     RendererConfig,
     RenderItem
-
 } from '@benzed/renderer'
 
 import {
     $,
-    Infer, 
     Asserts, 
     ValidationError 
 } from '@benzed/schema'
@@ -29,12 +26,19 @@ import {
     MethodNotAllowed
 } from '@feathersjs/errors'
 
-import { File } from '../schema'
+import { File } from '../files/schema'
 
-import { FeathersFileService } from '../middleware/util'
+import { FeathersFileService } from '../files/middleware/util'
 import { ClientRendererAgent } from './client-renderer-agent'
 
-import { SERVER_RENDERER_ID } from '../constants'
+import { 
+    SERVER_RENDERER_ID 
+} from '../files/constants'
+
+import { 
+    $rendererRecordCreateData,
+    RendererRecordCreateData,
+} from './schema'
 
 /*** Eslint ***/
 
@@ -42,31 +46,23 @@ import { SERVER_RENDERER_ID } from '../constants'
 
 /*** Types ***/
 
-interface RenderServiceConfig extends RendererConfig {
+type RenderItemState = Pick<RenderItem, 'id' | 'stage' | 'setting'>
+
+interface RendererRecord extends RendererRecordCreateData {
+    _id: string
+    items: RenderItemState[]
+}
+
+interface RenderServiceSettings extends RendererConfig {
     io: Server | Promise<Server>
     files: FeathersFileService
 }
 
-export interface RendererRecord extends RendererRecordCreateData, RendererRecordPatchData {
-    _id: string
-}
-
-/*** Schema ***/
-
-type RenderItemState = Pick<RenderItem, 'id' | 'stage' | 'setting'>
-
-interface RendererRecordPatchData {
-    items: RenderItemState[]
-}
-
-interface RendererRecordCreateData extends Infer<typeof rendererRecordClientData> {}
-const rendererRecordClientData = $({
-    maxConcurrent: $rendererConfig.$.maxConcurrent.clearFlags()
-})
+/*** Helper ***/
 
 const { is: isClientRenderAgent } = $.instanceOf(ClientRendererAgent)
 
-const assertCreateData: Asserts<typeof rendererRecordClientData> = rendererRecordClientData.assert
+const assertCreateData: Asserts<typeof $rendererConfig> = $rendererRecordCreateData.assert
 
 /*** Main ***/
 
@@ -78,13 +74,13 @@ class RenderService {
 
     public readonly settings: RendererConfig['settings']
 
-    public constructor (config: RenderServiceConfig) {
+    public constructor (serviceSettings: RenderServiceSettings) {
         const {
             io,
             files,
             maxConcurrent = 0,
             settings,
-        } = config
+        } = serviceSettings
 
         this.settings = settings
 
@@ -95,7 +91,7 @@ class RenderService {
                 SERVER_RENDERER_ID,
                 new Renderer({
                     maxConcurrent,
-                    settings
+                    settings: settings
                 })
             )
         }
@@ -111,6 +107,7 @@ class RenderService {
         try {
             assertCreateData(data)
         } catch (e) {
+            console.log(e)
             throw validationErrorToBadRequest(e as ValidationError)
         }
         
@@ -184,13 +181,19 @@ class RenderService {
         renderer: Renderer | ClientRendererAgent
     ): RendererRecord =>{
 
-        const _id = isClientRenderAgent(renderer) ? renderer.socket.id : SERVER_RENDERER_ID
+        const _id = isClientRenderAgent(renderer) 
+            ? renderer.socket.id 
+            : SERVER_RENDERER_ID
+
         const maxConcurrent = renderer.config.maxConcurrent
-        const items = renderer.items().map(({ stage, id, setting }) => ({
-            stage,
-            id,
-            setting
-        }))
+
+        const items = renderer
+            .items()
+            .map(({ stage, id, setting }) => ({
+                stage,
+                id,
+                setting
+            }))
 
         return {
             _id,
@@ -258,5 +261,7 @@ export default RenderService
 
 export {
     RenderService,
-    RenderServiceConfig
+    RenderServiceSettings,
+
+    RendererRecord
 }

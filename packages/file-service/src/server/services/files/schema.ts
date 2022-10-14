@@ -1,7 +1,6 @@
 import fs from '@benzed/fs'
 import $, { Infer } from '@benzed/schema'
 import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
-import { $rendererConfig } from '@benzed/renderer'
 
 import { $awsConfig } from '../../schemas/aws-config'
 
@@ -26,12 +25,11 @@ export const $fileServiceConfig = $({
         .name('aws-config'),
 
     path: $.string
-        .format(/\/([a-z]|-)+/, 'must be a path')
+        .format(/^\/([a-z]|-)+/, 'must be a path')
         .name('path'),
 
     pagination: $pagination,
 
-    renderer: $.or($rendererConfig, $.null)
 })
 
 /*** File Payload ***/
@@ -90,7 +88,6 @@ export interface File extends Infer<typeof $file> {}
 export const $file = $({
 
     _id: $id,
-
     ...$fileData.$
 
 })
@@ -99,7 +96,6 @@ export interface FilePatchData extends Infer<typeof $filePatchData> {}
 export const $filePatchData = $({
 
     uploaded: $file.$.uploaded,
-
     renders: $file.$.renders
 
 })
@@ -108,9 +104,7 @@ export interface FileCreateData extends Infer<typeof $fileCreateData> {}
 export const $fileCreateData = $({
 
     name: $file.$.name.format(/\.([a-z]|\d)+$/i, 'must have file extension'),
-
     uploader: $file.$.uploader,
-
     size: $file.$.size,
 
 })

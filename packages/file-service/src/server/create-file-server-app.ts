@@ -13,7 +13,12 @@ import $, { Infer } from '@benzed/schema'
 import { HookContext } from '@feathersjs/feathers'
 
 import services, { FileServices } from './services'
-import { $fileServiceConfig } from './schemas'
+
+import { 
+    $fileServiceConfig, 
+    $renderServiceConfig 
+} from './schemas'
+
 import middleware from './middleware'
 import socketio from './socket-io'
 
@@ -27,7 +32,10 @@ const $fileServerConfig = $({
 
     s3: $fileServiceConfig.$.s3,
     fs: $fileServiceConfig.$.fs,
-    renderer: $fileServiceConfig.$.renderer,
+    renderer: $.or(
+        $renderServiceConfig.$.renderer,
+        $.null
+    ),
 
     pagination: $pagination,
     authentication: $.object,
