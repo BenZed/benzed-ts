@@ -14,14 +14,16 @@ type OutputOf<E extends Entity> = E extends Entity<any, infer O>
 
 abstract class Entity<I = any, O = any> {
 
-    private readonly input!: I
-    private readonly output!: O
+    private readonly _input!: I
+    private readonly _output!: O
 
-    public execute( // TODO make abstract 
+    public abstract execute(
         input: I,
-    ): O {
-        return void input as unknown as O
-    }
+        refs: Entity<O>[]
+    ): {
+        output: O
+        next: Entity<O> | null
+    } 
 
 }
 

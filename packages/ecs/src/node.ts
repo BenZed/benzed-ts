@@ -1,16 +1,20 @@
 import { StringKeys } from '@benzed/util'
+import Component from './component'
 
 import { Entity, InputOf, OutputOf } from './entity'
 
 /*** Eslint ***/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-non-null-assertion
+*/
 
 /*** System ***/
 
 type Links = readonly string[]
 
-type System = { [key: string]: [Entity, ...Links] }
+type System = { [key: string]: [Component, ...Links] }
 
 type SystemInput<S extends System, I extends string> = 
     InputOf<S[I][0]>
@@ -28,7 +32,7 @@ type SystemEndLinkEntities<
             : SystemEndLinkEntities<S, LinksOf<S[K]>[number] | EndLinks<S, L>>
     }[L]
 
-type LinksOf<E extends [Entity, ...Links] | [Entity]> = E extends [Entity, ...infer L]
+type LinksOf<E extends [Component, ...Links] | [Entity]> = E extends [Component, ...infer L]
     ? L 
     : []
 
@@ -36,7 +40,7 @@ type EndLinks<S extends System, L extends keyof S> = keyof {
     [K in L as LinksOf<S[K]> extends [] ? K : never]: unknown
 }
 
-type AddLink<E extends [Entity, ...Links] | [Entity], L extends string> = [
+type AddLink<E extends [Component, ...Links] | [Component], L extends string> = [
     E[0],
     ...LinksOf<E>,
     L
@@ -44,23 +48,65 @@ type AddLink<E extends [Entity, ...Links] | [Entity], L extends string> = [
 
 /*** Node ***/
 
-type AddEntity<S extends System, F extends StringKeys<S>> = 
-    Entity<OutputOf<S[F][0]>>
+type AddComponent<S extends System, F extends StringKeys<S>> = 
+    Component<OutputOf<S[F][0]>>
     
 class Node<S extends System = any, I extends string = any> 
-    extends Entity<SystemInput<S,I>, SystemOutput<S,I>> {
+    extends Component<SystemInput<S,I>, SystemOutput<S,I>> {
 
     /*** Static ***/
         
-    public static create<I1 extends string, E extends Entity>(
-        ...input: [I1, E]
-    ): Node<{ [K in I1]: [E] }, I1> {
+    public static create<I1 extends string, C extends Component>(
+        ...input: [I1, C]
+    ): Node<{ [K in I1]: [C] }, I1> {
 
         const [ name, entity ] = input
 
-        return new Node({ 
-            [name]: [entity]
-        }, name) as any
+        return new Node({ [name]: [entity] }, name) as any
+    }
+
+    public get input(): Component<SystemOutput<S,I>> {
+        return this.system[this._inputKey][0]
+    }
+
+    public execute(
+        input: SystemInput<S,I>,
+        outRefs: Component<SystemOutput<S,I>>[]
+    ): {
+            output: SystemOutput<S,I>
+            next: Component<SystemOutput<S,I>> | null
+        } {
+
+        const { system, _inputKey } = this
+
+        let [next, ...links] = system[_inputKey] as [Component | null, ...Links]
+        let output = input as SystemOutput<S,I>
+
+        do {
+
+            const refs = links.length === 0 
+                ? outRefs 
+                : links.map(link => system[link][0])
+
+            const result = next!.execute(output, refs)
+
+            next = result.next 
+            output = result.output
+            links = links.reduce<string[]>((links, link) => system[link][0] === next 
+                ? system[link].slice(1) as string[] 
+                : links, 
+            [])
+
+            // next component is being handled by a different node
+            if (refs === outRefs)
+                break
+
+        } while(next)
+
+        return { 
+            output,
+            next
+        } 
     }
 
     /*** Constructor ***/
@@ -74,10 +120,10 @@ class Node<S extends System = any, I extends string = any>
 
     /*** Interface ***/
     
-    public add<
+    public link<
         F extends StringKeys<S>[], 
         T extends string, 
-        E extends AddEntity<S, F[number]>
+        E extends AddComponent<S, F[number]>
     >(...input: [F, T, E]): Node<{
 
         [K in StringKeys<S> | T]: K extends T 
@@ -91,18 +137,15 @@ class Node<S extends System = any, I extends string = any>
 
         return new Node(
             {
-                ...fromLinks.reduce<System>((sys, fromLink) => 
 
+                ...fromLinks.reduce<System>((sys, fromLink) => 
                     Object.assign(sys, {
                         [fromLink]: [
                             sys[fromLink][0],
-                            [
-                                ...sys[fromLink].splice(1), 
-                                toLink
-                            ]
+                            ...sys[fromLink].splice(1), 
+                            toLink
                         ]
                     })
-
                 , this.system),
 
                 [toLink]: [entity]
