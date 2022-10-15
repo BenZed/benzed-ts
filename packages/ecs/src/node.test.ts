@@ -94,7 +94,7 @@ it('nodes can be comprised of other nodes', () => {
 it('nodes can only add links with correct input', () => {
 
     Node.create('+', new Add())
-        // @ts-expect-error Operate input type mismatch 
+        // @ts-expect-error Operate input type misma tch 
         .add(['+'], 'operate', new Operate())
 
 })

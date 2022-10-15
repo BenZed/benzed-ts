@@ -4,9 +4,13 @@
 
 /*** Entity ***/
 
-type InputOf<E extends Entity> = E extends Entity<infer I> ? I : never
+type InputOf<E extends Entity> = E extends Entity<infer I> 
+    ? I 
+    : never
 
-type OutputOf<E extends Entity> = E extends Entity<any, infer O> ? O : never 
+type OutputOf<E extends Entity> = E extends Entity<any, infer O> 
+    ? O 
+    : never 
 
 abstract class Entity<I = any, O = any> {
 

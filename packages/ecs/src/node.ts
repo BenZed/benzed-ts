@@ -9,48 +9,62 @@ import { Entity, InputOf, OutputOf } from './entity'
 /*** System ***/
 
 type Links = readonly string[]
-type E$ = 0
-type L$ = 1
 
-type System = { [key: string]: [Entity, Links] }
+type System = { [key: string]: [Entity, ...Links] }
 
-type SystemInput<S extends System, I extends string> = InputOf<S[I][E$]>
+type SystemInput<S extends System, I extends string> = 
+    InputOf<S[I][0]>
 
-type SystemOutput<S extends System, I extends string> = OutputOf<SystemEndLinkEntities<S, I>>
+type SystemOutput<S extends System, I extends string> = 
+    OutputOf<SystemEndLinkEntities<S, I>>
 
 type SystemEndLinkEntities<
     S extends System, 
     L extends keyof S
 > = 
     {
-        [K in L]: S[K][L$] extends [] 
-            ? S[K][E$]
-            : SystemEndLinkEntities<S, S[K][L$][number] | EndLinks<S, L>>
+        [K in L]: LinksOf<S[K]> extends [] 
+            ? S[K][0]
+            : SystemEndLinkEntities<S, LinksOf<S[K]>[number] | EndLinks<S, L>>
     }[L]
 
+type LinksOf<E extends [Entity, ...Links] | [Entity]> = E extends [Entity, ...infer L]
+    ? L 
+    : []
+
 type EndLinks<S extends System, L extends keyof S> = keyof {
-    [K in L as S[K][L$] extends [] ? K : never]: unknown
+    [K in L as LinksOf<S[K]> extends [] ? K : never]: unknown
 }
+
+type AddLink<E extends [Entity, ...Links] | [Entity], L extends string> = [
+    E[0],
+    ...LinksOf<E>,
+    L
+]
 
 /*** Node ***/
 
 type AddEntity<S extends System, F extends StringKeys<S>> = 
-    Entity<OutputOf<S[F][E$]>>
+    Entity<OutputOf<S[F][0]>>
     
 class Node<S extends System = any, I extends string = any> 
     extends Entity<SystemInput<S,I>, SystemOutput<S,I>> {
 
+    /*** Static ***/
+        
     public static create<I1 extends string, E extends Entity>(
         ...input: [I1, E]
-    ): Node<{ [K in I1]: [E,[]] }, I1> {
+    ): Node<{ [K in I1]: [E] }, I1> {
 
         const [ name, entity ] = input
 
         return new Node({ 
-            [name]: [entity, []]
+            [name]: [entity]
         }, name) as any
     }
 
+    /*** Constructor ***/
+    
     private constructor(
         public readonly system: S,
         private readonly _inputKey: I,
@@ -58,20 +72,20 @@ class Node<S extends System = any, I extends string = any>
         super() 
     }
 
-    public add<F extends StringKeys<S>[], T extends string, E extends AddEntity<S, F[number]>>(
-        ...input: [F, T, E]
-    ): Node<{
+    /*** Interface ***/
+    
+    public add<
+        F extends StringKeys<S>[], 
+        T extends string, 
+        E extends AddEntity<S, F[number]>
+    >(...input: [F, T, E]): Node<{
 
-            [K in StringKeys<S> | T]: [
-                K extends T ? E : S[K][E$],
-                K extends T 
-                    ? [] 
-                    : K extends F[number] 
-                        ? [...S[K][L$], T] 
-                        : S[K][L$]
-
-            ]
-        }, I> {
+        [K in StringKeys<S> | T]: K extends T 
+            ? [E]
+            : K extends F[number]
+                ? AddLink<S[K], T> 
+                : S[K]
+    }, I> {
 
         const [ fromLinks, toLink, entity ] = input
 
@@ -83,7 +97,7 @@ class Node<S extends System = any, I extends string = any>
                         [fromLink]: [
                             sys[fromLink][0],
                             [
-                                ...sys[fromLink][1], 
+                                ...sys[fromLink].splice(1), 
                                 toLink
                             ]
                         ]
@@ -91,7 +105,7 @@ class Node<S extends System = any, I extends string = any>
 
                 , this.system),
 
-                [toLink]: [entity, []]
+                [toLink]: [entity]
 
             }, 
             this._inputKey
@@ -100,6 +114,4 @@ class Node<S extends System = any, I extends string = any>
 
 }
 
-export {
-    Node
-}
+export { Node }
