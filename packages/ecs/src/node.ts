@@ -46,10 +46,14 @@ type AddLink<E extends [Component, ...Links] | [Component], L extends string> = 
     L
 ]
 
+export type ComponentTypeOf<C extends Component> = C extends Component<any,any,infer T> 
+    ? T 
+    : Entity
+
 /*** Node ***/
 
 type AddComponent<S extends System, F extends StringKeys<S>> = 
-    Component<OutputOf<S[F][0]>>
+    ComponentTypeOf<S[F][0]>
     
 class Node<S extends System = any, I extends string = any> 
     extends Component<SystemInput<S,I>, SystemOutput<S,I>> {
@@ -68,6 +72,57 @@ class Node<S extends System = any, I extends string = any>
     public get input(): Component<SystemOutput<S,I>> {
         return this.system[this._inputKey][0]
     }
+
+    /*** Constructor ***/
+    
+    private constructor(
+        public readonly system: S,
+        private readonly _inputKey: I,
+    ) {
+        super() 
+    }
+
+    /*** Build Interface ***/
+    
+    public link<
+        F extends StringKeys<S>[], 
+        T extends string, 
+        E extends AddComponent<S, F[number]>
+    >(...input: [F, T, E]): Node<{
+
+        [K in StringKeys<S> | T]: K extends T 
+            ? [E]
+            : K extends F[number]
+                ? AddLink<S[K], T> 
+                : S[K]
+    }, I> {
+
+        const [ fromLinks, toLink, entity ] = input
+
+        return new Node(
+            {
+
+                ...fromLinks.reduce<System>((sys, fromLink) => 
+                    Object.assign(sys, {
+                        [fromLink]: [
+                            sys[fromLink][0],
+                            ...sys[fromLink].splice(1), 
+                            toLink
+                        ]
+                    })
+                , this.system),
+
+                [toLink]: [entity]
+
+            }, 
+            this._inputKey
+        ) as any
+    }
+
+    // unlink() {}
+    // 
+
+    /*** Entity Implementation ***/    
 
     public execute(
         input: SystemInput<S,I>,
@@ -107,52 +162,6 @@ class Node<S extends System = any, I extends string = any>
             output,
             next
         } 
-    }
-
-    /*** Constructor ***/
-    
-    private constructor(
-        public readonly system: S,
-        private readonly _inputKey: I,
-    ) {
-        super() 
-    }
-
-    /*** Interface ***/
-    
-    public link<
-        F extends StringKeys<S>[], 
-        T extends string, 
-        E extends AddComponent<S, F[number]>
-    >(...input: [F, T, E]): Node<{
-
-        [K in StringKeys<S> | T]: K extends T 
-            ? [E]
-            : K extends F[number]
-                ? AddLink<S[K], T> 
-                : S[K]
-    }, I> {
-
-        const [ fromLinks, toLink, entity ] = input
-
-        return new Node(
-            {
-
-                ...fromLinks.reduce<System>((sys, fromLink) => 
-                    Object.assign(sys, {
-                        [fromLink]: [
-                            sys[fromLink][0],
-                            ...sys[fromLink].splice(1), 
-                            toLink
-                        ]
-                    })
-                , this.system),
-
-                [toLink]: [entity]
-
-            }, 
-            this._inputKey
-        ) as any
     }
 
 }

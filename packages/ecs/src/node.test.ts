@@ -4,15 +4,14 @@ import Component from './component'
 import { expectTypeOf } from 'expect-type'
 import Entity, { OutputOf } from './entity'
 
-import match from '@benzed/match'
-
 /*** Components ***/
 
 type Operator = '+' | '*' | '/' | '-'
 
 class Operate extends Component<
-{ value: [number, number], operation: Operator }, 
-[number, number]
+/**/ { value: [number, number], operation: Operator }, 
+/**/ [number, number],
+/**/ Operation
 > {
 
     public execute(
@@ -20,22 +19,16 @@ class Operate extends Component<
             value: [number, number]
             operation: Operator 
         }, 
-        refs: Entity<[number, number]>[]
+        refs: Operation[]
     ): { 
             output: [number, number]
-            next: Entity<[number, number]> | null 
+            next: Operation | null 
         } {
 
         const output = input.value
 
-        const [Next] = match(input.operation)
-        ('+', () => Add)
-        ('-', () => Subtract)
-        ('*', () => Multiply)
-        ('/', () => Divide)
+        const next = refs.find(ref => ref.operator === input.operation) ?? null
         
-        const next = refs.find(ref => ref instanceof Next) ?? null
-
         return {
             output,
             next
@@ -47,10 +40,12 @@ abstract class Operation extends Component<[number, number], number> {
 
     protected abstract _operate(a: number, b: number): number 
 
+    public readonly abstract operator: Operator
+
     public execute(
         input: [number, number], 
         refs: Entity<number>[]
-    ): { 
+    ): {
             output: number
             next: Entity<number> | null 
         } {
@@ -66,31 +61,60 @@ abstract class Operation extends Component<[number, number], number> {
             next
         }        
     }
-
 }
 
 class Add extends Operation {
+
+    public readonly operator = '+'
+
     protected _operate(a: number, b: number): number {
         return a + b
     }
 }
 
 class Multiply extends Operation {
+
+    public readonly operator = '*'
+
     protected _operate(a: number, b: number): number {
         return a * b
     }
 }
 
 class Divide extends Operation {
+
+    public readonly operator = '/'
+
     protected _operate(a: number, b: number): number {
         return a / b
     }
 }
 
 class Subtract extends Operation {
+
+    public readonly operator = '-'
+
     protected _operate(a: number, b: number): number {
         return a - b
     }
+}
+
+class NotOperation extends Component<[number,number], string, Component<string>> {
+    
+    public execute(
+        input: [number, number], 
+        refs: Component<string>[]
+    ): {
+            output: string 
+            next: Component<string> | null 
+        } {
+            
+        return {
+            output: `${input}`,
+            next: refs[0]
+        }
+    }
+
 }
 
 class Log extends Component<number, string> {
@@ -172,12 +196,19 @@ it('nodes can be comprised of other nodes', () => {
     expectTypeOf<CalculatorOutput>().toEqualTypeOf<string | Error>()
 })
 
-it('nodes can only add links with correct input', () => {
+it('nodes can only link components where output matches input', () => {
 
     Node.create('+', new Add())
-        // @ts-expect-error operate input type mismatch 
+    // @ts-expect-error invalid component input type
         .link(['+'], 'operate', new Operate())
 
+})
+
+it('nodes can only link components that match the ref type', () => {
+    Node.create('input', new Operate())
+        .link(['input'], '+', new Add())
+    // @ts-expect-error invalid component ref type
+        .link(['input'], '+', new NotOperation())
 })
 
 it('executes', () => {

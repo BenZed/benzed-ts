@@ -4,7 +4,7 @@
 
 /*** Entity ***/
 
-type InputOf<E extends Entity> = E extends Entity<infer I> 
+type InputOf<E extends Entity> = E extends Entity<infer I, any> 
     ? I 
     : never
 
