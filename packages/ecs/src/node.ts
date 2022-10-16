@@ -1,7 +1,6 @@
 import { StringKeys } from '@benzed/util'
-import Component from './component'
 
-import { Entity, InputOf, OutputOf } from './entity'
+import { Component, InputOf, OutputOf } from './component'
 
 /*** Eslint ***/
 
@@ -32,7 +31,7 @@ type SystemEndLinkEntities<
             : SystemEndLinkEntities<S, LinksOf<S[K]>[number] | EndLinks<S, L>>
     }[L]
 
-type LinksOf<E extends [Component, ...Links] | [Entity]> = E extends [Component, ...infer L]
+type LinksOf<E extends [Component, ...Links] | [Component]> = E extends [Component, ...infer L]
     ? L 
     : []
 
@@ -48,7 +47,7 @@ type AddLink<E extends [Component, ...Links] | [Component], L extends string> = 
 
 export type ComponentTypeOf<C extends Component> = C extends Component<any,any,infer T> 
     ? T 
-    : Entity
+    : Component
 
 /*** Node ***/
 

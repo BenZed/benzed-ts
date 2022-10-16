@@ -1,8 +1,7 @@
 import { Node } from './node'
-import Component from './component'
 
 import { expectTypeOf } from 'expect-type'
-import Entity, { OutputOf } from './entity'
+import Component, { OutputOf } from './component'
 
 /*** Components ***/
 
@@ -44,10 +43,10 @@ abstract class Operation extends Component<[number, number], number> {
 
     public execute(
         input: [number, number], 
-        refs: Entity<number>[]
+        refs: Component<number>[]
     ): {
             output: number
-            next: Entity<number> | null 
+            next: Component<number> | null 
         } {
 
         const output = this._operate(...input)
@@ -121,10 +120,10 @@ class Log extends Component<number, string> {
 
     public execute(
         input: number, 
-        refs: Entity<string>[]
+        refs: Component<string>[]
     ): { 
             output: string
-            next: Entity<string> | null 
+            next: Component<string> | null 
         } {
 
         return {
@@ -140,19 +139,17 @@ class ErrorHandler extends Component<number, Error> {
 
     public execute(
         input: number, 
-        refs: Entity<Error>[]
+        refs: Component<Error>[]
     ): { 
             output: Error
-            next: Entity<Error> | null 
+            next: Component<Error> | null 
         } {
 
         return {
             output: new Error(`${input} is not a number.`),
             next: refs.at(0) ?? null
         }
-        
     }
-
 }
 
 /*** Tests ***/

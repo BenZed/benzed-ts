@@ -1,17 +1,25 @@
-
-import { Entity } from './entity'
-
 /*** Eslint ***/
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Component ***/
+/*** Entity ***/
+
+type InputOf<C extends Component> = C extends Component<infer I, any> 
+    ? I 
+    : never
+
+type OutputOf<C extends Component> = C extends Component<any, infer O> 
+    ? O 
+    : never 
 
 abstract class Component<
     I = any, 
     O = any, 
-    R extends Entity<O, any> = Entity<O, any>
-> extends Entity<I, O> {
+    R extends Component<O, any, any> = Component<O, any, any>
+> {
+
+    private readonly _input!: I
+    private readonly _output!: O
 
     public abstract execute(
         input: I,
@@ -20,7 +28,7 @@ abstract class Component<
         output: O
         next: R | null
     } 
-    
+
 }
 
 /*** Exports ***/
@@ -28,5 +36,7 @@ abstract class Component<
 export default Component
 
 export {
-    Component
+    Component,
+    InputOf,
+    OutputOf
 }
