@@ -11,7 +11,7 @@ import Node, { Links, NodeInput, NodeOutput } from './node'
 
 /*** System ***/
 
-type Nodes = { [key: string]: Node }
+type Nodes = { [key: string]: Node | System }
 
 type NodeRefs<N extends Nodes, L extends Links> = L extends [infer L1, ...infer LR]
     ? L1 extends keyof N 
@@ -30,13 +30,23 @@ type SystemOutput<N extends Nodes, I extends string> =
         ? NodeOutput<E, NodeRefs<N, L>[number]>
         : never
 
-type NodeLinks<N extends Node> = N extends Node<Entity<unknown,unknown>, infer L, Entity<unknown>> 
+type _NodeLinks<N extends Node> = N extends Node<Entity, infer L, Entity> 
     ? L 
-    : []  
+    : []
 
-type NodeRef<N extends Node> = N extends Node<Entity<unknown,unknown>, Links, infer R> 
+type NodeLinks<N extends Node | System> = 
+    N extends System<infer N1, infer I> 
+        ? N1[I] extends Node ? NodeLinks<N1[I]> : []    
+        : N extends Node ? _NodeLinks<N> : []
+
+type _NodeRef<N extends Node> = N extends Node<Entity, Links, infer R> 
     ? R
-    : Entity<unknown,unknown> 
+    : Entity
+
+type NodeRef<N extends Node | System> = 
+    N extends System<infer N1, infer I> 
+        ? N1[I] extends Node ? _NodeRef<N1[I]> : never
+        : N extends Node ? _NodeRef<N> : never
 
 type EndLinks<N extends Nodes, L extends keyof N> = keyof {
     [K in L as NodeLinks<N[K]> extends [] ? K : never]: unknown
@@ -48,14 +58,14 @@ type EndLinkNodes<N extends Nodes, L extends keyof N> = {
         : EndLinkNodes<N, NodeLinks<N[K]>[number] | EndLinks<N, L>>
 }[L]
 
-type AddNode<N extends Nodes, K extends keyof N, T extends string> = 
+type AddLink<N extends Nodes, K extends keyof N, T extends string> = 
     N[K] extends Node<infer E, infer L, infer R> 
         ? Node<E, [...L, T], R>
         : never
 
 class System<
-    N extends Nodes,
-    I extends string
+    N extends Nodes = Nodes,
+    I extends string = string
 > extends Entity<SystemInput<N,I>, SystemOutput<N,I>> {
 
     public static create<N1 extends Node, I1 extends string>(
@@ -81,10 +91,29 @@ class System<
         return void input as unknown as SystemOutput<N,I>
     }
 
+    public addLink<L1 extends string>(
+        link: L1
+    ): System<{
+            [K in keyof N]: K extends I 
+                ? AddLink<N, K, L1>
+                : N[K]
+        }, I> {
+
+        const key = this._inputNodeKey
+
+        return new System(
+            {
+                ...this.nodes,
+                [key]: this.nodes[key].addLink(link)
+            },
+            key
+        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+    }
+
     public link<
         F extends StringKeys<N>, 
         T extends string, N1 extends Node<NodeRef<N[F]>, 
-        Links, Entity<unknown,unknown>>
+        Links, Entity>
     >(
 
         fromKeys: StringKeys<N>[],
@@ -95,7 +124,7 @@ class System<
             [K in keyof N | T]: K extends T 
                 ? N1
                 : K extends F[number]
-                    ? AddNode<N, K, T>
+                    ? AddLink<N, K, T>
                     : N[K]
         }, I>{
 
@@ -114,7 +143,6 @@ class System<
 
             this._inputNodeKey
         ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
     }
 }
 

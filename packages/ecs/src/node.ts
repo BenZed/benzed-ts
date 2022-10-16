@@ -1,4 +1,11 @@
-import Entity, { Input, Output } from './entity'
+import Entity, { EntityF, Input, Output } from './entity'
+
+/*** Eslint ***/
+
+/* eslint-disable 
+    @typescript-eslint/no-non-null-assertion,
+    @typescript-eslint/no-explicit-any
+*/
 
 /*** Node ***/
 
@@ -20,17 +27,32 @@ type NodeTransfer<E extends Entity, R extends Entity<Output<E>>> = (
     output: Output<E>
 ) => R | null
 
+type ToEntity<E extends Entity | EntityF> = E extends EntityF<infer I, infer O>
+    ? Entity<I,O>
+    : E
+
 class Node<
-    E extends Entity = Entity<unknown,unknown>, 
+    E extends Entity = Entity<any,any>, 
     L extends Links = Links,
     R extends Entity<Output<E>> = Entity<Output<E>>
 > extends Entity<NodeInput<E,R>, NodeOutput<E,R>>{
 
-    public static create<E1 extends Entity, R1 extends Entity<Output<E1>> = Entity<Output<E1>>>(
+    public static create<
+        E1 extends Entity | EntityF, 
+        R1 extends Entity<Output<ToEntity<E1>>
+        > = Entity<Output<ToEntity<E1>>>>
+    (
         entity: E1,
-        transfer: NodeTransfer<E1, R1>
-    ): Node<E1, [], R1> {
-        return new Node(entity, [], transfer)
+        transfer: NodeTransfer<ToEntity<E1>, R1>
+    ): Node<ToEntity<E1>, [], R1> {
+
+        const e = (
+            typeof entity === 'function'  
+                ? { execute: entity } 
+                : entity
+        ) as ToEntity<E1>
+
+        return new Node(e, [], transfer) as Node<ToEntity<E1>, [], R1>
     }
 
     private constructor(
