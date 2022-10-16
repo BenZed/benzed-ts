@@ -1,6 +1,6 @@
 import { StringKeys } from '@benzed/util'
 
-import { Component, InputOf, OutputOf, RefOf } from './component/component'
+import { Component, ComponentInput, ComponentOutput, ComponentRef } from './component/component'
 
 /*** Eslint ***/
 
@@ -18,10 +18,10 @@ type Node = [Component, ...Links] | [Component]
 type Nodes = { [key: string]: Node }
 
 type NodesInput<S extends Nodes, I extends string> = 
-    InputOf<S[I][0]>
+    ComponentInput<S[I][0]>
 
 type NodesOutput<S extends Nodes, I extends string> = 
-    OutputOf<EndLinkNodes<S, I>>
+    ComponentOutput<EndLinkNodes<S, I>>
 
 type EndLinkNodes<
     S extends Nodes, 
@@ -48,7 +48,7 @@ type AddLink<N extends Node, L extends string> = [
 ]
 
 type AddComponent<S extends Nodes, F extends StringKeys<S>> = 
-    RefOf<S[F][0]>
+    ComponentRef<S[F][0]>
 
 /*** System ***/
     

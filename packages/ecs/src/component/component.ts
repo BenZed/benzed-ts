@@ -2,17 +2,17 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Entity ***/
+/*** Component ***/
 
-type InputOf<C extends Component> = C extends Component<infer I, any> 
+type ComponentInput<C extends Component<any,any,any>> = C extends Component<infer I, any> 
     ? I 
     : never
 
-type OutputOf<C extends Component> = C extends Component<any, infer O> 
+type ComponentOutput<C extends Component<any,any,any>> = C extends Component<any, infer O> 
     ? O 
     : never 
 
-type RefOf<C extends Component> = C extends Component<any,any,infer T> 
+type ComponentRef<C extends Component<any,any,any>> = C extends Component<any,any,infer T> 
     ? T 
     : Component
 
@@ -22,8 +22,8 @@ abstract class Component<
     R extends Component<O, any, any> = Component<O, any, any>
 > {
 
-    private readonly _input!: I
-    private readonly _output!: O
+    protected readonly _input!: I
+    protected readonly _output!: O
 
     public get name(): string {
         return this.constructor.name
@@ -45,7 +45,8 @@ export default Component
 
 export {
     Component,
-    InputOf,
-    OutputOf,
-    RefOf
+    ComponentInput,
+    ComponentOutput,
+    ComponentRef
+
 }

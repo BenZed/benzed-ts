@@ -1,7 +1,7 @@
 import { System } from './system'
 
 import { expectTypeOf } from 'expect-type'
-import Component, { OutputOf } from './component/component'
+import Component, { ComponentOutput } from './component/component'
 
 /*** Components ***/
 
@@ -170,7 +170,7 @@ it('systems can be comprised of nodes of components', () => {
         .link(['+', '*', '/', '-'], '>>', new Log())
         .link(['+', '*', '/', '-'], 'error', new ErrorHandler())
 
-    type CalculatorOutput = OutputOf<typeof calculator>
+    type CalculatorOutput = ComponentOutput<typeof calculator>
 
     expectTypeOf<CalculatorOutput>().toEqualTypeOf<string | Error>()
  
@@ -188,7 +188,7 @@ it('Systems can be comprised of other systems', () => {
         .link(['arithmetic'], 'error', new ErrorHandler())
         .link(['arithmetic'], '>>', new Log())
 
-    type CalculatorOutput = OutputOf<typeof calculator>
+    type CalculatorOutput = ComponentOutput<typeof calculator>
 
     expectTypeOf<CalculatorOutput>().toEqualTypeOf<string | Error>()
 })
