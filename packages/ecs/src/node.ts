@@ -1,4 +1,4 @@
-import { Entity, InputOf, OutputOf } from './entity'
+import { Component, InputOf, OutputOf } from './component'
 
 /*** Lint ***/
 
@@ -13,16 +13,16 @@ type Links = readonly string[]
 
 type LinksOf<N extends Node> = N extends Node<any,any,infer L> ? L : []
 
-type RefOf<N extends Node> = N extends Node<any,any,any, infer R> ? R : Entity 
+type RefOf<N extends Node> = N extends Node<any,any,any, infer R> ? R : Component 
 
 interface Node<
 
     I = any, 
     O = any, 
     L extends Links = Links,
-    R extends Entity<O> = Entity<O>
+    R extends Component<O> = Component<O>
 
-> extends Entity<I, O> {
+> extends Component<I, O> {
 
     readonly transfer: (refs: R[], input: I, output: O) => R | null 
 
@@ -34,7 +34,7 @@ interface Node<
 
 /*** Factory ***/
 
-function createNode<E extends Entity, R extends Entity<OutputOf<E>>>(
+function createNode<E extends Component, R extends Component<OutputOf<E>>>(
     entity: E,
     transfer: (refs: R[], input: InputOf<E>, output: OutputOf<E>) => R | null
 ): Node<InputOf<E>, OutputOf<E>, [], R> {
@@ -51,17 +51,17 @@ function createNode<E extends Entity, R extends Entity<OutputOf<E>>>(
     return node as Node<InputOf<E>, OutputOf<E>, [], R>
 }
 
-function defineNode<R extends Entity>(
+function defineNode<R extends Component>(
     transfer: (refs: R[]) => R | null
-): <I>(entity: Entity<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
+): <I>(entity: Component<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
 
-function defineNode<I, R extends Entity>(
+function defineNode<I, R extends Component>(
     transfer: (refs: R[], input: I) => R | null
-): (entity: Entity<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
+): (entity: Component<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
 
-function defineNode<I, O, R extends Entity<O> = Entity<O>>(
+function defineNode<I, O, R extends Component<O> = Component<O>>(
     transfer: (refs: R[], input: I, output: O) => R | null
-): (entity: Entity<I, O>) => Node<I, O, [], R> {
+): (entity: Component<I, O>) => Node<I, O, [], R> {
 
     return entity => createNode(entity, transfer)
 

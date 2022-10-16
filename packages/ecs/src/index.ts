@@ -1,14 +1,11 @@
 import { createNode, defineNode, Node, LinksOf, RefOf } from './node'
 
-import { Entity, InputOf, OutputOf } from './entity'
-
-import { Component } from './component'
+import { Component, InputOf, OutputOf } from './component'
 
 /*** Exports ***/
 
 export {
 
-    Entity,
     Node,
     Component,
 

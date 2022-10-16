@@ -1,32 +1,45 @@
+import { defineComponent, Component, InputOf, OutputOf } from './component'
+
 import { expectTypeOf } from 'expect-type'
-import { Component } from './component'
-import { InputOf, OutputOf } from './entity'
 
-/*** Setup ***/
+/*** Lint ***/
 
-class Multiply extends Component<number, number, { by: number}> {
-
-    public execute(input: number): number {
-        return input * this.settings.by
-    }
-    
-}
+/* eslint-disable 
+    @typescript-eslint/no-non-null-assertion,
+    @typescript-eslint/no-explicit-any
+*/
 
 /*** Test ***/
 
-it('InputOf works on components', () => {
+it('entity can just be a function', () => {
 
-    const x2 = new Multiply({ by: 2 })
+    const multiply = (values: [number,number]): number => values[0] * values[1]
 
-    expectTypeOf<InputOf<typeof x2>>().toEqualTypeOf<number>()
+    expectTypeOf<InputOf<typeof multiply>>().toEqualTypeOf<[number, number]>()
+    expectTypeOf<OutputOf<typeof multiply>>().toEqualTypeOf<number>()
+    
+})
+
+it('stateless entities can be defined via define entity', () => {
+
+    const createMultiplyEntity = 
+        defineComponent((data: { by: number }) => (i: number) => i * data.by)
+
+    const x3 = createMultiplyEntity({ by: 3 })
+    expectTypeOf<typeof x3>().toEqualTypeOf<Component<number, number> & { by: number }>()
 
 })
 
-it('InputOf works on components', () => {
+it('clean type signature', () => {
 
-    const x3 = new Multiply({ by: 3 })
+    interface Multiply extends Component<number, number> {
+        by: number
+    }
 
-    expectTypeOf<OutputOf<typeof x3>>().toEqualTypeOf<number>()
+    const createMultiplyEntity = defineComponent<Multiply>(data => i => i * data.by)
+
+    const x5 = createMultiplyEntity({ by: 5 })
+
+    expectTypeOf<typeof x5>().toEqualTypeOf<Multiply>()
 
 })
-

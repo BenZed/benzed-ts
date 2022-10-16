@@ -1,5 +1,5 @@
 import { createNode, defineNode, RefOf, LinksOf } from './node'
-import { Entity, InputOf, OutputOf } from './entity'
+import { Component, InputOf, OutputOf } from './component'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -41,7 +41,7 @@ describe('defineNode() method', () => {
 
         expect(x3.transfer([x2], 3, 9)).toEqual(x2)
         expectTypeOf<InputOf<typeof x3>>().toEqualTypeOf<number>()
-        expectTypeOf<RefOf<typeof x3>>().toEqualTypeOf<Entity<any, any>>()
+        expectTypeOf<RefOf<typeof x3>>().toEqualTypeOf<Component<any, any>>()
     })
 
     it.todo('input, entity signature')

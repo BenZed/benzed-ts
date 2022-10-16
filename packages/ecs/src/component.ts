@@ -8,22 +8,56 @@
 
 /*** Types ***/
 
-/**
- * Component is just an entity with state
- */
-abstract class Component<I = any, O = any, S extends object = object> {
+interface Component<I = any, O = any> {
+    (input: I): O
+}
 
-    public abstract execute(input: I): O
+type ComponentSettings<E> = {
+    [K in keyof E]: E[K]
+}
 
-    public constructor(public readonly settings: Readonly<S>) {}
+type ComponentDefinition<E extends Component> = 
+    (settings: ComponentSettings<E>) => (input: InputOf<E>) => OutputOf<E>
 
+type InputOf<E extends Component> = 
+    E extends Component<infer I> 
+        ? I 
+        : unknown
+
+type OutputOf<E extends Component> = 
+    E extends Component<any, infer O>
+        ? O 
+        : unknown 
+
+/*** Main ***/
+
+function defineComponent<I, O, S extends object>(
+    def: (settings: S) => Component<I,O>
+): (settings: S) => Component<I,O> & S
+
+function defineComponent<E extends Component>(
+    def: ComponentDefinition<E>
+): (settings: ComponentSettings<E>) => E 
+
+function defineComponent(def: any): any {
+    return (settings: any) => {
+
+        const entity = def(settings)
+        for (const key in settings)
+            (entity as any)[key] = settings[key]
+
+        return entity
+    }
 }
 
 /*** Exports ***/
 
-export default Component
+export default defineComponent
 
 export {
-    Component
-}
+    defineComponent,
 
+    Component,
+    InputOf,
+    OutputOf
+}
