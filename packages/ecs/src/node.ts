@@ -1,92 +1,69 @@
-import Entity, { EntityF, Input, Output } from './entity'
+import { Entity, InputOf, OutputOf } from './entity'
 
-/*** Eslint ***/
+/*** Lint ***/
 
 /* eslint-disable 
     @typescript-eslint/no-non-null-assertion,
     @typescript-eslint/no-explicit-any
 */
 
-/*** Node ***/
+/*** Types ***/
 
 type Links = readonly string[]
 
-type NodeInput<E extends Entity, R extends Entity<Output<E>>> = {
-    input: Input<E>
-    refs: R[]
-}
+type LinksOf<N extends Node> = N extends Node<any,any,infer L> ? L : []
 
-type NodeOutput<E extends Entity, R extends Entity<Output<E>>> = {
-    output: Output<E>
-    next: R | null
-}
+type RefOf<N extends Node> = N extends Node<any,any,any, infer R> ? R : Entity 
 
-type NodeTransfer<E extends Entity, R extends Entity<Output<E>>> = (
-    refs: R[], 
-    input: Input<E>, 
-    output: Output<E>
-) => R | null
+interface Node<
 
-type ToEntity<E extends Entity | EntityF> = E extends EntityF<infer I, infer O>
-    ? Entity<I,O>
-    : E
-
-class Node<
-    E extends Entity = Entity<any,any>, 
+    I = any, 
+    O = any, 
     L extends Links = Links,
-    R extends Entity<Output<E>> = Entity<Output<E>>
-> extends Entity<NodeInput<E,R>, NodeOutput<E,R>>{
+    R extends Entity<O> = Entity<O>
 
-    public static create<
-        E1 extends Entity | EntityF, 
-        R1 extends Entity<Output<ToEntity<E1>>
-        > = Entity<Output<ToEntity<E1>>>>
-    (
-        entity: E1,
-        transfer: NodeTransfer<ToEntity<E1>, R1>
-    ): Node<ToEntity<E1>, [], R1> {
+> extends Entity<I, O> {
 
-        const e = (
-            typeof entity === 'function'  
-                ? { execute: entity } 
-                : entity
-        ) as ToEntity<E1>
+    readonly transfer: (refs: R[], input: I, output: O) => R | null 
 
-        return new Node(e, [], transfer) as Node<ToEntity<E1>, [], R1>
+    readonly addLink: <L1 extends string>(link: L1) => Node<I, O, [...L, L1], R>
+
+    readonly links: L
+
+}
+
+/*** Factory ***/
+
+function createNode<E extends Entity, R extends Entity<OutputOf<E>>>(
+    entity: E,
+    transfer: (refs: R[], input: InputOf<E>, output: OutputOf<E>) => R | null
+): Node<InputOf<E>, OutputOf<E>, [], R> {
+
+    const node = (input: InputOf<E>): OutputOf<E> => entity(input)
+    node.transfer = transfer
+    node.links = [] as Links
+    node.addLink = (link: string) => {
+        const copy = createNode(entity, transfer) as { links: string[] }
+        copy.links = [...node.links, link]
+        return copy
     }
 
-    private constructor(
-        public readonly entity: E,
-        public readonly links: L,
-        public readonly transfer: NodeTransfer<E,R>,
-    ) {
-        super()
-    }
+    return node as Node<InputOf<E>, OutputOf<E>, [], R>
+}
 
-    public execute (ctx: NodeInput<E, R>): NodeOutput<E, R> {
+function defineNode<R extends Entity>(
+    transfer: (refs: R[]) => R | null
+): <I>(entity: Entity<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
 
-        const { input } = ctx
-        
-        const output = this.entity.execute(ctx.input) as Output<E>
+function defineNode<I, R extends Entity>(
+    transfer: (refs: R[], input: I) => R | null
+): (entity: Entity<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
 
-        const next = this.transfer(ctx.refs, input, output)
+function defineNode<I, O, R extends Entity<O> = Entity<O>>(
+    transfer: (refs: R[], input: I, output: O) => R | null
+): (entity: Entity<I, O>) => Node<I, O, [], R> {
 
-        return {
-            output,
-            next
-        }
-    }
-
-    public addLink<L1 extends string>(link: L1): Node<E, [...L, L1], R> {
-
-        const { entity, links, transfer } = this
-
-        return new Node(
-            entity,
-            [...links, link], 
-            transfer
-        )
-    }
+    return entity => createNode(entity, transfer)
 
 }
 
@@ -96,8 +73,11 @@ export default Node
 
 export {
     Node,
-    NodeInput,
-    NodeOutput,
+    LinksOf,
+    RefOf,
 
-    Links
+    Links,
+
+    createNode,
+    defineNode
 }
