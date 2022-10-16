@@ -1,6 +1,6 @@
 import { StringKeys } from '@benzed/util'
 
-import { Component, InputOf, OutputOf } from './component'
+import { Component, InputOf, OutputOf, RefOf } from './component/component'
 
 /*** Eslint ***/
 
@@ -9,66 +9,64 @@ import { Component, InputOf, OutputOf } from './component'
     @typescript-eslint/no-non-null-assertion
 */
 
-/*** System ***/
+/*** Nodes ***/
 
 type Links = readonly string[]
 
-type System = { [key: string]: [Component, ...Links] }
+type Node = [Component, ...Links] | [Component]
 
-type SystemInput<S extends System, I extends string> = 
+type Nodes = { [key: string]: Node }
+
+type NodesInput<S extends Nodes, I extends string> = 
     InputOf<S[I][0]>
 
-type SystemOutput<S extends System, I extends string> = 
-    OutputOf<SystemEndLinkEntities<S, I>>
+type NodesOutput<S extends Nodes, I extends string> = 
+    OutputOf<EndLinkNodes<S, I>>
 
-type SystemEndLinkEntities<
-    S extends System, 
+type EndLinkNodes<
+    S extends Nodes, 
     L extends keyof S
 > = 
     {
         [K in L]: LinksOf<S[K]> extends [] 
             ? S[K][0]
-            : SystemEndLinkEntities<S, LinksOf<S[K]>[number] | EndLinks<S, L>>
+            : EndLinkNodes<S, LinksOf<S[K]>[number] | EndLinks<S, L>>
     }[L]
 
-type LinksOf<E extends [Component, ...Links] | [Component]> = E extends [Component, ...infer L]
+type LinksOf<N extends Node> = N extends [Component, ...infer L]
     ? L 
     : []
 
-type EndLinks<S extends System, L extends keyof S> = keyof {
+type EndLinks<S extends Nodes, L extends keyof S> = keyof {
     [K in L as LinksOf<S[K]> extends [] ? K : never]: unknown
 }
 
-type AddLink<E extends [Component, ...Links] | [Component], L extends string> = [
-    E[0],
-    ...LinksOf<E>,
+type AddLink<N extends Node, L extends string> = [
+    N[0],
+    ...LinksOf<N>,
     L
 ]
 
-export type ComponentTypeOf<C extends Component> = C extends Component<any,any,infer T> 
-    ? T 
-    : Component
+type AddComponent<S extends Nodes, F extends StringKeys<S>> = 
+    RefOf<S[F][0]>
 
-/*** Node ***/
-
-type AddComponent<S extends System, F extends StringKeys<S>> = 
-    ComponentTypeOf<S[F][0]>
+/*** System ***/
     
-class Node<S extends System = any, I extends string = any> 
-    extends Component<SystemInput<S,I>, SystemOutput<S,I>> {
+class System<S extends Nodes = any, I extends string = any> 
+    extends Component<NodesInput<S,I>, NodesOutput<S,I>> {
 
     /*** Static ***/
         
     public static create<I1 extends string, C extends Component>(
         ...input: [I1, C]
-    ): Node<{ [K in I1]: [C] }, I1> {
+    ): System<{ [K in I1]: [C] }, I1> {
 
         const [ name, entity ] = input
 
-        return new Node({ [name]: [entity] }, name) as any
+        return new System({ [name]: [entity] }, name) as any
     }
 
-    public get input(): Component<SystemOutput<S,I>> {
+    public get input(): Component<NodesOutput<S,I>> {
         return this.system[this._inputKey][0]
     }
 
@@ -87,7 +85,7 @@ class Node<S extends System = any, I extends string = any>
         F extends StringKeys<S>[], 
         T extends string, 
         E extends AddComponent<S, F[number]>
-    >(...input: [F, T, E]): Node<{
+    >(...input: [F, T, E]): System<{
 
         [K in StringKeys<S> | T]: K extends T 
             ? [E]
@@ -98,10 +96,10 @@ class Node<S extends System = any, I extends string = any>
 
         const [ fromLinks, toLink, entity ] = input
 
-        return new Node(
+        return new System(
             {
 
-                ...fromLinks.reduce<System>((sys, fromLink) => 
+                ...fromLinks.reduce<Nodes>((sys, fromLink) => 
                     Object.assign(sys, {
                         [fromLink]: [
                             sys[fromLink][0],
@@ -118,23 +116,20 @@ class Node<S extends System = any, I extends string = any>
         ) as any
     }
 
-    // unlink() {}
-    // 
-
     /*** Entity Implementation ***/    
 
     public execute(
-        input: SystemInput<S,I>,
-        outRefs: Component<SystemOutput<S,I>>[]
+        input: NodesInput<S,I>,
+        outRefs: Component<NodesOutput<S,I>>[]
     ): {
-            output: SystemOutput<S,I>
-            next: Component<SystemOutput<S,I>> | null
+            output: NodesOutput<S,I>
+            next: Component<NodesOutput<S,I>> | null
         } {
 
         const { system, _inputKey } = this
 
         let [next, ...links] = system[_inputKey] as [Component | null, ...Links]
-        let output = input as SystemOutput<S,I>
+        let output = input as NodesOutput<S,I>
 
         do {
 
@@ -143,6 +138,12 @@ class Node<S extends System = any, I extends string = any>
                 : links.map(link => system[link][0])
 
             const result = next!.execute(output, refs)
+            if (!result.next && links.length > 0) {
+                throw new Error(
+                    `Premature transfer flow termination: ${next!.name} did not ` + 
+                    `return a component when given links: ${links}`
+                )
+            }
 
             next = result.next 
             output = result.output
@@ -165,4 +166,4 @@ class Node<S extends System = any, I extends string = any>
 
 }
 
-export { Node }
+export { System }

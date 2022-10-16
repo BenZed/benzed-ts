@@ -1,7 +1,7 @@
-import { Node } from './node'
+import { System } from './system'
 
 import { expectTypeOf } from 'expect-type'
-import Component, { OutputOf } from './component'
+import Component, { OutputOf } from './component/component'
 
 /*** Components ***/
 
@@ -154,14 +154,14 @@ class ErrorHandler extends Component<number, Error> {
 
 /*** Tests ***/
 
-it('Node.create to create nodes', () => {
-    const operator = Node.create('input', new Operate())
-    expect(operator).toBeInstanceOf(Node)
+it('System.create to create nodes', () => {
+    const operator = System.create('input', new Operate())
+    expect(operator).toBeInstanceOf(System)
 })
 
-it('nodes can be comprised of components', () => {
+it('systems can be comprised of nodes of components', () => {
     
-    const calculator = Node
+    const calculator = System
         .create('input', new Operate())
         .link(['input'], '+', new Add())
         .link(['input'], '*', new Multiply())
@@ -176,15 +176,15 @@ it('nodes can be comprised of components', () => {
  
 })
 
-it('nodes can be comprised of other nodes', () => {
+it('Systems can be comprised of other systems', () => {
 
-    const arithmetic = Node.create('input', new Operate())
+    const arithmetic = System.create('input', new Operate())
         .link(['input'], '+', new Add())
         .link(['input'], '*', new Multiply())
         .link(['input'], '/', new Divide())
         .link(['input'], '-', new Subtract())
 
-    const calculator = Node.create('arithmetic', arithmetic)
+    const calculator = System.create('arithmetic', arithmetic)
         .link(['arithmetic'], 'error', new ErrorHandler())
         .link(['arithmetic'], '>>', new Log())
 
@@ -193,30 +193,30 @@ it('nodes can be comprised of other nodes', () => {
     expectTypeOf<CalculatorOutput>().toEqualTypeOf<string | Error>()
 })
 
-it('nodes can only link components where output matches input', () => {
+it('systems can only link nodes where output matches input', () => {
 
-    Node.create('+', new Add())
+    System.create('+', new Add())
     // @ts-expect-error invalid component input type
         .link(['+'], 'operate', new Operate())
 
 })
 
-it('nodes can only link components that match the ref type', () => {
-    Node.create('input', new Operate())
+it('systems can only link nodes that match the ref type', () => {
+    System.create('input', new Operate())
         .link(['input'], '+', new Add())
     // @ts-expect-error invalid component ref type
         .link(['input'], '+', new NotOperation())
 })
 
-it('executes', () => {
+it('system flow control', () => {
 
-    const arithmetic = Node.create('input', new Operate())
+    const arithmetic = System.create('input', new Operate())
         .link(['input'], '+', new Add())
         .link(['input'], '*', new Multiply())
         .link(['input'], '/', new Divide())
         .link(['input'], '-', new Subtract())
 
-    const calculator = Node.create('arithmetic', arithmetic)
+    const calculator = System.create('arithmetic', arithmetic)
         .link(['arithmetic'], 'error', new ErrorHandler())
         .link(['arithmetic'], '>>', new Log())
 
@@ -232,4 +232,33 @@ it('executes', () => {
     expect(calc(10,10,'+')).toEqual('20')
     expect(calc(10,10,'/')).toEqual('1')
     expect(calc(10,10,'-')).toEqual('0')
+})
+
+it('nodes must return a transfer ref if given links', () => {
+
+    class BrokenAdd extends Add {
+
+        public override execute(
+            input: [number, number], 
+            refs: Component<number>[]
+        ): { 
+                output: number
+                next: Component<number> | null 
+            } {
+            
+            const {output} = super.execute(input, refs)
+            return {
+                next: null,
+                output
+            }
+        }
+    }
+
+    const brokenCalculator = System.create('input', new Operate())
+        .link(['input'], '+', new BrokenAdd())
+        .link(['+'], '>>', new Log())
+
+    expect(() => brokenCalculator.execute({ operation: '+', value: [10, 10]}, []))
+        .toThrow('Premature transfer flow termination')
+
 })
