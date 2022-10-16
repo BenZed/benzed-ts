@@ -1,6 +1,6 @@
 import { StringKeys } from '@benzed/util'
-
-import { Component, ComponentInput, ComponentOutput, ComponentRef } from './component/component'
+import Entity from './entity'
+import Node, { Links, NodeInput, NodeOutput } from './node'
 
 /*** Eslint ***/
 
@@ -9,161 +9,117 @@ import { Component, ComponentInput, ComponentOutput, ComponentRef } from './comp
     @typescript-eslint/no-non-null-assertion
 */
 
-/*** Nodes ***/
-
-type Links = readonly string[]
-
-type Node = [Component, ...Links] | [Component]
+/*** System ***/
 
 type Nodes = { [key: string]: Node }
 
-type NodesInput<S extends Nodes, I extends string> = 
-    ComponentInput<S[I][0]>
-
-type NodesOutput<S extends Nodes, I extends string> = 
-    ComponentOutput<EndLinkNodes<S, I>>
-
-type EndLinkNodes<
-    S extends Nodes, 
-    L extends keyof S
-> = 
-    {
-        [K in L]: LinksOf<S[K]> extends [] 
-            ? S[K][0]
-            : EndLinkNodes<S, LinksOf<S[K]>[number] | EndLinks<S, L>>
-    }[L]
-
-type LinksOf<N extends Node> = N extends [Component, ...infer L]
-    ? L 
+type NodeRefs<N extends Nodes, L extends Links> = L extends [infer L1, ...infer LR]
+    ? L1 extends keyof N 
+        ? LR extends Links
+            ? [N[L1], ...NodeRefs<N, LR>]
+            : [N[L1]]
+        : LR extends Links ? NodeRefs<N, LR> : []
     : []
 
-type EndLinks<S extends Nodes, L extends keyof S> = keyof {
-    [K in L as LinksOf<S[K]> extends [] ? K : never]: unknown
+type SystemInput<N extends Nodes, I extends string> = N[I] extends Node<infer E, infer L> 
+    ? NodeInput<E, NodeRefs<N, L>[number]>
+    : never
+
+type SystemOutput<N extends Nodes, I extends string> = 
+    EndLinkNodes<N, I> extends Node<infer E, infer L> 
+        ? NodeOutput<E, NodeRefs<N, L>[number]>
+        : never
+
+type NodeLinks<N extends Node> = N extends Node<Entity<unknown,unknown>, infer L, Entity<unknown>> 
+    ? L 
+    : []  
+
+type NodeRef<N extends Node> = N extends Node<Entity<unknown,unknown>, Links, infer R> 
+    ? R
+    : Entity<unknown,unknown> 
+
+type EndLinks<N extends Nodes, L extends keyof N> = keyof {
+    [K in L as NodeLinks<N[K]> extends [] ? K : never]: unknown
 }
 
-type AddLink<N extends Node, L extends string> = [
-    N[0],
-    ...LinksOf<N>,
-    L
-]
+type EndLinkNodes<N extends Nodes, L extends keyof N> = {
+    [K in L]: NodeLinks<N[K]> extends []
+        ? N[K]
+        : EndLinkNodes<N, NodeLinks<N[K]>[number] | EndLinks<N, L>>
+}[L]
 
-type AddComponent<S extends Nodes, F extends StringKeys<S>> = 
-    ComponentRef<S[F][0]>
+type AddNode<N extends Nodes, K extends keyof N, T extends string> = 
+    N[K] extends Node<infer E, infer L, infer R> 
+        ? Node<E, [...L, T], R>
+        : never
 
-/*** System ***/
-    
-class System<S extends Nodes = any, I extends string = any> 
-    extends Component<NodesInput<S,I>, NodesOutput<S,I>> {
+class System<
+    N extends Nodes,
+    I extends string
+> extends Entity<SystemInput<N,I>, SystemOutput<N,I>> {
 
-    /*** Static ***/
-        
-    public static create<I1 extends string, C extends Component>(
-        ...input: [I1, C]
-    ): System<{ [K in I1]: [C] }, I1> {
-
-        const [ name, entity ] = input
-
-        return new System({ [name]: [entity] }, name) as any
+    public static create<N1 extends Node, I1 extends string>(
+        key: I1,
+        node: N1
+    ): System<{ [K in I1]: N1 }, I1> {
+        return new System( 
+            { [key]: node }, 
+            key 
+        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
     }
 
-    public get input(): Component<NodesOutput<S,I>> {
-        return this.system[this._inputKey][0]
-    }
-
-    /*** Constructor ***/
-    
     private constructor(
-        public readonly system: S,
-        private readonly _inputKey: I,
+        public readonly nodes: N,
+        protected readonly _inputNodeKey: I,
     ) {
-        super() 
+        super()
     }
-
-    /*** Build Interface ***/
-    
-    public link<
-        F extends StringKeys<S>[], 
-        T extends string, 
-        E extends AddComponent<S, F[number]>
-    >(...input: [F, T, E]): System<{
-
-        [K in StringKeys<S> | T]: K extends T 
-            ? [E]
-            : K extends F[number]
-                ? AddLink<S[K], T> 
-                : S[K]
-    }, I> {
-
-        const [ fromLinks, toLink, entity ] = input
-
-        return new System(
-            {
-
-                ...fromLinks.reduce<Nodes>((sys, fromLink) => 
-                    Object.assign(sys, {
-                        [fromLink]: [
-                            sys[fromLink][0],
-                            ...sys[fromLink].splice(1), 
-                            toLink
-                        ]
-                    })
-                , this.system),
-
-                [toLink]: [entity]
-
-            }, 
-            this._inputKey
-        ) as any
-    }
-
-    /*** Entity Implementation ***/    
 
     public execute(
-        input: NodesInput<S,I>,
-        outRefs: Component<NodesOutput<S,I>>[]
-    ): {
-            output: NodesOutput<S,I>
-            next: Component<NodesOutput<S,I>> | null
-        } {
-
-        const { system, _inputKey } = this
-
-        let [next, ...links] = system[_inputKey] as [Component | null, ...Links]
-        let output = input as NodesOutput<S,I>
-
-        do {
-
-            const refs = links.length === 0 
-                ? outRefs 
-                : links.map(link => system[link][0])
-
-            const result = next!.execute(output, refs)
-            if (!result.next && links.length > 0) {
-                throw new Error(
-                    `Premature transfer flow termination: ${next!.name} did not ` + 
-                    `return a component when given links: ${links}`
-                )
-            }
-
-            next = result.next 
-            output = result.output
-            links = links.reduce<string[]>((links, link) => system[link][0] === next 
-                ? system[link].slice(1) as string[] 
-                : links, 
-            [])
-
-            // next component is being handled by a different node
-            if (refs === outRefs)
-                break
-
-        } while(next)
-
-        return { 
-            output,
-            next
-        } 
+        input: SystemInput<N, I>
+    ): SystemOutput<N,I> {
+        return void input as unknown as SystemOutput<N,I>
     }
 
+    public link<
+        F extends StringKeys<N>, 
+        T extends string, N1 extends Node<NodeRef<N[F]>, 
+        Links, Entity<unknown,unknown>>
+    >(
+
+        fromKeys: StringKeys<N>[],
+        toKey: T,
+        node: N1
+
+    ): System<{
+            [K in keyof N | T]: K extends T 
+                ? N1
+                : K extends F[number]
+                    ? AddNode<N, K, T>
+                    : N[K]
+        }, I>{
+
+        return new System(
+
+            {
+                ...fromKeys.reduce(
+                    (nodes, fromKey) => ({
+                        ...nodes,
+                        [fromKey]: nodes[fromKey].addLink(toKey)
+                    }), 
+                    this.nodes
+                ),
+                [toKey]: node
+            },
+
+            this._inputNodeKey
+        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    }
 }
+
+/*** Exports ***/
+
+export default System
 
 export { System }
