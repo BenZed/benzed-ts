@@ -1,6 +1,7 @@
 import { createNode, defineNode, RefOf, LinksOf } from './node'
-import { expectTypeOf } from 'expect-type'
 import { Entity, InputOf, OutputOf } from './entity'
+
+import { expectTypeOf } from 'expect-type'
 
 /*** Lint ***/
 
