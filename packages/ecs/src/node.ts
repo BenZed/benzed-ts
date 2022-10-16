@@ -35,15 +35,15 @@ interface Node<
 /*** Factory ***/
 
 function createNode<E extends Component, R extends Component<OutputOf<E>>>(
-    entity: E,
+    component: E,
     transfer: (refs: R[], input: InputOf<E>, output: OutputOf<E>) => R | null
 ): Node<InputOf<E>, OutputOf<E>, [], R> {
 
-    const node = (input: InputOf<E>): OutputOf<E> => entity(input)
+    const node = (input: InputOf<E>): OutputOf<E> => component(input)
     node.transfer = transfer
     node.links = [] as Links
     node.addLink = (link: string) => {
-        const copy = createNode(entity, transfer) as { links: string[] }
+        const copy = createNode(component, transfer) as { links: string[] }
         copy.links = [...node.links, link]
         return copy
     }
@@ -53,17 +53,17 @@ function createNode<E extends Component, R extends Component<OutputOf<E>>>(
 
 function defineNode<R extends Component>(
     transfer: (refs: R[]) => R | null
-): <I>(entity: Component<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
+): <I>(component: Component<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
 
 function defineNode<I, R extends Component>(
     transfer: (refs: R[], input: I) => R | null
-): (entity: Component<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
+): (component: Component<I, InputOf<R>>) => Node<I, InputOf<R>, [], R>
 
 function defineNode<I, O, R extends Component<O> = Component<O>>(
     transfer: (refs: R[], input: I, output: O) => R | null
-): (entity: Component<I, O>) => Node<I, O, [], R> {
+): (component: Component<I, O>) => Node<I, O, [], R> {
 
-    return entity => createNode(entity, transfer)
+    return component => createNode(component, transfer)
 
 }
 

@@ -42,11 +42,11 @@ function defineComponent<E extends Component>(
 function defineComponent(def: any): any {
     return (settings: any) => {
 
-        const entity = def(settings)
+        const component = def(settings)
         for (const key in settings)
-            (entity as any)[key] = settings[key]
+            (component as any)[key] = settings[key]
 
-        return entity
+        return component
     }
 }
 

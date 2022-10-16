@@ -11,7 +11,7 @@ import { expectTypeOf } from 'expect-type'
 
 /*** Test ***/
 
-it('entity can just be a function', () => {
+it('component can just be a function', () => {
 
     const multiply = (values: [number,number]): number => values[0] * values[1]
 
@@ -20,7 +20,7 @@ it('entity can just be a function', () => {
     
 })
 
-it('stateless entities can be defined via define entity', () => {
+it('stateless components can be defined via define component', () => {
 
     const createMultiplyEntity = 
         defineComponent((data: { by: number }) => (i: number) => i * data.by)
@@ -29,6 +29,8 @@ it('stateless entities can be defined via define entity', () => {
     expectTypeOf<typeof x3>().toEqualTypeOf<Component<number, number> & { by: number }>()
 
 })
+
+it('define stateful ')
 
 it('clean type signature', () => {
 

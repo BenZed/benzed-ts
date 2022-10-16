@@ -44,15 +44,13 @@ describe('defineNode() method', () => {
         expectTypeOf<RefOf<typeof x3>>().toEqualTypeOf<Component<any, any>>()
     })
 
-    it.todo('input, entity signature')
-
-    it.todo('input, output, entity signature')
+    it.todo('input, output, component signature')
     
 })
 
 describe('InputOf type', () => {
 
-    it('gets input type of entity', () => {
+    it('gets input type of component', () => {
         expectTypeOf<InputOf<typeof x2>>().toEqualTypeOf<number>()
     })
 
@@ -60,7 +58,7 @@ describe('InputOf type', () => {
 
 describe('OutputOf type', () => {
 
-    it('gets input type of entity', () => {
+    it('gets input type of component', () => {
         expectTypeOf<OutputOf<typeof x2>>().toEqualTypeOf<number>()
     })
 
@@ -68,7 +66,7 @@ describe('OutputOf type', () => {
 
 describe('LinksOf type', () => {
 
-    it('gets link type of entity', () => {
+    it('gets link type of component', () => {
         const x2l = x2
             .addLink('cool')
             .addLink('beans')
