@@ -8,24 +8,24 @@
 
 /*** Types ***/
 
-interface Component<I = any, O = any> {
+interface Component<I = unknown, O = unknown> {
     (input: I): O
 }
 
-type ComponentSettings<E> = {
-    [K in keyof E]: E[K]
+type ComponentSettings<C extends Component<any,any>> = {
+    [K in keyof C]: C[K]
 }
 
-type ComponentDefinition<E extends Component> = 
-    (settings: ComponentSettings<E>) => (input: InputOf<E>) => OutputOf<E>
+type ComponentDefinition<C extends Component<any,any>> = 
+    (settings: ComponentSettings<C>) => (input: InputOf<C>) => OutputOf<C>
 
-type InputOf<E extends Component> = 
-    E extends Component<infer I> 
+type InputOf<C extends Component<any,any>> = 
+    C extends Component<infer I, any> 
         ? I 
         : unknown
 
-type OutputOf<E extends Component> = 
-    E extends Component<any, infer O>
+type OutputOf<C extends Component<any,any>> = 
+    C extends Component<any, infer O>
         ? O 
         : unknown 
 
@@ -35,7 +35,7 @@ function defineComponent<I, O, S extends object>(
     def: (settings: S) => Component<I,O>
 ): (settings: S) => Component<I,O> & S
 
-function defineComponent<E extends Component>(
+function defineComponent<E extends Component<any>>(
     def: ComponentDefinition<E>
 ): (settings: ComponentSettings<E>) => E 
 

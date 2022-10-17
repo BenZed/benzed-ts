@@ -30,8 +30,6 @@ it('stateless components can be defined via define component', () => {
 
 })
 
-it('define stateful ')
-
 it('clean type signature', () => {
 
     interface Multiply extends Component<number, number> {

@@ -1,4 +1,4 @@
-import { createNode, defineNode, Node, LinksOf, RefOf } from './node'
+import { createNode, defineNode, Node, LinksOf, TargetOf } from './node'
 
 import { Component, InputOf, OutputOf } from './component'
 
@@ -13,6 +13,6 @@ export {
     OutputOf as EntityOutput,
 
     LinksOf as NodeLinks,
-    RefOf as NodeRef
+    TargetOf as NodeRef
 
 }

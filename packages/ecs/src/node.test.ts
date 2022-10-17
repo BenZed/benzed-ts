@@ -1,5 +1,7 @@
-import { createNode, defineNode, RefOf, LinksOf } from './node'
-import { Component, InputOf, OutputOf } from './component'
+import { createNode, defineNode, TargetOf, LinksOf } from './node'
+import defineComponent, { Component, InputOf, OutputOf } from './component'
+
+import match from '@benzed/match'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -14,7 +16,7 @@ import { expectTypeOf } from 'expect-type'
 
 const x2 = createNode(
     (i: number) => i * 2, 
-    refs => refs.at(0) ?? null
+    ctx => ctx.targets.at(0) ?? null
 )
 
 /*** Tests ***/
@@ -34,17 +36,63 @@ describe('defineNode() method', () => {
     it('returns a node create method with a predefined transfer', () => {
 
         const createLastRefNode = defineNode(
-            refs => refs.at(-1) ?? null
+            ctx => ctx.targets.at(-1) ?? null
         )
 
         const x3 = createLastRefNode((i: number) => i * 3)
 
-        expect(x3.transfer([x2], 3, 9)).toEqual(x2)
+        expect(
+            x3.transfer({ targets: [x2 as any], input: 0, output: 3, source: x3 })
+        ).toEqual(x2)
+
         expectTypeOf<InputOf<typeof x3>>().toEqualTypeOf<number>()
-        expectTypeOf<RefOf<typeof x3>>().toEqualTypeOf<Component<any, any>>()
+        expectTypeOf<TargetOf<typeof x3>>().toEqualTypeOf<Component<unknown, unknown>>()
     })
 
-    it.todo('input, output, component signature')
+    it('complex definitions', () => {
+
+        type Operation = '+' | '-' | '*' | '/'
+    
+        interface CalcInput extends 
+            Component<{value: [number, number], operation: Operation }, [number,number]> {
+        }
+        interface CalcOutput<O extends Operation = Operation> extends 
+            Component<[number, number], number> {
+            operation: O
+        }
+
+        const createCalcInputNode = defineNode<CalcInput, CalcOutput>(
+            // no type errors!
+            ctx => ctx.targets.find(target => target.operation === ctx.input.operation) ?? null
+        )
+
+        const calcInputNode = createCalcInputNode(i => i.value)
+
+        const createCalcOutputComponent = <O extends Operation>(operation: O): CalcOutput<O> => 
+            defineComponent<CalcOutput<O>>(
+                settings => ([a,b]) => 
+                    match(settings.operation as Operation)
+                    ('*', a * b)
+                    ('+', a + b)
+                    ('-', a - b)
+                    ('/', a / b).next() 
+            )({ operation })
+
+        const add = createCalcOutputComponent('+')
+        const subtract = createCalcOutputComponent('-')
+        const multiply = createCalcOutputComponent('*')
+        const divide = createCalcOutputComponent('/')
+
+        const next = calcInputNode.transfer({
+            source: calcInputNode,
+            targets: [add,subtract,multiply, divide],
+            input: { value: [10, 10], operation: '*' },
+            output: [10,10]
+        })
+
+        expect(next).toBe(multiply)
+        
+    })
     
 })
 
@@ -79,7 +127,7 @@ describe('LinksOf type', () => {
 describe('node.transfer() method', () => {
 
     it('returns one of a given set of refs or null', () => {
-        expect(x2.transfer([], 0, 0))
+        expect(x2.transfer({ targets: [], input: 0, output: 3, source: x2 }))
             .toEqual(null)
     })
 
