@@ -1,67 +1,23 @@
-import { Compile } from '@benzed/util'
 
-/*** Lint ***/
+/*** Eslint ***/
 
-/* eslint-disable 
-    @typescript-eslint/no-non-null-assertion,
-    @typescript-eslint/no-explicit-any
-*/
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+/*** Execute ***/
 
-interface Component<I = unknown, O = unknown> {
-    (input: I): O
+export type Execute<I = unknown,O = unknown> = (input: I) => O
+
+export type InputOf<T> = T extends Execute<infer I, any> | Component<infer I, any>
+    ? I
+    : unknown
+
+export type OutputOf<T> = T extends Execute<any, infer O> | Component<any, infer O>
+    ? O
+    : unknown
+
+/*** Component ***/
+
+export abstract class Component<I = unknown, O = unknown> {
+    public abstract execute(input: I): O
 }
 
-type ComponentSettings<C extends Component<any,any>> = Compile<{
-    [K in keyof C]: C[K]
-}>
-
-type ComponentDefinition<C extends Component<any,any>> = 
-    (settings: ComponentSettings<C>) => (input: InputOf<C>) => OutputOf<C>
-
-type InputOf<C extends Component<any,any>> = 
-    C extends Component<infer I, any>
-        ? I
-        : unknown
-
-type OutputOf<C extends Component<any,any>> = 
-    C extends Component<any, infer O>
-        ? O
-        : unknown
-
-/*** Main ***/
-
-function defineComponent<I, O, S extends object>(
-    define: (settings: S) => Component<I,O>
-): (settings: S) => Component<I,O> & S
-
-function defineComponent<E extends Component<any>>(
-    define: ComponentDefinition<E>
-): (settings: ComponentSettings<E>) => E 
-
-/**
- * Define a stateless component
- */
-function defineComponent(def: any): any {
-    return (settings: any) => {
-
-        const component = def(settings)
-        for (const key in settings)
-            (component as any)[key] = settings[key]
-
-        return component
-    }
-}
-
-/*** Exports ***/
-
-export default defineComponent
-
-export {
-    defineComponent,
-
-    Component,
-    InputOf,
-    OutputOf
-}
