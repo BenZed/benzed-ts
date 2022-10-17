@@ -85,7 +85,7 @@ describe('defineNode() method', () => {
 
         const next = calcInputNode.transfer({
             source: calcInputNode,
-            targets: [add,subtract,multiply, divide],
+            targets: [add, subtract, multiply, divide],
             input: { value: [10, 10], operation: '*' },
             output: [10,10]
         })

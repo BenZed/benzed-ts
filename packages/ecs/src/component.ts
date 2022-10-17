@@ -1,3 +1,4 @@
+import { Compile } from '@benzed/util'
 
 /*** Lint ***/
 
@@ -12,33 +13,36 @@ interface Component<I = unknown, O = unknown> {
     (input: I): O
 }
 
-type ComponentSettings<C extends Component<any,any>> = {
+type ComponentSettings<C extends Component<any,any>> = Compile<{
     [K in keyof C]: C[K]
-}
+}>
 
 type ComponentDefinition<C extends Component<any,any>> = 
     (settings: ComponentSettings<C>) => (input: InputOf<C>) => OutputOf<C>
 
 type InputOf<C extends Component<any,any>> = 
-    C extends Component<infer I, any> 
-        ? I 
+    C extends Component<infer I, any>
+        ? I
         : unknown
 
 type OutputOf<C extends Component<any,any>> = 
     C extends Component<any, infer O>
-        ? O 
-        : unknown 
+        ? O
+        : unknown
 
 /*** Main ***/
 
 function defineComponent<I, O, S extends object>(
-    def: (settings: S) => Component<I,O>
+    define: (settings: S) => Component<I,O>
 ): (settings: S) => Component<I,O> & S
 
 function defineComponent<E extends Component<any>>(
-    def: ComponentDefinition<E>
+    define: ComponentDefinition<E>
 ): (settings: ComponentSettings<E>) => E 
 
+/**
+ * Define a stateless component
+ */
 function defineComponent(def: any): any {
     return (settings: any) => {
 

@@ -42,23 +42,35 @@ interface Node<
 /*** Factory ***/
 
 function createNode<C extends Component<any>, R extends Component<OutputOf<C>>>(
-    component: C,
+    input: { 
+        execute: C
+        transfer: Transfer<C,R>
+    }
+): Node<C, [], R>
+
+function createNode<C extends Component<any>, R extends Component<OutputOf<C>>>(
+    component: C | { execute: C },
     transfer: Transfer<C,R>
-): Node<C, [], R> {
+): Node<C, [], R>
 
-    const node = (input: InputOf<C>): OutputOf<C> => component(input) as OutputOf<C>
-    
+function createNode(...input: any[]): unknown {
+
+    const [ component, transfer ] = input.length === 1 
+        ? [ input[0].execute, input[0].transfer ]
+        : input
+
+    const execute = 'execute' in component ? component.execute.bind(component): component
+
+    const node = (input: unknown): unknown => execute(input)
     node.transfer = transfer
-
     node.links = [] as Links
-
     node.addLink = (link: string) => {
-        const copy = createNode(component, transfer) as { links: string[] }
+        const copy = createNode({ execute, transfer }) as any
         copy.links = [...node.links, link]
         return copy
     }
 
-    return node as Node<C, [], R>
+    return node
 }
 
 function defineNode<R extends Component>(
@@ -70,6 +82,9 @@ function defineNode<
     R extends Component<OutputOf<C>> = Component<OutputOf<C>>
 >(transfer: Transfer<C, R>): (component: C) => Node<C, [], R> 
 
+/**
+ * Define the transfer behaviour of a node
+ */
 function defineNode(transfer: any): any {
     return (component: any) => 
         createNode(component, transfer)

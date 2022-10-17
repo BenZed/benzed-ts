@@ -36,9 +36,9 @@ it('clean type signature', () => {
         by: number
     }
 
-    const createMultiplyEntity = defineComponent<Multiply>(data => i => i * data.by)
+    const createMultiply = defineComponent<Multiply>(data => i => i * data.by)
 
-    const x5 = createMultiplyEntity({ by: 5 })
+    const x5 = createMultiply({ by: 5 })
 
     expectTypeOf<typeof x5>().toEqualTypeOf<Multiply>()
 
