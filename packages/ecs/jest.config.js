@@ -12,6 +12,10 @@ module.exports = {
                 tsconfig: '../../tsconfig.test.json'
             }
         ]
-    }
+    },
+
+    modulePathIgnorePatterns: [
+        'util.test.ts',
+    ]
 
 }

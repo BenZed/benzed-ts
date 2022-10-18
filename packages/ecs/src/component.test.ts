@@ -1,5 +1,15 @@
 import { expectTypeOf } from 'expect-type'
-import { InputOf, OutputOf } from './component'
+import { InputOf, isComponent, OutputOf } from './component'
+
+it('a component is simply an object that wraps an execute function', () => {
+
+    expect(
+        isComponent({
+            execute: parseFloat
+        })
+    ).toBe(true)
+
+})
 
 it('component input via InputOf', () => {
 

@@ -1,7 +1,8 @@
 import { StringKeys } from '@benzed/util'
 import { InputOf, OutputOf } from './component'
+import { TargetOf } from './node'
 
-import { _Node, TargetOf, NodeInput, NodeOutput } from './node'
+import { NodeComponent, NodeInput, NodeOutput } from './node/node-component'
 
 /*** Eslint ***/
 
@@ -14,7 +15,7 @@ import { _Node, TargetOf, NodeInput, NodeOutput } from './node'
 
 type Links = readonly string[]
 
-type LinkedNode = [_Node, ...Links] | [_Node]
+type LinkedNode = [NodeComponent, ...Links] | [NodeComponent]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
@@ -34,7 +35,7 @@ type EndLinkedNodes<
             : EndLinkedNodes<S, LinksOf<S[K]>[number] | EndLinkKeys<S, L>>
     }[L]
 
-type LinksOf<S extends LinkedNode> = S extends [_Node, ...infer L]
+type LinksOf<S extends LinkedNode> = S extends [NodeComponent, ...infer L]
     ? L 
     : []
 
@@ -49,14 +50,14 @@ type AddLink<N extends LinkedNode, L extends string> = [
 ]
 
 type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
-    _Node<any, InputOf<TargetOf<S[F][0]>>, TargetOf<S[F][0]>>
+    NodeComponent<any, InputOf<TargetOf<S[F][0]>>, TargetOf<S[F][0]>>
 
 /*** System ***/
 
 class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends _Node<NodesInput<S,I>, NodesOutput<S,I>> {
+    extends NodeComponent<NodesInput<S,I>, NodesOutput<S,I>> {
         
-    public static create<Ix extends string, N extends _Node>(
+    public static create<Ix extends string, N extends NodeComponent>(
         ...input: [Ix, N]
     ): System<{ [K in Ix]: [N] }, Ix> {
 
@@ -65,7 +66,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         return new System({ [name]: [entity] }, name) as any
     }
 
-    public get input(): _Node<NodesOutput<S,I>> {
+    public get input(): NodeComponent<NodesOutput<S,I>> {
         return this.nodes[this._inputKey][0]
     }
     
