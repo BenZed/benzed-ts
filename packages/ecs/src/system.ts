@@ -1,191 +1,157 @@
-import { Component, Execute, InputOf, OutputOf } from './component'
-import { Node, TargetOf, Transfer } from './node'
-
-import { priorityFind, resolveIndex, shuffle } from '@benzed/array'
 import { StringKeys } from '@benzed/util'
+import { Component, InputOf, OutputOf } from './component'
+
+import { Node, TargetOf, TransferInput } from './node'
 
 /*** Eslint ***/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-non-null-assertion
+*/
 
-/*** Links ***/
+/*** Nodes ***/
 
-export type Links = readonly string[]
+type Links = readonly string[]
 
-/*** System Node ***/
+type LinkedNode = [Node, ...Links] | [Node]
 
-export type LinksOf<N> = N extends SystemNode<any, infer L, any> ? L : []
+type LinkedNodes = { [key: string]: LinkedNode }
 
-class SystemNode<
-    C extends Component<any,any>, 
-    L extends Links, 
-    T extends Component<OutputOf<C>,any>
-> extends Node<C, T> {
+type NodesInput<S extends LinkedNodes, I extends string> = 
+    InputOf<S[I][0]>
 
-    public static create<
-        Cx extends Component<any,any>, 
-        Tx extends Component<OutputOf<Cx>,any>
-    //
-    >(node: Node<Cx, Tx>): SystemNode<Cx,[], Tx> {
-        return new SystemNode(node, [])
-    }
+type NodesOutput<S extends LinkedNodes, I extends string> = 
+    OutputOf<EndLinkedNodes<S, I>>
 
-    private constructor(
-        node: Node<C, T>,
-        public readonly links: L
-    ) {
-        super()
+type EndLinkedNodes<
+    S extends LinkedNodes, 
+    L extends keyof S
+> = 
+    {
+        [K in L]: LinksOf<S[K]> extends [] 
+            ? S[K][0]
+            : EndLinkedNodes<S, LinksOf<S[K]>[number] | EndLinkKeys<S, L>>
+    }[L]
 
-        const { transfer, execute } = (node instanceof SystemNode
-            // if it was a system node, the methods are already bound
-            ? node 
-            : { 
-                execute: node.execute.bind(node), 
-                transfer: node.transfer.bind(node)
-            }) as Node<C,T>
+type LinksOf<S extends LinkedNode> = S extends [Node, ...infer L]
+    ? L 
+    : []
 
-        this.execute = execute
-        this.transfer = transfer
-    }
-
-    public execute!: Execute<InputOf<C>, OutputOf<C>>
-
-    public transfer!: Transfer<InputOf<C>, OutputOf<C>, T>
-
-    public addLink<Lx extends string>(link: Lx): SystemNode<C, [...L, Lx], T> {
-        return new SystemNode(this, [...this.links, link])
-    }
-
+type EndLinkKeys<S extends LinkedNodes, L extends keyof S> = keyof {
+    [K in L as LinksOf<S[K]> extends [] ? K : never]: unknown
 }
 
-type SystemNodes = { [key: string]: SystemNode<any,any,any> }
+type AddLink<N extends LinkedNode, L extends string> = [
+    N[0],
+    ...LinksOf<N>,
+    L
+]
 
-type SystemInput<N extends SystemNodes, I extends string> = InputOf<N[I]>
+type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
+    Node<any, InputOf<TargetOf<S[F][0]>>, TargetOf<S[F][0]>>
 
-type SystemOutput<N extends SystemNodes, I extends string> = OutputOf<N[I]>
+/*** System ***/
+    
+class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
+    extends Node<NodesInput<S,I>, NodesOutput<S,I>> {
 
-type AddSystemNode = Node<any,any>
+    /*** Static ***/
+        
+    public static create<Ix extends string, N extends Node>(
+        ...input: [Ix, N]
+    ): System<{ [K in Ix]: [N] }, Ix> {
 
-type SystemComponent<N extends SystemNodes, I extends string> =     
-    Component<SystemInput<N, I>, SystemOutput<N, I>>
-export class System<N extends SystemNodes, I extends string, T extends Component<any,any>> 
-    extends Node<N[I], T> {
+        const [ name, entity ] = input
 
-    public static create<
-        Nx extends Node<any,any>, 
-        Ix extends string, 
-        Tx extends Component<any,any>
-    >(
-        node: Nx,
-        inputKey: Ix
-    ): System<{ [K in Ix]: SystemNode<Nx, [], Tx> }, Ix, Tx> {
-        return new System({ [inputKey]: SystemNode.create(node) }, inputKey) as any
+        return new System({ [name]: [entity] }, name) as any
     }
 
+    public get input(): Node<NodesOutput<S,I>> {
+        return this.nodes[this._inputKey][0]
+    }
+
+    /*** Constructor ***/
+    
     private constructor(
-        public readonly nodes: Readonly<N>,
-        private readonly _inputKey: I
+        public readonly nodes: S,
+        private readonly _inputKey: I,
     ) {
-        super()
+        super() 
     }
 
-    public execute(input: InputOf<N[I]>): OutputOf<N[I]> {
-        // TODO spread to other nodes
-        return this.nodes[this._inputKey].execute(input)
-    }
+    /*** Build Interface ***/
+    
+    public link<
+        F extends StringKeys<S>[], 
+        T extends string, 
+        N extends AddNode<S, F[number]>
+    >(...input: [F, T, N]): System<{
 
-    public transfer(ctx: { targets: T[], input: InputOf<N[I]>, output: OutputOf<N[I]> }): T | null {
-        // TODO spread to other nodes
-        return this.nodes[this._inputKey].transfer(ctx)
-    }
+        [K in StringKeys<N> | T]: K extends T 
+            ? [N]
+            : K extends F[number]
+                ? AddLink<S[K], T> 
+                : S[K]
+    }, I> {
 
-    public addNode<F extends StringKeys<N>[], Tx extends string, Nx extends AddSystemNode>(
-        fromKeys: F,
-        toKey: Tx,
-        node: Nx
-    ): System<{
-            [K in keyof N]: K extends Tx
-                ? SystemNode<Nx, [], TargetOf<Nx>>
-                : K extends F[number]
-                    ? SystemNode<
-                    /**/ N[K], 
-                    /**/ [...LinksOf<N[K]>, Tx], 
-                    /**/ TargetOf<Nx>
-                    >
-                    : N[K]
-        }, I, T> {
+        const [ fromKeys, toKey, node ] = input
 
         const { nodes: currentNodes, _inputKey: inputKey } = this
 
         const updatedNodes = fromKeys.reduce((nodes, fromKey) => ({
             ...nodes,
-            [fromKey]: currentNodes[fromKey].addLink(toKey)
+            [fromKey]: [currentNodes[fromKey][0], ...currentNodes[fromKey].slice(1)]
         }), {})
 
         return new System(
             {
                 ...currentNodes,
                 ...updatedNodes,
-                [toKey]: SystemNode.create(node)
+                [toKey]: [node]
             }, 
             inputKey
         ) as any
     }
+
+    /*** Entity Implementation ***/    
+
+    public transfer(
+        ctx: TransferInput<NodesInput<S,I>, NodesOutput<S,I>>
+    ): Component<NodesOutput<S,I>> | null {
+
+    }
+
+    public execute(
+        input: NodesInput<S,I>,
+    ): NodesOutput<S,I> {
+
+        const { nodes, _inputKey } = this
+
+        let currentNodeKey = _inputKey as string | undefined
+        let output = input as NodesOutput<S,I>
+
+        while (currentNodeKey !== undefined) {
+
+            const [currentNode, ...currentLinks] = nodes[currentNodeKey]
+
+            output = currentNode.execute(output) as NodesOutput<S,I>
+
+            const targets = currentLinks.map(link => nodes[link][0])
+            const target = currentNode.transfer({ targets, input, output }) as Node
+            if (!targets.includes(target) && currentLinks.length > 0) {
+                throw new Error(
+                    `Premature transfer flow termination: ${currentNodeKey} did not ` + 
+                    `return a component when given links: ${currentLinks}`
+                )
+            }
+
+            currentNodeKey = currentLinks.at(targets.indexOf(target))
+        }
+
+        return output
+    }
+
 }
 
-/*** Fucking Around ***/
-
-const LinearNode = Node.define(() => ctx => ctx.targets.at(0) ?? null)
-
-const RandomNode = Node.define(() => {
-    
-    let targets: Component<unknown, unknown>[] = []
-    
-    return ctx => {
-
-        if (targets.length === 0)
-            targets = shuffle(ctx.targets)
-
-        return targets.pop() ?? null
-    }
-})
-
-const SwitchNode = Node.define(() => {
-    
-    let targetIndex = 0
-
-    return (ctx) => {
-
-        const target = ctx.targets.at(targetIndex)
-
-        targetIndex = resolveIndex(ctx.targets, targetIndex + 1)
-
-        return target ?? null
-    }
-})
-
-interface Multiply extends Component<number, number> {
-    by: number
-}
-
-const multiply = RandomNode.create<Multiply>({
-
-    by: 5,
-
-    execute(input: number) {
-        return input * this.by 
-    }
-
-})
-
-const MultiplyNode = Node.define<Multiply>(() => {
-
-    return ctx => {
-        return priorityFind(ctx.targets,
-            t => t.by === 0,
-            t => t.by === 1    
-        )
-    }
-})
-
-const toMathNode = MultiplyNode.create((i: number) => i + 1)
+export { System }

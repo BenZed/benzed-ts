@@ -5,7 +5,7 @@
 
 /*** Execute ***/
 
-export type Execute<I = unknown,O = unknown> = (input: I) => O
+export type Execute<I = unknown, O = unknown> = (input: I) => O
 
 export type InputOf<T> = T extends Execute<infer I, any> | Component<infer I, any>
     ? I
@@ -18,6 +18,8 @@ export type OutputOf<T> = T extends Execute<any, infer O> | Component<any, infer
 /*** Component ***/
 
 export abstract class Component<I = unknown, O = unknown> {
+
     public abstract execute(input: I): O
+
 }
 

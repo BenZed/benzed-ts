@@ -1,4 +1,6 @@
-import { Component, Execute, InputOf, OutputOf } from './component'
+import { Component, Execute } from './component'
+
+import { shuffle } from '@benzed/array'
 
 /*** Eslint ***/
 
@@ -7,85 +9,86 @@ import { Component, Execute, InputOf, OutputOf } from './component'
 /*** Node Transfer ***/
 
 export type TransferInput<
-    C extends Component<any,any>, 
-    T extends Component<OutputOf<C>, any>
-> = { targets: T[], input: InputOf<C>, output: OutputOf<C> }
+    I,
+    O,
+    T extends Component<O, any> = Component<O,unknown>
+> = { readonly targets: readonly T[], readonly input: I, readonly output: O }
 
 export type Transfer<
-    C extends Component<any,any>,
-    T extends Component<OutputOf<C>, any> = Component<OutputOf<C>,unknown>
+    I,
+    O,
+    T extends Component<O> = Component<O,unknown>
 > = 
     Execute<
-    /**/ TransferInput<C,T>, 
+    /**/ TransferInput<I, O ,T>, 
     /**/ T | null
     >
 
-/*** Defining Simple Nodes with Canned Transfer Behaviour ***/
-
-const getSimpleNodeExecute = (execute: unknown): Execute => {
-
-    if (typeof execute === 'function')
-        return execute as Execute
-
-    const component = typeof execute === 'object' && execute !== null 
-        ? execute as Partial<Component>
-        : null
-
-    if (component && typeof component.execute === 'function')
-        return component.execute.bind(component)
-
-    throw new Error('"execute" method missing from input component.')
-}
-    
-/*** Node ***/
-
-export type TargetOf<T> = T extends Transfer<any,infer T1> | Node<any, infer T1> 
+export type TargetOf<T> = T extends Transfer<any,infer T1> | Node<any, any, infer T1> 
     ? T1
     : unknown
 
+/*** Node ***/
+
 export abstract class Node<
-    C extends Component<any,any>,
-    T extends Component<OutputOf<C>,any>
-> extends Component<InputOf<C>, OutputOf<C>> {
+    I = unknown,
+    O = unknown,
+    T extends Component<O,any> = Component<O,unknown>
+> extends Component<I,O> {
 
-    /* eslint-disable @typescript-eslint/explicit-function-return-type */
+    public abstract transfer(ctx: TransferInput<I, O, T>): T | null
 
-    /**
-     * Define a node that has reusable transfer logic
-     */
-    public static define<
-        Tx extends Component
-    >(
-        createTransfer: () => Transfer<Component<unknown, InputOf<Tx>>, Tx>,
+}
+
+/*** Transfer Node ***/
+
+/**
+ * A transfer node is a node where the transfer logic is decoupled 
+ * from the node logic. A transfer node should be able to
+ * house any type of component.
+ */
+export abstract class TransferNode<I,O> extends Node<I,O> {
+
+    public constructor(
+        public readonly transfer: Transfer<I,O>
     ) {
-        abstract class TransferNode<Cxx extends Component<any, InputOf<Tx>>> extends Node<Cxx, Tx> {
-  
-            public static create<
-                E extends Execute<any, InputOf<Tx>> | Component<any, InputOf<Tx>>
-            >(
-                execute: E
-            ): E extends Execute<any,InputOf<Tx>>
-                    ? Node<Component<InputOf<E>, OutputOf<E>>, Tx>
-                    : E extends Component<any, InputOf<Tx>>
-                        ? Node<E, Tx>
-                        : never {
-
-                return {
-                    execute: getSimpleNodeExecute(execute),
-                    transfer: createTransfer()
-                } as any
-            }
-    
-            public abstract execute: Execute<InputOf<Cxx>, OutputOf<Cxx>>
-    
-            public transfer = createTransfer()
-        }
-        
-        return TransferNode
+        super()
     }
 
-    /* eslint-enable @typescript-eslint/explicit-function-return-type */
+}
 
-    public abstract transfer(ctx: TransferInput<C, T>): T | null
+/*** Switch Transfer Node ***/
+
+export abstract class SwitchNode<I,O> extends TransferNode<I,O> {
+
+    /**
+     * Create the transfer function used in a switch node for use in other
+     * components
+     */
+    public static createTransfer(random: boolean): Transfer<unknown,unknown> {
+
+        const targets: Component[] = []
+
+        return ctx => {
+
+            const refresh = targets.length === 0
+            if (refresh) {
+                targets.push(...ctx.targets)
+                targets.reverse()
+            }
+    
+            if (refresh && random)
+                shuffle(targets)
+
+            return targets.pop() ?? null
+        }
+
+    }
+
+    public constructor(
+        random: boolean
+    ) {
+        super(SwitchNode.createTransfer(random))
+    }
 
 }
