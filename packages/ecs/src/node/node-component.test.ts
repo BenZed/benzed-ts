@@ -1,7 +1,8 @@
-import { Component, isComponent } from '../component'
+import { Component, InputOf, isComponent, OutputOf } from '../component'
 import { NodeComponent, NodeInput, NodeOutput } from './node-component'
+import { expectTypeOf } from 'expect-type'
 
-class ParseNode extends NodeComponent<string, number> {
+class Parser extends NodeComponent<string, number> {
     public execute({ input, targets }: NodeInput<string, number>): NodeOutput<number> {
         return {
             output: parseInt(input),
@@ -18,7 +19,7 @@ class Inverter extends Component<boolean, boolean> {
 
 it('is simply a component with node oriented i/o', () => {
 
-    const parse = new ParseNode()
+    const parse = new Parser()
 
     expect(parse.execute({ input: '100', targets: [] }))
         .toEqual({ output: 100, target: null })
@@ -33,7 +34,7 @@ it('is simply a component with node oriented i/o', () => {
  */
 it('type safe targets', () => {
 
-    const parseNode = new ParseNode()
+    const parseNode = new Parser()
 
     parseNode.execute({
         input: '50',
@@ -101,4 +102,13 @@ it('explicit target discrimination', () => {
             { execute: (i: IntersectionData) => i }
         ]
     })
+})
+
+it('inferred i/o', () => {
+
+    type MathNode = NodeComponent<[number, number], number>
+
+    expectTypeOf<InputOf<MathNode>>().toEqualTypeOf<NodeInput<[number,number]>>()
+    expectTypeOf<OutputOf<MathNode>>().toEqualTypeOf<NodeOutput<number>>()
+
 })

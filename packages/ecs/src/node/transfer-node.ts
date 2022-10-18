@@ -5,7 +5,7 @@ import { NodeComponent, NodeInput, NodeOutput } from './node-component'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Node ***/
+/*** Transfer ***/
 
 /**
  * Context passed to a transfer method

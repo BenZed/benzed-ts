@@ -5,7 +5,9 @@
 
 /*** Execute ***/
 
-export type Execute<I = unknown, O = unknown> = (input: I) => O
+export interface Execute<I = unknown, O = unknown> {
+    (input: I): O
+}
 
 export type InputOf<T> = T extends Execute<infer I, any> | Component<infer I, any>
     ? I
