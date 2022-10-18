@@ -1,10 +1,40 @@
-import { Component, InputOf, OutputOf } from '../component'
+import { Component, Execute, InputOf, OutputOf } from '../component'
 
 import { TransferMethod, TransferNode } from './transfer-node'
 
 /*** Eslint ***/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* 
+    eslint-disable 
+        @typescript-eslint/no-explicit-any,
+        @typescript-eslint/explicit-function-return-type 
+*/
+
+function createNode<I,O>(
+    this: { createTransfer: () => TransferMethod<I,O> },
+    execute: Execute<I,O>,
+    transfer?: TransferMethod<I, O>
+): Node<Component<I,O>>
+
+function createNode<C extends Component<any>>(
+    this: { createTransfer: () => TransferMethod<InputOf<C>, OutputOf<C>> },
+    component: C,
+    transfer?: TransferMethod<InputOf<C>, OutputOf<C>>
+): Node<C> 
+
+function createNode(
+    this: { createTransfer: () => TransferMethod<unknown> },
+    input: Execute<unknown> | Component<unknown>,
+    transfer: TransferMethod<unknown> = this.createTransfer()
+): Node<Component<unknown>> {
+    return new class extends Node<Component<unknown>> {
+        protected _transfer = transfer
+    }(
+        typeof input === 'function'
+            ? { execute: input }
+            : input
+    )
+}
 
 /*** Node ***/
 
@@ -12,19 +42,23 @@ import { TransferMethod, TransferNode } from './transfer-node'
  * The "standard" node class that would be extended for simple cases.
  * Simply wraps a component and transfer method.
  */
-export class Node<C extends Component<any,any> = Component> 
+export abstract class Node<C extends Component<any,any> = Component> 
     extends TransferNode<InputOf<C>, OutputOf<C>> {
 
+    public static createTransfer(): TransferMethod<unknown> {
+        return ctx => ctx.targets[0] ?? null
+    }
+
+    public static create = createNode
+
     public constructor(
-        execute: C | C['execute'],
-        protected readonly _transfer: TransferMethod<InputOf<C>, OutputOf<C>>
+        component: C,
     ) {
         super()
-        this._execute = typeof execute === 'function'
-            ? execute
-            : execute.execute.bind(execute)
+        this._execute = component.execute.bind(component)
     }
 
     protected readonly _execute: C['execute']
 
 }
+

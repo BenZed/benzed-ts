@@ -1,4 +1,4 @@
-import { Component } from '../component'
+import { Component, Execute } from '../component'
 import { Node } from './node'
 import { TransferMethod } from './transfer-node'
 
@@ -29,7 +29,9 @@ export interface SwitchNodeOptions {
 export class SwitchNode<C extends Component<any,any> = Component> 
     extends Node<C> {
 
-    public static createTransfer<O>(options: SwitchNodeOptions): TransferMethod<unknown, O> {
+    public static createTransfer<O>(
+        options: SwitchNodeOptions = { random: false }
+    ): TransferMethod<unknown, O> {
 
         const targets: Component<O, unknown>[] = []
 
@@ -41,7 +43,7 @@ export class SwitchNode<C extends Component<any,any> = Component>
                 targets.reverse()
             }
     
-            if (refresh && options.random)
+            if (refresh && options?.random)
                 shuffle(targets)
     
             return targets.pop() ?? null
@@ -49,13 +51,13 @@ export class SwitchNode<C extends Component<any,any> = Component>
     }
 
     public constructor(
-        component: C | C['execute'],
-        public readonly options: SwitchNodeOptions = { random: false }
+        component: C,
+        options?: SwitchNodeOptions
     ) {
-        super(
-            component,
-            SwitchNode.createTransfer(options)
-        )
+        super(component)
+        this._transfer = SwitchNode.createTransfer(options)
     }
+
+    protected readonly _transfer
 
 }
