@@ -1,4 +1,4 @@
-import { Component, Execute } from '../component'
+import { Component } from '../component'
 import { Node } from './node'
 import { TransferMethod } from './transfer-node'
 

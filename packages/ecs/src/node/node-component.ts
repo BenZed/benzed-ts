@@ -31,6 +31,11 @@ export interface NodeOutput<
     readonly output: O 
 }
 
+export type TargetOf<N> = 
+    N extends NodeComponent<any, any, infer T> 
+        ? T
+        : unknown
+        
 /**
  * The simplest form of node. Just a component with the expected node input/output.
  * This would only be extended for cases where the transfer/execution logic is

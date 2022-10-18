@@ -10,11 +10,11 @@ import { TransferMethod, TransferNode } from './transfer-node'
         @typescript-eslint/explicit-function-return-type 
 */
 
-function createNode<I,O>(
-    this: { createTransfer: () => TransferMethod<I,O> },
-    execute: Execute<I,O>,
-    transfer?: TransferMethod<I, O>
-): Node<Component<I,O>>
+function createNode<E extends Execute<any>>(
+    this: { createTransfer: () => TransferMethod<InputOf<E>, OutputOf<E>> },
+    execute: E,
+    transfer?: TransferMethod<InputOf<E>, OutputOf<E>>
+): Node<Component<InputOf<E>, OutputOf<E>>>
 
 function createNode<C extends Component<any>>(
     this: { createTransfer: () => TransferMethod<InputOf<C>, OutputOf<C>> },

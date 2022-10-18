@@ -5,7 +5,7 @@ import { NodeComponent, NodeInput, NodeOutput } from './node-component'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Transfer ***/
+/*** Node ***/
 
 /**
  * Context passed to a transfer method
@@ -28,11 +28,6 @@ export interface TransferMethod<
 > {
     (ctx: TransferContext<I,O,T>): T | null
 }
-
-export type TargetOf<N> = 
-    N extends TransferContext<any, infer T> | NodeComponent<any, any, infer T> 
-        ? T
-        : unknown
 
 /**
  * Node that would be extended for most cases where the transfer/execution

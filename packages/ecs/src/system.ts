@@ -20,10 +20,12 @@ type LinkedNode = [NodeComponent, ...Links] | [NodeComponent]
 type LinkedNodes = { [key: string]: LinkedNode }
 
 type NodesInput<S extends LinkedNodes, I extends string> = 
-    InputOf<S[I][0]>
+    InputOf<S[I][0]>['input']
 
 type NodesOutput<S extends LinkedNodes, I extends string> = 
-    OutputOf<EndLinkedNodes<S, I>>
+    OutputOf<EndLinkedNodes<S, I>> extends NodeOutput<infer O, any> 
+        ? O
+        : unknown
 
 type EndLinkedNodes<
     S extends LinkedNodes, 
@@ -50,7 +52,7 @@ type AddLink<N extends LinkedNode, L extends string> = [
 ]
 
 type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
-    NodeComponent<any, InputOf<TargetOf<S[F][0]>>, TargetOf<S[F][0]>>
+    NodeComponent<OutputOf<TargetOf<S[F][0]>>, any, any>
 
 /*** System ***/
 
@@ -61,15 +63,11 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         ...input: [Ix, N]
     ): System<{ [K in Ix]: [N] }, Ix> {
 
-        const [ name, entity ] = input
+        const [ name, node ] = input
 
-        return new System({ [name]: [entity] }, name) as any
+        return new System({ [name]: [node] }, name) as any
     }
 
-    public get input(): NodeComponent<NodesOutput<S,I>> {
-        return this.nodes[this._inputKey][0]
-    }
-    
     private constructor(
         public readonly nodes: S,
         private readonly _inputKey: I,
@@ -83,10 +81,10 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         N extends AddNode<S, F[number]>
     >(...input: [F, T, N]): System<{
 
-        [K in StringKeys<N> | T]: K extends T 
+        [K in StringKeys<S> | T]: K extends T 
             ? [N]
             : K extends F[number]
-                ? AddLink<S[K], T> 
+                ? AddLink<S[K], T>
                 : S[K]
     }, I> {
 
@@ -96,7 +94,11 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
 
         const updatedNodes = fromKeys.reduce((nodes, fromKey) => ({
             ...nodes,
-            [fromKey]: [currentNodes[fromKey][0], ...currentNodes[fromKey].slice(1)]
+            [fromKey]: [
+                currentNodes[fromKey][0], 
+                ...currentNodes[fromKey].slice(1), 
+                toKey
+            ]
         }), {})
 
         return new System(
@@ -135,7 +137,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
                 
             result = currentNode.execute({
                 targets,
-                input
+                input: result.output
             })
 
             if (!targets.includes(result.target) && hasLinks) {
