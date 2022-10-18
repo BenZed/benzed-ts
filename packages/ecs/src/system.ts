@@ -1,7 +1,7 @@
 import { StringKeys } from '@benzed/util'
-import { Component, InputOf, OutputOf } from './component'
+import { InputOf, OutputOf } from './component'
 
-import { Node, TargetOf, TransferInput } from './node'
+import { _Node, TargetOf, NodeInput, NodeOutput } from './node'
 
 /*** Eslint ***/
 
@@ -14,7 +14,7 @@ import { Node, TargetOf, TransferInput } from './node'
 
 type Links = readonly string[]
 
-type LinkedNode = [Node, ...Links] | [Node]
+type LinkedNode = [_Node, ...Links] | [_Node]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
@@ -34,7 +34,7 @@ type EndLinkedNodes<
             : EndLinkedNodes<S, LinksOf<S[K]>[number] | EndLinkKeys<S, L>>
     }[L]
 
-type LinksOf<S extends LinkedNode> = S extends [Node, ...infer L]
+type LinksOf<S extends LinkedNode> = S extends [_Node, ...infer L]
     ? L 
     : []
 
@@ -49,16 +49,14 @@ type AddLink<N extends LinkedNode, L extends string> = [
 ]
 
 type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
-    Node<any, InputOf<TargetOf<S[F][0]>>, TargetOf<S[F][0]>>
+    _Node<any, InputOf<TargetOf<S[F][0]>>, TargetOf<S[F][0]>>
 
 /*** System ***/
-    
-class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends Node<NodesInput<S,I>, NodesOutput<S,I>> {
 
-    /*** Static ***/
+class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
+    extends _Node<NodesInput<S,I>, NodesOutput<S,I>> {
         
-    public static create<Ix extends string, N extends Node>(
+    public static create<Ix extends string, N extends _Node>(
         ...input: [Ix, N]
     ): System<{ [K in Ix]: [N] }, Ix> {
 
@@ -67,11 +65,9 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         return new System({ [name]: [entity] }, name) as any
     }
 
-    public get input(): Node<NodesOutput<S,I>> {
+    public get input(): _Node<NodesOutput<S,I>> {
         return this.nodes[this._inputKey][0]
     }
-
-    /*** Constructor ***/
     
     private constructor(
         public readonly nodes: S,
@@ -79,8 +75,6 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     ) {
         super() 
     }
-
-    /*** Build Interface ***/
     
     public link<
         F extends StringKeys<S>[], 
@@ -114,44 +108,59 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         ) as any
     }
 
-    /*** Entity Implementation ***/    
-
-    public transfer(
-        ctx: TransferInput<NodesInput<S,I>, NodesOutput<S,I>>
-    ): Component<NodesOutput<S,I>> | null {
-
-    }
-
     public execute(
-        input: NodesInput<S,I>,
-    ): NodesOutput<S,I> {
+        {
+            input, 
+            targets: outerTargets
+        }: NodeInput<NodesInput<S,I>, NodesOutput<S,I>, TargetOf<S[I][0]>>,
+    ): NodeOutput<NodesOutput<S,I>, TargetOf<S[I][0]>> {
 
         const { nodes, _inputKey } = this
 
         let currentNodeKey = _inputKey as string | undefined
-        let output = input as NodesOutput<S,I>
+        let result = {
+            output: input,
+            target: null
+        } as any
 
         while (currentNodeKey !== undefined) {
 
             const [currentNode, ...currentLinks] = nodes[currentNodeKey]
 
-            output = currentNode.execute(output) as NodesOutput<S,I>
+            const hasLinks = currentLinks.length > 0
+            const targets = hasLinks
+                ? currentLinks.map(link => nodes[link][0])
+                : outerTargets
+                
+            result = currentNode.execute({
+                targets,
+                input
+            })
 
-            const targets = currentLinks.map(link => nodes[link][0])
-            const target = currentNode.transfer({ targets, input, output }) as Node
-            if (!targets.includes(target) && currentLinks.length > 0) {
+            if (!targets.includes(result.target) && hasLinks) {
                 throw new Error(
                     `Premature transfer flow termination: ${currentNodeKey} did not ` + 
                     `return a component when given links: ${currentLinks}`
                 )
             }
 
-            currentNodeKey = currentLinks.at(targets.indexOf(target))
+            currentNodeKey = currentLinks.at(targets.indexOf(result.target))
+
+            // result.target is going to be from a different system
+            if (targets === outerTargets)
+                break
         }
 
-        return output
+        return result
     }
-
 }
 
-export { System }
+/*** Exports ***/
+
+export default System
+
+export {
+
+    System
+
+}

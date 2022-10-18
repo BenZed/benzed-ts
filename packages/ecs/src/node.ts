@@ -1,4 +1,4 @@
-import { Component, Execute } from './component'
+import { Component, InputOf, OutputOf } from './component'
 
 import { shuffle } from '@benzed/array'
 
@@ -6,89 +6,119 @@ import { shuffle } from '@benzed/array'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Node Transfer ***/
+/*** _Node ***/
 
-export type TransferInput<
+export interface NodeInput<
     I,
     O,
     T extends Component<O, any> = Component<O,unknown>
-> = { readonly targets: readonly T[], readonly input: I, readonly output: O }
+> { 
+    readonly targets: readonly T[]
+    readonly input: I 
+}
 
-export type Transfer<
-    I,
+export interface NodeOutput<
     O,
-    T extends Component<O> = Component<O,unknown>
-> = 
-    Execute<
-    /**/ TransferInput<I, O ,T>, 
-    /**/ T | null
-    >
+    T extends Component<O, any> = Component<O,unknown>
+> { 
+    readonly target: T | null
+    readonly output: O 
+}
 
-export type TargetOf<T> = T extends Transfer<any,infer T1> | Node<any, any, infer T1> 
-    ? T1
-    : unknown
+/**
+ * Base node for component transfer i/o
+ */
+export abstract class _Node<
+    I = unknown,
+    O = unknown,
+    T extends Component<O, any> = Component<O>
+> extends Component<NodeInput<I, O, T>, NodeOutput<O, T>> {
+ 
+}
 
 /*** Node ***/
 
-export abstract class Node<
+interface TransferContext<
     I = unknown,
     O = unknown,
-    T extends Component<O,any> = Component<O,unknown>
-> extends Component<I,O> {
-
-    public abstract transfer(ctx: TransferInput<I, O, T>): T | null
-
+    T extends Component<O> = Component<O,unknown>
+> extends NodeInput<I, O, T> {
+    output: O
 }
 
-/*** Transfer Node ***/
+export type TargetOf<N> = 
+    N extends TransferContext<any, infer T> | _Node<any, any, infer T> 
+        ? T
+        : unknown
 
 /**
- * A transfer node is a node where the transfer logic is decoupled 
- * from the node logic. A transfer node should be able to
- * house any type of component.
+ * Node with seperated transfer & execute logic
  */
-export abstract class TransferNode<I,O> extends Node<I,O> {
+abstract class TransferNode<
+    I,
+    O,
+    T extends Component<O,any> = Component<O, unknown>
+> extends _Node<I,O,T> {
+
+    protected abstract _transfer(ctx: TransferContext<I, O, T>): T | null
+
+    protected abstract _execute(input: I): O
+
+    public execute(
+        { input, targets }: NodeInput<I, O, T>
+    ): NodeOutput<O, T> {
+
+        const output = this._execute(input)
+
+        const target = this._transfer({
+            input,
+            output,
+            targets
+        })
+
+        return {
+            output,
+            target
+        }
+    }
+}
+
+/**
+ * A switch node alternates its output target on every invocation.
+ */
+export abstract class SwitchNode<C extends Component<any,any> = Component> 
+    extends TransferNode<InputOf<C>, OutputOf<C>> {
 
     public constructor(
-        public readonly transfer: Transfer<I,O>
+        public readonly random: boolean
     ) {
         super()
     }
 
-}
+    private readonly _targets: Component<OutputOf<C>>[] = []
 
-/*** Switch Transfer Node ***/
+    protected _transfer(
+        ctx: TransferContext<InputOf<C>, OutputOf<C>>
+    ): Component<OutputOf<C>> | null {
 
-export abstract class SwitchNode<I,O> extends TransferNode<I,O> {
-
-    /**
-     * Create the transfer function used in a switch node for use in other
-     * components
-     */
-    public static createTransfer(random: boolean): Transfer<unknown,unknown> {
-
-        const targets: Component[] = []
-
-        return ctx => {
-
-            const refresh = targets.length === 0
-            if (refresh) {
-                targets.push(...ctx.targets)
-                targets.reverse()
-            }
-    
-            if (refresh && random)
-                shuffle(targets)
-
-            return targets.pop() ?? null
+        const refresh = this._targets.length === 0
+        if (refresh) {
+            this._targets.push(...ctx.targets)
+            this._targets.reverse()
         }
 
-    }
+        if (refresh && this.random)
+            shuffle(this._targets)
 
-    public constructor(
-        random: boolean
-    ) {
-        super(SwitchNode.createTransfer(random))
+        return this._targets.pop() ?? null
     }
+}
+
+/**
+ * The "standard" Node with decoupled transfer logic that will be used
+ * in most cases.
+ */
+export abstract class Node<C extends Component<any,any> = Component> 
+    extends TransferNode<InputOf<C>, OutputOf<C>> {
 
 }
