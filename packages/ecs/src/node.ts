@@ -1,5 +1,4 @@
 import { Component, Execute, InputOf, OutputOf } from './component'
-import { copy } from '@benzed/immutable'
 
 /*** Eslint ***/
 
@@ -7,39 +6,29 @@ import { copy } from '@benzed/immutable'
 
 /*** Node Transfer ***/
 
-type TransferInput<I,O, T extends Component<O, any>> = { targets: T[], input: I, output: O }
+export type TransferInput<
+    C extends Component<any,any>, 
+    T extends Component<OutputOf<C>, any>
+> = { targets: T[], input: InputOf<C>, output: OutputOf<C> }
 
-export type Transfer<I, O, T extends Component<O, any>> = 
+export type Transfer<
+    C extends Component<any,any>,
+    T extends Component<OutputOf<C>, any> = Component<OutputOf<C>,unknown>
+> = 
     Execute<
-    /**/ TransferInput<I,O,T>, 
+    /**/ TransferInput<C,T>, 
     /**/ T | null
     >
 
 /*** Defining Simple Nodes with Canned Transfer Behaviour ***/
-    
-type SimpleTransfer = Transfer<unknown, unknown, Component<unknown, unknown>>
 
-type CreateSimpleTransferNode<C> = C extends Execute<any,any> | Component<any,any>
-    ? Node<InputOf<C>, OutputOf<C>, Component<OutputOf<C>, unknown>>
-    : never 
-
-const getSimpleTransfer = (
-    input: SimpleTransfer | { transfer: SimpleTransfer }
-): SimpleTransfer => {
-    if (typeof input === 'function')
-        return input
-
-    const transferrable = copy(input as { transfer: SimpleTransfer })
-    return transferrable.transfer.bind(transferrable)
-}
-
-const getCreateSimpleTransferNodeExecute = (execute: unknown): Execute => {
+const getSimpleNodeExecute = (execute: unknown): Execute => {
 
     if (typeof execute === 'function')
         return execute as Execute
 
     const component = typeof execute === 'object' && execute !== null 
-        ? copy(execute) as Partial<Component>
+        ? execute as Partial<Component>
         : null
 
     if (component && typeof component.execute === 'function')
@@ -50,48 +39,53 @@ const getCreateSimpleTransferNodeExecute = (execute: unknown): Execute => {
     
 /*** Node ***/
 
-export type TargetOf<T> = T extends Transfer<any,any, infer T1> | Node<any, any, infer T1> 
+export type TargetOf<T> = T extends Transfer<any,infer T1> | Node<any, infer T1> 
     ? T1
     : unknown
 
 export abstract class Node<
-    I,
-    O,
-    T extends Component<any,any>
-> extends Component<I, O> {
+    C extends Component<any,any>,
+    T extends Component<OutputOf<C>,any>
+> extends Component<InputOf<C>, OutputOf<C>> {
 
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
     /**
-     * Define a node that has canned transfer behaviour that is
-     * decoupled from the rest of the nodes logic.
-     * 
-     * If given a transferrable object, the object will be deep-copied before
-     * a new node is instanced.
+     * Define a node that has reusable transfer logic
      */
-    public static define< Tx extends SimpleTransfer | { transfer: SimpleTransfer }>(
-        simpleTransfer: Tx,
+    public static define<
+        Tx extends Component
+    >(
+        createTransfer: () => Transfer<Component<unknown, InputOf<Tx>>, Tx>,
     ) {
-        abstract class SimpleTransferNode<Ix,Ox> extends Node<Ix, Ox, Component<Ox>> {
+        abstract class TransferNode<Cxx extends Component<any, InputOf<Tx>>> extends Node<Cxx, Tx> {
   
-            public static create<C>(execute: C): CreateSimpleTransferNode<C> {
+            public static create<
+                E extends Execute<any, InputOf<Tx>> | Component<any, InputOf<Tx>>
+            >(
+                execute: E
+            ): E extends Execute<any,InputOf<Tx>>
+                    ? Node<Component<InputOf<E>, OutputOf<E>>, Tx>
+                    : E extends Component<any, InputOf<Tx>>
+                        ? Node<E, Tx>
+                        : never {
 
                 return {
-                    execute: getCreateSimpleTransferNodeExecute(execute),
-                    transfer: getSimpleTransfer(simpleTransfer)
-                } as CreateSimpleTransferNode<C>
+                    execute: getSimpleNodeExecute(execute),
+                    transfer: createTransfer()
+                } as any
             }
     
-            public abstract execute: Execute<Ix,Ox>
+            public abstract execute: Execute<InputOf<Cxx>, OutputOf<Cxx>>
     
-            public transfer = getSimpleTransfer(simpleTransfer)
+            public transfer = createTransfer()
         }
         
-        return SimpleTransferNode
+        return TransferNode
     }
 
     /* eslint-enable @typescript-eslint/explicit-function-return-type */
 
-    public abstract transfer(ctx: TransferInput<I,O,T>): T | null
+    public abstract transfer(ctx: TransferInput<C, T>): T | null
 
 }
