@@ -14,7 +14,7 @@ export default async (): Promise<void> => {
 
         clean: true,
         log: false,
-        port: TEST_FILE_SERVER_CONFIG.port,
+        port: TEST_FILE_SERVER_CONFIG.db.port,
         cluster: 'test'
     })
 
