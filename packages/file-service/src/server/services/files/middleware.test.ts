@@ -1,23 +1,14 @@
 import path from 'path'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore 
-import fetch from 'node-fetch'
-
-import configuration from '@feathersjs/configuration'
 
 import fs from '@benzed/fs'
-import { min } from '@benzed/array'
-import { TEST_ASSETS } from '@benzed/renderer/test-assets'
 
 import { User } from '../users'
-import { SignedFile } from './service'
 
-import { 
-    MAX_UPLOAD_PART_SIZE, 
-    PART_DIR_NAME 
-} from './constants'
+import { PART_DIR_NAME } from './constants'
 
-import createFileServerApp, { FileServerConfig } from '../../create-file-server-app'
+import createFileServerApp from '../../create-file-server-app'
+
+import { UploadedAssetData, Uploader, TEST_FILE_SERVER_CONFIG } from '../../../util.test'
 
 /*** Eslint ***/
 
@@ -26,22 +17,13 @@ import createFileServerApp, { FileServerConfig } from '../../create-file-server-
 /*** Server ***/
 
 const server = createFileServerApp({
-    ...configuration()() as unknown as FileServerConfig,
+    ...TEST_FILE_SERVER_CONFIG,
     renderer: null
 })
 
-const files = server.service('files')
 const users = server.service('users')
 
-const HOST = `http://localhost:${server.get('port')}` 
-
-const UPLOAD_TEST_ASSETS = {
-    ...TEST_ASSETS,
-    large: path.resolve(
-        server.get('fs') as string, 
-        '../large-binary-list.json'
-    )
-}
+const upload = new Uploader(server)
 
 beforeAll(() => server.start())
 
@@ -56,154 +38,16 @@ beforeAll(async () => {
     })
 })
 
-/**
- * Create a file larger than the max upload part size to ensure part 
- */
+let uploadData: UploadedAssetData[] 
 beforeAll(async () => {
-
-    const { large } = UPLOAD_TEST_ASSETS
-
-    const binaryList: { index: number, binary: string }[] = []
-
-    let i = 0
-    let size = 0
-    while (size < MAX_UPLOAD_PART_SIZE * 3) {
-        const binaryListItem = { 
-            index: i++, 
-            binary: i.toString(2) 
-        }
-        binaryList.push(binaryListItem)
-        size += JSON.stringify(binaryListItem, null, 4).length + 16 //
-    }
-
-    await fs.appendFile(
-        large,
-        JSON.stringify(
-            binaryList,
-            null, 
-            4
-        )
-    )
-})
-
-/*** File Uploading ***/
-
-const createSignedFile = (
-    localFileUrl: string
-): Promise<SignedFile> => {
-
-    const stat = fs.sync.stat(localFileUrl)
-
-    return files.create({
-        size: stat.size,
-        name: path.basename(localFileUrl),
-        uploader: uploader._id
-    })
-}
-
-const uploadPart = async (
-    partUrl: string, 
-    sourceFileUrl: string,
-    sourceFileSize: number, 
-    partIndex: number
-): Promise<string> => {
-
-    const res = await fetch(
-        HOST + partUrl,
-        {
-            method: 'PUT',
-            body: fs.createReadStream(sourceFileUrl, { 
-                start: partIndex * MAX_UPLOAD_PART_SIZE,
-                end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
-            })
-        }
-    )
-
-    const json = await res.json()
-    if (res.status >= 400)
-        throw json
-
-    return res.headers.get('etag') as string
-}
-
-const uploadComplete = async (
-    completeUrl: string,
-    etags: string[]
-): Promise<{ code: number }> => {
-
-    const res = await fetch(
-        HOST + completeUrl,
-        {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: etags
-        }
-    )
-
-    const json = await res.json()
-    if (res.status >= 400)
-        throw json
-
-    return json
-}
-
-const uploadParts = async (
-    localFileUrl: string,
-    { urls, size }: SignedFile
-): Promise<string[]> => {
-
-    const etags: string[] = []
-
-    for (let i = 0; i < urls.uploadParts.length; i++) {
-        const partUrl = urls.uploadParts[i]
-        etags.push(
-            await uploadPart(partUrl, localFileUrl, size, i)
-        ) 
-    }
-
-    return etags
-}
-
-const uploadData: { 
-    partEtags: string[]
-    signedFile: SignedFile
-    sourceFileUrl: string
-    partNames: string[]
-}[] = []
-
-beforeAll(async () => {
-
-    for (const sourceFileUrl of Object.values(UPLOAD_TEST_ASSETS)) {
-
-        const signedFile = await createSignedFile(sourceFileUrl)
-        const partEtags = await uploadParts(sourceFileUrl, signedFile).catch(e => e)
-
-        const partNames = fs.sync.readDir(
-            path.join(
-                server.get('fs') as string, 
-                signedFile._id, 
-                PART_DIR_NAME
-            )
-        )
-
-        await uploadComplete(signedFile.urls.complete, partEtags)
-
-        uploadData.push({ 
-            signedFile, 
-            sourceFileUrl,
-            partEtags, 
-            partNames 
-        })
-    }
+    uploadData = await upload.assets(uploader._id)
 })
 
 /*** Tests ***/
 
 describe('upload', () => {
 
-    for (const testAssetUrl of Object.values(UPLOAD_TEST_ASSETS)) {
+    for (const testAssetUrl of Object.values(Uploader.ASSETS)) {
         describe(`${path.basename(testAssetUrl)} test upload`, () => {
 
             const dir = server.get('fs') as string
@@ -212,8 +56,8 @@ describe('upload', () => {
             let fsFilePath: string
             beforeAll(() => {
                 
-                uploadDatum = uploadData.find(o => 
-                    o.sourceFileUrl === testAssetUrl
+                uploadDatum = uploadData.find(datum => 
+                    datum.localFilePath === testAssetUrl
                 ) as typeof uploadData[number]
                 
                 fsFilePath = path.join(
@@ -259,61 +103,63 @@ describe('upload', () => {
     }
 
     it('part uploads are idempotent', async () => {
-        const { large } = UPLOAD_TEST_ASSETS
-        const largeFile = await createSignedFile(large)
-        const etags = await uploadParts(large, largeFile)
-        return expect(uploadParts(large, largeFile)).resolves.toEqual(etags)
+        const { large } = Uploader.ASSETS
+
+        const largeFile = await upload.createSignedFile(large, uploader._id)
+        const etags = await upload.parts(large, largeFile)
+        return expect(upload.parts(large, largeFile)).resolves.toEqual(etags)
     })
 
     it('uploads cannot be completed more than once', async () => {
 
-        const { mp4 } = UPLOAD_TEST_ASSETS
+        const { mp4 } = Uploader.ASSETS
 
-        const movie = await createSignedFile(mp4)
-        const etags = await uploadParts(mp4, movie)
+        const movie = await upload.createSignedFile(mp4, uploader._id)
+        const etags = await upload.parts(mp4, movie)
                 
-        await uploadComplete(movie.urls.complete, etags)
+        await upload.complete(movie.urls.complete, etags)
 
-        const err = await uploadComplete(movie.urls.complete, etags).catch(e => e)
+        const err = await upload.complete(movie.urls.complete, etags).catch(e => e)
         expect(err.name).toBe('BadRequest')
         expect(err.message).toContain('File upload is already complete')
     })
 
     it('parts cannot be uploaded once file is completed', async () => {
 
-        const { gif } = UPLOAD_TEST_ASSETS
+        const { gif } = Uploader.ASSETS
 
-        const animation = await createSignedFile(gif)
-        const etags = await uploadParts(gif, animation)
-        await uploadComplete(animation.urls.complete, etags)
+        const animation = await upload.createSignedFile(gif, uploader._id)
+        const etags = await upload.parts(gif, animation)
+        await upload.complete(animation.urls.complete, etags)
 
-        const err = await uploadParts(gif, animation).catch(e => e)
+        const err = await upload.parts(gif, animation).catch(e => e)
         expect(err.name).toBe('BadRequest')
         expect(err.message).toContain('File upload is already complete')
     })
 
     it('file cannot be completed until all parts are accounted for', async () => {
-        const { large } = UPLOAD_TEST_ASSETS
-        const data = await createSignedFile(large)
-        const etag = await uploadPart(data.urls.uploadParts[0], large, data.size, 0)
+        
+        const { large } = Uploader.ASSETS
 
-        const err = await uploadComplete(data.urls.complete, [etag]).catch(e => e)
+        const data = await upload.createSignedFile(large, uploader._id)
+        const etag = await upload.part(data.urls.uploadParts[0], large, data.size, 0)
+
+        const err = await upload.complete(data.urls.complete, [etag]).catch(e => e)
         expect(err.name).toBe('BadRequest')
         expect(err.message).toContain('Upload incomplete for id')
     })
 
     it('handles malformed payloads', async () => {
 
-        const err = await uploadPart(
+        const err = await upload.part(
             '/files?upload=notasignedurl',
-            UPLOAD_TEST_ASSETS.gif, 
-            fs.sync.stat(UPLOAD_TEST_ASSETS.gif).size, 
+            Uploader.ASSETS.gif, 
+            fs.sync.stat(Uploader.ASSETS.gif).size, 
             0
         ).catch(e => e)
 
         expect(err.code).toEqual(400)
         expect(err.name).toEqual('BadRequest')
-
     })
 
 })

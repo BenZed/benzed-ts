@@ -8,14 +8,18 @@ import { FeathersKoaContext } from '@feathersjs/koa'
 
 import FileService from '../service'
 import { FilePayload } from '../schema'
-import { OK_STATUS_CODE, PART_DIR_NAME } from '../constants'
+
+import { 
+    OK_STATUS_CODE, 
+    PART_DIR_NAME 
+} from '../constants'
 
 import { 
     createFileRoutingMiddleware, 
     getCtxFileService,
     getCtxPayload,
     throwInvalidPayload, 
-    validatePayload 
+    validatePayload
 } from './util'
 
 /*** Helper ***/
@@ -76,19 +80,19 @@ const uploadPartMiddleware = createFileRoutingMiddleware(({ path, verify, fs: lo
         const files = getCtxFileService(ctx, path)
         const part = await validatePayloadPart(files, payload)
         const partDir = await ensurePartDir(payload.file, localDir)
-        
+
         await writePart(ctx, partDir, part)
-        
+
         ctx.response.set({ 
             Etag: `${payload.file}-${part}` 
         })
-        
+
         ctx.body = {
             file: payload.file,
             part,
             code: OK_STATUS_CODE
         }
-        
+
     })
 
 /*** Exports ***/

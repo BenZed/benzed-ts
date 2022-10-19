@@ -97,8 +97,8 @@ class RenderService {
         }
 
         this._files = files
-        this._files.on('patched', this._addFileToQueue)
-        this._files.on('removed', this._removeFileFromQueue)
+        this._files.on('patched', this.ensureFileQueued)
+        this._files.on('removed', this.ensureFileUnqueued)
     }
 
     // eslint-disable-next-line
@@ -200,7 +200,9 @@ class RenderService {
         }
     }
 
-    private readonly _addFileToQueue = (file: File): void => {
+    public readonly ensureFileQueued = (_file: File): void => {
+
+        console.log('ensure-file-queued', _file)
         // TODO
         // - if renderable file
         // - if renders not already queued
@@ -208,7 +210,7 @@ class RenderService {
         // - send to queue
     }
 
-    private readonly _removeFileFromQueue = (file: File): void => {
+    public readonly ensureFileUnqueued = (_file: File): void => {
         // TODO
         // - if renders queued
         // - remove from queue
@@ -231,7 +233,6 @@ class RenderService {
         }
 
         return null
-
     }
 
     private _assertGetRenderer (

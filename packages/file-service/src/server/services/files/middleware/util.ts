@@ -68,7 +68,7 @@ async function getCtxPayload(
 }
 
 function getFsFilePath(
-    file: { ext: File['ext'], name: File['name'], _id: File['_id'] },
+    file: Pick<File, '_id' | 'name' | 'ext'>,
     dir: string
 ): string {
     return path.join(
