@@ -63,11 +63,13 @@ type LinksOf<S extends LinkedNode> = S extends [NodeComponent, ...infer L]
     ? L 
     : []
 
-type AddLink<N extends LinkedNode, L extends string> = [
-    N[0],
-    ...LinksOf<N>,
-    L
-]
+type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[number]
+    ? N
+    : [
+        N[0],
+        ...LinksOf<N>,
+        L
+    ]
 
 type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
     NodeComponent<InputOf<TargetOf<S[F][0]>>, any, any>
@@ -110,14 +112,17 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
 
         const { nodes: currentNodes, _inputKey: inputKey } = this
 
-        const updatedNodes = fromKeys.reduce((nodes, fromKey) => ({
-            ...nodes,
-            [fromKey]: [
-                currentNodes[fromKey][0], 
-                ...currentNodes[fromKey].slice(1), 
-                toKey
-            ]
-        }), {})
+        const updatedNodes = fromKeys
+            // doesn't already have key
+            .filter(fromKey => !currentNodes[fromKey].slice(1).includes(toKey))
+            .reduce((nodes, fromKey) => ({
+                ...nodes,
+                [fromKey]: [
+                    currentNodes[fromKey][0], 
+                    ...currentNodes[fromKey].slice(1), 
+                    toKey
+                ]
+            }), {})
 
         return new System(
             {

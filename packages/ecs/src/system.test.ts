@@ -55,16 +55,34 @@ it('can only link to nodes with input matching output', () => {
 it('systems can be nested in systems', () => {
 
     const randomizer = Node.create(
-        (arr: [number | string | boolean]) => random(arr)
+        (arr: [number | boolean]) => random(arr)
     )
 
     const parent = System
         .create('input', randomizer)
         .link(['input'], 'invert', Node.create((i: boolean) => !i))
         .link(['input'], 'x2log', system)
-        .link(['input'], 'x2log', Node.create((i:number) => `${i}`))
 
     type ParentOutput = OutputOf<typeof parent>['output']
 
     expectTypeOf<ParentOutput>().toEqualTypeOf<string | boolean>()
+})
+
+it('system can handle short circuting', () => {
+
+    // if a node has a union output type, it's linked nodes
+    // do not need to handle all types of the union, only one of them.
+    // so, if a node has an output type that is not handled by any of it's outputs
+    // it short circuits and returns instead of throwing a flow control error
+
+    // eslint-disable-next-line
+    const randomizer = (arr: [boolean | number]) => random(arr)
+
+    const s1 = System
+        .create('rand', Node.create(randomizer))
+        .link(['rand'], 'num', Node.create((i: number) => i))
+
+    type S1Output = OutputOf<typeof s1>['output']
+    expectTypeOf<S1Output>().toEqualTypeOf<number | boolean>()
+
 })
