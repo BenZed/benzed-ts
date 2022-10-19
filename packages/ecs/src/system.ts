@@ -19,15 +19,23 @@ type LinkedNode = [NodeComponent, ...Links] | [NodeComponent]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
-type LinkedInput<S extends LinkedNodes, I extends string> = 
+type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
+    OutputOf<S[K][0]>['output']
+
+type LinkedNodeInput<S extends LinkedNodes, I extends string> = 
     InputOf<S[I][0]>['input']
 
-type LinkedOutput<S extends LinkedNodes> = 
-    OutputOf<S[EndLinkedKeys<S>][0]> extends NodeOutput<infer O, any> 
-        ? O
-        : unknown
+type LinkedNodesOutput<S extends LinkedNodes> = 
+    LinkedNodeOutputMap<S>[keyof LinkedNodeOutputMap<S>]
 
-export type EndLinkedKeys<
+type LinkedNodeOutputMap<S extends LinkedNodes> = {
+    [K in EndLinkedKeys<S>]: Exclude<
+    LinkedNodeOutput<S, K>,
+    LinkedNodeInput<S, LinksOf<S[K]>[number]>
+    >
+}
+
+type EndLinkedKeys<
     S extends LinkedNodes, 
 > = keyof {
     [K in keyof S as IsEndLinkKey<S, K, K, never>]: unknown
@@ -44,10 +52,12 @@ type IsEndLinkKey<S extends LinkedNodes, K extends keyof S, Y, N> =
     >
 
 type AllOutputsAreHandled<S extends LinkedNodes, T extends keyof S, Y, N> = 
-    Exclude<
-    /**/ OutputOf<S[T][0]>['output'], 
-    /**/ InputOf<S[LinksOf<S[T]>[number]][0]>['input']
-    > extends never ? Y : N
+    LinksOf<S[T]> extends []
+        ? N
+        : Exclude<
+        /**/ OutputOf<S[T][0]>['output'], 
+        /**/ InputOf<S[LinksOf<S[T]>[number]][0]>['input']
+        > extends never ? Y : N
 
 type LinksOf<S extends LinkedNode> = S extends [NodeComponent, ...infer L]
     ? L 
@@ -65,7 +75,7 @@ type AddNode<S extends LinkedNodes, F extends StringKeys<S>> =
 /*** System ***/
 
 class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends NodeComponent<LinkedInput<S,I>, LinkedOutput<S>> {
+    extends NodeComponent<LinkedNodeInput<S,I>, LinkedNodesOutput<S>> {
         
     public static create<Ix extends string, N extends NodeComponent>(
         ...input: [Ix, N]
@@ -123,8 +133,8 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         {
             input, 
             targets: outerTargets
-        }: NodeInput<LinkedInput<S,I>, LinkedOutput<S>, TargetOf<S[I][0]>>,
-    ): NodeOutput<LinkedOutput<S>, TargetOf<S[I][0]>> {
+        }: NodeInput<LinkedNodeInput<S,I>, LinkedNodesOutput<S>, TargetOf<S[I][0]>>,
+    ): NodeOutput<LinkedNodesOutput<S>, TargetOf<S[I][0]>> {
 
         const { nodes, _inputKey } = this
 

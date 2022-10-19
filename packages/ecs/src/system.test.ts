@@ -55,13 +55,14 @@ it('can only link to nodes with input matching output', () => {
 it('systems can be nested in systems', () => {
 
     const randomizer = Node.create(
-        (arr: [number | boolean]) => random(arr)
+        (arr: [number | string | boolean]) => random(arr)
     )
 
     const parent = System
         .create('input', randomizer)
         .link(['input'], 'invert', Node.create((i: boolean) => !i))
         .link(['input'], 'x2log', system)
+        .link(['input'], 'x2log', Node.create((i:number) => `${i}`))
 
     type ParentOutput = OutputOf<typeof parent>['output']
 
