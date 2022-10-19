@@ -8,6 +8,8 @@ import { FeathersService } from '@feathersjs/feathers'
 import RenderService, { RendererRecord } from './service'
 import createClientRenderer, { ClientRenderer } from './client-renderer'
 import createFileServer, { FileServerConfig } from '../../create-file-server-app'
+import { TEST_FILE_SERVER_CONFIG } from '../../../util.test'
+import { RendererConfig } from '@benzed/renderer/lib'
 
 /*** Eslint ***/
 
@@ -40,7 +42,7 @@ beforeAll(async () => {
 
 let client: ClientRenderer
 let clientRenderService: FeathersService<ClientRenderer, RenderService>
-let clientRendererRecord: RendererRecord
+let clientRendererRecord: RendererConfig & RendererRecord
 
 //
 beforeAll(async () => {
@@ -129,6 +131,13 @@ describe('create()', () => {
             .toContain('must be above 0')
     })
 
+    it('clients receive render settings along with record', async () => {
+        expect(clientRendererRecord).toHaveProperty(
+            'settings', 
+            TEST_FILE_SERVER_CONFIG.renderer?.settings
+        )
+    })
+
     it('emits created event', async () => {
 
         const client2 = await createClientRenderer(CLIENT)
@@ -148,7 +157,7 @@ describe('get()', () => {
 
     it('gets render records by id', async () => {
         const record = await clientRenderService.get(clientRendererRecord._id)
-        expect(record).toEqual(clientRendererRecord)
+        expect(record).toEqual(omit(clientRendererRecord, 'settings'))
     })
 
     it('use id "server" to get salerver renderer', async () => {
@@ -181,7 +190,7 @@ describe('update() & patch()', () => {
     })
 
     for (const method of ['patch', 'update']) {
-        it('patch disabled', async () => {
+        it(`${method}() disabled`, async () => {
 
             const err = await (clientRenderService as any)[method](
                 clientRendererRecord._id,

@@ -39,6 +39,7 @@ import {
     $rendererRecordCreateData,
     RendererRecordCreateData,
 } from './schema'
+import { reduceToVoid, toVoid } from '@benzed/util'
 
 /*** Eslint ***/
 
@@ -101,8 +102,9 @@ class RenderService {
         this._files.on('removed', this.ensureFileUnqueued)
     }
 
-    // eslint-disable-next-line
-    public async create(data: RendererRecordCreateData, params?: Params): Promise<RendererRecord> {
+    /*** Service Interface ***/
+
+    public async create(data: RendererRecordCreateData, params?: Params): Promise<RendererConfig & RendererRecord> {
 
         try {
             assertCreateData(data)
@@ -136,7 +138,10 @@ class RenderService {
 
         this._rebalanceQueue()
 
-        return this.get(socket.id)
+        return {
+            ...await this.get(socket.id),
+            settings
+        }
     }
 
     public async get (id: RendererRecord['_id']): Promise<RendererRecord> {
@@ -173,11 +178,53 @@ class RenderService {
         return this._toRenderRecord(renderer)
     }
 
+    /**
+     * Disconnect all renderers when the app shuts down
+     */
+    public async teardown(): Promise<void> {
+
+        for await (const socket of this._sockets())
+            socket.disconnect()
+    
+    }
+
+    /*** Non Service Interface ***/
+
+    public readonly ensureFileQueued = (_file: File): void => {
+
+        // TODO
+        // - if renderable file
+        // - if renders not already queued
+        // - if renders not already made
+        // - send to queue
+
+    }
+
+    public readonly ensureFileUnqueued = (_file: File): void => {
+
+        // TODO
+        // - if renders queued
+        // - remove from queue
+
+    }
+
+    /**
+     * Promise that resolves once all render queues are empty
+     */
+    public untilAllRenderersIdle(): Promise<void> {
+        return reduceToVoid(
+            Array.from(
+                this._renderers.values(), 
+                renderer => renderer.complete()
+            )
+        )
+    }
+
     // Helper
 
     private readonly _toRenderRecord = (
         renderer: Renderer | ClientRendererAgent
-    ): RendererRecord =>{
+    ): RendererRecord  =>{
 
         const _id = isClientRenderAgent(renderer) 
             ? renderer.socket.id 
@@ -200,22 +247,6 @@ class RenderService {
         }
     }
 
-    public readonly ensureFileQueued = (_file: File): void => {
-
-        console.log('ensure-file-queued', _file)
-        // TODO
-        // - if renderable file
-        // - if renders not already queued
-        // - if renders not already made
-        // - send to queue
-    }
-
-    public readonly ensureFileUnqueued = (_file: File): void => {
-        // TODO
-        // - if renders queued
-        // - remove from queue
-    }
-
     private _rebalanceQueue(items: RenderItem[] = []): void {
         // Ensure each renderer has an equal load of work
     }
@@ -225,14 +256,19 @@ class RenderService {
         if (!params?.connection || params?.provider !== 'socketio')
             return null
 
-        const io = await this._io
-
-        for (const socket of io.sockets.sockets.values()) {
+        for await (const socket of this._sockets()) {
             if ((socket as any).feathers === params.connection)
                 return socket
         }
 
         return null
+    }
+
+    private async * _sockets()  {
+
+        const io = await this._io
+
+        return yield* io.sockets.sockets.values()
     }
 
     private _assertGetRenderer (
