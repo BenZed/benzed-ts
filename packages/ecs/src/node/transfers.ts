@@ -1,5 +1,5 @@
 import { Component } from '../component'
-import { Transfer, TransferContext } from './node'
+import { Transfer, TransferContext } from './_node'
 
 import { resolveIndex, shuffle } from '@benzed/array'
 
@@ -24,7 +24,7 @@ transfer.switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
 
     const targets: Component[] = []
 
-    return ctx => {
+    return (ctx: TransferContext) => {
 
         const refresh = targets.length === 0
         if (refresh) {
@@ -47,4 +47,4 @@ interface LinearTransferOptions {
 }
 export interface LinearTransfer extends Transfer {}
 transfer.linear = (options?: LinearTransferOptions): LinearTransfer => 
-    ctx => ctx.targets[resolveIndex(ctx.targets, options?.index ?? 0)] ?? null
+    (ctx: TransferContext) => ctx.targets[resolveIndex(ctx.targets, options?.index ?? 0)] ?? null

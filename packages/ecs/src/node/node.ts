@@ -1,7 +1,8 @@
-import { TypeGuard } from '@benzed/util/lib'
-import { Component, Execute } from '../component'
+import { TypeGuard } from '@benzed/util'
+
+import { Component, Execute, InputOf, OutputOf } from '../component'
 import transfer from './transfers'
-import { _Node, NodeInput, NodeOutput } from './_node'
+import { Transfer, _Node } from './_node'
 
 /*** Eslint ***/
 
@@ -10,90 +11,66 @@ import { _Node, NodeInput, NodeOutput } from './_node'
     @typescript-eslint/explicit-function-return-type 
 */
 
-/*** Types ***/
+/*** Node ***/
 
 /**
- * Context passed to a transfer method
+ * The standard non-abstract class that has options for quick instancing 
  */
-export interface TransferContext<
-    I = unknown,
-    O = unknown,
-    T extends Component<O, any> = Component<O, unknown>
-> extends NodeInput<I, O, T> {
-
-    output: O
-
-}
-
-/**
- * Method used to compute the next target
- */
-export interface Transfer<
-    I = unknown,
-    O = unknown,
-    T extends Component<O, any> = Component<O, unknown>
-> {
-    (ctx: TransferContext<I, O, T>): T | null
-}
-
-/*** TransferNode ***/
-
-/**
- * Node that would be extended for most cases where the transfer/execution
- * logic is related.
- */
-export abstract class Node<
-    I = unknown,
-    O = unknown,
-    T extends Component<O, any> = Component<O, unknown>
-> extends _Node<I, O, T> {
+export class Node<I, O, T extends Component<O,any>= Component<O, unknown>> extends _Node<I, O, T> {
 
     public static define<
+        C extends new (...args: any[]) => Component<any>,
+        T extends Transfer<
+        InputOf<InstanceType<C>>, 
+        OutputOf<InstanceType<C>>, 
+        Component<OutputOf<InstanceType<C>>, any>
+        >
+    >(
+        Component: C,
+        is: TypeGuard<InputOf<InstanceType<C>>>,
+        transfer: T
+    ) {
+        return class extends _Node<InputOf<InstanceType<C>>, OutputOf<InstanceType<C>>> {
+
+            public _is = is 
+            public _transfer = transfer
+            public _execute: Execute<InputOf<InstanceType<C>>, OutputOf<InstanceType<C>>> 
+
+            public constructor(
+                ...args: ConstructorParameters<C>
+            ) {
+                super()
+                const component = new Component(...args)
+                this._execute = component.execute.bind(component)
+            }
+        }
+    }
+
+    public static create<
         Ix = unknown, 
         Ox = unknown,
         Tx extends Component<Ox, any> = Component<Ox, unknown>>
     (
         options: {
-            execute: Execute<Ix,Ox>
-            is: TypeGuard<Ix>
-            transfer?: Transfer<Ix,Ox,Tx>
+            readonly execute: Execute<Ix,Ox>
+            readonly is: TypeGuard<Ix>
+            readonly transfer?: Transfer<Ix,Ox,Tx>
         }
     ) {
 
-        return class extends Node<Ix, Ox, Tx> {
-
-            public static create() {
-                return new this()
-            }
-
-            public _execute = options.execute
-            public _is = options.is
-            public _transfer =
-                options.transfer ?? transfer.linear() as unknown as Transfer<Ix,Ox,Tx>
-        }
+        return new Node(
+            options.execute,
+            options.is,
+            options.transfer
+        )
     }
- 
-    /*** Implementation ***/
-    
-    protected abstract _transfer(ctx: TransferContext<I,O, T>): T | null
 
-    protected abstract _execute: Execute<I,O>
-
-    public execute({ input, targets }: NodeInput<I, O, T>
-    ): NodeOutput<O, T> {
-
-        const output = this
-            ._execute(input)
-
-        const target = this._transfer({
-            input,
-            output,
-            targets
-        })
-
-        return {
-            output,
-            target
-        }
+    public constructor(
+        public _execute: Execute<I,O>,
+        public _is: TypeGuard<I>,
+        public _transfer: Transfer<I,O,T> = transfer.linear({ index: 0 }) as Transfer<I,O,T>
+    ) {
+        super()
     }
+
 }

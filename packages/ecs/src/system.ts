@@ -1,6 +1,6 @@
 import { StringKeys } from '@benzed/util'
 import { InputOf, OutputOf } from './component'
-import { TargetOf, _Node, NodeInput, NodeOutput } from './node'
+import { TargetOf, _NodeComponent, NodeInput, NodeOutput } from './node'
 
 /*** Eslint ***/
 
@@ -13,7 +13,7 @@ import { TargetOf, _Node, NodeInput, NodeOutput } from './node'
 
 type Links = readonly string[]
 
-type LinkedNode = [_Node, ...Links] | [_Node]
+type LinkedNode = [_NodeComponent, ...Links] | [_NodeComponent]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
@@ -60,7 +60,7 @@ type AllOutputsAreHandled<S extends LinkedNodes, T extends keyof S, Y, N> =
         /**/ InputOf<S[LinksOf<S[T]>[number]][0]>['input']
         > extends never ? Y : N
 
-type LinksOf<S extends LinkedNode> = S extends [_Node, ...infer L]
+type LinksOf<S extends LinkedNode> = S extends [_NodeComponent, ...infer L]
     ? L 
     : []
 
@@ -75,9 +75,9 @@ type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[numb
 /*** System ***/
 
 class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends _Node<LinkedNodeInput<S,I>, LinkedNodesOutput<S>, LinkedNodeTransfer<S>> {
+    extends _NodeComponent<LinkedNodeInput<S,I>, LinkedNodesOutput<S>, LinkedNodeTransfer<S>> {
         
-    public static create<Ix extends string, N extends _Node>(
+    public static create<Ix extends string, N extends _NodeComponent<any>>(
         ...input: [Ix, N]
     ): System<{ [K in Ix]: [N] }, Ix> {
 
@@ -96,7 +96,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     public link<
         F extends StringKeys<S>[], 
         T extends string, 
-        N extends _Node<OutputOf<S[F[number]][0]>, any>>
+        N extends _NodeComponent<OutputOf<S[F[number]][0]>, any>>
     (...input: [F, T, N]): System<{
 
         [K in StringKeys<S> | T]: K extends T 
@@ -161,7 +161,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
             const targets = (hasLinks
                 ? currentLinks
                     .map(link => nodes[link][0])
-                : outerTargets as unknown as _Node[]
+                : outerTargets as unknown as _NodeComponent[]
             ).filter(c => c.isInput(result.output))
                 
             result = currentNode.execute({

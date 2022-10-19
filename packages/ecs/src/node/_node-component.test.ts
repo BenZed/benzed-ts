@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 
 import { Component, isComponent, } from '../component'
-import { _Node, NodeInput, NodeOutput } from './_node'
+import { _Node, NodeInput, NodeOutput } from './_node-component'
 import { Node } from './node'
 
 import transfer from './transfers'

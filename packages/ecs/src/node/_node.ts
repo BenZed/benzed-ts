@@ -1,56 +1,70 @@
-import { Component } from '../component'
+import { Component, Execute } from '../component'
+import { _NodeComponent, NodeInput, NodeOutput } from './_node-component'
 
 /*** Eslint ***/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any, 
+    @typescript-eslint/explicit-function-return-type 
+*/
 
 /*** Types ***/
 
 /**
- * Nodes get input that they are intended to execute, I, as
- * well as a list of possible targets to transfer their output to.
+ * Context passed to a transfer method
  */
-export interface NodeInput<
-    I,
-    O,
+export interface TransferContext<
+    I = unknown,
+    O = unknown,
     T extends Component<O, any> = Component<O, unknown>
-> { 
-    readonly targets: readonly T[]
-    readonly input: I
+> extends NodeInput<I, O, T> {
+
+    output: O
+
 }
 
 /**
- * Nodes output the result of their computation, O, as well
- * as a target to transfer their output to.
+ * Method used to compute the next target
  */
-export interface NodeOutput<
-    O,
+export interface Transfer<
+    I = unknown,
+    O = unknown,
     T extends Component<O, any> = Component<O, unknown>
-> { 
-    readonly target: T | null
-    readonly output: O
+> {
+    (ctx: TransferContext<I, O, T>): T | null
 }
 
-export type TargetOf<N> = 
-    N extends _Node<any, any, infer T> 
-        ? T
-        : unknown
-        
+/*** Node ***/
+
 /**
- * The simplest form of node. Just a component with the expected node input/output.
- * This would only be extended for cases where the transfer/execution logic is
- * very tightly coupled.
+ * Abstract node that would be extended for most advanced cases
  */
 export abstract class _Node<
     I = unknown,
-    O = I,
+    O = unknown,
     T extends Component<O, any> = Component<O, unknown>
-> extends Component<NodeInput<I,O,T>, NodeOutput<O,T>> {
+> extends _NodeComponent<I, O, T> {
+ 
+    /*** Implementation ***/
+    
+    protected abstract _transfer(ctx: TransferContext<I,O, T>): T | null
 
-    public get isInput() : (value: unknown) => value is I {
-        return this._is.bind(this)
+    protected abstract _execute: Execute<I,O>
+
+    public execute({ input, targets }: NodeInput<I, O, T>): NodeOutput<O, T> {
+
+        const output = this
+            ._execute(input)
+
+        const target = this._transfer({
+            input,
+            output,
+            targets
+        })
+
+        return {
+            output,
+            target
+        }
     }
-
-    protected abstract _is(value: unknown): value is I
-
 }
