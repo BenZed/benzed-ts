@@ -31,7 +31,7 @@ export class SwitchNode<C extends Component<any,any> = Component>
 
     public static createTransfer<O>(
         options: SwitchNodeOptions = { random: false }
-    ): TransferMethod<unknown, O> {
+    ): TransferMethod<Component<O, unknown>> {
 
         const targets: Component<O, unknown>[] = []
 

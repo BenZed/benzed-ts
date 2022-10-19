@@ -1,4 +1,4 @@
-import { Component } from '../component'
+import { Component, InputOf, OutputOf } from '../component'
 
 /*** Eslint ***/
 
@@ -11,12 +11,11 @@ import { Component } from '../component'
  * well as a list of possible targets to transfer their output to.
  */
 export interface NodeInput<
-    I,
-    O = I,
-    T extends Component<O, any> = Component<O,unknown>
+    C extends Component<any,any> = Component,
+    T extends Component<OutputOf<C>, any> = Component<OutputOf<C>, unknown>
 > { 
     readonly targets: readonly T[]
-    readonly input: I 
+    readonly input: InputOf<C>
 }
 
 /**
@@ -24,15 +23,15 @@ export interface NodeInput<
  * as a target to transfer their output to.
  */
 export interface NodeOutput<
-    O,
-    T extends Component<O, any> = Component<O,unknown>
+    C extends Component<any,any> = Component,
+    T extends Component<OutputOf<C>, any> = Component<OutputOf<C>, unknown>
 > { 
     readonly target: T | null
-    readonly output: O 
+    readonly output: OutputOf<C> 
 }
 
 export type TargetOf<N> = 
-    N extends NodeComponent<any, any, infer T> 
+    N extends NodeComponent<any, infer T> 
         ? T
         : unknown
         
@@ -42,9 +41,10 @@ export type TargetOf<N> =
  * very tightly coupled.
  */
 export abstract class NodeComponent<
-    I = unknown,
-    O = I,
-    T extends Component<O, any> = Component<O, unknown>
-> extends Component<NodeInput<I, O, T>, NodeOutput<O, T>> {
- 
+    C extends Component<any,any> = Component,
+    T extends Component<OutputOf<C>, any> = Component<OutputOf<C>, unknown>
+> extends Component<NodeInput<C, T>, NodeOutput<C, T>> {
+
+    public abstract isInput(value: unknown): value is InputOf<C>
+
 }

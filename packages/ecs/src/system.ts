@@ -1,5 +1,5 @@
 import { StringKeys } from '@benzed/util'
-import { InputOf, OutputOf } from './component'
+import { Component, InputOf, OutputOf } from './component'
 import { TargetOf } from './node'
 
 import { NodeComponent, NodeInput, NodeOutput } from './node/node-component'
@@ -19,11 +19,14 @@ type LinkedNode = [NodeComponent, ...Links] | [NodeComponent]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
-type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
-    OutputOf<S[K][0]>['output']
+type LinkedNodeComponent<S extends LinkedNodes, K extends keyof S> =    
+    Component<InputOf<S[K][0]>['input'], OutputOf<S[K][0]>['output']>
 
-type LinkedNodeInput<S extends LinkedNodes, I extends string> = 
-    InputOf<S[I][0]>['input']
+type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
+    OutputOf<LinkedNodeComponent<S, K>>
+
+type LinkedNodeInput<S extends LinkedNodes, K extends keyof S> = 
+    InputOf<LinkedNodeComponent<S, K>>
 
 type LinkedNodesOutput<S extends LinkedNodes> = 
     LinkedNodeOutputMap<S>[keyof LinkedNodeOutputMap<S>]
@@ -72,12 +75,12 @@ type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[numb
     ]
 
 type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
-    NodeComponent<InputOf<TargetOf<S[F][0]>>, any, any>
+    NodeComponent<any, TargetOf<S[F][0]>>
 
 /*** System ***/
 
 class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends NodeComponent<LinkedNodeInput<S,I>, LinkedNodesOutput<S>> {
+    extends NodeComponent<Component<LinkedNodeInput<S,I>, LinkedNodesOutput<S>>> {
         
     public static create<Ix extends string, N extends NodeComponent>(
         ...input: [Ix, N]
@@ -134,12 +137,18 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         ) as any
     }
 
+    public isInput(value: unknown): value is LinkedNodeInput<S,I> {
+        const [inputNode] = this.nodes[this._inputKey]
+
+        return inputNode.isInput(value)
+    }
+
     public execute(
         {
             input, 
             targets: outerTargets
-        }: NodeInput<LinkedNodeInput<S,I>, LinkedNodesOutput<S>, TargetOf<S[I][0]>>,
-    ): NodeOutput<LinkedNodesOutput<S>, TargetOf<S[I][0]>> {
+        }: NodeInput<LinkedNodeComponent<S,I>, TargetOf<S[I][0]>>,
+    ): NodeOutput<LinkedNodeComponent<S,I>, TargetOf<S[I][0]>> {
 
         const { nodes, _inputKey } = this
 

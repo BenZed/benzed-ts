@@ -1,18 +1,24 @@
 import { Component } from '../component'
-import { TransferContext, TransferNode } from './transfer-node'
+import { TransferContext, Node } from './transfer-node'
 
 it('seperates execution and transfer logic', () => {
 
-    class IsPositiveNode extends TransferNode<number, boolean> {
+    class IsPositiveNode extends Node<Component<number, boolean>> {
 
-        protected _execute(input: number): boolean {
-            return input > 0
+        public constructor() {
+            super({ 
+                execute: i => i > 0
+            }) 
         }
-
+        
         protected _transfer(
-            ctx: TransferContext<number, boolean>
+            ctx: TransferContext<Component<number, boolean>>
         ): Component<boolean, unknown> | null {
             return ctx.output ? ctx.targets[0] : ctx.targets[ctx.targets.length - 1]
+        }
+
+        public isInput(value: unknown): value is number {
+            return typeof value === 'number'
         }
 
     }

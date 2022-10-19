@@ -2,12 +2,17 @@ import { Component, InputOf, isComponent, OutputOf } from '../component'
 import { NodeComponent, NodeInput, NodeOutput } from './node-component'
 import { expectTypeOf } from 'expect-type'
 
-class Parser extends NodeComponent<string, number> {
-    public execute({ input, targets }: NodeInput<string, number>): NodeOutput<number> {
+class Parser extends NodeComponent<Component<string, number>> {
+    public execute({ input, targets }: NodeInput<Component<string, number>>)
+        : NodeOutput<Component<string, number>> {
         return {
             output: parseInt(input),
             target: [...targets].at(0) ?? null
         }
+    }
+
+    public isInput(value: unknown): value is string {
+        return typeof value === 'string'
     }
 }
 
@@ -61,15 +66,24 @@ it('explicit target discrimination', () => {
         light: L
     }
 
+    type IntersectionDataComponent = Component<IntersectionData>
+
     class TrafficNode extends 
-        NodeComponent<IntersectionData, IntersectionData, TrafficLightComponent<Light>> {
+        NodeComponent<IntersectionDataComponent, TrafficLightComponent<Light>> {
+
+        public isInput(value: unknown): value is IntersectionData {
+            return typeof value === 'object'
+        }
 
         public execute(
             {
                 input,
                 targets
-            }: NodeInput<IntersectionData, IntersectionData, TrafficLightComponent<Light>>
-        ): NodeOutput<IntersectionData, TrafficLightComponent<Light>> {
+            }: NodeInput<
+            IntersectionDataComponent, 
+            TrafficLightComponent<Light>
+            >
+        ): NodeOutput<IntersectionDataComponent, TrafficLightComponent<Light>> {
 
             const light = input.idlePedestrians > input.idleCars ? 'stop' : 'go'
 
@@ -106,9 +120,9 @@ it('explicit target discrimination', () => {
 
 it('inferred i/o', () => {
 
-    type MathNode = NodeComponent<[number, number], number>
+    type MathNode = NodeComponent<Component<[number, number], number>>
 
-    expectTypeOf<InputOf<MathNode>>().toEqualTypeOf<NodeInput<[number,number]>>()
-    expectTypeOf<OutputOf<MathNode>>().toEqualTypeOf<NodeOutput<number>>()
+    expectTypeOf<InputOf<MathNode>>().toEqualTypeOf<NodeInput<Component<[number,number]>>>()
+    expectTypeOf<OutputOf<MathNode>>().toEqualTypeOf<NodeOutput<Component<number>>>()
 
 })
