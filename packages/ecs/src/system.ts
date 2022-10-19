@@ -1,8 +1,6 @@
 import { StringKeys } from '@benzed/util'
 import { Component, InputOf, OutputOf } from './component'
-import { TargetOf } from './node'
-
-import { NodeComponent, NodeInput, NodeOutput } from './node/node-component'
+import { TargetOf, NodeComponent, NodeInput, NodeOutput } from './node'
 
 /*** Eslint ***/
 
@@ -19,19 +17,16 @@ type LinkedNode = [NodeComponent, ...Links] | [NodeComponent]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
-type LinkedNodeComponent<S extends LinkedNodes, K extends keyof S> =    
-    Component<InputOf<S[K][0]>['input'], OutputOf<S[K][0]>['output']>
-
 type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
-    OutputOf<LinkedNodeComponent<S, K>>
+    OutputOf<S[K][0]>['output']
 
 type LinkedNodeInput<S extends LinkedNodes, K extends keyof S> = 
-    InputOf<LinkedNodeComponent<S, K>>
+    InputOf<S[K][0]>['input']
 
-type LinkedNodesOutput<S extends LinkedNodes> = 
+export type LinkedNodesOutput<S extends LinkedNodes> = 
     LinkedNodeOutputMap<S>[keyof LinkedNodeOutputMap<S>]
 
-type LinkedNodeOutputMap<S extends LinkedNodes> = {
+export type LinkedNodeOutputMap<S extends LinkedNodes> = {
     [K in EndLinkedKeys<S>]: Exclude<
     LinkedNodeOutput<S, K>,
     LinkedNodeInput<S, LinksOf<S[K]>[number]>
@@ -72,15 +67,21 @@ type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[numb
         N[0],
         ...LinksOf<N>,
         L
-    ]
+    ]    
+    
+type SystemComponent<S extends LinkedNodes, I extends string> =  
+    Component<
+    LinkedNodeInput<S,I>,
+    LinkedNodesOutput<S>
+    >
 
-type AddNode<S extends LinkedNodes, F extends StringKeys<S>> = 
-    NodeComponent<any, TargetOf<S[F][0]>>
+type SystemTarget<S extends LinkedNodes, I extends string> =
+    TargetOf<S[I][0]>
 
 /*** System ***/
 
 class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends NodeComponent<Component<LinkedNodeInput<S,I>, LinkedNodesOutput<S>>> {
+    extends NodeComponent<SystemComponent<S,I>, SystemTarget<S,I>> {
         
     public static create<Ix extends string, N extends NodeComponent>(
         ...input: [Ix, N]
@@ -101,7 +102,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     public link<
         F extends StringKeys<S>[], 
         T extends string, 
-        N extends AddNode<S, F[number]>
+        N extends NodeComponent<TargetOf<S[F[number]][0]>>
     >(...input: [F, T, N]): System<{
 
         [K in StringKeys<S> | T]: K extends T 
@@ -147,8 +148,8 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         {
             input, 
             targets: outerTargets
-        }: NodeInput<LinkedNodeComponent<S,I>, TargetOf<S[I][0]>>,
-    ): NodeOutput<LinkedNodeComponent<S,I>, TargetOf<S[I][0]>> {
+        }: NodeInput<SystemComponent<S,I>, SystemTarget<S,I>>,
+    ): NodeOutput<SystemComponent<S,I>, SystemTarget<S,I>> {
 
         const { nodes, _inputKey } = this
 

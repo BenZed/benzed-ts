@@ -23,7 +23,7 @@ export interface NodeInput<
  * as a target to transfer their output to.
  */
 export interface NodeOutput<
-    C extends Component<any,any> = Component,
+    C extends Component<any, any> = Component,
     T extends Component<OutputOf<C>, any> = Component<OutputOf<C>, unknown>
 > { 
     readonly target: T | null

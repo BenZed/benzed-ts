@@ -1,6 +1,5 @@
 import { Component } from '../component'
-import { Node } from './node'
-import { TransferMethod } from './transfer-node'
+import { TransferNode, TransferMethod } from './node'
 
 import { shuffle } from '@benzed/array'
 
@@ -26,8 +25,8 @@ export interface SwitchNodeOptions {
 /**
  * A switch node alternates its transfer target on every execution.
  */
-export class SwitchNode<C extends Component<any,any> = Component> 
-    extends Node<C> {
+export abstract class SwitchNode<C extends Component<any,any> = Component> 
+    extends TransferNode<C> {
 
     public static createTransfer<O>(
         options: SwitchNodeOptions = { random: false }
