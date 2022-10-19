@@ -1,77 +1,99 @@
-import { Component, Execute, InputOf, OutputOf } from '../component'
-import { TransferMethod, TransferNode } from './transfer-node'
+import { TypeGuard } from '@benzed/util/lib'
+import { Component, Execute } from '../component'
+import transfer from './transfers'
+import { _Node, NodeInput, NodeOutput } from './_node'
 
 /*** Eslint ***/
 
-/* 
-    eslint-disable   @typescript-eslint/no-explicit-any
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any, 
+    @typescript-eslint/explicit-function-return-type 
 */
 
-/*** Static Type Helper ***/
+/*** Types ***/
 
-type ExecuteTransferMethod<E extends Execute<any>> = 
-    TransferMethod<Component<InputOf<E>, OutputOf<E>>>
+/**
+ * Context passed to a transfer method
+ */
+export interface TransferContext<
+    I = unknown,
+    O = unknown,
+    T extends Component<O, any> = Component<O, unknown>
+> extends NodeInput<I, O, T> {
 
-/*** Node ***/
+    output: O
 
-export class Node<C extends Component<any,any>> extends TransferNode<C> {
-       
-    /**
-     * Create a generic linear transfer method that redirects to the first possible node.
-     */
-    public static createTransfer(): TransferMethod<Component> {
-        return ctx => ctx.targets[0] ?? null
-    }
+}
 
-    public static create<E extends Execute<any>>(
-        this: { createTransfer: () => ExecuteTransferMethod<E> },
-        component: {
-            execute: E
-            isInput: (input: unknown) => input is InputOf<E>
-            transfer?: ExecuteTransferMethod<E>
+/**
+ * Method used to compute the next target
+ */
+export interface Transfer<
+    I = unknown,
+    O = unknown,
+    T extends Component<O, any> = Component<O, unknown>
+> {
+    (ctx: TransferContext<I, O, T>): T | null
+}
+
+/*** TransferNode ***/
+
+/**
+ * Node that would be extended for most cases where the transfer/execution
+ * logic is related.
+ */
+export abstract class Node<
+    I = unknown,
+    O = unknown,
+    T extends Component<O, any> = Component<O, unknown>
+> extends _Node<I, O, T> {
+
+    public static define<
+        Ix = unknown, 
+        Ox = unknown,
+        Tx extends Component<Ox, any> = Component<Ox, unknown>>
+    (
+        options: {
+            execute: Execute<Ix,Ox>
+            is: TypeGuard<Ix>
+            transfer?: Transfer<Ix,Ox,Tx>
         }
-    ): Node<Component<InputOf<E>, OutputOf<E>>>
-    
-    public static create<C extends Component<any>>(
-        this: { createTransfer: () => TransferMethod<C> },
-        component: C,
-        node: {
-            isInput: (input: unknown) => input is InputOf<C>
-            transfer?: TransferMethod<C>
-        }
-    ): Node<C> 
-    
-    public static create(
-        this: { createTransfer: () => TransferMethod<Component> },
-        ...args: [any] | [any, any]
-    ): Node<Component> {
-    
-        const { isInput, component, transfer = this.createTransfer() } = args[1] 
-            ? { 
-                component: args[0],
-                transfer: args[1].transfer,
-                isInput: args[1].isInput
-            } 
-            : {
-                component: { execute: args[0].execute },
-                isInput: args[1].isInput,
-                transfer: args[1].transfer
-            }
-        return new Node(
-            component,
-            transfer,
-            isInput
-        )
-    }
-
-    /*** Constructor ***/
-    
-    public constructor(
-        protected _component: C,
-        protected _transfer: TransferMethod<C>,
-        public readonly isInput: (value: unknown) => value is InputOf<C>
     ) {
-        super()
-    }
 
+        return class extends Node<Ix, Ox, Tx> {
+
+            public static create() {
+                return new this()
+            }
+
+            public _execute = options.execute
+            public _is = options.is
+            public _transfer =
+                options.transfer ?? transfer.linear() as unknown as Transfer<Ix,Ox,Tx>
+        }
+    }
+ 
+    /*** Implementation ***/
+    
+    protected abstract _transfer(ctx: TransferContext<I,O, T>): T | null
+
+    protected abstract _execute: Execute<I,O>
+
+    public execute({ input, targets }: NodeInput<I, O, T>
+    ): NodeOutput<O, T> {
+
+        const output = this
+            ._execute(input)
+
+        const target = this._transfer({
+            input,
+            output,
+            targets
+        })
+
+        return {
+            output,
+            target
+        }
+    }
 }

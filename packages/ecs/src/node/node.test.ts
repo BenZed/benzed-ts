@@ -1,40 +1,53 @@
-import { Component } from '../component'
-import { TransferContext, Node } from './node'
+import { Execute } from '../component'
+import { math, Operation, MathComponent } from '../components'
+import { Node, TransferContext } from './node'
 
-it('seperates execution and transfer logic', () => {
+import is from '@benzed/is'
+import { TypeGuard } from '@benzed/util'
+import transfer from './transfers'
 
-    class IsPositiveNode extends Node<Component<number, boolean>> {
+class MathNode<O extends Operation, B extends number> 
+    extends Node<number, number, MathComponent<Operation, B>> {
 
-        public constructor() {
-            super({ 
-                execute: i => i > 0
-            }) 
-        }
-        
-        protected _transfer(
-            ctx: TransferContext<Component<number, boolean>>
-        ): Component<boolean, unknown> | null {
-            return ctx.output ? ctx.targets[0] : ctx.targets[ctx.targets.length - 1]
-        }
-
-        public isInput(value: unknown): value is number {
-            return typeof value === 'number'
-        }
-
+    public constructor(
+        public readonly by: number,
+        public readonly operation: Operation
+    ) {
+        super() 
     }
+    
+    protected _is = is.number
 
-    const say1 = { execute: (i: boolean) => i ? 'yay' : 'nay' }
+    protected _execute = math[this.operation](this.by).execute
 
-    const pos = new IsPositiveNode()
+    protected _transfer = transfer(
+        (ctx: TransferContext<number, number, MathComponent<Operation, B>>) => 
+            ctx.targets.find(target => target.operation === this.operation) ?? null
+    )
 
-    expect(
-        pos.execute({
-            targets: [say1],
-            input: 10
-        })
-    ).toEqual({
-        target: say1,
-        output: true
-    })
+    protected _errors = 
+        handle
+        (isNaN, i => new Error(`Must be a number: ${i}`))
+        ((i: number) => i % 2 === 0, () => new Error('Must be even'))
 
-})
+}
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
+function handle <I, O extends Error>(
+    this: void | [{ execute: Execute<I,O>, isError: TypeGuard<I> | ((input: I) => boolean) }],
+    isError: TypeGuard<I> | ((input: I) => boolean), 
+    execute: Execute<I, O>
+) {
+    
+    const _handle = (
+        isError: TypeGuard<I> | ((input: I) => boolean), 
+        execute: Execute<I, O>
+    ) => {
+        _handle.errors.push({ isError, execute })
+        return _handle
+    }
+    _handle.errors = [{ isError, execute }]
+
+    return _handle
+}

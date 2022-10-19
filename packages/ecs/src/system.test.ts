@@ -13,17 +13,18 @@ import { $ } from '@benzed/schema'
 
 /*** Setup  ***/
 
-const x2 = Node.create({ 
-    execute: (i: number) => i * 2,
-    isInput: $.number.is
-})
+const x2 = new class X2 extends Node.define({
+    is: $.number.is,
+    execute: (i: number) => i * 2
+}){}
 
-const log = Node.create({
+const log = new class Log extends Node.define({
     execute: (i: number) => `${i}`,
-    isInput: $.number.is
-})
+    is: $.number.is
+}){}
 
-const system = System.create('x2', x2)
+const system = System
+    .create('x2', x2)
     .link(['x2'], 'log', log)
 
 /*** Tests ***/
@@ -65,7 +66,7 @@ it('system output is computed from the output type of it\'s nodes', () => {
 it('can only link to nodes with input matching output', () => {
 
     // @ts-expect-error boolean !== string
-    system.link(['log'], 'bad', TransferNode.create((i: boolean) => !i))
+    system.link(['log'], 'bad', Node.create((i: boolean) => !i))
 
 })
 
@@ -107,7 +108,12 @@ it('system can handle short circuting', () => {
     const s1 = System
         .create('rand', Node.create({
             execute: randomizer,
-            isInput: $.array($.or($.boolean, $.number)).mutable.is 
+            isInput: $.array(
+                $.or(
+                    $.boolean,
+                    $.number
+                )
+            ).mutable.is 
             // ^ is.mutable.array.of.boolean.or.number < TODO this syntax
         }))
         .link(['rand'], 'num', Node.create({

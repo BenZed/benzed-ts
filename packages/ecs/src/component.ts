@@ -35,3 +35,15 @@ export function isComponent<I = unknown, O = I>(input: unknown): input is Compon
         typeof (input as { [key:string]: unknown }).execute === 'function'
 
 }
+
+/**
+ * For quickly defining components with props/state
+ */
+export function component <C extends Component<any>> (
+    execute: Execute<any>, 
+    settings: object
+): C {
+    const component = { execute, ...settings } as unknown as C
+    component.execute = component.execute.bind(component)
+    return component
+}

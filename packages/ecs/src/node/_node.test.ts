@@ -1,25 +1,19 @@
-import { Component, InputOf, isComponent, OutputOf } from '../component'
-import { NodeComponent, NodeInput, NodeOutput } from './node-component'
-import { expectTypeOf } from 'expect-type'
+import is from '@benzed/is'
 
-class Parser extends NodeComponent<Component<string, number>> {
-    public execute({ input, targets }: NodeInput<Component<string, number>>)
-        : NodeOutput<Component<string, number>> {
-        return {
-            output: parseInt(input),
-            target: [...targets].at(0) ?? null
-        }
-    }
+import { Component, isComponent, } from '../component'
+import { _Node, NodeInput, NodeOutput } from './_node'
+import { Node } from './node'
 
-    public isInput(value: unknown): value is string {
-        return typeof value === 'string'
-    }
-}
+import transfer from './transfers'
 
-class Inverter extends Component<boolean, boolean> {
-    public execute(input: boolean): boolean {
-        return !input
-    }
+class Parser extends Node<string, number> {
+
+    protected _execute = parseFloat
+
+    protected _is = is.string
+
+    protected _transfer = transfer.switcher()
+
 }
 
 it('is simply a component with node oriented i/o', () => {
@@ -66,12 +60,10 @@ it('explicit target discrimination', () => {
         light: L
     }
 
-    type IntersectionDataComponent = Component<IntersectionData>
-
     class TrafficNode extends 
-        NodeComponent<IntersectionDataComponent, TrafficLightComponent<Light>> {
+        _Node<IntersectionData, IntersectionData, TrafficLightComponent<Light>> {
 
-        public isInput(value: unknown): value is IntersectionData {
+        protected _is(value: unknown): value is IntersectionData {
             return typeof value === 'object'
         }
 
@@ -80,10 +72,11 @@ it('explicit target discrimination', () => {
                 input,
                 targets
             }: NodeInput<
-            IntersectionDataComponent, 
+            IntersectionData, 
+            IntersectionData,
             TrafficLightComponent<Light>
             >
-        ): NodeOutput<IntersectionDataComponent, TrafficLightComponent<Light>> {
+        ): NodeOutput<IntersectionData, TrafficLightComponent<Light>> {
 
             const light = input.idlePedestrians > input.idleCars ? 'stop' : 'go'
 
@@ -93,6 +86,7 @@ it('explicit target discrimination', () => {
                 output: input,
                 target
             }
+
         }
     }
 
@@ -102,7 +96,7 @@ it('explicit target discrimination', () => {
         input: { idleCars: 0, idlePedestrians: 10 },
         targets: [
             { light: 'go', execute: i => i },
-            { light: 'stop', execute: i => i}
+            { light: 'stop', execute: i => i }
         ]
     })
 
@@ -116,13 +110,5 @@ it('explicit target discrimination', () => {
             { execute: (i: IntersectionData) => i }
         ]
     })
-})
-
-it('inferred i/o', () => {
-
-    type MathNode = NodeComponent<Component<[number, number], number>>
-
-    expectTypeOf<InputOf<MathNode>>().toEqualTypeOf<NodeInput<Component<[number,number]>>>()
-    expectTypeOf<OutputOf<MathNode>>().toEqualTypeOf<NodeOutput<Component<number>>>()
 
 })
