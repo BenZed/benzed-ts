@@ -16,7 +16,7 @@ abstract class ValueMap<K, V> implements Map<K,V> {
 
     // Constructor 
 
-    public constructor (keyValues: [K, V][] = []) {
+    constructor (keyValues: [K, V][] = []) {
 
         if (keyValues) {
             for (const keyValue of keyValues) {
@@ -35,12 +35,12 @@ abstract class ValueMap<K, V> implements Map<K,V> {
 
     // Interface
 
-    public get(key: K): V | undefined {
+    get(key: K): V | undefined {
         const index = this._getValueIndex(key)
         return this._values[index]
     }
 
-    public set(key: K, value: V): this {
+    set(key: K, value: V): this {
 
         let index = this._getValueIndex(key)
         if (index === -1)
@@ -52,12 +52,12 @@ abstract class ValueMap<K, V> implements Map<K,V> {
         return this
     }
 
-    public has(key: K): boolean {
+    has(key: K): boolean {
         const index = this._getValueIndex(key)
         return index > -1
     }
 
-    public delete(key: K): boolean {
+    delete(key: K): boolean {
 
         const index = this._getValueIndex(key)
 
@@ -70,37 +70,37 @@ abstract class ValueMap<K, V> implements Map<K,V> {
         return exists
     }
 
-    public clear(): void {
+    clear(): void {
         this._keys.length = 0
         this._values.length = 0
     }
 
-    public forEach(
+    forEach(
         func: (value: V, key: K, map: ValueMap<K, V>) => void
     ): void {
         for (const [key, value] of this)
             func(value, key, this)
     }
 
-    public get size(): number {
+    get size(): number {
         return this._keys.length
     }
 
-    public * keys(): IterableIterator<K> {
+    * keys(): IterableIterator<K> {
         for (let i = 0; i < this.size; i++) {
             const id = this._keys[i]
             yield id
         }
     }
 
-    public * values(): IterableIterator<V> {
+    * values(): IterableIterator<V> {
         for (let i = 0; i < this.size; i++) {
             const value = this._values[i]
             yield value
         }
     }
 
-    public * entries(): IterableIterator<[K,V]> {
+    * entries(): IterableIterator<[K,V]> {
 
         for (let i = 0; i < this.size; i++) {
             const value = this._values[i]
@@ -122,11 +122,11 @@ abstract class ValueMap<K, V> implements Map<K,V> {
 
     /*** Symolic ***/
 
-    public *[Symbol.iterator](): IterableIterator<[K, V]> {
+    *[Symbol.iterator](): IterableIterator<[K, V]> {
         yield* this.entries()
     }
 
-    public [Symbol.toStringTag] = 'ValueMap'
+    [Symbol.toStringTag] = 'ValueMap'
 
 }
 

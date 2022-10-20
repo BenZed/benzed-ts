@@ -7,7 +7,7 @@ class JsonMap<K,V> implements Map<K, V> {
 
     // Constructor 
     
-    public constructor (keyValues: [K, V][] = []) {
+    constructor (keyValues: [K, V][] = []) {
     
         if (keyValues) {
             for (const keyValue of keyValues) {
@@ -19,20 +19,20 @@ class JsonMap<K,V> implements Map<K, V> {
     
     // Interface
     
-    public get(key: K): V | undefined {
+    get(key: K): V | undefined {
         return this._cache[this._getStringKey(key)]
     }
     
-    public set(key: K, value: V): this {
+    set(key: K, value: V): this {
         this._cache[this._getStringKey(key)] = value
         return this
     }
     
-    public has(key: K): boolean {
+    has(key: K): boolean {
         return this._getStringKey(key) in this._cache
     }
     
-    public delete(key: K): boolean {
+    delete(key: K): boolean {
 
         const _key = this._getStringKey(key)
 
@@ -43,32 +43,32 @@ class JsonMap<K,V> implements Map<K, V> {
         return exists
     }
     
-    public clear(): void {
+    clear(): void {
         this._cache = {}
     }
     
-    public forEach(
+    forEach(
         func: (value: V, key: K, map: JsonMap<K, V>) => void
     ): void {
         for (const [key, value] of this)
             func(value, key, this)
     }
     
-    public get size(): number {
+    get size(): number {
         return this._stringKeys().length
     }
     
-    public * keys(): IterableIterator<K> {
+    * keys(): IterableIterator<K> {
         for (const key of this._stringKeys())
             yield JSON.parse(key)
     }
     
-    public * values(): IterableIterator<V> {
+    * values(): IterableIterator<V> {
         for (const key of this._stringKeys())
             yield this._cache[key]
     }
     
-    public * entries(): IterableIterator<[K,V]> {
+    * entries(): IterableIterator<[K,V]> {
         for (const key of this._stringKeys()) {
             yield [
                 JSON.parse(key), 
@@ -89,11 +89,11 @@ class JsonMap<K,V> implements Map<K, V> {
     
     /*** Symolic ***/
     
-    public *[Symbol.iterator](): IterableIterator<[K, V]> {
+    *[Symbol.iterator](): IterableIterator<[K, V]> {
         yield* this.entries()
     }
     
-    public [Symbol.toStringTag] = 'JsonMap'
+    [Symbol.toStringTag] = 'JsonMap'
     
 }
 

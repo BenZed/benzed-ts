@@ -124,10 +124,10 @@ describe('Event Emitter', () => {
 
             emitter.addListener('hello', listener)
             emitter.addListener('hello', listener)
-
             emitter.emit('hello')
 
             emitter.removeAllListeners('hello')
+            emitter.emit('hello')
             emitter.emit('hello')
 
             expect(listener).toHaveBeenCalledTimes(2)
@@ -254,11 +254,11 @@ describe('Event Emitter', () => {
             msg: [message: string]
         }> {
 
-            public lastMessage = ''
-            public firstMessage = ''
-            public secondMessage = ''
+            lastMessage = ''
+            firstMessage = ''
+            secondMessage = ''
 
-            public constructor (maxListeners?: number) {
+            constructor (maxListeners?: number) {
                 super(maxListeners)
 
                 this._addListener('msg', msg => {

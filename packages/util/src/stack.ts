@@ -36,7 +36,7 @@ class Stack<T> implements StackLike<T> {
 
     // Static interface methods
 
-    public static from<T1>(input: ArrayLike<T1> | Iterable<T1>): Stack<T1> {
+    static from<T1>(input: ArrayLike<T1> | Iterable<T1>): Stack<T1> {
 
         const stack = new Stack<T1>()
 
@@ -51,27 +51,27 @@ class Stack<T> implements StackLike<T> {
     readonly [key: number]: T
 
     private _length = 0
-    public get length(): number {
+    get length(): number {
         return this._length
     }
 
     // Iterable<T> implementation 
 
-    public *[Symbol.iterator](): Generator<T> {
+    *[Symbol.iterator](): Generator<T> {
         yield* iterate(this)
     }
 
     // Construct<T>
 
-    public constructor (...values: T[]) {
+    constructor (...values: T[]) {
         this.push(...values)
     }
 
     // Interface
 
-    public push(value: T): number
-    public push(...values: T[]): number
-    public push(...values: unknown[]): number {
+    push(value: T): number
+    push(...values: T[]): number
+    push(...values: unknown[]): number {
 
         for (const value of values as T[])
             (this as _Stack<T>)[this._length++] = value
@@ -79,7 +79,7 @@ class Stack<T> implements StackLike<T> {
         return values.length
     }
 
-    public pop(): T {
+    pop(): T {
 
         const index = this._length - 1
         if (index in this === false)
@@ -93,7 +93,7 @@ class Stack<T> implements StackLike<T> {
         return item
     }
 
-    public flush(n = this.length): T[] {
+    flush(n = this.length): T[] {
 
         const max = Math.min(n, this.length)
 
@@ -104,12 +104,12 @@ class Stack<T> implements StackLike<T> {
         return items
     }
 
-    public at(index: number): T | undefined {
+    at(index: number): T | undefined {
         const resolved = index < 0 ? index + this._length : index
         return this[resolved]
     }
 
-    public get isEmpty(): boolean {
+    get isEmpty(): boolean {
         return this._length === 0
     }
 

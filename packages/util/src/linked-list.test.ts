@@ -72,7 +72,7 @@ describe('.insert()', () => {
 
                 () => numbers.insert(100, badIndex)
 
-            ).toThrow(`No value at index ${badIndex}`)
+            ).toThrow('List is empty.')
         }
     })
 

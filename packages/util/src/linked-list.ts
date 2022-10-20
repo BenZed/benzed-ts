@@ -27,7 +27,7 @@ type LinkedItem<T> = {
 
 class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
-    public static from<T1>(
+    static from<T1>(
         input: ArrayLike<T1> | Iterable<T1>
     ): LinkedList<T1> {
         return new LinkedList(...iterate(input))
@@ -36,38 +36,38 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
     // State 
 
     private _first: _LinkedItem<T> | null = null
-    public get first(): LinkedItem<T> {
+    get first(): LinkedItem<T> {
         return this._find(this._first, true).item
     }
 
     private _last: _LinkedItem<T> | null = null
-    public get last(): LinkedItem<T> {
+    get last(): LinkedItem<T> {
         return this._find(this._last, true).item
     }
 
     private _size = 0
-    public get size(): number {
+    get size(): number {
         return this._size
     }
 
-    public get isEmpty(): boolean {
+    get isEmpty(): boolean {
         return this._size === 0
     }
 
     // Construct 
 
-    public constructor (...values: T[]) {
+    constructor (...values: T[]) {
         for (const value of values)
             this.append(value)
     }
 
     // Interface 
 
-    public append(value: T): LinkedItem<T> {
+    append(value: T): LinkedItem<T> {
         return this.insert(value, this._size)
     }
 
-    public insert(value: T, index: number | LinkedItem<T>): LinkedItem<T> {
+    insert(value: T, index: number | LinkedItem<T>): LinkedItem<T> {
 
         const newItem: _LinkedItem<T> = { value, next: null, prev: null }
 
@@ -102,7 +102,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         return newItem
     }
 
-    public remove(input: number | LinkedItem<T> = Math.max(this.size - 1, 0)): T {
+    remove(input: number | LinkedItem<T> = Math.max(this.size - 1, 0)): T {
 
         const { item } = this._find(input, true)
 
@@ -123,7 +123,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         return item.value
     }
 
-    public clear(): T[] {
+    clear(): T[] {
         const values: T[] = []
 
         while (this._first) {
@@ -135,16 +135,16 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         return values
     }
 
-    public at(index: number): LinkedItem<T> | null {
+    at(index: number): LinkedItem<T> | null {
         const result = this._find(index, false)
         return result ? result.item : null
     }
 
-    public has(value: T): boolean {
+    has(value: T): boolean {
         return this.indexOf(value) >= 0
     }
 
-    public indexOf(value: T): number {
+    indexOf(value: T): number {
         // Fix this TODO
         for (const [item, index] of this.entries()) {
             if (item.value === value)
@@ -154,7 +154,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         return -1
     }
 
-    public find(predicate: (input: LinkedItem<T>, index: number) => boolean): LinkedItem<T> | null {
+    find(predicate: (input: LinkedItem<T>, index: number) => boolean): LinkedItem<T> | null {
         for (const [item, index] of this.entries()) {
             if (predicate(item, index))
                 return item
@@ -165,21 +165,21 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
     // Iterable 
 
-    public *[Symbol.iterator](): Generator<LinkedItem<T>> {
+    *[Symbol.iterator](): Generator<LinkedItem<T>> {
         for (const [item] of this.entries())
             yield item
     }
 
-    public * items(): Generator<LinkedItem<T>> {
+    * items(): Generator<LinkedItem<T>> {
         yield* this
     }
 
-    public * values(): Generator<T> {
+    * values(): Generator<T> {
         for (const item of this)
             yield item.value
     }
 
-    public * entries(): Generator<[item: LinkedItem<T>, index: number]> {
+    * entries(): Generator<[item: LinkedItem<T>, index: number]> {
         yield* this._iterate(true)
     }
 
