@@ -1,3 +1,5 @@
+import socketio, { Socket } from 'socket.io-client'
+import { Readable, Writable } from 'stream'
 
 import { feathers, Application } from '@feathersjs/feathers'
 import fsocketio from '@feathersjs/socketio-client'
@@ -5,19 +7,11 @@ import fauth from '@feathersjs/authentication-client'
 import type { AuthenticationRequest, AuthenticationResult } from '@feathersjs/authentication'
 
 import { Renderer } from '@benzed/renderer'
-
+import { through, toNull } from '@benzed/util'
 import fs from '@benzed/fs'
 
-import socketio, { Socket } from 'socket.io-client'
-
-import { FileService } from '../files-service/service'
-
-import { RenderService } from '../render-service/service'
-import { File } from '../files-service'
-import { Readable, Writable } from 'stream'
-import { reduceToVoid, through, toNull } from '@benzed/util/lib'
-import { RENDER_DIR_NAME } from '../files-service/constants'
-import path from 'path'
+import { RenderService } from '../render-service'
+import { File, FileService } from '../files-service'
 
 /*** Types ***/
 

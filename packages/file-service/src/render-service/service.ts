@@ -123,7 +123,7 @@ class RenderService {
 
         this._agents.set(
             socket.id,
-            new RenderAgent([socket, this._files])
+            new RenderAgent(socket)
         )
 
         socket.once('disconnect', () => {
@@ -146,7 +146,7 @@ class RenderService {
     ): Promise<RendererRecord> {
 
         if (params?.provider) 
-            throw new MethodNotAllowed('cannot update renderers')
+            throw new MethodNotAllowed('Method \'update\' not allowed.')
 
         return Promise.resolve({
             ...data,
@@ -169,10 +169,10 @@ class RenderService {
     async remove(id: RendererRecord['_id'], params?: Params): Promise<RendererRecord> {
 
         if (params?.provider)
-            throw new MethodNotAllowed('renderers cannot be removed')
+            throw new MethodNotAllowed('Method \'remove\' not allowed')
 
         if (id === SERVER_RENDERER_ID)
-            throw new MethodNotAllowed('server renderer cannot be removed')
+            throw new MethodNotAllowed('Server renderer cannot be removed')
 
         const renderer = await this._assertGetRenderer(id)
 

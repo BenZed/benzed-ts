@@ -1,6 +1,6 @@
-
-import { milliseconds } from '@benzed/async'
 import { omit } from '@benzed/util'
+import { milliseconds } from '@benzed/async'
+import { RendererConfig } from '@benzed/renderer'
 
 import configuration from '@feathersjs/configuration'
 import { FeathersService } from '@feathersjs/feathers'
@@ -9,8 +9,8 @@ import RenderService, { RendererRecord } from './service'
 import createFileRenderApp, { FileRenderApp } from '../client'
 import createFileServer, { FileServerConfig } from '../server'
 import { TEST_FILE_SERVER_CONFIG } from '../util.test'
-import { RendererConfig } from '@benzed/renderer/lib'
 
+import { expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 /*** Eslint ***/
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -57,7 +57,7 @@ beforeAll(async () => {
 
 })
 
-afterAll(() => client.io.connected && client.io.disconnect())
+afterAll(() => void client.io.connected && client.io.disconnect())
 afterAll(() => server.teardown())
 
 /*** Test ***/
@@ -237,7 +237,7 @@ describe('remove()', () => {
             .catch((e: Error) => e) as Error
 
         expect(err.message)
-            .toContain('renderers cannot be removed')
+            .toContain('Method \'remove\' not allowed')
     })
 
     it('removing server renderer is disallowed', async () => {
@@ -246,7 +246,7 @@ describe('remove()', () => {
             .catch((e: Error) => e) as Error
 
         expect(err.message)
-            .toContain('server renderer cannot be removed')
+            .toContain('Server renderer cannot be removed')
     })
 
     it('removes the renderer from the list of renders', async () => {
