@@ -87,7 +87,6 @@ export const $fileData = $({
     updated: $.date,
     uploaded: $.or($.date, $.null)
         .default(null),
-
 })
 
 export interface File extends Infer<typeof $file> {}

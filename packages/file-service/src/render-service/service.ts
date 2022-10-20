@@ -39,7 +39,8 @@ import {
     $rendererRecordCreateData,
     RendererRecordCreateData,
 } from './schema'
-import { reduceToVoid, toVoid } from '@benzed/util'
+
+import { reduceToVoid } from '@benzed/util'
 
 /*** Eslint ***/
 
@@ -104,7 +105,10 @@ class RenderService {
 
     /*** Service Interface ***/
 
-    async create(data: RendererRecordCreateData, params?: Params): Promise<RendererConfig & RendererRecord> {
+    async create(
+        data: RendererRecordCreateData, 
+        params?: Params
+    ): Promise<RendererConfig & RendererRecord> {
 
         try {
             assertCreateData(data)
@@ -264,7 +268,7 @@ class RenderService {
         return null
     }
 
-    private async * _sockets() {
+    private async * _sockets(): AsyncGenerator<Socket, undefined, undefined> {
 
         const io = await this._io
 

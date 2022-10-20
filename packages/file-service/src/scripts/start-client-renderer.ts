@@ -1,4 +1,4 @@
-import { createClientRenderer } from '../server'
+import { createClientRenderer } from '../render-service/client-renderer'
 import os from 'os'
 
 /*** Execute ***/
