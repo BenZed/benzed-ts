@@ -1,18 +1,18 @@
-import is from '@benzed/is'
+import $ from '@benzed/schema'
 
 import { Component, isComponent, } from '../component'
-import { _Node, NodeInput, NodeOutput } from './_node-component'
 import { Node } from './node'
 
-import transfer from './transfers'
+import * as transfer from './transfers'
+import { TransferContext } from './_node'
 
 class Parser extends Node<string, number> {
 
-    protected _execute = parseFloat
+    compute = parseFloat
 
-    protected _is = is.string
+    canCompute = $.string.is
 
-    protected _transfer = transfer.switcher()
+    transfer = transfer.switcher()
 
 }
 
@@ -55,37 +55,51 @@ it('explicit target discrimination', () => {
 
     type Light = 'go' | 'stop'
 
-    interface TrafficLightComponent<L extends Light> 
+    class TrafficLightComponent<L extends Light> 
         extends Component<IntersectionData, IntersectionData> {
-        light: L
+
+        compute(input: IntersectionData): IntersectionData {
+            return {
+                ...input
+            }
+        }
+        
+        canCompute = $.shape({
+            idleCars: $.number,
+            idlePedestrians: $.number
+        }).is
+        
+        constructor(
+            public light: L
+        ){
+            super() 
+        }
     }
 
     class TrafficNode extends 
-        _Node<IntersectionData, IntersectionData, TrafficLightComponent<Light>> {
+        Node<IntersectionData, IntersectionData, TrafficLightComponent<Light>> {
 
-        protected _is(value: unknown): value is IntersectionData {
+        compute(input: IntersectionData): IntersectionData {
+            return {
+                ...input
+            }
+        }
+
+        canCompute(value: unknown): value is IntersectionData {
             return typeof value === 'object'
         }
 
-        public execute(
+        transfer(
             {
                 input,
                 targets
-            }: NodeInput<
-            IntersectionData, 
-            IntersectionData,
-            TrafficLightComponent<Light>
-            >
-        ): NodeOutput<IntersectionData, TrafficLightComponent<Light>> {
+            }: TransferContext<IntersectionData, IntersectionData, TrafficLightComponent<Light>>
+        ): TrafficLightComponent<Light> | null {
 
             const light = input.idlePedestrians > input.idleCars ? 'stop' : 'go'
 
             const target = targets.find(t => t.light === light) ?? targets[0] ?? null
-
-            return {
-                output: input,
-                target
-            }
+            return target
 
         }
     }
@@ -95,8 +109,8 @@ it('explicit target discrimination', () => {
     const { target } = traffic.execute({
         input: { idleCars: 0, idlePedestrians: 10 },
         targets: [
-            { light: 'go', execute: i => i },
-            { light: 'stop', execute: i => i }
+            new TrafficLightComponent('go'),
+            new TrafficLightComponent('stop'),
         ]
     })
 

@@ -1,6 +1,17 @@
 import { StringKeys } from '@benzed/util'
-import { InputOf, OutputOf } from './component'
-import { TargetOf, _NodeComponent, NodeInput, NodeOutput } from './node'
+
+import { 
+    InputOf,
+    OutputOf 
+} from './component'
+
+import { 
+    _Node, 
+    TargetOf, 
+    
+    ExecuteInput,
+    ExecuteOutput
+} from './node'
 
 /*** Eslint ***/
 
@@ -13,23 +24,26 @@ import { TargetOf, _NodeComponent, NodeInput, NodeOutput } from './node'
 
 type Links = readonly string[]
 
-type LinkedNode = [_NodeComponent, ...Links] | [_NodeComponent]
+type LinkedNode = [_Node<any>, ...Links] | [_Node<any>]
 
 type LinkedNodes = { [key: string]: LinkedNode }
 
 type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
-    OutputOf<S[K][0]>['output']
+    OutputOf<S[K][0]>
 
 type LinkedNodeInput<S extends LinkedNodes, K extends keyof S> = 
-    InputOf<S[K][0]>['input']
+    InputOf<S[K][0]>
 
-type LinkedNodeTransfer<S extends LinkedNodes> =
+export type SystemTarget<S extends LinkedNodes> =
     TargetOf<S[EndLinkedKeys<S>][0]>
 
-export type LinkedNodesOutput<S extends LinkedNodes> = 
-    LinkedNodeOutputMap<S>[keyof LinkedNodeOutputMap<S>]
+export type SystemOutput<S extends LinkedNodes> = 
+    SystemOutputMap<S>[keyof SystemOutputMap<S>]
 
-export type LinkedNodeOutputMap<S extends LinkedNodes> = {
+export type SystemInput<S extends LinkedNodes, I extends string> =
+    LinkedNodeInput<S, I>
+
+type SystemOutputMap<S extends LinkedNodes> = {
     [K in EndLinkedKeys<S>]: Exclude<
     LinkedNodeOutput<S, K>,
     LinkedNodeInput<S, LinksOf<S[K]>[number]>
@@ -56,11 +70,11 @@ type AllOutputsAreHandled<S extends LinkedNodes, T extends keyof S, Y, N> =
     LinksOf<S[T]> extends []
         ? N
         : Exclude<
-        /**/ OutputOf<S[T][0]>['output'], 
-        /**/ InputOf<S[LinksOf<S[T]>[number]][0]>['input']
+        /**/ OutputOf<S[T][0]>, 
+        /**/ InputOf<S[LinksOf<S[T]>[number]][0]>
         > extends never ? Y : N
 
-type LinksOf<S extends LinkedNode> = S extends [_NodeComponent, ...infer L]
+type LinksOf<S extends LinkedNode> = S extends [_Node<any>, ...infer L]
     ? L 
     : []
 
@@ -75,9 +89,9 @@ type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[numb
 /*** System ***/
 
 class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
-    extends _NodeComponent<LinkedNodeInput<S,I>, LinkedNodesOutput<S>, LinkedNodeTransfer<S>> {
+    extends _Node<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>> {
         
-    public static create<Ix extends string, N extends _NodeComponent<any>>(
+    static create<Ix extends string, N extends _Node<any>>(
         ...input: [Ix, N]
     ): System<{ [K in Ix]: [N] }, Ix> {
 
@@ -87,16 +101,16 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     }
 
     private constructor(
-        public readonly nodes: S,
+        readonly nodes: S,
         private readonly _inputKey: I,
     ) {
         super() 
     }
     
-    public link<
+    link<
         F extends StringKeys<S>[], 
         T extends string, 
-        N extends _NodeComponent<OutputOf<S[F[number]][0]>, any>>
+        N extends _Node<OutputOf<S[F[number]][0]>, any>>
     (...input: [F, T, N]): System<{
 
         [K in StringKeys<S> | T]: K extends T 
@@ -132,18 +146,44 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         ) as any
     }
 
-    protected _is(value: unknown): value is LinkedNodeInput<S,I> {
-        const [inputNode] = this.nodes[this._inputKey]
+    get<K extends StringKeys<S>>(
+        key: K
+    ): S[K][0] {
 
-        return inputNode.isInput(value)
+        if (key in this.nodes === false)
+            throw new Error(`No node at ${key}`)
+
+        return this.nodes[key][0]
     }
 
-    public execute(
+    has<K extends string>(
+        key: K
+    ): K extends StringKeys<S> ? true : false {
+        return key in this.nodes as K extends StringKeys<S> ? true : false
+    }
+
+    compute(input: SystemInput<S,I>): SystemOutput<S> {
+
+        const { output } = this.execute({
+            input,
+            targets: []
+        })
+
+        return output
+    }
+
+    canCompute(value: unknown): value is LinkedNodeInput<S,I> {
+        const { nodes, _inputKey } = this
+        const [inputNode] = nodes[_inputKey]
+        return inputNode.canCompute(value)
+    }
+
+    execute(
         {
             input, 
             targets: outerTargets
-        }: NodeInput<LinkedNodeInput<S,I>, LinkedNodesOutput<S>, LinkedNodeTransfer<S>>,
-    ): NodeOutput<LinkedNodesOutput<S>, LinkedNodeTransfer<S>> {
+        }: ExecuteInput<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>>,
+    ): ExecuteOutput<SystemOutput<S>, SystemTarget<S>> {
 
         const { nodes, _inputKey } = this
 
@@ -159,10 +199,9 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
 
             const hasLinks = currentLinks.length > 0
             const targets = (hasLinks
-                ? currentLinks
-                    .map(link => nodes[link][0])
-                : outerTargets as unknown as _NodeComponent[]
-            ).filter(c => c.isInput(result.output))
+                ? currentLinks.map(link => this.get(link as StringKeys<S>))
+                : outerTargets as unknown as _Node[]
+            ).filter(node => node.canCompute(result.output))
                 
             result = currentNode.execute({
                 targets,
@@ -172,7 +211,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
             if (!targets.includes(result.target) && targets.length > 0) {
                 throw new Error(
                     `Premature transfer flow termination: ${currentNodeKey} did not ` + 
-                    `return a component when given links: ${currentLinks}`
+                    `return a target when given links: ${currentLinks}`
                 )
             }
 

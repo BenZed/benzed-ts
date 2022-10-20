@@ -1,76 +1,94 @@
-import { TypeGuard } from '@benzed/util'
 
-import { Component, Execute, InputOf, OutputOf } from '../component'
-import transfer from './transfers'
-import { Transfer, _Node } from './_node'
+import { pass, TypeGuard } from '@benzed/util/lib'
+import { Component, Compute, InputOf, OutputOf } from '../component'
+import { ExecuteInput, ExecuteOutput, Transfer, TransferContext, _Node } from './_node'
+import { linear } from './transfers'
 
 /*** Eslint ***/
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any, 
-    @typescript-eslint/explicit-function-return-type 
+    @typescript-eslint/no-explicit-any
 */
 
 /*** Node ***/
 
+interface PlainNode<I = unknown, O = I> extends Node<I,O> {}
+
 /**
  * The standard non-abstract class that has options for quick instancing 
  */
-export class Node<I, O, T extends Component<O,any>= Component<O, unknown>> extends _Node<I, O, T> {
+export abstract class Node<I, O, T extends Component<O, any> = Component<O, unknown>> 
+    extends _Node<I, O, T> {
 
-    public static define<
-        C extends new (...args: any[]) => Component<any>,
-        T extends Transfer<
-        InputOf<InstanceType<C>>, 
-        OutputOf<InstanceType<C>>, 
-        Component<OutputOf<InstanceType<C>>, any>
-        >
-    >(
-        Component: C,
-        is: TypeGuard<InputOf<InstanceType<C>>>,
-        transfer: T
-    ) {
-        return class extends _Node<InputOf<InstanceType<C>>, OutputOf<InstanceType<C>>> {
+    /*** Convenience Create Methods ***/
+        
+    /**
+     * Apply node interface methods to an existing component
+     */
+    static apply<C extends Component<any>>(
+        component: C,
+        transfer: Transfer<InputOf<C>, OutputOf<C>> = linear()
+    ): PlainNode<InputOf<C>, OutputOf<C>> {
 
-            public _is = is 
-            public _transfer = transfer
-            public _execute: Execute<InputOf<InstanceType<C>>, OutputOf<InstanceType<C>>> 
+        const { execute } = Node.prototype
 
-            public constructor(
-                ...args: ConstructorParameters<C>
-            ) {
-                super()
-                const component = new Component(...args)
-                this._execute = component.execute.bind(component)
+        return Object.assign(
+            component,
+            { 
+                execute,
+                transfer
             }
-        }
-    }
-
-    public static create<
-        Ix = unknown, 
-        Ox = unknown,
-        Tx extends Component<Ox, any> = Component<Ox, unknown>>
-    (
-        options: {
-            readonly execute: Execute<Ix,Ox>
-            readonly is: TypeGuard<Ix>
-            readonly transfer?: Transfer<Ix,Ox,Tx>
-        }
-    ) {
-
-        return new Node(
-            options.execute,
-            options.is,
-            options.transfer
         )
     }
 
-    public constructor(
-        public _execute: Execute<I,O>,
-        public _is: TypeGuard<I>,
-        public _transfer: Transfer<I,O,T> = transfer.linear({ index: 0 }) as Transfer<I,O,T>
-    ) {
-        super()
+    /**
+     * Create a node that takes any input and linearly transfers it's output
+     */
+    static create<Ox>(compute: Compute<any,Ox>): PlainNode<any, Ox>
+
+    /**
+     * Create a new node that takes specific input and optional transfer behaviour. 
+     * 
+     * Transfer behaviour defaults  to linear.
+     */
+    static create<Ix, Ox = Ix>(
+        canCompute: TypeGuard<Ix>,
+        compute: Compute<Ix,Ox>,
+        transfer?: Transfer<Ix,Ox>
+    ): PlainNode<Ix, Ox> 
+
+    static create(
+        ...args: any[]
+    ): PlainNode<any> {
+
+        const [compute, canCompute, transfer] = args.length === 1 
+            ? [args[0], pass, linear()]
+            : [args[1], args[0], args[2] = linear()]
+
+        return this.apply({ compute, canCompute }, transfer)
     }
 
+    /*** Implementation ***/
+    
+    /**
+     * With the context of a completed execution, retrieve the target that this node is 
+     * transferring it's output to.
+     */
+    abstract transfer(ctx: TransferContext<I,O,T>): T | null
+
+    execute({ input, targets }: ExecuteInput<I, O, T>): ExecuteOutput<O, T> {
+ 
+        const output = this.compute(input)
+ 
+        const target = this.transfer({
+            input,
+            output,
+            targets
+        })
+ 
+        return {
+            output,
+            target
+        }
+    }
 }

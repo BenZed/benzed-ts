@@ -1,8 +1,8 @@
+import { Node } from './node'
 import { System } from './system'
 import { OutputOf } from './component'
 
 import { expectTypeOf } from 'expect-type'
-import { Node } from './node'
 
 import { random } from '@benzed/array'
 import { $ } from '@benzed/schema'
@@ -13,15 +13,15 @@ import { $ } from '@benzed/schema'
 
 /*** Setup  ***/
 
-const x2 = new class X2 extends Node.define({
-    is: $.number.is,
-    execute: (i: number) => i * 2
-}){}
+const x2 = Node.create(
+    $.number.is,
+    i => i * 2
+)
 
-const log = new class Log extends Node.define({
-    execute: (i: number) => `${i}`,
-    is: $.number.is
-}){}
+const log = Node.create(
+    $.number.is,
+    i => `${i}`,
+)
 
 const system = System
     .create('x2', x2)
@@ -44,53 +44,50 @@ it('output of a system follows exection it\'s linked nodes', () => {
 
 it('system output is computed from the output type of it\'s nodes', () => {
 
-    type Sys = typeof system
-
-    type SystemOutput = OutputOf<Sys>['output']
+    type SystemOutput = OutputOf<typeof system>
 
     expectTypeOf<SystemOutput>().toEqualTypeOf<string>()
+
+    const error = Node.create(() => new Error('Do not use this route'))
 
     const system2 = system.link(
         ['x2'], 
         'error', 
-        Node.create({
-            execute: (_: any) => new Error('Do not use this route'),
-            isInput: $.unknown.is
-        })
+        error
     )
 
-    type SystemUnionOutput = OutputOf<typeof system2>['output']
+    type SystemUnionOutput = OutputOf<typeof system2>
     expectTypeOf<SystemUnionOutput>().toEqualTypeOf<string | Error>()
 })
 
 it('can only link to nodes with input matching output', () => {
 
     // @ts-expect-error boolean !== string
-    system.link(['log'], 'bad', Node.create((i: boolean) => !i))
+    system.link(['log'], 'bad', Node.create((i: boolean) => !i, $.boolean.is))
 
 })
 
 it('systems can be nested in systems', () => {
 
-    const randomizer = Node.create({
-        execute: (arr: (number | boolean)[]) => random(arr),
-        isInput: $.array(
+    const randomizer = Node.create(
+        $.array(
             $.or(
                 $.number, 
                 $.boolean
             )
-        ).mutable.is
-    })
+        ).mutable.is,
+        (arr: (number | boolean)[]) => random(arr),
+    )
 
     const parent = System
         .create('input', randomizer)
-        .link(['input'], 'invert', Node.create({
-            execute: (i: boolean) => !i,
-            isInput: $.boolean.is
-        }))
+        .link(['input'], 'invert', Node.create(
+            $.boolean.is,
+            i => !i
+        ))
         .link(['input'], 'x2log', system)
 
-    type ParentOutput = OutputOf<typeof parent>['output']
+    type ParentOutput = OutputOf<typeof parent>
 
     expectTypeOf<ParentOutput>().toEqualTypeOf<string | boolean>()
 })
@@ -106,22 +103,23 @@ it('system can handle short circuting', () => {
     const randomizer = (arr: (boolean | number)[]) => random(arr)
 
     const s1 = System
-        .create('rand', Node.create({
-            execute: randomizer,
-            isInput: $.array(
+        .create('rand', Node.create(
+            $.array(
                 $.or(
                     $.boolean,
                     $.number
                 )
-            ).mutable.is 
+            ).mutable.is,
             // ^ is.mutable.array.of.boolean.or.number < TODO this syntax
-        }))
-        .link(['rand'], 'num', Node.create({
-            execute: (i: number) => i,
-            isInput: $.number.is
-        }))
+            randomizer,
+        
+        ))
+        .link(['rand'], 'num', Node.create(
+            $.number.is,
+            i => i
+        ))
 
-    type S1Output = OutputOf<typeof s1>['output']
+    type S1Output = OutputOf<typeof s1>
     expectTypeOf<S1Output>().toEqualTypeOf<number | boolean>()
 
 })

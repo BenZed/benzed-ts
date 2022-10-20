@@ -1,7 +1,8 @@
 import $ from '@benzed/schema'
-import { math, Operation } from '../components'
+import { Compute } from '../component'
+import { math, Operation, } from '../components'
 
-import { transfer, TransferContext, Node, _Node } from '../node'
+import { transfers, Node, Transfer, } from '../node'
 import System from '../system'
 
 /*** Types ***/
@@ -19,34 +20,31 @@ const $calc = $.shape({
 
 /*** Nodes ***/
 
-class CalcOperate<O extends Operation> extends _Node<Calc['values'], number> {
+class CalcOperate<O extends Operation> extends Node<Calc['values'], number> {
 
-    public constructor(
+    constructor(
         public operation: O
     ) {
         super()
     }
 
-    protected _execute = ([value, by]: Calc['values']): number => 
-        math[this.operation](by).execute(value)
+    compute: Compute<Calc['values'], number> = ([value, by]) => 
+        math[this.operation](by).compute(value)
 
-    protected _is = $calc.$.values.is
+    canCompute = $calc.$.values.is
 
-    protected _transfer = transfer.switcher()
+    transfer = transfers.switcher()
 
 }
 
-class CalcInput extends _Node<Calc, Calc['values'], CalcOperate<Operation>> {
+class CalcInput extends Node<Calc, Calc['values'], CalcOperate<Operation>> {
 
-    protected _execute = (i: Calc): Calc['values'] => i.values
+    compute: Compute<Calc, Calc['values']> = i => i.values
 
-    protected _is = $calc.is
+    canCompute= $calc.is
 
-    protected _transfer = 
-        (
-            ctx: TransferContext<Calc, Calc['values'], CalcOperate<Operation>>
-        ): CalcOperate<Operation> | null => 
-            ctx.targets.find(t => t.operation === ctx.input.operation) ?? null
+    transfer: Transfer<Calc, Calc['values'], CalcOperate<Operation>> = 
+        ctx => ctx.targets.find(t => t.operation === ctx.input.operation) ?? null
 
 }
 

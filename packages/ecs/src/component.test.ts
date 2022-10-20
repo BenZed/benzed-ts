@@ -1,3 +1,4 @@
+import $ from '@benzed/schema/lib'
 import { expectTypeOf } from 'expect-type'
 import { InputOf, isComponent, OutputOf } from './component'
 
@@ -13,7 +14,7 @@ it('a component is simply an object that wraps an execute function', () => {
 
 it('component input via InputOf', () => {
 
-    const parseComponent = { execute: parseFloat }
+    const parseComponent = { compute: parseFloat, canCompute: $.string.is }
 
     type ParseInput = InputOf<typeof parseComponent>
     type ParseOutput = OutputOf<typeof parseComponent>

@@ -8,19 +8,12 @@ import { resolveIndex, shuffle } from '@benzed/array'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*** SwitchTransfer ***/
-export default function transfer <I,O,T extends Component<O, any>>(
-    func:Transfer<I,O,T>
-): Transfer<I,O,T> {
-    return func
-}
-
-export { transfer }
 
 interface SwitchTransferOptions {
     readonly random: boolean
 }
-export interface SwitchTransfer extends Transfer {}
-transfer.switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
+export interface SwitchTransfer extends Transfer<any> {}
+export const switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
 
     const targets: Component[] = []
 
@@ -40,11 +33,11 @@ transfer.switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
     }
 }
 
-/*** LinearTransfer ***/
+/*** LinearTarget ***/
 
 interface LinearTransferOptions {
     readonly index: number
 }
-export interface LinearTransfer extends Transfer {}
-transfer.linear = (options?: LinearTransferOptions): LinearTransfer => 
+export interface LinearTransfer extends Transfer<any> {}
+export const linear = (options?: LinearTransferOptions): LinearTransfer => 
     (ctx: TransferContext) => ctx.targets[resolveIndex(ctx.targets, options?.index ?? 0)] ?? null
