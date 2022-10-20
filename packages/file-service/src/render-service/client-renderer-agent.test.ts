@@ -1,10 +1,12 @@
-import { reduceToVoid } from "@benzed/util/lib"
-import { HOST, UploadedAssetData, Uploader } from "../../../util.test"
-import createFileServerApp from "../../create-file-server-app"
-import { SignedFile } from "../files"
-import { before, User } from "../users"
-import createClientRenderer, { ClientRenderer } from "./client-renderer"
-import { RendererRecord } from "./service"
+import { User } from '../server/services/users'
+import { HOST, Uploader } from '../util.test'
+import createFileServerApp from '../server/create-file-server-app'
+
+import { RendererRecord } from './service'
+import createClientRenderer, { ClientRenderer } from './client-renderer'
+
+import { beforeAll, afterAll, it } from '@jest/globals'
+import { SignedFile } from '../files-service'
 
 /*** Const ***/
 
@@ -19,7 +21,6 @@ const render = server.service('files/render')
 const upload = new Uploader(server)
 
 beforeAll(() => server.start())
-
 
 // create upload user
 let uploader: User

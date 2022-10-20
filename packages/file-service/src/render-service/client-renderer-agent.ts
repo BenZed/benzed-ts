@@ -1,3 +1,4 @@
+
 import {
     RendererConfig,
     Renderer,
@@ -19,9 +20,9 @@ interface ClientRendererAgentConfig extends RendererConfig {
  */
 class ClientRendererAgent extends Renderer{
 
-    public readonly socket: Socket 
+    readonly socket: Socket 
 
-    public constructor (config: ClientRendererAgentConfig) {
+    constructor (config: ClientRendererAgentConfig) {
         const { socket, ...rest } = config
 
         super(rest)

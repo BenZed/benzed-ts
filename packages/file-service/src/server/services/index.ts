@@ -3,8 +3,8 @@ import type { FileServerApp } from '../create-file-server-app'
 import setupAuthenticationService, { AuthenticationService } from './authentication'
 
 import setupUserService, { UserService } from './users'
-import setupFileService, { FileService } from './files'
-import setupRenderService, { RenderService } from './render'
+import setupFileService, { FileService } from '../../files-service'
+import setupRenderService, { RenderService } from '../../render-service'
 
 export interface FileServices {
 

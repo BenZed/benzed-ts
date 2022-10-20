@@ -60,23 +60,23 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
     private readonly _path: FileServiceSettings['path']
     private readonly _sign: FileServiceSettings['sign']
 
-    public constructor({ path, sign, ...settings }: FileServiceSettings) {
+    constructor({ path, sign, ...settings }: FileServiceSettings) {
         super(settings)
         this._path = path
         this._sign = sign
     }
 
-    public override async create( 
+    override async create( 
         data: Partial<FileData>, 
         params?: FileParams 
     ): Promise<SignedFile>
 
-    public override async create( 
+    override async create( 
         data: Partial<FileData>[], 
         params?: FileParams 
     ): Promise<SignedFile[]>
 
-    public override async create( 
+    override async create( 
         data: Partial<FileData> | Partial<FileData>[], 
         params?: FileParams
     ): Promise<SignedFile | SignedFile[]> {
@@ -97,7 +97,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
         return isArray(data) ? signedFiles : first(signedFiles) as SignedFile
     }
 
-    public async createSignedUrls(file: File): Promise<SignedFile['urls']> {
+    async createSignedUrls(file: File): Promise<SignedFile['urls']> {
 
         return {
             uploadParts: await this._createUploadPartUrls(file),

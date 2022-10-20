@@ -14,12 +14,9 @@ import { HookContext } from '@feathersjs/feathers'
 
 import services, { FileServices } from './services'
 
-import { 
-    $fileServiceConfig, 
-    $renderServiceConfig 
-} from './schemas'
+import { $fileServiceConfig } from '../files-service/schema'
+import { $renderServiceConfig } from '../render-service/schema'
 
-import middleware from './middleware'
 import socketio from './socket-io'
 
 /*** Types ***/
@@ -57,7 +54,6 @@ function createFileServerApp(config?: FileServerConfig): FileServerApp {
 
     fileServerApp.configure(socketio)
     fileServerApp.configure(services)
-    fileServerApp.configure(middleware)
 
     return fileServerApp
 }

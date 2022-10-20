@@ -26,14 +26,14 @@ import {
     MethodNotAllowed
 } from '@feathersjs/errors'
 
-import { File } from '../files/schema'
+import { File } from '../files-service/schema'
 
-import { FeathersFileService } from '../files/middleware/util'
+import { FeathersFileService } from '../files-service/middleware/util'
 import { ClientRendererAgent } from './client-renderer-agent'
 
 import { 
     SERVER_RENDERER_ID 
-} from '../files/constants'
+} from '../files-service/constants'
 
 import { 
     $rendererRecordCreateData,
@@ -73,9 +73,9 @@ class RenderService {
     private readonly _files: FeathersFileService
     private readonly _io: Server | Promise<Server>
 
-    public readonly settings: RendererConfig['settings']
+    readonly settings: RendererConfig['settings']
 
-    public constructor (serviceSettings: RenderServiceSettings) {
+    constructor (serviceSettings: RenderServiceSettings) {
         const {
             io,
             files,
@@ -104,7 +104,7 @@ class RenderService {
 
     /*** Service Interface ***/
 
-    public async create(data: RendererRecordCreateData, params?: Params): Promise<RendererConfig & RendererRecord> {
+    async create(data: RendererRecordCreateData, params?: Params): Promise<RendererConfig & RendererRecord> {
 
         try {
             assertCreateData(data)
@@ -144,19 +144,19 @@ class RenderService {
         }
     }
 
-    public async get (id: RendererRecord['_id']): Promise<RendererRecord> {
+    async get (id: RendererRecord['_id']): Promise<RendererRecord> {
 
         const renderer = await this._assertGetRenderer(id)
         return this._toRenderRecord(renderer)
     }
 
-    public find(): Promise<RendererRecord[]> {
+    find(): Promise<RendererRecord[]> {
         return Promise.all(
             Array.from(this._renderers.values(), this._toRenderRecord)
         )
     }
 
-    public async remove(id: RendererRecord['_id'], params?: Params): Promise<RendererRecord> {
+    async remove(id: RendererRecord['_id'], params?: Params): Promise<RendererRecord> {
 
         if (params?.provider)
             throw new MethodNotAllowed('renderers cannot be removed')
@@ -181,7 +181,7 @@ class RenderService {
     /**
      * Disconnect all renderers when the app shuts down
      */
-    public async teardown(): Promise<void> {
+    async teardown(): Promise<void> {
 
         for await (const socket of this._sockets())
             socket.disconnect()
@@ -190,7 +190,7 @@ class RenderService {
 
     /*** Non Service Interface ***/
 
-    public readonly ensureFileQueued = (_file: File): void => {
+    readonly ensureFileQueued = (_file: File): void => {
 
         // TODO
         // - if renderable file
@@ -200,7 +200,7 @@ class RenderService {
 
     }
 
-    public readonly ensureFileUnqueued = (_file: File): void => {
+    readonly ensureFileUnqueued = (_file: File): void => {
 
         // TODO
         // - if renders queued
@@ -211,7 +211,7 @@ class RenderService {
     /**
      * Promise that resolves once all render queues are empty
      */
-    public untilAllRenderersIdle(): Promise<void> {
+    untilAllRenderersIdle(): Promise<void> {
         return reduceToVoid(
             Array.from(
                 this._renderers.values(), 
@@ -224,7 +224,7 @@ class RenderService {
 
     private readonly _toRenderRecord = (
         renderer: Renderer | ClientRendererAgent
-    ): RendererRecord  =>{
+    ): RendererRecord =>{
 
         const _id = isClientRenderAgent(renderer) 
             ? renderer.socket.id 
@@ -264,7 +264,7 @@ class RenderService {
         return null
     }
 
-    private async * _sockets()  {
+    private async * _sockets() {
 
         const io = await this._io
 

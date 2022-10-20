@@ -13,7 +13,7 @@ import {
     SignedFile,
     MAX_UPLOAD_PART_SIZE, 
     PART_DIR_NAME 
-} from './server/services/files'
+} from './files-service'
 
 import { FileServerApp, FileServerConfig } from './server/create-file-server-app'
 
@@ -27,7 +27,7 @@ export const TEST_FILE_SERVER_CONFIG = configuration()() as unknown as FileServe
 
 export const HOST = `http://localhost:${TEST_FILE_SERVER_CONFIG.port}` 
 
-export interface UploadedAssetData  {
+export interface UploadedAssetData {
     partEtags: string[]
     signedFile: SignedFile
     localFilePath: string
@@ -36,7 +36,7 @@ export interface UploadedAssetData  {
 
 export class Uploader {
 
-    public static ASSETS = {
+    static ASSETS = {
         ...TEST_ASSETS,
         large: path.resolve(
             TEST_FILE_SERVER_CONFIG.fs as string, 
@@ -44,7 +44,7 @@ export class Uploader {
         )
     }
 
-    public static async createLargeBinaryListFile (): Promise<void> {
+    static async createLargeBinaryListFile (): Promise<void> {
 
         const { large } = Uploader.ASSETS
 
@@ -71,11 +71,11 @@ export class Uploader {
         )
     }
 
-    public constructor(
+    constructor(
         public server: FileServerApp
     ) {}
 
-    public createSignedFile (
+    createSignedFile (
         localFilePath: string,
         uploaderId: string
     ): Promise<SignedFile> {
@@ -89,7 +89,7 @@ export class Uploader {
         })
     }
 
-    public async part (
+    async part (
         partUrl: string, 
         sourceFileUrl: string,
         sourceFileSize: number, 
@@ -114,7 +114,7 @@ export class Uploader {
         return res.headers.get('etag') as string
     }
 
-    public async complete (
+    async complete (
         completeUrl: string,
         etags: string[]
     ): Promise<{ code: number }> {
@@ -140,7 +140,7 @@ export class Uploader {
     /**
      * Upload 
      */
-    public async parts(
+    async parts(
         localFilePath: string,
         { urls, size }: SignedFile
     ): Promise<string[]> {
@@ -160,7 +160,7 @@ export class Uploader {
     /**
      * Upload all test assets to the provided server
      */
-    public async assets(
+    async assets(
         uploaderId: string
     ): Promise<UploadedAssetData[]> {
 

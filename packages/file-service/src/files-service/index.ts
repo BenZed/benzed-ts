@@ -1,11 +1,9 @@
 
 import { MongoDBApplication, resolveAll } from '@benzed/feathers'
-import { authenticate } from '@feathersjs/authentication/lib'
+import { authenticate, AuthenticationService } from '@feathersjs/authentication'
 
 import { FeathersService } from '@feathersjs/feathers'
 import { errorHandler } from '@feathersjs/koa'
-
-import type { AuthenticationService } from '../authentication'
 
 import { 
     serveMiddleware as serve, 

@@ -1,5 +1,6 @@
 
 /*** Exports ***/
 
+export { default } from './create-file-server-app'
 export * from './create-file-server-app'
-export * from './services/render/client-renderer'
+export * from './socket-io'

@@ -15,7 +15,7 @@ import { Server } from 'socket.io'
 import { RenderService } from './service'
 import { RenderServiceConfig } from './schema'
 
-import { FeathersFileService } from '../files/middleware/util'
+import { FeathersFileService } from '../files-service/middleware/util'
 
 /*** Helper ***/
 

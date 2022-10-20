@@ -2,14 +2,14 @@ import path from 'path'
 import mime from 'mime'
 import { ObjectId } from 'mongodb'
 
-import createFileServerApp from '../create-file-server-app'
-import { $file, FileData } from '../schemas'
+import createFileServerApp from '../server/create-file-server-app'
+import { $file, FileData } from './schema'
 
 import { BadRequest } from '@feathersjs/errors'
 
-import { User } from './users'
-import { SignedFile } from './files/service'
-import { MAX_UPLOAD_PART_SIZE } from './files/constants'
+import { User } from '../server/services/users'
+import { SignedFile } from './service'
+import { MAX_UPLOAD_PART_SIZE } from './constants'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */ 
 

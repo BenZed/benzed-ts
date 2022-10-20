@@ -2,7 +2,11 @@ import { Compile } from './types'
 
 /*** Eslint ***/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* 
+    eslint-disable 
+        @typescript-eslint/no-explicit-any,
+        @typescript-eslint/explicit-function-return-type
+*/
 
 /*** Shortcuts ***/
 
@@ -38,7 +42,9 @@ type StructDefined<C extends StructDefinition> =
 
 /*** Helper ***/
 
-const createDefaultStatics = <C extends StructDefinition>(Constructor: C): StructDefaultStatics<C> => ({
+const createDefaultStatics = <C extends StructDefinition>(
+    Constructor: C
+): StructDefaultStatics<C> => ({
     
     create(...params: ConstructorParameters<C>) {
 
@@ -62,7 +68,10 @@ const createDefaultStatics = <C extends StructDefinition>(Constructor: C): Struc
     }
 })
 
-const addDefinedStatics = <C extends StructDefinition>(Constructor: C, struct: StructDefaultStatics<C>) => 
+const addDefinedStatics = <C extends StructDefinition>(
+    Constructor: C, 
+    struct: StructDefaultStatics<C>
+) => 
     entries(getDescriptors(Constructor))
         .reduce((struct, [name, descriptor]) => {
 

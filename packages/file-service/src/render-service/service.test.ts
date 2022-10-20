@@ -7,8 +7,8 @@ import { FeathersService } from '@feathersjs/feathers'
 
 import RenderService, { RendererRecord } from './service'
 import createClientRenderer, { ClientRenderer } from './client-renderer'
-import createFileServer, { FileServerConfig } from '../../create-file-server-app'
-import { TEST_FILE_SERVER_CONFIG } from '../../../util.test'
+import createFileServer, { FileServerConfig } from '../server'
+import { TEST_FILE_SERVER_CONFIG } from '../util.test'
 import { RendererConfig } from '@benzed/renderer/lib'
 
 /*** Eslint ***/
@@ -131,7 +131,7 @@ describe('create()', () => {
             .toContain('must be above 0')
     })
 
-    it('clients receive render settings along with record', async () => {
+    it('clients receive render settings along with record', () => {
         expect(clientRendererRecord).toHaveProperty(
             'settings', 
             TEST_FILE_SERVER_CONFIG.renderer?.settings

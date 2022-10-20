@@ -1,2 +1,2 @@
-export * from './server/services/files'
-export * from './server/services/render'
+export * from './files-service'
+export * from './render-service'

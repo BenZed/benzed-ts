@@ -24,6 +24,6 @@
         //
         // Import non-ES modules as default imports.
         "esModuleInterop": true,
-        "downlevelIteration": true,
+        "downlevelIteration": true
     }
 }

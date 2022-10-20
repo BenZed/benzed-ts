@@ -7,7 +7,7 @@ import type { AuthenticationRequest, AuthenticationResult } from '@feathersjs/au
 import { Renderer } from '@benzed/renderer'
 
 import socketio, { Socket } from 'socket.io-client'
-import { FileService } from '../files/service'
+import { FileService } from '../files-service/service'
 import { RenderService } from './service'
 
 /*** Types ***/

@@ -2,13 +2,13 @@ import path from 'path'
 
 import fs from '@benzed/fs'
 
-import { User } from '../users'
+import { User } from '../server/services/users'
 
 import { PART_DIR_NAME } from './constants'
 
-import createFileServerApp from '../../create-file-server-app'
+import createFileServerApp from '../server/create-file-server-app'
 
-import { UploadedAssetData, Uploader, TEST_FILE_SERVER_CONFIG } from '../../../util.test'
+import { UploadedAssetData, Uploader, TEST_FILE_SERVER_CONFIG } from '../util.test'
 
 /*** Eslint ***/
 

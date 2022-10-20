@@ -2,8 +2,6 @@ import fs from '@benzed/fs'
 import $, { Infer } from '@benzed/schema'
 import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
 
-import { $awsConfig } from '../../schemas/aws-config'
-
 /*** Helper ***/
 
 const $size = $.integer.range('>', 0)
@@ -12,6 +10,15 @@ const $directory = $.string
     .asserts(fs.sync.exists, dir => `'${dir}' does not exist`)
     .asserts(dir => fs.sync.stat(dir).isDirectory(), 'must be a directory')
     .name('directory')
+
+export interface AwsConfig extends Infer<typeof $awsConfig> {}
+export const $awsConfig = $({
+
+    bucket: $.string,
+    accessKeyId: $.string,
+    secretAccessKey: $.string
+
+})
 
 /*** File Service Config ***/
 

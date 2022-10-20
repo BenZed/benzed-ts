@@ -1,7 +1,7 @@
 import { $rendererConfig } from '@benzed/renderer'
 import { $, Infer } from '@benzed/schema'
 
-import { $fileServiceConfig } from '../files'
+import { $fileServiceConfig } from '../files-service'
 
 /*** Exports ***/
 

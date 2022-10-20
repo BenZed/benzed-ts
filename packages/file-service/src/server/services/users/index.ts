@@ -1,11 +1,12 @@
-import { setupMongoDBService, MongoDBAdapterParams } from '@benzed/feathers'
+import { setupMongoDBService, MongoDBAdapterParams, resolveAll } from '@benzed/feathers'
 
 import { Service } from '@feathersjs/feathers'
+import { authenticate } from '@feathersjs/authentication'
 
 import { UserData, UserQuery, User } from './schema'
-import * as userHooks from './hooks'
 
 import { FileServerApp } from '../../create-file-server-app'
+import usersResolvers from './resolvers'
 
 /*** Types ***/
 
@@ -39,7 +40,14 @@ function setupUserService(app: FileServerApp): void {
         }
     )
 
-    userService.hooks(userHooks)
+    userService.hooks({
+        around: {
+            all: [
+                authenticate('jwt'),
+                resolveAll(usersResolvers)
+            ]
+        }
+    })
 }
 
 /*** Exports ***/
@@ -50,6 +58,5 @@ export {
     UserService,
     UserParams 
 }
-export * from './hooks'
 export * from './resolvers'
 export * from './schema'
