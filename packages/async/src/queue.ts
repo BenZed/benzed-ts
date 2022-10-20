@@ -136,7 +136,7 @@ class Queue<
     /**
      * Items waiting to be executed.
      */
-    public get queuedItems(): readonly QueueItem<V, T>[] {
+    get queuedItems(): readonly QueueItem<V, T>[] {
         return Array.from(this._queued).map(q => q.value.item)
     }
 
@@ -146,7 +146,7 @@ class Queue<
     /**
      * Currently executing items.
      */
-    public get currentItems(): readonly QueueItem<V, T>[] {
+    get currentItems(): readonly QueueItem<V, T>[] {
         return Array.from(this._current).map(q => q.value.item)
     }
 
@@ -154,7 +154,7 @@ class Queue<
      * 
      * Number of items waiting to be executed.
      */
-    public get numQueuedItems(): number {
+    get numQueuedItems(): number {
         return this._queued.size
     }
 
@@ -162,7 +162,7 @@ class Queue<
      * 
      * Number of items currently executing.
      */
-    public get numCurrentItems(): number {
+    get numCurrentItems(): number {
         return this._current.size
     }
 
@@ -170,23 +170,23 @@ class Queue<
      * Number of items currently executing and waiting
      * to be executed.
      */
-    public get numTotalItems(): number {
+    get numTotalItems(): number {
         return this.numQueuedItems + this.numCurrentItems
     }
 
     /**
      * Maximum number of concurrently executing items allowed on this queue.
      */
-    public readonly maxConcurrent: number
+    readonly maxConcurrent: number
 
     /**
      * Maximum number of items the queue can hold.
      */
-    public readonly maxTotalItems: number
+    readonly maxTotalItems: number
 
     /*** Constructor ***/
 
-    public constructor (
+    constructor (
         options?: QueueOptions
     ) {
 
@@ -221,7 +221,7 @@ class Queue<
      * @param task 
      * @returns An array of QueueItems
      */
-    public add(
+    add(
         task: QueueAddInput<V, T>
     ): QueueItem<V, T>
 
@@ -230,11 +230,11 @@ class Queue<
      * @param task 
      * @returns A QueueItem 
      */
-    public add(
+    add(
         task: QueueAddInput<V, T>[],
     ): QueueItem<V, T>[]
 
-    public add(
+    add(
         input: QueueAddInput<V, T> | QueueAddInput<V, T>[]
     ): unknown {
 
@@ -344,7 +344,7 @@ class Queue<
      * Removes all items in the queue with a given task.
      * Returns the number of removed tasks.
      */
-    public remove(
+    remove(
         item: QueueTask<V, T> | QueueItem<V, T>
     ): number {
 
@@ -367,7 +367,7 @@ class Queue<
      * Removes all items in the queue.
      * Returns the number of removed items.
      */
-    public clear(): number {
+    clear(): number {
         const count = this._queued.size
         this._queued.clear()
 
@@ -378,10 +378,10 @@ class Queue<
      * A paused queue will not execute additional tasks, but
      * currently executing tasks will complete.
      */
-    public get isPaused(): boolean {
+    get isPaused(): boolean {
         return this._isPaused
     }
-    public set isPaused(value: boolean) {
+    set isPaused(value: boolean) {
         if (value)
             this.resume()
         else
@@ -393,14 +393,14 @@ class Queue<
     /**
      * Pauses the Queue, if it isn't already
      */
-    public pause(): void {
+    pause(): void {
         this._isPaused = true
     }
 
     /**
      * Resumes the Queue, if it isn't already.
      */
-    public resume(): void {
+    resume(): void {
         this._isPaused = false
         this._updateCurrentItems()
     }
@@ -408,14 +408,14 @@ class Queue<
     /**
      * Is the queue empty?
      */
-    public get isComplete(): boolean {
+    get isComplete(): boolean {
         return this.numTotalItems === 0
     }
 
     /**
      * @returns Promise that resolves when the queue is finished.
      */
-    public complete(): Promise<void> {
+    complete(): Promise<void> {
         return new Promise(resolve => {
 
             const onComplete = (): void => {

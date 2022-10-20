@@ -103,4 +103,4 @@ export {
 
 export * from './schema'
 
-export * from './client-renderer'
+export * from '../client/create-file-render-app'

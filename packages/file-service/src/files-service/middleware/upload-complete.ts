@@ -159,6 +159,7 @@ async function mergePartsIntoFile(
     localDirPath: string
 ): Promise<void> {
 
+    //
     const filePath = path.join(
         localDirPath, 
         file._id, 
@@ -173,6 +174,7 @@ async function mergePartsIntoFile(
 
     // remove parts dir
     await fs.remove(partsDirPath, { recursive: true })
+
 }
 
 /*** Main ***/

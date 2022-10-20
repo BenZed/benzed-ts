@@ -1,5 +1,5 @@
 
-import type { Pipe } from './pipe'
+import { Pipe } from './pipe'
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any,
@@ -45,10 +45,9 @@ const byMany = <T>(...sorters: Sort<T>[]): Sort<T> => (a, b) => {
  * Multiple pipes may be provided, and will be checked if 
  * the previous outputs were equivalent.
  */
-const byPipe = <I>(...pipes: Pipe<I, Sortable>[]): Sort<I> =>
+const byPipe = <T>(...pipes: Pipe<T, Sortable>[]): Sort<T> =>
     byMany(
-        ...pipes.map(pipe =>
-            (a: I, b: I) => byValue(pipe(a), pipe(b))
+        ...pipes.map(p => (a: T, b: T) => byValue(p(a), p(b))
         )
     )
 
@@ -68,12 +67,12 @@ const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K)
 
 /*** By Interface ***/
 
-const by = {
-    value: byValue,
-    many: byMany,
-    pipe: byPipe,
-    prop: byProp
-}
+const by = <T>(...args: Pipe<T, Sortable>[]) => byPipe(...args)
+
+by.value = byValue
+by.many = byMany
+by.pipe = byPipe
+by.prop = byProp
 
 /*** Exports ***/
 
@@ -86,6 +85,7 @@ export {
     Sortable,
     SortableKeys,
 
+    by,
     byValue,
     byMany,
     byPipe,

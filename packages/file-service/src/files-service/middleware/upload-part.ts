@@ -11,7 +11,8 @@ import { FilePayload } from '../schema'
 
 import { 
     OK_STATUS_CODE, 
-    PART_DIR_NAME 
+    PART_DIR_NAME, 
+    RENDER_DIR_NAME
 } from '../constants'
 
 import { 
@@ -61,8 +62,10 @@ async function ensurePartDir(
 ): Promise<string> {
     const fileDir = path.join(localDir, fileId)
     const partDir = path.join(fileDir, PART_DIR_NAME)
+    const renderDir = path.join(fileDir, RENDER_DIR_NAME)
 
     await fs.ensureDir(partDir)
+    await fs.ensureDir(renderDir)
 
     return partDir
 }

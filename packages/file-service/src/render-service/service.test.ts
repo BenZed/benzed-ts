@@ -6,7 +6,7 @@ import configuration from '@feathersjs/configuration'
 import { FeathersService } from '@feathersjs/feathers'
 
 import RenderService, { RendererRecord } from './service'
-import createClientRenderer, { ClientRenderer } from './client-renderer'
+import createFileRenderApp, { FileRenderApp } from '../client'
 import createFileServer, { FileServerConfig } from '../server'
 import { TEST_FILE_SERVER_CONFIG } from '../util.test'
 import { RendererConfig } from '@benzed/renderer/lib'
@@ -40,14 +40,14 @@ beforeAll(async () => {
 
 })
 
-let client: ClientRenderer
-let clientRenderService: FeathersService<ClientRenderer, RenderService>
+let client: FileRenderApp
+let clientRenderService: FeathersService<FileRenderApp, RenderService>
 let clientRendererRecord: RendererConfig & RendererRecord
 
 //
 beforeAll(async () => {
 
-    client = await createClientRenderer(CLIENT)
+    client = await createFileRenderApp(CLIENT)
 
     clientRenderService = client.service('files/render')
 
@@ -140,7 +140,7 @@ describe('create()', () => {
 
     it('emits created event', async () => {
 
-        const client2 = await createClientRenderer(CLIENT)
+        const client2 = await createFileRenderApp(CLIENT)
 
         await client2.service('files/render').create({ 
             maxConcurrent: 1
@@ -165,7 +165,7 @@ describe('get()', () => {
         expect(serverRecord).toEqual({
             _id: 'local',
             maxConcurrent: 1,
-            items: []
+            files: []
         })
     })
 
@@ -250,7 +250,7 @@ describe('remove()', () => {
     })
 
     it('removes the renderer from the list of renders', async () => {
-        const client = await createClientRenderer(CLIENT)
+        const client = await createFileRenderApp(CLIENT)
 
         const r = await client.service('files/render').create({ maxConcurrent: 1 })
         await server.service('files/render').remove(r._id)
@@ -268,7 +268,7 @@ describe('remove()', () => {
 
     it('disconnected clients are automatically removed', async () => {
 
-        const client = await createClientRenderer(CLIENT)
+        const client = await createFileRenderApp(CLIENT)
         
         const renderer = await client
             .service('files/render')

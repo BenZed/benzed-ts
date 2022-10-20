@@ -88,14 +88,14 @@ const addDefinedStatics = <C extends StructDefinition>(
  */
 const Struct = {
 
-    define<C extends StructDefinition>(Constructor: C): Compile<StructDefined<C>> {
+    define<C extends StructDefinition>(Constructor: C): Compile<StructDefined<C>, void, false> {
 
         const struct = addDefinedStatics(
             Constructor, 
             createDefaultStatics(Constructor)
         )
 
-        return struct as Compile<StructDefined<C>>
+        return struct as Compile<StructDefined<C>, void, false>
 
     }
 

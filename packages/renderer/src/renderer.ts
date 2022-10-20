@@ -35,7 +35,7 @@ const EXT = {
  * Given a file name and render option key, return a writable stream or 
  * a location on the local file system to write the rendered file.
  */
-type TargetMethod = (
+export type TargetMethod = (
     data: {
         fileName: string
         ext: string
@@ -103,12 +103,12 @@ class Renderer {
 
     private readonly _queue: Queue<RenderMetadata, RenderData>
 
-    public readonly config: Required<RendererConfig>
+    readonly config: Required<RendererConfig>
 
     /**
      * Create a render instance from a json config.
      */
-    public static async from(configUrl: string): Promise<Renderer> {
+    static async from(configUrl: string): Promise<Renderer> {
 
         const options = await fs.readJson(
             configUrl,
@@ -118,7 +118,7 @@ class Renderer {
         return new Renderer(options)
     }
 
-    public constructor (config: RendererConfig) {
+    constructor (config: RendererConfig) {
 
         const numOptions = Object
             .keys(config.settings)
@@ -146,28 +146,28 @@ class Renderer {
     /**
      * Returns true if the render queue is complete
      */
-    public get isComplete(): boolean {
+    get isComplete(): boolean {
         return this._queue.isComplete
     }
 
     /**
      * Returns a promise that fulfills when the queue completes.
      */
-    public complete(): Promise<void> {
+    complete(): Promise<void> {
         return this._queue.complete()
     }
 
     /**
      * Total number of files being rendered.
      */
-    public count(): number {
+    count(): number {
         return this._queue.numTotalItems
     }
 
     /**
      * 
      */
-    public add(
+    add(
         addOptions: AddRenderItemOptions,
     ): RenderItem[] {
 
@@ -210,7 +210,7 @@ class Renderer {
         return renderItems
     }
 
-    public items(
+    items(
         predicate: (item: RenderItem) => boolean = pass
     ): RenderItem[] {
         return [

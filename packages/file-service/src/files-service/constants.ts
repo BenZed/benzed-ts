@@ -9,6 +9,7 @@ export const UPLOAD_QUERY_PARAM = 'upload'
 export const DOWNLOAD_QUERY_PARAM = 'download'
 
 export const PART_DIR_NAME = 'parts'
+export const RENDER_DIR_NAME = 'render'
 
 export const ONE_HOUR = 60 * 60 // seconds
 

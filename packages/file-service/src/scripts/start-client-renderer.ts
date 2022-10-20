@@ -1,9 +1,9 @@
-import { createClientRenderer } from '../render-service/client-renderer'
+import { createFileRenderApp } from '../client/create-file-render-app'
 import os from 'os'
 
 /*** Execute ***/
 
-void createClientRenderer({
+void createFileRenderApp({
     host: 'http://localhost:3000'
 }).then(client => client
     .service('files/render')

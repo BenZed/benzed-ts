@@ -85,7 +85,7 @@ export type Compile<TYPE, EXCEPTIONS = void, RECURSIVE extends boolean = true> =
 
         : TYPE extends Map<infer K, infer V>
             ? RECURSIVE extends true 
-                ? Map<Compile<K, EXCEPTIONS>, Compile<V, EXCEPTIONS>>
+                ? Map<Compile<K, EXCEPTIONS, RECURSIVE>, Compile<V, EXCEPTIONS, RECURSIVE>>
                 : Map<K,V>
 
             : TYPE extends Set<infer V> 
@@ -93,7 +93,7 @@ export type Compile<TYPE, EXCEPTIONS = void, RECURSIVE extends boolean = true> =
 
                 : TYPE extends Promise<infer A> 
                     ? RECURSIVE extends true 
-                        ? Promise<Compile<A, EXCEPTIONS>>
+                        ? Promise<Compile<A, EXCEPTIONS, RECURSIVE>>
                         : Promise<A>
 
                     : TYPE extends object 
@@ -105,7 +105,7 @@ export type Compile<TYPE, EXCEPTIONS = void, RECURSIVE extends boolean = true> =
                             : TYPE extends infer O 
 
                                 ? { [K in keyof O]: RECURSIVE extends true 
-                                    ? Compile<O[K], EXCEPTIONS> 
+                                    ? Compile<O[K], EXCEPTIONS, RECURSIVE> 
                                     : O[K] 
                                 } 
                                 : never

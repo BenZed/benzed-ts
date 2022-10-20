@@ -3,9 +3,11 @@ import { HOST, Uploader } from '../util.test'
 import createFileServerApp from '../server/create-file-server-app'
 
 import { RendererRecord } from './service'
-import createClientRenderer, { ClientRenderer } from './client-renderer'
+import {
+    createFileRenderApp,
+    FileRenderApp
+} from '../client/create-file-render-app'
 
-import { beforeAll, afterAll, it } from '@jest/globals'
 import { SignedFile } from '../files-service'
 
 /*** Const ***/
@@ -44,12 +46,12 @@ beforeAll(() => {
 })
 
 // create client renderers
-const clients = [] as unknown as [ClientRenderer, ClientRenderer, ClientRenderer]
+const clients: FileRenderApp[] = []
 beforeAll(async () => {
 
     for (const clientIndex of [0,1,2] as const) {
 
-        const client = await createClientRenderer({
+        const client = await createFileRenderApp({
             host: HOST,
             auth: {
                 email: uploader.email,
@@ -58,11 +60,7 @@ beforeAll(async () => {
             }
         })
 
-        await client
-            .service('files/render')
-            .create({
-                maxConcurrent: clientIndex + 1
-            })
+        await client.start()
 
         clients[clientIndex] = client
     }
