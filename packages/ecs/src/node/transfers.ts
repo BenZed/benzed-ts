@@ -9,9 +9,23 @@ import { shuffle } from '@benzed/array'
 
 /*** SwitchTransfer ***/
 
+/**
+ * Switch Transfer Options
+ */
 interface SwitchTransferOptions {
+    
+    /**
+     * Nodes will be switched to at random, rather than in a linear order
+     */
     readonly random: boolean
 }
+
+/**
+ * Switch Transfer
+ * 
+ * Switch transfer switches the target from each invocation in a linear fashion
+ * until
+ */
 export interface SwitchTransfer<O> extends Transfer<any, O> {}
 export const switcher = <O>(options?: SwitchTransferOptions): SwitchTransfer<O> => {
 

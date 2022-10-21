@@ -64,6 +64,16 @@ export type SystemOutput<S extends LinkedNodes> =
 export type SystemInput<S extends LinkedNodes, I extends string> =
     LinkedNodeInput<S, I>
 
+export interface SystemTransferContext<S extends LinkedNodes, I extends string> extends 
+    TransferContext<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>> {
+    
+    /**
+     * Key of node in the system responsible for the context input/output.
+     */
+    outputNodeKey: EndLinkedKeys<S>
+
+}
+
 type SystemOutputMap<S extends LinkedNodes> = {
     [K in EndLinkedKeys<S>]: Exclude<
     LinkedNodeOutput<S, K>,
@@ -211,43 +221,13 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         return inputNode.canCompute(value)
     }
 
-    transfer(
-        ctx: TransferContext<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>>
-    ): SystemTarget<S> | null {
-
-        const cache = this._transferCache
-
-        // Generally, transfer is only called by a system directly after a compute, but it 
-        // IS a public method, so just in case it's called for some other reason, we make
-        // sure the current transfer cache data is valid.
-        const requiresCompute = !cache || cache.input !== ctx.input || cache.output !== ctx.output
-        if (requiresCompute)
-            this.compute(ctx.input)
-
-        return this._transferCache?.outputNode?.transfer(ctx) ?? null as any
-    }
-
-    /**
-     * A system needs the output node from it's last computation in
-     * order to provide a result to a .transfer() call. 
-     * 
-     * We cache that here to prevent the system from having
-     * to run it's computation twice
-     */
-    private _transferCache: { 
-        input: SystemInput<S, I>
-        output: SystemOutput<S>
-        outputNode: Node<unknown> | null
-    } | null = null
-    // 
-
     compute(input: SystemInput<S,I>): SystemOutput<S> {
 
         const { nodes, _inputKey } = this
 
-        let currentNodeKey = _inputKey as string | undefined
+        let outputNode = this.getInput()
         let pipedInputToOutput = input as unknown
-        let outputNode = null
+        let currentNodeKey = _inputKey as string | undefined
 
         while (currentNodeKey !== undefined) {
 
@@ -260,14 +240,16 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
                 .map(link => this.get(link))
                 .filter(node => node.canCompute(currentOutput))
 
-            outputNode = currentNode.transfer({
-                input: currentInput,
-                output: currentOutput,
-                targets 
-            }) as NodeOf<S, string>
+            outputNode = currentNode.transfer(
+                {
+                    input: currentInput,
+                    output: currentOutput,
+                    targets,
+                    outputNodeKey: currentNodeKey
+                } as SystemTransferContext<S, I>
+            ) as Node<any>
 
             if (!targets.includes(outputNode) && targets.length > 0) {
-                this._transferCache = null
                 throw new Error(
                     `Premature transfer flow termination: ${currentNodeKey} did not ` + 
                     `return a target when given links: ${currentLinks}`
@@ -278,14 +260,19 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         }
 
         const output = pipedInputToOutput as SystemOutput<S> 
-
-        this._transferCache = { 
-            input,
-            output,
-            outputNode
-        }
-
         return output
+    }
+
+    transfer(
+        ctx: SystemTransferContext<S,I>
+    ): SystemTarget<S> | null {
+        const outputNode = this.get(ctx.outputNodeKey)
+        return outputNode.transfer(ctx) as SystemTarget<S> | null
+    }
+
+    *[Symbol.iterator](): Generator<[keyof S, S[keyof S]]> {
+        for (const key in this.nodes)
+            yield [key, this.nodes[key]]
     }
 
 }
