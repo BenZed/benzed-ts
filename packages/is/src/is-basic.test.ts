@@ -18,11 +18,11 @@ import {
 
 // TODO write these 
 
-describe('isString', () => {
+describe(`isString`, () => {
     for (const [input, result] of [
-        ['str', true],
-        ['', true],
-        [new String('str'), true],
+        [`str`, true],
+        [``, true],
+        [new String(`str`), true],
         [true, false],
         [0, false],
         [Symbol(), false],
@@ -31,7 +31,7 @@ describe('isString', () => {
         [[], false],
         [null, false],
         [undefined, false],
-        [Promise.resolve('str'), false],
+        [Promise.resolve(`str`), false],
     ] as [unknown, boolean][]) {
         it(`${String(input)} === ${result}`, () => {
             expect(isString(input)).toBe(result)
@@ -39,10 +39,10 @@ describe('isString', () => {
     }
 })
 
-describe('isBoolean', () => {
+describe(`isBoolean`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Boolean(false), true],
         [true, true],
         [0, false],
@@ -61,10 +61,10 @@ describe('isBoolean', () => {
     }
 })
 
-describe('isNumber', () => {
+describe(`isNumber`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), true],
         [NaN, false],
         [true, false],
@@ -85,10 +85,10 @@ describe('isNumber', () => {
     }
 })
 
-describe('isSymbol', () => {
+describe(`isSymbol`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), false],
         [true, false],
         [0, false],
@@ -107,10 +107,10 @@ describe('isSymbol', () => {
     }
 })
 
-describe('isNaN', () => {
+describe(`isNaN`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [NaN, true],
         [true, false],
         [0, false],
@@ -129,10 +129,10 @@ describe('isNaN', () => {
     }
 })
 
-describe('isBigInt', () => {
+describe(`isBigInt`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), false],
         [NaN, false],
         [true, false],
@@ -153,10 +153,10 @@ describe('isBigInt', () => {
     }
 })
 
-describe('isObject', () => {
+describe(`isObject`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), true],
         [NaN, false],
         [true, false],
@@ -165,7 +165,7 @@ describe('isObject', () => {
         [Symbol(), false],
         [function () { /*blank*/ }, false],
         [{ plain: true }, true],
-        [['array', 'of', 'str'], true],
+        [[`array`, `of`, `str`], true],
         [null, false],
         [undefined, false],
         [Promise.resolve({}), true]
@@ -176,10 +176,10 @@ describe('isObject', () => {
     }
 })
 
-describe('isArray', () => {
+describe(`isArray`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), false],
         [NaN, false],
         [true, false],
@@ -200,10 +200,10 @@ describe('isArray', () => {
     }
 })
 
-describe('isFunction', () => {
+describe(`isFunction`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), false],
         [NaN, false],
         [true, false],
@@ -224,10 +224,10 @@ describe('isFunction', () => {
     }
 })
 
-describe('isPromise', () => {
+describe(`isPromise`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), false],
         [NaN, false],
         [true, false],
@@ -248,10 +248,10 @@ describe('isPromise', () => {
     }
 })
 
-describe('isDate', () => {
+describe(`isDate`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', false],
+        [`str`, false],
+        [``, false],
         [new Number(0), false],
         [NaN, false],
         [true, false],
@@ -273,10 +273,10 @@ describe('isDate', () => {
     }
 })
 
-describe('isTruthy', () => {
+describe(`isTruthy`, () => {
     for (const [input, result] of [
-        ['str', true],
-        ['', false],
+        [`str`, true],
+        [``, false],
         [new Number(0), true],
         [NaN, false],
         [true, true],
@@ -298,10 +298,10 @@ describe('isTruthy', () => {
     }
 })
 
-describe('isFalsy', () => {
+describe(`isFalsy`, () => {
     for (const [input, result] of [
-        ['str', false],
-        ['', true],
+        [`str`, false],
+        [``, true],
         [new Number(0), false],
         [NaN, true],
         [true, false],
@@ -323,10 +323,10 @@ describe('isFalsy', () => {
     }
 })
 
-describe('isSortable', () => {
+describe(`isSortable`, () => {
     for (const [input, result] of [
-        ['str', true],
-        ['', true],
+        [`str`, true],
+        [``, true],
         [new Number(0), true],
         [NaN, false],
         [true, false],
@@ -353,12 +353,12 @@ describe('isSortable', () => {
     }
 })
 
-describe('isDefined', () => {
+describe(`isDefined`, () => {
 
-    it('isDefined(undefined) == false', () => expect(isDefined(undefined)).toEqual(false))
-    it('isDefined(null)      == false', () => expect(isDefined(null)).toEqual(false))
-    it('isDefined(NaN)       == false', () => expect(isDefined(NaN)).toEqual(false))
-    it('isDefined(10)        == true', () => expect(isDefined(10)).toEqual(true))
-    it('isDefined(false)     == true', () => expect(isDefined(false)).toEqual(true))
+    it(`isDefined(undefined) == false`, () => expect(isDefined(undefined)).toEqual(false))
+    it(`isDefined(null)      == false`, () => expect(isDefined(null)).toEqual(false))
+    it(`isDefined(NaN)       == false`, () => expect(isDefined(NaN)).toEqual(false))
+    it(`isDefined(10)        == true`, () => expect(isDefined(10)).toEqual(true))
+    it(`isDefined(false)     == true`, () => expect(isDefined(false)).toEqual(true))
 
 })

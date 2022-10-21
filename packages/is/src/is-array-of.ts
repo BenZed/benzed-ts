@@ -55,7 +55,7 @@ export default function isArrayOf<T extends (Constructor<any>)[]>(
 ): input is (InstanceType<typeof types[number]>)[] {
 
     if (types.length === 0)
-        throw new Error('At least one type is required.')
+        throw new Error(`At least one type is required.`)
 
     return isArray(input) &&
         input.length > 0 &&

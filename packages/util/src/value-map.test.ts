@@ -11,15 +11,15 @@ import { ValuesMap } from './value-map'
 
 /* eslint-disable no-multi-spaces */
 const pairs: [unknown, unknown][] = [
-    [[0,0], 'zero'],
-    [[1,1], 'one'],
-    [[-1, -1], 'minus-one'],
-    [[Infinity, Number], 'infinity'],
-    [[-Infinity, Number], 'minus-infinity'],
-    [['0', 'string'], 'zero-string'],
-    [['1', 'string'], 'one-string'],
-    [[false, true, '100', 100], 'args-1'],
-    [[true, false, 100, '100'], 'args-2'],
+    [[0,0], `zero`],
+    [[1,1], `one`],
+    [[-1, -1], `minus-one`],
+    [[Infinity, Number], `infinity`],
+    [[-Infinity, Number], `minus-infinity`],
+    [[`0`, `string`], `zero-string`],
+    [[`1`, `string`], `one-string`],
+    [[false, true, `100`, 100], `args-1`],
+    [[true, false, 100, `100`], `args-2`],
 ]
 /* eslint-enable no-multi-spaces */
 
@@ -32,7 +32,7 @@ function forEachPair(func: (key: any, value: any) => void): void {
 
 // Tests
 
-describe('ValueMap', () => {
+describe(`ValueMap`, () => {
 
     let map: ValuesMap<any, any>
 
@@ -40,10 +40,10 @@ describe('ValueMap', () => {
         map = new ValuesMap<any, any>(pairs)
     })
 
-    describe('Methods', () => {
+    describe(`Methods`, () => {
 
-        describe('.get()', () => {
-            describe('gets key values', () => {
+        describe(`.get()`, () => {
+            describe(`gets key values`, () => {
                 forEachPair((k, v) =>
                     it(`gets ${k.toString()}: ${String(v)}`, () => {
                         expect(map.get(k)).toEqual(v)
@@ -52,9 +52,9 @@ describe('ValueMap', () => {
             })
         })
 
-        describe('.set()', () => {
+        describe(`.set()`, () => {
 
-            describe('sets existing values', () => {
+            describe(`sets existing values`, () => {
                 forEachPair((k) => {
                     it(`sets ${k.toString()} to true`, () => {
                         map.set(k, true)
@@ -63,18 +63,18 @@ describe('ValueMap', () => {
                 })
             })
 
-            describe('sets new values', () => {
-                it('If key doesnt exists', () => {
-                    map.set(1000, 'one-thousand')
-                    expect(map.get(1000)).toEqual('one-thousand')
+            describe(`sets new values`, () => {
+                it(`If key doesnt exists`, () => {
+                    map.set(1000, `one-thousand`)
+                    expect(map.get(1000)).toEqual(`one-thousand`)
                 })
             })
 
         })
 
-        describe('.has()', () => {
+        describe(`.has()`, () => {
 
-            describe('returns true if map has key', () => {
+            describe(`returns true if map has key`, () => {
                 forEachPair(k => {
                     it(`has key ${k.toString()} : true`, () => {
                         return expect(map.has(k)).toBe(true)
@@ -82,8 +82,8 @@ describe('ValueMap', () => {
                 })
             })
 
-            describe('returns false if not', () => {
-                [Symbol.iterator, 'woooo', -10231].forEach(k => {
+            describe(`returns false if not`, () => {
+                [Symbol.iterator, `woooo`, -10231].forEach(k => {
                     it(`has key ${k.toString()} : false`, () => {
                         return expect(map.has(k)).toBe(false)
                     })
@@ -92,9 +92,9 @@ describe('ValueMap', () => {
 
         })
 
-        describe('.delete()', () => {
+        describe(`.delete()`, () => {
 
-            describe('removes item from map', () => {
+            describe(`removes item from map`, () => {
                 forEachPair(k => {
                     it(`removes ${k.toString()}`, () => {
                         expect(map.delete(k)).toBe(true)
@@ -103,76 +103,76 @@ describe('ValueMap', () => {
                 })
             })
 
-            describe('returns false if no item was removed', () => {
-                it('remove -1000 returns false', () =>
+            describe(`returns false if no item was removed`, () => {
+                it(`remove -1000 returns false`, () =>
                     expect(map.delete(-1000)).toBe(false)
                 )
             })
 
         })
 
-        describe('.clear()', () => {
+        describe(`.clear()`, () => {
 
-            it('removes all keys and values', () => {
+            it(`removes all keys and values`, () => {
                 map.clear()
                 expect(map.size).toEqual(0)
-                const keys = map['_keys']
-                const values = map['_values']
+                const keys = map[`_keys`]
+                const values = map[`_values`]
 
-                expect(keys).toHaveProperty('length', 0)
-                expect(values).toHaveProperty('length', 0)
+                expect(keys).toHaveProperty(`length`, 0)
+                expect(values).toHaveProperty(`length`, 0)
             })
 
         })
 
-        describe('.forEach()', () => {
+        describe(`.forEach()`, () => {
 
-            it('value and key come as first two arguments', () => {
+            it(`value and key come as first two arguments`, () => {
                 map.forEach((v, k) => {
                     expect(map.has(k)).toEqual(true)
                     expect(map.get(k)).toEqual(v)
                 })
             })
 
-            it('runs a function through each key value', () => {
+            it(`runs a function through each key value`, () => {
                 let length = 0
                 map.forEach(() => length++)
                 expect(length).toEqual(map.size)
             })
 
-            it('map as third argument', () => {
+            it(`map as third argument`, () => {
                 map.forEach((_v, _k, m) =>
                     expect(m).toEqual(map)
                 )
             })
         })
 
-        describe('.keys()', () => {
-            it('returns an iterable for all keys', () => {
+        describe(`.keys()`, () => {
+            it(`returns an iterable for all keys`, () => {
                 const keys = pairs.map(pair => pair[0])
                 expect(keys).toEqual([...(map as any).keys()])
             })
 
         })
 
-        describe('.values()', () => {
-            it('returns an iterable for all values', () => {
+        describe(`.values()`, () => {
+            it(`returns an iterable for all values`, () => {
                 const values = pairs.map(pair => pair[1])
                 expect(values).toEqual([...(map as any).values()])
             })
         })
     })
 
-    describe('Iterable', () => {
+    describe(`Iterable`, () => {
 
-        it('for [key, value] of map', () => {
+        it(`for [key, value] of map`, () => {
             expect(() => {
                 for (const _kv of map)// eslint-disable-line @typescript-eslint/no-unused-vars
                     break
             }).not.toThrow(Error)
         })
 
-        it('iterates through each key value', () => {
+        it(`iterates through each key value`, () => {
 
             for (const [key, value] of map)
                 expect(map.get(key)).toEqual(value)
@@ -182,9 +182,9 @@ describe('ValueMap', () => {
         })
     })
 
-    describe('Properties', () => {
-        describe('@size', () => {
-            it('returns number of keys', () => {
+    describe(`Properties`, () => {
+        describe(`@size`, () => {
+            it(`returns number of keys`, () => {
                 expect(map.size).toEqual(pairs.length)
             })
         })

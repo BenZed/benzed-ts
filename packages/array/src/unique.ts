@@ -16,9 +16,9 @@ function unique<T extends string | ArrayLike<unknown>>(
     arrayLike: T
 ): T {
 
-    if (typeof arrayLike === 'string') {
+    if (typeof arrayLike === `string`) {
 
-        let output = ''
+        let output = ``
         for (const char of arrayLike) {
             if (!output.includes(char))
                 output += char

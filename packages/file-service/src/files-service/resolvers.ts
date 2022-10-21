@@ -33,7 +33,7 @@ import { HookContext } from '@feathersjs/feathers'
 
 /*** Constants ***/
 
-const DEFAULT_MIME_TYPE = 'application/octet-stream'
+const DEFAULT_MIME_TYPE = `application/octet-stream`
 
 /*** Types ***/
 
@@ -43,7 +43,7 @@ type FileServiceHookContext = HookContext<MongoDBApplication, FileService>
 
 export const filePatchResolver = resolve<File, FileServiceHookContext>({
     schema: $filePatchData,
-    validate: 'before',
+    validate: `before`,
     properties: {
 
         updated: timestamp
@@ -53,7 +53,7 @@ export const filePatchResolver = resolve<File, FileServiceHookContext>({
 
 export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileServiceHookContext>({
     schema: $fileCreateData,
-    validate: 'before',
+    validate: `before`,
     properties: {
 
         updated: timestamp,
@@ -66,7 +66,7 @@ export const fileCreateResolver = resolve<FileData & { urls: string[] }, FileSer
             async (id, _, ctx) => ctx.params.user?._id ?? id ?? null,
 
             // 
-            recordMustExist('users')
+            recordMustExist(`users`)
         ),
 
         // name without ext
@@ -103,7 +103,7 @@ export const fileDispatchResolver = resolve<File, FileServiceHookContext>({
 // Resolver for allowed query properties
 export const fileQueryResolver = resolve<FileQuery, FileServiceHookContext>({
     schema: $fileQuery,
-    validate: 'before',
+    validate: `before`,
     properties: {
         //
     }

@@ -10,10 +10,10 @@ import { isBoolean } from '@benzed/is'
 
 function tryCastToBoolean(value: unknown): unknown {
 
-    if (value === 'true' || value === 1)
+    if (value === `true` || value === 1)
         return true
 
-    if (value === 'false' || value === 0)
+    if (value === `false` || value === 0)
         return false
 
     return value
@@ -24,27 +24,27 @@ function tryCastToBoolean(value: unknown): unknown {
 class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'boolean',
-        article: 'a',
+        name: `boolean`,
+        article: `a`,
         is: isBoolean,
         cast: tryCastToBoolean
     })
 
-    public constructor (...flags: F) {
+    constructor (...flags: F) {
         super(false, ...flags)
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, BooleanSchema<AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, BooleanSchema<AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => BooleanSchema
+    override readonly clearFlags!: () => BooleanSchema
 
-    public override default(defaultValue = false): this {
+    override default(defaultValue = false): this {
         return super.default(defaultValue)
     }
 }

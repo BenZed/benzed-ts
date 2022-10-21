@@ -1,5 +1,5 @@
-describe('priorityFind', () => {
+describe(`priorityFind`, () => {
 
-    it.todo('Takes multiple predicates')
+    it.todo(`Takes multiple predicates`)
 
 })

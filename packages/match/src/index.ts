@@ -116,7 +116,7 @@ match.for = <I, O>(
     return value => {
         const success = state.match(value)
         if (!success)
-            throw new Error('Value was discarded.')
+            throw new Error(`Value was discarded.`)
 
         return success.output
     }

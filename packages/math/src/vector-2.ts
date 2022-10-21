@@ -20,27 +20,27 @@ type V2ConstructorSignature = [V2Signature] | [number, number] | [number] | []
 
 class V2 {
 
-    public static get ZERO(): V2 {
+    static get ZERO(): V2 {
         return new V2(0, 0)
     }
 
-    public static get UP(): V2 {
+    static get UP(): V2 {
         return new V2(0, 1)
     }
 
-    public static get RIGHT(): V2 {
+    static get RIGHT(): V2 {
         return new V2(1, 0)
     }
 
-    public static get DOWN(): V2 {
+    static get DOWN(): V2 {
         return new V2(0, -1)
     }
 
-    public static get LEFT(): V2 {
+    static get LEFT(): V2 {
         return new V2(-1, 0)
     }
 
-    public static lerp(a: V2Signature, b: V2Signature, delta = 0): V2 {
+    static lerp(a: V2Signature, b: V2Signature, delta = 0): V2 {
 
         const av2 = V2.from(a)
         const bv2 = V2.from(b)
@@ -51,15 +51,15 @@ class V2 {
         return new V2(x, y)
     }
 
-    public static distance(a: V2Signature, b: V2Signature): number {
+    static distance(a: V2Signature, b: V2Signature): number {
         return sqrt(this.sqrDistance(a, b))
     }
 
-    public static sqrDistance(a: V2Signature, b: V2Signature): number {
+    static sqrDistance(a: V2Signature, b: V2Signature): number {
         return new V2(a).sub(b).sqrMagnitude
     }
 
-    public static dot(a: V2Signature, b: V2Signature): number {
+    static dot(a: V2Signature, b: V2Signature): number {
         const an = new V2(a).normalize()
         const bn = new V2(b).normalize()
 
@@ -69,19 +69,19 @@ class V2 {
     /**
      * Converts input to a vector, if it isn't already.
      */
-    public static from(...args: V2ConstructorSignature): V2 {
+    static from(...args: V2ConstructorSignature): V2 {
         return args[0] instanceof V2 ? args[0] : new V2(...args)
     }
 
-    public x: number
-    public y: number
+    x: number
+    y: number
 
-    public constructor (...args: V2ConstructorSignature) {
+    constructor (...args: V2ConstructorSignature) {
 
         let x, y
 
         if (isString(args[0]))
-            args = args[0].split(',').map(parseFloat) as [number, number]
+            args = args[0].split(`,`).map(parseFloat) as [number, number]
 
         else if (isArray(args[0]))
             args = args[0]
@@ -98,7 +98,7 @@ class V2 {
         this.y = y ?? 0
     }
 
-    public add(input: V2Signature): this {
+    add(input: V2Signature): this {
         const inputv2 = V2.from(input)
 
         this.x += inputv2.x
@@ -106,7 +106,7 @@ class V2 {
         return this
     }
 
-    public sub(input: V2Signature): this {
+    sub(input: V2Signature): this {
         const inputv2 = V2.from(input)
 
         this.x -= inputv2.x
@@ -114,19 +114,19 @@ class V2 {
         return this
     }
 
-    public mult(factor: number): this {
+    mult(factor: number): this {
         this.x *= factor
         this.y *= factor
         return this
     }
 
-    public div(factor: number): this {
+    div(factor: number): this {
         this.x /= factor
         this.y /= factor
         return this
     }
 
-    public lerp(to: V2Signature, delta = 0): this {
+    lerp(to: V2Signature, delta = 0): this {
 
         const inputv2 = V2.from(to)
 
@@ -135,7 +135,7 @@ class V2 {
         return this
     }
 
-    public normalize(): this {
+    normalize(): this {
         const mag = this.magnitude
 
         if (mag !== 0) {
@@ -146,7 +146,7 @@ class V2 {
         return this
     }
 
-    public rotate(deg: number): this {
+    rotate(deg: number): this {
         const rad = deg * PI / 180
         const c = cos(rad)
         const s = sin(rad)
@@ -157,7 +157,7 @@ class V2 {
         return this
     }
 
-    public perpendicular(): this {
+    perpendicular(): this {
 
         const x = -this.y
         const y = this.x
@@ -169,19 +169,19 @@ class V2 {
             .div(this.magnitude)
     }
 
-    public get angle(): number {
+    get angle(): number {
         return atan2(this.y, this.x) * 180 / PI
     }
 
-    public get magnitude(): number {
+    get magnitude(): number {
         return sqrt(this.sqrMagnitude)
     }
 
-    public get sqrMagnitude(): number {
+    get sqrMagnitude(): number {
         return this.x ** 2 + this.y ** 2
     }
 
-    public set(input: V2Signature): this {
+    set(input: V2Signature): this {
 
         const inputv2 = V2.from(input)
 
@@ -191,37 +191,37 @@ class V2 {
         return this
     }
 
-    public copy(): V2 {
+    copy(): V2 {
         return this[$$copy]()
     }
 
-    public equals(other: unknown): other is V2 {
+    equals(other: unknown): other is V2 {
         return this[$$equals](other)
     }
 
-    public toString(): V2String {
+    toString(): V2String {
         return `${this.x},${this.y}`
     }
 
-    public toJSON(): V2Json {
+    toJSON(): V2Json {
         const { x, y } = this
         return { x, y }
     }
 
     // Symbolic
 
-    public [$$copy](): V2 {
+    [$$copy](): V2 {
         return new V2(this)
     }
 
-    public [$$equals](other: unknown): other is V2 {
+    [$$equals](other: unknown): other is V2 {
         return other != null &&
             other instanceof V2 &&
             this.x === other.x &&
             this.y === other.y
     }
 
-    public *[Symbol.iterator](): Generator<number> {
+    *[Symbol.iterator](): Generator<number> {
         yield this.x
         yield this.y
     }

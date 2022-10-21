@@ -1,9 +1,9 @@
 import copy from '../copy'
 import pop from './pop'
 
-describe('pop()', () => {
+describe(`pop()`, () => {
 
-    it('does not mutate original array', () => {
+    it(`does not mutate original array`, () => {
         const array = [0, 1, 2, 3, 4, 5]
         const array2 = copy(array)
         const clone = pop(array2)
@@ -15,15 +15,15 @@ describe('pop()', () => {
         expect(clone).not.toBe(array)
     })
 
-    it('same behaviour as Array.prototype.pop', () => {
+    it(`same behaviour as Array.prototype.pop`, () => {
         const array = [0, 1, 2, 3, 4, 5]
         const clone = pop(array)
         array.pop()
         expect(clone).toEqual(array)
     })
 
-    it('works on array-likes', () => {
-        const arraylike = { 0: 'zero', 1: 'one', length: 2 }
+    it(`works on array-likes`, () => {
+        const arraylike = { 0: `zero`, 1: `one`, length: 2 }
 
         const clone = pop(arraylike)
         Array.prototype.pop.call(arraylike)

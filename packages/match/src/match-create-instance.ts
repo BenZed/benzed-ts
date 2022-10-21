@@ -28,8 +28,8 @@ function signatureToOptions<I, O>(
     const option = config[args.length]
     if (!option) {
         throw new Error(
-            'Invalid signature, requires ' +
-            `${Object.keys(config).join(' or ')} parameters.`
+            `Invalid signature, requires ` +
+            `${Object.keys(config).join(` or `)} parameters.`
         )
     }
 
@@ -87,7 +87,7 @@ function matchCreateInstance<I, O extends OutputArray, OT>(
                 1: { output: 0 },
                 2: { input: 0, output: 1 }
             }),
-            operation: 'fall'
+            operation: `fall`
         }) ?? match
 
     match.discard = (...args: unknown[]) =>
@@ -96,7 +96,7 @@ function matchCreateInstance<I, O extends OutputArray, OT>(
                 0: SIGNATURE_OK,
                 1: { input: 0 }
             }),
-            operation: 'discard'
+            operation: `discard`
         }) ?? match as ReturnType<MatchInProgress<I, any>['discard']>
 
     match.keep = ((...args) => {

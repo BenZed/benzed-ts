@@ -1,9 +1,9 @@
 import copy from '../copy'
 import sort from './sort'
 
-describe('sort()', () => {
+describe(`sort()`, () => {
 
-    it('does not mutate original array', () => {
+    it(`does not mutate original array`, () => {
         const array = [1, 0, 4, 2, 5, 3]
         const array2 = copy(array)
         const array3 = sort(array2)
@@ -15,15 +15,15 @@ describe('sort()', () => {
         expect(array3).not.toEqual(array2)
     })
 
-    it('same behaviour as Array.prototype.sort', () => {
+    it(`same behaviour as Array.prototype.sort`, () => {
         const array = [1, 0, 4, 2, 5, 3]
         const clone = sort(array)
         array.sort()
         expect(clone).toEqual(array)
     })
 
-    it('works on array-likes', () => {
-        const arraylike = { 0: 'base', 1: 'ace', length: 2 }
+    it(`works on array-likes`, () => {
+        const arraylike = { 0: `base`, 1: `ace`, length: 2 }
 
         const clone = sort(arraylike)
         Array.prototype.sort.call(arraylike)

@@ -30,29 +30,29 @@ class GenericSchema<
 
     protected _typeValidator = new TypeValidator<O>({
 
-        name: this._input.name.replace(/^is/, '') || 'unknown',
+        name: this._input.name.replace(/^is/, ``) || `unknown`,
         //    ^ isType -> Type
 
-        error: (value, typeName, article) => typeName === 'unknown' 
+        error: (value, typeName, article) => typeName === `unknown` 
             ? `${value} is invalid` 
-            : `must be ${article ? article + ' ' + typeName : typeName}`,
+            : `must be ${article ? article + ` ` + typeName : typeName}`,
 
         is: this._input
     })
 
-    public constructor (input: TypeGuard<O>, ...flags: F) {
+    constructor (input: TypeGuard<O>, ...flags: F) {
         super(input, ...flags)
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, GenericSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, GenericSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => GenericSchema<I,O>
+    override readonly clearFlags!: () => GenericSchema<I,O>
 
 }
 

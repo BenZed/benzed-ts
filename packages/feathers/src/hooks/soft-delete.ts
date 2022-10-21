@@ -40,7 +40,7 @@ interface SoftDeleteQueryProperty {
 
 function softDeleteQueryParam(): SoftDeleteQueryProperty {
     return {
-        enum: ['restore', true, false]
+        enum: [`restore`, true, false]
     }
 }
 
@@ -55,8 +55,8 @@ function softDelete<
 >(options?: SoftDeleteOptions): AroundHookFunction<unknown, S> {
 
     const {
-        deleteField = 'deleted',
-        deleteQueryParam = '$deleted'
+        deleteField = `deleted`,
+        deleteQueryParam = `$deleted`
     } = options ?? {}
 
     return async function (context, next) {
@@ -66,25 +66,25 @@ function softDelete<
         // Parse $delete query param
         const deleteParam = consumeDeleteQueryParam(params.query, deleteQueryParam)
         const includeDeleted = deleteParam === true
-        const restoreDeleted = deleteParam === 'restore'
-        if (restoreDeleted && method !== 'patch') {
+        const restoreDeleted = deleteParam === `restore`
+        if (restoreDeleted && method !== `patch`) {
             throw new BadRequest(
                 `Invalid ${deleteQueryParam} param value: ` +
-                '\'restore\' can only be used with the \'patch\' method.'
+                `'restore' can only be used with the 'patch' method.`
             )
         }
-        if (includeDeleted && method === 'create') {
+        if (includeDeleted && method === `create`) {
             throw new BadRequest(
                 `${deleteQueryParam} param cannot be used with the 'create' method.`
             )
         }
 
         // Ignore create method
-        if (method === 'create')
+        if (method === `create`)
             return next()
 
         // Handle found records
-        if (method === 'find' && !includeDeleted) {
+        if (method === `find` && !includeDeleted) {
             context.params.query = {
                 ...params.query,
                 [deleteField]: {
@@ -92,7 +92,7 @@ function softDelete<
                 }
             }
         }
-        if (method === 'find')
+        if (method === `find`)
             return next()
 
         if (id === undefined)
@@ -107,12 +107,12 @@ function softDelete<
             throw new NotFound(`No removed record found for id '${id}'`)
 
         // prevent a second unneccessary call to the database
-        if (method === 'get')
+        if (method === `get`)
             context.result = record
 
         else if (
-            method === 'remove' && !includeDeleted ||
-            method === 'patch' && restoreDeleted
+            method === `remove` && !includeDeleted ||
+            method === `patch` && restoreDeleted
         ) {
             context.result = await _service.$patch(
                 id,

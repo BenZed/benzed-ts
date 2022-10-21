@@ -54,13 +54,13 @@ class ArraySchema<
 
     /**/> extends ParentSchema<I, ApplyMutable<F, O>, F> {
 
-    public get $item(): I {
+    get $item(): I {
         return this._input
     }
 
     protected _typeValidator = new TypeValidator({
-        name: 'array',
-        article: 'an',
+        name: `array`,
+        article: `an`,
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,
         cast: tryCastToArray
     })
@@ -81,7 +81,7 @@ class ArraySchema<
         const output = [...input]
 
         for (let i = 0; i < output.length; i++) {
-            output[i] = childSchema['_validate'](
+            output[i] = childSchema[`_validate`](
                 output[i],
                 {
                     ...context,
@@ -95,25 +95,25 @@ class ArraySchema<
 
     /*** Schema Chain Methods ***/
 
-    public override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+    override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
         return super.default(defaultValue ?? [] as any)
     }
 
-    public length(...input: LengthValidatorSettingsShortcut): this {
+    length(...input: LengthValidatorSettingsShortcut): this {
         const settings = toLengthValidatorSettings(input)
 
-        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
+        return this._copyWithPostTypeValidator(`length`, new LengthValidator(settings))
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, ArraySchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, ArraySchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => ArraySchema<I, O>
+    override readonly clearFlags!: () => ArraySchema<I, O>
 
 }
 

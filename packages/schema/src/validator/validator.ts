@@ -44,24 +44,24 @@ abstract class Validator<
     /*** State ***/
 
     private _settings: S
-    public get settings(): Readonly<S> {
+    get settings(): Readonly<S> {
         return this._settings
     }
 
     /*** Construction ***/
 
-    public constructor (settings: S) {
+    constructor (settings: S) {
         this._settings = this._stripUndefinedSettings(settings) as S
         this._onApplySettings()
     }
 
     /*** Validation ***/
 
-    public abstract validate(input: I, allowTransform: boolean): I | O
+    abstract validate(input: I, allowTransform: boolean): I | O
 
     /*** Helpers ***/
 
-    public applySettings(settings: Partial<S>): void {
+    applySettings(settings: Partial<S>): void {
 
         this._settings = {
             ...this._settings,
@@ -75,12 +75,12 @@ abstract class Validator<
 
     /*** CopyComparable Implementation ***/
 
-    public [$$equals](other: unknown): other is this {
+    [$$equals](other: unknown): other is this {
         return isInstanceOf(other, this.constructor) &&
             equals(other.settings, this.settings)
     }
 
-    public [$$copy](): this {
+    [$$copy](): this {
         const ThisValidator = this.constructor as new (settings: S) => this
         return new ThisValidator(this.settings)
     }
@@ -111,7 +111,7 @@ abstract class TransformValidator<I, O extends I = I, S extends object = NoSetti
 
     protected abstract _transform(input: I): I | O
 
-    public validate(input: I, allowTransform: boolean): I | O {
+    validate(input: I, allowTransform: boolean): I | O {
         return allowTransform ? this._transform(input) : input
     }
 
@@ -131,7 +131,7 @@ abstract class AssertTransformValidator<
 
     protected abstract _assert(input: I): asserts input is O
 
-    public validate(input: I, allowTransform: boolean): O {
+    validate(input: I, allowTransform: boolean): O {
         const output = super.validate(input, allowTransform)
 
         this._assert(output)
@@ -166,7 +166,7 @@ abstract class AssertValidator<O, S extends ErrorSettings>
         return input
     }
 
-    public override validate(input: O): O {
+    override validate(input: O): O {
         return super.validate(input, false)
     }
 

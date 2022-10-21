@@ -37,10 +37,10 @@ function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): stri
 
         const input = inputs[i]
         if (input.at(index) !== char)
-            return ''
+            return ``
     }
 
-    return char ?? ''
+    return char ?? ``
 
 }
 
@@ -50,7 +50,7 @@ function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): stri
  */
 function createCommon(input: string[], offset: number, fromEnd: boolean): string {
 
-    let common = ''
+    let common = ``
     while (input.length > 0) {
 
         const currentOffset = offset + common.length

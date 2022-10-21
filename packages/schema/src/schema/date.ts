@@ -37,40 +37,40 @@ function tryCastToDate(value: unknown): unknown {
 class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'date',
-        article: 'a',
+        name: `date`,
+        article: `a`,
         is: isValidDate,
         cast: tryCastToDate
     })
 
-    public constructor (...flags: F) {
+    constructor (...flags: F) {
         super( new Date(), ...flags)
     }
 
     /*** Chain Schema Methods ***/
 
-    public range(...input: RangeValidatorSettingsShortcut<Date>): this {
+    range(...input: RangeValidatorSettingsShortcut<Date>): this {
         return this._copyWithPostTypeValidator(
-            'range',
+            `range`,
             new RangeValidator(
                 toRangeValidatorSettings(input)
             )
         )
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F,
     /**/ never,
     /**/ DateSchema<AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F,
     /**/ never,
     /**/ DateSchema<AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => DateSchema
+    override readonly clearFlags!: () => DateSchema
 
 }
 

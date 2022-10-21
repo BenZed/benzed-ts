@@ -4,20 +4,20 @@ import path from 'path'
 
 // eslint-disable-next-line no-unused-vars
 
-describe('until', () => {
+describe(`until`, () => {
 
-    describe('config', () => {
+    describe(`config`, () => {
 
-        describe('condition function', () => {
+        describe(`condition function`, () => {
 
-            it('determines when while loop closes', async () => {
+            it(`determines when while loop closes`, async () => {
                 let i = 0
                 const ms = await until(() => ++i > 1)
                 expect(i).toBe(2)
                 expect(ms >= 25).toBe(true)
             })
 
-            it('takes delta ms as argument', async () => {
+            it(`takes delta ms as argument`, async () => {
                 let _delta = 0
                 await until(delta => (_delta = delta) >= 25)
 
@@ -25,9 +25,9 @@ describe('until', () => {
             })
         })
 
-        describe('timeout', () => {
+        describe(`timeout`, () => {
 
-            it('maximum time, in milliseconds, while loop can run', async () => {
+            it(`maximum time, in milliseconds, while loop can run`, async () => {
 
                 expect.assertions(1)
 
@@ -40,20 +40,20 @@ describe('until', () => {
                         }
                     )
                 } catch (e: unknown) {
-                    expect((e as Error).message).toContain('Could not resolve condition in 20 ms')
+                    expect((e as Error).message).toContain(`Could not resolve condition in 20 ms`)
                 }
             })
 
-            it('defaults to infinity', () => {
+            it(`defaults to infinity`, () => {
                 // lol
-                const str = fs.readFileSync(path.join(__dirname, 'until.ts'))
+                const str = fs.readFileSync(path.join(__dirname, `until.ts`))
 
-                expect(str.toString()).toContain('DEFAULT_TIMEOUT = Infinity')
+                expect(str.toString()).toContain(`DEFAULT_TIMEOUT = Infinity`)
             })
         })
 
-        describe('interval', () => {
-            it('condition is checked every <interval> ms', async () => {
+        describe(`interval`, () => {
+            it(`condition is checked every <interval> ms`, async () => {
                 let i = 0
                 const ms = await until(
                     () => i++ === 3,
@@ -63,7 +63,7 @@ describe('until', () => {
 
                 expect(ms >= 15 && ms < 20).toBe(true)
             })
-            it('defaults to 25', async () => {
+            it(`defaults to 25`, async () => {
                 let _switch = true
                 const ms = await until(() => {
                     _switch = !_switch; return _switch
@@ -73,8 +73,8 @@ describe('until', () => {
             })
         })
 
-        describe('timeoutMsg', () => {
-            it('message to throw in error if while loop times out', async () => {
+        describe(`timeoutMsg`, () => {
+            it(`message to throw in error if while loop times out`, async () => {
                 expect.assertions(1)
 
                 try {
@@ -83,19 +83,19 @@ describe('until', () => {
                         {
                             interval: 1,
                             timeout: 10,
-                            timeoutMsg: 'if it cannot be done in 10 milliseconds, it cannot be done'
+                            timeoutMsg: `if it cannot be done in 10 milliseconds, it cannot be done`
                         }
                     )
                 } catch (e: unknown) {
                     expect((e as Error).message)
-                        .toContain('if it cannot be done in 10 milliseconds, it cannot be done')
+                        .toContain(`if it cannot be done in 10 milliseconds, it cannot be done`)
                 }
             })
 
         })
     })
 
-    it('returns number of milliseconds waiting took', async () => {
+    it(`returns number of milliseconds waiting took`, async () => {
         const ms = await until(
             (delta: number) => delta > 10,
             {

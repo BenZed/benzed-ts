@@ -16,7 +16,7 @@ export function max<T extends Sortable>(...params: readonly T[]): T {
     }
 
     if (current === undefined)
-        throw new Error('At least one argument must be provided.')
+        throw new Error(`At least one argument must be provided.`)
 
     return current
 }
@@ -38,7 +38,7 @@ export function min<T extends Sortable>(...params: readonly T[]): T {
     }
 
     if (current === undefined)
-        throw new Error('At least one argument must be provided.')
+        throw new Error(`At least one argument must be provided.`)
 
     return current
 }

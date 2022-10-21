@@ -4,9 +4,9 @@ import { isEven, isMultipleOf, isNegative, isOdd, isPositive } from './is-math'
 const EVEN_NUMBERS = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 const ODD_NUMBERS = EVEN_NUMBERS.map(num => num - 1)
 
-describe('isEven()', () => {
+describe(`isEven()`, () => {
 
-    describe('returns true if input is even', () => {
+    describe(`returns true if input is even`, () => {
 
         for (const even of EVEN_NUMBERS) {
             it(`${even} === true`, () => {
@@ -15,7 +15,7 @@ describe('isEven()', () => {
         }
     })
 
-    describe('returns false if input is odd', () => {
+    describe(`returns false if input is odd`, () => {
 
         for (const odd of ODD_NUMBERS) {
             it(`${odd} === false`, () => {
@@ -25,9 +25,9 @@ describe('isEven()', () => {
     })
 })
 
-describe('isOdd()', () => {
+describe(`isOdd()`, () => {
 
-    describe('returns true if input is even', () => {
+    describe(`returns true if input is even`, () => {
 
         for (const even of EVEN_NUMBERS) {
             it(`${even} === false`, () => {
@@ -36,7 +36,7 @@ describe('isOdd()', () => {
         }
     })
 
-    describe('returns false if input is odd', () => {
+    describe(`returns false if input is odd`, () => {
 
         for (const odd of ODD_NUMBERS) {
             it(`${odd} === true`, () => {
@@ -46,9 +46,9 @@ describe('isOdd()', () => {
     })
 })
 
-describe('isPositve()', () => {
+describe(`isPositve()`, () => {
 
-    describe('returns true if input is positive', () => {
+    describe(`returns true if input is positive`, () => {
         for (const [input, output] of [
             [1, true],
             [10, true],
@@ -61,7 +61,7 @@ describe('isPositve()', () => {
         }
     })
 
-    describe('returns false if input is negative', () => {
+    describe(`returns false if input is negative`, () => {
         for (const [input, output] of [
             [-1, false],
             [-10, false],
@@ -76,9 +76,9 @@ describe('isPositve()', () => {
 
 })
 
-describe('isPositve()', () => {
+describe(`isPositve()`, () => {
 
-    describe('returns false if input is positive', () => {
+    describe(`returns false if input is positive`, () => {
         for (const [input, output] of [
             [1, false],
             [10, false],
@@ -91,7 +91,7 @@ describe('isPositve()', () => {
         }
     })
 
-    describe('returns true if input is negative', () => {
+    describe(`returns true if input is negative`, () => {
         for (const [input, output] of [
             [-1, true],
             [-10, true],
@@ -105,9 +105,9 @@ describe('isPositve()', () => {
     })
 })
 
-describe('isMultipleOf', () => {
+describe(`isMultipleOf`, () => {
 
-    describe('returns true if the input is a multiple of a given number', () => {
+    describe(`returns true if the input is a multiple of a given number`, () => {
 
         for (const [input, multiple, output] of [
             [10, 1, true],

@@ -26,20 +26,20 @@ function onBenchmarkComplete(
     if (handler === undefined) {
         handler = [
             this.name,
-            wasAsync ? 'resolved' : 'completed',
+            wasAsync ? `resolved` : `completed`,
             syncResult === undefined
-                ? ''
-                : 'with value ' + String(syncResult),
+                ? ``
+                : `with value ` + String(syncResult),
 
             `in ${delta} ms`
 
-        ].filter(a => a).join(' ')
+        ].filter(a => a).join(` `)
     }
 
-    if (typeof handler === 'function')
-        handler = handler(delta, syncResult) || ''
+    if (typeof handler === `function`)
+        handler = handler(delta, syncResult) || ``
 
-    if (handler && typeof handler === 'string')
+    if (handler && typeof handler === `string`)
         console.log(handler, delta)
 }
 
@@ -73,7 +73,7 @@ function benchmark<A extends any[], R, T = void>(
 
         const onComplete = onBenchmarkComplete.bind({
             start: Date.now(),
-            name: func.name || 'task',
+            name: func.name || `task`,
             handler
         })
 

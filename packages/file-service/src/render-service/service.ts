@@ -37,7 +37,7 @@ interface RenderServiceSettings extends RendererConfig {
 
 /*** Helper ***/
 
-const isEventEmitter = (value: object): value is EventEmitter => 'emit' in value
+const isEventEmitter = (value: object): value is EventEmitter => `emit` in value
 
 /*** Main ***/
 
@@ -76,17 +76,17 @@ class RenderService {
 
         const socket = await this._getConnectionSocket(params)
         if (!socket)
-            throw new MethodNotAllowed('only socket.io clients may create a renderer')
+            throw new MethodNotAllowed(`only socket.io clients may create a renderer`)
 
         const existing = this._renderAgents.get(socket.id)
         if (existing)
-            throw new BadRequest('renderer already created for this connection')
+            throw new BadRequest(`renderer already created for this connection`)
 
         const { settings } = this
 
         this._createRenderAgent(socket)
 
-        socket.once('disconnect', () => {
+        socket.once(`disconnect`, () => {
             if (this._renderAgents.has(socket.id)) 
                 this.remove(socket.id)
         })
@@ -114,7 +114,7 @@ class RenderService {
     async remove(id: RenderAgentData['_id'], params?: Params): Promise<RenderAgentData> {
 
         if (params?.provider)
-            throw new MethodNotAllowed('Method \'remove\' not allowed')
+            throw new MethodNotAllowed(`Method 'remove' not allowed`)
 
         const renderer = await this._assertGetRenderer(id)
 
@@ -139,8 +139,8 @@ class RenderService {
     }
 
     setup(): Promise<void> {
-        this._files.on('patched', this.ensureFileQueued.bind(this))
-        this._files.on('removed', this.ensureFileUnqueued.bind(this))
+        this._files.on(`patched`, this.ensureFileQueued.bind(this))
+        this._files.on(`removed`, this.ensureFileUnqueued.bind(this))
         return Promise.resolve()
     }
 
@@ -160,16 +160,16 @@ class RenderService {
 
     isRenderable(file: File): boolean {
 
-        const [broadType] = file.type.split('/')
+        const [broadType] = file.type.split(`/`)
 
         const types = Object.values(this.settings).map(s => s.type)
-        if (types.includes('video') && broadType === 'video')
+        if (types.includes(`video`) && broadType === `video`)
             return true 
 
-        if (types.includes('image') && broadType === 'video' || broadType === 'image')
+        if (types.includes(`image`) && broadType === `video` || broadType === `image`)
             return true 
 
-        if (types.includes('audio') && broadType === 'audio')
+        if (types.includes(`audio`) && broadType === `audio`)
             return true 
 
         return false
@@ -222,14 +222,14 @@ class RenderService {
 
         const onRenderAgentUpdate = (): void => {
             this._emitRenderRecordEvent(
-                'updated',
+                `updated`,
                 renderAgent.toJSON()
             )
         }
 
-        renderAgent.queue.on('start', onRenderAgentUpdate)
-        renderAgent.queue.on('error', onRenderAgentUpdate)
-        renderAgent.queue.on('complete', onRenderAgentUpdate)
+        renderAgent.queue.on(`start`, onRenderAgentUpdate)
+        renderAgent.queue.on(`error`, onRenderAgentUpdate)
+        renderAgent.queue.on(`complete`, onRenderAgentUpdate)
 
         this._renderAgents.set(renderAgent._id, renderAgent)
         return renderAgent
@@ -250,7 +250,7 @@ class RenderService {
 
     private async _getConnectionSocket(params?: Params): Promise<Socket | null> {
 
-        if (!params?.connection || params?.provider !== 'socketio')
+        if (!params?.connection || params?.provider !== `socketio`)
             return null
 
         for await (const socket of this._sockets()) {
@@ -277,7 +277,7 @@ class RenderService {
             return Promise.reject(
                 new NotFound(
                     id === SERVER_RENDERER_ID 
-                        ? 'server renderer not found'
+                        ? `server renderer not found`
                         : `renderer could not be found for id '${id}'`
                 )
             )

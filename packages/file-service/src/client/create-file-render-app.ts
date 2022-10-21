@@ -51,7 +51,7 @@ interface FileRenderAppSettings {
 function untilConnect(app: FileRenderApp): Promise<void> {
     return new Promise(resolve => 
         app.io.on(
-            'connect', 
+            `connect`, 
             resolve
         )
     )
@@ -61,8 +61,8 @@ async function start(
     app: FileRenderApp
 ): Promise<void> {
 
-    const service = app.service('files/render')
-    const host = app.get('host')
+    const service = app.service(`files/render`)
+    const host = app.get(`host`)
 
     const { settings } = await service.create({ maxConcurrent: 1 })
 
@@ -71,8 +71,8 @@ async function start(
         maxConcurrent: Object.keys(settings).length 
     })
 
-    app.set('renderer', renderer)
-    app.io.on('render', async (
+    app.set(`renderer`, renderer)
+    app.io.on(`render`, async (
         file: File, 
         reply: (data: RenderAgentResult[]) => void
     ) => {
@@ -108,13 +108,13 @@ export default async function createFileRenderApp(
     app.connect = thisShift(untilConnect)
     app.start = thisShift(start)
 
-    app.set('host', host)
+    app.set(`host`, host)
 
     // Setup Auth
     if (auth) {
         app.configure(
             fauth({
-                storageKey: 'benzed-client-renderer'
+                storageKey: `benzed-client-renderer`
             })
         )
     }

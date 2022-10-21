@@ -5,11 +5,11 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
 
     const type = typeof input
 
-    return type === 'string' ||
+    return type === `string` ||
 
-        type === 'object' &&
+        type === `object` &&
         input !== null &&
-        typeof (input as Iterable<T>)[Symbol.iterator] === 'function'
+        typeof (input as Iterable<T>)[Symbol.iterator] === `function`
 
 }
 
@@ -26,7 +26,7 @@ function* iterate<T>(
 
 ): Generator<T> {
 
-    if (typeof input === 'string' || 'length' in input) {
+    if (typeof input === `string` || `length` in input) {
 
         // ArrayLike<T>
         for (let i = 0; i < input.length; i++)

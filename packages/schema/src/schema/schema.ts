@@ -88,7 +88,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     protected readonly abstract _typeValidator: TypeValidator<O>
     private _postTypeValidators: Map<string | number, Validator<O>> = new Map()
 
-    public get validators(): readonly [
+    get validators(): readonly [
         DefaultValidator<O>,
         TypeValidator<O>,
         ...Validator<O>[]
@@ -100,13 +100,13 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         ]
     }
 
-    public get typeName(): string {
+    get typeName(): string {
         return this._typeValidator.settings.name
     }
 
     /*** Construct ***/
 
-    public constructor (input: I, ...flags: F) {
+    constructor (input: I, ...flags: F) {
         this._input = input
         this._flags = flags
         this.is = this.is.bind(this)
@@ -131,7 +131,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     /*** Data Methods ***/
 
-    public is(input: unknown): input is ApplyOptional<F, O> {
+    is(input: unknown): input is ApplyOptional<F, O> {
         try {
             this.assert(input)
             return true
@@ -140,17 +140,17 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         }
     }
 
-    public assert(input: unknown): asserts input is ApplyOptional<F, O> {
+    assert(input: unknown): asserts input is ApplyOptional<F, O> {
         void this._validate(input, { transform: false })
     }
 
-    public validate(input: unknown): ApplyOptional<F, O> {
+    validate(input: unknown): ApplyOptional<F, O> {
         return this._validate(input, { transform: true })
     }
 
     /*** Schema Methods ***/
 
-    public name(
+    name(
         option: TypeSetting<O, 'name'> | Partial<Pick<TypeValidatorSettings<O>, 'name' | 'article'>>
     ): this {
 
@@ -159,15 +159,15 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this._copyWithTypeValidatorSettings({ name, article })
     }
 
-    public cast(cast: TypeSetting<O, 'cast'>): this {
+    cast(cast: TypeSetting<O, 'cast'>): this {
         return this._copyWithTypeValidatorSettings({ cast })
     }
 
-    public error(error: TypeSetting<O, 'error'>): this {
+    error(error: TypeSetting<O, 'error'>): this {
         return this._copyWithTypeValidatorSettings({ error })
     }
 
-    public default(defaultValue: DefaultSetting<O, 'default'>): this {
+    default(defaultValue: DefaultSetting<O, 'default'>): this {
 
         const newSchema = this[$$copy]()
         newSchema._applyDefaultValue(defaultValue)
@@ -177,7 +177,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     /**
      * Adds a custom configurable validator.
      */
-    public validates(
+    validates(
         ...input: CustomValidatorSettingsShortcut<O>
     ): this {
         return this._copyWithLoosePostTypeValidator(
@@ -196,13 +196,13 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
      *     schema.validates({ transform, isValid: () => true })
      * ```
      */
-    public transforms(
+    transforms(
         transform: CustomTransform<O>['transform']
     ): this {
         return this.validates({
             transform,
             isValid: pass,
-            error: '' // validator will never throw.
+            error: `` // validator will never throw.
         })
     }
 
@@ -215,7 +215,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
      *      schema.validates({ isValid, error: i => `${i} is invalid` })
      * ```
      */
-    public asserts(
+    asserts(
         isValid: CustomAssert<O>['isValid'],
         error: CustomValidatorSettings<O>['error'] = i => `${i} is invalid`
     ): this {
@@ -228,23 +228,23 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     /**
      * get schema with optional flag
      */
-    public abstract readonly optional: unknown 
-    public get isOptional(): boolean {
+    abstract readonly optional: unknown 
+    get isOptional(): boolean {
         return this._flags.includes(Flags.Optional)
     }
 
     /**
      * gets schema with mutable flag 
      */
-    public abstract readonly mutable: unknown 
-    public get isMutable(): boolean {
+    abstract readonly mutable: unknown 
+    get isMutable(): boolean {
         return this._flags.includes(Flags.Mutable)
     }
 
     /**
      * @returns schema without optional or mutable flags.
      */
-    public readonly clearFlags = (() => this._copyWithInputAndFlags(this._input)) as unknown
+    readonly clearFlags = (() => this._copyWithInputAndFlags(this._input)) as unknown
 
     /*** Main ***/
 
@@ -276,7 +276,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
                 if (isUndefinedPostDefaultValidation && isOptional)
                     return output as ApplyOptional<F, O>
                 else if (isUndefinedPostDefaultValidation && !isOptional)
-                    throw new Error('is required')
+                    throw new Error(`is required`)
 
             } catch ({ message }) {
                 throw new ValidationError(
@@ -377,11 +377,11 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 
     /*** CopyComparable Implemention ***/
 
-    public [$$copy](): this {
+    [$$copy](): this {
         return this._copyWithInputAndFlags(this._input, ...this._flags)
     }
 
-    public [$$equals](other: unknown): other is this {
+    [$$equals](other: unknown): other is this {
         return (
             // is this schema
             isInstanceOf(other, this.constructor) &&
@@ -398,7 +398,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
 abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     extends Schema<I, I, F> {
 
-    public get $identity(): I {
+    get $identity(): I {
         return this._input
     }
 }
@@ -426,7 +426,7 @@ abstract class ParentSchema<I, O, F extends Flags[]>
         return this._validateChildren(output, context) as ApplyOptional<F, O>
     }
 
-    public get $(): I {
+    get $(): I {
         return this._input
     }
 

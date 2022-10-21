@@ -39,7 +39,7 @@ function isInstanceOf<T extends (Typeable<any>)[]>(
 ): input is IsOfTypeable<typeof types[number]> {
 
     if (types.length === 0)
-        throw new Error('At least one type is required.')
+        throw new Error(`At least one type is required.`)
 
     let alreadyTested = false
     for (const type of types) {

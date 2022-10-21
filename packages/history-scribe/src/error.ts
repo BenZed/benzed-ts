@@ -3,9 +3,9 @@
 
 class HistoryInvalidError extends Error {
 
-    public constructor (message: string) {
-        super('History output invalid: ' + message)
-        this.name = 'HistoryInvalidError'
+    constructor (message: string) {
+        super(`History output invalid: ` + message)
+        this.name = `HistoryInvalidError`
     }
 
 }

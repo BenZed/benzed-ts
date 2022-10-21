@@ -16,7 +16,7 @@ class TrimValidator extends AssertValidTransformValidator<string, TrimValidatorS
 
     protected _getErrorDefaultAndArgs(input: string): ErrorDefaultAndArgs<TrimValidatorSettings> {
         return [
-            'cannot begin or end with whitespace',
+            `cannot begin or end with whitespace`,
             input
         ]
     }

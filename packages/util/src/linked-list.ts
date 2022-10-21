@@ -192,7 +192,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
         let index = forward ? 0 : this._size - 1
         let current = forward ? this._first : this._last
         const delta = forward ? 1 : -1
-        const nextKey = forward ? 'next' : 'prev'
+        const nextKey = forward ? `next` : `prev`
 
         while (current) {
             yield [current, index]
@@ -211,7 +211,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
             index: number
         }
 
-        const isIndex = typeof at === 'number'
+        const isIndex = typeof at === `number`
         if (isIndex && at as number < 0)
             at = at as number + this.size
 
@@ -232,10 +232,10 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
         if (assert && !found.item) {
             throw new Error(
-                typeof at === 'object'
-                    ? 'Item not in list.'
+                typeof at === `object`
+                    ? `Item not in list.`
                     : this.isEmpty
-                        ? 'List is empty.'
+                        ? `List is empty.`
                         : `No value at index ${at}.`
             )
         }

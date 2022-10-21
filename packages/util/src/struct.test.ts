@@ -7,15 +7,15 @@ import Struct from './struct'
     
 /*** Example ***/
 
-it('allows creation of sealed instance-less plain objects with class syntax', () => {
+it(`allows creation of sealed instance-less plain objects with class syntax`, () => {
 
     const Vector = Struct.define(class {
 
         static is(input: unknown): input is { x: number, y: number } {
-            return typeof input === 'object' && 
+            return typeof input === `object` && 
                 input !== null && 
-                typeof (input as any).x === 'number' && 
-                typeof (input as any).y === 'number'
+                typeof (input as any).x === `number` && 
+                typeof (input as any).y === `number`
         }
 
         static from(input: { x: number, y: number }) {

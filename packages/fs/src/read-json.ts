@@ -8,7 +8,7 @@ async function readJson<T>(
     assert?: (input: unknown) => asserts input is T
 ): Promise<T> {
 
-    const str = await readFile(url, 'utf-8')
+    const str = await readFile(url, `utf-8`)
     const json = JSON.parse(str) as unknown
 
     assert?.(json)

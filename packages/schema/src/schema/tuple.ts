@@ -49,19 +49,19 @@ class TupleSchema<
 /**/> extends ParentSchema<I, ApplyMutable<F, O>, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'tuple',
-        article: 'a',
+        name: `tuple`,
+        article: `a`,
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>
     })
 
-    public constructor (input: I, ...flags: F) {
+    constructor (input: I, ...flags: F) {
         super(input, ...flags)
 
         // Set length validator
         this._setPostTypeValidator(
-            'tuple-length',
+            `tuple-length`,
             new LengthValidator({
-                comparator: '==',
+                comparator: `==`,
                 value: input.length,
                 error: `must have exactly ${input.length} items`
             })
@@ -70,24 +70,24 @@ class TupleSchema<
 
     /*** Helper ***/
 
-    public get values(): I {
+    get values(): I {
         return this._input
     }
 
     /*** Chain Interface ***/
 
-    public default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
+    default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
 
         defaultValue ??= (): ApplyMutable<F, O> => {
             const output = [] as unknown[]
             for (const schema of this._input) {
 
                 // first used default validator output
-                let value = schema['_defaultValidator'].transform(undefined)
+                let value = schema[`_defaultValidator`].transform(undefined)
 
                 // use identify if primitive
                 if (value === undefined && schema instanceof PrimitiveSchema)
-                    value = schema['_input']
+                    value = schema[`_input`]
 
                 output.push(value)
             }
@@ -97,15 +97,15 @@ class TupleSchema<
         return super.default(defaultValue)
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => TupleSchema<I, O>
+    override readonly clearFlags!: () => TupleSchema<I, O>
 
     /*** Implementation ***/
 
@@ -120,7 +120,7 @@ class TupleSchema<
 
             const schema = this._input[i]
 
-            output[i] = schema['_validate'](output[i], {
+            output[i] = schema[`_validate`](output[i], {
                 ...context,
                 path: push(context.path, i)
             })

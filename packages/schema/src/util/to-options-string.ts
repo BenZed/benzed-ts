@@ -9,9 +9,9 @@ function toOptionsString(
     // c, ...ba
 
     return first.reverse() // ab
-        .join(', ') // a, b
+        .join(`, `) // a, b
         .concat(
-            last ? ` or ${last}` : ''
+            last ? ` or ${last}` : ``
         ) // a, b or c
 }
 

@@ -67,7 +67,7 @@ export function entryContainsData<T extends object, I>(
 ): entry is
     ({ method: 'patch', data: Partial<T> } | { method: 'create', data: T })
     & HistoryMeta<I> {
-    return 'data' in entry &&
+    return `data` in entry &&
         Object.keys(entry.data).length > 0
 }
 
@@ -81,7 +81,7 @@ export function resolveHistoryMeta<I>(
 ): HistoryMeta<I> {
 
     const partialMeta = is.object(signatureOrMeta) &&
-        ('signature' in signatureOrMeta || 'timestamp' in signatureOrMeta)
+        (`signature` in signatureOrMeta || `timestamp` in signatureOrMeta)
         ? signatureOrMeta
         : {
             signature: signatureOrMeta ?? null

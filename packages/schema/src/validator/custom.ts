@@ -9,7 +9,7 @@ import {
 
 /*** Constants ***/
 
-const CUSTOM_VALIDATOR_DEFAULT_ERROR = 'Validation failed'
+const CUSTOM_VALIDATOR_DEFAULT_ERROR = `Validation failed`
 
 /*** Type ***/
 
@@ -107,12 +107,12 @@ class CustomValidator<I, O extends I = I>
 
         const { settings } = this
 
-        this._isValid = 'isValid' in settings 
+        this._isValid = `isValid` in settings 
             ? settings.isValid
             : super._isValid
 
-        this._transform = 'transform' in settings 
-            ? settings['transform']
+        this._transform = `transform` in settings 
+            ? settings[`transform`]
             : i => i
     }
         

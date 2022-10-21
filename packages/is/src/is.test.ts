@@ -19,20 +19,20 @@ interface TestEachValueConfig {
 class Foo { }
 
 const SHORTCUTS = [
-    'string',
-    'number',
-    'boolean',
-    'object',
-    'function',
-    'symbol',
-    'array',
-    'date',
-    'promise',
-    'nan',
-    'plainObject',
-    'defined',
-    'truthy',
-    'falsy'
+    `string`,
+    `number`,
+    `boolean`,
+    `object`,
+    `function`,
+    `symbol`,
+    `array`,
+    `date`,
+    `promise`,
+    `nan`,
+    `plainObject`,
+    `defined`,
+    `truthy`,
+    `falsy`
 ]
 
 const TYPES = {
@@ -48,7 +48,7 @@ const TYPES = {
 }
 
 const VALUES = [
-    'string',
+    `string`,
     100,
     0,
     -1,
@@ -58,11 +58,11 @@ const VALUES = [
     undefined,
     null,
     function () { /* empty */ },
-    Symbol('symbol'),
+    Symbol(`symbol`),
     Promise.resolve(true),
     [],
     {},
-    { foo: 'bar' },
+    { foo: `bar` },
     { true: true },
     { false: false },
     { zero: 0, one: 1 },
@@ -100,14 +100,14 @@ function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): 
         }
 
         if (!atLeastOneFalse)
-            throw new Error(title + ' did not have a value that returned false')
+            throw new Error(title + ` did not have a value that returned false`)
 
         if (!atLeastOneTrue)
-            throw new Error(title + ' did not have a value that returned true')
+            throw new Error(title + ` did not have a value that returned true`)
     })
 }
 
-describe('is() shortcuts give same output as counterparts', () => {
+describe(`is() shortcuts give same output as counterparts`, () => {
     for (const property in TYPES) {
 
         const key = property as keyof typeof TYPES
@@ -136,34 +136,34 @@ describe('is() shortcuts give same output as counterparts', () => {
     }
 })
 
-describe('exotic shortcuts', () => {
+describe(`exotic shortcuts`, () => {
 
     testEachValue({
-        title: 'is.defined',
+        title: `is.defined`,
         test: is.defined,
         result: isDefined
     })
 
     testEachValue({
-        title: 'is.plainObject',
+        title: `is.plainObject`,
         test: is.plainObject,
         result: isPlainObject
     })
 
     testEachValue({
-        title: 'is.nan',
+        title: `is.nan`,
         test: is.nan,
         result: Number.isNaN
     })
 
     testEachValue({
-        title: 'is.truthy',
+        title: `is.truthy`,
         test: is.truthy,
         result: value => !!value
     })
 
     testEachValue({
-        title: 'is.falsy',
+        title: `is.falsy`,
         test: is.falsy,
         result: value => !value
     })

@@ -29,7 +29,7 @@ const getContext = <H extends HookContext>(context: H) => {
 }
 
 const getData = <H extends HookContext>(context: H) => {
-    const isPaginated = context.method === 'find' && context.result.data
+    const isPaginated = context.method === `find` && context.result.data
     const data = isPaginated ? context.result.data : context.result
 
     return { isPaginated, data }
@@ -44,7 +44,7 @@ const runResolvers = async <T, H extends HookContext>(
     let current: any = data
 
     for (const resolver of resolvers) {
-        if (resolver && typeof resolver.resolve === 'function') 
+        if (resolver && typeof resolver.resolve === `function`) 
             current = await resolver.resolve(current, ctx, status)
     
     }
@@ -67,10 +67,10 @@ export type ResolveAllSettings<H extends HookContext> = {
     dispatch?: Resolver<any, H>
 }
 
-export const $$dispatch = Symbol('@benzed/feathers/resolver/dispatch')
+export const $$dispatch = Symbol(`@benzed/feathers/resolver/dispatch`)
 
 export const getDispatch = (value: any) =>
-    typeof value === 'object' && value !== null && value[$$dispatch] !== undefined 
+    typeof value === `object` && value !== null && value[$$dispatch] !== undefined 
         ? value[$$dispatch] 
         : value
 
@@ -86,7 +86,7 @@ export const resolveQuery =
               query
           }
 
-          if (typeof next === 'function') 
+          if (typeof next === `function`) 
               return next()
     
       }
@@ -95,9 +95,9 @@ export const resolveData =
   <H extends HookContext>(settings: DataResolvers<H> | Resolver<any, H>) =>
       async (context: H, next?: NextFunction) => {
           if (
-              context.method === 'create' || 
-            context.method === 'patch' || 
-            context.method === 'update'
+              context.method === `create` || 
+            context.method === `patch` || 
+            context.method === `update`
           ) {
               const resolvers = settings instanceof Resolver 
                   ? [settings] 
@@ -118,7 +118,7 @@ export const resolveData =
       
           }
 
-          if (typeof next === 'function') 
+          if (typeof next === `function`) 
               return next()
     
       }
@@ -126,7 +126,7 @@ export const resolveData =
 export const resolveResult =
   <T, H extends HookContext>(...resolvers: Resolver<T, H>[]) =>
       async (context: H, next?: NextFunction) => {
-          if (typeof next === 'function') {
+          if (typeof next === `function`) {
               const { $resolve: properties, ...query } = context.params?.query || {}
               const resolve = {
                   originalContext: context,
@@ -163,7 +163,7 @@ export const resolveResult =
 export const resolveDispatch =
   <T, H extends HookContext>(...resolvers: Resolver<T, H>[]) =>
       async (context: H, next?: NextFunction) => {
-          if (typeof next === 'function') 
+          if (typeof next === `function`) 
               await next()
 
           const ctx = getContext(context)

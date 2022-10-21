@@ -37,14 +37,14 @@ type Signature = string
  */
 class HistoryScribe<T extends object, I = Signature> {
 
-    public static from<T extends object, I>(
+    static from<T extends object, I>(
         history: HistoryEntry<T, I>[]
     ): HistoryScribe<T, I> {
         return new HistoryScribe<T, I>({ history })
     }
 
-    public readonly options: Required<HistoryScribeOptions<T>>
-    public constructor (
+    readonly options: Required<HistoryScribeOptions<T>>
+    constructor (
         options: HistoryScribeOptions<T> & HistoryScribeInput<T, I> = {}
     ) {
 
@@ -58,13 +58,13 @@ class HistoryScribe<T extends object, I = Signature> {
             collapseMask
         }
 
-        this._history = 'data' in options && options.data
+        this._history = `data` in options && options.data
             ? [{
-                method: 'create',
+                method: `create`,
                 data: copy(options.data),
                 ...resolveHistoryMeta()
             }]
-            : 'history' in options && options.history
+            : `history` in options && options.history
                 ? wrap(copy(options.history))
                 : []
 
@@ -73,12 +73,12 @@ class HistoryScribe<T extends object, I = Signature> {
     }
 
     private readonly _history: HistoryEntry<T, I>[]
-    public get history(): readonly HistoryEntry<T, I>[] {
+    get history(): readonly HistoryEntry<T, I>[] {
         return [...this._history]
     }
 
     private readonly _data: Partial<T> = {}
-    public get data(): Readonly<T> {
+    get data(): Readonly<T> {
         return { ...this._data as T }
     }
 
@@ -88,9 +88,9 @@ class HistoryScribe<T extends object, I = Signature> {
      * @param signature Signature or meta data.
      * @returns HistoryScribe
      */
-    public create(data: T, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
+    create(data: T, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: 'create',
+            method: `create`,
             data,
             ...resolveHistoryMeta(signature)
         })
@@ -102,9 +102,9 @@ class HistoryScribe<T extends object, I = Signature> {
      * @param signature Signature or meta data.
      * @returns HistoryScribe 
      */
-    public patch(data: Partial<T>, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
+    patch(data: Partial<T>, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: 'patch',
+            method: `patch`,
             data,
             ...resolveHistoryMeta(signature)
         })
@@ -115,9 +115,9 @@ class HistoryScribe<T extends object, I = Signature> {
      * @param signature Signature or meta data. 
      * @returns HistoryScribe
      */
-    public remove(signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
+    remove(signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: 'remove',
+            method: `remove`,
             ...resolveHistoryMeta(signature)
         })
     }
@@ -126,7 +126,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * Create a new HistoryScribe with an appended entry.
      * @returns HistoryScribe
      */
-    public push(
+    push(
         entry: HistoryEntry<T, I>
     ): HistoryScribe<T, I> {
         return this.splice(
@@ -140,7 +140,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * Create a new HistoryScribe with the final entry removed.
      * @returns HistoryScribe
      */
-    public pop(): HistoryScribe<T, I> {
+    pop(): HistoryScribe<T, I> {
         return this.splice(
             this._history.length - 1,
             1
@@ -153,7 +153,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * @param indexOrDate Wrappable index or date
      * @returns HistoryScribe
      */
-    public revert(indexOrDate: number | Date | string): HistoryScribe<T, I> {
+    revert(indexOrDate: number | Date | string): HistoryScribe<T, I> {
         return this.splice(
             indexOrDate,
             this._history.length
@@ -168,7 +168,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * @param insert Entries to be added at the point of deletion.
      * @returns HistoryScribe
      */
-    public splice(
+    splice(
         startIndexOrDate: number | Date | string,
         deleteCount: number,
         ...insert: HistoryEntry<T, I>[]
@@ -188,7 +188,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * Create a new HistoryScribe with the given history replaced.
      * @returns HistoryScribe
      */
-    public replace(
+    replace(
         history: HistoryEntry<T, I>[]
     ): HistoryScribe<T, I> {
         const scribe = new HistoryScribe<T, I>(this.options)
@@ -200,10 +200,10 @@ class HistoryScribe<T extends object, I = Signature> {
      * Compile the history scribe into a historical obect.
      * @returns Historical
      */
-    public compile(): T & Historical<T, I> {
+    compile(): T & Historical<T, I> {
         const { _history: history, _data: data } = this
         if (history.length === 0)
-            throw new HistoryInvalidError('No entries.')
+            throw new HistoryInvalidError(`No entries.`)
 
         return copy({
             ...data as T,
@@ -216,7 +216,7 @@ class HistoryScribe<T extends object, I = Signature> {
     /**
      * Creates a deep copy of this scribe with the same state. 
      */
-    public copy(): HistoryScribe<T, I> {
+    copy(): HistoryScribe<T, I> {
         return this[$$copy]()
     }
 
@@ -224,7 +224,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * Is this history scribe equal to another?
      * @param other 
      */
-    public equals(other: HistoryScribe<T, I>): other is HistoryScribe<T, I> {
+    equals(other: HistoryScribe<T, I>): other is HistoryScribe<T, I> {
         return this[$$equals](other)
     }
 
@@ -261,34 +261,34 @@ class HistoryScribe<T extends object, I = Signature> {
 
             // assert sorted chronologicaly
             if (!isSameAgeOrOlder(valid.prevEntryTimeStamp, entry.timestamp))
-                throw new HistoryInvalidError('Entries must be in chronological order.')
+                throw new HistoryInvalidError(`Entries must be in chronological order.`)
             else
                 valid.prevEntryTimeStamp = entry.timestamp
 
             // handle Entry
             switch (entry.method) {
 
-                case 'create': {
+                case `create`: {
                     // validate create entry
                     if (!isFirstIndex)
-                        throw new HistoryInvalidError('"create" entry must be first.')
+                        throw new HistoryInvalidError(`"create" entry must be first.`)
 
                     // update valid data to include create data
                     valid.data.push({ ...entry.data })
                     break
                 }
 
-                case 'patch': {
+                case `patch`: {
                     // validate patch entry
                     if (isFirstIndex) {
                         throw new HistoryInvalidError(
-                            '"patch" entry must be placed after a "create" entry.'
+                            `"patch" entry must be placed after a "create" entry.`
                         )
                     }
 
                     if (valid.removeEntryExists) {
                         throw new HistoryInvalidError(
-                            '"patch" entry cannot be after a "remove" entry.'
+                            `"patch" entry cannot be after a "remove" entry.`
                         )
                     }
 
@@ -321,18 +321,18 @@ class HistoryScribe<T extends object, I = Signature> {
                     break
                 }
 
-                case 'remove': {
+                case `remove`: {
                     // validate remove entry
                     if (isFirstIndex) {
                         throw new HistoryInvalidError(
-                            '"remove" entry must be be placed after a "create" entry.'
+                            `"remove" entry must be be placed after a "create" entry.`
                         )
                     }
 
                     if (!valid.removeEntryExists)
                         valid.removeEntryExists = true
                     else
-                        throw new HistoryInvalidError('There can only be one "remove" entry.')
+                        throw new HistoryInvalidError(`There can only be one "remove" entry.`)
                     break
                 }
             }
@@ -343,7 +343,7 @@ class HistoryScribe<T extends object, I = Signature> {
 
         // validate num entries
         if (valid.history.length === 0)
-            throw new HistoryInvalidError('No entries.')
+            throw new HistoryInvalidError(`No entries.`)
 
         // apply validated history & data
         this._history.length = 0
@@ -360,7 +360,7 @@ class HistoryScribe<T extends object, I = Signature> {
             return false
 
         // only patch entries can be merged
-        if (target.method !== 'patch')
+        if (target.method !== `patch`)
             return false
 
         // no collapsing data with keys in the collapse mask

@@ -6,8 +6,8 @@
 function isArrayLike<T>(input: unknown): input is ArrayLike<T> {
 
     return input !== null &&
-        typeof input === 'object' &&
-        typeof (input as ArrayLike<T>).length === 'number'
+        typeof input === `object` &&
+        typeof (input as ArrayLike<T>).length === `number`
 }
 
 /*** Exports ***/

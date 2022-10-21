@@ -4,12 +4,12 @@ import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
 
 /*** Helper ***/
 
-const $size = $.integer.range('>', 0)
+const $size = $.integer.range(`>`, 0)
 
 const $directory = $.string
     .asserts(fs.sync.exists, dir => `'${dir}' does not exist`)
-    .asserts(dir => fs.sync.stat(dir).isDirectory(), 'must be a directory')
-    .name('directory')
+    .asserts(dir => fs.sync.stat(dir).isDirectory(), `must be a directory`)
+    .name(`directory`)
 
 export interface AwsConfig extends Infer<typeof $awsConfig> {}
 export const $awsConfig = $({
@@ -26,14 +26,14 @@ export interface FileServiceConfig extends Infer<typeof $fileServiceConfig> {}
 export const $fileServiceConfig = $({
     
     fs: $.or( $directory, $.null )
-        .name('fs-config'),
+        .name(`fs-config`),
 
     s3: $.or( $awsConfig, $.null )
-        .name('aws-config'),
+        .name(`aws-config`),
 
     path: $.string
-        .format(/^\/([a-z]|-)+/, 'must be a path')
-        .name('path'),
+        .format(/^\/([a-z]|-)+/, `must be a path`)
+        .name(`path`),
 
     pagination: $pagination,
 })
@@ -58,7 +58,7 @@ export const $filePayload = $({
         })
     )
 
-}).name('file-payload')
+}).name(`file-payload`)
 
 /*** File ***/
 
@@ -70,7 +70,7 @@ export const $fileData = $({
     uploader: $ref,
 
     ext: $.string
-        .format(/^\.([a-z]|\d)+$/i, 'must be a file extension'),
+        .format(/^\.([a-z]|\d)+$/i, `must be a file extension`),
     
     type: $.string,
     size: $size,
@@ -106,7 +106,7 @@ export const $fileCreateData = $({
 
     name: $file.$
         .name
-        .format(/\.([a-z]|\d)+$/i, 'must have file extension'),
+        .format(/\.([a-z]|\d)+$/i, `must have file extension`),
 
     uploader: $file.$.uploader,
     size: $file.$.size,

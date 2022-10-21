@@ -30,8 +30,8 @@ class IntersectionSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator<O>({
-        name: 'object',
-        article: 'an',
+        name: `object`,
+        article: `an`,
         is: isObject as (input: unknown) => input is O
     })
 
@@ -48,7 +48,7 @@ class IntersectionSchema<
 
             Object.assign(
                 output as any,
-                schema['_validate'](input, context)
+                schema[`_validate`](input, context)
             )
         }
 
@@ -57,19 +57,19 @@ class IntersectionSchema<
 
     /*** Schema methods ***/
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F,
     /**/ never,
     /**/ IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F,
     /**/ never,
     /**/ IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => IntersectionSchema<I, O>
+    override readonly clearFlags!: () => IntersectionSchema<I, O>
 
 }
 

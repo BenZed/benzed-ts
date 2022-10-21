@@ -1,7 +1,7 @@
 import { getInternalServiceMethods } from './get-internal-service-methods'
 
-describe('getInternalServiceMethods', () => {
+describe(`getInternalServiceMethods`, () => {
 
-    it.todo('returns a service with internal methods exposed')
+    it.todo(`returns a service with internal methods exposed`)
 
 })

@@ -1,9 +1,9 @@
 import copy from '../copy'
 import shuffle from './shuffle'
 
-describe('shuffle()', () => {
+describe(`shuffle()`, () => {
 
-    it('does not mutate original array', () => {
+    it(`does not mutate original array`, () => {
         const array = [0, 1, 2, 3, 4, 5]
         const array2 = copy(array)
         const clone = shuffle(array2)
@@ -15,7 +15,7 @@ describe('shuffle()', () => {
         expect(clone).not.toBe(array)
     })
 
-    it('same behaviour as @benzed/array/shuffle', () => {
+    it(`same behaviour as @benzed/array/shuffle`, () => {
         const array = [0, 1, 2, 3, 4, 5]
         const clone = shuffle(array)
         shuffle(array)
@@ -24,11 +24,11 @@ describe('shuffle()', () => {
         expect(clone.length).toEqual(array.length)
     })
 
-    it('works on array-likes', () => {
+    it(`works on array-likes`, () => {
 
         const arraylike = {
-            0: 'base',
-            1: 'ace',
+            0: `base`,
+            1: `ace`,
             length: 2
         }
 

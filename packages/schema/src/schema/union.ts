@@ -50,15 +50,15 @@ class UnionSchema<
 
     /*** Schema Interface ***/
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, UnionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, UnionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => UnionSchema<I, O>
+    override readonly clearFlags!: () => UnionSchema<I, O>
 
 }
 

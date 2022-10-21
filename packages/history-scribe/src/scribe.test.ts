@@ -1,6 +1,6 @@
 import HistoryScribe from './scribe'
 
-describe('HistoryScribe class', () => {
+describe(`HistoryScribe class`, () => {
 
     type Structure = {
         floors: {
@@ -11,21 +11,21 @@ describe('HistoryScribe class', () => {
         finished: boolean
     }
 
-    describe('construction', () => {
-        it('has default options', () => {
+    describe(`construction`, () => {
+        it(`has default options`, () => {
             const scribe = new HistoryScribe()
             expect(scribe.options.collapseInterval).toBe(0)
         })
     })
 
-    describe('create', () => {
-        it('returns a new object with initialized history property', () => {
+    describe(`create`, () => {
+        it(`returns a new object with initialized history property`, () => {
             const scribe = new HistoryScribe<Structure>()
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
@@ -33,7 +33,7 @@ describe('HistoryScribe class', () => {
             expect(structure).toEqual({
                 ...data,
                 history: [{
-                    method: 'create',
+                    method: `create`,
                     data,
                     timestamp: expect.any(Number),
                     signature: null
@@ -42,13 +42,13 @@ describe('HistoryScribe class', () => {
         })
     })
 
-    describe('patch', () => {
+    describe(`patch`, () => {
 
-        it('throws if provided date meta-data is not in order', () => {
+        it(`throws if provided date meta-data is not in order`, () => {
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
@@ -56,18 +56,18 @@ describe('HistoryScribe class', () => {
 
             expect(() => {
                 scribe.patch({
-                    stage: 'painting' as const
+                    stage: `painting` as const
                 }, {
                     timestamp: new Date(2019, 1, 1).getTime()
                 })
             }).toThrow()
         })
 
-        it('undefined data is ignored', () => {
+        it(`undefined data is ignored`, () => {
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
@@ -75,7 +75,7 @@ describe('HistoryScribe class', () => {
                 .create(data)
                 .patch({
                     stage: undefined,
-                    type: 'commercial'
+                    type: `commercial`
                 })
 
             const structure = scribe.compile()
@@ -83,43 +83,43 @@ describe('HistoryScribe class', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const patchEntryData = (structure.history.at(-1) as any)?.data
             expect(patchEntryData).toEqual({
-                type: 'commercial'
+                type: `commercial`
             })
-            expect('stage' in patchEntryData).toBe(false)
-            expect(structure).toHaveProperty('stage', 'carpentry')
+            expect(`stage` in patchEntryData).toBe(false)
+            expect(structure).toHaveProperty(`stage`, `carpentry`)
         })
 
-        it('returns a new object with updated history property', () => {
+        it(`returns a new object with updated history property`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
             const scribe1 = new HistoryScribe<Structure>({ data })
 
             const scribe2 = scribe1.patch({
-                stage: 'painting' as const,
+                stage: `painting` as const,
             })
 
             expect(scribe2).not.toBe(scribe1) // proof of immutability
             expect(scribe2.compile()).not.toBe(scribe1.compile())
             expect(scribe2.compile()).toEqual({
                 ...data,
-                stage: 'painting',
+                stage: `painting`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'painting'
+                            stage: `painting`
                         },
                         timestamp: expect.any(Number),
                         signature: null
@@ -128,12 +128,12 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('collapses multiple updates with matching meta data into one', () => {
+        it(`collapses multiple updates with matching meta data into one`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
@@ -141,25 +141,25 @@ describe('HistoryScribe class', () => {
                 collapseInterval: 1000,
                 data
             }).patch({
-                stage: 'painting' as const,
+                stage: `painting` as const,
             }).patch({
-                stage: 'finishing' as const,
+                stage: `finishing` as const,
             })
 
             expect(scribe.compile()).toEqual({
                 ...data,
-                stage: 'finishing',
+                stage: `finishing`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'finishing'
+                            stage: `finishing`
                         },
                         timestamp: expect.any(Number),
                         signature: null
@@ -168,20 +168,20 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('throws if no create entry is on the history stack', () => {
+        it(`throws if no create entry is on the history stack`, () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const scribe = new HistoryScribe<any>()
 
             expect(() => {
                 scribe.patch({
-                    stage: 'painting' as const,
+                    stage: `painting` as const,
                 })
             }).toThrow(
-                'History output invalid: "patch" entry must be placed after a "create" entry.'
+                `History output invalid: "patch" entry must be placed after a "create" entry.`
             )
         })
 
-        it('throws if a remove entry is on the history stack', () => {
+        it(`throws if a remove entry is on the history stack`, () => {
 
             const scribe = new HistoryScribe<Structure>()
 
@@ -189,25 +189,25 @@ describe('HistoryScribe class', () => {
                 scribe
                     .create({
                         floors: [{ rooms: 1 }, { rooms: 2 }],
-                        stage: 'carpentry' as const,
-                        type: 'industrial' as const,
+                        stage: `carpentry` as const,
+                        type: `industrial` as const,
                         finished: false
                     })
                     .remove()
                     .patch({
-                        stage: 'painting' as const,
+                        stage: `painting` as const,
                     })
-            }).toThrow('History output invalid: "patch" entry cannot be after a "remove" entry.')
+            }).toThrow(`History output invalid: "patch" entry cannot be after a "remove" entry.`)
         })
 
-        it('empty entries are ignored', () => {
+        it(`empty entries are ignored`, () => {
             const scribe = new HistoryScribe<Structure>()
 
             const structure = scribe
                 .create({
                     floors: [{ rooms: 1 }, { rooms: 2 }],
-                    stage: 'carpentry' as const,
-                    type: 'industrial' as const,
+                    stage: `carpentry` as const,
+                    type: `industrial` as const,
                     finished: false
                 })
                 .patch({})
@@ -216,103 +216,103 @@ describe('HistoryScribe class', () => {
             expect(structure.history).toHaveLength(1)
         })
 
-        it('patches that do not change any properties are ignored', () => {
+        it(`patches that do not change any properties are ignored`, () => {
             const scribe = new HistoryScribe<Structure>({ collapseInterval: 0 })
                 .create({
                     floors: [{ rooms: 1 }, { rooms: 2 }],
-                    stage: 'carpentry',
-                    type: 'industrial',
+                    stage: `carpentry`,
+                    type: `industrial`,
                     finished: false
                 })
                 .patch({
-                    stage: 'painting'
+                    stage: `painting`
                 })
 
             const structure1 = scribe.compile()
 
             const structure2 = scribe
                 .patch({
-                    stage: 'painting',
+                    stage: `painting`,
                 })
                 .compile()
 
             expect(structure1).toEqual(structure2)
         })
 
-        it('properties in patches that make no changes are omitted in history', () => {
+        it(`properties in patches that make no changes are omitted in history`, () => {
             const scribe = new HistoryScribe<Structure>()
                 .create({
                     floors: [{ rooms: 1 }, { rooms: 2 }],
-                    stage: 'carpentry',
-                    type: 'industrial',
+                    stage: `carpentry`,
+                    type: `industrial`,
                     finished: false
                 })
                 .patch({
                     floors: [{ rooms: 1 }, { rooms: 2 }],
-                    stage: 'painting',
+                    stage: `painting`,
                 })
 
             expect(scribe.compile().history).toEqual([{
-                method: 'create',
+                method: `create`,
                 data: {
                     floors: [{ rooms: 1 }, { rooms: 2 }],
-                    stage: 'carpentry',
-                    type: 'industrial',
+                    stage: `carpentry`,
+                    type: `industrial`,
                     finished: false
                 },
                 timestamp: expect.any(Number),
                 signature: null
             }, {
-                method: 'patch',
+                method: `patch`,
                 data: {
-                    stage: 'painting',
+                    stage: `painting`,
                 },
                 timestamp: expect.any(Number),
                 signature: null
             }])
         })
 
-        it('redundant patches are correctly ignored after collapsing', () => {
+        it(`redundant patches are correctly ignored after collapsing`, () => {
             const scribe = new HistoryScribe<Structure>({
                 collapseInterval: 500
             })
                 .create(
                     {
                         floors: [{ rooms: 1 }, { rooms: 2 }],
-                        stage: 'carpentry' as const,
-                        type: 'industrial' as const,
+                        stage: `carpentry` as const,
+                        type: `industrial` as const,
                         finished: false
                     },
                     { timestamp: new Date(1000).getTime() }
                 ).patch(
-                    { stage: 'painting' },
+                    { stage: `painting` },
                     { timestamp: new Date(2000).getTime() }
                 ).patch(
-                    { stage: 'painting' },
+                    { stage: `painting` },
                     { timestamp: new Date(3000).getTime() }
                 ).patch(
-                    { stage: 'painting' },
+                    { stage: `painting` },
                     { timestamp: new Date(3400).getTime() }
                 )
 
             const structure = scribe.compile()
 
-            expect(structure.stage).toBe('painting')
+            expect(structure.stage).toBe(`painting`)
             expect(structure.history).toEqual([
                 {
-                    method: 'create',
+                    method: `create`,
                     data: {
                         floors: [{ rooms: 1 }, { rooms: 2 }],
-                        stage: 'carpentry' as const,
-                        type: 'industrial' as const,
+                        stage: `carpentry` as const,
+                        type: `industrial` as const,
                         finished: false
                     },
                     signature: null,
                     timestamp: 1000
                 }, {
-                    method: 'patch',
+                    method: `patch`,
                     data: {
-                        stage: 'painting'
+                        stage: `painting`
                     },
                     signature: null,
                     timestamp: 2000
@@ -320,35 +320,35 @@ describe('HistoryScribe class', () => {
             ])
         })
 
-        it('patches containing data with collapseBlockKeys will not be collapsed', () => {
+        it(`patches containing data with collapseBlockKeys will not be collapsed`, () => {
             const scribe = new HistoryScribe<Structure>({
                 collapseInterval: 500,
-                collapseMask: ['stage'] as const
+                collapseMask: [`stage`] as const
             })
             const structure = scribe
                 .create({
                     floors: [{ rooms: 1 }, { rooms: 2 }],
-                    stage: 'carpentry' as const,
-                    type: 'industrial' as const,
+                    stage: `carpentry` as const,
+                    type: `industrial` as const,
                     finished: false
                 })
-                .patch({ stage: 'painting' })
-                .patch({ stage: 'finishing' })
-                .patch({ stage: 'finishing' })
+                .patch({ stage: `painting` })
+                .patch({ stage: `finishing` })
+                .patch({ stage: `finishing` })
                 .compile()
 
             expect(structure.history).toHaveLength(3)
         })
     })
 
-    describe('remove', () => {
+    describe(`remove`, () => {
 
-        it('returns a new object with updated history property', () => {
+        it(`returns a new object with updated history property`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
@@ -364,13 +364,13 @@ describe('HistoryScribe class', () => {
                 ...data,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'remove',
+                        method: `remove`,
                         timestamp: expect.any(Number),
                         signature: null
                     }
@@ -378,62 +378,62 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('consecutive remove entries are thrown', () => {
+        it(`consecutive remove entries are thrown`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
             const scribe = new HistoryScribe<Structure>({ data })
 
             expect(() => scribe.remove().remove())
-                .toThrow('History output invalid: There can only be one "remove" entry.')
+                .toThrow(`History output invalid: There can only be one "remove" entry.`)
         })
 
-        it('throws if no create entry is on the history stack', () => {
+        it(`throws if no create entry is on the history stack`, () => {
             const scribe = new HistoryScribe<Structure>()
 
             expect(() => scribe.remove()).toThrow()
         })
     })
 
-    describe('revert', () => {
+    describe(`revert`, () => {
 
-        it('returns a new historical object omitting changes from index', () => {
+        it(`returns a new historical object omitting changes from index`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
                 .patch({
-                    stage: 'painting' as const,
+                    stage: `painting` as const,
                 })
                 .patch({
-                    stage: 'finishing' as const,
+                    stage: `finishing` as const,
                 })
                 .revert(2)
 
             expect(scribe.compile()).toEqual({
                 ...data,
-                stage: 'painting',
+                stage: `painting`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'painting'
+                            stage: `painting`
                         },
                         timestamp: expect.any(Number),
                         signature: null
@@ -442,36 +442,36 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('returns a new historical object with entries after revert date removed', () => {
+        it(`returns a new historical object with entries after revert date removed`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data, { timestamp: new Date(1000).getTime() })
-                .patch({ stage: 'painting' }, { timestamp: new Date(2000).getTime() })
-                .patch({ stage: 'finishing', }, { timestamp: new Date(3000).getTime() })
+                .patch({ stage: `painting` }, { timestamp: new Date(2000).getTime() })
+                .patch({ stage: `finishing`, }, { timestamp: new Date(3000).getTime() })
                 .patch({ finished: true }, { timestamp: new Date(4000).getTime() })
                 .revert(new Date(2500))
 
             expect(scribe.compile()).toEqual({
                 ...data,
-                stage: 'painting',
+                stage: `painting`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'painting'
+                            stage: `painting`
                         },
                         timestamp: expect.any(Number),
                         signature: null
@@ -480,35 +480,35 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('index can be wrapped', () => {
+        it(`index can be wrapped`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
-                .patch({ stage: 'painting' })
-                .patch({ stage: 'finishing' })
+                .patch({ stage: `painting` })
+                .patch({ stage: `finishing` })
                 .revert(-1)
 
             expect(scribe.compile()).toEqual({
                 ...data,
-                stage: 'painting',
+                stage: `painting`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'painting'
+                            stage: `painting`
                         },
                         timestamp: expect.any(Number),
                         signature: null
@@ -517,13 +517,13 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('throws on index 0', () => {
+        it(`throws on index 0`, () => {
             const scribe = new HistoryScribe<Structure>()
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
@@ -531,51 +531,51 @@ describe('HistoryScribe class', () => {
                 scribe
                     .create(data)
                     .revert(0)
-            }).toThrow('History output invalid: No entries.')
+            }).toThrow(`History output invalid: No entries.`)
         })
     })
 
-    describe('replace', () => {
+    describe(`replace`, () => {
 
-        it('allows a historical object to be built out of a series of entries', () => {
+        it(`allows a historical object to be built out of a series of entries`, () => {
 
             const scribeOriginal = new HistoryScribe<Structure>()
                 .create({
                     floors: [{ rooms: 4 }],
-                    stage: 'painting' as const,
-                    type: 'residential' as const,
+                    stage: `painting` as const,
+                    type: `residential` as const,
                     finished: true
                 })
 
             const scribeReplaced = scribeOriginal.replace([
                 {
-                    method: 'create',
+                    method: `create`,
                     data: {
                         floors: [{ rooms: 1 }, { rooms: 2 }],
-                        stage: 'carpentry' as const,
-                        type: 'industrial' as const,
+                        stage: `carpentry` as const,
+                        type: `industrial` as const,
                         finished: false
                     },
                     signature: null,
                     timestamp: new Date(1000).getTime()
                 },
                 {
-                    method: 'patch',
+                    method: `patch`,
                     data: {
-                        stage: 'painting'
+                        stage: `painting`
                     },
                     signature: null,
                     timestamp: new Date(2000).getTime()
                 },
                 {
-                    method: 'patch',
+                    method: `patch`,
                     data: {
                         finished: true
                     },
                     signature: null,
                     timestamp: new Date(3000).getTime()
                 }, {
-                    method: 'remove',
+                    method: `remove`,
                     signature: null,
                     timestamp: new Date(4000).getTime()
                 }
@@ -584,35 +584,35 @@ describe('HistoryScribe class', () => {
             expect(scribeReplaced.compile()).toEqual({
                 floors: [{ rooms: 1 }, { rooms: 2 }],
                 finished: true,
-                stage: 'painting',
-                type: 'industrial',
+                stage: `painting`,
+                type: `industrial`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data: {
                             floors: [{ rooms: 1 }, { rooms: 2 }],
-                            stage: 'carpentry' as const,
-                            type: 'industrial' as const,
+                            stage: `carpentry` as const,
+                            type: `industrial` as const,
                             finished: false
                         },
                         signature: null,
                         timestamp: 1000
                     }, {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'painting'
+                            stage: `painting`
                         },
                         signature: null,
                         timestamp: 2000
                     }, {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
                             finished: true
                         },
                         signature: null,
                         timestamp: 3000
                     }, {
-                        method: 'remove',
+                        method: `remove`,
                         signature: null,
                         timestamp: 4000
                     }
@@ -622,24 +622,24 @@ describe('HistoryScribe class', () => {
 
     })
 
-    describe('splice', () => {
+    describe(`splice`, () => {
 
-        it('returns a new historical object with entries removed', () => {
+        it(`returns a new historical object with entries removed`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
                 .patch({
-                    stage: 'painting' as const,
+                    stage: `painting` as const,
                 })
                 .patch({
-                    stage: 'finishing' as const,
+                    stage: `finishing` as const,
                 })
                 .patch({
                     finished: true,
@@ -649,24 +649,24 @@ describe('HistoryScribe class', () => {
 
             expect(scribe.compile()).toEqual({
                 ...data,
-                stage: 'painting',
+                stage: `painting`,
                 history: [
                     {
-                        method: 'create',
+                        method: `create`,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: `patch`,
                         data: {
-                            stage: 'painting'
+                            stage: `painting`
                         },
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'remove',
+                        method: `remove`,
                         timestamp: expect.any(Number),
                         signature: null
                     }
@@ -674,25 +674,25 @@ describe('HistoryScribe class', () => {
             })
         })
 
-        it('throws if operation results in an invalid entry list', () => {
+        it(`throws if operation results in an invalid entry list`, () => {
 
             const data = {
                 floors: [{ rooms: 1 }, { rooms: 2 }],
-                stage: 'carpentry' as const,
-                type: 'industrial' as const,
+                stage: `carpentry` as const,
+                type: `industrial` as const,
                 finished: false
             }
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
                 .patch({
-                    stage: 'painting' as const,
+                    stage: `painting` as const,
                 })
                 .remove()
 
             expect(() => scribe.splice(0, 1))
                 .toThrow(
-                    'History output invalid: "patch" entry must be placed after a "create" entry.'
+                    `History output invalid: "patch" entry must be placed after a "create" entry.`
                 )
         })
     })

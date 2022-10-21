@@ -25,7 +25,7 @@ function _pick<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _P
 export function pick<T extends object, TK extends _Keys<T>>(...keys: TK): (input:T) => _Pick<T, TK>
 export function pick<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Pick<T, TK>
 export function pick(...input: any[]): any {
-    if (typeof input[0] === 'object')
+    if (typeof input[0] === `object`)
         return _pick(...input as [any])
     
     return (i: any) => _pick(i, ...input)
@@ -45,7 +45,7 @@ function _omit<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _O
 export function omit<T extends object, TK extends _Keys<T>>(...keys: TK): (input:T) => _Omit<T, TK>
 export function omit<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Omit<T, TK> 
 export function omit(...input: any[]): any {
-    if (typeof input[0] === 'object')
+    if (typeof input[0] === `object`)
         return _omit(...input as [any])
 
     return (i: any) => _omit(i, ...input)

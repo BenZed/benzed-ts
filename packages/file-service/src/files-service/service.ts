@@ -125,7 +125,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
     private async _createUrl(file: File, action: FilePayload['action']): Promise<string> {
 
         if (!file.uploader)
-            throw new BadRequest('Uploader is required.')
+            throw new BadRequest(`Uploader is required.`)
         
         const payload: FilePayload = {
             uploader: file.uploader,

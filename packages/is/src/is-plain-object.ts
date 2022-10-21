@@ -12,7 +12,7 @@ function isPlainObject<T extends object>(input: unknown): input is T {
         return proto === Object.prototype || proto === null
     }
 
-    return Object.prototype.toString.call(input) === '[object Object]'
+    return Object.prototype.toString.call(input) === `[object Object]`
 }
 
 /*** Main ***/

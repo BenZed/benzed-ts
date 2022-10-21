@@ -1,6 +1,6 @@
 import { memoize, returns } from './common'
 
-it('memoize()', () => {
+it(`memoize()`, () => {
 
     let calls = 0 
 
@@ -20,11 +20,11 @@ it('memoize()', () => {
     expect(calls).toEqual(2)
 })
 
-it('returns()', () => {
+it(`returns()`, () => {
 
-    const toFoo = returns('foo')
+    const toFoo = returns(`foo`)
 
-    expect(toFoo()).toEqual('foo')
-    expect(returns('foo')).toEqual(toFoo)
+    expect(toFoo()).toEqual(`foo`)
+    expect(returns(`foo`)).toEqual(toFoo)
 
 })

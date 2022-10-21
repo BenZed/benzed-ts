@@ -55,7 +55,7 @@ type CaseValidatorSettingsShortcut<C extends Casing> = Delimiter<C> extends neve
     ]
 
 function isDelimitedCasing(casing: Casing): casing is 'dash' | 'camel' | 'pascal' {
-    return casing === 'dash' || casing === 'camel' || casing === 'pascal'
+    return casing === `dash` || casing === `camel` || casing === `pascal`
 }
 
 /*** Constants ***/
@@ -110,19 +110,19 @@ class CaseValidator<C extends Casing>
 
         switch (settings.case) {
 
-            case 'lower': {
+            case `lower`: {
                 return input.toLocaleLowerCase()
             }
 
-            case 'upper': {
+            case `upper`: {
                 return input.toLocaleUpperCase()
             }
 
-            case 'capital': {
+            case `capital`: {
                 return capitalize(input)
             }
 
-            case 'dash': {
+            case `dash`: {
 
                 const delimiter = isString(settings.delimiter)
                     ? settings.delimiter
@@ -131,14 +131,14 @@ class CaseValidator<C extends Casing>
                 return toDashCase(input, delimiter)
             }
 
-            case 'camel': {
+            case `camel`: {
 
                 const { delimiter = SPACE_DASH_UNDERSCORE } = settings
 
                 return toCamelCase(input, delimiter)
             }
 
-            case 'pascal': {
+            case `pascal`: {
 
                 const { delimiter = SPACE_DASH_UNDERSCORE } = settings
 

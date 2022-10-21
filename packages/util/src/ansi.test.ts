@@ -1,5 +1,5 @@
 
-describe('ansi string decorator', () => {
+describe(`ansi string decorator`, () => {
 
-    it.todo('Decorates strings with ansi codes')
+    it.todo(`Decorates strings with ansi codes`)
 }) 

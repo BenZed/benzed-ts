@@ -19,14 +19,14 @@ export const isUnique = <T extends string | number | boolean, S extends Service>
     context: HookContext<unknown, S>
 ) => {
 
-    if (value !== undefined && value !== '') {
+    if (value !== undefined && value !== ``) {
 
         const { service, id } = context
 
         const result = await service.find({
             query: {
                 [targetField]: value,
-                $select: ['_id'],
+                $select: [`_id`],
             }
         }).then(toPaginated) as Paginated<{ _id: string }>
 
@@ -37,7 +37,7 @@ export const isUnique = <T extends string | number | boolean, S extends Service>
             .length === 0
 
         if (!isUnique)
-            throw new Error('must be unique')
+            throw new Error(`must be unique`)
     }
 
     return value

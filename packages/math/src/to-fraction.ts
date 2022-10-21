@@ -11,7 +11,7 @@ function getNumberOfDecimalPlaces(value: number): number {
         ? 0
         : value
             .toString()
-            .split('.')[1]
+            .split(`.`)[1]
             .length
 }
 
@@ -33,7 +33,7 @@ function getGreatestCommonDivisor(numerator: number, denominator: number): numbe
 function toFraction(value: number): Fraction {
 
     if (Number.isNaN(value))
-        throw new Error('cannot convert NaN to a fraction')
+        throw new Error(`cannot convert NaN to a fraction`)
 
     const denominator = pow(10, getNumberOfDecimalPlaces(value))
     const numerator = value * denominator

@@ -57,74 +57,74 @@ function tryCastToString(value: unknown): unknown {
 class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'string',
-        article: 'a',
+        name: `string`,
+        article: `a`,
         is: isString,
         cast: tryCastToString
     })
 
-    public constructor (...flags: F) {
-        super('', ...flags)
+    constructor (...flags: F) {
+        super(``, ...flags)
     }
 
     /*** Chain Schema Methods ***/
 
-    public trim(settings?: TrimValidatorSettings): this {
-        return this._copyWithPostTypeValidator('trim', new TrimValidator({ ...settings }))
+    trim(settings?: TrimValidatorSettings): this {
+        return this._copyWithPostTypeValidator(`trim`, new TrimValidator({ ...settings }))
     }
 
-    public format(...input: FormatValidatorSettingsShortcut): this {
-        return this._copyWithPostTypeValidator('format', new FormatValidator(
+    format(...input: FormatValidatorSettingsShortcut): this {
+        return this._copyWithPostTypeValidator(`format`, new FormatValidator(
             toFormatValidatorSettings(input)
         ))
     }
 
-    public upperCase(...input: CaseValidatorSettingsShortcut<'upper'>): this {
-        return this._copyWithCaseValidator(input, 'upper')
+    upperCase(...input: CaseValidatorSettingsShortcut<'upper'>): this {
+        return this._copyWithCaseValidator(input, `upper`)
     }
 
-    public lowerCase(...input: CaseValidatorSettingsShortcut<'lower'>): this {
-        return this._copyWithCaseValidator(input, 'lower')
+    lowerCase(...input: CaseValidatorSettingsShortcut<'lower'>): this {
+        return this._copyWithCaseValidator(input, `lower`)
     }
 
-    public camelCase(...input: CaseValidatorSettingsShortcut<'camel'>): this {
-        return this._copyWithCaseValidator(input, 'camel')
+    camelCase(...input: CaseValidatorSettingsShortcut<'camel'>): this {
+        return this._copyWithCaseValidator(input, `camel`)
     }
 
-    public pascalCase(...input: CaseValidatorSettingsShortcut<'pascal'>): this {
-        return this._copyWithCaseValidator(input, 'pascal')
+    pascalCase(...input: CaseValidatorSettingsShortcut<'pascal'>): this {
+        return this._copyWithCaseValidator(input, `pascal`)
     }
 
-    public dashCase(...input: CaseValidatorSettingsShortcut<'dash'>): this {
-        return this._copyWithCaseValidator(input, 'dash')
+    dashCase(...input: CaseValidatorSettingsShortcut<'dash'>): this {
+        return this._copyWithCaseValidator(input, `dash`)
     }
 
-    public capitalize(...input: CaseValidatorSettingsShortcut<'capital'>): this {
-        return this._copyWithCaseValidator(input, 'capital')
+    capitalize(...input: CaseValidatorSettingsShortcut<'capital'>): this {
+        return this._copyWithCaseValidator(input, `capital`)
     }
 
-    public length(...input: LengthValidatorSettingsShortcut): this {
+    length(...input: LengthValidatorSettingsShortcut): this {
         const settings = toLengthValidatorSettings(input)
-        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
+        return this._copyWithPostTypeValidator(`length`, new LengthValidator(settings))
     }
 
-    public default(defaultValue = ''): this {
+    default(defaultValue = ``): this {
         return super.default(defaultValue)
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F,
     /**/ never,
     /**/ StringSchema<AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F,
     /**/ never,
     /**/ StringSchema<AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => StringSchema
+    override readonly clearFlags!: () => StringSchema
 
     /*** CopyComparable ***/
 
@@ -134,7 +134,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
     ): this {
         const settings = toCaseValidatorSettings(input, casing)
 
-        return this._copyWithPostTypeValidator('case',
+        return this._copyWithPostTypeValidator(`case`,
             new CaseValidator(settings)
         )
     }

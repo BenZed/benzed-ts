@@ -53,8 +53,8 @@ class RecordSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'object',
-        article: 'an',
+        name: `object`,
+        article: `an`,
         is: (input): input is O => isObject(input),
     })
 
@@ -80,34 +80,34 @@ class RecordSchema<
             }
 
             const validKey = keySchema
-                ? keySchema['_validate'](key, keyContext) as typeof key
+                ? keySchema[`_validate`](key, keyContext) as typeof key
                 : key
 
-            output[validKey] = valueSchema['_validate'](value, keyContext)
+            output[validKey] = valueSchema[`_validate`](value, keyContext)
         }
 
         return output
     }
 
-    public get $key() : I[0] {
+    get $key() : I[0] {
         return this._input[0]
     }
 
-    public get $value() : I[1] {
+    get $value() : I[1] {
         return this._input[1]
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => RecordSchema<I, O>
+    override readonly clearFlags!: () => RecordSchema<I, O>
 
-    public override default(defaultValue = {} as O): this {
+    override default(defaultValue = {} as O): this {
         return super.default(defaultValue)
     }
 

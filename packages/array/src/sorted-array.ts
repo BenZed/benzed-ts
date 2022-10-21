@@ -27,7 +27,7 @@ function descending<T>(a: T, b: T): number {
 /*** Main ***/
 class SortedArray<T extends Sortable> extends Array<T> {
 
-    public constructor (...params: readonly T[]) {
+    constructor (...params: readonly T[]) {
 
         // initialize array with length
         super(params.length)
@@ -44,7 +44,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param sorter 
      * @returns 
      */
-    public sort(sorter: CompareFn<T> = ascending): this {
+    sort(sorter: CompareFn<T> = ascending): this {
 
         const { length } = this
 
@@ -68,7 +68,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
     /**
      * Returns true if the array is currently sorted.
      */
-    public get isSorted(): boolean {
+    get isSorted(): boolean {
         return isSortedArray(this)
     }
 
@@ -88,7 +88,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * 
      * ```
      */
-    public copy(): SortedArray<T> {
+    copy(): SortedArray<T> {
 
         const clone = new SortedArray<T>()
 
@@ -104,7 +104,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param value 
      * @returns found index or -1 if value cannot be found.
      */
-    public lastIndexOf(value: T): number {
+    lastIndexOf(value: T): number {
 
         let index = this._getIndexViaBinarySearch(value)
 
@@ -121,7 +121,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param value 
      * @returns found index or -1 if value cannot be found.
      */
-    public indexOf(value: T): number {
+    indexOf(value: T): number {
 
         let index = this._getIndexViaBinarySearch(value)
 
@@ -132,7 +132,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return index
     }
 
-    public reverse(): this {
+    reverse(): this {
         return super.reverse.call(this) as this
         // this needs to be implemented because the inherited Array['reverse']
         // method return type seems to be `Array<T>` instead of `this`

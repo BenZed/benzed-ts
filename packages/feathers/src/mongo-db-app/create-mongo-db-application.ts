@@ -59,29 +59,29 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
 ): MongoDBApplication<S, C> {
 
     const mode = function mode(): Env {
-        return (process.env.NODE_ENV ?? 'development') as Env
+        return (process.env.NODE_ENV ?? `development`) as Env
     }
 
     const log = createLogger({
-        header: '⚙️',
+        header: `⚙️`,
         timeStamp: true,
-        onLog: mode() === 'test'
+        onLog: mode() === `test`
             ? () => { /* no logging in test mode */ }
             : console.log.bind(console)
     })
 
     const db = function db(_collection: string): Promise<Collection> {
-        return Promise.reject(new Error('MongoDb not yet configured'))
+        return Promise.reject(new Error(`MongoDb not yet configured`))
     }
 
     const start = async function start(this: MongoDBApplication<S, C>): Promise<void> {
 
-        const name = this.get('name')
-        const port = this.get('port')
+        const name = this.get(`name`)
+        const port = this.get(`port`)
         const env = this.mode()
 
         await this.listen(port)
-        this.emit('listen', port, env)
+        this.emit(`listen`, port, env)
         this.log`${name} listening on port ${port} in ${env} mode`
     }
 

@@ -20,27 +20,27 @@ class MatchState<I, O> {
     private readonly _cases: MatchCase<I, O>[] = []
 
     private _finalized = false
-    public get finalized(): boolean {
+    get finalized(): boolean {
         return this._finalized
     }
 
-    public assertOutputCases(): void {
-        if (this._cases.filter(c => c.operation === 'output').length === 0)
-            throw new Error('No output cases have been defined.')
+    assertOutputCases(): void {
+        if (this._cases.filter(c => c.operation === `output`).length === 0)
+            throw new Error(`No output cases have been defined.`)
     }
 
-    public assertFinalized(
+    assertFinalized(
         finalized = true,
-        msg = `Cases have ${finalized ? 'not been' : 'been'} finalized.`
+        msg = `Cases have ${finalized ? `not been` : `been`} finalized.`
     ): void {
         if (this._finalized !== finalized)
             throw new Error(msg)
     }
 
-    public addCase(options: AddMatchCaseOptions<I, O>): null {
-        const { input, output, operation = 'output', finalize = false } = options
+    addCase(options: AddMatchCaseOptions<I, O>): null {
+        const { input, output, operation = `output`, finalize = false } = options
 
-        this.assertFinalized(false, 'No more cases may be defined.')
+        this.assertFinalized(false, `No more cases may be defined.`)
 
         this._cases.push({ input, output, operation })
 
@@ -50,12 +50,12 @@ class MatchState<I, O> {
         return null
     }
 
-    public finalize(): void {
-        this.assertFinalized(false, 'Cases are already finalized.')
+    finalize(): void {
+        this.assertFinalized(false, `Cases are already finalized.`)
         this._finalized = true
     }
 
-    public match(initial: I | O): { output: O } | null {
+    match(initial: I | O): { output: O } | null {
 
         let discarded = false
         let shouldYield = false
@@ -65,8 +65,8 @@ class MatchState<I, O> {
         // check value against all cases
         for (const { input, output, operation } of this._cases) {
 
-            const discard = operation === 'discard'
-            const fall = operation === 'fall'
+            const discard = operation === `discard`
+            const fall = operation === `fall`
 
             const isMatch = matchCheck(input, value)
             if (isMatch && !discard)
@@ -90,8 +90,8 @@ class MatchState<I, O> {
         return shouldYield ? { output: value as O } : null
     }
 
-    public *[Symbol.iterator](): Generator<O> {
-        throw new Error('No values to match.')
+    *[Symbol.iterator](): Generator<O> {
+        throw new Error(`No values to match.`)
     }
 }
 
@@ -102,14 +102,14 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
     private _yieldAtLeastOneValue = false
 
     private _iterator: Iterator<I | O> | null = null
-    public get iterator(): Iterator<I | O> {
+    get iterator(): Iterator<I | O> {
         const iterator = this._iterator ??= this._iterable[Symbol.iterator]()
         return iterator
     }
 
     // Constructor
 
-    public constructor (
+    constructor (
         private readonly _iterable: Iterable<I>
     ) {
         super()
@@ -118,7 +118,7 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
 
     // This is where the magic happens
 
-    public override *[Symbol.iterator](): Generator<O> {
+    override *[Symbol.iterator](): Generator<O> {
 
         this.assertOutputCases()
 
@@ -127,8 +127,8 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
         if (result.done) {
             throw new Error(
                 this._yieldAtLeastOneValue
-                    ? 'All values matched.'
-                    : 'No values to match.'
+                    ? `All values matched.`
+                    : `No values to match.`
             )
         }
 
@@ -146,7 +146,7 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
 
         // discard check
         if (!this._yieldAtLeastOneValue)
-            throw new Error('All values discarded.')
+            throw new Error(`All values discarded.`)
     }
 
 }

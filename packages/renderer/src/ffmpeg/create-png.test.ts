@@ -17,27 +17,27 @@ type TestInput = {
 }[]
 
 const testInput: TestInput = [
-    { options: {}, label: 'unspecified' },
-    { options: { progress: 0 }, label: 'beginning' },
-    { options: { progress: 0.5 }, label: 'middle' },
-    { options: { progress: 1 }, label: 'end' },
-    { options: { seconds: 0.25 }, label: 'time 1-4' },
-    { options: { seconds: 0.5 }, label: 'time 1-2' },
-    { options: { progress: 0.5, scale: 0.5 }, label: 'middle @ half size' },
-    { options: { progress: 0.5, dimensions: 40 }, label: 'middle @ dimensions 40' },
+    { options: {}, label: `unspecified` },
+    { options: { progress: 0 }, label: `beginning` },
+    { options: { progress: 0.5 }, label: `middle` },
+    { options: { progress: 1 }, label: `end` },
+    { options: { seconds: 0.25 }, label: `time 1-4` },
+    { options: { seconds: 0.5 }, label: `time 1-2` },
+    { options: { progress: 0.5, scale: 0.5 }, label: `middle @ half size` },
+    { options: { progress: 0.5, dimensions: 40 }, label: `middle @ dimensions 40` },
 ]
 
 const testInputWithStreams = testInput.map(option => ({
     ...option,
     stream: true,
-    label: 'stream ' + option.label
+    label: `stream ` + option.label
 }))
 
 const types = [
-    'mp4',
-    'gif',
-    'png',
-    'jpg'
+    `mp4`,
+    `gif`,
+    `png`,
+    `jpg`
 ] as const
 
 // input multiplied by scale to the nearest even integer
@@ -70,7 +70,7 @@ for (const type of types) {
 
             expect(fs.existsSync(outputUrl)).toEqual(true)
 
-            if ('scale' in options && isNumber(options.scale)) {
+            if (`scale` in options && isNumber(options.scale)) {
 
                 expect(outputMetadata.width)
                     .toEqual(
@@ -83,13 +83,13 @@ for (const type of types) {
                     )
             }
 
-            if ('width' in options && isNumber(options.width))
+            if (`width` in options && isNumber(options.width))
                 expect(outputMetadata.width).toEqual(options.width)
 
-            if ('height' in options && isNumber(options.height))
+            if (`height` in options && isNumber(options.height))
                 expect(outputMetadata.height).toEqual(options.height)
 
-            if ('dimensions' in options && isNumber(options.dimensions)) {
+            if (`dimensions` in options && isNumber(options.dimensions)) {
                 expect(outputMetadata.width).toEqual(options.dimensions)
                 expect(outputMetadata.height).toEqual(options.dimensions)
             }
@@ -97,11 +97,11 @@ for (const type of types) {
     }
 }
 
-it('gets metadata from render', async () => {
+it(`gets metadata from render`, async () => {
 
     const meta = await createPNG({
         input: TEST_ASSETS.mp4,
-        output: path.join(RENDER_FOLDER, 'png-for-meta.png'),
+        output: path.join(RENDER_FOLDER, `png-for-meta.png`),
         seconds: 0.25
     })
 

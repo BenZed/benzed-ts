@@ -21,7 +21,7 @@ export const isUniqueAsEndPoint = <
     S extends Service<R>
 >() => {
     
-    const unique = isUnique<string, S>('endpoint')
+    const unique = isUnique<string, S>(`endpoint`)
 
     return (value: string | undefined, _record: R, context: HookContext<any, S>) =>
         

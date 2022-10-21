@@ -4,10 +4,10 @@ import { isFunction } from '@benzed/is'
 
 export default class ValidationError extends Error {
 
-    public constructor (
+    constructor (
         msgOrFormat: string | ((path: readonly (string | number)[]) => string),
-        public readonly path: readonly (string | number)[],
-        public readonly value: unknown
+        readonly path: readonly (string | number)[],
+        readonly value: unknown
     ) {
 
         const message = isFunction(msgOrFormat)
@@ -16,7 +16,7 @@ export default class ValidationError extends Error {
 
         super(message)
 
-        this.name = 'ValidationError'
+        this.name = `ValidationError`
 
     }
 }

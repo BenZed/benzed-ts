@@ -3,7 +3,7 @@ import { Stack } from './stack'
 
 /*** Tests ***/
 
-it('is a collection of linked items', () => {
+it(`is a collection of linked items`, () => {
 
     const numbers = new LinkedList(1, 2, 3)
 
@@ -12,7 +12,7 @@ it('is a collection of linked items', () => {
     expect(numbers.first.next).toEqual(numbers.last.prev)
 })
 
-it('first === last on lists with one item', () => {
+it(`first === last on lists with one item`, () => {
 
     const numbers = new LinkedList<number>(1)
 
@@ -23,7 +23,7 @@ it('first === last on lists with one item', () => {
     expect(numbers.first.next).toBe(null)
 })
 
-it('.append() to append items to the end of a list', () => {
+it(`.append() to append items to the end of a list`, () => {
 
     const numbers = new LinkedList<number>()
     const one = numbers.append(1)
@@ -36,34 +36,34 @@ it('.append() to append items to the end of a list', () => {
     expect(numbers.first.next).toBe(two)
 })
 
-describe('.insert()', () => {
+describe(`.insert()`, () => {
 
-    it('splice items in at a given index', () => {
+    it(`splice items in at a given index`, () => {
 
         const numbers = new LinkedList<string | number>(0, 1, 3, 4)
         numbers.insert(2, 2)
 
         // console.log(...numbers)
         expect(numbers.at(2))
-            .toHaveProperty('value', 2)
+            .toHaveProperty(`value`, 2)
     })
 
-    it('can insert an empty list', () => {
+    it(`can insert an empty list`, () => {
 
         const numbers = new LinkedList<number>()
         numbers.insert(100, 0)
     })
 
-    it('can insert at end of list', () => {
+    it(`can insert at end of list`, () => {
 
         const numbers = new LinkedList<number>(1, 2, 3, 4)
         numbers.insert(5, 4)
 
         expect(numbers.at(4))
-            .toHaveProperty('value', 5)
+            .toHaveProperty(`value`, 5)
     })
 
-    it('index must be in range', () => {
+    it(`index must be in range`, () => {
 
         const numbers = new LinkedList<number>()
 
@@ -72,11 +72,11 @@ describe('.insert()', () => {
 
                 () => numbers.insert(100, badIndex)
 
-            ).toThrow('List is empty.')
+            ).toThrow(`List is empty.`)
         }
     })
 
-    it('list item as insert argument', () => {
+    it(`list item as insert argument`, () => {
 
         const numbers = new LinkedList<number>(1)
         const three = numbers.append(3)
@@ -87,7 +87,7 @@ describe('.insert()', () => {
             .toEqual([1, 2, 3])
     })
 
-    it('list item argument must actually be in the list', () => {
+    it(`list item argument must actually be in the list`, () => {
 
         const numbers1 = new LinkedList(1)
         const numbers2 = new LinkedList(2)
@@ -96,14 +96,14 @@ describe('.insert()', () => {
 
         expect(() => {
             console.log(numbers2.insert(3, item))
-        }).toThrow('Item not in list')
+        }).toThrow(`Item not in list`)
 
     })
 })
 
-describe('remove', () => {
+describe(`remove`, () => {
 
-    it('removes items in list', () => {
+    it(`removes items in list`, () => {
 
         const numbers = new LinkedList(0, 1, 2, 2, 3, 4)
 
@@ -112,30 +112,30 @@ describe('remove', () => {
         expect([...numbers.values()]).toEqual([0, 1, 2, 3, 4,])
         expect(value).toEqual(2)
 
-        expect(numbers).toHaveProperty('size', 5)
+        expect(numbers).toHaveProperty(`size`, 5)
     })
 
-    it('can remove first', () => {
+    it(`can remove first`, () => {
 
         const numbers = new LinkedList(0, 1, 2)
 
         numbers.remove(0)
 
         expect([...numbers.values()]).toEqual([1, 2])
-        expect(numbers.first).toHaveProperty('value', 1)
+        expect(numbers.first).toHaveProperty(`value`, 1)
     })
 
-    it('can remove last', () => {
+    it(`can remove last`, () => {
 
         const numbers = new LinkedList(0, 1, 2)
 
         numbers.remove(2)
 
         expect([...numbers.values()]).toEqual([0, 1])
-        expect(numbers.last).toHaveProperty('value', 1)
+        expect(numbers.last).toHaveProperty(`value`, 1)
     })
 
-    it('can use list items instead of indices', () => {
+    it(`can use list items instead of indices`, () => {
 
         const numbers = new LinkedList(0, 1, 2)
 
@@ -146,7 +146,7 @@ describe('remove', () => {
         expect([...numbers.values()]).toEqual([0, 2])
     })
 
-    it('removed items are no longer linked', () => {
+    it(`removed items are no longer linked`, () => {
 
         const numbers = new LinkedList(0, 1, 2)
 
@@ -161,7 +161,7 @@ describe('remove', () => {
         expect(second?.prev).toBeNull()
     })
 
-    it('remove with no input removes the last item on the list', () => {
+    it(`remove with no input removes the last item on the list`, () => {
         const numbers = new LinkedList(1, 2)
 
         const two = numbers.remove()
@@ -171,7 +171,7 @@ describe('remove', () => {
 
 })
 
-it('clear() to empty a list', () => {
+it(`clear() to empty a list`, () => {
 
     const numbers = new LinkedList(1, 2, 3)
 
@@ -182,46 +182,46 @@ it('clear() to empty a list', () => {
 
 })
 
-describe('at()', () => {
+describe(`at()`, () => {
 
     const values = [1, 2, 3, 4, 5]
     const numbers = new LinkedList(...values)
 
-    it('gets list items at index', () => {
+    it(`gets list items at index`, () => {
         for (const value of values) {
             const index = value - 1
 
-            expect(numbers.at(index)).toHaveProperty('value', value)
+            expect(numbers.at(index)).toHaveProperty(`value`, value)
         }
     })
 
-    it('null if index out of range', () => {
+    it(`null if index out of range`, () => {
         expect(numbers.at(10)).toEqual(null)
     })
 
-    it('negative indices are from end', () => {
-        expect(numbers.at(-1)).toHaveProperty('value', values.at(-1))
+    it(`negative indices are from end`, () => {
+        expect(numbers.at(-1)).toHaveProperty(`value`, values.at(-1))
     })
 })
 
-describe('iteration', () => {
+describe(`iteration`, () => {
 
     const values = [1, 2, 3, 4, 5]
     const numbers = new LinkedList(...values)
 
-    it('iterate items', () => {
+    it(`iterate items`, () => {
         expect([...numbers].map(i => i.value)).toEqual(values)
     })
 
-    it('iterate items via .items()', () => {
+    it(`iterate items via .items()`, () => {
         expect([...numbers.items()].map(i => i.value)).toEqual(values)
     })
 
-    it('iterate values via .values()', () => {
+    it(`iterate values via .values()`, () => {
         expect([...numbers.values()]).toEqual(values)
     })
 
-    it('iterate entries via .entries()', () => {
+    it(`iterate entries via .entries()`, () => {
         expect(
             [
                 ...numbers.entries()
@@ -236,19 +236,19 @@ describe('iteration', () => {
     })
 })
 
-describe('LinkedList.from', () => {
+describe(`LinkedList.from`, () => {
 
-    it('creates linked lists from iterables', () => {
+    it(`creates linked lists from iterables`, () => {
 
         const linkedList = LinkedList.from(
-            ['hey', 'ho']
+            [`hey`, `ho`]
         )
 
         expect([...linkedList.values()])
-            .toEqual(['hey', 'ho'])
+            .toEqual([`hey`, `ho`])
     })
 
-    it('creates linked lists from arraylikes', () => {
+    it(`creates linked lists from arraylikes`, () => {
 
         const linkedList = LinkedList.from(
             new Stack(true, false)
@@ -260,7 +260,7 @@ describe('LinkedList.from', () => {
 
 })
 
-it('indexOf()', () => {
+it(`indexOf()`, () => {
 
     const vector1 = { x: 1 }
     const vector2 = { x: 2 }

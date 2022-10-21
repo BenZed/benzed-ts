@@ -1,8 +1,8 @@
 import isSortedArray from './is-sorted-array'
 
-describe('isSortedArray()', () => {
+describe(`isSortedArray()`, () => {
 
-    it('returns true if the given array is sorted', () => {
+    it(`returns true if the given array is sorted`, () => {
         expect(
             isSortedArray(
                 [0, 1, 2, 3, 4, 5]
@@ -10,7 +10,7 @@ describe('isSortedArray()', () => {
         ).toBe(true)
     })
 
-    it('returns false if the given array is not sorted', () => {
+    it(`returns false if the given array is not sorted`, () => {
         expect(
             isSortedArray(
                 [5, 1, 7, 3, 0]
@@ -18,7 +18,7 @@ describe('isSortedArray()', () => {
         ).toBe(false)
     })
 
-    it('returns true on arrays with consecutive same values', () => {
+    it(`returns true on arrays with consecutive same values`, () => {
         expect(
             isSortedArray(
                 [1, 1, 2, 3, 4, 5]
@@ -26,7 +26,7 @@ describe('isSortedArray()', () => {
         ).toBe(true)
     })
 
-    it('works on descending-sorted arrays', () => {
+    it(`works on descending-sorted arrays`, () => {
         expect(
             isSortedArray(
                 [5, 4, 3, 2, 1, 0]
@@ -34,8 +34,8 @@ describe('isSortedArray()', () => {
         ).toBe(true)
     })
 
-    describe('isAscending argument', () => {
-        it('if false, requires given value is ascending sorted', () => {
+    describe(`isAscending argument`, () => {
+        it(`if false, requires given value is ascending sorted`, () => {
             expect(
                 isSortedArray(
                     [0, 1, 2, 3, 4, 5],
@@ -51,7 +51,7 @@ describe('isSortedArray()', () => {
             ).toBe(false)
         })
 
-        it('if false, requires given value is descending sorted', () => {
+        it(`if false, requires given value is descending sorted`, () => {
             expect(
                 isSortedArray(
                     [0, 1, 2, 3, 4, 5],

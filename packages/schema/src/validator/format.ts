@@ -71,7 +71,7 @@ function isFormatShortcut(input: unknown): input is FormatShortcut {
 function asRegExp(
     str: TemplateStringsArray
 ): RegExp {
-    return new RegExp(str.raw[0].replace(/\s/gm, ''), '')
+    return new RegExp(str.raw[0].replace(/\s/gm, ``), ``)
 }
 
 function toRegExpDetail(format: Format): [regexp: RegExp, formatTransgressionDetail: string] {
