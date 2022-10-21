@@ -69,7 +69,7 @@ function setupRenderService<A extends MongoDBApplication>(
 
     app.use(
         path, 
-        new RenderService({ 
+        new RenderService({
             io: getSocketIOServer(app),
             files,
             ...renderer 

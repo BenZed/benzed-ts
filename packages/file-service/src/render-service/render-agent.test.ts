@@ -1,18 +1,20 @@
+import { unique } from '@benzed/array'
+
 import { User } from '../server/services/users'
 import { HOST, Uploader } from '../util.test'
 import createFileServerApp from '../server/create-file-server-app'
 
-import { RendererRecord } from './service'
+import { File, SignedFile } from '../files-service'
+import { RenderAgentData } from './render-agent'
 import {
     createFileRenderApp,
-    FileRenderApp
+    FileRenderApp 
 } from '../client/create-file-render-app'
-
-import { SignedFile } from '../files-service'
 
 /*** Const ***/
 
 const PASSWORD = 'some-test-password'
+const TEST_CLIENT_RENDERERS = 0
 
 /*** Setup ***/
 
@@ -36,9 +38,9 @@ beforeAll(async () => {
 
 // listen for render events
 const renderEvents = {
-    updated: [] as RendererRecord[],
-    created: [] as RendererRecord[],
-    removed: [] as RendererRecord[]
+    updated: [] as RenderAgentData[],
+    created: [] as RenderAgentData[],
+    removed: [] as RenderAgentData[]
 }
 beforeAll(() => {
     for (const event of ['updated', 'created', 'removed'] as const)
@@ -49,7 +51,8 @@ beforeAll(() => {
 const clients: FileRenderApp[] = []
 beforeAll(async () => {
 
-    for (const clientIndex of [0,1,2] as const) {
+    const clientIndexes = Array.from({ length: TEST_CLIENT_RENDERERS}, (_, i) => i)
+    for (const clientIndex of clientIndexes) {
 
         const client = await createFileRenderApp({
             host: HOST,
@@ -64,7 +67,6 @@ beforeAll(async () => {
 
         clients[clientIndex] = client
     }
-
 })
 
 // upload test files
@@ -73,13 +75,80 @@ beforeAll(async () => {
     uploadedFiles = await upload.assets(uploader._id)
         .then(data => data.map(datum => datum.signedFile))
 
-    await render.untilAllRenderersIdle()
+    await render.untilAllRenderAgentsIdle()
 })
 
 afterAll(() => server.teardown())
 
+/*** Helpers ***/
+
+const getUploadedFileRenderResults = (
+    file: File
+): RenderAgentData['files'][number]['results'] | null => {
+
+    const matchesUploadedFileId = (f: { _id: string }): boolean =>
+        f._id === file._id
+
+    const lastUpdate = renderEvents.updated
+        .map(agent => [...agent.files].reverse())
+        .find(files => files.some(matchesUploadedFileId))
+        ?.find(matchesUploadedFileId)?.results
+    
+    return lastUpdate ?? null
+}
+
+const getFilesAssignedToAgents = (): string[] => {
+    const assignedIds = unique(
+        renderEvents
+            .updated
+            .map(agent => agent.files.map(f => f._id))
+            .flat()
+    )
+
+    return assignedIds
+}
+
 /*** Tests ***/
 
-it('renders files uploaded to the server', () => {
+const MEDIA_EXTS = ['.mp4', '.gif', '.png', '.jpg']
+const NON_MEDIA_EXTS = ['.txt', '.json']
+
+for (const ext of MEDIA_EXTS) {
+    it(`${ext} are assigned to render agents`, () => {
+        uploadedFiles
+            .filter(f => f.ext === ext)
+            .forEach(media => {
+                expect(media?._id).not.toBeFalsy()
+                expect(getFilesAssignedToAgents()).toContain(media?._id)
+            })
+    })
+}
+
+for (const ext of NON_MEDIA_EXTS) {
+    it(`${ext} files are not assigned to render agents`, () => {
+        uploadedFiles
+            .filter(f => f.ext === ext)
+            .forEach(media => {
+                expect(media?._id).not.toBeFalsy()
+                expect(getFilesAssignedToAgents()).not.toContain(media?._id)
+            })
+    })
+}
+
+for (const ext of MEDIA_EXTS) {
+    it(`${ext} files render applicable settings`, () => {
+        uploadedFiles.filter(f => f.ext === ext).forEach(file => {
+
+            const allSettings = Object.keys(server.get('renderer')?.settings ?? {})
+            const results = getUploadedFileRenderResults(file) ?? []
+
+            allSettings.forEach(setting => {
+                expect(results.map(r => r.setting)).toContain(setting)
+            })
+        })
+    })
+}
+
+it('hmm', () => {
     console.log(renderEvents)
 })

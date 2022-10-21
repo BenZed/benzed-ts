@@ -1,36 +1,57 @@
+import { pick } from '@benzed/util'
 
 import {
     Renderer,
 } from '@benzed/renderer'
 
 import {
-    Queue
+    Queue, 
+    QueueItem
 } from '@benzed/async'
 
 import fs from '@benzed/fs'
-import path from 'path'
 
+import path from 'path'
 import { Socket } from 'socket.io'
-import { getFsFilePath } from '../files-service/middleware/util'
+
 import { File, SERVER_RENDERER_ID } from '../files-service'
-import { RendererRecord } from './service'
 import { RENDER_DIR_NAME } from '../files-service/constants'
+import { getFsFilePath } from '../files-service/middleware/util'
+
+/*** Types ***/
+
+interface RenderAgentResult {
+    readonly error: Error | null
+    readonly setting: string
+}
+
+interface RenderAgentData {
+    readonly _id: string
+    readonly files: readonly { 
+        readonly _id: string
+        readonly results: readonly RenderAgentResult[] 
+    }[]
+}
+
+/*** Helper ***/
+
+async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentResult[]> {
+
+    const items = renderer.items()
+
+    await renderer.complete()
+
+    return items.map(({ error, setting }) => ({
+        error: error ? { message: error.message, name: error.name } : null,
+        setting
+    }))
+}
 
 /*** Main ***/
 
-/**
- * Doesn't actually do any rendering, acts as an agent representing a client
- * renderer.
- */
-class RenderAgent implements RendererRecord {
+class RenderAgent implements RenderAgentData {
 
-    readonly maxConcurrent = 1
-
-    private readonly _queue = new Queue<void, { fileId: string }>()
-
-    constructor (
-        readonly agent: Renderer | Socket
-    ) {}
+    readonly queue = new Queue<RenderAgentResult[], { fileId: string }>()
     
     get _id(): string {
         const { agent } = this
@@ -39,34 +60,61 @@ class RenderAgent implements RendererRecord {
             : agent.id
     }
 
-    get files(): string[] {
-        return [
-            ...this._queue.queuedItems,
-            ...this._queue.currentItems
-        ].map(i => i.fileId)
+    private readonly _files: Map<string, RenderAgentResult[]> = new Map()
+    get files(): RenderAgentData['files'] {
+        return Array
+            .from(this._files)
+            .map(([_id, results]) => ({ _id, results }))
     }
 
-    render(file: File): void {
-        this._queue.add({
+    /*** Constructor ***/
+    
+    constructor (
+        readonly agent: Renderer | Socket,
+    ) { }
+
+    /*** Interface ***/
+
+    render(file: File): QueueItem<RenderAgentResult[], { fileId: string }> {
+
+        this._files.set(file._id, [])
+
+        return this.queue.add({
             fileId: file._id,
-            task: () => {
+            task: async () => {
                 const { agent } = this
-                return agent instanceof Renderer
+
+                const results = await (agent instanceof Renderer
                     ? this._renderLocal(agent, file)
-                    : this._renderNetwork(agent, file)
+                    : this._renderNetwork(agent, file))
+                
+                this._files.set(file._id, results)
+
+                return results
             }
         })
     }
 
-    complete(): Promise<void> {
-        const { agent } = this
-        return agent instanceof Renderer   
-            ? agent.complete()
-            : Promise.resolve()
+    isQueued(file: File): boolean {
+        return [
+            ...this.queue.queuedItems,
+            ...this.queue.currentItems
+        ].some(i => i.fileId === file._id)
     }
 
-    protected _renderLocal(agent: Renderer, file: File): Promise<void> {
+    complete(): Promise<void> {
+        return this.queue.complete()
+    }
 
+    /*** To Json ***/
+    
+    toJSON(): RenderAgentData {
+        return pick(this, '_id', 'files')
+    }
+
+    /*** Helper ***/
+    
+    protected _renderLocal(agent: Renderer, file: File): Promise<RenderAgentResult[]> {
         agent.add({
             // TEMP
             source: fs.createReadStream(
@@ -90,26 +138,28 @@ class RenderAgent implements RendererRecord {
             )
         })
 
-        return agent.complete()
+        return getRenderAgentResults(agent)
     }
 
     protected _renderNetwork(
         socket: Socket, 
         file: File
-    ): Promise<void> {
-
+    ): Promise<RenderAgentResult[]> {
         return new Promise((resolve, reject) => {
-            socket.emit('render', file, (err: Error | null) => {
-                console.log('response', file.name, err?.message)
-                return err 
-                    ? reject(err) 
-                    : resolve() 
-            })
-            socket.on('disconnect', () => reject(new Error('client disconnected')))
+
+            socket.emit(
+                'render', 
+                file, 
+                (data: RenderAgentResult[]) => resolve(data)
+            )
+            
+            socket.once('disconnect', () => 
+                reject(
+                    new Error('client disconnected')
+                )
+            )
         })
-
     }
-
 }
 
 /*** Exports ***/
@@ -117,5 +167,9 @@ class RenderAgent implements RendererRecord {
 export default RenderAgent
 
 export {
-    RenderAgent
+    RenderAgent,
+    RenderAgentData,
+
+    getRenderAgentResults,
+    RenderAgentResult
 }

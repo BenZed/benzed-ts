@@ -16,14 +16,3 @@ export const $renderServiceConfig = $({
     renderer: $rendererConfig
 
 })
-
-/*** Schema ***/
-
-export interface RendererRecordCreateData extends Infer<typeof $rendererRecordCreateData> {}
-
-export const $rendererRecordCreateData = $({
-    maxConcurrent: $rendererConfig
-        .$
-        .maxConcurrent
-        .clearFlags()
-})

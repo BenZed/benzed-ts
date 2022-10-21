@@ -5,12 +5,13 @@ import { RendererConfig } from '@benzed/renderer'
 import configuration from '@feathersjs/configuration'
 import { FeathersService } from '@feathersjs/feathers'
 
-import RenderService, { RendererRecord } from './service'
+import RenderService, { RenderAgentData } from './service'
 import createFileRenderApp, { FileRenderApp } from '../client'
 import createFileServer, { FileServerConfig } from '../server'
 import { TEST_FILE_SERVER_CONFIG } from '../util.test'
 
 import { expect, it, describe, beforeAll, afterAll } from '@jest/globals'
+import { SERVER_RENDERER_ID } from '../files-service'
 /*** Eslint ***/
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -42,7 +43,7 @@ beforeAll(async () => {
 
 let client: FileRenderApp
 let clientRenderService: FeathersService<FileRenderApp, RenderService>
-let clientRendererRecord: RendererConfig & RendererRecord
+let clientRenderAgentData: RendererConfig & RenderAgentData
 
 //
 beforeAll(async () => {
@@ -51,7 +52,7 @@ beforeAll(async () => {
 
     clientRenderService = client.service('files/render')
 
-    clientRendererRecord = await clientRenderService.create({
+    clientRenderAgentData = await clientRenderService.create({
         maxConcurrent: 1
     }).catch(e => e)
 
@@ -83,9 +84,9 @@ it('render service is not attached if a renderer config is not provided', () => 
 
 describe('create()', () => {
 
-    let createEventArg: RendererRecord
+    let createEventArg: RenderAgentData
     beforeAll(() => {
-        clientRenderService.on('created', (r: RendererRecord) => {
+        clientRenderService.on('created', (r: RenderAgentData) => {
             createEventArg = r
         })
     })
@@ -102,7 +103,7 @@ describe('create()', () => {
     })
 
     it('adds a client renderer', () => {
-        expect(clientRendererRecord._id).toBeTruthy()
+        expect(clientRenderAgentData._id).toBeTruthy()
     })
 
     it('client cannot create multiple renderers', async () => {
@@ -111,28 +112,10 @@ describe('create()', () => {
             'message', 
             'renderer already created for this connection'
         )
-
-    })
-
-    it('client renderer must provide a valid maxConcurrent number', async () => {
-
-        const required = await clientRenderService
-            .create({ } as any)
-            .catch(e => e)
-
-        expect(required.message)
-            .toContain('is required')
-
-        const invalid = await clientRenderService
-            .create({ maxConcurrent: 0 })   
-            .catch(e => e)
-
-        expect(invalid.message)
-            .toContain('must be above 0')
     })
 
     it('clients receive render settings along with record', () => {
-        expect(clientRendererRecord).toHaveProperty(
+        expect(clientRenderAgentData).toHaveProperty(
             'settings', 
             TEST_FILE_SERVER_CONFIG.renderer?.settings
         )
@@ -156,19 +139,17 @@ describe('create()', () => {
 describe('get()', () => {
 
     it('gets render records by id', async () => {
-        const record = await clientRenderService.get(clientRendererRecord._id)
-        expect(record).toEqual(omit(clientRendererRecord, 'settings'))
+        const record = await clientRenderService.get(clientRenderAgentData._id)
+        expect(record).toEqual(omit(clientRenderAgentData, 'settings'))
     })
 
-    it('use id "server" to get salerver renderer', async () => {
-        const serverRecord = await clientRenderService.get('local')
+    it(`use id ${SERVER_RENDERER_ID} to get salerver renderer`, async () => {
+        const serverRecord = await clientRenderService.get(SERVER_RENDERER_ID)
         expect(serverRecord).toEqual({
-            _id: 'local',
-            maxConcurrent: 1,
+            _id: SERVER_RENDERER_ID,
             files: []
         })
     })
-
 })
 
 describe('find()', () => {
@@ -182,9 +163,9 @@ describe('find()', () => {
 
 describe('update() & patch()', () => {
 
-    let updateEventArg: RendererRecord
+    let updateEventArg: RenderAgentData
     beforeAll(() => {
-        clientRenderService.on('updated', (renderer: RendererRecord) => {
+        clientRenderService.on('updated', (renderer: RenderAgentData) => {
             updateEventArg = renderer
         })
     })
@@ -193,7 +174,7 @@ describe('update() & patch()', () => {
         it(`${method}() disabled`, async () => {
 
             const err = await (clientRenderService as any)[method](
-                clientRendererRecord._id,
+                clientRenderAgentData._id,
                 {
                     items: []
                 }
@@ -207,8 +188,8 @@ describe('update() & patch()', () => {
 
     it('updated events are still emitted', async () => {
 
-        const renderer: RendererRecord = await clientRenderService
-            .get(clientRendererRecord._id)
+        const renderer: RenderAgentData = await clientRenderService
+            .get(clientRenderAgentData._id)
         
         server
             .service('files/render')
@@ -224,16 +205,16 @@ describe('update() & patch()', () => {
 
 describe('remove()', () => {
 
-    let removeEventArg: RendererRecord
+    let removeEventArg: RenderAgentData
     beforeAll(() => {
-        clientRenderService.on('removed', (r: RendererRecord) => {
+        clientRenderService.on('removed', (r: RenderAgentData) => {
             removeEventArg = r
         })
     })
 
     it('disallowed by client', async () => {
         const err = await clientRenderService
-            .remove(clientRendererRecord._id)
+            .remove(clientRenderAgentData._id)
             .catch((e: Error) => e) as Error
 
         expect(err.message)

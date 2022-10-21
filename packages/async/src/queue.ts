@@ -51,10 +51,22 @@ function isQueuePayload<V, T extends object | void>(
  * Events that either a Queue or a QueueItem will emit.
  */
 type QueueEvents<V, T extends object | void> = {
+
+    /**
+     * Anytime an item in the queue starts
+     */
     start: [payload: QueuePayload<V, T>]
+
+    /**
+     * Anytime an item in the queue completes a task
+     */
     complete: V extends void | undefined
     /**/ ? [payload: QueuePayload<V, T>]
     /**/ : [payload: QueuePayload<V, T>, value: V]
+
+    /**
+     * Anytime an item in the queue has an error
+     */
     error: [payload: QueuePayload<V, T>, error: Error]
 }
 

@@ -1,17 +1,22 @@
 import socketio, { Socket } from 'socket.io-client'
-import { Readable, Writable } from 'stream'
+
+import { thisShift } from '@benzed/util'
+import { Renderer, RenderItem } from '@benzed/renderer'
 
 import { feathers, Application } from '@feathersjs/feathers'
-import fsocketio from '@feathersjs/socketio-client'
+import type { 
+    AuthenticationRequest, 
+    AuthenticationResult 
+} from '@feathersjs/authentication'
 import fauth from '@feathersjs/authentication-client'
-import type { AuthenticationRequest, AuthenticationResult } from '@feathersjs/authentication'
-
-import { Renderer } from '@benzed/renderer'
-import { through, toNull } from '@benzed/util'
-import fs from '@benzed/fs'
+import fsocketio from '@feathersjs/socketio-client'
 
 import { RenderService } from '../render-service'
 import { File, FileService } from '../files-service'
+
+import clientDownload from './client-download'
+import clientUpload from './client-upload'
+import { getRenderAgentResults, RenderAgentResult } from '../render-service/render-agent'
 
 /*** Types ***/
 
@@ -29,7 +34,10 @@ interface FileRenderApp extends
 
     authenticate(req: AuthenticationRequest): Promise<AuthenticationResult>
 
+    connect(): Promise<void>
     start(): Promise<void>
+
+    render(file: File): Promise<RenderItem[]>
 
 }
 
@@ -40,65 +48,45 @@ interface FileRenderAppSettings {
 
 /*** Helper ***/
 
-function clientDownload(
-    _host: string,
-    _client: FileRenderApp,
-    file: File
-): Readable {
-    // TEMP 
-    const filePath = `./storage/test/files/${file._id}/${file.name}${file.ext}`
-    return fs.createReadStream(filePath)
-}
-
-function clientUpload(
-    _host: string,
-    _client: FileRenderApp,
-    file: File,
-    setting: string,
-    ext: string
-): Writable {
-    // TEMP obv
-    const filePreviewPath = `./storage/test/files/${file._id}/render/${setting}${ext}`
-    return fs.createWriteStream(filePreviewPath)
-}
-
-function untilConnect(client: FileRenderApp): Promise<void> {
+function untilConnect(app: FileRenderApp): Promise<void> {
     return new Promise(resolve => 
-        client.io.on(
+        app.io.on(
             'connect', 
             resolve
         )
     )
 }
 
-async function startFileRenderApp(
-    this: FileRenderApp
+async function start(
+    app: FileRenderApp
 ): Promise<void> {
 
-    const service = this.service('files/render')
-    const host = this.get('host')
+    const service = app.service('files/render')
+    const host = app.get('host')
 
-    const renderer = new Renderer(await service.create({ maxConcurrent: 1 }))
-    this.set('renderer', renderer)
+    const { settings } = await service.create({ maxConcurrent: 1 })
 
-    this.io.on(
-        'render', 
-        async (file: File, reply: (err: Error | null) => void) => {
+    const renderer = new Renderer({ 
+        settings, 
+        maxConcurrent: Object.keys(settings).length 
+    })
 
-            const items = renderer.add({
-                id: file._id,
-                source: clientDownload(host, this, file),
-                target: ({ setting, ext }) => clientUpload(host, this, file, setting, ext)
-            })
+    app.set('renderer', renderer)
+    app.io.on('render', async (
+        file: File, 
+        reply: (data: RenderAgentResult[]) => void
+    ) => {
 
-            const error = await Promise
-                .all(items.map(item => item.complete()))
-                .then(toNull)
-                .catch(through<Error>)
+        renderer.add({
+            id: file._id,
+            source: clientDownload(host, file),
+            target: target => clientUpload(host, file, target)
+        })
 
-            reply(error)
-        }
-    )
+        const results = await getRenderAgentResults(renderer)
+        reply(results)
+
+    })
 }
 
 /*** Main ***/
@@ -116,7 +104,10 @@ export default async function createFileRenderApp(
                 socketio(host)
             )
         ) as FileRenderApp
-    app.start = startFileRenderApp
+
+    app.connect = thisShift(untilConnect)
+    app.start = thisShift(start)
+
     app.set('host', host)
 
     // Setup Auth
@@ -129,7 +120,7 @@ export default async function createFileRenderApp(
     }
 
     // Connect & Optionally Login
-    await untilConnect(app)
+    await app.connect()
     if (auth) 
         await app.authenticate(auth)
 
@@ -141,6 +132,9 @@ export default async function createFileRenderApp(
 export {
     createFileRenderApp,
     FileRenderApp,
+    FileRenderAppSettings,
+
+    getRenderAgentResults
 
 }
 

@@ -1,18 +1,9 @@
 import { Server, Socket } from 'socket.io'
+import { EventEmitter } from 'events'
 
 import Renderer, {
-    $rendererConfig,
     RendererConfig,
 } from '@benzed/renderer'
-
-import {
-    Asserts, 
-    ValidationError 
-} from '@benzed/schema'
-
-import {
-    validationErrorToBadRequest
-} from '@benzed/feathers'
 
 import { Params } from '@feathersjs/feathers'
 
@@ -25,16 +16,11 @@ import {
 import { File } from '../files-service/schema'
 
 import { FeathersFileService } from '../files-service/middleware/util'
-import { RenderAgent } from './render-agent'
+import { RenderAgent, RenderAgentData } from './render-agent'
 
 import { 
     SERVER_RENDERER_ID 
 } from '../files-service/constants'
-
-import { 
-    $rendererRecordCreateData,
-    RendererRecordCreateData,
-} from './schema'
 
 import { reduceToVoid, by } from '@benzed/util'
 
@@ -44,11 +30,6 @@ import { reduceToVoid, by } from '@benzed/util'
 
 /*** Types ***/
 
-interface RendererRecord extends RendererRecordCreateData {
-    _id: string
-    files: string[]
-}
-
 interface RenderServiceSettings extends RendererConfig {
     io: Server | Promise<Server>
     files: FeathersFileService
@@ -56,15 +37,15 @@ interface RenderServiceSettings extends RendererConfig {
 
 /*** Helper ***/
 
-const assertCreateData: Asserts<typeof $rendererConfig> = $rendererRecordCreateData.assert
+const isEventEmitter = (value: object): value is EventEmitter => 'emit' in value
 
 /*** Main ***/
 
 class RenderService {
 
-    private readonly _agents: Map<string, RenderAgent>
-    get agents(): RenderAgent[] {
-        return Array.from(this._agents.values())
+    private readonly _renderAgents: Map<string, RenderAgent>
+    get renderAgents(): RenderAgent[] {
+        return Array.from(this._renderAgents.values())
     }
 
     private readonly _files: FeathersFileService
@@ -76,62 +57,41 @@ class RenderService {
         const {
             io,
             files,
-            maxConcurrent = 0,
             settings,
         } = serviceSettings
 
         this.settings = settings
 
         this._io = io
-        this._agents = new Map() 
-        if (maxConcurrent > 0) {
-            this._agents.set(
-                SERVER_RENDERER_ID,
-                new RenderAgent(
-                    new Renderer({ maxConcurrent, settings })
-                )
-            )
-        }
-
+        this._renderAgents = new Map() 
         this._files = files
-        this._files.on('patched', this.ensureFileQueued)
-        this._files.on('removed', this.ensureFileUnqueued)
     }
 
     /*** Service Interface ***/
 
     async create(
-        data: RendererRecordCreateData, 
+        _data: object, 
         params?: Params
-    ): Promise<RendererConfig & RendererRecord> {
+    ): Promise<RendererConfig & RenderAgentData> {
 
-        try {
-            assertCreateData(data)
-        } catch (e) {
-            throw validationErrorToBadRequest(e as ValidationError)
-        }
-        
         const socket = await this._getConnectionSocket(params)
         if (!socket)
             throw new MethodNotAllowed('only socket.io clients may create a renderer')
 
-        const existing = this._agents.get(socket.id)
+        const existing = this._renderAgents.get(socket.id)
         if (existing)
             throw new BadRequest('renderer already created for this connection')
 
         const { settings } = this
 
-        this._agents.set(
-            socket.id,
-            new RenderAgent(socket)
-        )
+        this._createRenderAgent(socket)
 
         socket.once('disconnect', () => {
-            if (this._agents.has(socket.id)) 
+            if (this._renderAgents.has(socket.id)) 
                 this.remove(socket.id)
         })
 
-        this._rebalanceQueue()
+        this._rebalanceQueue([])
 
         return {
             ...await this.get(socket.id),
@@ -139,47 +99,29 @@ class RenderService {
         }
     }
 
-    update(
-        id: RendererRecord['_id'],
-        data: Omit<RendererRecord, '_id'>,
-        params?: Params    
-    ): Promise<RendererRecord> {
-
-        if (params?.provider) 
-            throw new MethodNotAllowed('Method \'update\' not allowed.')
-
-        return Promise.resolve({
-            ...data,
-            _id: id
-        })
-    }
-
-    async get (id: RendererRecord['_id']): Promise<RendererRecord> {
+    async get (id: RenderAgentData['_id']): Promise<RenderAgentData> {
 
         const renderer = await this._assertGetRenderer(id)
         return this._toRenderRecord(renderer)
     }
 
-    find(): Promise<RendererRecord[]> {
+    find(): Promise<RenderAgentData[]> {
         return Promise.all(
-            Array.from(this._agents.values(), this._toRenderRecord)
+            Array.from(this._renderAgents.values(), this._toRenderRecord)
         )
     }
 
-    async remove(id: RendererRecord['_id'], params?: Params): Promise<RendererRecord> {
+    async remove(id: RenderAgentData['_id'], params?: Params): Promise<RenderAgentData> {
 
         if (params?.provider)
             throw new MethodNotAllowed('Method \'remove\' not allowed')
-
-        if (id === SERVER_RENDERER_ID)
-            throw new MethodNotAllowed('Server renderer cannot be removed')
 
         const renderer = await this._assertGetRenderer(id)
 
         if (renderer.agent instanceof Socket && renderer.agent.connected)
             renderer.agent.disconnect()
 
-        this._agents.delete(id)
+        this._renderAgents.delete(id)
  
         this._rebalanceQueue(renderer.files)
 
@@ -196,41 +138,66 @@ class RenderService {
     
     }
 
+    setup(): Promise<void> {
+        this._files.on('patched', this.ensureFileQueued.bind(this))
+        this._files.on('removed', this.ensureFileUnqueued.bind(this))
+        return Promise.resolve()
+    }
+
     /*** Non Service Interface ***/
 
     /**
      * Promise that resolves once all render queues are empty
      */
-    untilAllRenderersIdle(): Promise<void> {
+    untilAllRenderAgentsIdle(): Promise<void> {
         return reduceToVoid(
             Array.from(
-                this._agents.values(), 
+                this._renderAgents.values(), 
                 renderer => renderer.complete()
             )
         )
     }
 
-    readonly ensureFileQueued = (file: File): void => {
+    isRenderable(file: File): boolean {
 
-        const isQueued = this.agents.some(agent => 
-            agent.files.some(fileId => file._id === fileId)
-        )
-        if (isQueued)
-            return 
-        
-        const [ best ] = this.agents.sort(by(r => r.files.length))
+        const [broadType] = file.type.split('/')
 
-        best.render(file)
-        // just to emit the events
-        void this.update(
-            best._id, { 
-                files: best.files,
-                maxConcurrent: 1
-            }
-        )
+        const types = Object.values(this.settings).map(s => s.type)
+        if (types.includes('video') && broadType === 'video')
+            return true 
+
+        if (types.includes('image') && broadType === 'video' || broadType === 'image')
+            return true 
+
+        if (types.includes('audio') && broadType === 'audio')
+            return true 
+
+        return false
     }
 
-    readonly ensureFileUnqueued = (_file: File): void => {
+    ensureFileQueued (file: File): void {
+
+        const isRenderable = this.isRenderable(file)
+        if (!isRenderable)
+            return
+
+        const isQueued = this.renderAgents.some(agent => agent.isQueued(file))
+        if (isQueued)
+            return
+
+        // create local renderer if we have no connected clients
+        const hasNoAgents = this.renderAgents.length === 0
+        if (hasNoAgents) {
+            this._createRenderAgent(
+                new Renderer({ settings: this.settings })
+            )
+        }
+
+        const [ leastBusy ] = this.renderAgents.sort(by(r => r.files.length))
+        leastBusy.render(file)
+    }
+
+    ensureFileUnqueued (_file: File): void {
 
         // TODO
         // - if renders queued
@@ -240,17 +207,44 @@ class RenderService {
 
     // Helper
 
+    private _emitRenderRecordEvent (event: 'updated' | 'created', record: RenderAgentData): void {
+        if (!isEventEmitter(this)) 
+            throw new Error(`${this.constructor.name} is not yet registered`)
+
+        this.emit(event, record)
+    }
+
+    private _createRenderAgent(agent: Socket | Renderer): RenderAgent {
+
+        const renderAgent = new RenderAgent(agent)
+        if (this._renderAgents.has(renderAgent._id))
+            throw new Error(`Agent already exists for id '${renderAgent._id}'`)
+
+        const onRenderAgentUpdate = (): void => {
+            this._emitRenderRecordEvent(
+                'updated',
+                renderAgent.toJSON()
+            )
+        }
+
+        renderAgent.queue.on('start', onRenderAgentUpdate)
+        renderAgent.queue.on('error', onRenderAgentUpdate)
+        renderAgent.queue.on('complete', onRenderAgentUpdate)
+
+        this._renderAgents.set(renderAgent._id, renderAgent)
+        return renderAgent
+    }
+    
     private readonly _toRenderRecord = (
         { _id, files }: RenderAgent
-    ): RendererRecord =>{
+    ): RenderAgentData =>{
         return { 
             _id, 
-            files, 
-            maxConcurrent: 1 
+            files 
         }
     }
 
-    private _rebalanceQueue(files: string[] = []): void {
+    private _rebalanceQueue(files: RenderAgentData['files']): void {
         // Ensure each renderer has an equal load of work
     }
 
@@ -275,10 +269,10 @@ class RenderService {
     }
 
     private _assertGetRenderer (
-        id: RendererRecord['_id']
+        id: RenderAgentData['_id']
     ): Promise<RenderAgent> {
 
-        const renderer = this._agents.get(id)
+        const renderer = this._renderAgents.get(id)
         if (!renderer) {
             return Promise.reject(
                 new NotFound(
@@ -301,5 +295,5 @@ export {
     RenderService,
     RenderServiceSettings,
 
-    RendererRecord
+    RenderAgentData
 }
