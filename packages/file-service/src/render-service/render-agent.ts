@@ -42,7 +42,7 @@ async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentRes
     await renderer.complete()
 
     return items.map(({ error, setting }) => ({
-        error: error ? { message: error.message, name: error.name } : null,
+        error: error && pick(error, `message`, `name`),
         setting
     }))
 }
@@ -115,6 +115,7 @@ class RenderAgent implements RenderAgentData {
     /*** Helper ***/
     
     protected _renderLocal(agent: Renderer, file: File): Promise<RenderAgentResult[]> {
+
         agent.add({
             // TEMP
             source: fs.createReadStream(

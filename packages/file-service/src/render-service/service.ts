@@ -16,13 +16,14 @@ import {
 import { File } from '../files-service/schema'
 
 import { FeathersFileService } from '../files-service/middleware/util'
-import { RenderAgent, RenderAgentData } from './render-agent'
+import { RenderAgent, RenderAgentData, RenderAgentResult } from './render-agent'
 
 import { 
     SERVER_RENDERER_ID 
 } from '../files-service/constants'
 
 import { reduceToVoid, by } from '@benzed/util'
+import { QueuePayload } from '@benzed/async/lib'
 
 /*** Eslint ***/
 
@@ -76,11 +77,11 @@ class RenderService {
 
         const socket = await this._getConnectionSocket(params)
         if (!socket)
-            throw new MethodNotAllowed(`only socket.io clients may create a renderer`)
+            throw new MethodNotAllowed(`Only socket.io clients may create a renderer`)
 
         const existing = this._renderAgents.get(socket.id)
         if (existing)
-            throw new BadRequest(`renderer already created for this connection`)
+            throw new BadRequest(`Renderer already created for this connection`)
 
         const { settings } = this
 
@@ -107,7 +108,10 @@ class RenderService {
 
     find(): Promise<RenderAgentData[]> {
         return Promise.all(
-            Array.from(this._renderAgents.values(), this._toRenderRecord)
+            Array.from(
+                this._renderAgents.values(), 
+                this._toRenderRecord
+            )
         )
     }
 
@@ -177,8 +181,9 @@ class RenderService {
 
     ensureFileQueued (file: File): void {
 
+        const requiresRendering = file.renders.length === 0
         const isRenderable = this.isRenderable(file)
-        if (!isRenderable)
+        if (!requiresRendering || !isRenderable)
             return
 
         const isQueued = this.renderAgents.some(agent => agent.isQueued(file))
@@ -207,11 +212,9 @@ class RenderService {
 
     // Helper
 
-    private _emitRenderRecordEvent (event: 'updated' | 'created', record: RenderAgentData): void {
-        if (!isEventEmitter(this)) 
-            throw new Error(`${this.constructor.name} is not yet registered`)
-
-        this.emit(event, record)
+    private _tryEmit (event: 'updated' | 'created', record: RenderAgentData): void {
+        if (isEventEmitter(this)) 
+            this.emit(event, record)
     }
 
     private _createRenderAgent(agent: Socket | Renderer): RenderAgent {
@@ -220,11 +223,20 @@ class RenderService {
         if (this._renderAgents.has(renderAgent._id))
             throw new Error(`Agent already exists for id '${renderAgent._id}'`)
 
-        const onRenderAgentUpdate = (): void => {
-            this._emitRenderRecordEvent(
+        const onRenderAgentUpdate = (
+            { item }: QueuePayload<RenderAgentResult[], { fileId: string }>
+        ): void => {
+            this._tryEmit(
                 `updated`,
                 renderAgent.toJSON()
             )
+
+            const settings = item.result?.value.map(({ setting }) => ({ 
+                key: setting, 
+                size: 1, 
+                rendered: new Date() 
+            })) ?? []
+            this._files.patch(item.fileId, { renders: settings })
         }
 
         renderAgent.queue.on(`start`, onRenderAgentUpdate)
@@ -277,8 +289,8 @@ class RenderService {
             return Promise.reject(
                 new NotFound(
                     id === SERVER_RENDERER_ID 
-                        ? `server renderer not found`
-                        : `renderer could not be found for id '${id}'`
+                        ? `Server renderer not found`
+                        : `Renderer could not be found for id '${id}'`
                 )
             )
         }

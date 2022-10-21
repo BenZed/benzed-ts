@@ -39,15 +39,15 @@ const byMany = <T>(...sorters: Sort<T>[]): Sort<T> => (a, b) => {
 }
 
 /**
- * Compares inputs by checking the result of an applied pipe
+ * Compares inputs by checking the result of an applied map
  * method.
  * 
- * Multiple pipes may be provided, and will be checked if 
+ * Multiple maps may be provided, and will be checked if 
  * the previous outputs were equivalent.
  */
-const byPipe = <T>(...pipes: Pipe<T, Sortable>[]): Sort<T> =>
+const byMap = <T>(...maps: Pipe<T, Sortable>[]): Sort<T> =>
     byMany(
-        ...pipes.map(p => (a: T, b: T) => byValue(p(a), p(b))
+        ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b))
         )
     )
 
@@ -61,17 +61,17 @@ const byPipe = <T>(...pipes: Pipe<T, Sortable>[]): Sort<T> =>
 const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K): Sort<T> =>
     byMany(
         ...properties.map(property =>
-            byPipe((t: any) => t[property])
+            byMap((t: any) => t[property])
         )
     )
 
 /*** By Interface ***/
 
-const by = <T>(...args: Pipe<T, Sortable>[]) => byPipe(...args)
+const by = <T>(...args: Pipe<T, Sortable>[]) => byMap(...args)
 
 by.value = byValue
 by.many = byMany
-by.pipe = byPipe
+by.map = byMap
 by.prop = byProp
 
 /*** Exports ***/
@@ -88,7 +88,7 @@ export {
     by,
     byValue,
     byMany,
-    byPipe,
+    byMap,
     byProp
 
 }

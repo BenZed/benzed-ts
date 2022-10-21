@@ -1,8 +1,8 @@
 import { unique } from '@benzed/array'
 
 import { User } from '../server/services/users'
-import { HOST, Uploader } from '../util.test'
 import createFileServerApp from '../server/create-file-server-app'
+import { HOST, Uploader } from '../util.test'
 
 import { File, SignedFile } from '../files-service'
 import { RenderAgentData } from './render-agent'
@@ -136,19 +136,15 @@ for (const ext of NON_MEDIA_EXTS) {
 }
 
 for (const ext of MEDIA_EXTS) {
-    it(`${ext} files render applicable settings`, () => {
-        uploadedFiles.filter(f => f.ext === ext).forEach(file => {
+    it(`${ext} files render applicable settings`, async () => {
+        for (const file of uploadedFiles.filter(f => f.ext === ext)) {
 
             const allSettings = Object.keys(server.get(`renderer`)?.settings ?? {})
-            const results = getUploadedFileRenderResults(file) ?? []
+            const { renders } = await server.service(`files`).get(file._id)
 
             allSettings.forEach(setting => {
-                expect(results.map(r => r.setting)).toContain(setting)
+                expect(renders.map(r => r.key)).toContain(setting)
             })
-        })
+        }
     })
 }
-
-it(`hmm`, () => {
-    console.log(renderEvents)
-})

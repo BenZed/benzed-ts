@@ -6,7 +6,9 @@ module.exports = {
         tsconfigRootDir: __dirname
     },
 
-    plugins: ['@typescript-eslint'],
+    plugins: [
+        '@typescript-eslint'
+    ],
 
     extends: [
         'plugin:@typescript-eslint/recommended',
