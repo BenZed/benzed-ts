@@ -3,6 +3,7 @@ import { Node } from './node'
 import { Transfer } from './_node'
 
 import is from '@benzed/is'
+import { Compute } from '../component'
 
 type MathTransfer<O extends Operation, B extends number> = 
     Transfer<number,number, MathComponent<O, B>>
@@ -15,11 +16,13 @@ class MathNode<O extends Operation, B extends number>
         readonly operation: Operation
     ) {
         super() 
+
+        this.compute = math[this.operation](this.by).compute
     }
     
     canCompute = is.number
 
-    compute = math[this.operation](this.by).compute
+    compute: Compute<number, number>
 
     transfer: MathTransfer<O, B> = ctx => 
         ctx.targets.find(t => t.operation === this.operation) ?? null

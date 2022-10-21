@@ -33,7 +33,7 @@ class CalcOperate<O extends Operation> extends Node<Calc['values'], number> {
 
     canCompute = $calc.$.values.is
 
-    transfer = transfers.switcher()
+    transfer = transfers.switcher<number>()
 
 }
 
@@ -48,13 +48,36 @@ class CalcInput extends Node<Calc, Calc['values'], CalcOperate<Operation>> {
 
 }
 
+const max = Node.create(
+    $.tuple(
+        $.number, 
+        $.number
+    ).is, 
+    i => Math.max(...i)
+)
+
 /*** System ***/
 
 const calculator = System.create('input', new CalcInput())
     .link(['input'], '*', new CalcOperate('*'))
-    .link(['input'], '+', new CalcOperate('-'))
-    .link(['input'], '/', new CalcOperate('/'))
+    .link(['input'], '+', new CalcOperate('+'))
     .link(['input'], '-', new CalcOperate('-'))
+    .link(['input'], '/', new CalcOperate('/'))
 
 /*** Tests ***/
     
+it('discriminant target test', () => {
+    // @ts-expect-error Should only be able to link to CalcOperate nodes 
+    calculator.link(['input'], 'log', max)
+})
+
+it('output test', () => {
+
+    const output = calculator.compute({
+        values: [5,5],
+        operation: '*'
+    })
+
+    expect(output).toBe(25)
+    
+})

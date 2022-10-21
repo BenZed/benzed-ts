@@ -1,7 +1,8 @@
 
-import { pass, TypeGuard } from '@benzed/util/lib'
+import { pass, TypeGuard } from '@benzed/util'
+
 import { Component, Compute, InputOf, OutputOf } from '../component'
-import { ExecuteInput, ExecuteOutput, Transfer, TransferContext, _Node } from './_node'
+import { Transfer,_Node } from './_node'
 import { linear } from './transfers'
 
 /*** Eslint ***/
@@ -12,7 +13,7 @@ import { linear } from './transfers'
 
 /*** Node ***/
 
-interface PlainNode<I = unknown, O = I> extends Node<I,O> {}
+interface PlainNode<I = unknown, O = I> extends Node<I,O, Component<O, unknown>> {}
 
 /**
  * The standard non-abstract class that has options for quick instancing 
@@ -30,14 +31,9 @@ export abstract class Node<I, O, T extends Component<O, any> = Component<O, unkn
         transfer: Transfer<InputOf<C>, OutputOf<C>> = linear()
     ): PlainNode<InputOf<C>, OutputOf<C>> {
 
-        const { execute } = Node.prototype
-
         return Object.assign(
             component,
-            { 
-                execute,
-                transfer
-            }
+            { transfer }
         )
     }
 
@@ -68,27 +64,4 @@ export abstract class Node<I, O, T extends Component<O, any> = Component<O, unkn
         return this.apply({ compute, canCompute }, transfer)
     }
 
-    /*** Implementation ***/
-    
-    /**
-     * With the context of a completed execution, retrieve the target that this node is 
-     * transferring it's output to.
-     */
-    abstract transfer(ctx: TransferContext<I,O,T>): T | null
-
-    execute({ input, targets }: ExecuteInput<I, O, T>): ExecuteOutput<O, T> {
- 
-        const output = this.compute(input)
- 
-        const target = this.transfer({
-            input,
-            output,
-            targets
-        })
- 
-        return {
-            output,
-            target
-        }
-    }
 }

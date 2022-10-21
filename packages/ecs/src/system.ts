@@ -1,6 +1,6 @@
-import { StringKeys } from '@benzed/util'
 
 import { 
+    Component,
     InputOf,
     OutputOf 
 } from './component'
@@ -9,8 +9,7 @@ import {
     _Node, 
     TargetOf, 
     
-    ExecuteInput,
-    ExecuteOutput
+    TransferContext
 } from './node'
 
 /*** Eslint ***/
@@ -24,61 +23,74 @@ import {
 
 type Links = readonly string[]
 
-type LinkedNode = [_Node<any>, ...Links] | [_Node<any>]
+type LinkedNode<S extends SystemNodes, K extends keyof S> = 
+    S[K][0]
 
-type LinkedNodes = { [key: string]: LinkedNode }
+type SystemNode = [_Node<any>, ...Links] | [_Node<any>]
 
-type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
-    OutputOf<S[K][0]>
+type SystemNodes = { [key: string]: SystemNode }
 
-type LinkedNodeInput<S extends LinkedNodes, K extends keyof S> = 
-    InputOf<S[K][0]>
+type SystemNodeOutput<S extends SystemNodes, K extends keyof S> = 
+    OutputOf<LinkedNode<S,K>>
 
-export type SystemTarget<S extends LinkedNodes> =
-    TargetOf<S[EndLinkedKeys<S>][0]>
+type SystemNodeInput<S extends SystemNodes, K extends keyof S> = 
+    InputOf<LinkedNode<S,K>>
 
-export type SystemOutput<S extends LinkedNodes> = 
+type SystemNodeTarget<S extends SystemNodes, K extends keyof S> = 
+    TargetOf<LinkedNode<S,K>>
+
+type ComponentAsNode<C extends Component<any>> = C extends _Node<any> 
+    ? C 
+    : _Node<InputOf<C>, OutputOf<C>>
+
+type SystemOutputNodes<S extends SystemNodes> = 
+    LinkedNode<S, EndLinkedKeys<S>>
+
+export type SystemTarget<S extends SystemNodes> =
+    TargetOf<SystemOutputNodes<S>> extends _Node<SystemOutput<S>, any>
+        ? TargetOf<SystemOutputNodes<S>>
+        : _Node<SystemOutput<S>>
+
+export type SystemOutput<S extends SystemNodes> = 
     SystemOutputMap<S>[keyof SystemOutputMap<S>]
 
-export type SystemInput<S extends LinkedNodes, I extends string> =
-    LinkedNodeInput<S, I>
+export type SystemInput<S extends SystemNodes, I extends string> =
+    SystemNodeInput<S, I>
 
-type SystemOutputMap<S extends LinkedNodes> = {
+type SystemOutputMap<S extends SystemNodes> = {
     [K in EndLinkedKeys<S>]: Exclude<
-    LinkedNodeOutput<S, K>,
-    LinkedNodeInput<S, LinksOf<S[K]>[number]>
+    SystemNodeOutput<S, K>,
+    SystemNodeInput<S, LinksOf<S[K]>[number]>
     >
 }
 
 type EndLinkedKeys<
-    S extends LinkedNodes, 
+    S extends SystemNodes, 
 > = keyof {
     [K in keyof S as IsEndLinkKey<S, K, K, never>]: unknown
 }
 
-type IsEndLinkKey<S extends LinkedNodes, K extends keyof S, Y, N> = 
-    AllOutputsAreHandled<
-    S, 
-    K,
+type IsEndLinkKey<S extends SystemNodes, K extends keyof S, Y, N> = 
+    AllOutputsAreHandled<S,K,
     LinksOf<S[K]> extends [] 
         ? Y
         : N,
     Y
     >
 
-type AllOutputsAreHandled<S extends LinkedNodes, T extends keyof S, Y, N> = 
+type AllOutputsAreHandled<S extends SystemNodes, T extends keyof S, Y, N> = 
     LinksOf<S[T]> extends []
         ? N
         : Exclude<
-        /**/ OutputOf<S[T][0]>, 
-        /**/ InputOf<S[LinksOf<S[T]>[number]][0]>
+        /**/ OutputOf<LinkedNode<S,T>>, 
+        /**/ InputOf<LinkedNode<S, LinksOf<S[T]>[number]>>
         > extends never ? Y : N
 
-type LinksOf<S extends LinkedNode> = S extends [_Node<any>, ...infer L]
+type LinksOf<S extends SystemNode> = S extends [_Node<any>, ...infer L]
     ? L 
     : []
 
-type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[number]
+type AddLink<N extends SystemNode, L extends string> = L extends LinksOf<N>[number]
     ? N
     : [
         N[0],
@@ -88,7 +100,7 @@ type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[numb
 
 /*** System ***/
 
-class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
+class System<S extends SystemNodes = SystemNodes, I extends string = string> 
     extends _Node<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>> {
         
     static create<Ix extends string, N extends _Node<any>>(
@@ -108,13 +120,14 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     }
     
     link<
-        F extends StringKeys<S>[], 
+        F extends (keyof S)[], 
         T extends string, 
-        N extends _Node<OutputOf<S[F[number]][0]>, any>>
+        N extends SystemNodeTarget<S, F[number]>
+    >
     (...input: [F, T, N]): System<{
 
-        [K in StringKeys<S> | T]: K extends T 
-            ? [N]
+        [K in keyof S | T]: K extends T 
+            ? [ComponentAsNode<N>]
             : K extends F[number]
                 ? AddLink<S[K], T>
                 : S[K]
@@ -146,84 +159,111 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         ) as any
     }
 
-    get<K extends StringKeys<S>>(
-        key: K
-    ): S[K][0] {
-
-        if (key in this.nodes === false)
-            throw new Error(`No node at ${key}`)
-
-        return this.nodes[key][0]
-    }
-
     has<K extends string>(
         key: K
-    ): K extends StringKeys<S> ? true : false {
-        return key in this.nodes as K extends StringKeys<S> ? true : false
+    ): K extends keyof S ? true : false {
+        return key in this.nodes as K extends keyof S ? true : false
     }
 
-    compute(input: SystemInput<S,I>): SystemOutput<S> {
+    get<K extends keyof S>(
+        key: K
+    ): LinkedNode<S, K> {
 
-        const { output } = this.execute({
-            input,
-            targets: []
-        })
+        const { nodes } = this
 
-        return output
+        if (key in nodes === false)
+            throw new Error(`No node at ${key.toString()}`)
+
+        return nodes[key][0]
     }
 
-    canCompute(value: unknown): value is LinkedNodeInput<S,I> {
+    getInput():LinkedNode<S, I> {
+        return this.get(this._inputKey as unknown as keyof S)
+    }
+
+    canCompute(value: unknown): value is SystemNodeInput<S,I> {
         const { nodes, _inputKey } = this
         const [inputNode] = nodes[_inputKey]
         return inputNode.canCompute(value)
     }
 
-    execute(
-        {
-            input, 
-            targets: outerTargets
-        }: ExecuteInput<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>>,
-    ): ExecuteOutput<SystemOutput<S>, SystemTarget<S>> {
+    transfer(
+        ctx: TransferContext<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>>
+    ): SystemTarget<S> | null {
+
+        const cache = this._transferCache
+
+        // Generally, transfer is only called by a system directly after a compute, but it 
+        // IS a public method, so just in case it's called for some other reason, we make
+        // sure the current transfer cache data is valid.
+        const requiresCompute = !cache || cache.input !== ctx.input || cache.output !== ctx.output
+        if (requiresCompute)
+            this.compute(ctx.input)
+
+        return this._transferCache?.outputNode?.transfer(ctx) ?? null as any
+    }
+
+    /**
+     * A system needs the output node from it's last computation in
+     * order to provide a result to a .transfer() call. 
+     * 
+     * We cache that here to prevent the system from having
+     * to run it's computation twice
+     */
+    private _transferCache: { 
+        input: SystemInput<S, I>
+        output: SystemOutput<S>
+        outputNode: _Node<unknown> | null
+    } | null = null
+    // 
+
+    compute(input: SystemInput<S,I>): SystemOutput<S> {
 
         const { nodes, _inputKey } = this
 
         let currentNodeKey = _inputKey as string | undefined
-        let result = {
-            output: input,
-            target: null
-        } as any
+        let pipedInputToOutput = input as unknown
+        let outputNode = null
 
         while (currentNodeKey !== undefined) {
 
             const [currentNode, ...currentLinks] = nodes[currentNodeKey]
 
-            const hasLinks = currentLinks.length > 0
-            const targets = (hasLinks
-                ? currentLinks.map(link => this.get(link as StringKeys<S>))
-                : outerTargets as unknown as _Node[]
-            ).filter(node => node.canCompute(result.output))
-                
-            result = currentNode.execute({
-                targets,
-                input: result.output
-            })
+            const currentInput = pipedInputToOutput
+            const currentOutput = pipedInputToOutput = currentNode.compute(pipedInputToOutput)
 
-            if (!targets.includes(result.target) && targets.length > 0) {
+            const targets = currentLinks
+                .map(link => this.get(link))
+                .filter(node => node.canCompute(currentOutput))
+
+            outputNode = currentNode.transfer({
+                input: currentInput,
+                output: currentOutput,
+                targets 
+            }) as LinkedNode<S, string>
+
+            if (!targets.includes(outputNode) && targets.length > 0) {
+                this._transferCache = null
                 throw new Error(
                     `Premature transfer flow termination: ${currentNodeKey} did not ` + 
                     `return a target when given links: ${currentLinks}`
                 )
             }
 
-            currentNodeKey = currentLinks.at(targets.indexOf(result.target))
-
-            // next target wll be for a different system
-            if (currentLinks.length === 0)
-                break
+            currentNodeKey = currentLinks[targets.indexOf(outputNode)]
         }
 
-        return result
+        const output = pipedInputToOutput as SystemOutput<S> 
+
+        this._transferCache = { 
+            input,
+            output,
+            outputNode
+        }
+
+        return output
     }
+
 }
 
 /*** Exports ***/

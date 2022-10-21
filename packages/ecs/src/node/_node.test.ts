@@ -12,16 +12,22 @@ class Parser extends Node<string, number> {
 
     canCompute = $.string.is
 
-    transfer = transfer.switcher()
+    transfer = transfer.switcher<number>()
 
+}
+
+class Inverter extends Node<boolean, boolean> {
+    compute = (i: boolean): boolean => !i
+    canCompute = $.boolean.is 
+    transfer = transfer.switcher<boolean>()
 }
 
 it('is simply a component with node oriented i/o', () => {
 
-    const parse = new Parser()
+    const parse = new Parser() 
 
-    expect(parse.execute({ input: '100', targets: [] }))
-        .toEqual({ output: 100, target: null })
+    expect(parse.compute('100'))
+        .toEqual(100)
 
     expect(isComponent(parse)).toEqual(true)
 
@@ -33,11 +39,12 @@ it('is simply a component with node oriented i/o', () => {
  */
 it('type safe targets', () => {
 
-    const parseNode = new Parser()
+    const parseNode = new Parser() 
 
-    parseNode.execute({
+    parseNode.transfer({
         input: '50',
-        // @ts-expect-error boolean !== number
+        output: 50,
+        // @ts-expect-error Disallowed Target
         targets: [ new Inverter() ]
     })
 
@@ -106,8 +113,12 @@ it('explicit target discrimination', () => {
 
     const traffic = new TrafficNode()
 
-    const { target } = traffic.execute({
-        input: { idleCars: 0, idlePedestrians: 10 },
+    const input = { idleCars: 0, idlePedestrians: 10 }
+    const output = traffic.compute(input)
+
+    const target = traffic.transfer({
+        input,
+        output,
         targets: [
             new TrafficLightComponent('go'),
             new TrafficLightComponent('stop'),
@@ -116,8 +127,9 @@ it('explicit target discrimination', () => {
 
     expect(target?.light).toEqual('stop')
 
-    traffic.execute({
-        input: { idleCars: 100, idlePedestrians: 50 },
+    traffic.transfer({
+        input,
+        output,
         targets: [
             // @ts-expect-error Taking intersection data isn't enough. This node
             // needs to target components with a 'light' property.

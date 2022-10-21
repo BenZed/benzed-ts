@@ -6,7 +6,8 @@ it('a component is simply an object that wraps an execute function', () => {
 
     expect(
         isComponent({
-            execute: parseFloat
+            compute: parseFloat,
+            canCompute: $.string.is
         })
     ).toBe(true)
 

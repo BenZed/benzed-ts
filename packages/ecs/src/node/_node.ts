@@ -1,4 +1,4 @@
-import { Component } from '../component'
+import { Component, isComponent } from '../component'
 
 /*** Eslint ***/
 
@@ -8,31 +8,6 @@ import { Component } from '../component'
 */
 
 /*** Types ***/
-
-/**
- * Nodes get input that they are intended to execute, I, as
- * well as a list of possible targets to transfer their output to.
- */
-export interface ExecuteInput<
-    I = unknown,
-    O = I,
-    T extends Component<O, any> = Component<O, unknown>
-> { 
-    readonly targets: readonly T[]
-    readonly input: I
-}
-
-/**
-* Nodes output the result of their computation, O, as well
-* as a target to transfer their output to.
-*/
-export interface ExecuteOutput<
-    O,
-    T extends Component<O, any> = Component<O, unknown>
-> { 
-    readonly target: T | null
-    readonly output: O
-}
 
 export type TargetOf<N> = 
  N extends _Node<any, any, infer T> 
@@ -48,7 +23,6 @@ export interface Transfer<
     T extends Component<O, any> = Component<O, unknown>
 > {
     (ctx: TransferContext<I, O, T>): T | null
-
 }
 
 /**
@@ -58,8 +32,10 @@ export interface TransferContext<
     I = unknown,
     O = I,
     T extends Component<O, any> = Component<O, unknown>
-> extends ExecuteInput<I, O, T> {
+> {
+    input: I
     output: O
+    targets: T[]
 }
 
 /*** Node ***/
@@ -74,9 +50,17 @@ export abstract class _Node<
 > extends Component<I, O> {
 
     /**
-     * Compute a nodes output and also the target it should transfer
-     * that output to.
+     * With the context of a completed execution, retrieve the target that this node is 
+     * transferring it's output to.
      */
-    abstract execute({ input, targets }: ExecuteInput<I, O, T>): ExecuteOutput<O, T>
+    abstract transfer(ctx: TransferContext<I,O,T>): T | null
 
+}
+
+export function isNode<T>(input: unknown): input is _Node<T> {
+    if (!isComponent(input))
+        return false 
+
+    const node = input as Partial<_Node<T>>
+    return typeof node.transfer === 'function'
 }

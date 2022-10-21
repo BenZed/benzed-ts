@@ -31,22 +31,16 @@ const system = System
 
 it('output of a system follows exection it\'s linked nodes', () => {
 
-    const output = system.execute({
-        targets: [],
-        input: 1
-    })
+    const output = system.compute(1)
 
-    expect(output).toEqual({
-        target: null,
-        output: '2'
-    })
+    expect(output).toEqual('2')
 })
 
 it('system output is computed from the output type of it\'s nodes', () => {
 
-    type SystemOutput = OutputOf<typeof system>
+    type SysO = OutputOf<typeof system>
 
-    expectTypeOf<SystemOutput>().toEqualTypeOf<string>()
+    expectTypeOf<SysO>().toEqualTypeOf<string>()
 
     const error = Node.create(() => new Error('Do not use this route'))
 

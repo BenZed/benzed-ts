@@ -12,12 +12,12 @@ import { resolveIndex, shuffle } from '@benzed/array'
 interface SwitchTransferOptions {
     readonly random: boolean
 }
-export interface SwitchTransfer extends Transfer<any> {}
-export const switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
+export interface SwitchTransfer<O> extends Transfer<any, O> {}
+export const switcher = <O>(options?: SwitchTransferOptions): SwitchTransfer<O> => {
 
     const targets: Component[] = []
 
-    return (ctx: TransferContext) => {
+    return (ctx => {
 
         const refresh = targets.length === 0
         if (refresh) {
@@ -30,7 +30,7 @@ export const switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
 
         return targets.pop() ?? null
 
-    }
+    }) as SwitchTransfer<O>
 }
 
 /*** LinearTarget ***/
@@ -38,6 +38,9 @@ export const switcher = (options?: SwitchTransferOptions): SwitchTransfer => {
 interface LinearTransferOptions {
     readonly index: number
 }
-export interface LinearTransfer extends Transfer<any> {}
-export const linear = (options?: LinearTransferOptions): LinearTransfer => 
-    (ctx: TransferContext) => ctx.targets[resolveIndex(ctx.targets, options?.index ?? 0)] ?? null
+export interface LinearTransfer<O> extends Transfer<any, O> {}
+export const linear = <O>(options?: LinearTransferOptions): LinearTransfer<O> => 
+    (
+        (ctx: TransferContext) => 
+            ctx.targets[resolveIndex(ctx.targets, options?.index ?? 0)] ?? null
+    ) as LinearTransfer<O>

@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Execute ***/
+/*** Compute ***/
 
 export interface Compute<I = unknown, O = unknown> {
     (input: I): O
@@ -37,7 +37,8 @@ export function isComponent<I = unknown, O = I>(input: unknown): input is Compon
 
     return input !== null && 
         typeof input === 'object' && 
-        typeof (input as { [key:string]: unknown }).compute === 'function'
+        typeof (input as any).compute === 'function' && 
+        typeof (input as any).canCompute === 'function'
 
 }
 
