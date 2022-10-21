@@ -1,4 +1,5 @@
-import { Component, component } from './component'
+import { Component } from './component'
+import { $ } from '@benzed/schema'
 
 /*** Eslint ***/
 
@@ -13,12 +14,16 @@ export interface MathComponent<O extends Operation, B extends number>
     operation: O
 }
 
-const mathComponent = 
-    <O extends Operation, B extends number>(
-        by: B, 
-        execute: (i:number) => number
-    ): MathComponent<O,B> => 
-        component(execute, { by })
+const mathComponent = <O extends Operation, B extends number>(
+    by: B, 
+    compute: (i:number) => number
+): MathComponent<O,B> => 
+    ({ 
+        compute, 
+        canCompute: $.number.is,
+        by,
+        operation: null as unknown as O
+    })
 
 /*** Math Components  ***/
 

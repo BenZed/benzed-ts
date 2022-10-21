@@ -1,6 +1,5 @@
-import { Node } from './node'
 import { System } from './system'
-import { OutputOf } from './component'
+import { Component, OutputOf } from './component'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -13,14 +12,14 @@ import { $ } from '@benzed/schema'
 
 /*** Setup  ***/
 
-const x2 = Node.create(
-    $.number.is,
-    i => i * 2
+const x2 = Component.plain(
+    i => i * 2,
+    $.number.is
 )
 
-const log = Node.create(
-    $.number.is,
+const log = Component.plain(
     i => `${i}`,
+    $.number.is
 )
 
 const system = System
@@ -42,7 +41,7 @@ it('system output is computed from the output type of it\'s nodes', () => {
 
     expectTypeOf<SysO>().toEqualTypeOf<string>()
 
-    const error = Node.create(() => new Error('Do not use this route'))
+    const error = Component.plain(() => new Error('Do not use this route'))
 
     const system2 = system.link(
         ['x2'], 
@@ -57,27 +56,27 @@ it('system output is computed from the output type of it\'s nodes', () => {
 it('can only link to nodes with input matching output', () => {
 
     // @ts-expect-error boolean !== string
-    system.link(['log'], 'bad', Node.create((i: boolean) => !i, $.boolean.is))
+    system.link(['log'], 'bad', Component.plain((i: boolean) => !i, $.boolean.is))
 
 })
 
 it('systems can be nested in systems', () => {
 
-    const randomizer = Node.create(
+    const randomizer = Component.plain(
+        (arr: (number | boolean)[]) => random(arr),
         $.array(
             $.or(
                 $.number, 
                 $.boolean
             )
         ).mutable.is,
-        (arr: (number | boolean)[]) => random(arr),
     )
 
     const parent = System
         .create('input', randomizer)
-        .link(['input'], 'invert', Node.create(
-            $.boolean.is,
-            i => !i
+        .link(['input'], 'invert', Component.plain(
+            i => !i,
+            $.boolean.is
         ))
         .link(['input'], 'x2log', system)
 
@@ -97,7 +96,8 @@ it('system can handle short circuting', () => {
     const randomizer = (arr: (boolean | number)[]) => random(arr)
 
     const s1 = System
-        .create('rand', Node.create(
+        .create('rand', Component.plain(
+            randomizer,
             $.array(
                 $.or(
                     $.boolean,
@@ -105,12 +105,10 @@ it('system can handle short circuting', () => {
                 )
             ).mutable.is,
             // ^ is.mutable.array.of.boolean.or.number < TODO this syntax
-            randomizer,
-        
         ))
-        .link(['rand'], 'num', Node.create(
-            $.number.is,
-            i => i
+        .link(['rand'], 'num', Component.plain(
+            i => i,
+            $.number.is
         ))
 
     type S1Output = OutputOf<typeof s1>

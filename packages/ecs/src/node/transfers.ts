@@ -1,7 +1,7 @@
 import { Component } from '../component'
-import { Transfer, TransferContext } from './_node'
+import { Transfer } from './node'
 
-import { resolveIndex, shuffle } from '@benzed/array'
+import { shuffle } from '@benzed/array'
 
 /*** Eslint ***/
 
@@ -33,14 +33,3 @@ export const switcher = <O>(options?: SwitchTransferOptions): SwitchTransfer<O> 
     }) as SwitchTransfer<O>
 }
 
-/*** LinearTarget ***/
-
-interface LinearTransferOptions {
-    readonly index: number
-}
-export interface LinearTransfer<O> extends Transfer<any, O> {}
-export const linear = <O>(options?: LinearTransferOptions): LinearTransfer<O> => 
-    (
-        (ctx: TransferContext) => 
-            ctx.targets[resolveIndex(ctx.targets, options?.index ?? 0)] ?? null
-    ) as LinearTransfer<O>

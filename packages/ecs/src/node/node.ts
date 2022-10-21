@@ -1,9 +1,4 @@
-
-import { pass, TypeGuard } from '@benzed/util'
-
-import { Component, Compute, InputOf, OutputOf } from '../component'
-import { Transfer,_Node } from './_node'
-import { linear } from './transfers'
+import { Component, isComponent } from '../component'
 
 /*** Eslint ***/
 
@@ -11,57 +6,61 @@ import { linear } from './transfers'
     @typescript-eslint/no-explicit-any
 */
 
-/*** Node ***/
+/*** Types ***/
 
-interface PlainNode<I = unknown, O = I> extends Node<I,O, Component<O, unknown>> {}
+export type TargetOf<N> = 
+ N extends Node<any, any, infer T> 
+     ? T
+     : unknown
 
 /**
- * The standard non-abstract class that has options for quick instancing 
+ * Method used to compute the next target
  */
-export abstract class Node<I, O, T extends Component<O, any> = Component<O, unknown>> 
-    extends _Node<I, O, T> {
+export interface Transfer<
+    I = unknown,
+    O = I,
+    T extends Component<O, any> = Component<O, unknown>
+> {
+    (ctx: TransferContext<I, O, T>): T | null
+}
 
-    /*** Convenience Create Methods ***/
-        
+/**
+* Context passed to a transfer method
+*/
+export interface TransferContext<
+    I = unknown,
+    O = I,
+    T extends Component<O, any> = Component<O, unknown>
+> {
+    input: I
+    output: O
+    targets: T[]
+}
+
+/*** Node ***/
+
+/**
+ * A node is a component with additional functionality to determine which
+ * node to transfer it's output to.
+ */
+export abstract class Node<
+    I = unknown,
+    O = unknown,
+    T extends Component<O, any> = Component<O, unknown>
+> extends Component<I, O> {
+
     /**
-     * Apply node interface methods to an existing component
+     * With the context of a completed computation, retrieve the target that 
+     * this node is transferring it's output to.
      */
-    static apply<C extends Component<any>>(
-        component: C,
-        transfer: Transfer<InputOf<C>, OutputOf<C>> = linear()
-    ): PlainNode<InputOf<C>, OutputOf<C>> {
+    abstract transfer(ctx: TransferContext<I,O,T>): T | null
 
-        return Object.assign(
-            component,
-            { transfer }
-        )
-    }
+}
 
-    /**
-     * Create a node that takes any input and linearly transfers it's output
-     */
-    static create<Ox>(compute: Compute<any,Ox>): PlainNode<any, Ox>
+export function isNode<T>(input: unknown): input is Node<T> {
+    if (!isComponent(input))
+        return false 
 
-    /**
-     * Create a new node that takes specific input and optional transfer behaviour. 
-     * 
-     * Transfer behaviour defaults  to linear.
-     */
-    static create<Ix, Ox = Ix>(
-        canCompute: TypeGuard<Ix>,
-        compute: Compute<Ix,Ox>,
-        transfer?: Transfer<Ix,Ox>
-    ): PlainNode<Ix, Ox> 
-
-    static create(
-        ...args: any[]
-    ): PlainNode<any> {
-
-        const [compute, canCompute, transfer] = args.length === 1 
-            ? [args[0], pass, linear()]
-            : [args[1], args[0], args[2] = linear()]
-
-        return this.apply({ compute, canCompute }, transfer)
-    }
-
+    const node = input as Partial<Node<T>>
+    return typeof node.transfer === 'function'
 }

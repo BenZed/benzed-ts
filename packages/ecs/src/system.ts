@@ -6,71 +6,78 @@ import {
 } from './component'
 
 import { 
-    _Node, 
+    isNode,
+    Node, 
     TargetOf, 
     
-    TransferContext
+    Transfer, 
+    
+    TransferContext,
+    transfers
 } from './node'
 
 /*** Eslint ***/
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/no-non-null-assertion
 */
 
 /*** Nodes ***/
 
 type Links = readonly string[]
 
-type LinkedNode<S extends SystemNodes, K extends keyof S> = 
+type NodeOf<S extends LinkedNodes, K extends keyof S> = 
     S[K][0]
 
-type SystemNode = [_Node<any>, ...Links] | [_Node<any>]
+type LinkedNode = [Node<any>, ...Links] | [Node<any>]
 
-type SystemNodes = { [key: string]: SystemNode }
+type LinkedNodes = { [key: string]: LinkedNode }
 
-type SystemNodeOutput<S extends SystemNodes, K extends keyof S> = 
-    OutputOf<LinkedNode<S,K>>
+type LinkedNodeOutput<S extends LinkedNodes, K extends keyof S> = 
+    OutputOf<NodeOf<S,K>>
 
-type SystemNodeInput<S extends SystemNodes, K extends keyof S> = 
-    InputOf<LinkedNode<S,K>>
+type LinkedNodeInput<S extends LinkedNodes, K extends keyof S> = 
+    InputOf<NodeOf<S,K>>
 
-type SystemNodeTarget<S extends SystemNodes, K extends keyof S> = 
-    TargetOf<LinkedNode<S,K>>
+type LinkedNodeTarget<S extends LinkedNodes, K extends keyof S> = 
+    TargetOf<NodeOf<S,K>>
 
-type ComponentAsNode<C extends Component<any>> = C extends _Node<any> 
+/**
+ * A system node is a component with default transfer behaviour
+ */
+interface SystemNode<I,O> extends Node<I,O,Component<O, unknown>> {}
+type ToSystemNode<C extends Component<any>> = C extends Node<any> 
     ? C 
-    : _Node<InputOf<C>, OutputOf<C>>
+    : SystemNode<InputOf<C>, OutputOf<C>>
 
-type SystemOutputNodes<S extends SystemNodes> = 
-    LinkedNode<S, EndLinkedKeys<S>>
+type SystemOutputNodes<S extends LinkedNodes> = 
+    NodeOf<S, EndLinkedKeys<S>>
 
-export type SystemTarget<S extends SystemNodes> =
-    TargetOf<SystemOutputNodes<S>> extends _Node<SystemOutput<S>, any>
+export type SystemTarget<S extends LinkedNodes> =
+    TargetOf<SystemOutputNodes<S>> extends Node<SystemOutput<S>, any>
         ? TargetOf<SystemOutputNodes<S>>
-        : _Node<SystemOutput<S>>
+        : Node<SystemOutput<S>>
 
-export type SystemOutput<S extends SystemNodes> = 
+export type SystemOutput<S extends LinkedNodes> = 
     SystemOutputMap<S>[keyof SystemOutputMap<S>]
 
-export type SystemInput<S extends SystemNodes, I extends string> =
-    SystemNodeInput<S, I>
+export type SystemInput<S extends LinkedNodes, I extends string> =
+    LinkedNodeInput<S, I>
 
-type SystemOutputMap<S extends SystemNodes> = {
+type SystemOutputMap<S extends LinkedNodes> = {
     [K in EndLinkedKeys<S>]: Exclude<
-    SystemNodeOutput<S, K>,
-    SystemNodeInput<S, LinksOf<S[K]>[number]>
+    LinkedNodeOutput<S, K>,
+    LinkedNodeInput<S, LinksOf<S[K]>[number]>
     >
 }
 
 type EndLinkedKeys<
-    S extends SystemNodes, 
+    S extends LinkedNodes, 
 > = keyof {
     [K in keyof S as IsEndLinkKey<S, K, K, never>]: unknown
 }
 
-type IsEndLinkKey<S extends SystemNodes, K extends keyof S, Y, N> = 
+type IsEndLinkKey<S extends LinkedNodes, K extends keyof S, Y, N> = 
     AllOutputsAreHandled<S,K,
     LinksOf<S[K]> extends [] 
         ? Y
@@ -78,19 +85,19 @@ type IsEndLinkKey<S extends SystemNodes, K extends keyof S, Y, N> =
     Y
     >
 
-type AllOutputsAreHandled<S extends SystemNodes, T extends keyof S, Y, N> = 
+type AllOutputsAreHandled<S extends LinkedNodes, T extends keyof S, Y, N> = 
     LinksOf<S[T]> extends []
         ? N
         : Exclude<
-        /**/ OutputOf<LinkedNode<S,T>>, 
-        /**/ InputOf<LinkedNode<S, LinksOf<S[T]>[number]>>
+        /**/ OutputOf<NodeOf<S,T>>, 
+        /**/ InputOf<NodeOf<S, LinksOf<S[T]>[number]>>
         > extends never ? Y : N
 
-type LinksOf<S extends SystemNode> = S extends [_Node<any>, ...infer L]
+type LinksOf<S extends LinkedNode> = S extends [Node<any>, ...infer L]
     ? L 
     : []
 
-type AddLink<N extends SystemNode, L extends string> = L extends LinksOf<N>[number]
+type AddLink<N extends LinkedNode, L extends string> = L extends LinksOf<N>[number]
     ? N
     : [
         N[0],
@@ -98,23 +105,39 @@ type AddLink<N extends SystemNode, L extends string> = L extends LinksOf<N>[numb
         L
     ]    
 
+/*** Helper ***/
+    
+function toSystemNode<C extends Component<any>>(
+    nodeOrComponent: C,
+    transfer: Transfer<any>
+): ToSystemNode<C> {
+    return (
+        isNode(nodeOrComponent)
+            ? nodeOrComponent 
+            : Object.assign(nodeOrComponent, { transfer })
+    ) as ToSystemNode<C>
+}
+
 /*** System ***/
 
-class System<S extends SystemNodes = SystemNodes, I extends string = string> 
-    extends _Node<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>> {
+class System<S extends LinkedNodes = LinkedNodes, I extends string = string> 
+    extends Node<SystemInput<S,I>, SystemOutput<S>, SystemTarget<S>> {
         
-    static create<Ix extends string, N extends _Node<any>>(
-        ...input: [Ix, N]
-    ): System<{ [K in Ix]: [N] }, Ix> {
+    static create<Ix extends string, C extends Component<any> >(
+        name: Ix,
+        nodeOrComponent: C,
+        transfer: Transfer<any> = transfers.switcher()
+    ): System<{ [K in Ix]: [ToSystemNode<C>] }, Ix> {
 
-        const [ name, node ] = input
+        const node = toSystemNode(nodeOrComponent, transfer)
 
-        return new System({ [name]: [node] }, name) as any
+        return new System({ [name]: [node] }, name, transfer) as any
     }
 
     private constructor(
         readonly nodes: S,
         private readonly _inputKey: I,
+        private readonly _defaultTransfer: Transfer<any>
     ) {
         super() 
     }
@@ -122,18 +145,18 @@ class System<S extends SystemNodes = SystemNodes, I extends string = string>
     link<
         F extends (keyof S)[], 
         T extends string, 
-        N extends SystemNodeTarget<S, F[number]>
+        N extends LinkedNodeTarget<S, F[number]>
     >
     (...input: [F, T, N]): System<{
 
         [K in keyof S | T]: K extends T 
-            ? [ComponentAsNode<N>]
+            ? [ToSystemNode<N>]
             : K extends F[number]
                 ? AddLink<S[K], T>
                 : S[K]
     }, I> {
 
-        const [ fromKeys, toKey, node ] = input
+        const [ fromKeys, toKey, nodeOrComponent ] = input
 
         const { nodes: currentNodes, _inputKey: inputKey } = this
 
@@ -153,9 +176,10 @@ class System<S extends SystemNodes = SystemNodes, I extends string = string>
             {
                 ...currentNodes,
                 ...updatedNodes,
-                [toKey]: [node]
+                [toKey]: [toSystemNode(nodeOrComponent, this._defaultTransfer)]
             }, 
-            inputKey
+            inputKey,
+            this._defaultTransfer
         ) as any
     }
 
@@ -167,7 +191,7 @@ class System<S extends SystemNodes = SystemNodes, I extends string = string>
 
     get<K extends keyof S>(
         key: K
-    ): LinkedNode<S, K> {
+    ): NodeOf<S, K> {
 
         const { nodes } = this
 
@@ -177,11 +201,11 @@ class System<S extends SystemNodes = SystemNodes, I extends string = string>
         return nodes[key][0]
     }
 
-    getInput():LinkedNode<S, I> {
+    getInput():NodeOf<S, I> {
         return this.get(this._inputKey as unknown as keyof S)
     }
 
-    canCompute(value: unknown): value is SystemNodeInput<S,I> {
+    canCompute(value: unknown): value is LinkedNodeInput<S,I> {
         const { nodes, _inputKey } = this
         const [inputNode] = nodes[_inputKey]
         return inputNode.canCompute(value)
@@ -213,7 +237,7 @@ class System<S extends SystemNodes = SystemNodes, I extends string = string>
     private _transferCache: { 
         input: SystemInput<S, I>
         output: SystemOutput<S>
-        outputNode: _Node<unknown> | null
+        outputNode: Node<unknown> | null
     } | null = null
     // 
 
@@ -240,7 +264,7 @@ class System<S extends SystemNodes = SystemNodes, I extends string = string>
                 input: currentInput,
                 output: currentOutput,
                 targets 
-            }) as LinkedNode<S, string>
+            }) as NodeOf<S, string>
 
             if (!targets.includes(outputNode) && targets.length > 0) {
                 this._transferCache = null
