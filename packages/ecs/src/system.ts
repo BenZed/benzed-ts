@@ -19,7 +19,7 @@ import {
 /*** Eslint ***/
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 /*** Nodes ***/
@@ -216,9 +216,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     }
 
     canCompute(value: unknown): value is LinkedNodeInput<S,I> {
-        const { nodes, _inputKey } = this
-        const [inputNode] = nodes[_inputKey]
-        return inputNode.canCompute(value)
+        return this.getInput().canCompute(value)
     }
 
     compute(input: SystemInput<S,I>): SystemOutput<S> {
@@ -266,8 +264,9 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
     transfer(
         ctx: SystemTransferContext<S,I>
     ): SystemTarget<S> | null {
-        const outputNode = this.get(ctx.outputNodeKey)
-        return outputNode.transfer(ctx) as SystemTarget<S> | null
+        return this
+            .get(ctx.outputNodeKey)
+            .transfer(ctx) as SystemTarget<S> | null
     }
 
     *[Symbol.iterator](): Generator<[keyof S, S[keyof S]]> {

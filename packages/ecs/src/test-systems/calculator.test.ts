@@ -1,5 +1,7 @@
-import $ from '@benzed/schema'
+import { $, Infer } from '@benzed/schema'
 import { match } from '@benzed/match'
+import { max, primes } from '@benzed/math'
+
 import { Compute } from '../component'
 
 import { transfers, Node, Transfer, } from '../node'
@@ -7,9 +9,9 @@ import System from '../system'
 
 /*** Types ***/
 
-const $operation = $.enum('*', '-', '+', '/')
+const $operation = $.enum('*', '-', '+', '/', '**')
 
-type Operation = typeof $operation
+type Operation = Infer<typeof $operation>
 
 interface Calc <O extends Operation = Operation> { 
     readonly operation: O 
@@ -22,7 +24,7 @@ const $calc = $.shape({
 
 /*** Nodes ***/
 
-class CalcOperate<O extends Operation> extends Node<Calc['values'], number> {
+class Math<O extends Operation> extends Node<Calc['values'], number> {
 
     constructor(
         public operation: O
@@ -30,7 +32,7 @@ class CalcOperate<O extends Operation> extends Node<Calc['values'], number> {
         super()
     }
 
-    compute: Compute<Calc['values'], number> = ([a, b]) => match(this.operation)
+    compute: Compute<Calc['values'], number> = ([a, b]) => match(this.operation as Operation)
     /**/ ('*', () => a * b)
     /**/ ('/', () => a / b)
     /**/ ('+', () => a + b)
@@ -43,20 +45,20 @@ class CalcOperate<O extends Operation> extends Node<Calc['values'], number> {
 
 }
 
-class CalcInput extends Node<Calc, Calc['values'], CalcOperate<Operation>> {
+class Input extends Node<Calc, Calc['values'], Math<Operation>> {
 
     compute: Compute<Calc, Calc['values']> = i => i.values
 
     canCompute= $calc.is
 
-    transfer: Transfer<Calc, Calc['values'], CalcOperate<Operation>> = 
+    transfer: Transfer<Calc, Calc['values'], Math<Operation>> = 
         ctx => ctx.targets.find(t => t.operation === ctx.input.operation) ?? null
 
 }
 
 class Max extends Node<number[], number> {
 
-    compute = (i: number[]): number => Math.max(...i)
+    compute = (i: number[]): number => max(...i)
 
     canCompute = $.array($.number).mutable.is
 
@@ -66,28 +68,41 @@ class Max extends Node<number[], number> {
 
 /*** System ***/
 
-const calculator = System.create('input', new CalcInput())
-    .add(['input'], '*', new CalcOperate('*'))
-    .add(['input'], '+', new CalcOperate('+'))
-    .add(['input'], '-', new CalcOperate('-'))
-    .add(['input'], '/', new CalcOperate('/'))
+const calculator = System.create('input', new Input())
+    .add(['input'], '*', new Math('*'))
+    .add(['input'], '+', new Math('+'))
+    .add(['input'], '-', new Math('-'))
+    .add(['input'], '/', new Math('/'))
 
 /*** Tests ***/
     
-it('discriminant target test', () => {
+it('can discriminate target', () => {
     const max = new Max()
     
     // @ts-expect-error Should only be able to link to CalcOperate nodes 
     calculator.add(['input'], 'log', max)
 })
 
-it('output operation test', () => {
+for (const operation of $operation.$values) {
 
-    const output = calculator.compute({
-        values: [5,5],
-        operation: '*'
-    })
+    for (const prime of primes(50)) {
+        it('can output from * path', () => {
 
-    expect(output).toBe(25)
-    
-})
+            const a = prime
+            const b = prime
+
+            const output = calculator.compute({
+                values: [a,b],
+                operation
+            })
+            expect(output).toBe(
+                match(operation as Operation)
+                ('*', a * b)    
+                ('/', a / b)    
+                ('-', a - b)    
+                ('+', a + b)    
+                ('**', a ** b).next()
+            )
+        })
+    }
+}

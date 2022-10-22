@@ -1,8 +1,9 @@
-import { pass } from '@benzed/util/lib'
 
 /*** Eslint ***/
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/*** Helper ***/
 
 /*** Compute ***/
 
@@ -33,7 +34,7 @@ export abstract class Component<I = unknown, O = I> {
     
     static plain(
         compute: any,
-        canCompute = pass as any
+        canCompute = isAny
     ): Component<any> {
         return {
             compute,
@@ -64,3 +65,4 @@ export function isComponent<I = unknown, O = I>(input: unknown): input is Compon
 
 }
 
+export const isAny = (input: unknown): input is any => true
