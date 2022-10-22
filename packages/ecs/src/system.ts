@@ -152,7 +152,7 @@ class System<S extends LinkedNodes = LinkedNodes, I extends string = string>
         super() 
     }
     
-    link<
+    add<
         F extends (keyof S)[], 
         T extends string, 
         N extends LinkedNodeTarget<S, F[number]>

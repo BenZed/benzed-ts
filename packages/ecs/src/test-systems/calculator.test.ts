@@ -1,6 +1,6 @@
 import $ from '@benzed/schema'
+import { match } from '@benzed/match'
 import { Compute } from '../component'
-import { math, Operation, } from '../components'
 
 import { transfers, Node, Transfer, } from '../node'
 import System from '../system'
@@ -8,6 +8,8 @@ import System from '../system'
 /*** Types ***/
 
 const $operation = $.enum('*', '-', '+', '/')
+
+type Operation = typeof $operation
 
 interface Calc <O extends Operation = Operation> { 
     readonly operation: O 
@@ -28,8 +30,12 @@ class CalcOperate<O extends Operation> extends Node<Calc['values'], number> {
         super()
     }
 
-    compute: Compute<Calc['values'], number> = ([value, by]) => 
-        math[this.operation](by).compute(value)
+    compute: Compute<Calc['values'], number> = ([a, b]) => match(this.operation)
+    /**/ ('*', () => a * b)
+    /**/ ('/', () => a / b)
+    /**/ ('+', () => a + b)
+    /**/ ('-', () => a - b)
+    /**/ ('**', () => a ** b).next()
 
     canCompute = $calc.$.values.is
 
@@ -61,10 +67,10 @@ class Max extends Node<number[], number> {
 /*** System ***/
 
 const calculator = System.create('input', new CalcInput())
-    .link(['input'], '*', new CalcOperate('*'))
-    .link(['input'], '+', new CalcOperate('+'))
-    .link(['input'], '-', new CalcOperate('-'))
-    .link(['input'], '/', new CalcOperate('/'))
+    .add(['input'], '*', new CalcOperate('*'))
+    .add(['input'], '+', new CalcOperate('+'))
+    .add(['input'], '-', new CalcOperate('-'))
+    .add(['input'], '/', new CalcOperate('/'))
 
 /*** Tests ***/
     
@@ -72,10 +78,10 @@ it('discriminant target test', () => {
     const max = new Max()
     
     // @ts-expect-error Should only be able to link to CalcOperate nodes 
-    calculator.link(['input'], 'log', max)
+    calculator.add(['input'], 'log', max)
 })
 
-it('output test', () => {
+it('output operation test', () => {
 
     const output = calculator.compute({
         values: [5,5],

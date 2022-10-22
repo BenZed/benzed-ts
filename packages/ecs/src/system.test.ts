@@ -24,7 +24,7 @@ const log = Component.plain(
 
 const system = System
     .create('x2', x2)
-    .link(['x2'], 'log', log)
+    .add(['x2'], 'log', log)
 
 /*** Tests ***/
 
@@ -43,7 +43,7 @@ it('system output is computed from the output type of it\'s nodes', () => {
 
     const error = Component.plain(() => new Error('Do not use this route'))
 
-    const system2 = system.link(
+    const system2 = system.add(
         ['x2'], 
         'error', 
         error
@@ -56,7 +56,7 @@ it('system output is computed from the output type of it\'s nodes', () => {
 it('can only link to nodes with input matching output', () => {
 
     // @ts-expect-error boolean !== string
-    system.link(['log'], 'bad', Component.plain((i: boolean) => !i, $.boolean.is))
+    system.add(['log'], 'bad', Component.plain((i: boolean) => !i, $.boolean.is))
 
 })
 
@@ -74,11 +74,11 @@ it('systems can be nested in systems', () => {
 
     const parent = System
         .create('input', randomizer)
-        .link(['input'], 'invert', Component.plain(
+        .add(['input'], 'invert', Component.plain(
             i => !i,
             $.boolean.is
         ))
-        .link(['input'], 'x2log', system)
+        .add(['input'], 'x2log', system)
 
     type ParentOutput = OutputOf<typeof parent>
 
@@ -106,7 +106,7 @@ it('system can handle short circuting', () => {
             ).mutable.is,
             // ^ is.mutable.array.of.boolean.or.number < TODO this syntax
         ))
-        .link(['rand'], 'num', Component.plain(
+        .add(['rand'], 'num', Component.plain(
             i => i,
             $.number.is
         ))
