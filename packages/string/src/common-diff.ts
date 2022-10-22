@@ -83,17 +83,28 @@ function* createDiffs(
 /*** Helper ***/
 
 const matchCommonDiffOptions =
-    match.for<undefined | number | boolean | Partial<CommonDiffOptions>, CommonDiffOptions>(
-        cases => cases
-            .fall(is.number, offset => ({ offset }))
-            .fall(is.boolean, fromEnd => ({ fromEnd }))
-            .default(i => ({ offset: 0, fromEnd: false, ...i }))
+    match.for<
+    /**/ undefined | number | boolean | Partial<CommonDiffOptions>, 
+    /**/ CommonDiffOptions
+    >(cases => cases
+        .fall(is.number, offset => ({ offset }))
+        .fall(is.boolean, fromEnd => ({ fromEnd }))
+        .default(i => 
+            ({ 
+                offset: 0,
+                fromEnd: false, 
+                ...i 
+            })
+        )
     )
 
 /*** Main ***/
 
 /**
- * Given an array of strings, return 
+ * Given an array of strings, return a common diff object
+ * which contains one string representing the common
+ * section of the provided string, and an array of strings 
+ * with the differences.
  */
 function commonDiff(input: string[], options?: Partial<CommonDiffOptions>): CommonDiff
 function commonDiff(input: string[], fromEnd?: boolean): CommonDiff
