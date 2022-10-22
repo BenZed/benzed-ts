@@ -22,9 +22,9 @@ it(`creates a match expression syntax`, () => {
 
 it(`uses deep equality to compare value input cases`, () => {
 
-    const [fb] = match({ foo: `bar` })
-        ({ foo: `baz` }, `wrong`)
+    const [fb] = match({ foo: `bar` } as { foo: `bar` | `baz` | `foo` })
         ({ foo: `foo` }, `wrong`)
+        ({ foo: `baz` }, `wrong`)
         ({ foo: `bar` }, `right`)
 
     expect(fb).toEqual(`right`)
@@ -581,3 +581,4 @@ describe(`.reusable() match instance`, () => {
     })
 
 })
+

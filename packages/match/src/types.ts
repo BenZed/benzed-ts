@@ -14,22 +14,24 @@ type Predicate<T> = (input: T) => boolean
 /*** Values ***/
 
 type DiscardValue<V, I> =
-    I extends TypeGuard<any, infer O>
+    I extends TypeGuard<infer O, any>
     ? Exclude<V, O>
     : Exclude<V, I>
 
 type KeepValue<V, I> =
-    I extends TypeGuard<any, infer O>
+    I extends TypeGuard<infer O, any>
     ? Extract<V, O>
     : V
 
 type BreakValue<V, I> =
-    I extends TypeGuard<any, infer O>
+    I extends TypeGuard<infer O, any>
     ? Exclude<V, O>
     : I extends Func<any,any,any> ? V : Exclude<V,I>
 
 // nested in .value to prevent ugliness
-type FallValue<V, I, O> = { value: BreakValue<V, I> | O }['value']
+type FallValue<V, I, O> = { 
+    value: BreakValue<V, I> | O 
+}['value']
 
 /*** Exports ***/
 
@@ -38,12 +40,12 @@ type FallValue<V, I, O> = { value: BreakValue<V, I> | O }['value']
 */
 
 type AddOutput<ON, O extends readonly unknown[]> =
-    O extends [infer O1, ...infer OR]
-    ? ON extends O1 ? O : [O1, ...AddOutput<ON, OR>]
+    O extends [infer Ox, ...infer OR]
+    ? ON extends Ox ? O : [Ox, ...AddOutput<ON, OR>]
     : [ON]
 
-type OutputMethod<V, I, O> = I extends TypeGuard<any, infer I2>
-    ? (input: I2) => O
+type OutputMethod<V, I, O> = I extends TypeGuard<infer Ix, any>
+    ? (input: Ix) => O
     : (input: V) => O
 
 export type OutputOptions<V, I, O> =
@@ -59,14 +61,14 @@ export type InputOptions<T> = Predicate<T> | TypeGuard<T, T> | T
 
 export type MatchOutput<OT, O extends OutputArray> = O extends []
     ? never
-    : IfOutputTarget<OT, OT, O extends [infer O1]
-        ? O1
-        : O extends [infer O1, ...infer ON]
-        ? O1 | MatchOutput<OT, ON>
+    : IfOutputTarget<OT, OT, O extends [infer Ox]
+        ? Ox
+        : O extends [infer Ox, ...infer ON]
+        ? Ox | MatchOutput<OT, ON>
         : never
     >
 
-type BreakOutputMethod<O1, V> = TypeGuard<any, O1> | ((input: V) => O1)
+type BreakOutputMethod<Ox, V> = TypeGuard<Ox, any> | ((input: V) => Ox)
 
 type FuncIfOutput<O, R, A extends unknown[] = []> = O extends never ? never : (...args: A) => R
 
@@ -99,37 +101,37 @@ export interface MatchInProgress<
     /**
      * Create new case that breaks on match.
      */
-    <O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
+    <Ox extends OutputTarget<OT>, I extends InputOptions<V>>(
         input: I,
-        output: OutputOptions<V, I, O1>
-    ): MatchInProgress<BreakValue<V, I>, AddOutput<O1, O>, OT>
+        output: OutputOptions<V, I, Ox>
+    ): MatchInProgress<BreakValue<V, I>, AddOutput<Ox, O>, OT>
 
-    <O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
-        defaultOutput: OutputOptions<V, I, O1>
+    <Ox extends OutputTarget<OT>, I extends InputOptions<V>>(
+        defaultOutput: OutputOptions<V, I, Ox>
     ): Match<
         MatchOutput<
             OT,
-            AddOutput<O1, O>
+            AddOutput<Ox, O>
         >
     >
 
     /**
      * Create new case that breaks on match.
      */
-    break<O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
+    break<Ox extends OutputTarget<OT>, I extends InputOptions<V>>(
         input: I,
-        output: OutputOptions<V, I, O1>
-    ): MatchInProgress<BreakValue<V, I>, AddOutput<O1, O>, OT>
+        output: OutputOptions<V, I, Ox>
+    ): MatchInProgress<BreakValue<V, I>, AddOutput<Ox, O>, OT>
 
     /**
      * Create new case that breaks on match.
      */
-    break<O1 extends OutputTarget<OT>>(
-        pass: BreakOutputMethod<O1, V>
+    break<Ox extends OutputTarget<OT>>(
+        pass: BreakOutputMethod<Ox, V>
     ): MatchInProgress<
-        Exclude<V, O1>,
+        Exclude<V, Ox>,
         AddOutput<
-            O1,
+            Ox,
             O
         >,
         OT
@@ -138,13 +140,14 @@ export interface MatchInProgress<
     /**
      * Create a new case that passes the output to input on match
      */
-    fall<O1, I extends InputOptions<V>>(
+    fall<Ox, I extends InputOptions<V>>(
         input: I,
-        output: OutputOptions<V, I, O1>
-    ): MatchInProgress<FallValue<V, I, O1>, O, OT>
-    fall<O1, I extends InputOptions<V>>(
-        pass: OutputMethod<V, I, O1>
-    ): MatchInProgress<O1, O, OT>
+        output: OutputOptions<V, I, Ox>
+    ): MatchInProgress<FallValue<V, I, Ox>, O, OT>
+    
+    fall<Ox, I extends InputOptions<V>>(
+        pass: OutputMethod<V, I, Ox>
+    ): MatchInProgress<Ox, O, OT>
 
     /**
      * Do not create outputs for the match
@@ -166,8 +169,8 @@ export interface MatchInProgress<
     /**
      * Create a final case that handles any remaining cases
      */
-    default<O1 extends OutputTarget<OT>, I extends InputOptions<V>>(
-        output: OutputOptions<V, I, O1>
+    default<Ox extends OutputTarget<OT>, I extends InputOptions<V>>(
+        output: OutputOptions<V, I, Ox>
     ): Match<
         MatchOutput<
             OT,
