@@ -14,12 +14,12 @@ import { Component } from './component'
  */
 export type Components<I = unknown, O = I> = readonly Component<I,O>[]
 
-type Get<C extends Components, Cx extends new () => C[number]> = 
+type GetComponentByConstructor<C extends Components, Cx extends new () => C[number]> = 
     C extends [infer I, ...infer Ir] 
         ? I extends InstanceType<Cx> 
             ? I
             : Ir extends Components 
-                ? Get<Ir, Cx> 
+                ? GetComponentByConstructor<Ir, Cx> 
                 : never
         : never
 
@@ -48,10 +48,8 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
 
     abstract add(...args: any[]): Node<any, any, any>
 
-    get<Cx extends new () => C[number]>(constructor: Cx): Get<C, Cx>
-    
     get<I extends IndexesOf<C>>(index: I): C[I] 
-    
+    get<Cx extends new () => C[number]>(constructor: Cx): GetComponentByConstructor<C, Cx>
     get(input: unknown): unknown {
 
         const component = is.number(input) 
