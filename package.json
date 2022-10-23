@@ -3,8 +3,8 @@
     "description": "TypeScript mono repo for all BenZed's code.",
     "scripts": {
         "postinstall": "npm run bootstrap && npm run packages:build",
-        "bootstrap": "lerna bootstrap --force-local",
         "update-deps": "npx npm-check -u",
+        "packages:bootstrap": "lerna bootstrap --force-local",
         "packages:build": "lerna run build",
         "packages:test": "lerna run test",
         "packages:tsc": "lerna run tsc",
