@@ -13,13 +13,13 @@ import { TypeGuard } from '@benzed/util'
 
 type Primitive = string | boolean | number | bigint | null | undefined 
 
+type MatchPredicate<I> = (input: I) => boolean
+
 type Matchable<I> = 
-    Primitive | readonly Primitive[] | Matcher<I> | TypeGuard<I, unknown>
+    Primitive | readonly Primitive[] | MatchPredicate<I> | TypeGuard<I, unknown>
 
-type Matcher<I> = (input: I) => boolean
-
-type MatchInput<I extends Matchable<unknown>> = 
-    I extends Matcher<infer Ix> | TypeGuard<infer Ix>
+type MatchableInput<I extends Matchable<unknown>> = 
+    I extends MatchPredicate<infer Ix> | TypeGuard<infer Ix>
         ? Ix 
         : I extends readonly Primitive[]
             ? I[number]
@@ -31,9 +31,9 @@ type MatchComponents<I> = Components<I, any>
 
 /*** Helper ***/
 
-function toMatcher<I>(input: unknown): Matcher<I> {
+function toMatcher<I>(input: unknown): MatchPredicate<I> {
 
-    if (is.function<Matcher<I>>(input))
+    if (is.function<MatchPredicate<I>>(input))
         return input
 
     if (is.array(input))
@@ -51,10 +51,10 @@ export class Match<I, C extends MatchComponents<I>>
     /**
      * Create a switch node from an initial component
      */
-    static create<Ix extends Matchable<any>, Cx extends FromComponent<MatchInput<Ix>, unknown>>(
+    static create<Ix extends Matchable<any>, Cx extends FromComponent<MatchableInput<Ix>, unknown>>(
         input: Ix,
         comp: Cx
-    ): Match<MatchInput<Ix>, [ToComponent<Cx>]> {
+    ): Match<MatchableInput<Ix>, [ToComponent<Cx>]> {
 
         return new Match(
             [ toMatcher(input) ],
@@ -63,7 +63,7 @@ export class Match<I, C extends MatchComponents<I>>
     }
 
     private constructor(
-        private readonly _matchers: Matcher<I>[],
+        private readonly _matchers: MatchPredicate<I>[],
         components: C,
     ) {
         super(components)
@@ -71,10 +71,10 @@ export class Match<I, C extends MatchComponents<I>>
 
     // Node Implementation
     
-    add<Ix extends Matchable<any>, Cx extends FromComponent<MatchInput<Ix>, unknown>>(
+    add<Ix extends Matchable<any>, Cx extends FromComponent<MatchableInput<Ix>, unknown>>(
         input: Ix,
         comp: Cx
-    ): Match<I | MatchInput<Ix>, [...C, ToComponent<Cx>]> {
+    ): Match<I | MatchableInput<Ix>, [...C, ToComponent<Cx>]> {
         
         const { _matchers: matchers, components } = this
 

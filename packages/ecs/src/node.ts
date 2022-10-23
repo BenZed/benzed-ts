@@ -24,7 +24,9 @@ type GetComponent<C extends Components, Cx extends new () => C[number]> =
         : never
 
 type HasComponent<C extends Components, Cx extends new () => Component<any>> = 
-    InstanceType<Cx> extends C[number] ? true : false
+    InstanceType<Cx> extends C[number] 
+        ? true 
+        : false
 
 /*** Node ***/
 
@@ -49,7 +51,7 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
         super() 
     }
 
-    abstract add(...args: unknown[]): unknown
+    abstract add(...args: [unknown] | [unknown, unknown]): unknown
 
     has<Ix extends number>(index: Ix): Ix extends IndexesOf<C> ? true : false 
     has<T extends new () => Component>(constructor: T): HasComponent<C, T>

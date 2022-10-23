@@ -1,5 +1,5 @@
-import { Component, InputOf, OutputOf } from '../component'
 import { Match } from './match'
+import { Component, InputOf, OutputOf } from '../component'
 
 import { expectTypeOf } from 'expect-type'
 
