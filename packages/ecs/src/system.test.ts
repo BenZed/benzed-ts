@@ -72,12 +72,14 @@ it('systems can be nested in systems', () => {
         ).mutable.is,
     )
 
+    const invert = Component.plain(
+        i => !i,
+        $.boolean.is
+    )
+
     const parent = System
         .create('input', randomizer)
-        .add(['input'], 'invert', Component.plain(
-            i => !i,
-            $.boolean.is
-        ))
+        .add(['input'], 'invert', invert)
         .add(['input'], 'x2log', system)
 
     type ParentOutput = OutputOf<typeof parent>
