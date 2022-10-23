@@ -1,7 +1,7 @@
 
 import { 
     Component,
-    Componentable,
+    FromComponent,
     InputOf, 
     OutputOf, 
     ToComponent 
@@ -27,10 +27,10 @@ type PipeOutput<C extends Components> = OutputOf<Last<C>>
  * Components added onto the end of a pipe must take a subset of the
  * pipes output as input
  */
-type PipeAdd<C extends Components, Cx extends Componentable<unknown>> = 
+type PipeAdd<C extends Components, Cx extends FromComponent<unknown>> = 
     PipeOutput<C> extends InputOf<Cx> 
         ? Cx
-        : Componentable<
+        : FromComponent<
         /**/ Exclude<PipeOutput<C>, InputOf<Cx>>, 
         /**/ OutputOf<Cx>
         >
@@ -40,7 +40,7 @@ type PipeAdd<C extends Components, Cx extends Componentable<unknown>> =
  */
 export class Pipe<C extends Components> extends Node<PipeInput<C>, PipeOutput<C>, C> {
 
-    static create<Cx extends Componentable>(
+    static create<Cx extends FromComponent>(
         comp: Cx
     ): Pipe<[ToComponent<Cx>]> {
 
@@ -57,7 +57,7 @@ export class Pipe<C extends Components> extends Node<PipeInput<C>, PipeOutput<C>
 
     // Node Implementation
 
-    add<Cx extends Componentable>(
+    add<Cx extends FromComponent>(
         component: PipeAdd<C, Cx>
     ): Pipe<[...C, ToComponent<Cx>]> {
 

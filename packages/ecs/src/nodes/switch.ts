@@ -1,5 +1,5 @@
 
-import { Component, Componentable, InputOf, OutputOf, ToComponent } from '../component'
+import { Component, FromComponent, InputOf, OutputOf, ToComponent } from '../component'
 import { Components, Node } from '../node'
 
 import { IndexesOf, random, resolveIndex } from '@benzed/array'
@@ -22,14 +22,14 @@ export interface SwitchOptions {
  */
 export class Switch<I, O, C extends Components<I, O>> extends Node<I, O, C> {
 
-    static create<Cx extends Componentable>(
+    static create<Cx extends FromComponent>(
         comp: Cx,
         options: SwitchOptions = { random: false }
     ): Switch<InputOf<Cx>, OutputOf<Cx>, [ToComponent<Cx>]> {
 
         const component = Component.from(comp)
 
-        return new Switch<InputOf<Cx>, OutputOf<Cx>, [ToComponent<Cx>]>(
+        return new Switch(
             [component], 
             options
         )
@@ -44,7 +44,7 @@ export class Switch<I, O, C extends Components<I, O>> extends Node<I, O, C> {
 
     // Node Implementation
 
-    add<Cx extends Componentable<I, unknown>>(
+    add<Cx extends FromComponent<I, unknown>>(
         comp: Cx
     ): Switch<I, O | OutputOf<Cx>, [...C, ToComponent<Cx>]> {
         

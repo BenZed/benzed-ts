@@ -1,3 +1,4 @@
+import is from '@benzed/is'
 
 /*** Eslint ***/
 
@@ -31,7 +32,7 @@ export type OutputOf<T> = T extends Compute<any, infer O> | Component<any, infer
 /**
  * Input that can be turned into a component
  */
-export type Componentable<I = any, O = I> = Component<I,O> | Compute<I,O>
+export type FromComponent<I = any, O = I> = Component<I,O> | Compute<I,O>
 
 /**
  * Wrap a compute type as a component type 
@@ -50,10 +51,8 @@ export abstract class Component<I = unknown, O = I> {
      */
     static is<I = unknown, O = I>(input: unknown): input is Component<I,O> {
         return input instanceof Component || 
-            
-            input !== null && 
-            typeof input === 'object' && 
-            typeof (input as any).compute === 'function'
+            is.object<Partial<Component>>(input) && 
+            is.function(input.compute)
     }
 
     /**
@@ -66,13 +65,13 @@ export abstract class Component<I = unknown, O = I> {
     /**
      * Ensure the given input is a component
      */
-    static from<C extends Component<any> | Compute<any>>(
+    static from<C extends FromComponent>(
         compute: C
     ): ToComponent<C> 
     
     static from(compute: unknown): unknown {
         return (
-            typeof compute === 'function' 
+            is.function(compute) 
                 ? { compute } 
                 : compute
         )

@@ -36,7 +36,7 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
         super() 
     }
 
-    abstract add(component: Component<any> | Compute<any>): Node<any, any, any>
+    abstract add(...args: any[]): Node<any, any, any>
     
     get<I extends IndexesOf<C>>(index: I): C[I] {
         return this.components[index]
