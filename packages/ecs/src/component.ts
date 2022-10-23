@@ -3,66 +3,92 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Helper ***/
-
 /*** Compute ***/
 
-export interface Compute<I = unknown, O = unknown> {
+/**
+ * Pure function that gives an output from a single input
+ */
+export interface Compute<I = unknown, O = I> {
     (input: I): O
 }
 
+/**
+ * Input of the given Compute or Component type
+ */
 export type InputOf<T> = T extends Compute<infer I, any> | Component<infer I, any>
     ? I
     : unknown
 
+/**
+ * Output of the given Compute or Component type 
+ */
 export type OutputOf<T> = T extends Compute<any, infer O> | Component<any, infer O>
     ? O
     : unknown
 
 /*** Component ***/
+    
+/**
+ * Input that can be turned into a component
+ */
+export type Componentable<I = any, O = I> = Component<I,O> | Compute<I,O>
 
+/**
+ * Wrap a compute type as a component type 
+ */
+export type ToComponent<C extends Component<any> | Compute<any>> = C extends Component<any> 
+    ? C
+    : Component<InputOf<C>, OutputOf<C>>
+
+/**
+ * A component a simply an object that wraps a compute method
+ */
 export abstract class Component<I = unknown, O = I> {
 
-    static plain<O>(
-        compute: (input: any) => O,
-    ): Component<any,O>
-
-    static plain<I,O>(
-        compute:(input: I) => O,
-        canCompute:(value: unknown) => value is I
-    ): Component<I,O> 
-    
-    static plain(
-        compute: any,
-        canCompute = isAny
-    ): Component<any> {
-        return {
-            compute,
-            canCompute
-        }
+    /**
+     * Is the given input a component?
+     */
+    static is<I = unknown, O = I>(input: unknown): input is Component<I,O> {
+        return input instanceof Component || 
+            
+            input !== null && 
+            typeof input === 'object' && 
+            typeof (input as any).compute === 'function'
     }
 
     /**
-     * Returns true if this component can compute the given input
+     * Create a component from a given compute method
      */
-    abstract canCompute(value: unknown): value is I
+    static from<I,O>(
+        compute: (input: I) => O,
+    ): Component<I,O>
+
+    /**
+     * Ensure the given input is a component
+     */
+    static from<C extends Component<any> | Compute<any>>(
+        compute: C
+    ): ToComponent<C> 
+    
+    static from(compute: unknown): unknown {
+        return (
+            typeof compute === 'function' 
+                ? { compute } 
+                : compute
+        )
+    }
 
     abstract compute(input: I): O
 
-}
+    constructor() {
 
-/**
- * Is the given a value a component?
- */
-export function isComponent<I = unknown, O = I>(input: unknown): input is Component<I,O> {
+        const { compute } = this
+        // compute may not be defined in the constructor if it's an initalized
+        // property in extended classes
+        if (compute) 
+            this.compute = compute.bind(this)
 
-    return input instanceof Component || 
-        
-        input !== null && 
-        typeof input === 'object' && 
-        typeof (input as any).compute === 'function' && 
-        typeof (input as any).canCompute === 'function'
+    }
 
 }
 
-export const isAny = (input: unknown): input is any => true

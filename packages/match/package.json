@@ -3,6 +3,7 @@
     "description": "Structure for tracking historical changes to data.",
     "main": "./lib",
     "version": "1.0.0",
+    "private": true,
     "scripts": {
         "test": "NODE_ENV=test jest --maxWorkers=1 -o",
         "test:dev": "npm run test -- --verbose --watch",

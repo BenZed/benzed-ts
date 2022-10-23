@@ -1,7 +1,9 @@
 
 /*** Types ***/
 
-type Pipe<I = unknown, O = unknown> = (input: I, ...args: unknown[]) => O
+interface Pipe<I = unknown, O = unknown> {
+    (input: I): O
+}
 
 interface PipeBuilder<
     Ix = unknown, // Input Original

@@ -1,26 +1,74 @@
-import $ from '@benzed/schema/lib'
 import { expectTypeOf } from 'expect-type'
-import { InputOf, isComponent, OutputOf } from './component'
+import { Component, InputOf, OutputOf } from './component'
 
-it('a component is simply an object that wraps an execute function', () => {
+/*** Setup ***/
 
-    expect(
-        isComponent({
-            compute: parseFloat,
-            canCompute: $.string.is
-        })
-    ).toBe(true)
+const parse = { compute: parseFloat }
+
+class Parse extends Component<string, number> {
+    compute = parseFloat
+}
+
+/*** Tests ***/
+
+describe('Component.is', () => {
+
+    it('returns true for Component instances', () => {
+        expect(Component.is(new Parse())).toBe(true)
+    })
+
+    it('returns true for objects that are structurally components', () => {
+        expect(Component.is(parse)).toBe(true)
+    })
 
 })
 
-it('component input via InputOf', () => {
+describe('Component.from', () => {
 
-    const parseComponent = { compute: parseFloat, canCompute: $.string.is }
+    it('converts a compute method into a component', () => {
+        const parse = Component.from(parseFloat)
+        expect(parse.compute).toEqual(parseFloat)
+    })
 
-    type ParseInput = InputOf<typeof parseComponent>
-    type ParseOutput = OutputOf<typeof parseComponent>
+    it('does nothing if input is already a component', () => {
+        expect(Component.from(parse)).toEqual(parse)
+    })
 
-    expectTypeOf<ParseInput>().toEqualTypeOf<string>()
-    expectTypeOf<ParseOutput>().toEqualTypeOf<number>()
+})
+
+describe('types', () => {
+
+    it('Component InputOf', () => {
+        type ParseInput = InputOf<Parse>
+        expectTypeOf<ParseInput>().toEqualTypeOf<string>()
+    })
+
+    it('Component OutputOf', () => {
+        type ParseOutput = OutputOf<Parse>
+        expectTypeOf<ParseOutput>().toEqualTypeOf<number>()
+    })
+
+    it('Compute InputOf', () => {
+        type ParseInput = InputOf<typeof parseFloat>
+        expectTypeOf<ParseInput>().toEqualTypeOf<string>()
+    })
+
+    it('Compute OutputOf', () => {
+        type ParseOutput = OutputOf<typeof parseFloat>
+        expectTypeOf<ParseOutput>().toEqualTypeOf<number>()
+    })
+
+})
+
+it('class Components bind compute method on construction', () => {
+
+    class X2 extends Component<number> {
+        compute(input: number): number {
+            return input * 2
+        }
+    }
+
+    const result = [1].map(new X2().compute)
+    expect(result).toEqual([2])
 
 })

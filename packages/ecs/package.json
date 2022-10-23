@@ -24,13 +24,10 @@
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
         "@benzed/array": "^3.2.1",
-        "@benzed/immutable": "^3.1.3",
-        "@benzed/math": "^3.1.4",
-        "@benzed/is": "^3.1.2",
-        "@benzed/match": "^1.0.0",
-        "@benzed/schema": "^0.2.0",
         "@benzed/util": "^3.9.1"
     },
     "peerDependencies": {},
-    "devDependencies": {}
+    "devDependencies": {
+        "@benzed/is": "^3.1.2"
+    }
 }

@@ -114,15 +114,3 @@ export type IfEquals<T1, T2, Y, N = never> =
  * Get the string keys of a type.
  */
 export type StringKeys<T> = Extract<keyof T, string>
-
-/**
- * Convert a string literal to a numeric literal.
- */
-type StringToNumber<T> = T extends `${infer N extends number}` ? N : never
-
-/**
- * Get a union of indexes in an array type.
- */
-export type IndexesOf<A extends unknown[] | readonly unknown[]> = {
-    [K in keyof A]: StringToNumber<K>
-}[number]
