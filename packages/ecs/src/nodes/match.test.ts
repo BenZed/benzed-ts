@@ -12,21 +12,21 @@ const double = Component.from(
 )
 
 const deserialize = Component.from(
-    (i: string) => i === 'true'
+    (i: string) => i === `true`
         ? true 
-        : i === 'false' 
+        : i === `false` 
             ? false 
             : parseFloat(i)
 )
 
 /*** Tests ***/
     
-it('sealed class', () => {
+it(`sealed class`, () => {
     // @ts-expect-error Private constructor
     void class extends Match<[]> {}
 })
 
-it('can be created with a value and a component', () => {
+it(`can be created with a value and a component`, () => {
     const match = Match.create(1, double)
 
     expect(match.compute(1)).toEqual(2)
@@ -35,7 +35,7 @@ it('can be created with a value and a component', () => {
     expectTypeOf<OutputOf<typeof match>>().toEqualTypeOf<number>()
 })
 
-it('can be created with values and a component', () => {
+it(`can be created with values and a component`, () => {
     const match = Match.create([1, 2, 3] as const, double)
 
     expect(match.compute(1)).toEqual(2)
@@ -46,7 +46,7 @@ it('can be created with values and a component', () => {
     expectTypeOf<OutputOf<typeof match>>().toEqualTypeOf<number>()
 })
 
-it('created with predicate and a component', () => {
+it(`created with predicate and a component`, () => {
 
     const match = Match.create((i: number) => i > 0, double)
     expect(match.compute(2)).toEqual(4)
@@ -56,7 +56,7 @@ it('created with predicate and a component', () => {
 
 })
 
-it('created with a typeguard and a component', () => {
+it(`created with a typeguard and a component`, () => {
     const match = Match.create(is.number, double)
     expect(match.compute(5)).toEqual(10)
 
@@ -64,7 +64,7 @@ it('created with a typeguard and a component', () => {
     expectTypeOf<OutputOf<typeof match>>().toEqualTypeOf<number>()
 })
 
-it('.add() to add matchers', () => {
+it(`.add() to add matchers`, () => {
 
     const match = Match
         .create(is.number, double)
@@ -74,7 +74,7 @@ it('.add() to add matchers', () => {
     expectTypeOf<OutputOf<typeof match>>().toEqualTypeOf<number | boolean>()
 })
 
-it('throws if match cannot be found', () => {
+it(`throws if match cannot be found`, () => {
     const match = Match.create((i: number) => i >= 0, i => `${i} is positive!`)
     expect(() => match.compute(-1)).toThrow(`Component could not be matched for input ${-1}`)
 })

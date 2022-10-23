@@ -12,21 +12,21 @@ const invert = Component.from(
 )
 
 const deserialize = Component.from(
-    (i: string) => i === 'true'
+    (i: string) => i === `true`
         ? true 
-        : i === 'false' 
+        : i === `false` 
             ? false 
             : parseFloat(i)
 )
 
 /*** Test ***/
 
-it('is sealed', () => {
+it(`is sealed`, () => {
     // @ts-expect-error Private constructor
     void class extends Pipe<[]> {}
 })
 
-it('chains the computation of each component', () => {
+it(`chains the computation of each component`, () => {
 
     const pipe = Pipe
         .create(double)
@@ -38,7 +38,7 @@ it('chains the computation of each component', () => {
     
 })
 
-it('can only add components that have input matching last components output', () => {
+it(`can only add components that have input matching last components output`, () => {
 
     Pipe.create(double)
         // @ts-expect-error must be a number

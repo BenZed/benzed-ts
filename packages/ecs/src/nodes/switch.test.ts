@@ -19,26 +19,26 @@ const multiplier = Switch.create(x2)
 
 /*** Tests ***/
     
-it('sealed class', () => {
+it(`sealed class`, () => {
     // @ts-expect-error Private constructor
     void class extends Switch<[]> {}
 })
 
-it('switches input on each invocation', () => {
+it(`switches input on each invocation`, () => {
     expect(multiplier.compute(1)).toEqual(2)
     expect(multiplier.compute(1)).toEqual(3)
     expect(multiplier.compute(1)).toEqual(4)
     expect(multiplier.compute(1)).toEqual(2)
 })
 
-it('different outputs result in a union', () => {
+it(`different outputs result in a union`, () => {
 
     const fancy = Switch.create(x2)
         .add(i => `${i}`)
         .add(i => !i)
 
     expect(fancy.compute(1)).toBe(2)
-    expect(fancy.compute(1)).toBe('1')
+    expect(fancy.compute(1)).toBe(`1`)
     expect(fancy.compute(1)).toBe(false)
 
     type FancyOutput = OutputOf<typeof fancy>
@@ -47,7 +47,7 @@ it('different outputs result in a union', () => {
 
 })
 
-it('random option', () => {
+it(`random option`, () => {
 
     const rMultiplier = Switch.create(x2, { random: true })
         .add(x3)
@@ -59,6 +59,6 @@ it('random option', () => {
             return 
     }
 
-    throw new Error('Array is not sorted')
+    throw new Error(`Array is not sorted`)
 })
 
