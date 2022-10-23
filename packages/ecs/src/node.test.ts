@@ -37,7 +37,37 @@ it('typesafe .get()', () => {
 
 it('typesafe .get() in range', () => {
     // @ts-expect-error Index out of range
-    pipe.get(3)
+    expect(() => pipe.get(3)).toThrow('Could not find component at index')
+})
+
+it('typesafe .get() by constructor', () => {
+
+    class Shout extends Component<string> {
+
+        compute(input: string): string {
+            return `${input}!`
+        }
+    }
+
+    class Unused extends Component {
+        compute(input: unknown): unknown {
+            return input
+        }
+    }
+    
+    const s1 = new Shout()
+
+    const pipe = Pipe.create(serialize)
+        .add(s1)
+
+    const s2 = pipe.get(Shout)
+    expect(s2).toBe(s1)
+
+    expectTypeOf<typeof s2>().toEqualTypeOf<Shout>()
+
+    // @ts-expect-error node does not have this component
+    expect(() => pipe.get(Unused)).toThrow('Could not find component of type')
+    
 })
 
 it('typesafe .first', () => {

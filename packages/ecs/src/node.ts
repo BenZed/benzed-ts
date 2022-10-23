@@ -1,6 +1,7 @@
 import { First, IndexesOf, Last } from '@benzed/array'
+import is from '@benzed/is'
 
-import { Component, Compute } from './component'
+import { Component } from './component'
 
 /*** Eslint ***/
 
@@ -12,6 +13,15 @@ import { Component, Compute } from './component'
  * Array of Components
  */
 export type Components<I = unknown, O = I> = readonly Component<I,O>[]
+
+type Get<C extends Components, Cx extends new () => C[number]> = 
+    C extends [infer I, ...infer Ir] 
+        ? I extends InstanceType<Cx> 
+            ? I
+            : Ir extends Components 
+                ? Get<Ir, Cx> 
+                : never
+        : never
 
 /*** Node ***/
 
@@ -37,9 +47,28 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
     }
 
     abstract add(...args: any[]): Node<any, any, any>
+
+    get<Cx extends new () => C[number]>(constructor: Cx): Get<C, Cx>
     
-    get<I extends IndexesOf<C>>(index: I): C[I] {
-        return this.components[index]
+    get<I extends IndexesOf<C>>(index: I): C[I] 
+    
+    get(input: unknown): unknown {
+
+        const component = is.number(input) 
+            ? this.components[input]
+            : this.components.find(component => component instanceof (input as any))
+    
+        if (!component) {
+            throw new Error(
+                'Could not find component ' + (
+                    is.number(input) 
+                        ? `at index ${input}` 
+                        : `of type ${(input as any).name}`
+                )
+            )
+        }
+
+        return component
     }
 
     get first(): First<C> {
