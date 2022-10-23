@@ -74,22 +74,6 @@ it('.add() to add matchers', () => {
     expectTypeOf<OutputOf<typeof match>>().toEqualTypeOf<number | boolean>()
 })
 
-it('input type can be explicitly declared', () => {
-
-    const m1: Match<string | number> = Match
-        .create(is.string, i => parseInt(i))
-        .add(is.number, (i: number) => `${i}`)
-
-    void m1
-
-    // @ts-expect-error constructed match contains inputs not declared
-    const m2 : Match<boolean> = Match
-        .create(is.boolean, (i: boolean) => !i)
-        .add(is.number, i => i)
-
-    void m2
-})
-
 it('throws if match cannot be found', () => {
     const match = Match.create((i: number) => i >= 0, i => `${i} is positive!`)
     expect(() => match.compute(-1)).toThrow(`Component could not be matched for input ${-1}`)

@@ -61,3 +61,4 @@ it('random option', () => {
 
     throw new Error('Array is not sorted')
 })
+

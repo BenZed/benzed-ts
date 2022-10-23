@@ -5,6 +5,19 @@ import { Pipe } from './nodes'
 
 /*** Test Components ***/
 
+class Shout extends Component<string> {
+
+    compute(input: string): string {
+        return `${input}!`
+    }
+}
+
+class Unused extends Component {
+    compute(input: unknown): unknown {
+        return input
+    }
+}
+
 const binary = Component.from(
     (i: boolean): number => i ? 1 : 0
 )
@@ -17,17 +30,18 @@ const serialize = Component.from(
     (i: number | boolean) => `${i}`
 )
 
-const pipe = Pipe.create(invert)
+const node = Pipe.create(invert)
     .add(binary)
     .add(serialize)
+    .add(new Shout())
 
 /*** Tests ***/
 
 it('typesafe .get()', () => {
 
-    const c1 = pipe.get(0)
-    const c2 = pipe.get(1)
-    const c3 = pipe.get(2)
+    const c1 = node.get(0)
+    const c2 = node.get(1)
+    const c3 = node.get(2)
 
     expectTypeOf<typeof c1>().toEqualTypeOf<Component<boolean, boolean>>()
     expectTypeOf<typeof c2>().toEqualTypeOf<Component<boolean, number>>()
@@ -37,53 +51,55 @@ it('typesafe .get()', () => {
 
 it('typesafe .get() in range', () => {
     // @ts-expect-error Index out of range
-    expect(() => pipe.get(3)).toThrow('Could not find component at index')
+    expect(() => node.get(4)).toThrow('Could not find component at index')
 })
 
 it('typesafe .get() by constructor', () => {
-
-    class Shout extends Component<string> {
-
-        compute(input: string): string {
-            return `${input}!`
-        }
-    }
-
-    class Unused extends Component {
-        compute(input: unknown): unknown {
-            return input
-        }
-    }
     
-    const s1 = new Shout()
+    const shouter = node.get(Shout)
 
-    const pipe = Pipe.create(serialize)
-        .add(s1)
-
-    const s2 = pipe.get(Shout)
-    expect(s2).toBe(s1)
-
-    expectTypeOf<typeof s2>().toEqualTypeOf<Shout>()
+    expectTypeOf<typeof shouter>().toEqualTypeOf<Shout>()
 
     // @ts-expect-error node does not have this component
-    expect(() => pipe.get(Unused)).toThrow('Could not find component of type')
+    expect(() => node.get(Unused)).toThrow('Could not find component of type')
     
 })
 
 it('typesafe .first', () => {
 
-    const { first } = pipe 
+    const { first } = node 
 
-    expect(first).toEqual(pipe.get(0))
+    expect(first).toBe(node.get(0))
     expectTypeOf<typeof first>().toEqualTypeOf<Component<boolean, boolean>>()
 
 })
 
 it('typesafe .last', () => {
 
-    const { last } = pipe 
+    const { last } = node 
 
-    expect(last).toEqual(pipe.get(2))
-    expectTypeOf<typeof last>().toEqualTypeOf<Component<number | boolean, string>>()
+    expect(last).toBe(node.get(3))
+    expectTypeOf<typeof last>().toEqualTypeOf<Shout>()
+
+})
+
+it ('typesafe .has', () => {
+
+    const hasZero = node.has(0)
+    const hasFour = node.has(4)
+    const hasShout = node.has(Shout)
+    const hasUnused = node.has(Unused)
+
+    expect(hasZero).toBe(true)
+    expectTypeOf<typeof hasZero>().toEqualTypeOf<true>()
+
+    expect(hasFour).toBe(false)
+    expectTypeOf<typeof hasFour>().toEqualTypeOf<false>()
+
+    expect(hasShout).toBe(true)
+    expectTypeOf<typeof hasShout>().toEqualTypeOf<true>()
+
+    expect(hasUnused).toBe(false)
+    expectTypeOf<typeof hasUnused>().toEqualTypeOf<false>()
 
 })

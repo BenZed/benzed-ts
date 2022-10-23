@@ -14,14 +14,17 @@ import { Component } from './component'
  */
 export type Components<I = unknown, O = I> = readonly Component<I,O>[]
 
-type GetComponentByConstructor<C extends Components, Cx extends new () => C[number]> = 
+type GetComponent<C extends Components, Cx extends new () => C[number]> = 
     C extends [infer I, ...infer Ir] 
         ? I extends InstanceType<Cx> 
             ? I
             : Ir extends Components 
-                ? GetComponentByConstructor<Ir, Cx> 
+                ? GetComponent<Ir, Cx> 
                 : never
         : never
+
+type HasComponent<C extends Components, Cx extends new () => Component<any>> = 
+    InstanceType<Cx> extends C[number] ? true : false
 
 /*** Node ***/
 
@@ -46,10 +49,18 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
         super() 
     }
 
-    abstract add(...args: any[]): Node<any, any, any>
+    abstract add(...args: unknown[]): unknown
 
-    get<I extends IndexesOf<C>>(index: I): C[I] 
-    get<Cx extends new () => C[number]>(constructor: Cx): GetComponentByConstructor<C, Cx>
+    has<Ix extends number>(index: Ix): Ix extends IndexesOf<C> ? true : false 
+    has<T extends new () => Component>(constructor: T): HasComponent<C, T>
+    has(input: unknown): unknown {
+        return is.number(input) 
+            ? input in this.components
+            : this.components.some(component => component instanceof (input as any))
+    }
+
+    get<Ix extends IndexesOf<C>>(index: Ix): C[Ix] 
+    get<T extends new () => C[number]>(constructor: T): GetComponent<C, T>
     get(input: unknown): unknown {
 
         const component = is.number(input) 

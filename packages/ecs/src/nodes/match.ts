@@ -45,7 +45,7 @@ function toMatcher<I>(input: unknown): Matcher<I> {
 /**
  * A match node picks it's output node based on a match predicate
  */
-export class Match<I, C extends MatchComponents<I> = MatchComponents<I>> 
+export class Match<I, C extends MatchComponents<I>> 
     extends Node<I, MatchOutput<C>, C> {
 
     /**
