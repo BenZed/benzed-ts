@@ -1,7 +1,7 @@
 import { Component } from '@benzed/ecs'
 
 import { 
-    BuildContext, 
+    FeathersBuildContext, 
     BuildEffect,
     BuildLifecycleMethod 
 } from './types'
@@ -14,9 +14,9 @@ import {
 
 /*** Build Components ***/
 
-type BuildComponents = readonly BuildComponent<any, any>[]
+type FeathersComponents = readonly FeathersComponent<any, any>[]
 
-type RequiredComponentTypes<C extends BuildComponents> = C extends [] 
+type RequiredComponentTypes<C extends FeathersComponents> = C extends [] 
     ? readonly never []
     : {
         [K in keyof C]: new (...args: any) => C[K]
@@ -28,7 +28,7 @@ type RequiredComponentTypes<C extends BuildComponents> = C extends []
  * Requirements build component need to adhere to before being 
  * added onto a stack
  */
-class Requirements<C extends BuildComponents = BuildComponents, S extends boolean = false> {
+class FeathersComponentRequirements<C extends FeathersComponents = FeathersComponents, S extends boolean = false> {
 
     readonly types: RequiredComponentTypes<C>
     
@@ -46,16 +46,16 @@ class Requirements<C extends BuildComponents = BuildComponents, S extends boolea
 /**
  * Base class for components that construct feathers applications
  */
-abstract class BuildComponent<
+abstract class FeathersComponent<
     B extends BuildEffect = BuildEffect,
-    R extends Requirements<any,any> | undefined = undefined
-> extends Component<BuildContext> {
+    R extends FeathersComponentRequirements<any,any> | undefined = undefined
+> extends Component<FeathersBuildContext> {
 
-    static requirements<C extends BuildComponents, S extends boolean>(
+    static requirements<C extends FeathersComponents, S extends boolean>(
         single: S,
         ...types: RequiredComponentTypes<C>
-    ): Requirements<C,S> {
-        return new Requirements(single, ...types) as any
+    ): FeathersComponentRequirements<C,S> {
+        return new FeathersComponentRequirements(single, ...types) as any
     }
     
     abstract readonly requirements: R
@@ -73,7 +73,7 @@ abstract class BuildComponent<
     /**
      * Merge existing build context
      */
-    compute(ctx: BuildContext): BuildContext {
+    compute(ctx: FeathersBuildContext): FeathersBuildContext {
         
         const {
             config, 
@@ -109,10 +109,10 @@ abstract class BuildComponent<
 
 /*** Exports ***/
 
-export default BuildComponent
+export default FeathersComponent
 
 export {
-    BuildComponent,
-    BuildComponents,
-    Requirements
+    FeathersComponent,
+    FeathersComponents,
+    FeathersComponentRequirements
 }

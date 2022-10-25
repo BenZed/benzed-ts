@@ -1,11 +1,11 @@
 
-import BuildComponent, { BuildComponents } from './build-component'
+import FeathersComponent, { FeathersComponents } from './component'
 
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
 
 import { App, Config, Extends, Service, ServiceInterface, Services } from '../types'
-import { BuilderOutput } from './builder'
+import { FeathersBuilderOutput } from './builder'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -25,10 +25,10 @@ export interface BuildEffect<A extends App = App> {
 
 }
 
-export type ToBuildExtends<E extends Extends<any>, C extends BuildComponents> = {
+export type ToBuildExtends<E extends Extends<any>, C extends FeathersComponents> = {
     extends: {
         [K in keyof E]: E extends (this: infer T, ...args: infer A) => infer R
-            ? (this: T & BuilderOutput<C>, ...args: A) => R
+            ? (this: T & FeathersBuilderOutput<C>, ...args: A) => R
             : () => void
     }
 }
@@ -46,13 +46,13 @@ export type ToBuildEffect<E extends { config?: Config, services?: Services, exte
             : E['extends']
 }
 
-type _MergeBuildEffects<C extends BuildComponents> = Merge<{
-    [Ck in keyof C]: C[Ck] extends BuildComponent<infer B, any>  
+type _MergeBuildEffects<C extends FeathersComponents> = Merge<{
+    [Ck in keyof C]: C[Ck] extends FeathersComponent<infer B, any>  
         ? Required<B>
         : Empty
 }>
 
-export type FromBuildEffect<C extends BuildComponents> = {
+export type FromBuildEffect<C extends FeathersComponents> = {
     [Ck in keyof BuildEffect]-?: Ck extends keyof _MergeBuildEffects<C> 
         
         ? {
@@ -85,8 +85,8 @@ export type FromBuildEffect<C extends BuildComponents> = {
 
 export type BuildLifecycleMethod = (app: App) => void
 
-export interface BuildContext extends Required<BuildEffect> {
-    readonly required: BuildComponents
+export interface FeathersBuildContext extends Required<BuildEffect> {
+    readonly required: FeathersComponents
     readonly onConfigure: readonly BuildLifecycleMethod[]
     // readonly onDatabase: readonly AppInitializer[]
     // readonly onRegister: readonly AppInitializer[]

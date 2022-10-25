@@ -1,6 +1,6 @@
 
 import { EventEmitter, Func } from '@benzed/util'
-import { BuildComponents, BuilderOutput, Requirements } from './builder'
+import { FeathersComponents, FeathersBuilderOutput, FeathersComponentRequirements } from './ecs'
 
 /*** Exports ***/
 
@@ -407,11 +407,11 @@ export type ApplicationHookMap<A extends App> = {
 
 export type ToApp<T> = T extends App 
     ? T
-    : T extends BuildComponents
-        ? BuilderOutput<T>
-        : T extends Requirements<infer C, any>
-            ? C extends BuildComponents
-                ? BuilderOutput<C>
+    : T extends FeathersComponents
+        ? FeathersBuilderOutput<T>
+        : T extends FeathersComponentRequirements<infer C, any>
+            ? C extends FeathersComponents
+                ? FeathersBuilderOutput<C>
                 : App 
             : App 
 

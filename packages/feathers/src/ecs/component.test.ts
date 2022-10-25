@@ -1,7 +1,7 @@
 import { $ } from '@benzed/schema'
 
-import { BuildComponent } from './build-component'
-import { builder } from './builder'
+import { FeathersComponent } from './component'
+import { feathers } from './builder'
 
 import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services } from '../types'
 import { ToBuildEffect } from './types'
@@ -16,7 +16,7 @@ import { expectTypeOf } from 'expect-type'
 
 /*** Setup ***/
 
-class Configurer<C extends Config> extends BuildComponent<ToBuildEffect<{ config: C }>> {
+class Configurer<C extends Config> extends FeathersComponent<ToBuildEffect<{ config: C }>> {
 
     requirements = undefined 
 
@@ -33,7 +33,7 @@ class Configurer<C extends Config> extends BuildComponent<ToBuildEffect<{ config
 
 }
 
-class Servicer<S extends Services = any> extends BuildComponent<ToBuildEffect<{ services: S }>> {
+class Servicer<S extends Services = any> extends FeathersComponent<ToBuildEffect<{ services: S }>> {
 
     requirements = undefined
 
@@ -49,20 +49,18 @@ class Servicer<S extends Services = any> extends BuildComponent<ToBuildEffect<{ 
     }
 }
 
-const extenderReq = BuildComponent.requirements<[Servicer<any>], false>(false, Servicer)
+const extenderReq = FeathersComponent.requirements<[Servicer<any>], false>(false, Servicer)
 
 type ExtenderRequirements = typeof extenderReq
 
 type ExtenderExtends = Extends<ExtenderRequirements>
-class Extender<E extends ExtenderExtends> extends BuildComponent<{ extends: E }, ExtenderRequirements> {
+class Extender<E extends ExtenderExtends> extends FeathersComponent<{ extends: E }, ExtenderRequirements> {
 
     requirements = extenderReq
 
     extends: E
 
-    constructor(
-        e: E
-    ) {
+    constructor(e: E) {
         super()
         this.extends = e
     }
@@ -77,7 +75,7 @@ class Extender<E extends ExtenderExtends> extends BuildComponent<{ extends: E },
 
 it(`makes typesafe changes to the output application config via build effects`, () => {
 
-    const app = builder
+    const app = feathers
         .add(new Configurer({ foo: $.string }))
         .add(new Configurer({ bar: $.number }))
         .build({ foo: `bar`, bar: 0 })
@@ -90,7 +88,7 @@ it(`makes typesafe changes to the output application config via build effects`, 
 
 it(`makes typesafe changes to the output application services via build effects`, () => {
 
-    const app = builder.add(
+    const app = feathers.add(
         new Servicer({
             todos: () => ({ 
                 get() {
@@ -114,7 +112,7 @@ it(`makes typesafe changes to the output application services via build effects`
 
 it(`makes typesafe changes to application extensions`, () => {
 
-    const app = builder
+    const app = feathers
         .add(
             new Configurer({
                 logs: $.number

@@ -1,13 +1,14 @@
-import { feathers } from '@feathersjs/feathers'
+import { feathers as _feathers } from '@feathersjs/feathers'
 
 import { Empty, StringKeys} from '@benzed/util'
 import { Node } from '@benzed/ecs'
 
-import BuildComponent, { BuildComponents, Requirements } from './build-component'
+import FeathersComponent, { FeathersComponents, FeathersComponentRequirements } from './component'
 
-import { BuildContext, FromBuildEffect } from './types'
-import { getDefaultConfiguration } from '../util'
+import { FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
+
+import { getDefaultConfiguration } from '../util'
 
 /*** Eslint ***/
 
@@ -17,31 +18,31 @@ import { App } from '../types'
 
 /*** Types ***/
 
-type BuiltServices<C extends BuildComponents> = FromBuildEffect<C>['services']
-type BuiltConfig<C extends BuildComponents> = FromBuildEffect<C>['config']
-type BuiltExtensions<C extends BuildComponents> = FromBuildEffect<C>['extends']
+type BuiltServices<C extends FeathersComponents> = FromBuildEffect<C>['services']
+type BuiltConfig<C extends FeathersComponents> = FromBuildEffect<C>['config']
+type BuiltExtensions<C extends FeathersComponents> = FromBuildEffect<C>['extends']
 
-type BuiltApp<C extends BuildComponents> = 
+type BuiltApp<C extends FeathersComponents> = 
     BuiltExtensions<C> extends Empty 
         ? App<BuiltServices<C>, BuiltConfig<C>>
         : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>
 
-export type BuilderInput<C extends BuildComponents> = BuiltConfig<C>
+export type FeathersBuilderInput<C extends FeathersComponents> = BuiltConfig<C>
 
-export type BuilderOutput<C extends BuildComponents> = BuiltApp<C>
+export type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
 
-export type ComponentsContain<A extends BuildComponents, B extends BuildComponents> =
+type ComponentsContain<A extends FeathersComponents, B extends FeathersComponents> =
     B extends [infer Bx, ...infer Bxr]
         ? Bx extends A[number]
             ? true
-            : Bxr extends BuildComponents 
+            : Bxr extends FeathersComponents 
                 ? ComponentsContain<A, Bxr> 
                 : false 
         : false
 
-export type CheckSingle<
-    /**/ C extends BuildComponents, 
-    /**/ Cx extends BuildComponent, 
+type CheckSingle<
+    /**/ C extends FeathersComponents, 
+    /**/ Cx extends FeathersComponent, 
     /**/ S extends boolean
 > = S extends true 
     ? ComponentsContain<C, [Cx]> extends true 
@@ -49,8 +50,8 @@ export type CheckSingle<
         : Cx
     : Cx 
 
-type AddBuildComponent<C extends BuildComponents, Cx extends BuildComponent<any,any>> = 
-    Cx['requirements'] extends Requirements<infer R, infer S> 
+type AddFeathersBuildComponent<C extends FeathersComponents, Cx extends FeathersComponent<any,any>> = 
+    Cx['requirements'] extends FeathersComponentRequirements<infer R, infer S> 
         ? R extends []
             ? CheckSingle<C, Cx, S>
             : ComponentsContain<C, R> extends true 
@@ -63,21 +64,21 @@ type AddBuildComponent<C extends BuildComponents, Cx extends BuildComponent<any,
 /**
  * ECS Node for creating feathers applications
  */
-class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOutput<C>, C> {
+class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
 
-    add<Cx extends BuildComponent<any,any>>(
-        component: AddBuildComponent<C,Cx>
-    ): Builder<[...C, AddBuildComponent<C,Cx>]> {
+    add<Cx extends FeathersComponent<any,any>>(
+        component: AddFeathersBuildComponent<C,Cx>
+    ): FeathersBuilder<[...C, AddFeathersBuildComponent<C,Cx>]> {
 
         this._handleComponentRequirements(component)
 
-        return new Builder([
+        return new FeathersBuilder([
             ...this.components, 
             component
         ])
     }
 
-    compute(config: BuilderInput<C>): BuilderOutput<C> {
+    compute(config: FeathersBuilderInput<C>): FeathersBuilderOutput<C> {
 
         this._assertAtLeastOneComponent()
 
@@ -88,16 +89,16 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         this._registerServices(app, ctx.services)
         this._applyExtensions(app, ctx.extends)
 
-        return app as BuilderOutput<C>
+        return app as FeathersBuilderOutput<C>
     }
 
-    build(config: BuilderInput<C> = getDefaultConfiguration()): BuilderOutput<C> {
+    build(config: FeathersBuilderInput<C> = getDefaultConfiguration()): FeathersBuilderOutput<C> {
         return this.compute(config)
     }
 
     // Helper 
 
-    private _registerServices(app: App, services: BuildContext['services']): void {
+    private _registerServices(app: App, services: FeathersBuildContext['services']): void {
         for (const path in services) {
             const service = services[path](app)
 
@@ -106,9 +107,9 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         }
     }
 
-    private _computeBuildContext(): BuildContext {
+    private _computeBuildContext(): FeathersBuildContext {
     
-        let ctx: BuildContext = {
+        let ctx: FeathersBuildContext = {
             config: {},
             extends: {},
             services: {},
@@ -123,12 +124,12 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         return ctx
     }
 
-    private _createApplication(config: BuilderInput<C>, configCtx: BuildContext['config']): App {
-        const app = feathers() as unknown as App
+    private _createApplication(config: FeathersBuilderInput<C>, configCtx: FeathersBuildContext['config']): App {
+        const app = _feathers() as unknown as App
 
         for (const [ key, { validate } ] of Object.entries(configCtx)) {
 
-            const property = key as StringKeys<BuilderInput<C>>
+            const property = key as StringKeys<FeathersBuilderInput<C>>
 
             const value = config[property]
 
@@ -141,7 +142,7 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         return app
     }
 
-    private _handleComponentRequirements<Cx extends BuildComponent<any,any>>(
+    private _handleComponentRequirements<Cx extends FeathersComponent<any,any>>(
         component: Cx
     ): void {
 
@@ -167,16 +168,15 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         }
 
         requirements.components = requirements.types.map(this.get.bind(this))
-
     }
 
-    private _applyExtensions(app: App, eCtx: BuildContext['extends']): void {
-    
+    private _applyExtensions(app: App, eCtx: FeathersBuildContext['extends']): void {
+
         for (const [ key, extension ] of Object.entries(eCtx)) {
             const property = key as keyof App
             app[property] = extension.bind(app)
         }
-        
+
     }
 
 }
@@ -186,6 +186,6 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
 /**
  * An ECS for building feathers applications
  */
-export const builder = new Builder<[]>([])
+export const feathers = new FeathersBuilder<[]>([])
 
-export default builder
+export default feathers

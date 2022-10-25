@@ -1,8 +1,8 @@
-import { builder } from './builder'
+import { feathers } from './builder'
 
 import { Empty, through } from '@benzed/util'
 
-import BuildComponent from './build-component'
+import FeathersComponent from './component'
 
 import { expectTypeOf } from 'expect-type'
 import { App } from '../types'
@@ -15,7 +15,7 @@ import { App } from '../types'
 
 /*** Setup ***/
 
-class TestBuild extends BuildComponent<Empty> {
+class TestBuild extends FeathersComponent<Empty> {
 
     requirements = undefined
 
@@ -25,9 +25,9 @@ class TestBuild extends BuildComponent<Empty> {
 
 }
 
-const testReq = BuildComponent.requirements(false, TestBuild)
+const testReq = FeathersComponent.requirements(false, TestBuild)
 
-class TestRequire extends BuildComponent<Empty, typeof testReq> {
+class TestRequire extends FeathersComponent<Empty, typeof testReq> {
 
     readonly requirements = testReq
 
@@ -37,9 +37,9 @@ class TestRequire extends BuildComponent<Empty, typeof testReq> {
 
 }
 
-const testSingleReq = BuildComponent.requirements(true)
+const testSingleReq = FeathersComponent.requirements(true)
 
-class TestSingle extends BuildComponent<Empty, typeof testSingleReq> {
+class TestSingle extends FeathersComponent<Empty, typeof testSingleReq> {
 
     readonly requirements = testSingleReq
 
@@ -53,7 +53,7 @@ class TestSingle extends BuildComponent<Empty, typeof testSingleReq> {
 
 it(`creates feathers applications`, () => {
     
-    const app = builder
+    const app = feathers
         .add(new TestBuild())
         .build()
 
@@ -62,7 +62,7 @@ it(`creates feathers applications`, () => {
 
 it(`throws if no components have been added`, () => {
 
-    expect(() => builder.build())
+    expect(() => feathers.build())
         .toThrow(`Node must be created with at least one component`)
 
 })
@@ -70,17 +70,17 @@ it(`throws if no components have been added`, () => {
 it(`add() must use build components`, () => {
  
     // @ts-expect-error not a build component
-    builder.add({ compute: through })
+    feathers.add({ compute: through })
 
 })
 
 it(`add() must respect build component requirements`, () => {
 
     // @ts-expect-error requires TestBuild
-    expect(() => builder.add(new TestRequire()))
+    expect(() => feathers.add(new TestRequire()))
         .toThrow(`Requires component: ${TestBuild.name}`)
 
-    expect(() => builder
+    expect(() => feathers
         .add(new TestBuild())
         .add(new TestRequire())).not.toThrow(Error)
 
@@ -88,7 +88,7 @@ it(`add() must respect build component requirements`, () => {
 
 it(`add() must respect single build components`, () => {
 
-    expect(() => builder
+    expect(() => feathers
         .add(new TestSingle())
         // @ts-expect-error can only place this component once
         .add(new TestSingle())
@@ -100,7 +100,7 @@ it(`required components are provided when added`, () => {
     const require = new TestRequire()
     const build = new TestBuild()
 
-    builder
+    feathers
         .add(build)
         .add(require)
 
