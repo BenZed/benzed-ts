@@ -27,7 +27,7 @@ type EventSubscription<T extends object, K extends StringKeys<T>> = {
     listener: EventListener<T, K>
 }
 
-type ToArray<T> = T extends unknown[] ? T : []
+type ToArray<T> = T extends unknown[] ? T : any[]
 
 type EventListener<T extends object, K extends StringKeys<T>> =
     (...args: ToArray<T[K]>) => void | Promise<void>

@@ -100,19 +100,26 @@ export interface Service<T extends object = object, D extends object = Partial<T
 
 }
 
-export type ServiceInterface<T extends object = object, D extends object = Partial<T>, P = Params> = Partial<Service<T, D, P>>
+export type ServiceInterface<T extends object = object, D extends object = Partial<T>, P = Params> = 
+    Partial<Service<T, D, P>>
 
 export type ServiceEvents<S extends Service> = {
     [K in Exclude<keyof S, 'setup' | 'teardown'>]: Parameters<S[K] extends Func<any,any,any> ? S[K] : () => void>
 }
 
-export interface ServiceAddons<A extends App = App 
-    , S extends Service = Service> extends EventEmitter<ServiceEvents<S>> {
+export type ServiceEmit<A extends App = App, S extends Service = Service> =
+    & EventEmitter<ServiceEvents<S>> 
+    & OptionalPick<ServiceHookOverloads<S>, keyof S> & {
+        id?: string
+        hooks(options: HookOptions<A, S>): ServiceHooks<A, S>
+    }
+
+interface ServiceHooks<A extends App = App, S extends Service = Service> {
     id?: string
     hooks(options: HookOptions<A, S>): this
 }
 
-export interface ServiceHookOverloads<S, P = Params> {
+export interface ServiceHookOverloads<S extends Service, P = Params> {
 
     find(
         params: P, 
@@ -150,10 +157,6 @@ export interface ServiceHookOverloads<S, P = Params> {
         context: HookContext
     ): Promise<HookContext>
 }
-export type FeathersService<
-    A extends App = App, 
-    S extends Service = Service
-> = S & ServiceAddons<A, S> & OptionalPick<ServiceHookOverloads<S>, keyof S>
 
 export type ServiceGenericType<S> = S extends ServiceInterface<infer T> ? T : any
 export type ServiceGenericData<S> = S extends ServiceInterface<any, infer D> ? D : any
@@ -161,7 +164,7 @@ export type ServiceGenericParams<S> = S extends ServiceInterface<any, any, infer
     ? P 
     : any
 
-export type AppEvents = EventEmitter<{'connect': [] }>
+export type AppEmit = EventEmitter<{'connect': [] }>
 export interface App<S extends Services = any, C extends Config = any> {
 
     /**
@@ -236,7 +239,7 @@ export interface App<S extends Services = any, C extends Config = any> {
      *
      * @param path The name of the service to unregister
      */
-    unuse<P extends string>(path: P): Promise<FeathersService<this, P extends keyof S ? S[P] : Service>>
+    unuse<P extends keyof S>(path: P): Promise<this & ServiceEmit<this, S[P]>>
 
     /**
      * Get the Feathers service instance for a path. This will
@@ -245,7 +248,7 @@ export interface App<S extends Services = any, C extends Config = any> {
      *
      * @param path The name of the service.
      */
-    service<P extends string>(path: P): FeathersService<this, P extends keyof S ? S[P] : Service>
+    service<P extends keyof S>(path: P): this & ServiceEmit<this, S[P]>
     
     /**
      * Set up the application and call all services `.setup` method if available.
@@ -451,7 +454,11 @@ export type ApplicationHookMap<A extends App> = {
 
 export type AppHookOptions<A extends App> = HookOptions<A, Service> | ApplicationHookMap<A>
 
-export type Extends = { [key: string]: (this: App, ...args: any) => any }
+export type Extends<A extends App> = { [key: string]: (this: A, ...args: any) => any }
+
+export type ExtendsOf<A> = {
+    [K in keyof A as K extends keyof App ? never : K]: K extends keyof A ? A[K] : never
+}
 
 export type Services = { [key: string]: Service }
 

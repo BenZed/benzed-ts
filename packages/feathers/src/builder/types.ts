@@ -1,10 +1,10 @@
 
-import BuildComponent, { BuildComponents } from "./build-component"
+import BuildComponent, { BuildComponents } from './build-component'
 
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
 
-import { App, Config, Extends, Services, Service } from "../types"
+import { App, Config, Extends, Services, Service } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -20,50 +20,53 @@ export interface BuildEffect<A extends App = App> {
 
     readonly services?: { [key: string]: (app: A) => Service }
 
-    readonly extend?: Extends
+    readonly extends?: Extends<A>
+
 }
 
-export type ToBuildEffect<C extends { config?: Config, services?: Services, extends?: Extends }> = {
+export type ToBuildEffect<E extends { config?: Config, services?: Services, extends?: Extends<any> }> = {
 
-    [K in keyof BuildEffect as K extends keyof C ? K : never]:
+    [Ek in keyof BuildEffect as Ek extends keyof E ? Ek : never]:
 
-    K extends 'config' 
-        ? { [Kx in keyof C['config']]: SchemaFor<C['config'][Kx]> }
+    Ek extends 'config' 
+        ? { [Ekx in keyof E['config']]: SchemaFor<E['config'][Ekx]> }
 
-        : K extends 'services'
-            ? { [Kx in keyof C['services']]: (app: App) => C['services'][Kx] }
+        : Ek extends 'services'
+            ? { [Ekx in keyof E['services']]: (app: App) => E['services'][Ekx] }
 
-            : C['extends']
+            : E['extends']
 }
 
 type _MergeBuildEffects<C extends BuildComponents> = Merge<{
-    [K in keyof C]: C[K] extends BuildComponent<infer B>  
+    [Ck in keyof C]: C[Ck] extends BuildComponent<infer B>  
         ? Required<B>
         : Empty
 }>
 
 export type FromBuildEffect<C extends BuildComponents> = {
-    [K in keyof BuildEffect]-?: K extends keyof _MergeBuildEffects<C> 
+    [Ck in keyof BuildEffect]-?: Ck extends keyof _MergeBuildEffects<C> 
         
         ? {
-            [Kx in keyof _MergeBuildEffects<C>[K]]: 
+            [Ckx in keyof _MergeBuildEffects<C>[Ck]]: 
 
             // Configuration 
-            K extends 'config'
-                ? _MergeBuildEffects<C>[K][Kx] extends { validate: (input: unknown) => infer R } 
+            Ck extends 'config'
+                ? _MergeBuildEffects<C>[Ck][Ckx] extends { validate: (input: unknown) => infer R } 
                     ? R 
                     : unknown 
                 
             // Services
-                : K extends 'services' 
-                    ? _MergeBuildEffects<C>[K][Kx] extends (...args: any) => infer S 
+                : Ck extends 'services' 
+                    ? _MergeBuildEffects<C>[Ck][Ckx] extends (...args: any) => infer S 
                         ? S extends Service 
                             ? S 
                             : never
                         : never
 
                 // Extensions
-                    : _MergeBuildEffects<C>[K][Kx]
+                    : _MergeBuildEffects<C>[Ck][Ckx] extends (...args: infer A) => infer R 
+                        ? (...args: A) => R
+                        : () => void
         }
         
         : Empty

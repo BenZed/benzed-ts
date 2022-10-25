@@ -1,12 +1,11 @@
 import { builder } from './builder'
 
-import { Application } from '@feathersjs/feathers'
-
 import { Empty, through } from '@benzed/util'
 
 import BuildComponent, { Requirements } from './build-component'
 
 import { expectTypeOf } from 'expect-type'
+import { App } from '../types'
 
 /***  Eslint***/
 
@@ -54,7 +53,7 @@ it(`creates feathers applications`, () => {
         .add(new TestBuild())
         .build()
 
-    expectTypeOf<typeof app>().toMatchTypeOf<Application>()
+    expectTypeOf<typeof app>().toMatchTypeOf<App>()
 })
 
 it(`throws if no components have been added`, () => {

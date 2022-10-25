@@ -1,5 +1,10 @@
 import { Component } from '@benzed/ecs'
-import { BuildContext, BuildEffect, BuildLifecycleMethod } from './types'
+
+import { 
+    BuildContext, 
+    BuildEffect,
+    BuildLifecycleMethod 
+} from './types'
 
 /*** Eslint ***/
 
@@ -65,7 +70,7 @@ abstract class BuildComponent<
         const {
             config, 
             services, 
-            extend 
+            extends: _extends 
         } = this._createBuildEffect()
 
         const onConfigure = this._onConfigure 
@@ -86,9 +91,9 @@ abstract class BuildComponent<
                 ...ctx.services,
                 ...services
             },
-            extend: {
-                ...ctx.extend,
-                ...extend
+            extends: {
+                ...ctx.extends,
+                ..._extends
             }
         }
     }
