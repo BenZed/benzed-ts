@@ -1,11 +1,10 @@
 
-import FeathersComponent, { FeathersComponents } from './component'
+import FeathersBuildComponent, { FeathersComponents } from './component'
 
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
 
 import { App, Config, Extends, Service, ServiceInterface, Services } from '../types'
-import { FeathersBuilderOutput } from './builder'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -25,14 +24,6 @@ export interface BuildEffect<A extends App = App> {
 
 }
 
-export type ToBuildExtends<E extends Extends<any>, C extends FeathersComponents> = {
-    extends: {
-        [K in keyof E]: E extends (this: infer T, ...args: infer A) => infer R
-            ? (this: T & FeathersBuilderOutput<C>, ...args: A) => R
-            : () => void
-    }
-}
-
 export type ToBuildEffect<E extends { config?: Config, services?: Services, extends?: Extends<any> }> = {
 
     [Ek in keyof BuildEffect as Ek extends keyof E ? Ek : never]:
@@ -47,7 +38,7 @@ export type ToBuildEffect<E extends { config?: Config, services?: Services, exte
 }
 
 type _MergeBuildEffects<C extends FeathersComponents> = Merge<{
-    [Ck in keyof C]: C[Ck] extends FeathersComponent<infer B, any>  
+    [Ck in keyof C]: C[Ck] extends FeathersBuildComponent<infer B, any>  
         ? Required<B>
         : Empty
 }>

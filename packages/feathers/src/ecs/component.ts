@@ -1,9 +1,10 @@
 import { Component } from '@benzed/ecs'
 
 import { 
-    FeathersBuildContext, 
     BuildEffect,
-    BuildLifecycleMethod 
+    BuildLifecycleMethod,
+    FeathersBuildContext, 
+
 } from './types'
 
 /*** Eslint ***/
@@ -12,17 +13,13 @@ import {
     @typescript-eslint/no-explicit-any
 */
 
-/*** Build Components ***/
-
-type FeathersComponents = readonly FeathersComponent<any, any>[]
+/*** Requirements ***/
 
 type RequiredComponentTypes<C extends FeathersComponents> = C extends [] 
     ? readonly never []
     : {
         [K in keyof C]: new (...args: any) => C[K]
     }
-
-/*** Requirements ***/
 
 /**
  * Requirements build component need to adhere to before being 
@@ -40,16 +37,17 @@ class FeathersComponentRequirements<C extends FeathersComponents = FeathersCompo
     ) {
         this.types = types
     }
-
 }
 
+/*** Components ***/
+
+type FeathersComponents = readonly FeathersComponent<any>[]
+
 /**
- * Base class for components that construct feathers applications
+ * Component that makes mutations to the app
  */
-abstract class FeathersComponent<
-    B extends BuildEffect = BuildEffect,
-    R extends FeathersComponentRequirements<any,any> | undefined = undefined
-> extends Component<FeathersBuildContext> {
+abstract class FeathersComponent<R extends FeathersComponentRequirements<any,any> | undefined = undefined >
+    extends Component<FeathersBuildContext> {
 
     static requirements<C extends FeathersComponents, S extends boolean>(
         single: S,
@@ -57,30 +55,16 @@ abstract class FeathersComponent<
     ): FeathersComponentRequirements<C,S> {
         return new FeathersComponentRequirements(single, ...types) as any
     }
-    
-    abstract readonly requirements: R
 
-    /**
-     * Creates an object that affects the app 
-     */
-    protected abstract _createBuildEffect(): B
+    abstract readonly requirements: R
 
     /**
      * Called after the app is first configured.
      */
     protected _onConfigure?: BuildLifecycleMethod
 
-    /**
-     * Merge existing build context
-     */
     compute(ctx: FeathersBuildContext): FeathersBuildContext {
-        
-        const {
-            config, 
-            services, 
-            extends: _extends 
-        } = this._createBuildEffect()
-
+     
         const onConfigure = this._onConfigure 
             ? [this._onConfigure] 
             : []
@@ -90,29 +74,54 @@ abstract class FeathersComponent<
             onConfigure: [
                 ...ctx.onConfigure,
                 ...onConfigure
-            ],
+            ]
+        }
+    }
+}
+
+/**
+ * Base class for components that construct feathers applications
+ */
+abstract class FeathersBuildComponent<
+    B extends BuildEffect = BuildEffect,
+    R extends FeathersComponentRequirements<any,any> | undefined = undefined
+> extends FeathersComponent<R> {
+
+    /**
+     * A feathers build component can run lifecycle nmethods, but
+     * also has effects that change the type of the app.
+     */
+    protected abstract _createBuildEffect(): B
+
+    compute(ctx: FeathersBuildContext): FeathersBuildContext {
+        
+        const effect = this._createBuildEffect()
+
+        return super.compute({
+            ...ctx,
             config: {
                 ...ctx.config,
-                ...config
+                ...effect.config
             },
             services: {
                 ...ctx.services,
-                ...services
+                ...effect.services
             },
             extends: {
                 ...ctx.extends,
-                ..._extends
+                ...effect.extends
             }
-        }
+        })
     }
 }
 
 /*** Exports ***/
 
-export default FeathersComponent
+export default FeathersBuildComponent
 
 export {
-    FeathersComponent,
+    FeathersBuildComponent,
     FeathersComponents,
+    FeathersComponent,
     FeathersComponentRequirements
 }

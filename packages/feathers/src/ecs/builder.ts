@@ -1,9 +1,9 @@
 import { feathers as _feathers } from '@feathersjs/feathers'
 
-import { Empty, StringKeys} from '@benzed/util'
+import { call as callWith, Empty, StringKeys} from '@benzed/util'
 import { Node } from '@benzed/ecs'
 
-import FeathersComponent, { FeathersComponents, FeathersComponentRequirements } from './component'
+import { FeathersComponents, FeathersComponentRequirements, FeathersComponent } from './component'
 
 import { FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
@@ -50,7 +50,7 @@ type CheckSingle<
         : Cx
     : Cx 
 
-type AddFeathersBuildComponent<C extends FeathersComponents, Cx extends FeathersComponent<any,any>> = 
+type AddFeathersComponent<C extends FeathersComponents, Cx extends FeathersComponent<any>> = 
     Cx['requirements'] extends FeathersComponentRequirements<infer R, infer S> 
         ? R extends []
             ? CheckSingle<C, Cx, S>
@@ -66,9 +66,9 @@ type AddFeathersBuildComponent<C extends FeathersComponents, Cx extends Feathers
  */
 class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
 
-    add<Cx extends FeathersComponent<any,any>>(
-        component: AddFeathersBuildComponent<C,Cx>
-    ): FeathersBuilder<[...C, AddFeathersBuildComponent<C,Cx>]> {
+    add<Cx extends FeathersComponent<any>>(
+        component: AddFeathersComponent<C,Cx>
+    ): FeathersBuilder<[...C, AddFeathersComponent<C,Cx>]> {
 
         this._handleComponentRequirements(component)
 
@@ -85,6 +85,7 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         const ctx = this._computeBuildContext()
         
         const app = this._createApplication(config, ctx.config)
+        ctx.onConfigure.forEach(callWith(app))
 
         this._registerServices(app, ctx.services)
         this._applyExtensions(app, ctx.extends)
@@ -142,7 +143,7 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         return app
     }
 
-    private _handleComponentRequirements<Cx extends FeathersComponent<any,any>>(
+    private _handleComponentRequirements<Cx extends FeathersComponent<any>>(
         component: Cx
     ): void {
 

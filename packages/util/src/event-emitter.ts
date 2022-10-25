@@ -12,7 +12,7 @@ const DEFAULT_MAX_LISTENERS = 10
 
 /*** Types ***/
 
-type EventSubscription<T extends object, K extends StringKeys<T>> = {
+type EventSubscription<T extends object = any, K extends StringKeys<T> = StringKeys<T>> = {
 
     /**
      * Number of times the listener will be called before being removed.
@@ -27,7 +27,7 @@ type EventSubscription<T extends object, K extends StringKeys<T>> = {
     listener: EventListener<T, K>
 }
 
-type ToArray<T> = T extends unknown[] ? T : any[]
+type ToArray<T> = T extends any[] ? T : any[]
 
 type EventListener<T extends object, K extends StringKeys<T>> =
     (...args: ToArray<T[K]>) => void | Promise<void>
@@ -43,7 +43,7 @@ type EventListener<T extends object, K extends StringKeys<T>> =
  * event. Extend the class and it's addListener / removeListener methods 
  * to gain equivalent functionality. 
  */
-class EventEmitter<T extends object> {
+class EventEmitter<T extends object = any> {
 
     protected readonly _subscriptions: {
         [K in StringKeys<T>]?: Array<EventSubscription<T, K>>

@@ -2,7 +2,7 @@
     @typescript-eslint/no-explicit-any 
 */
 
-export type Func<A extends any[] = any, V = any, T = void> = (this: T, ...args: A) => V
+export type Func<A extends any[] = any[], V = any, T = void> = (this: T, ...args: A) => V
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 

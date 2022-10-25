@@ -1,9 +1,10 @@
 import { $ } from '@benzed/schema'
+import { Empty } from '@benzed/util'
 
-import { FeathersComponent } from './component'
+import { FeathersBuildComponent, FeathersComponent } from './component'
 import { feathers } from './builder'
 
-import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services } from '../types'
+import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App } from '../types'
 import { ToBuildEffect } from './types'
 
 import { expectTypeOf } from 'expect-type'
@@ -16,7 +17,7 @@ import { expectTypeOf } from 'expect-type'
 
 /*** Setup ***/
 
-class Configurer<C extends Config> extends FeathersComponent<ToBuildEffect<{ config: C }>> {
+class Configurer<C extends Config> extends FeathersBuildComponent<ToBuildEffect<{ config: C }>> {
 
     requirements = undefined 
 
@@ -33,7 +34,7 @@ class Configurer<C extends Config> extends FeathersComponent<ToBuildEffect<{ con
 
 }
 
-class Servicer<S extends Services = any> extends FeathersComponent<ToBuildEffect<{ services: S }>> {
+class Servicer<S extends Services = any> extends FeathersBuildComponent<ToBuildEffect<{ services: S }>> {
 
     requirements = undefined
 
@@ -49,12 +50,12 @@ class Servicer<S extends Services = any> extends FeathersComponent<ToBuildEffect
     }
 }
 
-const extenderReq = FeathersComponent.requirements<[Servicer<any>], false>(false, Servicer)
+const extenderReq = FeathersBuildComponent.requirements<[Servicer<any>], false>(false, Servicer)
 
 type ExtenderRequirements = typeof extenderReq
 
 type ExtenderExtends = Extends<ExtenderRequirements>
-class Extender<E extends ExtenderExtends> extends FeathersComponent<{ extends: E }, ExtenderRequirements> {
+class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ extends: E }, ExtenderRequirements> {
 
     requirements = extenderReq
 
@@ -141,4 +142,24 @@ it(`makes typesafe changes to application extensions`, () => {
     expectTypeOf<E>().toEqualTypeOf<{ log: (...args: unknown[]) => void }>()
 
     expect(app.log).not.toThrow()
+})
+
+it(`lifecycle onConfigure method is called`, () => {
+
+    let called = 0
+    class Easy extends FeathersComponent {
+        
+        readonly requirements = undefined 
+
+        protected _onConfigure = (): void => {
+            called++
+        }
+    }
+
+    const app = feathers.add(new Easy()).build()
+
+    expectTypeOf<typeof app>().toMatchTypeOf<App<Empty,Empty>>()
+
+    expect(called).toBe(1)
+
 })
