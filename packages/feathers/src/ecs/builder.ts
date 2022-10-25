@@ -1,11 +1,12 @@
 import { feathers as _feathers } from '@feathersjs/feathers'
 
-import { call as callWith, Empty, StringKeys} from '@benzed/util'
+import { Empty, StringKeys} from '@benzed/util'
 import { Node } from '@benzed/ecs'
+import is from '@benzed/is'
 
 import { FeathersComponents, FeathersComponentRequirements, FeathersComponent } from './component'
 
-import { FeathersBuildContext, FromBuildEffect } from './types'
+import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
 
 import { getDefaultConfiguration } from '../util'
@@ -84,8 +85,7 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
 
         const ctx = this._computeBuildContext()
         
-        const app = this._createApplication(config, ctx.config)
-        ctx.onConfigure.forEach(callWith(app))
+        const app = this._createApplication(config, ctx)
 
         this._registerServices(app, ctx.services)
         this._applyExtensions(app, ctx.extends)
@@ -99,15 +99,6 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
 
     // Helper 
 
-    private _registerServices(app: App, services: FeathersBuildContext['services']): void {
-        for (const path in services) {
-            const service = services[path](app)
-
-            if (!(path in app.services))
-                app.use(path, service)
-        }
-    }
-
     private _computeBuildContext(): FeathersBuildContext {
     
         let ctx: FeathersBuildContext = {
@@ -115,7 +106,8 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
             extends: {},
             services: {},
 
-            onConfigure: [],
+            onCreate: [],
+            onConfig: [],
             required: []
         }
 
@@ -125,10 +117,11 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         return ctx
     }
 
-    private _createApplication(config: FeathersBuilderInput<C>, configCtx: FeathersBuildContext['config']): App {
-        const app = _feathers() as unknown as App
+    private _createApplication(config: FeathersBuilderInput<C>, ctx: FeathersBuildContext): App {
 
-        for (const [ key, { validate } ] of Object.entries(configCtx)) {
+        const app = this._runLifeCycleMethod(_feathers() as any, ctx.onCreate)
+
+        for (const [ key, { validate } ] of Object.entries(ctx.config)) {
 
             const property = key as StringKeys<FeathersBuilderInput<C>>
 
@@ -138,6 +131,40 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
                 property,  
                 validate(value)
             )
+        }
+
+        this._runLifeCycleMethod(app, ctx.onConfig)
+
+        return app
+    }
+
+    private _registerServices(app: App, services: FeathersBuildContext['services']): void {
+        for (const path in services) {
+            const service = services[path](app)
+
+            if (!(path in app.services))
+                app.use(path, service)
+        }
+    }
+
+    private _applyExtensions(app: App, eCtx: FeathersBuildContext['extends']): void {
+
+        for (const [ key, extension ] of Object.entries(eCtx)) {
+            const property = key as keyof App
+
+            app[property] = is.function(extension) 
+                ? extension.bind(app)
+                : extension
+        }
+
+    }
+
+    private _runLifeCycleMethod(app: App, methods: readonly LifeCycleMethod[]): App {
+
+        for (const method of methods) {
+            const result = method(app) as App | undefined
+            if (result)
+                app = result
         }
 
         return app
@@ -169,15 +196,6 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         }
 
         requirements.components = requirements.types.map(this.get.bind(this))
-    }
-
-    private _applyExtensions(app: App, eCtx: FeathersBuildContext['extends']): void {
-
-        for (const [ key, extension ] of Object.entries(eCtx)) {
-            const property = key as keyof App
-            app[property] = extension.bind(app)
-        }
-
     }
 
 }

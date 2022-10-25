@@ -117,7 +117,7 @@ export type ServiceGenericParams<S> = S extends ServiceInterface<any, any, infer
     ? P 
     : any
 
-export type AppEmit = EventEmitter<{'connect': [] }>
+export type AppEmit = EventEmitter<{'connection': any[], 'login': any[] }>
 export interface App<S extends Services = any, C extends Config = any> {
 
     /**
@@ -417,7 +417,9 @@ export type ToApp<T> = T extends App
 
 export type AppHookOptions<A extends App> = HookOptions<A, Service> | ApplicationHookMap<A>
 
-export type Extends<A> = { [key: string]: (this: ToApp<A>, ...args: any) => any }
+export type Extends<A> = { 
+    [key: string]: unknown | ((this: ToApp<A>, ...args: unknown[]) => unknown)
+} | object
 
 export type ExtendsOf<A> = {
     [K in keyof A as K extends keyof App ? never : K]: K extends keyof A ? A[K] : never

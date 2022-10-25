@@ -146,13 +146,18 @@ it(`makes typesafe changes to application extensions`, () => {
 
 it(`lifecycle onConfigure method is called`, () => {
 
-    let called = 0
+    let createCalled = 0
+    let configCalled = 0
     class Easy extends FeathersComponent {
         
         readonly requirements = undefined 
 
-        protected _onConfigure = (): void => {
-            called++
+        protected _onCreate = (): void => {
+            createCalled++
+        }
+
+        protected _onConfig = (): void => {
+            configCalled++
         }
     }
 
@@ -160,6 +165,7 @@ it(`lifecycle onConfigure method is called`, () => {
 
     expectTypeOf<typeof app>().toMatchTypeOf<App<Empty,Empty>>()
 
-    expect(called).toBe(1)
+    expect(configCalled).toBe(1)
+    expect(createCalled).toBe(1)
 
 })

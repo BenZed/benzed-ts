@@ -66,7 +66,7 @@ export type FromBuildEffect<C extends FeathersComponents> = {
                 // Extensions
                     : _MergeBuildEffects<C>[Ck][Ckx] extends (...args: infer A) => infer R 
                         ? (...args: A) => R
-                        : () => void
+                        : _MergeBuildEffects<C>[Ck][Ckx]
         }
         
         : Empty
@@ -74,11 +74,14 @@ export type FromBuildEffect<C extends FeathersComponents> = {
 
 /*** Build Context ***/
 
-export type BuildLifecycleMethod = (app: App) => void
+export type LifeCycleMethod = (app: App) => void
+export type CreateLifeCycleMethod = (app: App) => App | void
 
 export interface FeathersBuildContext extends Required<BuildEffect> {
     readonly required: FeathersComponents
-    readonly onConfigure: readonly BuildLifecycleMethod[]
+
+    readonly onCreate: readonly CreateLifeCycleMethod[]
+    readonly onConfig: readonly LifeCycleMethod[]
     // readonly onDatabase: readonly AppInitializer[]
     // readonly onRegister: readonly AppInitializer[]
 }

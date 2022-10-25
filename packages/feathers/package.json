@@ -39,6 +39,7 @@
         "@feathersjs/koa": "5.0.0-pre.31",
         "@feathersjs/socketio": "^5.0.0-pre.31",
         "@feathersjs/mongodb": "^5.0.0-pre.31",
+        "@feathersjs/express": "^5.0.0-pre.31",
         "mongodb": "^4.9.0"
     },
     "devDependencies": {

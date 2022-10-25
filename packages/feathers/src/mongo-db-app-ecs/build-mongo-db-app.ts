@@ -2,6 +2,9 @@ import { feathers } from '../ecs'
 
 /*** Build ***/
 
-const mongodbApp = feathers
+/**
+ * FeathersBuilder with MongoDBApp Components
+ */
+const mongoDbApp = feathers
 
 /*** Main ***/

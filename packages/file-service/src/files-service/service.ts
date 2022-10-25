@@ -98,19 +98,16 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
     }
 
     async createSignedUrls(file: File): Promise<SignedFile['urls']> {
-
         return {
             uploadParts: await this._createUploadPartUrls(file),
             complete: await this._createUrl(file, { complete: true }),
             local: true
         }
-
     }
 
     // HELPER
 
     private async _createUploadPartUrls(file: File): Promise<string[]> {
-
         const partUrls: string[] = []
 
         for (const { index } of eachFilePart(file)) {

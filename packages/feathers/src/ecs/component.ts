@@ -2,8 +2,9 @@ import { Component } from '@benzed/ecs'
 
 import { 
     BuildEffect,
-    BuildLifecycleMethod,
-    FeathersBuildContext, 
+    LifeCycleMethod,
+    FeathersBuildContext,
+    CreateLifeCycleMethod, 
 
 } from './types'
 
@@ -59,23 +60,35 @@ abstract class FeathersComponent<R extends FeathersComponentRequirements<any,any
     abstract readonly requirements: R
 
     /**
+     * Called when the app is created. 
+     * Mutations made to the app object on create can be
+     * returned to affect the actual app.
+     */
+    protected _onCreate?: CreateLifeCycleMethod
+
+    /**
      * Called after the app is first configured.
      */
-    protected _onConfigure?: BuildLifecycleMethod
+    protected _onConfig?: LifeCycleMethod
 
     compute(ctx: FeathersBuildContext): FeathersBuildContext {
      
-        const onConfigure = this._onConfigure 
-            ? [this._onConfigure] 
-            : []
+        for (const lifeCycleName of [`onCreate`, `onConfig`] as const) {
 
-        return {
-            ...ctx,
-            onConfigure: [
-                ...ctx.onConfigure,
-                ...onConfigure
-            ]
+            const lifeCyleMethod = this[`_${lifeCycleName}`]
+                ? [this[`_${lifeCycleName}`]] 
+                : []
+            
+            ctx = {
+                ...ctx,
+                [lifeCycleName]: [
+                    ...ctx[lifeCycleName],
+                    ...lifeCyleMethod
+                ]
+            }
         }
+
+        return ctx
     }
 }
 
@@ -115,13 +128,64 @@ abstract class FeathersBuildComponent<
     }
 }
 
+abstract class FeathersExtendComponent<
+    E extends Exclude<BuildEffect['extends'], undefined>,
+    R extends FeathersComponentRequirements<any,any> | undefined = undefined
+> extends FeathersBuildComponent<{ extends: E }, R> {
+
+    protected abstract _createBuildExtends(): E
+
+    protected _createBuildEffect(): { extends: E } {
+        return {
+            extends: this._createBuildExtends()
+        }
+    }
+
+}
+
+abstract class FeathersConfigComponent<
+    C extends Exclude<BuildEffect['config'], undefined>,
+    R extends FeathersComponentRequirements<any,any> | undefined = undefined
+> extends FeathersBuildComponent<{ config: C }, R> {
+
+    protected abstract _createBuildConfig(): C
+
+    protected _createBuildEffect(): { config: C } {
+        return {
+            config: this._createBuildConfig()
+        } 
+    }
+
+}
+
+abstract class FeathersServiceComponent<
+    S extends Exclude<BuildEffect['services'], undefined>,
+    R extends FeathersComponentRequirements<any,any> | undefined = undefined
+> extends FeathersBuildComponent<{ services: S }, R> {
+
+    protected abstract _createBuildServices(): S
+
+    protected _createBuildEffect(): { services: S } {
+        return {
+            services: this._createBuildServices()
+        } 
+    }
+
+}
+
 /*** Exports ***/
 
 export default FeathersBuildComponent
 
 export {
-    FeathersBuildComponent,
-    FeathersComponents,
     FeathersComponent,
-    FeathersComponentRequirements
+    FeathersComponents,
+
+    FeathersComponentRequirements,
+
+    FeathersBuildComponent,
+
+    FeathersExtendComponent,
+    FeathersConfigComponent,
+    FeathersServiceComponent
 }
