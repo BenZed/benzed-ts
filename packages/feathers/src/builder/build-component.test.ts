@@ -56,14 +56,14 @@ class Extender<E extends Extends<any>> extends BuildComponent<ToBuildEffect<{ ex
     extends: E
 
     constructor(
-        e: ToBuildEffect<{ extends: E }>['extends']
+        e: Exclude<ToBuildEffect<{ extends: E }>['extends'], undefined>
     ) {
         super()
-        this.extends = e as unknown as E
+        this.extends = e
     }
 
     protected _createBuildEffect(): ToBuildEffect<{ extends: E }> {
-        return { extends: this.extends } as unknown as ToBuildEffect<{ extends: E }>
+        return { extends: this.extends }
     }
 
 }
