@@ -44,10 +44,6 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
     constructor(
         readonly components: C
     ) {
-
-        if (components.length === 0)
-            throw new Error('Node must be created with at least one component')
-
         super() 
     }
 
@@ -71,7 +67,7 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
     
         if (!component) {
             throw new Error(
-                'Could not find component ' + (
+                `Could not find component ` + (
                     is.number(input) 
                         ? `at index ${input}` 
                         : `of type ${(input as any).name}`
@@ -88,6 +84,11 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
 
     get last(): Last<C> {
         return this.components.at(-1) as Last<C>
+    }
+
+    protected _assertAtLeastOneComponent(): void {
+        if (this.components.length === 0)
+            throw new Error(`Node must be created with at least one component`)
     }
 
 }
