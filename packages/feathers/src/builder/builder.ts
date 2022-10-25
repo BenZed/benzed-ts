@@ -1,17 +1,13 @@
+import { feathers } from '@feathersjs/feathers'
+
+import { Empty, StringKeys} from '@benzed/util'
+import { Node } from '@benzed/ecs'
+
 import BuildComponent, { BuildComponents, Requirements } from './build-component'
 
 import { BuildContext, FromBuildEffect } from './types'
 import { getDefaultConfiguration } from '../util'
 import { App } from '../types'
-
-import { 
-    Empty, 
-    StringKeys
-} from '@benzed/util'
-
-import { Node } from '@benzed/ecs'
-
-import { feathers } from '@feathersjs/feathers'
 
 /*** Eslint ***/
 
@@ -30,9 +26,9 @@ type BuiltApp<C extends BuildComponents> =
         ? App<BuiltServices<C>, BuiltConfig<C>>
         : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>
 
-type BuilderInput<C extends BuildComponents> = BuiltConfig<C>
+export type BuilderInput<C extends BuildComponents> = BuiltConfig<C>
 
-type BuilderOutput<C extends BuildComponents> = BuiltApp<C>
+export type BuilderOutput<C extends BuildComponents> = BuiltApp<C>
 
 export type ComponentsContain<A extends BuildComponents, B extends BuildComponents> =
     B extends [infer Bx, ...infer Bxr]
@@ -53,7 +49,7 @@ export type CheckSingle<
         : Cx
     : Cx 
 
-type AddBuildComponent<C extends BuildComponents, Cx extends BuildComponent> = 
+type AddBuildComponent<C extends BuildComponents, Cx extends BuildComponent<any,any>> = 
     Cx['requirements'] extends Requirements<infer R, infer S> 
         ? R extends []
             ? CheckSingle<C, Cx, S>
@@ -69,7 +65,7 @@ type AddBuildComponent<C extends BuildComponents, Cx extends BuildComponent> =
  */
 class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOutput<C>, C> {
 
-    add<Cx extends BuildComponent>(
+    add<Cx extends BuildComponent<any,any>>(
         component: AddBuildComponent<C,Cx>
     ): Builder<[...C, AddBuildComponent<C,Cx>]> {
 
@@ -86,11 +82,10 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         this._assertAtLeastOneComponent()
 
         const ctx = this._computeBuildContext()
-
+        
         const app = this._createApplication(config, ctx.config)
 
         this._registerServices(app, ctx.services)
-
         this._applyExtensions(app, ctx.extends)
 
         return app as BuilderOutput<C>
@@ -146,7 +141,7 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         return app
     }
 
-    private _handleComponentRequirements<Cx extends BuildComponent>(
+    private _handleComponentRequirements<Cx extends BuildComponent<any,any>>(
         component: Cx
     ): void {
 
@@ -158,15 +153,21 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
         const missing = [...requirements.types]
             .filter(type => !this.has(type))
             .map(t => t.name)
-        if (missing.length > 0)
-            throw new Error(`Requires component: ${missing}`)
+        if (missing.length > 0) {
+            throw new Error(
+                `Requires component: ${missing}`
+            )
+        }
 
         // Check single component
-        if (requirements.single && this.components.some(c => c instanceof component.constructor))
-            throw new Error(`Component ${component.constructor.name} can only be added once`)
+        if (requirements.single && this.components.some(c => c instanceof component.constructor)) {
+            throw new Error(
+                `Component ${component.constructor.name} can only be added once`
+            )
+        }
 
-        // Provide required instances
-        requirements.components = requirements.types.map(type => this.get(type))
+        requirements.components = requirements.types.map(this.get.bind(this))
+
     }
 
     private _applyExtensions(app: App, eCtx: BuildContext['extends']): void {

@@ -4,7 +4,8 @@ import BuildComponent, { BuildComponents } from './build-component'
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
 
-import { App, Config, Extends, Services, Service } from '../types'
+import { App, Config, Extends, Service, PartialServices } from '../types'
+import { BuilderOutput } from './builder'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -18,13 +19,21 @@ export interface BuildEffect<A extends App = App> {
 
     readonly config?: { [key: string]: SchemaFor<unknown> }
 
-    readonly services?: { [key: string]: (app: A) => Service }
+    readonly services?: { [key: string]: (app: A) => Partial<Service> }
 
     readonly extends?: Extends<A>
 
 }
 
-export type ToBuildEffect<E extends { config?: Config, services?: Services, extends?: Extends<any> }> = {
+export type ToBuildExtends<E extends Extends<any>, C extends BuildComponents> = {
+    extends: {
+        [K in keyof E]: E extends (this: infer T, ...args: infer A) => infer R
+            ? (this: T & BuilderOutput<C>, ...args: A) => R
+            : () => void
+    }
+}
+
+export type ToBuildEffect<E extends { config?: Config, services?: PartialServices, extends?: Extends<any> }> = {
 
     [Ek in keyof BuildEffect as Ek extends keyof E ? Ek : never]:
 
@@ -58,7 +67,7 @@ export type FromBuildEffect<C extends BuildComponents> = {
             // Services
                 : Ck extends 'services' 
                     ? _MergeBuildEffects<C>[Ck][Ckx] extends (...args: any) => infer S 
-                        ? S extends Service 
+                        ? S extends Partial<Service> 
                             ? S 
                             : never
                         : never

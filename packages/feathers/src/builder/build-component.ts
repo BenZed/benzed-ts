@@ -14,7 +14,7 @@ import {
 
 /*** Build Components ***/
 
-type BuildComponents = readonly BuildComponent<BuildEffect>[]
+type BuildComponents = readonly BuildComponent<any, any>[]
 
 type RequiredComponentTypes<C extends BuildComponents> = C extends [] 
     ? readonly never []
@@ -28,7 +28,7 @@ type RequiredComponentTypes<C extends BuildComponents> = C extends []
  * Requirements build component need to adhere to before being 
  * added onto a stack
  */
-class Requirements<C extends BuildComponents = [], S extends boolean = false> {
+class Requirements<C extends BuildComponents = BuildComponents, S extends boolean = false> {
 
     readonly types: RequiredComponentTypes<C>
     
@@ -47,10 +47,18 @@ class Requirements<C extends BuildComponents = [], S extends boolean = false> {
  * Base class for components that construct feathers applications
  */
 abstract class BuildComponent<
-    B extends BuildEffect = BuildEffect
+    B extends BuildEffect = BuildEffect,
+    R extends Requirements<any,any> | undefined = undefined
 > extends Component<BuildContext> {
+
+    static requirements<C extends BuildComponents, S extends boolean>(
+        single: S,
+        ...types: RequiredComponentTypes<C>
+    ): Requirements<C,S> {
+        return new Requirements(single, ...types) as any
+    }
     
-    abstract readonly requirements?: Requirements<any,any>
+    abstract readonly requirements: R
 
     /**
      * Creates an object that affects the app 

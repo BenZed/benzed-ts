@@ -2,7 +2,7 @@ import { builder } from './builder'
 
 import { Empty, through } from '@benzed/util'
 
-import BuildComponent, { Requirements } from './build-component'
+import BuildComponent from './build-component'
 
 import { expectTypeOf } from 'expect-type'
 import { App } from '../types'
@@ -17,7 +17,7 @@ import { App } from '../types'
 
 class TestBuild extends BuildComponent<Empty> {
 
-    requirements = new Requirements(false)
+    requirements = undefined
 
     protected _createBuildEffect(): Empty {
         return {}
@@ -25,9 +25,11 @@ class TestBuild extends BuildComponent<Empty> {
 
 }
 
-class TestRequire extends BuildComponent<Empty> {
+const testReq = BuildComponent.requirements(false, TestBuild)
 
-    readonly requirements = new Requirements(false, TestBuild)
+class TestRequire extends BuildComponent<Empty, typeof testReq> {
+
+    readonly requirements = testReq
 
     protected _createBuildEffect(): Empty {
         return {}
@@ -35,9 +37,11 @@ class TestRequire extends BuildComponent<Empty> {
 
 }
 
-class TestSingle extends BuildComponent<Empty> {
+const testSingleReq = BuildComponent.requirements(true)
 
-    readonly requirements = new Requirements(true)
+class TestSingle extends BuildComponent<Empty, typeof testSingleReq> {
+
+    readonly requirements = testSingleReq
 
     protected _createBuildEffect(): Empty {
         return {}

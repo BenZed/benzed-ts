@@ -1,7 +1,8 @@
 
-/*** Exports ***/
-
 import { EventEmitter, Func } from '@benzed/util'
+import { BuildComponents, BuilderOutput, Requirements } from './builder'
+
+/*** Exports ***/
 
 export type {
     StringKeys
@@ -452,15 +453,27 @@ export type ApplicationHookMap<A extends App> = {
     teardown?: AppHookFunction<A>[]
 }
 
+export type ToApp<T> = T extends App 
+    ? T
+    : T extends BuildComponents
+        ? BuilderOutput<T>
+        : T extends Requirements<infer C, any>
+            ? C extends BuildComponents
+                ? BuilderOutput<C>
+                : App 
+            : App 
+
 export type AppHookOptions<A extends App> = HookOptions<A, Service> | ApplicationHookMap<A>
 
-export type Extends<A extends App> = { [key: string]: (this: A, ...args: any) => any }
+export type Extends<A> = { [key: string]: (this: ToApp<A>, ...args: any) => any }
 
 export type ExtendsOf<A> = {
     [K in keyof A as K extends keyof App ? never : K]: K extends keyof A ? A[K] : never
 }
 
 export type Services = { [key: string]: Service }
+
+export type PartialServices = { [key: string]: Partial<Service> }
 
 export type ServicesOf<A extends App> = A extends App<infer S, any> ? S : Config
 
