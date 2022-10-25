@@ -1,6 +1,7 @@
 import BuildComponent, { BuildComponents, Requirements } from './build-component'
 
-import { App, BuildContext, FromBuildEffect } from './types'
+import { BuildContext, FromBuildEffect } from './types'
+import { App } from '../types'
 
 import { getDefaultConfiguration } from '../util'
 
@@ -8,6 +9,7 @@ import {
     Empty, 
     StringKeys
 } from '@benzed/util'
+
 import { Node } from '@benzed/ecs'
 
 import { feathers } from '@feathersjs/feathers'
@@ -22,16 +24,16 @@ import { feathers } from '@feathersjs/feathers'
 
 type BuiltServices<C extends BuildComponents> = FromBuildEffect<C>['services']
 type BuiltConfig<C extends BuildComponents> = FromBuildEffect<C>['config']
-type BuildExtensions<C extends BuildComponents> = FromBuildEffect<C>['extend']
+type BuiltExtensions<C extends BuildComponents> = FromBuildEffect<C>['extend']
 
-type BuiltApplication<C extends BuildComponents> = 
-    BuildExtensions<C> extends Empty 
+type BuiltApp<C extends BuildComponents> = 
+    BuiltExtensions<C> extends Empty 
         ? App<BuiltServices<C>, BuiltConfig<C>>
-        : App<BuiltServices<C>, BuiltConfig<C>> & BuildExtensions<C>
+        : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>
 
 type BuilderInput<C extends BuildComponents> = BuiltConfig<C>
 
-type BuilderOutput<C extends BuildComponents> = BuiltApplication<C>
+type BuilderOutput<C extends BuildComponents> = BuiltApp<C>
 
 export type ComponentsContain<A extends BuildComponents, B extends BuildComponents> =
     B extends [infer Bx, ...infer Bxr]
@@ -115,7 +117,7 @@ class Builder<C extends BuildComponents> extends Node<BuilderInput<C>, BuilderOu
     }
 
     private _createApplication(config: BuilderInput<C>, configCtx: BuildContext['config']): App {
-        const app = feathers()
+        const app = feathers() as App
 
         for (const [ key, { validate } ] of Object.entries(configCtx)) {
 

@@ -40,6 +40,6 @@ it(`makes typesafe changes to the output application via build effects`, () => {
 
     expectTypeOf<ConfigOf<typeof app>>()
         .toEqualTypeOf<{ foo: string, bar: number }>()
-    
+
     expect(app.get(`foo`)).toBe(`bar`)
 })
