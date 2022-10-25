@@ -16,25 +16,25 @@ export type Json =
 /**
  * Reduce two types to only their matching key values.
  */
-export type Collapse<LEFT, RIGHT> =
+export type Collapse<L, R> =
     {
-        [K in keyof LEFT as
+        [K in keyof L as
 
         // Only include key of left if right has the same key and value
-        /**/ K extends keyof RIGHT ?
-            /**/ RIGHT[K] extends LEFT[K]
+        /**/ K extends keyof R ?
+            /**/ R[K] extends L[K]
                 /**/ ? K
                 /**/ : never
             /**/ : never
 
-        ]: LEFT[K]
+        ]: L[K]
     }
 
 /**
  * Create an interesection out of an arbitrary number of types
  */
-export type Intersect<T> = T extends [infer FIRST, ...infer REST]
-    ? FIRST & Intersect<REST>
+export type Intersect<T> = T extends [infer F, ...infer R]
+    ? F & Intersect<R>
     : unknown
 
 /**
@@ -79,38 +79,38 @@ export type UndefinedToOptional<T> = Optional<T, undefined>
 /**
  * Get a compiled contract of a type.
  */
-export type Compile<TYPE, EXCEPTIONS = void, RECURSIVE extends boolean = true> = 
-    TYPE extends EXCEPTIONS 
-        ? TYPE
+export type Compile<T, E = void, R extends boolean = true> = 
+    T extends E 
+        ? T
 
-        : TYPE extends Map<infer K, infer V>
-            ? RECURSIVE extends true 
-                ? Map<Compile<K, EXCEPTIONS, RECURSIVE>, Compile<V, EXCEPTIONS, RECURSIVE>>
+        : T extends Map<infer K, infer V>
+            ? R extends true 
+                ? Map<Compile<K, E, R>, Compile<V, E, R>>
                 : Map<K,V>
 
-            : TYPE extends Set<infer V> 
+            : T extends Set<infer V> 
                 ? Set<V>
 
-                : TYPE extends Promise<infer A> 
-                    ? RECURSIVE extends true 
-                        ? Promise<Compile<A, EXCEPTIONS, RECURSIVE>>
+                : T extends Promise<infer A> 
+                    ? R extends true 
+                        ? Promise<Compile<A, E, R>>
                         : Promise<A>
 
-                    : TYPE extends object 
+                    : T extends object 
 
-                        ? TYPE extends Date | RegExp | Func<any,any,any> | Error
+                        ? T extends Date | RegExp | Func<any,any,any> | Error
 
-                            ? TYPE
+                            ? T
 
-                            : TYPE extends infer O 
+                            : T extends infer O 
 
-                                ? { [K in keyof O]: RECURSIVE extends true 
-                                    ? Compile<O[K], EXCEPTIONS, RECURSIVE> 
+                                ? { [K in keyof O]: R extends true 
+                                    ? Compile<O[K], E, R> 
                                     : O[K] 
                                 } 
                                 : never
 
-                        : TYPE 
+                        : T 
 
 /**
  * Retreive conditional types if two input types are equal.

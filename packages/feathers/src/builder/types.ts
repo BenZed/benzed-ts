@@ -4,7 +4,7 @@ import BuildComponent, { BuildComponents } from "./build-component"
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
 
-import { Application, Service } from '@feathersjs/feathers'
+import { App, Config, Extends, Services, Service } from "../types"
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -12,23 +12,13 @@ import { Application, Service } from '@feathersjs/feathers'
 
 /*** App ***/
 
-export type App<S extends Services = any, C extends Config = any> = Application<S,C>
-
-export type Config = { [key: string]: unknown }
-export type ConfigOf<A extends App> = A extends App<any, infer C> ? C : Empty
-
-export type Services = { [key: string]: Service }
-export type ServicesOf<A extends App> = A extends App<infer S, any> ? S : Empty
-
-export type Extends = { [key: string]: (this: App, ...args: any) => any }
-
 /*** Build Effect ***/
 
-export interface BuildEffect {
+export interface BuildEffect<A extends App = App> {
 
     readonly config?: { [key: string]: SchemaFor<unknown> }
 
-    readonly services?: { [key: string]: (app: App) => Service }
+    readonly services?: { [key: string]: (app: A) => Service }
 
     readonly extend?: Extends
 }

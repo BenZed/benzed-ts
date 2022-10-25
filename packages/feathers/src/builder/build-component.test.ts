@@ -3,7 +3,8 @@ import { $ } from '@benzed/schema'
 import { BuildComponent } from './build-component'
 import { builder } from './builder'
 
-import { Config, ConfigOf, ToBuildEffect } from './types'
+import { Config, ConfigOf } from '../types'
+import { ToBuildEffect } from './types'
 
 import { expectTypeOf } from 'expect-type'
 

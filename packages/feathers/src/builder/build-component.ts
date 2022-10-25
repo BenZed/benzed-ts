@@ -42,7 +42,7 @@ class Requirements<C extends BuildComponents = [], S extends boolean = false> {
  * Base class for components that construct feathers applications
  */
 abstract class BuildComponent<
-    B extends BuildEffect = BuildEffect,
+    B extends BuildEffect = BuildEffect
 > extends Component<BuildContext> {
     
     abstract readonly requirements?: Requirements<any,any>
