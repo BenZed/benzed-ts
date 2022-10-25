@@ -6,6 +6,7 @@
         "postinstall": "npm run packages:bootstrap && npm run packages:build",
         "packages:bootstrap": "lerna bootstrap --force-local",
         "packages:build": "lerna run build",
+        "packages:build:dev": "lerna run build:dev",
         "packages:test": "lerna run test",
         "packages:tsc": "lerna run tsc",
         "packages:lint": "lerna run lint",
