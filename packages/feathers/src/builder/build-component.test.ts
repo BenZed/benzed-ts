@@ -3,7 +3,7 @@ import { $ } from '@benzed/schema'
 import { BuildComponent } from './build-component'
 import { builder } from './builder'
 
-import { Service, ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services } from '../types'
+import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services } from '../types'
 import { ToBuildEffect } from './types'
 
 import { expectTypeOf } from 'expect-type'
@@ -33,7 +33,7 @@ class Configurer<C extends Config> extends BuildComponent<ToBuildEffect<{ config
 
 }
 
-class Servicer<S extends Services> extends BuildComponent<ToBuildEffect<{ services: S }>> {
+class Servicer<S extends Services = any> extends BuildComponent<ToBuildEffect<{ services: S }>> {
 
     requirements = undefined
 
@@ -49,15 +49,14 @@ class Servicer<S extends Services> extends BuildComponent<ToBuildEffect<{ servic
     }
 }
 
-const extenderReq = BuildComponent.requirements(false, Servicer)
+const extenderReq = BuildComponent.requirements<[Servicer<any>], false>(false, Servicer)
 
 type ExtenderRequirements = typeof extenderReq
 
 type ExtenderExtends = Extends<ExtenderRequirements>
+class Extender<E extends ExtenderExtends> extends BuildComponent<{ extends: E }, ExtenderRequirements> {
 
-class Extender<E extends ExtenderExtends> extends BuildComponent<{ extends: E }> {
-
-    requirements = undefined
+    requirements = extenderReq
 
     extends: E
 
@@ -91,17 +90,13 @@ it(`makes typesafe changes to the output application config via build effects`, 
 
 it(`makes typesafe changes to the output application services via build effects`, () => {
 
-    interface Todo {
-        complete: boolean
-    }
-
     const app = builder.add(
         new Servicer({
             todos: () => ({ 
                 get() {
                     return Promise.resolve({ complete: true }) 
                 }
-            }) as unknown as Service<Todo>
+            })
         })
     ).build()
 
@@ -109,7 +104,7 @@ it(`makes typesafe changes to the output application services via build effects`
 
     type TodoAppServices = ServicesOf<TodoApp>
 
-    expectTypeOf<TodoAppServices>().toEqualTypeOf<{ todos: Service<Todo> }>()
+    expectTypeOf<TodoAppServices>().toEqualTypeOf<{ todos: { get(): Promise<{ complete: boolean }> } }>()
 
     const service = app.service(`todos`)
     expect(service).toHaveProperty(`on`)
@@ -118,7 +113,7 @@ it(`makes typesafe changes to the output application services via build effects`
 })
 
 it(`makes typesafe changes to application extensions`, () => {
-    
+
     const app = builder
         .add(
             new Configurer({
@@ -131,10 +126,10 @@ it(`makes typesafe changes to application extensions`, () => {
                     get() {
                         return Promise.resolve({ todo: true })
                     }
-                }) as unknown as Service<{ todo: boolean }>
+                })
             })
         )
-        .add(
+        .add( 
             new Extender({
                 log(...args: unknown[]): void {
                     void args

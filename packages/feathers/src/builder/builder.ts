@@ -55,7 +55,7 @@ type AddBuildComponent<C extends BuildComponents, Cx extends BuildComponent<any,
             ? CheckSingle<C, Cx, S>
             : ComponentsContain<C, R> extends true 
                 ? CheckSingle<C, Cx, S> 
-                : R[number]
+                : never
         : Cx
 
 /*** Builder ***/

@@ -54,8 +54,6 @@ export interface Params<Q = Query> {
 
 type SelfOrArray<S> = S | S[]
 
-type OptionalPick<T, K extends PropertyKey> = Pick<T, Extract<keyof T, K>>
-
 type NextFunction = () => Promise<any>
 
 /**
@@ -79,7 +77,7 @@ export interface ServiceOptions {
     }
 }
 
-export interface Service<T extends object = object, D extends object = Partial<T>, P = Params> {
+export interface Service<T extends object = any, D extends object = Partial<T>, P = Params> {
 
     find(params?: P): Promise<T | T[]>
 
@@ -101,62 +99,16 @@ export interface Service<T extends object = object, D extends object = Partial<T
 
 }
 
-export type ServiceInterface<T extends object = object, D extends object = Partial<T>, P = Params> = 
+export type ServiceInterface<T extends object = any, D extends object = Partial<T>, P = Params> = 
     Partial<Service<T, D, P>>
 
-export type ServiceEvents<S extends Service> = {
+export type ServiceEvents<S extends Service | ServiceInterface> = {
     [K in Exclude<keyof S, 'setup' | 'teardown'>]: Parameters<S[K] extends Func<any,any,any> ? S[K] : () => void>
 }
 
-export type ServiceEmit<A extends App = App, S extends Service = Service> =
-    & EventEmitter<ServiceEvents<S>> 
-    & OptionalPick<ServiceHookOverloads<S>, keyof S> & {
-        id?: string
-        hooks(options: HookOptions<A, S>): ServiceHooks<A, S>
-    }
-
-interface ServiceHooks<A extends App = App, S extends Service = Service> {
+export interface ServiceEmit<A extends App = App, S extends Service | ServiceInterface = Service> extends EventEmitter<ServiceEvents<S>> {
     id?: string
     hooks(options: HookOptions<A, S>): this
-}
-
-export interface ServiceHookOverloads<S extends Service, P = Params> {
-
-    find(
-        params: P, 
-        context: HookContext
-    ): Promise<HookContext>
-
-    get(
-        id: Id, 
-        params: P, 
-        context: HookContext
-    ): Promise<HookContext>
-        
-    create(
-        data: ServiceGenericData<S> | ServiceGenericData<S>[], 
-        params: P, 
-        context: HookContext
-    ): Promise<HookContext>
-    update(
-        id: NullableId,
-        data: ServiceGenericData<S>, 
-        params: P, 
-        context: HookContext
-    ): Promise<HookContext>
-
-    patch(
-        id: NullableId, 
-        data: ServiceGenericData<S>, 
-        params: P, 
-        context: HookContext
-    ): Promise<HookContext>
-
-    remove(
-        id: NullableId, 
-        params: P,
-        context: HookContext
-    ): Promise<HookContext>
 }
 
 export type ServiceGenericType<S> = S extends ServiceInterface<infer T> ? T : any
@@ -240,7 +192,7 @@ export interface App<S extends Services = any, C extends Config = any> {
      *
      * @param path The name of the service to unregister
      */
-    unuse<P extends keyof S>(path: P): Promise<this & ServiceEmit<this, S[P]>>
+    unuse<P extends string>(path: P): Promise<this>
 
     /**
      * Get the Feathers service instance for a path. This will
@@ -316,7 +268,7 @@ export type Data = {
     [key: string]: any
 }
 
-export interface HookContext<A extends App = App, S extends Service = Service> extends BaseHookContext<ServiceGenericType<S>> {
+export interface HookContext<A extends App = App, S extends Service | ServiceInterface = Service> extends BaseHookContext<ServiceGenericType<S>> {
     
     /**
      * A read only property that contains the Feathers application object. This can be used to
@@ -408,36 +360,36 @@ export interface HookContext<A extends App = App, S extends Service = Service> e
 
 }
 
-export type HookFunction<A extends App = App , S extends Service = Service> = (this: S, context: HookContext<A, S>) =>
+export type HookFunction<A extends App = App , S extends Service | ServiceInterface = Service> = (this: S, context: HookContext<A, S>) =>
 /**/ Promise<HookContext<A , S> | void> | HookContext<A , S> | void
 
-export type Hook<A extends App = App , S extends Service = Service> = HookFunction<A, S>
+export type Hook<A extends App = App , S extends Service | ServiceInterface = Service> = HookFunction<A, S>
 
-type HookMethodMap<A extends App = App, S extends Service = Service> = {
+type HookMethodMap<A extends App = App, S extends Service | ServiceInterface = Service> = {
     [L in keyof S]?: SelfOrArray<HookFunction<A, S>>;
 } & {
     all?: SelfOrArray<HookFunction<A, S>>
 }
 
-type HookTypeMap<A extends App = App, S extends Service = Service> = SelfOrArray<HookFunction<A, S>> | HookMethodMap<A, S>
-export type AroundHookFunction<A extends App = App, S extends Service = Service> = (
+type HookTypeMap<A extends App = App, S extends Service | ServiceInterface = Service> = SelfOrArray<HookFunction<A, S>> | HookMethodMap<A, S>
+export type AroundHookFunction<A extends App = App, S extends Service | ServiceInterface = Service> = (
     context: HookContext<A, S>, 
     next: NextFunction
 ) => Promise<void>
 
-export type AroundHookMap<A extends App, S extends Service> = {
+export type AroundHookMap<A extends App, S extends Service | ServiceInterface> = {
     [L in keyof S]?: AroundHookFunction<A, S>[];
 } & {
     all?: AroundHookFunction<A, S>[]
 }
 
-export type HookMap<A extends App, S extends Service> = {
+export type HookMap<A extends App, S extends Service | ServiceInterface> = {
     around?: AroundHookMap<A, S>
     before?: HookTypeMap<A, S>
     after?: HookTypeMap<A, S>
     error?: HookTypeMap<A, S>
 }
-export type HookOptions<A extends App, S extends Service> = AroundHookMap<A, S> | AroundHookFunction<A, S>[] | HookMap<A, S>
+export type HookOptions<A extends App, S extends Service | ServiceInterface> = AroundHookMap<A, S> | AroundHookFunction<A, S>[] | HookMap<A, S>
 export interface AppHookContext<A extends App = App> extends BaseHookContext {
     app: A
     server: any
@@ -471,9 +423,7 @@ export type ExtendsOf<A> = {
     [K in keyof A as K extends keyof App ? never : K]: K extends keyof A ? A[K] : never
 }
 
-export type Services = { [key: string]: Service }
-
-export type PartialServices = { [key: string]: Partial<Service> }
+export type Services = { [key: string]: Service | ServiceInterface }
 
 export type ServicesOf<A extends App> = A extends App<infer S, any> ? S : Config
 
