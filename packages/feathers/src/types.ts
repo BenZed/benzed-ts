@@ -417,8 +417,8 @@ export type ToApp<T> = T extends App
 
 export type AppHookOptions<A extends App> = HookOptions<A, Service> | ApplicationHookMap<A>
 
-export type Extends<A> = { 
-    [key: string]: unknown | ((this: ToApp<A>, ...args: unknown[]) => unknown)
+export type Extends<A extends App = App> = { 
+    [key: string]: unknown | ((this: A, ...args: unknown[]) => unknown)
 } | object
 
 export type ExtendsOf<A> = {

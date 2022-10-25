@@ -61,7 +61,7 @@ type ChannelSetup = (app: App & AppEmit & SocketIOExtends) => void | Publisher
 
 /*** Helper ***/
 
-const defaultChannels: ChannelSetup = app => {
+function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOExtends): Publisher {
 
     app.on(`connection`, connection => {
         app.channel(`anonymous`).join(connection)
@@ -87,7 +87,7 @@ const defaultChannels: ChannelSetup = app => {
 class SocketIO extends FeathersRealtimeComponent<SocketIOExtends> {
 
     constructor(
-        private readonly _channels: ChannelSetup = defaultChannels
+        private readonly _channels: ChannelSetup = socketIODefaultChannels
     ) {
         super()
     }
@@ -99,7 +99,7 @@ class SocketIO extends FeathersRealtimeComponent<SocketIOExtends> {
         if (result)
             app.publish(result)
 
-    }) as LifeCycleMethod
+    }) as LifeCycleMethod<any>
 
     protected _createBuildExtends(): SocketIOExtends {
         return {} as SocketIOExtends

@@ -20,7 +20,9 @@ import { getDefaultConfiguration } from '../util'
 /*** Types ***/
 
 type BuiltServices<C extends FeathersComponents> = FromBuildEffect<C>['services']
+
 type BuiltConfig<C extends FeathersComponents> = FromBuildEffect<C>['config']
+
 type BuiltExtensions<C extends FeathersComponents> = FromBuildEffect<C>['extends']
 
 type BuiltApp<C extends FeathersComponents> = 

@@ -1,5 +1,15 @@
 import { Application as FeatherApp } from '@feathersjs/feathers'
-import { ApplicationAddons as KoaAppAddons, koa } from '@feathersjs/koa'
+        
+import {
+    koa,
+    rest,
+    bodyParser,
+    errorHandler,
+    parseAuthentication as authParser,
+    ApplicationAddons as KoaAppAddons,
+
+} from '@feathersjs/koa'
+
 import type KoaApp from 'koa'
 
 import { CreateLifeCycleMethod } from '../types'
@@ -37,7 +47,16 @@ class Koa extends FeathersRestComponent<KoaExtends> {
 
     /*** Lifecycle Methods ***/
 
-    protected _onCreate: CreateLifeCycleMethod = (app: any) => koa(app) as any
+    protected _onCreate: CreateLifeCycleMethod = (app: any) => { 
+        app = koa(app)
+
+        app.configure(rest())
+        app.use(errorHandler())
+        app.use(authParser())
+        app.use(bodyParser())
+
+        return app
+    }
 
     /*** Build Implementation ***/
 

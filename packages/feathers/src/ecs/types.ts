@@ -46,8 +46,7 @@ type _MergeBuildEffects<C extends FeathersComponents> = Merge<{
 export type FromBuildEffect<C extends FeathersComponents> = {
     [Ck in keyof BuildEffect]-?: Ck extends keyof _MergeBuildEffects<C> 
         
-        ? {
-            [Ckx in keyof _MergeBuildEffects<C>[Ck]]: 
+        ? { [Ckx in keyof _MergeBuildEffects<C>[Ck]]: 
 
             // Configuration 
             Ck extends 'config'
@@ -74,8 +73,8 @@ export type FromBuildEffect<C extends FeathersComponents> = {
 
 /*** Build Context ***/
 
-export type LifeCycleMethod = (app: App) => void
-export type CreateLifeCycleMethod = (app: App) => App | void
+export type LifeCycleMethod<A extends App = App> = (app: A) => void
+export type CreateLifeCycleMethod<A extends App = App> = (app: A) => A | void
 
 export interface FeathersBuildContext extends Required<BuildEffect> {
     readonly required: FeathersComponents

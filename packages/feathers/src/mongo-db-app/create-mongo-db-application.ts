@@ -2,6 +2,7 @@
 import type { Collection } from 'mongodb'
 
 import { feathers } from '@feathersjs/feathers'
+
 import {
     koa,
     rest,
