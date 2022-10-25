@@ -2,19 +2,45 @@ import { builder } from './builder'
 
 import { Application } from '@feathersjs/feathers'
 
+import { Empty, through } from '@benzed/util'
+
+import BuildComponent, { Requirements } from './build-component'
+
 import { expectTypeOf } from 'expect-type'
-import BuildComponent from './build-component'
-import { Empty } from '@benzed/util/lib'
+
+/***  Eslint***/
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 /*** Setup ***/
 
-class TestBuildComponent extends BuildComponent<Empty, [], false> {
+class TestBuild extends BuildComponent<Empty> {
 
-    single = false as const
+    requirements = new Requirements(false)
 
-    required = []
+    protected _createBuildEffect(): Empty {
+        return {}
+    }
 
-    protected _createBuildEffect(required: []): Empty {
+}
+
+class TestRequire extends BuildComponent<Empty> {
+
+    readonly requirements = new Requirements(false, TestBuild)
+
+    protected _createBuildEffect(): Empty {
+        return {}
+    }
+
+}
+
+class TestSingle extends BuildComponent<Empty> {
+
+    readonly requirements = new Requirements(true)
+
+    protected _createBuildEffect(): Empty {
         return {}
     }
 
@@ -25,7 +51,7 @@ class TestBuildComponent extends BuildComponent<Empty, [], false> {
 it(`creates feathers applications`, () => {
     
     const app = builder
-        .add(new TestBuildComponent())
+        .add(new TestBuild())
         .build()
 
     expectTypeOf<typeof app>().toMatchTypeOf<Application>()
@@ -34,11 +60,46 @@ it(`creates feathers applications`, () => {
 it(`throws if no components have been added`, () => {
 
     expect(() => builder.build())
+        .toThrow(`Node must be created with at least one component`)
 
 })
 
-it.todo(`add() must use build components`)
+it(`add() must use build components`, () => {
+ 
+    // @ts-expect-error not a build component
+    builder.add({ compute: through })
 
-it.todo(`add() must respect build component requirements`)
+})
 
-it.todo(`add() must respect single build components`)
+it(`add() must respect build component requirements`, () => {
+
+    // @ts-expect-error requires TestBuild
+    expect(() => builder.add(new TestRequire()))
+        .toThrow(`Requires component: ${TestBuild.name}`)
+
+    expect(() => builder
+        .add(new TestBuild())
+        .add(new TestRequire())).not.toThrow(Error)
+
+})
+
+it(`add() must respect single build components`, () => {
+
+    expect(() => builder
+        .add(new TestSingle())
+        // @ts-expect-error can only place this component once
+        .add(new TestSingle())
+    ).toThrow(`Component ${TestSingle.name} can only be added once`)
+})
+
+it(`required components are provided when added`, () => {
+
+    const require = new TestRequire()
+    const build = new TestBuild()
+
+    builder
+        .add(build)
+        .add(require)
+
+    expect(require.requirements.components).toEqual([build])
+})

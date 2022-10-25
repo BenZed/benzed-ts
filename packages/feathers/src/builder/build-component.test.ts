@@ -1,7 +1,9 @@
 import { $ } from '@benzed/schema'
 
-import { BuildComponent, Config, ConfigOf, ServicesOf, ToBuildEffect } from './build-component'
+import { BuildComponent } from './build-component'
 import { builder } from './builder'
+
+import { Config, ConfigOf, ToBuildEffect } from './types'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -11,9 +13,7 @@ import { expectTypeOf } from 'expect-type'
 
 class Configurer<C extends Config> extends BuildComponent<ToBuildEffect<{ config: C }>> {
 
-    readonly single = false 
-
-    readonly required = []
+    requirements = undefined 
 
     constructor(
         public config: ToBuildEffect<{ config: C }>['config']
@@ -42,5 +42,3 @@ it(`makes typesafe changes to the output application via build effects`, () => {
     
     expect(app.get(`foo`)).toBe(`bar`)
 })
-
-it.todo(`receives required components through it's input build context`)
