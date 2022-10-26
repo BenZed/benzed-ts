@@ -16,6 +16,7 @@ import { CreateLifeCycleMethod, LifeCycleMethod } from '../types'
 
 import type { Server } from 'http'
 import { RestComponent } from './provider'
+import { FeathersComponents } from '../component'
 
 /*** Apps ***/
 
@@ -43,7 +44,7 @@ interface KoaExtends extends Omit<KoaAppAddons, 'server'> , KoaAppExtends {
 
 /*** Main ***/
 
-class Koa extends RestComponent<KoaExtends> {
+class Koa<C extends FeathersComponents> extends RestComponent<KoaExtends, C> {
 
     protected _onValidateComponents(): void {
         this._assertSingle()

@@ -1,7 +1,7 @@
 import { $ } from '@benzed/schema'
 import { Empty } from '@benzed/util'
 
-import { FeathersBuildComponent, FeathersComponent } from './component'
+import { FeathersBuildComponent, FeathersComponent, FeathersComponents } from './component'
 import { feathers } from './builder'
 
 import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App } from '../types'
@@ -17,31 +17,33 @@ import { expectTypeOf } from 'expect-type'
 
 /*** Setup ***/
 
-class Configurer<C extends Config> extends FeathersBuildComponent<ToBuildEffect<{ config: C }>> {
+class Configurer<S extends Config, C extends FeathersComponents> extends FeathersBuildComponent<ToBuildEffect<{ config: S }>, C> {
 
     requirements = undefined 
 
     constructor(
-        public config: ToBuildEffect<{ config: C }>['config']
+        components: C,
+        public config: ToBuildEffect<{ config: S }>['config']
     ) {
-        super()
+        super(components)
     }
 
-    protected _createBuildEffect(): ToBuildEffect<{ config: C }> {
+    protected _createBuildEffect(): ToBuildEffect<{ config: S }> {
         const { config } = this
         return { config }
     }
 
 }
 
-class Servicer<S extends Services = any> extends FeathersBuildComponent<ToBuildEffect<{ services: S }>> {
+class Servicer<S extends Services, C extends FeathersComponents> extends FeathersBuildComponent<ToBuildEffect<{ services: S }>, C> {
 
     requirements = undefined
 
     constructor(
+        components: C, 
         public services: ToBuildEffect<{ services: S }>['services']
     ) {
-        super()
+        super(components)
     }
 
     protected _createBuildEffect(): ToBuildEffect<{ services: S }> {
@@ -51,12 +53,12 @@ class Servicer<S extends Services = any> extends FeathersBuildComponent<ToBuildE
 }
 
 type ExtenderExtends = Extends 
-class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ extends: E }> {
+class Extender<E extends ExtenderExtends, C extends FeathersComponents> extends FeathersBuildComponent<{ extends: E }, C> {
 
     extends: E
 
-    constructor(e: E) {
-        super()
+    constructor(c: C, e: E) {
+        super(c)
         this.extends = e
     }
 
@@ -71,27 +73,24 @@ class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ exten
 it(`makes typesafe changes to the output application config via build effects`, () => {
 
     const app = feathers
-        .add(new Configurer({ foo: $.string }))
-        .add(new Configurer({ bar: $.number }))
+        .add(c => new Configurer(c, { foo: $.string }))
+        .add(c => new Configurer(c, { bar: $.number }))
         .build({ foo: `bar`, bar: 0 })
 
-    expectTypeOf<ConfigOf<typeof app>>()
-        .toEqualTypeOf<{ foo: string, bar: number }>()
+    expectTypeOf<ConfigOf<typeof app>>().toEqualTypeOf<{ foo: string, bar: number }>()
 
     expect(app.get(`foo`)).toBe(`bar`)
 })
 
 it(`makes typesafe changes to the output application services via build effects`, () => {
 
-    const app = feathers.add(
-        new Servicer({
-            todos: () => ({ 
-                get() {
-                    return Promise.resolve({ complete: true }) 
-                }
-            })
+    const app = feathers.add(c => new Servicer(c, {
+        todos: () => ({ 
+            get() {
+                return Promise.resolve({ complete: true }) 
+            }
         })
-    ).build()
+    })).build()
 
     type TodoApp = typeof app
 
@@ -108,28 +107,20 @@ it(`makes typesafe changes to the output application services via build effects`
 it(`makes typesafe changes to application extensions`, () => {
 
     const app = feathers
-        .add(
-            new Configurer({
-                logs: $.number
-            })
-        )
-        .add(
-            new Servicer({
-                todos: () => ({ 
-                    get() {
-                        return Promise.resolve({ todo: true })
-                    }
-                })
-            })
-        )
-        .add( 
-            new Extender({
-                log(...args: unknown[]): void {
-                    void args
-                    void this
+        .add(c => new Configurer(c, { logs: $.number }))
+        .add(c => new Servicer(c, {
+            todos: () => ({ 
+                get() {
+                    return Promise.resolve({ todo: true })
                 }
             })
-        )
+        }))
+        .add(c => new Extender(c, {
+            log(...args: unknown[]): void {
+                void args
+                void this
+            }
+        }))
         .build({ logs: 100 })
 
     type E = ExtendsOf<typeof app>
@@ -155,7 +146,7 @@ it(`lifecycle onConfigure method is called`, () => {
         }
     }
 
-    const app = feathers.add(new Easy()).build()
+    const app = feathers.add(Easy).build()
 
     expectTypeOf<typeof app>().toMatchTypeOf<App<Empty,Empty>>()
 

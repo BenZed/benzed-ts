@@ -11,7 +11,7 @@ import { Server } from 'http'
 it(`wraps app with koa methods`, () => {
 
     const koaApp = feathers
-        .add(new Koa())
+        .add(Koa)
         .build()
 
     type BuiltKoaApp = typeof koaApp
@@ -29,8 +29,8 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(new Koa())
-            .add(new Koa())
+            .add(Koa)
+            .add(Koa)
     ).toThrow(`cannot be used more than once`)
 
 })

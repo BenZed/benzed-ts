@@ -10,8 +10,8 @@ import Koa from './koa'
 it(`adds convenience config and methods`, () => {
 
     const expressApp = feathers
-        .add(new Koa())
-        .add(new Convenience())
+        .add(Koa)
+        .add(Convenience)
         .build()
 
     expectTypeOf(expressApp.get(`name`)).toMatchTypeOf<string>()
@@ -26,9 +26,9 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(new Koa())
-            .add(new Convenience())
-            .add(new Convenience())
+            .add(Koa)
+            .add(Convenience)
+            .add(Convenience)
     ).toThrow(`cannot be used more than once`)
 
 })

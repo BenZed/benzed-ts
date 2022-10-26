@@ -6,7 +6,7 @@ import { SocketIO } from './socketio'
 /*** Tests ***/
 
 it(`adds socket.io provider to App`, () => {
-    const ioApp = feathers.add(new SocketIO()).build()
+    const ioApp = feathers.add(SocketIO).build()
     expect(ioApp.listen).toBeInstanceOf(Function)
 })
 
@@ -16,8 +16,10 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(new SocketIO())
-            .add(new SocketIO())
+            .add(components => new SocketIO(components, c1 => {
+                void c1 
+            }))
+            .add(SocketIO)
     ).toThrow(`cannot be used more than once`)
 
 })

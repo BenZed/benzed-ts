@@ -10,7 +10,7 @@ import { Server } from 'http'
 it(`wraps app with express methods`, () => {
 
     const expressApp = feathers
-        .add(new Express())
+        .add(Express)
         .build()
 
     expectTypeOf(expressApp.server).toMatchTypeOf<undefined | Server>()
@@ -24,8 +24,8 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(new Express())
-            .add(new Express())
+            .add(Express)
+            .add(Express)
     ).toThrow(`cannot be used more than once`)
 
 })

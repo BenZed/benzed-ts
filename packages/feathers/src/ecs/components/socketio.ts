@@ -9,6 +9,7 @@ import { App, AppEmit, HookContext, Service } from '../../types'
 
 import { EventEmitter } from '@benzed/util'
 import Auth from './auth'
+import { FeathersComponents } from '../component'
 
 /*** Eslint ***/
 
@@ -62,7 +63,7 @@ type ChannelSetup = (app: App & AppEmit & SocketIOExtends) => void | Publisher
 
 /*** Helper ***/
 
-function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOExtends): Publisher {
+function socketIODefaultChannels<C extends FeathersComponents>(this: SocketIO<C>, app: App & AppEmit & SocketIOExtends): Publisher {
 
     app.on(`connection`, connection => {
         app.channel(`anonymous`).join(connection)
@@ -88,7 +89,7 @@ function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOEx
 /**
  * SocketIO Provider
  */
-class SocketIO extends RealtimeComponent<SocketIOExtends> {
+class SocketIO<C extends FeathersComponents> extends RealtimeComponent<SocketIOExtends, C> {
 
     protected _onValidateComponents(): void {
         this._assertSingle()
@@ -96,9 +97,10 @@ class SocketIO extends RealtimeComponent<SocketIOExtends> {
     }
 
     constructor(
+        components: C,
         private readonly _channels: ChannelSetup = socketIODefaultChannels
     ) {
-        super()
+        super(components)
     }
 
     protected _onConfig = ((app: App & AppEmit & SocketIOExtends) => {

@@ -1,6 +1,6 @@
 
 import { Server } from "http"
-import { FeathersExtendComponent } from "../component"
+import { FeathersComponents, FeathersExtendComponent } from "../component"
 
 /*** Eslint ***/
 
@@ -23,34 +23,22 @@ interface ProviderExtend {
  */
 abstract class ProviderComponent<
     P extends ProviderExtend,
-    T extends 'realtime' | 'rest',
-> extends FeathersExtendComponent<P> {
-
-    constructor(
-        public type: T
-    ) {
-        super()
-    }
+    C extends FeathersComponents
+> extends FeathersExtendComponent<P, C> {
 
 }
 
 abstract class RestComponent<
     P extends ProviderExtend,
-> extends ProviderComponent<P, 'rest'> {
-
-    constructor() {
-        super(`rest`)
-    }
-
+    C extends FeathersComponents
+> extends ProviderComponent<P, C> {
+ 
 }
 
 abstract class RealtimeComponent<
     P extends ProviderExtend,
-> extends ProviderComponent<P, 'realtime'> {
-
-    constructor() {
-        super(`realtime`)
-    }
+    C extends FeathersComponents
+> extends ProviderComponent<P, C> {
 
 }
 

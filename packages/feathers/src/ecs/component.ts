@@ -16,10 +16,10 @@ import {
 
 /*** Requirements ***/
 
-type FeathersComponentConstructor<C extends FeathersComponent = FeathersComponent, A extends boolean = false> = 
+export type FeathersComponentConstructor<C extends FeathersComponent = FeathersComponent, A extends boolean = false> = 
     A extends true 
-        ? abstract new (...args: any[]) => C 
-        : new (...args: any[]) => C
+        ? abstract new (arg: any) => C 
+        : new (arg: any) => C
 
 /*** Components ***/
 
@@ -28,27 +28,24 @@ type FeathersComponents = readonly FeathersComponent[]
 /**
  * Component that makes mutations to the app
  */
-abstract class FeathersComponent extends Component<FeathersBuildContext> {
+abstract class FeathersComponent<C extends FeathersComponents = any> extends Component<FeathersBuildContext> {
 
+    constructor(
+        private readonly _components: C
+    ) {
+        super()
+        this._onValidateComponents()
+    }
     // Components Api
 
-    private _components!: FeathersComponents
-    get components(): FeathersComponents {
-        if (!this._components)
-            throw new Error(`Components can only be accessed after being added to a builder.`)
-
+    get components(): C {
         return this._components
     }
 
-    setComponents(components: FeathersComponents): void {
-        this._components = components
-        this._onValidateComponents()
-    }
+    getComponent = <Cx extends C[number], A extends boolean>(type: FeathersComponentConstructor<Cx, A>): Cx | null => 
+        (this._components.find(c => c instanceof type) ?? null) as Cx | null
 
-    getComponent = <C extends FeathersComponent, A extends boolean>(type: FeathersComponentConstructor<C, A>): C | null => 
-        (this._components.find(c => c instanceof type) ?? null) as C | null
-
-    hasComponent = <C extends FeathersComponent, A extends boolean>(...types: FeathersComponentConstructor<C, A>[]): boolean => 
+    hasComponent = <Cx extends C[number], A extends boolean>(...types: FeathersComponentConstructor<Cx, A>[]): boolean => 
         types.some(this.getComponent)
 
     // Build Api
@@ -110,7 +107,7 @@ abstract class FeathersComponent extends Component<FeathersBuildContext> {
 /**
  * Base class for components that construct feathers applications
  */
-abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect> extends FeathersComponent {
+abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect, C extends FeathersComponents = any> extends FeathersComponent<C> {
 
     /**
      * A feathers build component can run lifecycle nmethods, but
@@ -142,7 +139,8 @@ abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect> exten
 
 abstract class FeathersExtendComponent<
     E extends Exclude<BuildEffect['extends'], undefined>,
-> extends FeathersBuildComponent<{ extends: E }> {
+    C extends FeathersComponents,
+> extends FeathersBuildComponent<{ extends: E }, C> {
 
     protected abstract _createBuildExtends(): E
 
@@ -155,12 +153,13 @@ abstract class FeathersExtendComponent<
 }
 
 abstract class FeathersConfigComponent<
-    C extends Exclude<BuildEffect['config'], undefined>,
-> extends FeathersBuildComponent<{ config: C }> {
+    S extends Exclude<BuildEffect['config'], undefined>,
+    C extends FeathersComponents,
+> extends FeathersBuildComponent<{ config: S }, C> {
 
-    protected abstract _createBuildConfig(): C
+    protected abstract _createBuildConfig(): S
 
-    protected _createBuildEffect(): { config: C } {
+    protected _createBuildEffect(): { config: S } {
         return {
             config: this._createBuildConfig()
         } 
@@ -170,7 +169,8 @@ abstract class FeathersConfigComponent<
 
 abstract class FeathersServiceComponent<
     S extends Exclude<BuildEffect['services'], undefined>,
-> extends FeathersBuildComponent<{ services: S }> {
+    C extends FeathersComponents,
+> extends FeathersBuildComponent<{ services: S }, C> {
 
     protected abstract _createBuildServices(): S
 

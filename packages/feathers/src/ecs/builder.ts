@@ -4,7 +4,7 @@ import { Empty, StringKeys} from '@benzed/util'
 import { Node } from '@benzed/ecs'
 import is from '@benzed/is'
 
-import { FeathersComponents, FeathersComponent } from './component'
+import { FeathersComponents, FeathersComponent, FeathersComponentConstructor } from './component'
 
 import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
@@ -42,12 +42,18 @@ export type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
 class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
 
     add<Cx extends FeathersComponent>(
-        component: Cx
+        input: FeathersComponentConstructor<Cx> | ((c: C) => Cx)
     ): FeathersBuilder<[...C, Cx]> {
 
-        if (!(component instanceof FeathersComponent))  
-            throw new Error(`FeathersBuilder only works with ${FeathersComponent.name} instances.`)
-        component.setComponents(this.components)
+        let component: Cx 
+        try {
+            component = (input as any)(this.components)
+        } catch {
+            component = new (input as any)(this.components)
+        } finally {}
+
+        if (!(component instanceof FeathersComponent))
+            throw new Error(`Must be an instance of ${FeathersComponent}`)
 
         return new FeathersBuilder([
             ...this.components, 

@@ -38,7 +38,7 @@ class TestSingle extends FeathersComponent {
 it(`creates feathers applications`, () => {
     
     const app = feathers
-        .add(new TestBuild())
+        .add(TestBuild)
         .build()
 
     expectTypeOf<typeof app>().toMatchTypeOf<App>()
@@ -55,37 +55,34 @@ it(`add() must use build components`, () => {
  
     // @ts-expect-error not a feathers component
     expect(() => feathers.add({ compute: through }))
-        .toThrow(`with ${FeathersComponent.name} instances`)
+        .toThrow()
 
 })
 
 it(`add() must respect build component requirements`, () => {
 
-    expect(() => feathers.add(new TestRequire()))
+    expect(() => feathers.add(TestRequire))
         .toThrow(`missing required components: ${TestBuild.name}`)
 
     expect(() => feathers
-        .add(new TestBuild())
-        .add(new TestRequire())).not.toThrow(Error)
+        .add(TestBuild)
+        .add(TestRequire)).not.toThrow(Error)
 
 })
 
 it(`add() must respect single build components`, () => {
 
     expect(() => feathers
-        .add(new TestSingle())
-        .add(new TestSingle())
+        .add(TestSingle)
+        .add(TestSingle)
     ).toThrow(`${TestSingle.name} cannot be used more than once`)
 })
 
 it(`required components are provided when added`, () => {
 
-    const require = new TestRequire()
-    const build = new TestBuild()
+    const f1 = feathers
+        .add(TestBuild)
+        .add(TestRequire)
 
-    feathers
-        .add(build)
-        .add(require)
-
-    expect(require.components).toEqual([build])
+    expect(f1.components[1].components).toEqual([f1.components[0]])
 })

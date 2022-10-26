@@ -6,6 +6,7 @@ import express, { ExpressOverrides } from '@feathersjs/express'
 import { CreateLifeCycleMethod } from '../types'
 import { RestComponent } from './provider'
 import { Services } from '../../types'
+import { FeathersComponents } from '../component'
 
 /*** Apps ***/
 
@@ -31,7 +32,7 @@ interface ExpressExtends extends ExpressOverrides<Services>, ExpressAppExtends {
 
 /*** Main ***/
 
-class Express extends RestComponent<ExpressExtends> {
+class Express<C extends FeathersComponents> extends RestComponent<ExpressExtends, C> {
 
     protected _onValidateComponents(): void {
         this._assertSingle()

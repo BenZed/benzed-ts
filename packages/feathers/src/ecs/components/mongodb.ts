@@ -2,7 +2,7 @@ import { milliseconds } from "@benzed/async"
 
 import { Collection, MongoClient } from "mongodb"
 
-import FeathersBuildComponent from "../component"
+import FeathersBuildComponent, { FeathersComponents } from "../component"
 import { LifeCycleMethod, ToBuildEffect } from "../types"
 import ProviderComponent, { ProviderExtend } from "./provider"
 
@@ -34,7 +34,7 @@ type MongoDbComponentBuildEffect = ToBuildEffect<{
 /**
  * Adds logging and start/stop methods for 
  */
-class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
+class MongoDb<C extends FeathersComponents> extends FeathersBuildComponent<MongoDbComponentBuildEffect, C> {
 
     protected _onValidateComponents(): void {
         this._assertRequired(ProviderComponent)
