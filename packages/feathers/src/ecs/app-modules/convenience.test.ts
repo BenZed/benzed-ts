@@ -1,4 +1,4 @@
-import { feathers } from '../app-builder'
+import { feathers } from '../index'
 
 import { Convenience } from './convenience'
 
@@ -9,7 +9,7 @@ import Koa from './koa'
 
 it(`adds convenience config and methods`, () => {
 
-    const expressApp = feathers
+    const expressApp = feathers.app
         .use(Koa)
         .use(Convenience)
         .build()
@@ -25,7 +25,7 @@ it(`adds convenience config and methods`, () => {
 it(`cant be added twice`, () => {
 
     expect(
-        () => feathers
+        () => feathers.app
             .use(Koa)
             .use(Convenience)
             .use(Convenience)

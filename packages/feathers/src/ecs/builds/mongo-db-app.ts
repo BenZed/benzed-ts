@@ -1,18 +1,22 @@
 import { 
-    feathers, 
     FeathersInput, 
     FeathersOutput, 
 } from '../app-builder'
+
+import {
+    feathers
+} from '../index'
 
 import { 
     Koa, 
     Convenience,
     MongoDb 
-} from '../modules'
+} from '../app-modules'
 
 /*** Builder ***/
 
 const mongoDbBuilder = feathers
+    .app
     .use(Koa)
     .use(MongoDb)
     .use(Convenience)

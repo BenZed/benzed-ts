@@ -1,4 +1,4 @@
-import { feathers } from "../app-builder"
+import { feathers } from '../index'
 
 import { SocketIO } from './socketio'
 import { MongoDb } from './mongo-db'

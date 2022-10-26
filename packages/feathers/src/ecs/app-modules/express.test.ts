@@ -1,4 +1,4 @@
-import { feathers } from "../app-builder"
+import { feathers } from '../index'
 
 import { Express } from './express'
 
@@ -9,7 +9,7 @@ import { Server } from 'http'
 
 it(`wraps app with express methods`, () => {
 
-    const expressApp = feathers
+    const expressApp = feathers.app
         .use(Express)
         .build()
 
@@ -23,7 +23,7 @@ it(`wraps app with express methods`, () => {
 it(`cant be added twice`, () => {
 
     expect(
-        () => feathers
+        () => feathers.app
             .use(Express)
             .use(Express)
     ).toThrow(`cannot be used more than once`)

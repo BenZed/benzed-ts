@@ -1,4 +1,4 @@
-import { feathers } from './app-builder'
+import { feathers } from './index'
 
 import { through } from '@benzed/util'
 
@@ -39,16 +39,16 @@ class TestSingle extends FeathersModule {
 
 it(`creates feathers applications`, () => {
     
-    const app = feathers
+    const testApp = feathers.app
         .use(TestBuild)
         .build()
 
-    expectTypeOf<typeof app>().toMatchTypeOf<App>()
+    expectTypeOf<typeof testApp>().toMatchTypeOf<App>()
 })
 
 it(`throws if no components have been added`, () => {
 
-    expect(() => feathers.build())
+    expect(() => feathers.app.build())
         .toThrow(`Node must be created with at least one component`)
 
 })
@@ -56,17 +56,17 @@ it(`throws if no components have been added`, () => {
 it(`use() must use build components`, () => {
  
     // @ts-expect-error not a feathers component
-    expect(() => feathers.use({ compute: through }))
+    expect(() => feathers.app.use({ compute: through }))
         .toThrow()
 
 })
 
 it(`use() must respect build component requirements`, () => {
 
-    expect(() => feathers.use(TestRequire))
+    expect(() => feathers.app.use(TestRequire))
         .toThrow(`missing required components: ${TestBuild.name}`)
 
-    expect(() => feathers
+    expect(() => feathers.app
         .use(TestBuild)
         .use(TestRequire)).not.toThrow(Error)
 
@@ -74,7 +74,7 @@ it(`use() must respect build component requirements`, () => {
 
 it(`use() must respect single build components`, () => {
 
-    expect(() => feathers
+    expect(() => feathers.app
         .use(TestSingle)
         .use(TestSingle)
     ).toThrow(`${TestSingle.name} cannot be used more than once`)
@@ -82,7 +82,7 @@ it(`use() must respect single build components`, () => {
 
 it(`required components are provided when added`, () => {
 
-    const f1 = feathers
+    const f1 = feathers.app
         .use(TestBuild)
         .use(TestRequire)
 

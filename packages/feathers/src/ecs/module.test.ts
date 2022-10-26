@@ -1,13 +1,27 @@
 import { $ } from '@benzed/schema'
 import { Empty } from '@benzed/util'
 
-import { feathers } from "./app-builder"
+import { feathers } from "./index"
 
-import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App } from '../types'
+import { 
+    ServicesOf, 
+    Config, 
+    ConfigOf, 
+    Extends, 
+    ExtendsOf, 
+    Services, 
+    App 
+} from '../types'
+
 import { ToBuildEffect } from './types'
 
+import {
+    FeathersBuildModule,
+    FeathersModule, 
+    FeathersModules 
+} from './module'
+
 import { expectTypeOf } from 'expect-type'
-import FeathersBuildModule, { FeathersModule, FeathersModules } from './module'
 
 /*** Types ***/
 
@@ -72,7 +86,7 @@ class Extender<E extends ExtenderExtends> extends FeathersBuildModule<{ extends:
 
 it(`makes typesafe changes to the output application config via build effects`, () => {
 
-    const app = feathers
+    const app = feathers.app
         .use(c => new Configurer(c, { foo: $.string }))
         .use(c => new Configurer(c, { bar: $.number }))
         .build({ foo: `bar`, bar: 0 })
@@ -84,7 +98,7 @@ it(`makes typesafe changes to the output application config via build effects`, 
 
 it(`makes typesafe changes to the output application services via build effects`, () => {
 
-    const app = feathers.use(c => new Servicer(c, {
+    const app = feathers.app.use(c => new Servicer(c, {
         todos: () => ({ 
             get() {
                 return Promise.resolve({ complete: true }) 
@@ -106,7 +120,7 @@ it(`makes typesafe changes to the output application services via build effects`
 
 it(`makes typesafe changes to application extensions`, () => {
 
-    const app = feathers
+    const app = feathers.app
         .use(c => new Configurer(c, { logs: $.number }))
         .use(c => new Servicer(c, {
             todos: () => ({ 
@@ -146,7 +160,7 @@ it(`lifecycle onConfigure method is called`, () => {
         }
     }
 
-    const app = feathers.use(Easy).build()
+    const app = feathers.app.use(Easy).build()
 
     expectTypeOf<typeof app>().toMatchTypeOf<App<Empty,Empty>>()
 

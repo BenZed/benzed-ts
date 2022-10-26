@@ -1,4 +1,5 @@
-import { feathers } from "../app-builder"
+import { feathers } from '../index'
+
 import Koa from './koa'
 import { MongoDb, MongoDbConfig } from './mongo-db'
 
@@ -8,7 +9,7 @@ import { expectTypeOf } from 'expect-type'
 
 it(`adds convenience config and methods`, () => {
 
-    const expressApp = feathers
+    const expressApp = feathers.app
         .use(Koa)
         .use(MongoDb)
         .build()
@@ -22,7 +23,7 @@ it(`adds convenience config and methods`, () => {
 it(`cant be added twice`, () => {
 
     expect(
-        () => feathers
+        () => feathers.app
             .use(Koa)
             .use(MongoDb)
             .use(MongoDb)

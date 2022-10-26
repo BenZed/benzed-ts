@@ -142,9 +142,3 @@ class FeathersAppBuilder<M extends FeathersModules> extends FeathersBuilder<M> {
 }
 
 /*** Exports ***/
-
-export {
-    FeathersAppBuilder,
-    FeathersInput,
-    FeathersOutput
-}
