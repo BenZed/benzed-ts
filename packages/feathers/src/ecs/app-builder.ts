@@ -1,8 +1,6 @@
 import { feathers as _feathers } from '@feathersjs/feathers'
 
 import { Empty, StringKeys} from '@benzed/util'
-import { Node } from '@benzed/ecs'
-import is from '@benzed/is'
 
 import { FeathersModules, FeathersModule, FeathersModuleConstructor } from './module'
 
@@ -10,6 +8,7 @@ import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
 
 import { getDefaultConfiguration } from '../util'
+import FeathersBuilder from './builder'
 
 /*** Eslint ***/
 
@@ -50,82 +49,58 @@ type FeathersModuleInitMethod<C extends FeathersModules, Cx extends FeathersModu
 /**
  * ECS Node for creating feathers applications
  */
-class FeathersAppBuilder<C extends FeathersModules> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
+class FeathersAppBuilder<M extends FeathersModules> extends FeathersBuilder<M> {
 
     static create(): FeathersAppBuilder<[]> {
         return new FeathersAppBuilder([])
     }
 
     private constructor(
-        modules: C
+        modules: M
     ) {
         super(modules)
     }
 
-    use<Cx extends FeathersModule>(
-        constructorOrInitMethod: FeathersModuleConstructor<Cx> | FeathersModuleInitMethod<C, Cx>
-    ): FeathersAppBuilder<[...C, Cx]> {
-
-        let modules: Cx 
-        try {
-            modules = (constructorOrInitMethod as FeathersModuleInitMethod<C, Cx>)(this.components)
-        } catch {
-            modules = new (constructorOrInitMethod as FeathersModuleConstructor<Cx>)(this.components)
-        }
-
-        if (!(modules instanceof FeathersModule))
-            throw new Error(`Must be an instance of ${FeathersModule}`)
+    override use<Cx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Cx> | FeathersModuleInitMethod<M, Cx>
+    ): FeathersAppBuilder<[...M, Cx]> {
 
         return new FeathersAppBuilder([
             ...this.components, 
-            modules
+            this._initializeModule(constructorOrInitMethod)
         ])
     }
 
-    compute(config: FeathersBuilderInput<C>): FeathersBuilderOutput<C> {
+    build(config: FeathersBuilderInput<M> = getDefaultConfiguration()): FeathersBuilderOutput<M> {
 
         this._assertAtLeastOneComponent()
 
-        const ctx = this._computeBuildContext()
-        
-        const app = this._createApplication(config, ctx)
-
-        this._registerServices(app, ctx.services)
-        this._applyExtensions(app, ctx.extends)
-
-        return app as FeathersBuilderOutput<C>
-    }
-
-    build(config: FeathersBuilderInput<C> = getDefaultConfiguration()): FeathersBuilderOutput<C> {
-        return this.compute(config)
-    }
-
-    // Helper 
-
-    private _computeBuildContext(): FeathersBuildContext {
-    
-        let ctx: FeathersBuildContext = {
+        const ctx = this.compute({
             config: {},
             extends: {},
             services: {},
 
             onCreate: [],
             onConfig: []
-        }
+        })
+        
+        const app = this._createApplication(config, ctx)
 
-        for (const component of this.components) 
-            ctx = component.compute(ctx)
+        this._registerServices(app, ctx.services)
+        this._applyExtensions(app, ctx.extends)
 
-        return ctx
+        return app as FeathersBuilderOutput<M>
     }
 
-    private _createApplication(config: FeathersBuilderInput<C>, ctx: FeathersBuildContext): App {
+    // Helper 
+
+    private _createApplication(config: FeathersBuilderInput<M>, ctx: FeathersBuildContext): App {
 
         const app = this._runLifeCycleMethod(_feathers() as any, ctx.onCreate)
 
         for (const [ key, { validate } ] of Object.entries(ctx.config)) {
 
-            const property = key as StringKeys<FeathersBuilderInput<C>>
+            const property = key as StringKeys<FeathersBuilderInput<M>>
 
             const value = config[property]
 
@@ -149,16 +124,8 @@ class FeathersAppBuilder<C extends FeathersModules> extends Node<FeathersBuilder
         }
     }
 
-    private _applyExtensions(app: App, eCtx: FeathersBuildContext['extends']): void {
-
-        for (const [ key, extension ] of Object.entries(eCtx)) {
-            const property = key as keyof App
-
-            app[property] = is.function(extension) 
-                ? extension.bind(app)
-                : extension
-        }
-
+    private _applyExtensions(app: App, extend: FeathersBuildContext['extends']): void {
+        Object.assign(app, extend)
     }
 
     private _runLifeCycleMethod(app: App, methods: readonly LifeCycleMethod[]): App {

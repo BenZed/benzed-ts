@@ -23,15 +23,7 @@ abstract class FeathersBuilder<M extends FeathersModules> extends FeathersModule
 
     abstract use<Mx extends FeathersModule>(
         constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx>
-    ): FeathersBuilder<[...M, Mx]> 
-    
-    // {
-
-    //     return new FeathersBuilder([
-    //         ...this.components, 
-    //         this._initializeModule(constructorOrInitMethod)
-    //     ])
-    // }
+    ): unknown
 
     protected _initializeModule<Mx extends FeathersModule>(
         constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx>
@@ -61,27 +53,6 @@ abstract class FeathersBuilder<M extends FeathersModules> extends FeathersModule
     }
 
     abstract build(input: unknown): unknown
-
-    // build(config: FeathersBuilderInput<M> = getDefaultConfiguration()): FeathersBuilderOutput<M> {
-
-    //     this._assertAtLeastOneComponent()
-
-    //     const ctx = this.compute({
-    //         config: {},
-    //         extends: {},
-    //         services: {},
-
-    //         onCreate: [],
-    //         onConfig: []
-    //     })
-        
-    //     const app = this._createApplication(config, ctx)
-
-    //     this._registerServices(app, ctx.services)
-    //     this._applyExtensions(app, ctx.extends)
-
-    //     return app as FeathersBuilderOutput<M>
-    // }
 
 }
 

@@ -10,8 +10,6 @@ import { App, Extends, Service, ServiceInterface } from '../types'
     @typescript-eslint/no-explicit-any
 */
 
-/*** App ***/
-
 /*** Build Effect ***/
 
 export interface BuildEffect<A extends App = App> {
