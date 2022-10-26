@@ -55,7 +55,7 @@ type MongoDbBuildEffect = ToBuildEffect<{
  */
 class MongoDb extends FeathersBuildModule<MongoDbBuildEffect> {
 
-    protected _onValidateComponents(): void {
+    protected override _validateComponents(): void {
         this._assertRequired(ProviderComponent)
         this._assertSingle()
     }   

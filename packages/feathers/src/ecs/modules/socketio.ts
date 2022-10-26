@@ -75,7 +75,7 @@ interface SocketIOExtends {
  */
 class SocketIO extends RealtimeComponent<SocketIOExtends> {
 
-    protected _onValidateComponents(): void {
+    protected override _validateComponents(): void {
         this._assertSingle()
         this._assertConflicting(RealtimeComponent)
     }

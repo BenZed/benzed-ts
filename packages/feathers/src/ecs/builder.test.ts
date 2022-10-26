@@ -21,14 +21,14 @@ class TestBuild extends FeathersModule {
 
 class TestRequire extends FeathersModule {
 
-    protected _onValidateComponents(): void {
+    protected override _validateComponents(): void {
         this._assertRequired(TestBuild)
     }
 }
 
 class TestSingle extends FeathersModule {
 
-    protected _onValidateComponents(): void {
+    protected override _validateComponents(): void {
         this._assertSingle()
     }
 }

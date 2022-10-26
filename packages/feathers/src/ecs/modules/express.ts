@@ -33,7 +33,7 @@ interface ExpressExtends extends ExpressOverrides<Services>, ExpressAppExtends {
 
 class Express extends RestComponent<ExpressExtends> {
 
-    protected _onValidateComponents(): void {
+    protected override _validateComponents(): void {
         this._assertSingle()
         this._assertConflicting(RestComponent)
 

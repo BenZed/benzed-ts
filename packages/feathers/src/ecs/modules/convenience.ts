@@ -40,7 +40,7 @@ type ConvenienceBuildEffect = ToBuildEffect<{
  */
 class Convenience extends FeathersBuildModule<ConvenienceBuildEffect> {
 
-    protected _onValidateComponents(): void {
+    protected override _validateComponents(): void {
         this._assertSingle()
         this._assertRequired(ProviderComponent)
     }

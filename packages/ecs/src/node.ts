@@ -49,6 +49,7 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
         readonly components: C
     ) {
         super() 
+        this._validateComponents()
     }
 
     has<Ix extends number>(index: Ix): Ix extends IndexesOf<C> ? true : false 
@@ -87,6 +88,11 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
     get last(): Last<C> {
         return this.components.at(-1) as Last<C>
     }
+
+    /**
+     * No validation by default, extend this method
+     */
+    protected _validateComponents(): void { /**/ }
 
     protected _assertAtLeastOneComponent(): void {
         if (this.components.length === 0)

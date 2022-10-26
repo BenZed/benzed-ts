@@ -28,13 +28,6 @@ type FeathersModules = readonly FeathersModule[]
  */
 abstract class FeathersModule<C extends FeathersModules = FeathersModules> extends Node<FeathersBuildContext, FeathersBuildContext, C> {
 
-    constructor(
-        components: C
-    ) {
-        super(components)
-        this._onValidateComponents()
-    }
-
     // Build Api
 
     /**
@@ -68,10 +61,6 @@ abstract class FeathersModule<C extends FeathersModules = FeathersModules> exten
 
         return ctx
     }
-
-    // Validation API 
-
-    protected _onValidateComponents(): void { /**/ }
 
 }
 
