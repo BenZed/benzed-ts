@@ -68,7 +68,7 @@ function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOEx
         app.channel(`anonymous`).join(connection)
     })
 
-    const hasAuth = this.has(Auth as any)
+    const hasAuth = this.hasComponent(Auth as any)
     if (hasAuth) {
         app.on(`login`, (_auth, { connection }) => {
 
@@ -89,6 +89,11 @@ function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOEx
  * SocketIO Provider
  */
 class SocketIO extends RealtimeComponent<SocketIOExtends> {
+
+    protected _onValidateComponents(): void {
+        this._assertSingle()
+        this._assertConflicting(RealtimeComponent)
+    }
 
     constructor(
         private readonly _channels: ChannelSetup = socketIODefaultChannels

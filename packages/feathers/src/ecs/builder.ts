@@ -4,7 +4,7 @@ import { Empty, StringKeys} from '@benzed/util'
 import { Node } from '@benzed/ecs'
 import is from '@benzed/is'
 
-import { FeathersComponents, FeathersComponentRequirements, FeathersComponent } from './component'
+import { FeathersComponents, FeathersComponent } from './component'
 
 import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
@@ -34,34 +34,6 @@ export type FeathersBuilderInput<C extends FeathersComponents> = BuiltConfig<C>
 
 export type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
 
-type ComponentsContain<A extends FeathersComponents, B extends FeathersComponents> =
-    B extends [infer Bx, ...infer Bxr]
-        ? Bx extends A[number]
-            ? true
-            : Bxr extends FeathersComponents 
-                ? ComponentsContain<A, Bxr> 
-                : false 
-        : false
-
-type CheckSingle<
-    /**/ C extends FeathersComponents, 
-    /**/ Cx extends FeathersComponent, 
-    /**/ S extends boolean
-> = S extends true 
-    ? ComponentsContain<C, [Cx]> extends true 
-        ? never
-        : Cx
-    : Cx 
-
-type AddFeathersComponent<C extends FeathersComponents, Cx extends FeathersComponent<any>> = 
-    Cx['requirements'] extends FeathersComponentRequirements<infer R, infer S> 
-        ? R extends []
-            ? CheckSingle<C, Cx, S>
-            : ComponentsContain<C, R> extends true 
-                ? CheckSingle<C, Cx, S> 
-                : never
-        : Cx
-
 /*** Builder ***/
 
 /**
@@ -69,11 +41,13 @@ type AddFeathersComponent<C extends FeathersComponents, Cx extends FeathersCompo
  */
 class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
 
-    add<Cx extends FeathersComponent<any>>(
-        component: AddFeathersComponent<C,Cx>
-    ): FeathersBuilder<[...C, AddFeathersComponent<C,Cx>]> {
+    add<Cx extends FeathersComponent>(
+        component: Cx
+    ): FeathersBuilder<[...C, Cx]> {
 
-        this._checkComponentRequirments(component)
+        if (!(component instanceof FeathersComponent))  
+            throw new Error(`FeathersBuilder only works with ${FeathersComponent.name} instances.`)
+        component.setComponents(this.components)
 
         return new FeathersBuilder([
             ...this.components, 
@@ -169,35 +143,6 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         }
 
         return app
-    }
-
-    private _checkComponentRequirments<Cx extends FeathersComponent<any>>(
-        component: Cx
-    ): void {
-
-        const { requirements } = component
-        if (!requirements)
-            return 
-
-        // Check required components
-        const missing = [...requirements.types]
-            .filter(type => !this.has(type))
-            .map(t => t.name)
-        if (missing.length > 0) {
-            throw new Error(
-                `Requires component: ${missing}`
-            )
-        }
-
-        // Check single component
-        if (requirements.single && this.components.some(c => c instanceof component.constructor)) {
-            throw new Error(
-                `Component ${component.constructor.name} can only be added once`
-            )
-        }
-
-        component.components = this.components
-        component.requirements.components = requirements.types.map(component.get)
     }
 
 }

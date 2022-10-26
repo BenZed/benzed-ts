@@ -1,5 +1,4 @@
 import { Component } from '@benzed/ecs'
-import { Feathers } from '@feathersjs/feathers/lib'
 
 import { 
     BuildEffect,
@@ -17,60 +16,42 @@ import {
 
 /*** Requirements ***/
 
-type FeathersComponentConstructor<C extends FeathersComponent = FeathersComponent> = 
-    (new (...args: any[]) => C ) | 
-    (abstract new (...args: any[]) => C)
-
-type RequiredComponentTypes<C extends FeathersComponents> = C extends [] 
-    ? readonly never []
-    : {
-        [K in keyof C]: FeathersComponentConstructor<C[K]>
-    }
-
-/**
- * Requirements build component need to adhere to before being 
- * added onto a stack
- */
-class FeathersComponentRequirements<C extends FeathersComponents = FeathersComponents, S extends boolean = false> {
-
-    readonly types: RequiredComponentTypes<C>
-    
-    components!: C
-
-    constructor(
-        readonly single: S = false as S,
-        ...types: RequiredComponentTypes<C>
-    ) {
-        this.types = types
-    }
-}
+type FeathersComponentConstructor<C extends FeathersComponent = FeathersComponent, A extends boolean = false> = 
+    A extends true 
+        ? abstract new (...args: any[]) => C 
+        : new (...args: any[]) => C
 
 /*** Components ***/
 
-type FeathersComponents = readonly FeathersComponent<any>[]
+type FeathersComponents = readonly FeathersComponent[]
 
 /**
  * Component that makes mutations to the app
  */
-abstract class FeathersComponent<R extends FeathersComponentRequirements<any,any> | undefined = undefined >
-    extends Component<FeathersBuildContext> {
+abstract class FeathersComponent extends Component<FeathersBuildContext> {
 
-    static requirements<C extends FeathersComponents, S extends boolean>(
-        single: S,
-        ...types: RequiredComponentTypes<C>
-    ): FeathersComponentRequirements<C,S> {
-        return new FeathersComponentRequirements(single, ...types) as any
+    // Components Api
+
+    private _components!: FeathersComponents
+    get components(): FeathersComponents {
+        if (!this._components)
+            throw new Error(`Components can only be accessed after being added to a builder.`)
+
+        return this._components
     }
 
-    abstract readonly requirements: R
+    setComponents(components: FeathersComponents): void {
+        this._components = components
+        this._onValidateComponents()
+    }
 
-    components!: FeathersComponents
+    getComponent = <C extends FeathersComponent, A extends boolean>(type: FeathersComponentConstructor<C, A>): C | null => 
+        (this._components.find(c => c instanceof type) ?? null) as C | null
 
-    get = <C extends FeathersComponent>(type: FeathersComponentConstructor<C>): C | null => 
-        (this.components.find(c => c instanceof type) ?? null) as C | null
+    hasComponent = <C extends FeathersComponent, A extends boolean>(...types: FeathersComponentConstructor<C, A>[]): boolean => 
+        types.some(this.getComponent)
 
-    has = <C extends FeathersComponent>(...types: FeathersComponentConstructor<C>[]): boolean => 
-        types.some(this.get)
+    // Build Api
 
     /**
      * Called when the app is created. 
@@ -103,15 +84,33 @@ abstract class FeathersComponent<R extends FeathersComponentRequirements<any,any
 
         return ctx
     }
+
+    // Validation API 
+
+    protected _onValidateComponents(): void { /**/ }
+
+    protected _assertConflicting<A extends boolean>(...types: FeathersComponentConstructor<any,A>[]): void {
+        const found = types.filter(t => this.hasComponent(t))
+        if (found.length > 0)
+            throw new Error(`${this.constructor.name} cannot be used with conflicting components: ${found.map(m => m.name)}`)
+    }
+
+    protected _assertRequired<A extends boolean>(...types: FeathersComponentConstructor<any,A>[]): void {
+        const missing = types.filter(t => !this.hasComponent(t))
+        if (missing.length > 0)
+            throw new Error(`${this.constructor.name} missing required components: ${missing.map(m => m.name)}`)
+    }
+
+    protected _assertSingle(): void {
+        if (this.hasComponent(this.constructor as any))
+            throw new Error(`${this.constructor.name} cannot be used more than once.`)
+    }
 }
 
 /**
  * Base class for components that construct feathers applications
  */
-abstract class FeathersBuildComponent<
-    B extends BuildEffect = BuildEffect,
-    R extends FeathersComponentRequirements<any,any> | undefined = undefined
-> extends FeathersComponent<R> {
+abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect> extends FeathersComponent {
 
     /**
      * A feathers build component can run lifecycle nmethods, but
@@ -143,8 +142,7 @@ abstract class FeathersBuildComponent<
 
 abstract class FeathersExtendComponent<
     E extends Exclude<BuildEffect['extends'], undefined>,
-    R extends FeathersComponentRequirements<any,any> | undefined = undefined
-> extends FeathersBuildComponent<{ extends: E }, R> {
+> extends FeathersBuildComponent<{ extends: E }> {
 
     protected abstract _createBuildExtends(): E
 
@@ -158,8 +156,7 @@ abstract class FeathersExtendComponent<
 
 abstract class FeathersConfigComponent<
     C extends Exclude<BuildEffect['config'], undefined>,
-    R extends FeathersComponentRequirements<any,any> | undefined = undefined
-> extends FeathersBuildComponent<{ config: C }, R> {
+> extends FeathersBuildComponent<{ config: C }> {
 
     protected abstract _createBuildConfig(): C
 
@@ -173,8 +170,7 @@ abstract class FeathersConfigComponent<
 
 abstract class FeathersServiceComponent<
     S extends Exclude<BuildEffect['services'], undefined>,
-    R extends FeathersComponentRequirements<any,any> | undefined = undefined
-> extends FeathersBuildComponent<{ services: S }, R> {
+> extends FeathersBuildComponent<{ services: S }> {
 
     protected abstract _createBuildServices(): S
 
@@ -193,8 +189,6 @@ export default FeathersBuildComponent
 export {
     FeathersComponent,
     FeathersComponents,
-
-    FeathersComponentRequirements,
 
     FeathersBuildComponent,
 

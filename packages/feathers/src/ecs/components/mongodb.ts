@@ -29,17 +29,17 @@ type MongoDbComponentBuildEffect = ToBuildEffect<{
     config: MongoDbComponentConfig
 }>
 
-const mongoDbRequirements = FeathersBuildComponent.requirements(true)
-type MongoDbRequirements = typeof mongoDbRequirements
-
 /*** Main ***/
 
 /**
  * Adds logging and start/stop methods for 
  */
-class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect, MongoDbRequirements> {
+class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
 
-    requirements = mongoDbRequirements
+    protected _onValidateComponents(): void {
+        this._assertRequired(ProviderComponent)
+        this._assertSingle()
+    }   
 
     protected _onConfig: LifeCycleMethod = (app) => {
 
@@ -79,14 +79,8 @@ class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect, MongoD
         }
 
     }
-    
-    protected _createBuildEffect(): MongoDbComponentBuildEffect {
 
-        if (!this.has(ProviderComponent)) {
-            throw new Error(
-                `${this.constructor.name} requires a ${ProviderComponent.name}`
-            )
-        }
+    protected _createBuildEffect(): MongoDbComponentBuildEffect {
 
         const db = async function db(
             this: App & MongoDbComponentExtends, 

@@ -30,8 +30,7 @@ it(`cant be added twice`, () => {
     expect(
         () => feathers
             .add(new Koa())
-            // @ts-expect-error Can't be added twice
             .add(new Koa())
-    ).toThrow(Error)
+    ).toThrow(`cannot be used more than once`)
 
 })

@@ -45,6 +45,11 @@ interface KoaExtends extends Omit<KoaAppAddons, 'server'> , KoaAppExtends {
 
 class Koa extends RestComponent<KoaExtends> {
 
+    protected _onValidateComponents(): void {
+        this._assertSingle()
+        this._assertConflicting(RestComponent)
+    }
+
     /*** Lifecycle Methods ***/
 
     protected _onCreate: CreateLifeCycleMethod = (app: any) => 

@@ -33,6 +33,11 @@ interface ExpressExtends extends ExpressOverrides<Services>, ExpressAppExtends {
 
 class Express extends RestComponent<ExpressExtends> {
 
+    protected _onValidateComponents(): void {
+        this._assertSingle()
+        this._assertConflicting(RestComponent)
+    }
+
     /*** Lifecycle Methods ***/
 
     protected _onCreate: CreateLifeCycleMethod<any> = (app: any) => express(app) as any

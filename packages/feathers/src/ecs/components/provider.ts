@@ -1,9 +1,6 @@
 
 import { Server } from "http"
-import { 
-    FeathersComponentRequirements, 
-    FeathersExtendComponent
-} from "../component"
+import { FeathersExtendComponent } from "../component"
 
 /*** Eslint ***/
 
@@ -27,8 +24,7 @@ interface ProviderExtend {
 abstract class ProviderComponent<
     P extends ProviderExtend,
     T extends 'realtime' | 'rest',
-    R extends FeathersComponentRequirements<any,any> | undefined = undefined
-> extends FeathersExtendComponent<P, R> {
+> extends FeathersExtendComponent<P> {
 
     constructor(
         public type: T
@@ -40,10 +36,7 @@ abstract class ProviderComponent<
 
 abstract class RestComponent<
     P extends ProviderExtend,
-    R extends FeathersComponentRequirements<any, true> = FeathersComponentRequirements<[], true>
-> extends ProviderComponent<P, 'rest', R> {
-
-    requirements = FeathersExtendComponent.requirements(true) as R
+> extends ProviderComponent<P, 'rest'> {
 
     constructor() {
         super(`rest`)
@@ -53,10 +46,7 @@ abstract class RestComponent<
 
 abstract class RealtimeComponent<
     P extends ProviderExtend,
-    R extends FeathersComponentRequirements<any, true> = FeathersComponentRequirements<[], true>
-> extends ProviderComponent<P, 'realtime', R> {
-
-    requirements = FeathersExtendComponent.requirements(true) as R
+> extends ProviderComponent<P, 'realtime'> {
 
     constructor() {
         super(`realtime`)
@@ -67,6 +57,7 @@ abstract class RealtimeComponent<
 /*** Exports ***/
 
 export default ProviderComponent
+
 export {
     ProviderComponent,
     RestComponent,

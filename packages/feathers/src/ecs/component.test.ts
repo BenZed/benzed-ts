@@ -4,7 +4,7 @@ import { Empty } from '@benzed/util'
 import { FeathersBuildComponent, FeathersComponent } from './component'
 import { feathers } from './builder'
 
-import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App, ToApp } from '../types'
+import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App } from '../types'
 import { ToBuildEffect } from './types'
 
 import { expectTypeOf } from 'expect-type'
@@ -50,14 +50,8 @@ class Servicer<S extends Services = any> extends FeathersBuildComponent<ToBuildE
     }
 }
 
-const extenderReq = FeathersBuildComponent.requirements<[Servicer<any>], false>(false, Servicer)
-
-type ExtenderRequirements = typeof extenderReq
-
-type ExtenderExtends = Extends<ToApp<ExtenderRequirements>>
-class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ extends: E }, ExtenderRequirements> {
-
-    requirements = extenderReq
+type ExtenderExtends = Extends 
+class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ extends: E }> {
 
     extends: E
 

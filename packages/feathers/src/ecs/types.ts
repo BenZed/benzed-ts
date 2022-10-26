@@ -38,7 +38,7 @@ export type ToBuildEffect<E extends { config?: object, services?: object, extend
 }
 
 type _MergeBuildEffects<C extends FeathersComponents> = Merge<{
-    [Ck in keyof C]: C[Ck] extends FeathersBuildComponent<infer B, any>  
+    [Ck in keyof C]: C[Ck] extends FeathersBuildComponent<infer B>  
         ? Required<B>
         : Empty
 }>

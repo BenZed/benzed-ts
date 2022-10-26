@@ -25,8 +25,7 @@ it(`cant be added twice`, () => {
     expect(
         () => feathers
             .add(new Express())
-            // @ts-expect-error Can't be added twice
             .add(new Express())
-    ).toThrow(Error)
+    ).toThrow(`cannot be used more than once`)
 
 })

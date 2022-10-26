@@ -33,25 +33,19 @@ type ConvenienceBuildEffect = ToBuildEffect<{
     config: ConvenienceConfig
 }>
 
-const convenienceRequirements = FeathersBuildComponent.requirements(true)
-type ConvenienceRequirements = typeof convenienceRequirements
-
 /*** Main ***/
 
 /**
  * Adds logging and start/stop methods for 
  */
-class Convenience extends FeathersBuildComponent<ConvenienceBuildEffect, ConvenienceRequirements> {
+class Convenience extends FeathersBuildComponent<ConvenienceBuildEffect> {
 
-    requirements = convenienceRequirements
+    protected _onValidateComponents(): void {
+        this._assertSingle()
+        this._assertRequired(ProviderComponent)
+    }
     
     protected _createBuildEffect(): ConvenienceBuildEffect {
-
-        if (!this.has(ProviderComponent)) {
-            throw new Error(
-                `${this.constructor.name} requires a ${ProviderComponent.name}`
-            )
-        }
 
         // Setup 
 

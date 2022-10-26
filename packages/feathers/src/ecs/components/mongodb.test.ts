@@ -27,7 +27,6 @@ it(`cant be added twice`, () => {
         () => feathers
             .add(new Koa())
             .add(new MongoDb())
-        // @ts-expect-error Can't be added twice
             .add(new MongoDb())
     ).toThrow(Error)
 
