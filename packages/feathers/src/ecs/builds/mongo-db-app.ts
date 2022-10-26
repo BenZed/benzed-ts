@@ -8,7 +8,7 @@ import {
     Koa, 
     Convenience,
     MongoDb 
-} from '../components'
+} from '../modules'
 
 /*** Builder ***/
 
