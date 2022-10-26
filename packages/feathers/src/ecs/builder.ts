@@ -30,9 +30,17 @@ type BuiltApp<C extends FeathersComponents> =
         ? App<BuiltServices<C>, BuiltConfig<C>>
         : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>
 
-export type FeathersBuilderInput<C extends FeathersComponents> = BuiltConfig<C>
+type FeathersBuilderInput<C extends FeathersComponents> = BuiltConfig<C>
 
-export type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
+type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
+
+type FeathersInput<B extends FeathersBuilder<any>> = B extends FeathersBuilder<infer C> 
+    ? FeathersBuilderInput<C> 
+    : unknown
+
+type FeathersOutput<B extends FeathersBuilder<any>> = B extends FeathersBuilder<infer C> 
+    ? FeathersBuilderOutput<C> 
+    : unknown
 
 /*** Builder ***/
 
@@ -40,6 +48,16 @@ export type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
  * ECS Node for creating feathers applications
  */
 class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
+
+    static create(): FeathersBuilder<[]> {
+        return new FeathersBuilder([])
+    }
+
+    private constructor(
+        components: C
+    ) {
+        super(components)
+    }
 
     add<Cx extends FeathersComponent>(
         input: FeathersComponentConstructor<Cx> | ((c: C) => Cx)
@@ -158,6 +176,12 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
 /**
  * An ECS for building feathers applications
  */
-export const feathers = new FeathersBuilder<[]>([])
+export const feathers = FeathersBuilder.create()
 
 export default feathers
+
+export {
+    FeathersBuilder,
+    FeathersInput,
+    FeathersOutput
+}

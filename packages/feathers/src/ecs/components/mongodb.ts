@@ -114,5 +114,6 @@ class MongoDb<C extends FeathersComponents> extends FeathersBuildComponent<Mongo
 export default MongoDb 
 
 export {
-    MongoDb
+    MongoDb,
+    MongoDbComponentExtends
 }
