@@ -1,4 +1,5 @@
 import { Component } from '@benzed/ecs'
+import { BuiltApp } from './builder'
 
 import { 
     BuildEffect,
@@ -42,10 +43,10 @@ abstract class FeathersComponent extends Component<FeathersBuildContext> {
         return this._components
     }
 
-    getComponent = <Cx extends FeathersComponent, A extends boolean>(type: FeathersComponentConstructor<Cx, A>): Cx | null => 
-        (this._components.find(c => c instanceof type) ?? null) as Cx | null
+    getComponent = <C extends FeathersComponent, A extends boolean>(type: FeathersComponentConstructor<C, A>): C | null => 
+        (this._components.find(c => c instanceof type) ?? null) as C | null
 
-    hasComponent = <Cx extends FeathersComponent, A extends boolean>(...types: FeathersComponentConstructor<Cx, A>[]): boolean => 
+    hasComponent = <C extends FeathersComponent, A extends boolean>(...types: FeathersComponentConstructor<C, A>[]): boolean => 
         types.some(this.getComponent)
 
     // Build Api
@@ -177,6 +178,16 @@ abstract class FeathersServiceComponent<
         } 
     }
 
+}
+
+/*** Helper ***/
+
+export function has<C extends FeathersComponent, A extends boolean>(
+    app: unknown, 
+    component: FeathersComponent,
+    types: FeathersComponentConstructor<C, A>[]
+): app is BuiltApp<[C]> {
+    return component.hasComponent(...types)
 }
 
 /*** Exports ***/

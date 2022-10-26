@@ -1,4 +1,5 @@
 import { milliseconds } from "@benzed/async"
+import $, { Infer } from "@benzed/schema"
 
 import { Collection, MongoClient } from "mongodb"
 
@@ -6,27 +7,45 @@ import FeathersBuildComponent from "../component"
 import { LifeCycleMethod, ToBuildEffect } from "../types"
 import ProviderComponent, { ProviderExtend } from "./provider"
 
-import { $mongoDBConfig, MongoDBConfig } from '../../mongo-db-app'
 import { App } from "../../types"
+import { $port } from "../../schemas"
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
 
+/*** Constants ***/
+
+const DEFAULT_MONGODB_PORT = 27017
+
+/*** Schema ***/
+
+interface MongoDbConfig extends Infer<typeof $mongoDbConfig> {}
+const $mongoDbConfig = $.shape({
+
+    uri: $.string,
+    database: $.string,
+
+    port: $port.default(DEFAULT_MONGODB_PORT),
+
+    user: $.string.optional,
+    password: $.string.optional,
+})
+
 /*** Types ***/
 
-interface MongoDbComponentConfig {
-    db: MongoDBConfig
+interface MongoDbEffectConfig {
+    db: MongoDbConfig
 }
 
-interface MongoDbComponentExtends {
+interface MongoDbEffectExtends {
     client: Promise<MongoClient> | MongoClient | null
     db(collection: string): Promise<Collection>
 }
 
-type MongoDbComponentBuildEffect = ToBuildEffect<{
-    extends: MongoDbComponentExtends
-    config: MongoDbComponentConfig
+type MongoDbBuildEffect = ToBuildEffect<{
+    extends: MongoDbEffectExtends
+    config: MongoDbEffectConfig
 }>
 
 /*** Main ***/
@@ -34,7 +53,7 @@ type MongoDbComponentBuildEffect = ToBuildEffect<{
 /**
  * Adds logging and start/stop methods for 
  */
-class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
+class MongoDb extends FeathersBuildComponent<MongoDbBuildEffect> {
 
     protected _onValidateComponents(): void {
         this._assertRequired(ProviderComponent)
@@ -46,7 +65,7 @@ class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
         const { setup, teardown } = app
 
         app.setup = async function mongoDbSetup(
-            this: App & MongoDbComponentExtends & ProviderExtend & MongoDbComponentConfig
+            this: App & MongoDbEffectExtends & ProviderExtend & MongoDbEffectConfig
         ): Promise<App> {
 
             const config = this.get(`db`)
@@ -67,7 +86,7 @@ class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
         }
     
         app.teardown = async function mongoDbTeardown(
-            this: App & MongoDbComponentExtends & ProviderExtend
+            this: App & MongoDbEffectExtends & ProviderExtend
         ): Promise<App> {
     
             if (this.client) {
@@ -80,10 +99,10 @@ class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
 
     }
 
-    protected _createBuildEffect(): MongoDbComponentBuildEffect {
+    protected _createBuildEffect(): MongoDbBuildEffect {
 
         const db = async function db(
-            this: App & MongoDbComponentExtends, 
+            this: App & MongoDbEffectExtends, 
             collection: string
         ): Promise<Collection> {
 
@@ -99,7 +118,7 @@ class MongoDb extends FeathersBuildComponent<MongoDbComponentBuildEffect> {
 
         return {
             config: {
-                db: $mongoDBConfig
+                db: $mongoDbConfig
             },
             extends: {
                 db,
@@ -115,5 +134,7 @@ export default MongoDb
 
 export {
     MongoDb,
-    MongoDbComponentExtends
+
+    MongoDbConfig,
+    $mongoDbConfig
 }

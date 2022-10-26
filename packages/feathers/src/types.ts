@@ -1,6 +1,5 @@
 
 import { EventEmitter, Func } from '@benzed/util'
-import { FeathersComponents, FeathersBuilderOutput, FeathersComponentRequirements } from './ecs'
 
 /*** Exports ***/
 
@@ -10,18 +9,10 @@ export type {
 
 export type {
 
-    MongoDBConfig,
     ObjectId,
     Db,
 
-} from './mongo-db-app/setup-mongo-db'
-
-export type {
-
-    MongoDBApplication,
-    MongoDBApplicationConfig
-
-} from './mongo-db-app/create-mongo-db-application'
+} from 'mongodb'
 
 /**
  * This is all copy/pasted from the @featherjs declarations.
@@ -404,16 +395,6 @@ export type ApplicationHookMap<A extends App> = {
     setup?: AppHookFunction<A>[]
     teardown?: AppHookFunction<A>[]
 }
-
-export type ToApp<T> = T extends App 
-    ? T
-    : T extends FeathersComponents
-        ? FeathersBuilderOutput<T>
-        : T extends FeathersComponentRequirements<infer C, any>
-            ? C extends FeathersComponents
-                ? FeathersBuilderOutput<C>
-                : App 
-            : App 
 
 export type AppHookOptions<A extends App> = HookOptions<A, Service> | ApplicationHookMap<A>
 

@@ -1,15 +1,12 @@
 import { ensureMongoDbInstance } from './scripts/util'
 
-import configuration from '@feathersjs/configuration'
+import { MongoDbAppConfig} from './ecs'
 
-import {
-    MongoDBApplicationConfig,
-    MongoDBConfig
-} from './mongo-db-app'
+import { getDefaultConfiguration } from './util'
 
 /*** Config ***/
 
-const config = (configuration()() as unknown as MongoDBApplicationConfig).db as MongoDBConfig
+const config = getDefaultConfiguration<MongoDbAppConfig>().db
 
 /**
  * Ensure a mongo db instance is running in the test cluster
@@ -20,5 +17,5 @@ export default (): Promise<void> => ensureMongoDbInstance({
     clean: true,
     log: false,
     port: config.port,
-    cluster: 'test'
+    cluster: `test`
 })

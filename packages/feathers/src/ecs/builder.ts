@@ -25,7 +25,7 @@ type BuiltConfig<C extends FeathersComponents> = FromBuildEffect<C>['config']
 
 type BuiltExtensions<C extends FeathersComponents> = FromBuildEffect<C>['extends']
 
-type BuiltApp<C extends FeathersComponents> = 
+export type BuiltApp<C extends FeathersComponents> = 
     BuiltExtensions<C> extends Empty 
         ? App<BuiltServices<C>, BuiltConfig<C>>
         : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>

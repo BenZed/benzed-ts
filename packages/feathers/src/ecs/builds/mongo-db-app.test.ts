@@ -1,41 +1,43 @@
 
 import { Collection } from 'mongodb'
-import { MongoDBApplication, createMongoDBApplication } from './mongo-db-app'
+import { MongoDbApp, createMongoDbApp } from './mongo-db-app'
 
 import { isLogger } from '@benzed/util'
 
-let mongoDBApplication: MongoDBApplication
+import { AppEmit } from '../../types'
+
+let mongoDbApp: MongoDbApp
 beforeAll(() => {
-    mongoDBApplication = createMongoDBApplication()
+    mongoDbApp = createMongoDbApp()
 })
 
 it(`creates a mongo application`, () => {
-    expect(mongoDBApplication).toHaveProperty(`log`)
-    expect(mongoDBApplication).toHaveProperty(`db`)
-    expect(mongoDBApplication).toHaveProperty(`start`)
+    expect(mongoDbApp).toHaveProperty(`log`)
+    expect(mongoDbApp).toHaveProperty(`db`)
+    expect(mongoDbApp).toHaveProperty(`start`)
 })
 
 describe(`db() method`, () => {
     it(`returns a collection instance`, async () => {
-        await mongoDBApplication.start()
+        await mongoDbApp.start()
 
-        expect(await mongoDBApplication.db(`users`))
+        expect(await mongoDbApp.db(`users`))
             .toBeInstanceOf(Collection)
 
-        await mongoDBApplication.teardown()
+        await mongoDbApp.teardown()
     })
 })
 
 describe(`log() method`, () => {
     it(`is an instance of @benzed/util Logger`, () => {
-        expect(isLogger(mongoDBApplication.log))
+        expect(isLogger(mongoDbApp.log))
             .toBe(true)
     })
 })
 
 describe(`mode()`, () => {
     it(`returns the current env`, () => {
-        expect(mongoDBApplication.mode())
+        expect(mongoDbApp.env())
             .toEqual(`test`)
     })
 })
@@ -43,14 +45,14 @@ describe(`mode()`, () => {
 describe(`start()`, () => {
     it(`emits listen method with port and nev`, async () => {
         let listen!: [number, string]
-        mongoDBApplication.on(`listen`, (port,env) => {
+        (mongoDbApp as unknown as AppEmit).on(`listen`, (port,env) => {
             listen = [port,env]
         })
-        await mongoDBApplication.start()
-        await mongoDBApplication.teardown()
+        await mongoDbApp.start()
+        await mongoDbApp.teardown()
 
         expect(listen).toEqual([
-            mongoDBApplication.get(`port`), 
+            mongoDbApp.get(`port`), 
             `test`
         ])
     })

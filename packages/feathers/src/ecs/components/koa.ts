@@ -56,6 +56,7 @@ class Koa extends RestComponent<KoaExtends> {
         koa(app) as any
    
     protected _onConfig: LifeCycleMethod = (app: any) => {
+  
         app.configure(rest())
         app.use(errorHandler())
         app.use(authParser())

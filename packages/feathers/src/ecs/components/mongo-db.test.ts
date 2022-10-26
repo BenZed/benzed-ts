@@ -1,8 +1,7 @@
 import { feathers } from '../builder'
-import { MongoDBConfig } from '../../types'
 
 import Koa from './koa'
-import { MongoDb } from './mongodb'
+import { MongoDb, MongoDbConfig } from './mongo-db'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -15,7 +14,7 @@ it(`adds convenience config and methods`, () => {
         .add(MongoDb)
         .build()
 
-    expectTypeOf(expressApp.get(`db`)).toMatchTypeOf<MongoDBConfig>()
+    expectTypeOf(expressApp.get(`db`)).toMatchTypeOf<MongoDbConfig>()
 
     expect(expressApp.db).toBeInstanceOf(Function)
     expect(expressApp.client).toBe(null)
