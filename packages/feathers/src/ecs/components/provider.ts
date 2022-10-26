@@ -13,7 +13,7 @@ import {
 
 /*** Types ***/
 
-interface FeathersProviderExtend {
+interface ProviderExtend {
     server?: Server
     listen(...args: any[]): Server | Promise<Server>
 }
@@ -24,8 +24,8 @@ interface FeathersProviderExtend {
  * Component that installs REST functionality into a feathers app.
  * Defined here mostly so it can be used as a requirement for other apps
  */
-abstract class FeathersProviderComponent<
-    P extends FeathersProviderExtend,
+abstract class ProviderComponent<
+    P extends ProviderExtend,
     T extends 'realtime' | 'rest',
     R extends FeathersComponentRequirements<any,any> | undefined = undefined
 > extends FeathersExtendComponent<P, R> {
@@ -38,10 +38,10 @@ abstract class FeathersProviderComponent<
 
 }
 
-abstract class FeathersRestComponent<
-    P extends FeathersProviderExtend,
+abstract class RestComponent<
+    P extends ProviderExtend,
     R extends FeathersComponentRequirements<any, true> = FeathersComponentRequirements<[], true>
-> extends FeathersProviderComponent<P, 'rest', R> {
+> extends ProviderComponent<P, 'rest', R> {
 
     requirements = FeathersExtendComponent.requirements(true) as R
 
@@ -51,10 +51,10 @@ abstract class FeathersRestComponent<
 
 }
 
-abstract class FeathersRealtimeComponent<
-    P extends FeathersProviderExtend,
+abstract class RealtimeComponent<
+    P extends ProviderExtend,
     R extends FeathersComponentRequirements<any, true> = FeathersComponentRequirements<[], true>
-> extends FeathersProviderComponent<P, 'realtime', R> {
+> extends ProviderComponent<P, 'realtime', R> {
 
     requirements = FeathersExtendComponent.requirements(true) as R
 
@@ -66,7 +66,11 @@ abstract class FeathersRealtimeComponent<
 
 /*** Exports ***/
 
+export default ProviderComponent
 export {
-    FeathersRestComponent,
-    FeathersRealtimeComponent
+    ProviderComponent,
+    RestComponent,
+    RealtimeComponent,
+
+    ProviderExtend
 }

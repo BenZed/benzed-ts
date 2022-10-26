@@ -3,11 +3,12 @@ import socketio from '@feathersjs/socketio'
 import type { Server as SocketIOServer } from 'socket.io'
 import type { Server as HttpServer } from 'http'
 
-import { FeathersRealtimeComponent } from './provider'
+import { RealtimeComponent } from './provider'
 import { LifeCycleMethod } from '../types'
 import { App, AppEmit, HookContext, Service } from '../../types'
 
 import { EventEmitter } from '@benzed/util'
+import Auth from './auth'
 
 /*** Eslint ***/
 
@@ -67,16 +68,19 @@ function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOEx
         app.channel(`anonymous`).join(connection)
     })
 
-    app.on(`login`, (_auth, { connection }) => {
+    const hasAuth = this.has(Auth as any)
+    if (hasAuth) {
+        app.on(`login`, (_auth, { connection }) => {
 
-        if (!connection)
-            return 
+            if (!connection)
+                return 
 
-        app.channel(`anonymous`).leave(connection)
-        app.channel(`authenticated`).join(connection)
-    })
+            app.channel(`anonymous`).leave(connection)
+            app.channel(`authenticated`).join(connection)
+        })
+    }  
 
-    return () => app.channel(`authenticated`)
+    return () => app.channel(hasAuth ? `authenticated` : `anonymous`)
 }
 
 /*** Main ***/
@@ -84,7 +88,7 @@ function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOEx
 /**
  * SocketIO Provider
  */
-class SocketIO extends FeathersRealtimeComponent<SocketIOExtends> {
+class SocketIO extends RealtimeComponent<SocketIOExtends> {
 
     constructor(
         private readonly _channels: ChannelSetup = socketIODefaultChannels

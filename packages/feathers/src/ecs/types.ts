@@ -4,7 +4,7 @@ import FeathersBuildComponent, { FeathersComponents } from './component'
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
 
-import { App, Config, Extends, Service, ServiceInterface, Services } from '../types'
+import { App, Extends, Service, ServiceInterface } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -24,7 +24,7 @@ export interface BuildEffect<A extends App = App> {
 
 }
 
-export type ToBuildEffect<E extends { config?: Config, services?: Services, extends?: Extends<any> }> = {
+export type ToBuildEffect<E extends { config?: object, services?: object, extends?: object }> = {
 
     [Ek in keyof BuildEffect as Ek extends keyof E ? Ek : never]:
 
@@ -44,6 +44,7 @@ type _MergeBuildEffects<C extends FeathersComponents> = Merge<{
 }>
 
 export type FromBuildEffect<C extends FeathersComponents> = {
+
     [Ck in keyof BuildEffect]-?: Ck extends keyof _MergeBuildEffects<C> 
         
         ? { [Ckx in keyof _MergeBuildEffects<C>[Ck]]: 
@@ -77,8 +78,6 @@ export type LifeCycleMethod<A extends App = App> = (app: A) => void
 export type CreateLifeCycleMethod<A extends App = App> = (app: A) => A | void
 
 export interface FeathersBuildContext extends Required<BuildEffect> {
-    readonly required: FeathersComponents
-
     readonly onCreate: readonly CreateLifeCycleMethod[]
     readonly onConfig: readonly LifeCycleMethod[]
     // readonly onDatabase: readonly AppInitializer[]

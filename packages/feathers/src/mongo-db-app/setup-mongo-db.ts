@@ -45,7 +45,7 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
     app: MongoDBApplication<S, C>
 ): void {
 
-    const config = app.get(`db`)
+    const config = app.get(`db`) as any
 
     const uri = config.uri
         .replaceAll(`<port>`, config.port.toString())

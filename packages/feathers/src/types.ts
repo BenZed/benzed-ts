@@ -117,7 +117,7 @@ export type ServiceGenericParams<S> = S extends ServiceInterface<any, any, infer
     ? P 
     : any
 
-export type AppEmit = EventEmitter<{'connection': any[], 'login': any[] }>
+export type AppEmit = EventEmitter<{'connection': any[], 'login': any[], 'listen': [number, string] }>
 export interface App<S extends Services = any, C extends Config = any> {
 
     /**

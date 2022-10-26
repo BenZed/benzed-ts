@@ -4,7 +4,7 @@ import { Application as FeatherApp } from '@feathersjs/feathers'
 import express, { ExpressOverrides } from '@feathersjs/express'
 
 import { CreateLifeCycleMethod } from '../types'
-import { FeathersRestComponent } from './provider'
+import { RestComponent } from './provider'
 import { Services } from '../../types'
 
 /*** Apps ***/
@@ -31,7 +31,7 @@ interface ExpressExtends extends ExpressOverrides<Services>, ExpressAppExtends {
 
 /*** Main ***/
 
-class Express extends FeathersRestComponent<ExpressExtends> {
+class Express extends RestComponent<ExpressExtends> {
 
     /*** Lifecycle Methods ***/
 

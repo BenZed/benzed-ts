@@ -73,7 +73,7 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         component: AddFeathersComponent<C,Cx>
     ): FeathersBuilder<[...C, AddFeathersComponent<C,Cx>]> {
 
-        this._handleComponentRequirements(component)
+        this._checkComponentRequirments(component)
 
         return new FeathersBuilder([
             ...this.components, 
@@ -109,8 +109,7 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
             services: {},
 
             onCreate: [],
-            onConfig: [],
-            required: []
+            onConfig: []
         }
 
         for (const component of this.components) 
@@ -172,7 +171,7 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
         return app
     }
 
-    private _handleComponentRequirements<Cx extends FeathersComponent<any>>(
+    private _checkComponentRequirments<Cx extends FeathersComponent<any>>(
         component: Cx
     ): void {
 
@@ -197,7 +196,8 @@ class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilder
             )
         }
 
-        requirements.components = requirements.types.map(this.get.bind(this))
+        component.components = this.components
+        component.requirements.components = requirements.types.map(component.get)
     }
 
 }

@@ -12,10 +12,10 @@ import {
 
 import type KoaApp from 'koa'
 
-import { CreateLifeCycleMethod } from '../types'
+import { CreateLifeCycleMethod, LifeCycleMethod } from '../types'
 
 import type { Server } from 'http'
-import { FeathersRestComponent } from './provider'
+import { RestComponent } from './provider'
 
 /*** Apps ***/
 
@@ -43,19 +43,18 @@ interface KoaExtends extends Omit<KoaAppAddons, 'server'> , KoaAppExtends {
 
 /*** Main ***/
 
-class Koa extends FeathersRestComponent<KoaExtends> {
+class Koa extends RestComponent<KoaExtends> {
 
     /*** Lifecycle Methods ***/
 
-    protected _onCreate: CreateLifeCycleMethod = (app: any) => { 
-        app = koa(app)
-
+    protected _onCreate: CreateLifeCycleMethod = (app: any) => 
+        koa(app) as any
+   
+    protected _onConfig: LifeCycleMethod = (app: any) => {
         app.configure(rest())
         app.use(errorHandler())
         app.use(authParser())
         app.use(bodyParser())
-
-        return app
     }
 
     /*** Build Implementation ***/

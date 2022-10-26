@@ -1,4 +1,5 @@
 import { Component } from '@benzed/ecs'
+import { Feathers } from '@feathersjs/feathers/lib'
 
 import { 
     BuildEffect,
@@ -16,10 +17,14 @@ import {
 
 /*** Requirements ***/
 
+type FeathersComponentConstructor<C extends FeathersComponent = FeathersComponent> = 
+    (new (...args: any[]) => C ) | 
+    (abstract new (...args: any[]) => C)
+
 type RequiredComponentTypes<C extends FeathersComponents> = C extends [] 
     ? readonly never []
     : {
-        [K in keyof C]: new (...args: any) => C[K]
+        [K in keyof C]: FeathersComponentConstructor<C[K]>
     }
 
 /**
@@ -58,6 +63,14 @@ abstract class FeathersComponent<R extends FeathersComponentRequirements<any,any
     }
 
     abstract readonly requirements: R
+
+    components!: FeathersComponents
+
+    get = <C extends FeathersComponent>(type: FeathersComponentConstructor<C>): C | null => 
+        (this.components.find(c => c instanceof type) ?? null) as C | null
+
+    has = <C extends FeathersComponent>(...types: FeathersComponentConstructor<C>[]): boolean => 
+        types.some(this.get)
 
     /**
      * Called when the app is created. 
