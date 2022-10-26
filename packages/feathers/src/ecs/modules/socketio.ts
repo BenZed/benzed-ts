@@ -104,7 +104,7 @@ class SocketIO extends RealtimeComponent<SocketIOExtends> {
         return () => app.channel(hasAuth ? `authenticated` : `anonymous`)
     }
 
-    protected _onConfig = ((app: App & AppEmit & SocketIOExtends) => {
+    protected override _onConfig = ((app: App & AppEmit & SocketIOExtends) => {
         app.configure(socketio() as any)
 
         app.publish(

@@ -1,5 +1,5 @@
 import { ExtendsOf } from '../../types'
-import { feathers } from '../builder'
+import { feathers } from "../app-builder"
 
 import { Koa, KoaExtends } from './koa'
 
@@ -11,7 +11,7 @@ import { Server } from 'http'
 it(`wraps app with koa methods`, () => {
 
     const koaApp = feathers
-        .add(Koa)
+        .use(Koa)
         .build()
 
     type BuiltKoaApp = typeof koaApp
@@ -29,8 +29,8 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(Koa)
-            .add(Koa)
+            .use(Koa)
+            .use(Koa)
     ).toThrow(`cannot be used more than once`)
 
 })

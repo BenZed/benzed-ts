@@ -60,7 +60,7 @@ class MongoDb extends FeathersBuildModule<MongoDbBuildEffect> {
         this._assertSingle()
     }   
 
-    protected _onConfig: LifeCycleMethod = (app) => {
+    protected override _onConfig: LifeCycleMethod = (app) => {
 
         const { setup, teardown } = app
 

@@ -75,7 +75,7 @@ abstract class FeathersBuildModule<B extends BuildEffect = BuildEffect> extends 
      */
     protected abstract _createBuildEffect(): B
 
-    compute(ctx: FeathersBuildContext): FeathersBuildContext {
+    override compute(ctx: FeathersBuildContext): FeathersBuildContext {
         
         const effect = this._createBuildEffect()
 

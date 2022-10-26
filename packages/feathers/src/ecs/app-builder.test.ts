@@ -1,4 +1,4 @@
-import { feathers } from './builder'
+import { feathers } from './app-builder'
 
 import { through } from '@benzed/util'
 
@@ -7,7 +7,9 @@ import { FeathersModule } from './module'
 import { expectTypeOf } from 'expect-type'
 import { App } from '../types'
 
-/***  Eslint***/
+/*** TODO: These tests should really be in /ecs ***/
+
+/*** Eslint ***/
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -38,7 +40,7 @@ class TestSingle extends FeathersModule {
 it(`creates feathers applications`, () => {
     
     const app = feathers
-        .add(TestBuild)
+        .use(TestBuild)
         .build()
 
     expectTypeOf<typeof app>().toMatchTypeOf<App>()
@@ -51,38 +53,38 @@ it(`throws if no components have been added`, () => {
 
 })
 
-it(`add() must use build components`, () => {
+it(`use() must use build components`, () => {
  
     // @ts-expect-error not a feathers component
-    expect(() => feathers.add({ compute: through }))
+    expect(() => feathers.use({ compute: through }))
         .toThrow()
 
 })
 
-it(`add() must respect build component requirements`, () => {
+it(`use() must respect build component requirements`, () => {
 
-    expect(() => feathers.add(TestRequire))
+    expect(() => feathers.use(TestRequire))
         .toThrow(`missing required components: ${TestBuild.name}`)
 
     expect(() => feathers
-        .add(TestBuild)
-        .add(TestRequire)).not.toThrow(Error)
+        .use(TestBuild)
+        .use(TestRequire)).not.toThrow(Error)
 
 })
 
-it(`add() must respect single build components`, () => {
+it(`use() must respect single build components`, () => {
 
     expect(() => feathers
-        .add(TestSingle)
-        .add(TestSingle)
+        .use(TestSingle)
+        .use(TestSingle)
     ).toThrow(`${TestSingle.name} cannot be used more than once`)
 })
 
 it(`required components are provided when added`, () => {
 
     const f1 = feathers
-        .add(TestBuild)
-        .add(TestRequire)
+        .use(TestBuild)
+        .use(TestRequire)
 
     expect(f1.components[1].components).toEqual([f1.components[0]])
 })

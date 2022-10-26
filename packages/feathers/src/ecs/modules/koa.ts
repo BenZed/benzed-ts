@@ -52,10 +52,10 @@ class Koa extends RestComponent<KoaExtends> {
 
     /*** Lifecycle Methods ***/
 
-    protected _onCreate: CreateLifeCycleMethod = (app: any) => 
+    protected override _onCreate: CreateLifeCycleMethod = (app: any) => 
         koa(app) as any
    
-    protected _onConfig: LifeCycleMethod = (app: any) => {
+    protected override _onConfig: LifeCycleMethod = (app: any) => {
   
         app.configure(rest())
         app.use(errorHandler())

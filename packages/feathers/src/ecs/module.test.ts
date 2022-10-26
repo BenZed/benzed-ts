@@ -1,7 +1,7 @@
 import { $ } from '@benzed/schema'
 import { Empty } from '@benzed/util'
 
-import { feathers } from './builder'
+import { feathers } from "./app-builder"
 
 import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App } from '../types'
 import { ToBuildEffect } from './types'
@@ -73,8 +73,8 @@ class Extender<E extends ExtenderExtends> extends FeathersBuildModule<{ extends:
 it(`makes typesafe changes to the output application config via build effects`, () => {
 
     const app = feathers
-        .add(c => new Configurer(c, { foo: $.string }))
-        .add(c => new Configurer(c, { bar: $.number }))
+        .use(c => new Configurer(c, { foo: $.string }))
+        .use(c => new Configurer(c, { bar: $.number }))
         .build({ foo: `bar`, bar: 0 })
 
     expectTypeOf<ConfigOf<typeof app>>().toEqualTypeOf<{ foo: string, bar: number }>()
@@ -84,7 +84,7 @@ it(`makes typesafe changes to the output application config via build effects`, 
 
 it(`makes typesafe changes to the output application services via build effects`, () => {
 
-    const app = feathers.add(c => new Servicer(c, {
+    const app = feathers.use(c => new Servicer(c, {
         todos: () => ({ 
             get() {
                 return Promise.resolve({ complete: true }) 
@@ -107,15 +107,15 @@ it(`makes typesafe changes to the output application services via build effects`
 it(`makes typesafe changes to application extensions`, () => {
 
     const app = feathers
-        .add(c => new Configurer(c, { logs: $.number }))
-        .add(c => new Servicer(c, {
+        .use(c => new Configurer(c, { logs: $.number }))
+        .use(c => new Servicer(c, {
             todos: () => ({ 
                 get() {
                     return Promise.resolve({ todo: true })
                 }
             })
         }))
-        .add(c => new Extender(c, {
+        .use(c => new Extender(c, {
             log(...args: unknown[]): void {
                 void args
                 void this
@@ -137,16 +137,16 @@ it(`lifecycle onConfigure method is called`, () => {
         
         readonly requirements = undefined 
 
-        protected _onCreate = (): void => {
+        protected override _onCreate = (): void => {
             createCalled++
         }
 
-        protected _onConfig = (): void => {
+        protected override _onConfig = (): void => {
             configCalled++
         }
     }
 
-    const app = feathers.add(Easy).build()
+    const app = feathers.use(Easy).build()
 
     expectTypeOf<typeof app>().toMatchTypeOf<App<Empty,Empty>>()
 

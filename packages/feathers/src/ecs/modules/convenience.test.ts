@@ -1,4 +1,4 @@
-import { feathers } from '../builder'
+import { feathers } from '../app-builder'
 
 import { Convenience } from './convenience'
 
@@ -10,8 +10,8 @@ import Koa from './koa'
 it(`adds convenience config and methods`, () => {
 
     const expressApp = feathers
-        .add(Koa)
-        .add(Convenience)
+        .use(Koa)
+        .use(Convenience)
         .build()
 
     expectTypeOf(expressApp.get(`name`)).toMatchTypeOf<string>()
@@ -26,9 +26,9 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(Koa)
-            .add(Convenience)
-            .add(Convenience)
+            .use(Koa)
+            .use(Convenience)
+            .use(Convenience)
     ).toThrow(`cannot be used more than once`)
 
 })

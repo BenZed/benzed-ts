@@ -1,5 +1,4 @@
-import { feathers } from '../builder'
-
+import { feathers } from "../app-builder"
 import Koa from './koa'
 import { MongoDb, MongoDbConfig } from './mongo-db'
 
@@ -10,8 +9,8 @@ import { expectTypeOf } from 'expect-type'
 it(`adds convenience config and methods`, () => {
 
     const expressApp = feathers
-        .add(Koa)
-        .add(MongoDb)
+        .use(Koa)
+        .use(MongoDb)
         .build()
 
     expectTypeOf(expressApp.get(`db`)).toMatchTypeOf<MongoDbConfig>()
@@ -24,9 +23,9 @@ it(`cant be added twice`, () => {
 
     expect(
         () => feathers
-            .add(Koa)
-            .add(MongoDb)
-            .add(MongoDb)
+            .use(Koa)
+            .use(MongoDb)
+            .use(MongoDb)
     ).toThrow(Error)
 
 })

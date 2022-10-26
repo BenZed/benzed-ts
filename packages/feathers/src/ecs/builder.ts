@@ -1,15 +1,7 @@
-import { feathers as _feathers } from '@feathersjs/feathers'
-
-import { Empty, StringKeys} from '@benzed/util'
-import { Node } from '@benzed/ecs'
-import is from '@benzed/is'
 
 import { FeathersModules, FeathersModule, FeathersModuleConstructor } from './module'
 
-import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
-import { App } from '../types'
-
-import { getDefaultConfiguration } from '../util'
+import { FeathersBuildContext } from './types'
 
 /*** Eslint ***/
 
@@ -19,99 +11,48 @@ import { getDefaultConfiguration } from '../util'
 
 /*** Types ***/
 
-type BuiltServices<C extends FeathersModules> = FromBuildEffect<C>['services']
-
-type BuiltConfig<C extends FeathersModules> = FromBuildEffect<C>['config']
-
-type BuiltExtensions<C extends FeathersModules> = FromBuildEffect<C>['extends']
-
-export type BuiltApp<C extends FeathersModules> = 
-    BuiltExtensions<C> extends Empty 
-        ? App<BuiltServices<C>, BuiltConfig<C>>
-        : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>
-
-type FeathersBuilderInput<C extends FeathersModules> = BuiltConfig<C>
-
-type FeathersBuilderOutput<C extends FeathersModules> = BuiltApp<C>
-
-type FeathersInput<B extends FeathersBuilder<any>> = B extends FeathersBuilder<infer C> 
-    ? FeathersBuilderInput<C> 
-    : unknown
-
-type FeathersOutput<B extends FeathersBuilder<any>> = B extends FeathersBuilder<infer C> 
-    ? FeathersBuilderOutput<C> 
-    : unknown
-
-type FeathersModuleInitMethod<C extends FeathersModules, Cx extends FeathersModule> =
-    (components: C) => Cx
+type FeathersModuleInitMethod<M extends FeathersModules, Mx extends FeathersModule> =
+    (components: M) => Mx
 
 /*** Builder ***/
 
 /**
  * ECS Node for creating feathers applications
  */
-class FeathersBuilder<C extends FeathersModules> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
+abstract class FeathersBuilder<M extends FeathersModules> extends FeathersModule<M> {
 
-    static create(): FeathersBuilder<[]> {
-        return new FeathersBuilder([])
-    }
+    abstract use<Mx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx>
+    ): FeathersBuilder<[...M, Mx]> 
+    
+    // {
 
-    private constructor(
-        modules: C
-    ) {
-        super(modules)
-    }
+    //     return new FeathersBuilder([
+    //         ...this.components, 
+    //         this._initializeModule(constructorOrInitMethod)
+    //     ])
+    // }
 
-    add<Cx extends FeathersModule>(
-        constructorOrInitMethod: FeathersModuleConstructor<Cx> | FeathersModuleInitMethod<C, Cx>
-    ): FeathersBuilder<[...C, Cx]> {
+    protected _initializeModule<Mx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx>
+    ): Mx {
 
-        let modules: Cx 
+        let mod: Mx 
         try {
-            modules = (constructorOrInitMethod as FeathersModuleInitMethod<C, Cx>)(this.components)
+            mod = (constructorOrInitMethod as FeathersModuleInitMethod<M, Mx>)(this.components)
         } catch {
-            modules = new (constructorOrInitMethod as FeathersModuleConstructor<Cx>)(this.components)
+            mod = new (constructorOrInitMethod as FeathersModuleConstructor<Mx>)(this.components)
         }
 
-        if (!(modules instanceof FeathersModule))
+        if (!(mod instanceof FeathersModule))
             throw new Error(`Must be an instance of ${FeathersModule}`)
 
-        return new FeathersBuilder([
-            ...this.components, 
-            modules
-        ])
+        return mod
     }
 
-    compute(config: FeathersBuilderInput<C>): FeathersBuilderOutput<C> {
+    override compute(ctx: FeathersBuildContext): FeathersBuildContext {
 
-        this._assertAtLeastOneComponent()
-
-        const ctx = this._computeBuildContext()
-        
-        const app = this._createApplication(config, ctx)
-
-        this._registerServices(app, ctx.services)
-        this._applyExtensions(app, ctx.extends)
-
-        return app as FeathersBuilderOutput<C>
-    }
-
-    build(config: FeathersBuilderInput<C> = getDefaultConfiguration()): FeathersBuilderOutput<C> {
-        return this.compute(config)
-    }
-
-    // Helper 
-
-    private _computeBuildContext(): FeathersBuildContext {
-    
-        let ctx: FeathersBuildContext = {
-            config: {},
-            extends: {},
-            services: {},
-
-            onCreate: [],
-            onConfig: []
-        }
+        ctx = super.compute(ctx)
 
         for (const component of this.components) 
             ctx = component.compute(ctx)
@@ -119,72 +60,35 @@ class FeathersBuilder<C extends FeathersModules> extends Node<FeathersBuilderInp
         return ctx
     }
 
-    private _createApplication(config: FeathersBuilderInput<C>, ctx: FeathersBuildContext): App {
+    abstract build(input: unknown): unknown
 
-        const app = this._runLifeCycleMethod(_feathers() as any, ctx.onCreate)
+    // build(config: FeathersBuilderInput<M> = getDefaultConfiguration()): FeathersBuilderOutput<M> {
 
-        for (const [ key, { validate } ] of Object.entries(ctx.config)) {
+    //     this._assertAtLeastOneComponent()
 
-            const property = key as StringKeys<FeathersBuilderInput<C>>
+    //     const ctx = this.compute({
+    //         config: {},
+    //         extends: {},
+    //         services: {},
 
-            const value = config[property]
+    //         onCreate: [],
+    //         onConfig: []
+    //     })
+        
+    //     const app = this._createApplication(config, ctx)
 
-            app.set(
-                property,  
-                validate(value)
-            )
-        }
+    //     this._registerServices(app, ctx.services)
+    //     this._applyExtensions(app, ctx.extends)
 
-        this._runLifeCycleMethod(app, ctx.onConfig)
-
-        return app
-    }
-
-    private _registerServices(app: App, services: FeathersBuildContext['services']): void {
-        for (const path in services) {
-            const service = services[path](app)
-
-            if (!(path in app.services))
-                app.use(path, service)
-        }
-    }
-
-    private _applyExtensions(app: App, eCtx: FeathersBuildContext['extends']): void {
-
-        for (const [ key, extension ] of Object.entries(eCtx)) {
-            const property = key as keyof App
-
-            app[property] = is.function(extension) 
-                ? extension.bind(app)
-                : extension
-        }
-
-    }
-
-    private _runLifeCycleMethod(app: App, methods: readonly LifeCycleMethod[]): App {
-
-        for (const method of methods) {
-            const result = method(app) as App | undefined
-            if (result)
-                app = result
-        }
-
-        return app
-    }
+    //     return app as FeathersBuilderOutput<M>
+    // }
 
 }
 
 /*** Exports ***/
 
-/**
- * An ECS for building feathers applications
- */
-export const feathers = FeathersBuilder.create()
-
-export default feathers
+export default FeathersBuilder
 
 export {
-    FeathersBuilder,
-    FeathersInput,
-    FeathersOutput
+    FeathersBuilder
 }

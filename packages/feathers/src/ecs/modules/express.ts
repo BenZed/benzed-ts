@@ -41,7 +41,7 @@ class Express extends RestComponent<ExpressExtends> {
 
     /*** Lifecycle Methods ***/
 
-    protected _onCreate: CreateLifeCycleMethod<any> = (app: any) => express(app) as any
+    protected override _onCreate: CreateLifeCycleMethod<any> = (app: any) => express(app) as any
 
     /*** Build Implementation ***/
 
