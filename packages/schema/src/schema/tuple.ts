@@ -76,7 +76,7 @@ class TupleSchema<
 
     /*** Chain Interface ***/
 
-    default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
+    override default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
 
         defaultValue ??= (): ApplyMutable<F, O> => {
             const output = [] as unknown[]

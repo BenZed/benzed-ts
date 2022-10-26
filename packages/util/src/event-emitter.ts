@@ -27,10 +27,10 @@ type EventSubscription<T extends object = any, K extends StringKeys<T> = StringK
     listener: EventListener<T, K>
 }
 
-type ToArray<T> = T extends any[] ? T : any[]
+type AsArray<T> = T extends unknown[] ? T : never
 
 type EventListener<T extends object, K extends StringKeys<T>> =
-    (...args: ToArray<T[K]>) => void | Promise<void>
+    (...args: AsArray<T[K]>) => void | Promise<void>
 
 /**
  * A type-safe event emitter.
@@ -211,7 +211,7 @@ class EventEmitter<T extends object = any> {
      * @param event Event to be emitted
      * @param args Arguments to provided to event listener function.
      */
-    emit<K extends StringKeys<T>>(event: K, ...args: ToArray<T[K]>): void {
+    emit<K extends StringKeys<T>>(event: K, ...args: AsArray<T[K]>): void {
 
         const subscriptions = this._subscriptions[event] ?? []
 

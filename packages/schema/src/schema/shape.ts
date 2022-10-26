@@ -20,7 +20,7 @@ import {
 } from './schema'
 
 import { isObject, isString } from '@benzed/is'
-import { Compile, Merge } from '@benzed/util'
+import { Compile } from '@benzed/util'
 import { push } from '@benzed/immutable'
 import { DefaultValidatorSettings } from '../validator/default'
 
@@ -116,7 +116,7 @@ class ShapeSchema<
         return this._input
     }
 
-    default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+    override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
 
         defaultValue ??= (): O => {
             let output: undefined | O = undefined

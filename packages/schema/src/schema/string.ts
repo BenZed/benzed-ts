@@ -108,7 +108,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
         return this._copyWithPostTypeValidator(`length`, new LengthValidator(settings))
     }
 
-    default(defaultValue = ``): this {
+    override default(defaultValue = ``): this {
         return super.default(defaultValue)
     }
 
