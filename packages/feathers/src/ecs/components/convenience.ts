@@ -1,12 +1,12 @@
-import $ from "@benzed/schema"
 import { createLogger, Logger } from "@benzed/util"
+import $ from "@benzed/schema"
 
 import { $port } from "../../schemas"
 import { App, AppEmit } from "../../types"
 
 import { ToBuildEffect } from "../types"
-import FeathersBuildComponent from "../component"
 import ProviderComponent from "./provider"
+import FeathersBuildModule from "../module"
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -38,7 +38,7 @@ type ConvenienceBuildEffect = ToBuildEffect<{
 /**
  * Adds logging and start/stop methods for 
  */
-class Convenience extends FeathersBuildComponent<ConvenienceBuildEffect> {
+class Convenience extends FeathersBuildModule<ConvenienceBuildEffect> {
 
     protected _onValidateComponents(): void {
         this._assertSingle()

@@ -2,7 +2,7 @@ import { feathers } from './builder'
 
 import { through } from '@benzed/util'
 
-import {FeathersComponent } from './component'
+import { FeathersModule } from './module'
 
 import { expectTypeOf } from 'expect-type'
 import { App } from '../types'
@@ -15,18 +15,18 @@ import { App } from '../types'
 
 /*** Setup ***/
 
-class TestBuild extends FeathersComponent {
+class TestBuild extends FeathersModule {
 
 }
 
-class TestRequire extends FeathersComponent {
+class TestRequire extends FeathersModule {
 
     protected _onValidateComponents(): void {
         this._assertRequired(TestBuild)
     }
 }
 
-class TestSingle extends FeathersComponent {
+class TestSingle extends FeathersModule {
 
     protected _onValidateComponents(): void {
         this._assertSingle()

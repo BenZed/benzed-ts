@@ -1,13 +1,13 @@
 import { $ } from '@benzed/schema'
 import { Empty } from '@benzed/util'
 
-import { FeathersBuildComponent, FeathersComponent, FeathersComponents } from './component'
 import { feathers } from './builder'
 
 import { ServicesOf, Config, ConfigOf, Extends, ExtendsOf, Services, App } from '../types'
 import { ToBuildEffect } from './types'
 
 import { expectTypeOf } from 'expect-type'
+import FeathersBuildModule, { FeathersModule, FeathersModules } from './module'
 
 /*** Types ***/
 
@@ -17,15 +17,15 @@ import { expectTypeOf } from 'expect-type'
 
 /*** Setup ***/
 
-class Configurer<S extends Config> extends FeathersBuildComponent<ToBuildEffect<{ config: S }>> {
+class Configurer<S extends Config> extends FeathersBuildModule<ToBuildEffect<{ config: S }>> {
 
     requirements = undefined 
 
     constructor(
-        components: FeathersComponents,
+        modules: FeathersModules,
         public config: ToBuildEffect<{ config: S }>['config']
     ) {
-        super(components)
+        super(modules)
     }
 
     protected _createBuildEffect(): ToBuildEffect<{ config: S }> {
@@ -35,15 +35,15 @@ class Configurer<S extends Config> extends FeathersBuildComponent<ToBuildEffect<
 
 }
 
-class Servicer<S extends Services> extends FeathersBuildComponent<ToBuildEffect<{ services: S }>> {
+class Servicer<S extends Services> extends FeathersBuildModule<ToBuildEffect<{ services: S }>> {
 
     requirements = undefined
 
     constructor(
-        components: FeathersComponents, 
+        modules: FeathersModules, 
         public services: ToBuildEffect<{ services: S }>['services']
     ) {
-        super(components)
+        super(modules)
     }
 
     protected _createBuildEffect(): ToBuildEffect<{ services: S }> {
@@ -53,11 +53,11 @@ class Servicer<S extends Services> extends FeathersBuildComponent<ToBuildEffect<
 }
 
 type ExtenderExtends = Extends 
-class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ extends: E }> {
+class Extender<E extends ExtenderExtends> extends FeathersBuildModule<{ extends: E }> {
 
     extends: E
 
-    constructor(c: FeathersComponents, e: E) {
+    constructor(c: FeathersModules, e: E) {
         super(c)
         this.extends = e
     }
@@ -133,7 +133,7 @@ it(`lifecycle onConfigure method is called`, () => {
 
     let createCalled = 0
     let configCalled = 0
-    class Easy extends FeathersComponent {
+    class Easy extends FeathersModule {
         
         readonly requirements = undefined 
 

@@ -50,6 +50,9 @@ type DefineComponentSettings<C extends Component> = {
  */
 export abstract class Component<I = unknown, O = I> {
 
+    /**
+     * Quickly define a component 
+     */
     static define<C extends Component, S extends DefineComponentSettings<C> = DefineComponentSettings<C>>(
         construct: (settings: S) => (i: InputOf<C>) => OutputOf<C>
     ): (settings: S) => C {

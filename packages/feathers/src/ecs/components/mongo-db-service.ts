@@ -1,3 +1,20 @@
+
+import ServiceComponent from "./service"
+
+/*** Main ***/
+
+abstract class MongoDbService extends ServiceComponent {
+
+}
+
+/*** Exports ***/
+
+export default MongoDbService 
+
+export {
+    MongoDbService
+}
+
 // import { FeathersService, Service, ServiceOptions } from '@feathersjs/feathers'
 // import { MongoDBService, MongoDBAdapterOptions, MongoDBAdapterParams } from '@feathersjs/mongodb'
 
@@ -62,3 +79,4 @@
 
 //     MongoDBAdapterParams
 // }
+

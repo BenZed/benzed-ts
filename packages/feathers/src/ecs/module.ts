@@ -1,5 +1,4 @@
-import { Component } from '@benzed/ecs'
-import { BuiltApp } from './builder'
+import { Node } from '@benzed/ecs'
 
 import { 
     BuildEffect,
@@ -17,37 +16,24 @@ import {
 
 /*** Requirements ***/
 
-export type FeathersComponentConstructor<C extends FeathersComponent = FeathersComponent, A extends boolean = false> = 
-    A extends true 
-        ? abstract new (arg: any) => C 
-        : new (arg: any) => C
+export type FeathersModuleConstructor<C extends FeathersModule = FeathersModule> = 
+    (new (components: FeathersModules) => C)
 
 /*** Components ***/
 
-type FeathersComponents = readonly FeathersComponent[]
+type FeathersModules = readonly FeathersModule[]
 
 /**
  * Component that makes mutations to the app
  */
-abstract class FeathersComponent extends Component<FeathersBuildContext> {
+abstract class FeathersModule<C extends FeathersModules = FeathersModules> extends Node<FeathersBuildContext, FeathersBuildContext, C> {
 
     constructor(
-        private readonly _components: FeathersComponents
+        components: C
     ) {
-        super()
+        super(components)
         this._onValidateComponents()
     }
-    // Components Api
-
-    get components(): FeathersComponents {
-        return this._components
-    }
-
-    getComponent = <C extends FeathersComponent, A extends boolean>(type: FeathersComponentConstructor<C, A>): C | null => 
-        (this._components.find(c => c instanceof type) ?? null) as C | null
-
-    hasComponent = <C extends FeathersComponent, A extends boolean>(...types: FeathersComponentConstructor<C, A>[]): boolean => 
-        types.some(this.getComponent)
 
     // Build Api
 
@@ -87,28 +73,12 @@ abstract class FeathersComponent extends Component<FeathersBuildContext> {
 
     protected _onValidateComponents(): void { /**/ }
 
-    protected _assertConflicting<A extends boolean>(...types: FeathersComponentConstructor<any,A>[]): void {
-        const found = types.filter(t => this.hasComponent(t))
-        if (found.length > 0)
-            throw new Error(`${this.constructor.name} cannot be used with conflicting components: ${found.map(m => m.name)}`)
-    }
-
-    protected _assertRequired<A extends boolean>(...types: FeathersComponentConstructor<any,A>[]): void {
-        const missing = types.filter(t => !this.hasComponent(t))
-        if (missing.length > 0)
-            throw new Error(`${this.constructor.name} missing required components: ${missing.map(m => m.name)}`)
-    }
-
-    protected _assertSingle(): void {
-        if (this.hasComponent(this.constructor as any))
-            throw new Error(`${this.constructor.name} cannot be used more than once.`)
-    }
 }
 
 /**
  * Base class for components that construct feathers applications
  */
-abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect> extends FeathersComponent {
+abstract class FeathersBuildModule<B extends BuildEffect = BuildEffect> extends FeathersModule {
 
     /**
      * A feathers build component can run lifecycle nmethods, but
@@ -140,7 +110,7 @@ abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect> exten
 
 abstract class FeathersExtendComponent<
     E extends Exclude<BuildEffect['extends'], undefined>
-> extends FeathersBuildComponent<{ extends: E }> {
+> extends FeathersBuildModule<{ extends: E }> {
 
     protected abstract _createBuildExtends(): E
 
@@ -154,7 +124,7 @@ abstract class FeathersExtendComponent<
 
 abstract class FeathersConfigComponent<
     S extends Exclude<BuildEffect['config'], undefined>,
-> extends FeathersBuildComponent<{ config: S }> {
+> extends FeathersBuildModule<{ config: S }> {
 
     protected abstract _createBuildConfig(): S
 
@@ -168,7 +138,7 @@ abstract class FeathersConfigComponent<
 
 abstract class FeathersServiceComponent<
     S extends Exclude<BuildEffect['services'], undefined>
-> extends FeathersBuildComponent<{ services: S }> {
+> extends FeathersBuildModule<{ services: S }> {
 
     protected abstract _createBuildServices(): S
 
@@ -180,25 +150,15 @@ abstract class FeathersServiceComponent<
 
 }
 
-/*** Helper ***/
-
-export function has<C extends FeathersComponent, A extends boolean>(
-    app: unknown, 
-    component: FeathersComponent,
-    types: FeathersComponentConstructor<C, A>[]
-): app is BuiltApp<[C]> {
-    return component.hasComponent(...types)
-}
-
 /*** Exports ***/
 
-export default FeathersBuildComponent
+export default FeathersBuildModule
 
 export {
-    FeathersComponent,
-    FeathersComponents,
+    FeathersModule,
+    FeathersModules,
 
-    FeathersBuildComponent,
+    FeathersBuildModule,
 
     FeathersExtendComponent,
     FeathersConfigComponent,

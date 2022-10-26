@@ -3,7 +3,7 @@ import $, { Infer } from "@benzed/schema"
 
 import { Collection, MongoClient } from "mongodb"
 
-import FeathersBuildComponent from "../component"
+import FeathersBuildModule from "../module"
 import { LifeCycleMethod, ToBuildEffect } from "../types"
 import ProviderComponent, { ProviderExtend } from "./provider"
 
@@ -53,7 +53,7 @@ type MongoDbBuildEffect = ToBuildEffect<{
 /**
  * Adds logging and start/stop methods for 
  */
-class MongoDb extends FeathersBuildComponent<MongoDbBuildEffect> {
+class MongoDb extends FeathersBuildModule<MongoDbBuildEffect> {
 
     protected _onValidateComponents(): void {
         this._assertRequired(ProviderComponent)

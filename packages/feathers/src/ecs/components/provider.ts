@@ -1,6 +1,6 @@
 
 import { Server } from "http"
-import { FeathersExtendComponent } from "../component"
+import { FeathersExtendComponent } from "../module"
 
 /*** Eslint ***/
 

@@ -8,7 +8,6 @@ import type { Server as HttpServer } from 'http'
 import { App, AppEmit, HookContext, Service } from '../../types'
 import { LifeCycleMethod } from '../types'
 
-import { FeathersComponents } from '../component'
 import { RealtimeComponent } from './provider'
 import Auth from './auth'
 
@@ -21,17 +20,26 @@ import Auth from './auth'
 /*** Types ***/
 
 interface RealTimeConnection {
+
     [key: string]: any
+
 }
 
 declare class Channel extends EventEmitter {
+
     connections: RealTimeConnection[]
     data: any
+
     constructor(connections?: RealTimeConnection[], data?: any)
+    
     get length(): number
+
     leave(...connections: RealTimeConnection[]): this
+
     join(...connections: RealTimeConnection[]): this
+
     filter(fn: (connection: RealTimeConnection) => boolean): Channel
+
     send(data: any): Channel
 }
 
@@ -60,31 +68,6 @@ interface SocketIOExtends {
     registerPublisher<T>(event: string, publisher: Publisher<T>): this
 }
 
-type ChannelSetup = (app: App & AppEmit & SocketIOExtends) => void | Publisher
-
-/*** Helper ***/
-
-function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOExtends): Publisher {
-
-    app.on(`connection`, connection => {
-        app.channel(`anonymous`).join(connection)
-    })
-
-    const hasAuth = this.hasComponent(Auth as any)
-    if (hasAuth) {
-        app.on(`login`, (_auth, { connection }) => {
-
-            if (!connection)
-                return 
-
-            app.channel(`anonymous`).leave(connection)
-            app.channel(`authenticated`).join(connection)
-        })
-    }  
-
-    return () => app.channel(hasAuth ? `authenticated` : `anonymous`)
-}
-
 /*** Main ***/
 
 /**
@@ -97,19 +80,36 @@ class SocketIO extends RealtimeComponent<SocketIOExtends> {
         this._assertConflicting(RealtimeComponent)
     }
 
-    constructor(
-        components: FeathersComponents,
-        private readonly _channels: ChannelSetup = socketIODefaultChannels
-    ) {
-        super(components)
+    /**
+     * Change this behaviour in extended classes to change publish behaviour
+     */
+    protected _createPublisher (app: App & AppEmit & SocketIOExtends): Publisher {
+
+        app.on(`connection`, connection => {
+            app.channel(`anonymous`).join(connection)
+        })
+    
+        const hasAuth = this.has(Auth)
+        if (hasAuth) {
+            app.on(`login`, (_auth, { connection }) => {
+    
+                if (!connection)
+                    return 
+    
+                app.channel(`anonymous`).leave(connection)
+                app.channel(`authenticated`).join(connection)
+            })
+        }  
+    
+        return () => app.channel(hasAuth ? `authenticated` : `anonymous`)
     }
 
     protected _onConfig = ((app: App & AppEmit & SocketIOExtends) => {
         app.configure(socketio() as any)
 
-        const result = this._channels(app)
-        if (result)
-            app.publish(result)
+        app.publish(
+            this._createPublisher(app)
+        )
 
     }) as LifeCycleMethod<any>
 

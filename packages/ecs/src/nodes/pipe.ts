@@ -57,9 +57,7 @@ export class Pipe<C extends Components> extends Node<PipeInput<C>, PipeOutput<C>
 
     // Node Implementation
 
-    add<Cx extends FromComponent>(
-        component: PipeAdd<C, Cx>
-    ): Pipe<[...C, ToComponent<Cx>]> {
+    add<Cx extends FromComponent>(component: PipeAdd<C, Cx>): Pipe<[...C, ToComponent<Cx>]> {
 
         const { components } = this
 

@@ -2,7 +2,7 @@
 export { default } from './builder'
 
 export * from './builder'
-export * from './component'
+export * from './module'
 export * from './types'
 
 export * from './components'

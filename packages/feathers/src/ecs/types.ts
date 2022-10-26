@@ -1,5 +1,5 @@
 
-import FeathersBuildComponent, { FeathersComponents } from './component'
+import FeathersBuildModule, { FeathersModules } from './module'
 
 import { SchemaFor } from '@benzed/schema'
 import { Empty, Merge } from '@benzed/util'
@@ -37,13 +37,13 @@ export type ToBuildEffect<E extends { config?: object, services?: object, extend
             : E['extends']
 }
 
-type _MergeBuildEffects<C extends FeathersComponents> = Merge<{
-    [Ck in keyof C]: C[Ck] extends FeathersBuildComponent<infer B>  
+type _MergeBuildEffects<C extends FeathersModules> = Merge<{
+    [Ck in keyof C]: C[Ck] extends FeathersBuildModule<infer B>  
         ? Required<B>
         : Empty
 }>
 
-export type FromBuildEffect<C extends FeathersComponents> = {
+export type FromBuildEffect<C extends FeathersModules> = {
 
     [Ck in keyof BuildEffect]-?: Ck extends keyof _MergeBuildEffects<C> 
         

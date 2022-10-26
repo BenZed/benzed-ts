@@ -4,7 +4,7 @@ import { Empty, StringKeys} from '@benzed/util'
 import { Node } from '@benzed/ecs'
 import is from '@benzed/is'
 
-import { FeathersComponents, FeathersComponent, FeathersComponentConstructor } from './component'
+import { FeathersModules, FeathersModule, FeathersModuleConstructor } from './module'
 
 import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
 import { App } from '../types'
@@ -19,20 +19,20 @@ import { getDefaultConfiguration } from '../util'
 
 /*** Types ***/
 
-type BuiltServices<C extends FeathersComponents> = FromBuildEffect<C>['services']
+type BuiltServices<C extends FeathersModules> = FromBuildEffect<C>['services']
 
-type BuiltConfig<C extends FeathersComponents> = FromBuildEffect<C>['config']
+type BuiltConfig<C extends FeathersModules> = FromBuildEffect<C>['config']
 
-type BuiltExtensions<C extends FeathersComponents> = FromBuildEffect<C>['extends']
+type BuiltExtensions<C extends FeathersModules> = FromBuildEffect<C>['extends']
 
-export type BuiltApp<C extends FeathersComponents> = 
+export type BuiltApp<C extends FeathersModules> = 
     BuiltExtensions<C> extends Empty 
         ? App<BuiltServices<C>, BuiltConfig<C>>
         : App<BuiltServices<C>, BuiltConfig<C>> & BuiltExtensions<C>
 
-type FeathersBuilderInput<C extends FeathersComponents> = BuiltConfig<C>
+type FeathersBuilderInput<C extends FeathersModules> = BuiltConfig<C>
 
-type FeathersBuilderOutput<C extends FeathersComponents> = BuiltApp<C>
+type FeathersBuilderOutput<C extends FeathersModules> = BuiltApp<C>
 
 type FeathersInput<B extends FeathersBuilder<any>> = B extends FeathersBuilder<infer C> 
     ? FeathersBuilderInput<C> 
@@ -42,40 +42,43 @@ type FeathersOutput<B extends FeathersBuilder<any>> = B extends FeathersBuilder<
     ? FeathersBuilderOutput<C> 
     : unknown
 
+type FeathersModuleInitMethod<C extends FeathersModules, Cx extends FeathersModule> =
+    (components: C) => Cx
+
 /*** Builder ***/
 
 /**
  * ECS Node for creating feathers applications
  */
-class FeathersBuilder<C extends FeathersComponents> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
+class FeathersBuilder<C extends FeathersModules> extends Node<FeathersBuilderInput<C>, FeathersBuilderOutput<C>, C> {
 
     static create(): FeathersBuilder<[]> {
         return new FeathersBuilder([])
     }
 
     private constructor(
-        components: C
+        modules: C
     ) {
-        super(components)
+        super(modules)
     }
 
-    add<Cx extends FeathersComponent>(
-        input: FeathersComponentConstructor<Cx> | ((c: C) => Cx)
+    add<Cx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Cx> | FeathersModuleInitMethod<C, Cx>
     ): FeathersBuilder<[...C, Cx]> {
 
-        let component: Cx 
+        let modules: Cx 
         try {
-            component = (input as any)(this.components)
+            modules = (constructorOrInitMethod as FeathersModuleInitMethod<C, Cx>)(this.components)
         } catch {
-            component = new (input as any)(this.components)
-        } finally {}
+            modules = new (constructorOrInitMethod as FeathersModuleConstructor<Cx>)(this.components)
+        }
 
-        if (!(component instanceof FeathersComponent))
-            throw new Error(`Must be an instance of ${FeathersComponent}`)
+        if (!(modules instanceof FeathersModule))
+            throw new Error(`Must be an instance of ${FeathersModule}`)
 
         return new FeathersBuilder([
             ...this.components, 
-            component
+            modules
         ])
     }
 

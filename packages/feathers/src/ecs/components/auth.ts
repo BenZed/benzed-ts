@@ -1,7 +1,7 @@
 import { AuthenticationService } from "@feathersjs/authentication"
 
 import { App } from "../../types"
-import FeathersBuildComponent from "../component"
+import FeathersBuildModule from "../module"
 
 /*** Types ***/
 
@@ -14,21 +14,8 @@ interface AuthBuildEffect {
 
 /*** Main ***/
 
-abstract class Auth extends FeathersBuildComponent<AuthBuildEffect> {
+abstract class Auth extends FeathersBuildModule<AuthBuildEffect> {
 
-    // protected _onConfig: LifeCycleMethod = (app) => {
-
-    // }
-    
-    // protected _createBuildEffect(): AuthBuildEffect {
-    //     return {
-    //         services: {
-    //             authentication: (app: App) => {
-
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 /*** Exports ***/
