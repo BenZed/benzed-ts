@@ -41,10 +41,31 @@ export type ToComponent<C extends Component<any> | Compute<any>> = C extends Com
     ? C
     : Component<InputOf<C>, OutputOf<C>>
 
+type DefineComponentSettings<C extends Component> = {
+    [K in keyof C as K extends 'compute' ? never : K]: C[K]
+}
+
 /**
  * A component a simply an object that wraps a compute method
  */
 export abstract class Component<I = unknown, O = I> {
+
+    static define<C extends Component, S extends DefineComponentSettings<C> = DefineComponentSettings<C>>(
+        construct: (settings: S) => (i: InputOf<C>) => OutputOf<C>
+    ): (settings: S) => C {
+
+        return (settings: S) => {
+
+            const component = { 
+                compute: construct(settings)
+            } 
+
+            for (const key in settings)
+                (component as any)[key] = settings[key]
+
+            return component as C
+        }
+    }
 
     /**
      * Is the given input a component?
