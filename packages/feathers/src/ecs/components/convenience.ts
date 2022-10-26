@@ -5,7 +5,7 @@ import { $port } from "../../schemas"
 import { App, AppEmit } from "../../types"
 
 import { ToBuildEffect } from "../types"
-import FeathersBuildComponent, { FeathersComponents } from "../component"
+import FeathersBuildComponent from "../component"
 import ProviderComponent from "./provider"
 
 /* eslint-disable 
@@ -38,7 +38,7 @@ type ConvenienceBuildEffect = ToBuildEffect<{
 /**
  * Adds logging and start/stop methods for 
  */
-class Convenience<C extends FeathersComponents> extends FeathersBuildComponent<ConvenienceBuildEffect, C> {
+class Convenience extends FeathersBuildComponent<ConvenienceBuildEffect> {
 
     protected _onValidateComponents(): void {
         this._assertSingle()

@@ -1,15 +1,16 @@
+import { EventEmitter } from '@benzed/util'
+
 import socketio from '@feathersjs/socketio'
 
 import type { Server as SocketIOServer } from 'socket.io'
 import type { Server as HttpServer } from 'http'
 
-import { RealtimeComponent } from './provider'
-import { LifeCycleMethod } from '../types'
 import { App, AppEmit, HookContext, Service } from '../../types'
+import { LifeCycleMethod } from '../types'
 
-import { EventEmitter } from '@benzed/util'
-import Auth from './auth'
 import { FeathersComponents } from '../component'
+import { RealtimeComponent } from './provider'
+import Auth from './auth'
 
 /*** Eslint ***/
 
@@ -63,7 +64,7 @@ type ChannelSetup = (app: App & AppEmit & SocketIOExtends) => void | Publisher
 
 /*** Helper ***/
 
-function socketIODefaultChannels<C extends FeathersComponents>(this: SocketIO<C>, app: App & AppEmit & SocketIOExtends): Publisher {
+function socketIODefaultChannels(this: SocketIO, app: App & AppEmit & SocketIOExtends): Publisher {
 
     app.on(`connection`, connection => {
         app.channel(`anonymous`).join(connection)
@@ -89,7 +90,7 @@ function socketIODefaultChannels<C extends FeathersComponents>(this: SocketIO<C>
 /**
  * SocketIO Provider
  */
-class SocketIO<C extends FeathersComponents> extends RealtimeComponent<SocketIOExtends, C> {
+class SocketIO extends RealtimeComponent<SocketIOExtends> {
 
     protected _onValidateComponents(): void {
         this._assertSingle()
@@ -97,7 +98,7 @@ class SocketIO<C extends FeathersComponents> extends RealtimeComponent<SocketIOE
     }
 
     constructor(
-        components: C,
+        components: FeathersComponents,
         private readonly _channels: ChannelSetup = socketIODefaultChannels
     ) {
         super(components)

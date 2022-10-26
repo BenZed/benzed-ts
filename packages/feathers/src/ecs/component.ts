@@ -28,24 +28,24 @@ type FeathersComponents = readonly FeathersComponent[]
 /**
  * Component that makes mutations to the app
  */
-abstract class FeathersComponent<C extends FeathersComponents = any> extends Component<FeathersBuildContext> {
+abstract class FeathersComponent extends Component<FeathersBuildContext> {
 
     constructor(
-        private readonly _components: C
+        private readonly _components: FeathersComponents
     ) {
         super()
         this._onValidateComponents()
     }
     // Components Api
 
-    get components(): C {
+    get components(): FeathersComponents {
         return this._components
     }
 
-    getComponent = <Cx extends C[number], A extends boolean>(type: FeathersComponentConstructor<Cx, A>): Cx | null => 
+    getComponent = <Cx extends FeathersComponent, A extends boolean>(type: FeathersComponentConstructor<Cx, A>): Cx | null => 
         (this._components.find(c => c instanceof type) ?? null) as Cx | null
 
-    hasComponent = <Cx extends C[number], A extends boolean>(...types: FeathersComponentConstructor<Cx, A>[]): boolean => 
+    hasComponent = <Cx extends FeathersComponent, A extends boolean>(...types: FeathersComponentConstructor<Cx, A>[]): boolean => 
         types.some(this.getComponent)
 
     // Build Api
@@ -107,7 +107,7 @@ abstract class FeathersComponent<C extends FeathersComponents = any> extends Com
 /**
  * Base class for components that construct feathers applications
  */
-abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect, C extends FeathersComponents = any> extends FeathersComponent<C> {
+abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect> extends FeathersComponent {
 
     /**
      * A feathers build component can run lifecycle nmethods, but
@@ -138,9 +138,8 @@ abstract class FeathersBuildComponent<B extends BuildEffect = BuildEffect, C ext
 }
 
 abstract class FeathersExtendComponent<
-    E extends Exclude<BuildEffect['extends'], undefined>,
-    C extends FeathersComponents,
-> extends FeathersBuildComponent<{ extends: E }, C> {
+    E extends Exclude<BuildEffect['extends'], undefined>
+> extends FeathersBuildComponent<{ extends: E }> {
 
     protected abstract _createBuildExtends(): E
 
@@ -154,8 +153,7 @@ abstract class FeathersExtendComponent<
 
 abstract class FeathersConfigComponent<
     S extends Exclude<BuildEffect['config'], undefined>,
-    C extends FeathersComponents,
-> extends FeathersBuildComponent<{ config: S }, C> {
+> extends FeathersBuildComponent<{ config: S }> {
 
     protected abstract _createBuildConfig(): S
 
@@ -168,9 +166,8 @@ abstract class FeathersConfigComponent<
 }
 
 abstract class FeathersServiceComponent<
-    S extends Exclude<BuildEffect['services'], undefined>,
-    C extends FeathersComponents,
-> extends FeathersBuildComponent<{ services: S }, C> {
+    S extends Exclude<BuildEffect['services'], undefined>
+> extends FeathersBuildComponent<{ services: S }> {
 
     protected abstract _createBuildServices(): S
 

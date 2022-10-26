@@ -17,12 +17,12 @@ import { expectTypeOf } from 'expect-type'
 
 /*** Setup ***/
 
-class Configurer<S extends Config, C extends FeathersComponents> extends FeathersBuildComponent<ToBuildEffect<{ config: S }>, C> {
+class Configurer<S extends Config> extends FeathersBuildComponent<ToBuildEffect<{ config: S }>> {
 
     requirements = undefined 
 
     constructor(
-        components: C,
+        components: FeathersComponents,
         public config: ToBuildEffect<{ config: S }>['config']
     ) {
         super(components)
@@ -35,12 +35,12 @@ class Configurer<S extends Config, C extends FeathersComponents> extends Feather
 
 }
 
-class Servicer<S extends Services, C extends FeathersComponents> extends FeathersBuildComponent<ToBuildEffect<{ services: S }>, C> {
+class Servicer<S extends Services> extends FeathersBuildComponent<ToBuildEffect<{ services: S }>> {
 
     requirements = undefined
 
     constructor(
-        components: C, 
+        components: FeathersComponents, 
         public services: ToBuildEffect<{ services: S }>['services']
     ) {
         super(components)
@@ -53,11 +53,11 @@ class Servicer<S extends Services, C extends FeathersComponents> extends Feather
 }
 
 type ExtenderExtends = Extends 
-class Extender<E extends ExtenderExtends, C extends FeathersComponents> extends FeathersBuildComponent<{ extends: E }, C> {
+class Extender<E extends ExtenderExtends> extends FeathersBuildComponent<{ extends: E }> {
 
     extends: E
 
-    constructor(c: C, e: E) {
+    constructor(c: FeathersComponents, e: E) {
         super(c)
         this.extends = e
     }
