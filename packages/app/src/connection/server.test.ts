@@ -3,6 +3,8 @@ import fetch from 'cross-fetch'
 
 import { io } from '@benzed/util'
 
+/*** Test ***/
+
 it(`creates a server that listens for connections`, async () => {
 
     const server = new Server()

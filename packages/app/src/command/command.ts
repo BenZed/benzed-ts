@@ -1,4 +1,0 @@
-
-interface Command {
-    name: string
-}

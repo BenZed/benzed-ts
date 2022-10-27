@@ -1,50 +1,63 @@
-import { Connection } from './connection'
+import { Command, CommandResult } from './command'
+import { Client, ClientOptions, Connection, Server, ServerOptions } from './connection'
 
 /*** App ***/
 
-class App {
+class App implements Omit<Connection, '_started'> {
 
-    private _connection: Connection | null = null
+    // Sealed Construction 
 
     static create(): App {
-        return new App()
+        return new App(null)
+    }
+    
+    private constructor(
+        private readonly _connection: Connection | null = null
+    ) { /**/ }
+    
+    // Connection Interface
+
+    get connection(): Connection {
+        if (!this._connection) {
+            throw new Error(
+                `${this.constructor.name} does not ` + 
+                `have a ${Connection.name} instance.`)
+        }
+        return this._connection
     }
 
-    private constructor() { /**/ }
-
     /**
-     * The connection type of this App. Null if it 
-     * has not yet been started.
+     * The connection type of this App. Null if
+     * it has not yet been assigned.
      */
     get type(): 'server' | 'client' | null {
         return this._connection?.type ?? null
     }
-
-    async start(
-        connection: Connection
-    ): Promise<void> {
-
-        if (this._connection) {
-            throw new Error(
-                `${App.name} has already been started as a ${this._connection.type}`
-            )
-        }
-
-        this._connection = connection
-        await this._connection.start()
+    
+    async start(): Promise<void> {
+        await this.connection.start()
+    }
+    
+    async stop(): Promise<void> {
+        await this.connection.stop()
     }
 
-    async stop(): Promise<void> {
+    command(command: Command): Promise<CommandResult> {
+        return Promise.resolve(command)
+    }
 
-        if (!this._connection) {
-            throw new Error(
-                `${App.name} has not yet been started`
-            )
-        }
+    // Build Interface
 
-        const connection = this._connection
-        this._connection = null 
-        await connection.stop()
+    client(options?: ClientOptions): App {
+        return new App(
+            new Client(options)
+        )
+    }
+
+    server(options?: ServerOptions): App {
+        return new App(
+            new Server(options)
+        )
     }
 
 }

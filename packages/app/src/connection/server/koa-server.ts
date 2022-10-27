@@ -1,7 +1,9 @@
-import Koa from 'koa'
 import { Server as HttpServer } from 'http'
 
-import Server, { DEFAULT_SERVER_OPTIONS, ServerOptions } from './server'
+import Koa from 'koa'
+
+import Server, { ServerOptions } from './server'
+import { Command, CommandResult } from '../../command'
 
 /**
  * Koa is a means to an end. I'd like to keep the implementation as
@@ -17,10 +19,14 @@ export class KoaServer extends Server {
     private _http: HttpServer | null = null
 
     constructor(
-        options: ServerOptions = DEFAULT_SERVER_OPTIONS
+        options?: ServerOptions
     ) {
         super(options)
         this._koa = new Koa()
+    }
+
+    command(command: Command): Promise<CommandResult> {
+        return Promise.resolve(command)
     }
 
     async start(): Promise<void> {

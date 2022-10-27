@@ -1,7 +1,6 @@
 import { io } from '@benzed/util'
 
 import { App } from './app'
-import { Client, Server } from './connection'
 
 /*** Tests ***/
 
@@ -13,39 +12,34 @@ it(`is sealed`, () => {
     void new App()
 })
 
-it(`.create() to create an app`, () => {
+it(`.create() to create a connection-less app`, () => {
     const app = App.create()
 
     expect(app).toBeInstanceOf(App)
 })
 
-it(`.start() to start an app with a server connection`, async () => {
-    const app = App.create()
+it(`.server() to convert to a server app`, async () => {
+    const app = App.create().server()
 
-    await app.start(new Server())
-
+    await app.start()
     expect(app.type).toBe(`server`)
-
     await app.stop()
 })
 
-it(`.start() to start an app with a client connection`, async () => {
-    const app = App.create()
+it(`.client() to start an app with a client connection`, async () => {
+    const app = App.create().client()
 
-    await app.start(new Client())
+    await app.start()
     expect(app.type).toBe(`client`)
     await app.stop()
 })
 
 it(`.start() cannot be called consecutively`, async () => {
-    const app = App.create()
+    const app = App.create().server()
 
-    await app.start(new Server())
-
-    const err = await app.start(new Server()).catch(io)
-
-    expect(err.message).toContain(`has already been started as a server`)
-
+    await app.start()
+    const err = await app.start().catch(io)
+    expect(err.message).toContain(`Server already started`)
     await app.stop()
 })
 
@@ -53,7 +47,16 @@ it(`.stop() cannot be called until started`, async () => {
     const app = App.create()
 
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`has not yet been started`)
+    expect(err.message).toContain(`App does not have a Connection instance.`)
+})
+
+it(`.stop() cannot be called consecutively`, async () => {
+    const app = App.create().client()
+
+    await app.start()
+    await app.stop()
+    const err = await app.stop().catch(io)
+    expect(err.message).toContain(`client has not been started`)
 })
 
 it(`.type === null before started`, () => {

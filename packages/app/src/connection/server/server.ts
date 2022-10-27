@@ -1,4 +1,5 @@
 import Connection from '../connection'
+
 import $, { Infer } from '@benzed/schema'
 
 /*** Types ***/
