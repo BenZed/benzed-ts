@@ -23,7 +23,7 @@ module.exports = {
         'curly': ['error', 'multi-or-nest'],
         'no-multi-spaces': 'warn',
         'no-multiple-empty-lines': ['warn', { max: 1 }],
-        'max-len': ['error', 100],
+        'max-len': ['error', 150],
         'no-return-assign': 'error',
         'nonblock-statement-body-position': ['warn', 'below'],
 

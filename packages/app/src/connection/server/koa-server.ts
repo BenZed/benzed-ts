@@ -1,9 +1,11 @@
 import { Server as HttpServer } from 'http'
-
 import Koa from 'koa'
 
+import { Compute } from '@benzed/ecs'
+
 import Server, { ServerOptions } from './server'
-import { Command, CommandResult } from '../../command'
+import type { Command, CommandResult } from '../../command'
+import type { AppModules } from '../../app-module'
 
 /**
  * Koa is a means to an end. I'd like to keep the implementation as
@@ -15,25 +17,30 @@ import { Command, CommandResult } from '../../command'
  */
 export class KoaServer extends Server {
 
+    static withOptions(options: ServerOptions, compute: Compute<Command, CommandResult | Promise<CommandResult>>): new (m: AppModules) => KoaServer {
+        return class extends KoaServer {
+            constructor (
+                components: AppModules,
+            ) {
+                super(components, options, compute)
+            }
+        }
+    }
+
     private readonly _koa 
     private _http: HttpServer | null = null
 
     constructor(
-        options?: ServerOptions
+        components: AppModules,
+        options: ServerOptions,
+        readonly compute: Compute<Command, CommandResult | Promise<CommandResult>>
     ) {
-        super(options)
+        super(components, options)
         this._koa = new Koa()
     }
 
-    command(command: Command): Promise<CommandResult> {
-        return Promise.resolve(command)
-    }
-
     async start(): Promise<void> {
-
-        if (this._http)
-            throw new Error(`${Server.name} already started.`)
-
+        await super.start()
         const { _koa: koa, options } = this
 
         await new Promise<void>(resolve => {
@@ -42,11 +49,9 @@ export class KoaServer extends Server {
     }
 
     async stop(): Promise<void> {
+        await super.stop()
 
-        const { _http: http } = this
-
-        if (!http)
-            throw new Error(`${Server.name} not yet started started.`)
+        const http = this._http as HttpServer
         
         await new Promise<void>((resolve, reject) => {
             http.close(err => err ? reject(err) : resolve())

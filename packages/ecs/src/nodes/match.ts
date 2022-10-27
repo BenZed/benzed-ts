@@ -71,7 +71,7 @@ export class Match<I, C extends MatchComponents<I>>
 
     // Node Implementation
     
-    add<Ix extends Matchable<any>, Cx extends FromComponent<MatchableInput<Ix>, unknown>>(
+    add<Ix extends Matchable<any> = Matchable<I>, Cx extends FromComponent<MatchableInput<Ix>, unknown> = FromComponent<MatchableInput<Ix>>>(
         input: Ix,
         comp: Cx
     ): Match<I | MatchableInput<Ix>, [...C, ToComponent<Cx>]> {

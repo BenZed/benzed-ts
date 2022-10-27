@@ -1,29 +1,64 @@
-import { Command, CommandResult } from './command'
-import { Client, ClientOptions, Connection, Server, ServerOptions } from './connection'
+import { AppModule, AppModules } from './app-module'
+
+import type { Command, CommandResult } from './command'
+
+import { 
+    Client, 
+    ClientOptions, 
+
+    Server, 
+    ServerOptions,
+
+    Connection, 
+    DEFAULT_SERVER_OPTIONS, 
+    DEFAULT_CLIENT_OPTIONS, 
+
+} from './connection'
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 /*** App ***/
 
-class App implements Omit<Connection, '_started'> {
+class App<M extends AppModules> extends AppModule implements Omit<Connection, '_started'> {
+
+    get options(): object {
+        return this.connection.options
+    }
 
     // Sealed Construction 
 
-    static create(): App {
-        return new App(null)
+    static create(): App<[]> {
+        return new App([])
+    }
+
+    use<Mx extends AppModule>(
+        Constructor: new (modules: AppModules) => Mx
+    ): App<[...M, Mx]>{
+
+        // Each component gets a refreshed list of components that doesn't include itself
+        const components = [...this.components, new Constructor(this.components)] 
+
+        for (let i = 0; i <= this.components.length; i++) {
+            components[i] = new (components[i].constructor as new (modules: AppModules) => AppModule)(
+                components.filter(c => c !== components[i])
+            )
+        }
+
+        return new App(components as [...M, Mx])
     }
     
     private constructor(
-        private readonly _connection: Connection | null = null
-    ) { /**/ }
+        modules: M
+    ) {
+        super(modules) 
+    }
     
     // Connection Interface
 
     get connection(): Connection {
-        if (!this._connection) {
-            throw new Error(
-                `${this.constructor.name} does not ` + 
-                `have a ${Connection.name} instance.`)
-        }
-        return this._connection
+        return this.get(Connection)
     }
 
     /**
@@ -31,7 +66,7 @@ class App implements Omit<Connection, '_started'> {
      * it has not yet been assigned.
      */
     get type(): 'server' | 'client' | null {
-        return this._connection?.type ?? null
+        return this.has(Connection) ? this.connection.type : null
     }
     
     async start(): Promise<void> {
@@ -42,22 +77,41 @@ class App implements Omit<Connection, '_started'> {
         await this.connection.stop()
     }
 
-    command(command: Command): Promise<CommandResult> {
-        return Promise.resolve(command)
+    compute(command: Command): CommandResult | Promise<CommandResult>{
+        if (this.has(Connection))
+            return this.connection.compute(command)
+
+        return this._invokeCommand(command)
     }
 
     // Build Interface
 
-    client(options?: ClientOptions): App {
-        return new App(
-            new Client(options)
+    client(options: ClientOptions = DEFAULT_CLIENT_OPTIONS): App<[]> {
+        return this.use(
+            Client.withOptions(options)
         )
     }
 
-    server(options?: ServerOptions): App {
-        return new App(
-            new Server(options)
+    server(options: ServerOptions = DEFAULT_SERVER_OPTIONS): App<[]> {
+
+        const { _invokeCommand: invokeCommand } = this
+
+        return this.use(
+            Server.withOptions(
+                options, 
+                invokeCommand   
+            )
         )
+    }
+
+    // Helper
+
+    private _invokeCommand(command: Command): CommandResult | Promise<CommandResult> {
+
+        for (const component of this.components) 
+            console.log(`${App.name}  ${this.type} ${component.constructor.name} ${command}`)
+        
+        return command
     }
 
 }

@@ -1,13 +1,25 @@
-import { Command, CommandResult } from "../command"
+
+import { AppModule, AppModules } from '../app-module'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection {
+export abstract class Connection<O extends object = object> extends AppModule {
+
+    protected _validateComponents(): void {
+        this._assertSingle()
+    }
 
     abstract readonly type: `server` | `client` | null
 
     private _started = false
+
+    constructor(
+        modules: AppModules,
+        public options: O
+    ) {
+        super(modules)
+    }
 
     start(): void | Promise<void> {
         if (this._started) {
@@ -26,8 +38,6 @@ export abstract class Connection {
         }
         this._started = false
     }
-
-    abstract command(command: Command): Promise<CommandResult>
 
 }
 

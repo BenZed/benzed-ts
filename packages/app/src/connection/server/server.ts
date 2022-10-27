@@ -2,6 +2,8 @@ import Connection from '../connection'
 
 import $, { Infer } from '@benzed/schema'
 
+/*** Match ***/
+
 /*** Types ***/
 
 interface ServerOptions extends Infer<typeof $serverOptions> {}
@@ -22,15 +24,9 @@ const DEFAULT_SERVER_OPTIONS: ServerOptions = { port: 3000 }
 /**
  * Serverside connections, sends commands sent to users to the app
  */
-abstract class Server extends Connection {
+abstract class Server extends Connection<ServerOptions> {
 
     readonly type = `server` as const
-
-    constructor(
-        readonly options: ServerOptions = DEFAULT_SERVER_OPTIONS
-    ) {
-        super()
-    }
 
 }
 

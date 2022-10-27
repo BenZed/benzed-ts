@@ -14,24 +14,18 @@ it(`is sealed`, () => {
 
 it(`.create() to create a connection-less app`, () => {
     const app = App.create()
-
     expect(app).toBeInstanceOf(App)
 })
 
-it(`.server() to convert to a server app`, async () => {
+it(`.server() to convert to a server app`, () => {
     const app = App.create().server()
-
-    await app.start()
     expect(app.type).toBe(`server`)
-    await app.stop()
 })
 
-it(`.client() to start an app with a client connection`, async () => {
+it(`.client() to start an app with a client connection`, () => {
     const app = App.create().client()
 
-    await app.start()
     expect(app.type).toBe(`client`)
-    await app.stop()
 })
 
 it(`.start() cannot be called consecutively`, async () => {
@@ -39,24 +33,25 @@ it(`.start() cannot be called consecutively`, async () => {
 
     await app.start()
     const err = await app.start().catch(io)
-    expect(err.message).toContain(`Server already started`)
     await app.stop()
+
+    expect(err.message).toContain(`${app.type} has already been started`)
 })
 
 it(`.stop() cannot be called until started`, async () => {
     const app = App.create()
 
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`App does not have a Connection instance.`)
+    expect(err.message).toContain(`Could not find component of type Connection`)
 })
 
 it(`.stop() cannot be called consecutively`, async () => {
-    const app = App.create().client()
+    const app = App.create().server()
 
     await app.start()
     await app.stop()
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`client has not been started`)
+    expect(err.message).toContain(`${app.type} has not been started`)
 })
 
 it(`.type === null before started`, () => {

@@ -1,6 +1,5 @@
 import $, { Infer } from '@benzed/schema'
 
-import { DEFAULT_SERVER_OPTIONS } from '../server'
 import Connection from '../connection'
 
 /*** Types ***/
@@ -14,8 +13,8 @@ const $clientOptions = $({
 /*** Constants ***/
 
 const DEFAULT_CLIENT_OPTIONS: ClientOptions = { 
-    constant: true,
-    host: `http://localhost:${DEFAULT_SERVER_OPTIONS.port}` 
+    constant: false,
+    host: `http://localhost:${3000}` 
 }
 
 /*** Client ***/
@@ -23,15 +22,9 @@ const DEFAULT_CLIENT_OPTIONS: ClientOptions = {
 /**
  * Creates connection to server, allows commands to be emitted.
  */
-abstract class Client extends Connection {
+abstract class Client extends Connection<ClientOptions> {
 
     readonly type = `client` as const
-
-    constructor(
-        readonly options: ClientOptions = DEFAULT_CLIENT_OPTIONS
-    ) {
-        super()
-    }
 
 }
 
@@ -41,5 +34,8 @@ export default Client
 
 export {
     Client,
-    ClientOptions
+    ClientOptions,
+
+    DEFAULT_CLIENT_OPTIONS
+
 }
