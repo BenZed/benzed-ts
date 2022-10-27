@@ -4,7 +4,7 @@ import Client, { ClientOptions } from './client'
 import type { Command, CommandResult } from '../../command'
 
 import { fetch } from 'cross-fetch'
-import type { AppModules } from '../../app-module'
+import type { Modules } from '../../modules'
 
 /*** UrlCommand ***/
 
@@ -18,10 +18,10 @@ const urlCommandToRequest = Match
 
 export class FetchSocketIOClient extends Client {
 
-    static withOptions(options: ClientOptions): new (m: AppModules) => FetchSocketIOClient {
+    static withOptions(options: ClientOptions): new (m: Modules) => FetchSocketIOClient {
         return class extends FetchSocketIOClient {
             constructor (
-                components: AppModules,
+                components: Modules,
             ) {
                 super(components, options)
             }

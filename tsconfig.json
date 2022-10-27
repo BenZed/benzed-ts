@@ -17,6 +17,7 @@
         //
         // Search under node_modules for non-relative imports.
         "moduleResolution": "node",
+        "noImplicitOverride": false,
         //
         // Enable strictest settings like strictNullChecks & noImplicitAny.
         "strict": true,

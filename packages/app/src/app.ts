@@ -1,4 +1,4 @@
-import { AppModule, AppModules } from './app-module'
+import { Module, Modules } from './modules'
 
 import { 
     Client, 
@@ -19,7 +19,11 @@ import {
 
 /*** App ***/
 
-class App<M extends AppModules> extends AppModule implements Omit<Connection, '_started'> {
+abstract class Service<M extends Modules> extends Module {
+
+}
+
+class App<M extends Modules> extends Module implements Omit<Connection, '_started'> {
 
     get options(): object {
         return this.connection.options
@@ -31,15 +35,15 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
         return new App([])
     }
 
-    use<Mx extends AppModule>(
-        Constructor: new (modules: AppModules) => Mx
+    use<Mx extends Module>(
+        Constructor: new (modules: Modules) => Mx
     ): App<[...M, Mx]>{
 
         // Each component gets a refreshed list of components that doesn't include itself
         const components = [...this.components, new Constructor(this.components)] 
 
         for (let i = 0; i <= this.components.length; i++) {
-            components[i] = new (components[i].constructor as new (modules: AppModules) => AppModule)(
+            components[i] = new (components[i].constructor as new (modules: Modules) => Module)(
                 components.filter(c => c !== components[i])
             )
         }

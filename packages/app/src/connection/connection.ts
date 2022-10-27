@@ -1,10 +1,10 @@
 
-import { AppModule, AppModules } from '../app-module'
+import { Module, Modules } from '../modules'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<O extends object = object> extends AppModule {
+export abstract class Connection<O extends object = object> extends Module {
 
     protected _validateComponents(): void {
         this._assertSingle()
@@ -18,7 +18,7 @@ export abstract class Connection<O extends object = object> extends AppModule {
     }
 
     constructor(
-        modules: AppModules,
+        modules: Modules,
         public options: O
     ) {
         super(modules)

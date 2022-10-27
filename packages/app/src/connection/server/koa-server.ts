@@ -5,9 +5,21 @@ import cors from '@koa/cors'
 
 import Server, { ServerOptions } from './server'
 import type { Command } from '../../command'
-import type { AppModules } from '../../app-module'
+import type { Modules } from '../../modules'
+
+import { Match } from '@benzed/ecs'
 
 /*** Helper ***/
+
+interface GetInfoCommand extends Command {
+    name: `get-info`
+}
+
+interface AuthenticateCommand extends Command {
+    name: `create-auth`
+}
+
+type ServerCommands = GetInfoCommand
 
 /*** KoaServer ***/
 
@@ -21,10 +33,10 @@ import type { AppModules } from '../../app-module'
  */
 export class KoaServer extends Server {
 
-    static withOptions(options: ServerOptions): new (m: AppModules) => KoaServer {
+    static withOptions(options: ServerOptions): new (m: Modules) => KoaServer {
         return class extends KoaServer {
             constructor (
-                components: AppModules,
+                components: Modules,
             ) {
                 super(components, options)
             }
@@ -35,7 +47,7 @@ export class KoaServer extends Server {
     private _http: HttpServer | null = null
 
     constructor(
-        components: AppModules,
+        components: Modules,
         options: ServerOptions
     ) {
         super(components, options)
@@ -60,20 +72,34 @@ export class KoaServer extends Server {
 
     private _commandFromCtx(ctx: Context): Command {
 
-        const name = this._splitUrl(ctx).at(0)
-        if (!name)
-            throw new Error(`${ctx.url} ${ctx.method} is an invalid command`)
+        const name = this._splitUrl(ctx).join(`-`)
+        const action = this._methodToAction(ctx.method)
+        if (!name || !action)
+            throw new Error(``)
 
-        return { name }
+        return { 
+            name: `${action}-${name}` 
+        }
     }
+
+    private readonly _methodToAction = Match
+        .create(`GET`, () => `get` as const)
+        .add(`OPTIONS`, () => `get`)
+        .add(`PUT`, () => `update`)
+        .add(`PATCH`, () => `update`)
+        .add(`DELETE`, () => `remove`)
+        .add(`POST`, () => `create`)
+        .add(() => true, () => null)
+        .compute
 
     async start(): Promise<void> {
 
         await super.start()
         const { _koa: koa, options } = this
 
-        await new Promise<void>(resolve => {
+        await new Promise<void>((resolve, reject) => {
             this._http = koa.listen(options.port, resolve)
+            this._http.once(`error`, reject)
         })
     }
 
