@@ -3,8 +3,6 @@ import { io } from '@benzed/util'
 import { App } from './app'
 import { Client, Server } from './connection'
 
-import { expectTypeOf } from 'expect-type'
-
 /*** Tests ***/
 
 it(`is sealed`, () => {
@@ -47,6 +45,8 @@ it(`.start() cannot be called consecutively`, async () => {
     const err = await app.start(new Server()).catch(io)
 
     expect(err.message).toContain(`has already been started as a server`)
+
+    await app.stop()
 })
 
 it(`.stop() cannot be called until started`, async () => {

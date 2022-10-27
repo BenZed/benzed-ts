@@ -19,9 +19,9 @@ const DEFAULT_SERVER_OPTIONS: ServerOptions = { port: 3000 }
 /*** Server ***/
 
 /**
- * Serverside connections, routes commands sent by users.
+ * Serverside connections, sends commands sent to users to the app
  */
-class Server extends Connection {
+abstract class Server extends Connection {
 
     readonly type = `server` as const
 
@@ -31,13 +31,6 @@ class Server extends Connection {
         super()
     }
 
-    async start(): Promise<void> {
-        /**/
-    }
-
-    async stop(): Promise<void> {
-        /**/
-    }
 }
 
 /*** Exports ***/

@@ -1,5 +1,5 @@
 import { Server } from './server'
-import fetch, { FetchError } from 'node-fetch'
+import fetch from 'cross-fetch'
 
 import { io } from '@benzed/util'
 
@@ -9,7 +9,7 @@ it(`creates a server that listens for connections`, async () => {
     await server.start()
 
     const res = await fetch(`http://localhost:${server.options.port}/`).catch(io)
-    expect(res).not.toBeInstanceOf(FetchError)
+    expect(res).not.toHaveProperty(`code`, `ECONNREFUSED`)
 
     await server.stop()
 

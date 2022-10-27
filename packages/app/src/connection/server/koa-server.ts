@@ -1,13 +1,15 @@
 import Koa from 'koa'
-import { createServer, Server as HttpServer } from 'http'
+import { Server as HttpServer } from 'http'
 
 import Server, { DEFAULT_SERVER_OPTIONS, ServerOptions } from './server'
-import { create } from 'domain'
 
 /**
  * Koa is a means to an end. I'd like to keep the implementation as
  * de-coupled from the rest of the app logic as possible. The only 
  * thing interacting with the KOA Api should be this class.
+ * 
+ * I mean, Koa is great, I don't think I'll ever build my own 
+ * http server request/response parser, but still.
  */
 export class KoaServer extends Server {
 
@@ -31,7 +33,6 @@ export class KoaServer extends Server {
         await new Promise<void>(resolve => {
             this._http = koa.listen(options.port, resolve)
         })
-
     }
 
     async stop(): Promise<void> {

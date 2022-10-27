@@ -1,2 +1,2 @@
 
-it.todo(`allows you to connect to the server`)
+it.todo(`creates connections to the server`)
