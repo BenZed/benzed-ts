@@ -1,10 +1,10 @@
 
-import { Module, Modules } from '../modules'
+import { Module } from '../modules'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<O extends object = object> extends Module {
+export abstract class Connection<O extends object = object> extends Module<O> {
 
     protected _validateComponents(): void {
         this._assertSingle()
@@ -15,13 +15,6 @@ export abstract class Connection<O extends object = object> extends Module {
     private _started = false
     get active(): boolean {
         return this._started
-    }
-
-    constructor(
-        modules: Modules,
-        public options: O
-    ) {
-        super(modules)
     }
 
     start(): void | Promise<void> {

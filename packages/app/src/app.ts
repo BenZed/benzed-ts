@@ -1,70 +1,89 @@
-import { Module, Modules } from './modules'
+import { ServiceModule, Module, Modules } from './modules'
 
 import { 
-    Client, 
-    ClientOptions, 
-
-    Server, 
-    ServerOptions,
 
     Connection, 
-    DEFAULT_SERVER_OPTIONS, 
-    DEFAULT_CLIENT_OPTIONS, 
+
+    Client, 
+    ClientSettings, 
+    DEFAULT_CLIENT_SETTINGS, 
+    
+    Server, 
+    ServerSettings,
+    DEFAULT_SERVER_SETTINGS, 
 
 } from './connection'
+
+import { Command } from './command'
+
+import { pluck } from '@benzed/array'
+import is from '@benzed/is'
+import { Empty } from '@benzed/util/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
+/*** App Settings ***/
+
+type AppSettings<M extends Modules> = M extends [ infer Mx, ...infer Mr]
+    ? Mx extends Connection<infer O> 
+        ? O 
+        : Mr extends Modules 
+            ? AppSettings<Mr> 
+            : Empty
+    : Empty
+
 /*** App ***/
 
-abstract class Service<M extends Modules> extends Module {
+class App<C extends Command = any, M extends Modules = Modules> extends ServiceModule<C, M, AppSettings<M>> 
+    implements Omit<Connection, '_started' | 'parentTo'> {
 
-}
+    use<Mx extends Module<any>>(
+        ...args: Mx extends ServiceModule<any,any> 
+            ? [path: string, module: Mx] | [module: Mx] 
+            : [module: Mx]
+    ): App<C, [...M, Mx]> {
 
-class App<M extends Modules> extends Module implements Omit<Connection, '_started'> {
+        const path = pluck(args, is.string).at(0) 
+        let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
+        if (!module)
+            throw new Error(`${Module.name} not provided.`)
 
-    get options(): object {
-        return this.connection.options
+        module = path && module instanceof ServiceModule
+            ? module.parentToWithPath(this, path)
+            : module.parentTo(this)
+
+        return new App([
+            ...this.modules.map(m => m.parentTo(this)) as unknown as M, 
+            module
+        ])
     }
 
     // Sealed Construction 
 
-    static create(): App<[]> {
+    static create(): App<Command, []> {
         return new App([])
     }
 
-    use<Mx extends Module>(
-        Constructor: new (modules: Modules) => Mx
-    ): App<[...M, Mx]>{
-
-        // Each component gets a refreshed list of components that doesn't include itself
-        const components = [...this.components, new Constructor(this.components)] 
-
-        for (let i = 0; i <= this.components.length; i++) {
-            components[i] = new (components[i].constructor as new (modules: Modules) => Module)(
-                components.filter(c => c !== components[i])
-            )
-        }
-
-        return new App(components as [...M, Mx])
-    }
-    
     private constructor(
         modules: M
     ) {
-        super(modules) 
+        super(modules, {} as AppSettings<M>) 
     }
     
     // Connection Interface
 
     get connection(): Connection {
-        return this.get(Connection)
+        return this.get(Connection, true)
     }
 
     get active(): boolean {
         return this.has(Connection) ? this.connection.active : false
+    }
+
+    get settings(): AppSettings<M> {
+        return (this.has(Connection) ? this.connection.settings : {}) as AppSettings<M>
     }
 
     /**
@@ -72,7 +91,7 @@ class App<M extends Modules> extends Module implements Omit<Connection, '_starte
      * it has not yet been assigned.
      */
     get type(): 'server' | 'client' | null {
-        return this.has(Connection) ? this.connection.type : null
+        return this.connection?.type ?? null
     }
     
     async start(): Promise<void> {
@@ -83,20 +102,31 @@ class App<M extends Modules> extends Module implements Omit<Connection, '_starte
         await this.connection.stop()
     }
 
-    // Build Interface
-
-    client(options: ClientOptions = DEFAULT_CLIENT_OPTIONS): App<[]> {
-        return this.use(
-            Client.withOptions(options)
-        )
+    execute(_command: C): object {
+        throw new Error(`Not yet implemented`)
     }
 
-    server(options: ServerOptions = DEFAULT_SERVER_OPTIONS): App<[]> {
-        return this.use(
-            Server.withOptions(options)
-        )
+    canExecute(command: Command): command is C {
+        return false
     }
 
+    server(settings: Partial<ServerSettings> = {}): App {
+        return this.use(
+            new Server({
+                ...DEFAULT_SERVER_SETTINGS,
+                ...settings
+            })
+        )
+    } 
+
+    client(settings: Partial<ClientSettings> = {}): App {
+        return this.use(
+            new Client({
+                ...DEFAULT_CLIENT_SETTINGS,
+                ...settings
+            })
+        )
+    } 
 }
 
 /*** Export ***/

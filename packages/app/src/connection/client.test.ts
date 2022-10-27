@@ -1,15 +1,15 @@
 import { inputToOutput, toNull } from '@benzed/util'
 
 import { Command } from "../command"
-import { Client, DEFAULT_CLIENT_OPTIONS } from "./client"
-import { Server, DEFAULT_SERVER_OPTIONS } from "./server"
+import { Client, DEFAULT_CLIENT_SETTINGS } from "./client"
+import { Server, DEFAULT_SERVER_SETTINGS } from "./server"
 
 const log: Command[] = []
 
 let server: Server
 beforeAll(async () => {
-    server = new Server([], DEFAULT_SERVER_OPTIONS)
-    server.compute = cmd => void log.push(cmd) ?? cmd
+    server = new Server(DEFAULT_SERVER_SETTINGS)
+    // server.execute = cmd => void log.push(cmd) ?? cmd
     await server.start()
 })
 
@@ -20,7 +20,7 @@ afterAll(async () => {
 let client: Client
 let connectErr: Error | null = null
 beforeAll(async () => {
-    client = new Client([], DEFAULT_CLIENT_OPTIONS)
+    client = new Client(DEFAULT_CLIENT_SETTINGS)
     connectErr = await client
         .start()
         .then(toNull)
@@ -36,7 +36,7 @@ it(`creates connections to the server`, () => {
 })
 
 it(`server receives client commands`, async () => {
-    const result = await client.compute({ name: `test` })
+    const result = await client.execute({ name: `get-test` })
     expect(result).toEqual({ name: `test` })
     expect(log).toEqual([result])
 })

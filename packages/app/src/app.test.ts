@@ -1,8 +1,7 @@
 import { io } from '@benzed/util'
 
 import { App } from './app'
-import { AppModule } from './app-module'
-import { Command, CommandResult } from './command'
+import { Module } from './modules'
 
 /*** Tests ***/
 
@@ -61,14 +60,11 @@ it(`.type === null before started`, () => {
     expect(app.type).toBe(null)
 })
 
-class DummyModule extends AppModule {
-
-    compute(input: Command): CommandResult | Promise<CommandResult> {
-        return input
-    }
+class DummyModule extends Module {
+ 
 }
 
 it(`.use() to add components`, () => {
-    const app = App.create().use(DummyModule)
+    const app = App.create().use(new DummyModule({}))
     expect(app.has(DummyModule)).toBe(true)
 })

@@ -1,6 +1,5 @@
-import is from '@benzed/is'
+
 import { Empty } from '@benzed/util'
-import { pluck } from '@benzed/array'
 
 import { Command } from "./command"
 
@@ -10,23 +9,31 @@ import { Command } from "./command"
 
 export type Modules = readonly Module<any>[]
 
-export type ModuleConstructor<M extends Module<any> = Module<any>> = new (...args: any[]) => M
+export type ModuleConstructor<M extends Module<any> = Module<any>> =
+     (new (...args: any[]) => M) | 
+     (abstract new (...args: any[]) => M)
 
 export type SettingsOf<M extends Module<any>> = M extends Module<infer S> ? S : Empty
 
 export abstract class Module<S extends object = Empty> {
 
-    constructor() { 
+    get settings():S {
+        return this._settings
+    }
+    
+    constructor(
+        private readonly _settings: S
+    ) { 
         this._validateModules()
     }
 
-    private _parent: ActionModule | null = null 
-    get parent(): ActionModule | null{
+    private readonly _parent: ServiceModule | null = null 
+    get parent(): ServiceModule | null{
         return this._parent
     }
     
-    parentTo(parent: ActionModule): this {
-        const clone = new (this.constructor as new () => this)
+    parentTo(parent: ServiceModule): this {
+        const clone = new (this.constructor as any)
         clone._parent = parent
 
         return clone
@@ -34,8 +41,16 @@ export abstract class Module<S extends object = Empty> {
 
     // Component API
 
-    get<M extends Module<any>>(type: ModuleConstructor<M>): M | null {
-        return this.parent?.get(type) ?? null
+    get<M extends Module<any>, R extends boolean = false>(
+        type: ModuleConstructor<M>, 
+        required: R = false as R
+    ): R extends true ? M : M | null {
+
+        const module = this.parent?.get(type) ?? null
+        if (!module && required)
+            throw new Error(`${this.constructor.name} is missing module ${type.name}`)
+
+        return module as M
     }
 
     has<M extends Module>(type: ModuleConstructor<M>): boolean {
@@ -44,9 +59,9 @@ export abstract class Module<S extends object = Empty> {
 
     // Lifecycle Hooks 
 
-    abstract start(settings: S): void | Promise<void> 
+    start(): void | Promise<void> { /**/ }
 
-    abstract stop(): void | Promise<void>
+    stop(): void | Promise<void> { /**/ }
 
     // Validation
 
@@ -73,13 +88,23 @@ export abstract class Module<S extends object = Empty> {
             )
         }
     }
-  
 }
 
-export abstract class ActionModule<C extends Command = any, M extends Modules = any> extends Module<object> {
+export abstract class CommandModule<C extends Command = any, S extends object = Empty> extends Module<S> {
 
-    constructor(readonly modules: M) {
-        super()
+    abstract canExecute(command: Command): command is C
+
+    abstract execute(command: C): object | Promise<object>
+
+}
+
+export abstract class ServiceModule<C extends Command = any, M extends Modules = any, S extends object = Empty> extends CommandModule<C, S> {
+
+    constructor(
+        readonly modules: M, 
+        settings: S
+    ) {
+        super(settings)
     }
 
     private _path = ``
@@ -87,40 +112,11 @@ export abstract class ActionModule<C extends Command = any, M extends Modules = 
         return this._path
     }
     
-    parentToWithPath(parent: ActionModule<any>, path: string):this {
+    parentToWithPath(parent: ServiceModule<any>, path: string):this {
         const clone = super.parentTo(parent)
         clone._path = path
     
         return clone
     }
 
-    abstract execute(command: C): object
-
-    abstract canExecute(command: Command): command is C
-
-}
-
-export class App<C extends Command = any, M extends Modules = Modules> extends ActionModule<C, M> {
-
-    static create(): App<Command, []> {
-        return new App([])
-    }
-
-    use<Mx extends Module<any>>(
-        ...args: Mx extends ActionModule<any,any> 
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
-    ): App<C, [...M, Mx]> {
-
-        const path = pluck(args, is.string).at(0) 
-        let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
-        if (!module)
-            throw new Error(`${Module.name} not provided.`)
-
-        module = path && module instanceof ActionModule
-            ? module.parentToWithPath(this, path)
-            : module.parentTo(this)
-
-        return new App([...this.modules, module])
-    }
 }

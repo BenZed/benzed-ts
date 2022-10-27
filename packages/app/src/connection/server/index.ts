@@ -1,5 +1,5 @@
 
-export { DEFAULT_SERVER_OPTIONS, ServerOptions } from './server'
+export { DEFAULT_SERVER_SETTINGS, ServerSettings } from './server'
 
 export { 
     KoaServer as Server, 

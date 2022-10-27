@@ -4,7 +4,7 @@ import $, { Infer } from '@benzed/schema'
 
 /*** Types ***/
 
-interface ServerOptions extends Infer<typeof $serverOptions> {}
+interface ServerSettings extends Infer<typeof $serverOptions> {}
 const $serverOptions = $({
     port: $.integer.range({ 
         min: 1025, 
@@ -15,14 +15,14 @@ const $serverOptions = $({
 
 /*** Constants ***/
 
-const DEFAULT_SERVER_OPTIONS: ServerOptions = { port: 3000 }
+const DEFAULT_SERVER_SETTINGS: ServerSettings = { port: 3000 }
 
 /*** Server ***/
 
 /**
  * Serverside connections, sends commands sent to users to the app
  */
-abstract class Server extends Connection<ServerOptions> {
+abstract class Server extends Connection<ServerSettings> {
 
     readonly type = `server` as const
 
@@ -34,6 +34,6 @@ export default Server
 
 export {
     Server,
-    ServerOptions,
-    DEFAULT_SERVER_OPTIONS
+    ServerSettings,
+    DEFAULT_SERVER_SETTINGS
 }
