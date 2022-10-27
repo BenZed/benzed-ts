@@ -13,6 +13,9 @@ export abstract class Connection<O extends object = object> extends AppModule {
     abstract readonly type: `server` | `client` | null
 
     private _started = false
+    get active(): boolean {
+        return this._started
+    }
 
     constructor(
         modules: AppModules,

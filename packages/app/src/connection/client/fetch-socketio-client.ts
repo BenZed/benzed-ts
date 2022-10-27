@@ -1,18 +1,17 @@
 import { Match } from '@benzed/ecs'
 
 import Client, { ClientOptions } from './client'
-import { Command, CommandResult } from '../../command'
+import type { Command, CommandResult } from '../../command'
 
 import { fetch } from 'cross-fetch'
-import { AppModules } from '../../app-module'
+import type { AppModules } from '../../app-module'
 
 /*** UrlCommand ***/
 
 interface UrlCommand extends Command, Pick<ClientOptions, 'host'> { }
 
 const urlCommandToRequest = Match
-    .create((c: UrlCommand) => c.name === `connect`, c => ({ url: `${c.host}`, method: `options` as const }))
-    .add((c: UrlCommand) => !!c, c => ({ url: `${c.host}/${c.name}`, method: `get` as const }))
+    .create((c: UrlCommand) => !!c, c => ({ url: `${c.host}/${c.name}`, method: `get` as const }))
     .compute
 
 /*** FetchSocketIOClient ***/
@@ -31,26 +30,20 @@ export class FetchSocketIOClient extends Client {
 
     async compute(command: Command): Promise<CommandResult> {
 
-        const { host, constant } = this.options
-
-        if (command.name === `connect` && constant)
-            await this._startSocketIO()
+        const { host } = this.options
 
         const { url, method } = urlCommandToRequest({ ...command, host })
 
         const req = await fetch(url, { method })
-
-        console.log(await req.text())
-
-        return { name: command.name }
+        return req.json()
     }
 
     async start(): Promise<void> {
         await super.start()
         if (this.options.constant)
-            await this._stopSocketIO()
+            await this._startSocketIO()
         else 
-            await this.compute({ name: `connect` })
+            await this._fetchOptions()
     }
 
     async stop(): Promise<void> {
@@ -67,4 +60,14 @@ export class FetchSocketIOClient extends Client {
         await Promise.resolve()
     }
 
+    private async _fetchOptions(): Promise<void> {
+
+        const { host } = this.options
+
+        const res = await fetch(host, { method: `options` })
+
+        const json = await res.json()
+        if (!json.version || ! json.name)
+            throw new Error(`${host} gave invalid response.`)
+    }
 }

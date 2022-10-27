@@ -3,6 +3,7 @@ import { Node } from '@benzed/ecs'
 
 export type AppModules = readonly AppModule[]
 
-export abstract class AppModule extends Node<Command, CommandResult | Promise<CommandResult>, AppModules> {
+export abstract class AppModule<M extends AppModules = AppModules> 
+    extends Node<Command, CommandResult | Promise<CommandResult>, M> {
 
 }

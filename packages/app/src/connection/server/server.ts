@@ -2,8 +2,6 @@ import Connection from '../connection'
 
 import $, { Infer } from '@benzed/schema'
 
-/*** Match ***/
-
 /*** Types ***/
 
 interface ServerOptions extends Infer<typeof $serverOptions> {}

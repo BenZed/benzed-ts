@@ -58,7 +58,11 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
     // Connection Interface
 
     get connection(): Connection {
-        return this.get(Connection)
+        return this.get(Connection) as Connection
+    }
+
+    get active(): boolean {
+        return this.has(Connection) ? this.connection.active : false
     }
 
     /**
@@ -97,10 +101,7 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
         const { _invokeCommand: invokeCommand } = this
 
         return this.use(
-            Server.withOptions(
-                options, 
-                invokeCommand   
-            )
+            Server.withOptions(options, invokeCommand)
         )
     }
 
@@ -109,7 +110,7 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
     private _invokeCommand(command: Command): CommandResult | Promise<CommandResult> {
 
         for (const component of this.components) 
-            console.log(`${App.name}  ${this.type} ${component.constructor.name} ${command}`)
+            console.log(`${App.name} ${this.type} ${component.constructor.name} ${command}`)
         
         return command
     }

@@ -1,11 +1,17 @@
 import { Server as HttpServer } from 'http'
-import Koa from 'koa'
+
+import Koa, { Context } from 'koa'
+import cors from '@koa/cors'
 
 import { Compute } from '@benzed/ecs'
 
 import Server, { ServerOptions } from './server'
 import type { Command, CommandResult } from '../../command'
 import type { AppModules } from '../../app-module'
+
+/*** Helper ***/
+
+/*** KoaServer ***/
 
 /**
  * Koa is a means to an end. I'd like to keep the implementation as
@@ -36,10 +42,38 @@ export class KoaServer extends Server {
         readonly compute: Compute<Command, CommandResult | Promise<CommandResult>>
     ) {
         super(components, options)
+
         this._koa = new Koa()
+        this._koa.use(cors())
+        this._koa.use(async (ctx, next) => {
+            await next()
+            ctx.body = this._isInfoRequest(ctx)
+                ? { version: `0.0.1`, name: `benzed-ecs-app` }
+                : await this.compute(
+                    this._commandFromCtx(ctx)
+                )
+        })
+    }
+
+    private _isInfoRequest(ctx: Context): boolean {
+        return ctx.method.toLowerCase() === `options` && this._splitUrl(ctx).length === 0
+    }
+
+    private _splitUrl(ctx: Context): string[] {
+        return ctx.url.split(`/`).filter(w => w.trim())
+    }
+
+    private _commandFromCtx(ctx: Context): Command {
+
+        const name = this._splitUrl(ctx).at(0)
+        if (!name)
+            throw new Error(`${ctx.url} ${ctx.method} is an invalid command`)
+
+        return { name }
     }
 
     async start(): Promise<void> {
+
         await super.start()
         const { _koa: koa, options } = this
 

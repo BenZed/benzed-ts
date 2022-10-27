@@ -1,6 +1,8 @@
 import { io } from '@benzed/util'
 
 import { App } from './app'
+import { AppModule } from './app-module'
+import { Command, CommandResult } from './command'
 
 /*** Tests ***/
 
@@ -57,4 +59,16 @@ it(`.stop() cannot be called consecutively`, async () => {
 it(`.type === null before started`, () => {
     const app = App.create()
     expect(app.type).toBe(null)
+})
+
+class DummyModule extends AppModule {
+
+    compute(input: Command): CommandResult | Promise<CommandResult> {
+        return input
+    }
+}
+
+it(`.use() to add components`, () => {
+    const app = App.create().use(DummyModule)
+    expect(app.has(DummyModule)).toBe(true)
 })
