@@ -61,7 +61,7 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
         return this.has(Connection) ? this.connection.active : false
     }
 
-    get settings(): AppSettings<M> {
+    override get settings(): AppSettings<M> {
         return (this.has(Connection) ? this.connection.settings : {}) as AppSettings<M>
     }
 
@@ -73,11 +73,11 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
         return this.has(Connection) ? this.connection.type : null
     }
     
-    async start(): Promise<void> {
+    override async start(): Promise<void> {
         await this.connection.start()
     }
     
-    async stop(): Promise<void> {
+    override async stop(): Promise<void> {
         await this.connection.stop()
     }
 

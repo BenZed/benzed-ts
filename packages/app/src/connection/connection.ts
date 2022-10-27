@@ -21,7 +21,7 @@ export abstract class Connection<C extends Command = Command, O extends object =
         return this._started
     }
 
-    start(): void | Promise<void> {
+    override start(): void | Promise<void> {
         if (this._started) {
             throw new Error(
                 `${this.type} has already been started`
@@ -30,7 +30,7 @@ export abstract class Connection<C extends Command = Command, O extends object =
         this._started = true
     }
 
-    stop(): void | Promise<void> {
+    override stop(): void | Promise<void> {
         if (!this._started) {
             throw new Error(
                 `${this.type} has not been started`

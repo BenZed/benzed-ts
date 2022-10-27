@@ -31,14 +31,11 @@ export class KoaServer extends Server<ToServerCommand> {
      * that have been built from a http or websocket request.
      */
     override canExecute(command: Command): command is ToServerCommand {
-        return $$served in command
+        return !!this.parent && $$served in command && (command as ToServerCommand)[$$served] === true
     }
 
     override _execute(command: Command): object | Promise<object> {
-        if (!this.parent)
-            throw new Error(`Server ${command}`)
-
-        return this.parent.execute(command)
+        return this.parent?.execute(command)
     }
 
     constructor(settings: ServerSettings) {
@@ -47,8 +44,11 @@ export class KoaServer extends Server<ToServerCommand> {
         this._koa = new Koa()
         this._koa.use(cors())
         this._koa.use(async (ctx) => {
-            const cmd = this._commandFromCtx(ctx)
-            ctx.body = await this.execute(cmd)
+            const cmd = { name: `hello`, [$$served]: true } as never // this._commandFromCtx(ctx)
+            const result = await this.execute(cmd)
+
+            delete result[$$served]
+            ctx.body = result
         })
     }
 
@@ -68,7 +68,7 @@ export class KoaServer extends Server<ToServerCommand> {
         }
     }
 
-    async start(): Promise<void> {
+    override async start(): Promise<void> {
 
         await super.start()
         const { _koa: koa } = this
@@ -81,7 +81,7 @@ export class KoaServer extends Server<ToServerCommand> {
         })
     }
 
-    async stop(): Promise<void> {
+    override async stop(): Promise<void> {
         await super.stop()
 
         const http = this._http as HttpServer

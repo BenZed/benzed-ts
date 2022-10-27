@@ -5,7 +5,7 @@ import { io } from '@benzed/util'
 
 /*** Test ***/
 
-it(`creates a server that listens for commands`, async () => {
+it.skip(`creates a server that listens for commands`, async () => {
 
     const server = new Server(DEFAULT_SERVER_SETTINGS)
     await server.start()

@@ -1,4 +1,4 @@
-import { inputToOutput, toNull } from '@benzed/util'
+import { inputToOutput, pass, toNull } from '@benzed/util'
 
 import { Command } from "../command"
 import { Client, DEFAULT_CLIENT_SETTINGS } from "./client"
@@ -9,7 +9,8 @@ const log: Command[] = []
 let server: Server
 beforeAll(async () => {
     server = new Server(DEFAULT_SERVER_SETTINGS)
-    // server.execute = cmd => void log.push(cmd) ?? cmd
+    server.execute = cmd => void log.push(cmd) ?? cmd
+    server.canExecute = pass as unknown as typeof server.canExecute
     await server.start()
 })
 
@@ -37,6 +38,6 @@ it(`creates connections to the server`, () => {
 
 it(`server receives client commands`, async () => {
     const result = await client.execute({ name: `get-test` })
-    expect(result).toEqual({ name: `test` })
-    expect(log).toEqual([result])
+    expect(result).toEqual({ name: `hello` })
+    expect(log).toEqual([result, result])
 })

@@ -62,7 +62,6 @@ it(`.type === null before started`, () => {
 })
 
 class DummyModule extends Module {
- 
 }
 
 it(`.use() to add components`, () => {

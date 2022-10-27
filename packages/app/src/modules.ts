@@ -135,7 +135,7 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
 
     // Module Implementation
 
-    get<M extends Module<any>, R extends boolean = false>(
+    override get<M extends Module<any>, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required: R = false as R
     ): R extends true ? M : M | null {

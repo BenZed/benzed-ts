@@ -23,7 +23,7 @@ export class FetchSocketIOClient extends Client {
     }
 
     // Module Implementation
-    async start(): Promise<void> {
+    override async start(): Promise<void> {
         await super.start()
         if (this.settings.constant)
             await this._startSocketIO()
@@ -31,7 +31,7 @@ export class FetchSocketIOClient extends Client {
             await this._fetchOptions()
     }
 
-    async stop(): Promise<void> {
+    override async stop(): Promise<void> {
         await super.stop()
         if (this.settings.constant)
             await this._stopSocketIO()
@@ -51,14 +51,13 @@ export class FetchSocketIOClient extends Client {
      * There's no maintaining a connection when using rest,
      * so instead we just 
      */
-    private async _fetchOptions(): Promise<void> {
+    private async _fetchOptions(): Promise<object> {
 
         const { host } = this.settings
 
         const res = await fetch(host, { method: `options` })
 
         const json = await res.json()
-        if (!json.version || !json.name)
-            throw new Error(`${host} gave invalid response.`)
+        return json
     }
 }
