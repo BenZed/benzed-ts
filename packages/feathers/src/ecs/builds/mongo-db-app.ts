@@ -15,8 +15,7 @@ import {
 
 /*** Builder ***/
 
-const mongoDbBuilder = feathers
-    .app
+const mongoDbBuilder = feathers.app
     .use(Koa)
     .use(MongoDb)
     .use(Convenience)

@@ -14,17 +14,20 @@ import {
     @typescript-eslint/no-explicit-any
 */
 
-/*** Requirements ***/
+/*** Types ***/
 
-export type FeathersModuleConstructor<C extends FeathersModule = FeathersModule> = 
+type FeathersModuleConstructor<C extends FeathersModule = FeathersModule> = 
     (new (components: FeathersModules) => C)
 
-/*** Components ***/
+type FeathersModuleInitMethod<C extends FeathersModules, Cx extends FeathersModule> =
+    (components: C) => Cx
 
 type FeathersModules = readonly FeathersModule[]
 
+/*** Modules ***/
+
 /**
- * Component that makes mutations to the app
+ * Base class for this tool
  */
 abstract class FeathersModule<C extends FeathersModules = FeathersModules> extends Node<FeathersBuildContext, FeathersBuildContext, C> {
 
@@ -65,7 +68,47 @@ abstract class FeathersModule<C extends FeathersModules = FeathersModules> exten
 }
 
 /**
- * Base class for components that construct feathers applications
+ * A module that takes other modules and builds a result object
+ */
+abstract class FeathersBuilder<M extends FeathersModules> extends FeathersModule<M> {
+
+    abstract use<Mx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx>
+    ): unknown
+
+    protected _initializeModule<Mx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx>
+    ): Mx {
+
+        let mod: Mx 
+        try {
+            mod = (constructorOrInitMethod as FeathersModuleInitMethod<M, Mx>)(this.components)
+        } catch {
+            mod = new (constructorOrInitMethod as FeathersModuleConstructor<Mx>)(this.components)
+        }
+
+        if (!(mod instanceof FeathersModule))
+            throw new Error(`Must be an instance of ${FeathersModule}`)
+
+        return mod
+    }
+
+    override compute(ctx: FeathersBuildContext): FeathersBuildContext {
+
+        ctx = super.compute(ctx)
+
+        for (const component of this.components) 
+            ctx = component.compute(ctx)
+
+        return ctx
+    }
+
+    abstract build(input: unknown): unknown
+
+}
+
+/**
+ * Base class for components that mutate the app's types
  */
 abstract class FeathersBuildModule<B extends BuildEffect = BuildEffect> extends FeathersModule {
 
@@ -148,8 +191,13 @@ export {
     FeathersModules,
 
     FeathersBuildModule,
+    FeathersBuilder,
 
     FeathersExtendComponent,
     FeathersConfigComponent,
-    FeathersServiceComponent
+    FeathersServiceComponent,
+
+    FeathersModuleInitMethod,
+    FeathersModuleConstructor
+
 }

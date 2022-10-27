@@ -2,13 +2,17 @@ import { feathers as _feathers } from '@feathersjs/feathers'
 
 import { Empty, StringKeys} from '@benzed/util'
 
-import { FeathersModules, FeathersModule, FeathersModuleConstructor } from './module'
+import { 
+    FeathersBuilder, 
+    FeathersModules, 
+    FeathersModule, 
+    FeathersModuleConstructor, 
+    FeathersModuleInitMethod 
+} from './module'
 
 import { LifeCycleMethod, FeathersBuildContext, FromBuildEffect } from './types'
-import { App } from '../types'
-
 import { getDefaultConfiguration } from '../util'
-import FeathersBuilder from './builder'
+import { App } from '../types'
 
 /*** Eslint ***/
 
@@ -41,9 +45,6 @@ type FeathersOutput<B extends FeathersAppBuilder<any>> = B extends FeathersAppBu
     ? FeathersBuilderOutput<C> 
     : unknown
 
-type FeathersModuleInitMethod<C extends FeathersModules, Cx extends FeathersModule> =
-    (components: C) => Cx
-
 /*** Builder ***/
 
 /**
@@ -61,9 +62,9 @@ class FeathersAppBuilder<M extends FeathersModules> extends FeathersBuilder<M> {
         super(modules)
     }
 
-    override use<Cx extends FeathersModule>(
-        constructorOrInitMethod: FeathersModuleConstructor<Cx> | FeathersModuleInitMethod<M, Cx>
-    ): FeathersAppBuilder<[...M, Cx]> {
+    override use<Mx extends FeathersModule>(
+        constructorOrInitMethod: FeathersModuleConstructor<Mx> | FeathersModuleInitMethod<M, Mx> 
+    ): FeathersAppBuilder<[...M, Mx]> {
 
         return new FeathersAppBuilder([
             ...this.components, 
@@ -142,6 +143,8 @@ class FeathersAppBuilder<M extends FeathersModules> extends FeathersBuilder<M> {
 }
 
 /*** Exports ***/
+
+export default FeathersAppBuilder
 
 export {
     FeathersAppBuilder,
