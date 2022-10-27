@@ -1,4 +1,4 @@
-import { ServiceModule, Module, Modules } from './modules'
+import { ServiceModule, Module, Modules, CommandModule } from './modules'
 
 import { 
 
@@ -17,8 +17,8 @@ import {
 import { Command } from './command'
 
 import { pluck } from '@benzed/array'
+import { Empty } from '@benzed/util'
 import is from '@benzed/is'
-import { Empty } from '@benzed/util/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -102,12 +102,18 @@ class App<C extends Command = any, M extends Modules = Modules> extends ServiceM
         await this.connection.stop()
     }
 
-    execute(_command: C): object {
-        throw new Error(`Not yet implemented`)
+    _execute(command: C): any {
+        const module = this
+            .commandModules
+            .find(m => m.canExecute(command)) as CommandModule
+
+        return module.execute(command)
     }
 
     canExecute(command: Command): command is C {
-        return false
+        return this
+            .commandModules
+            .some(m => m.canExecute(command))
     }
 
     server(settings: Partial<ServerSettings> = {}): App {

@@ -1,23 +1,20 @@
 
-import Client, { DEFAULT_CLIENT_SETTINGS } from './client'
+import Client from './client'
 import type { Command, CommandResult } from '../../command'
 
 import { fetch } from 'cross-fetch'
 
-/*** UrlCommand ***/
-
-// interface UrlCommand extends Command, Pick<ClientOptions, 'host'> { }
-
 /*** FetchSocketIOClient ***/
-
-const { host, constant } = DEFAULT_CLIENT_SETTINGS
 
 /**
  * Client that connects to a server using fetch or socket.io
  */
 export class FetchSocketIOClient extends Client {
+ 
+    // Command Module Implementation
+    async _execute(_command: Command): Promise<CommandResult> {
 
-    async execute(_command: Command): Promise<CommandResult> {
+        const { host } = this.settings
 
         const { url, method } = { url: host, method: `options` }
 
@@ -25,9 +22,10 @@ export class FetchSocketIOClient extends Client {
         return req.json()
     }
 
+    // Module Implementation
     async start(): Promise<void> {
         await super.start()
-        if (constant)
+        if (this.settings.constant)
             await this._startSocketIO()
         else 
             await this._fetchOptions()
@@ -35,10 +33,12 @@ export class FetchSocketIOClient extends Client {
 
     async stop(): Promise<void> {
         await super.stop()
-        if (constant)
+        if (this.settings.constant)
             await this._stopSocketIO()
     }
 
+    // Helper 
+    
     private async _startSocketIO(): Promise<void> {
         await Promise.resolve()
     }
@@ -47,7 +47,13 @@ export class FetchSocketIOClient extends Client {
         await Promise.resolve()
     }
 
+    /**
+     * There's no maintaining a connection when using rest,
+     * so instead we just 
+     */
     private async _fetchOptions(): Promise<void> {
+
+        const { host } = this.settings
 
         const res = await fetch(host, { method: `options` })
 

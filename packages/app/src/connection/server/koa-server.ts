@@ -6,36 +6,50 @@ import cors from '@koa/cors'
 import Server, { ServerSettings } from './server'
 import type { Command } from '../../command'
 
+/*** Command ***/
+
+const $$served = Symbol(`request-came-from-http-or-websocket-server`)
+
+interface ToServerCommand extends Command {
+
+    [$$served]: true
+
+}
+
 /*** KoaServer ***/
 
 /**
- * Koa is a means to an end. I'd like to keep the implementation as
- * de-coupled from the rest of the app logic as possible. The only 
- * thing interacting with the KOA Api should be this class.
- * 
- * I mean, Koa is great, I don't think I'll ever build my own 
- * http server request/response parser, but still.
+ * Server implementation using KOA/socket.io
  */
-export class KoaServer extends Server {
+export class KoaServer extends Server<ToServerCommand> {
 
     private readonly _koa 
     private _http: HttpServer | null = null
+
+    /**
+     * Servers emit commands, so they should only be able to execute commands 
+     * that have been built from a http or websocket request.
+     */
+    override canExecute(command: Command): command is ToServerCommand {
+        return $$served in command
+    }
+
+    override _execute(command: Command): object | Promise<object> {
+        if (!this.parent)
+            throw new Error(`Server ${command}`)
+
+        return this.parent.execute(command)
+    }
 
     constructor(settings: ServerSettings) {
         super(settings)
 
         this._koa = new Koa()
         this._koa.use(cors())
-        this._koa.use(async (ctx, next) => {
-            await next()
-            ctx.body = this._isInfoRequest(ctx) || !this.parent
-                ? { version: `0.0.1`, name: `benzed-ecs-app` }
-                : await this.parent.execute(this._commandFromCtx(ctx))
+        this._koa.use(async (ctx) => {
+            const cmd = this._commandFromCtx(ctx)
+            ctx.body = await this.execute(cmd)
         })
-    }
-
-    private _isInfoRequest(ctx: Context): boolean {
-        return ctx.method.toLowerCase() === `options` && this._splitUrl(ctx).length === 0
     }
 
     private _splitUrl(ctx: Context): string[] {
@@ -47,7 +61,7 @@ export class KoaServer extends Server {
         const name = this._splitUrl(ctx).join(`-`)
         const action = null
         if (!name || !action)
-            throw new Error(``)
+            throw new Error(`Could not resolve command from context.`)
 
         return { 
             name: `${action}-${name}` 
@@ -76,5 +90,4 @@ export class KoaServer extends Server {
             http.close(err => err ? reject(err) : resolve())
         })
     }
-
 }

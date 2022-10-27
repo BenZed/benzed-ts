@@ -1,6 +1,7 @@
 import Connection from '../connection'
 
 import $, { Infer } from '@benzed/schema'
+import { Command } from '../../command'
 
 /*** Types ***/
 
@@ -22,7 +23,7 @@ const DEFAULT_SERVER_SETTINGS: ServerSettings = { port: 3000 }
 /**
  * Serverside connections, sends commands sent to users to the app
  */
-abstract class Server extends Connection<ServerSettings> {
+abstract class Server<C extends Command> extends Connection<C, ServerSettings> {
 
     readonly type = `server` as const
 
@@ -35,5 +36,6 @@ export default Server
 export {
     Server,
     ServerSettings,
-    DEFAULT_SERVER_SETTINGS
+    DEFAULT_SERVER_SETTINGS,
+
 }

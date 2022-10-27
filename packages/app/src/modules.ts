@@ -94,12 +94,23 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
 
     abstract canExecute(command: Command): command is C
 
-    abstract execute(command: C): object | Promise<object>
+    execute(command: Command): any {
+        if (!this.canExecute(command))
+            throw new Error(`${this.constructor.name} cannot execute command ${command.name}`)
+
+        return this._execute(command)
+    }
+
+    protected abstract _execute(command: C): object | Promise<object>
 
 }
 
 export abstract class ServiceModule<C extends Command = any, M extends Modules = any, S extends object = Empty> extends CommandModule<C, S> {
 
+    get commandModules(): CommandModule<C>[] {
+        return this.modules.filter((m): m is CommandModule<C> => `execute` in m)
+    }
+    
     constructor(
         readonly modules: M, 
         settings: S

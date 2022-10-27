@@ -1,4 +1,5 @@
 import $, { Infer } from '@benzed/schema'
+import { Command } from '../../command'
 
 import Connection from '../connection'
 import { DEFAULT_SERVER_SETTINGS } from '../server'
@@ -23,7 +24,15 @@ const DEFAULT_CLIENT_SETTINGS: ClientSettings = {
 /**
  * Creates connection to server, allows commands to be emitted.
  */
-abstract class Client extends Connection<ClientSettings> {
+abstract class Client extends Connection<Command, ClientSettings> {
+
+    /**
+     * A client is essentially a routing component. It
+     * should be able to execute any command.
+     */
+    override canExecute(command: Command): command is Command {
+        return true
+    }
 
     readonly type = `client` as const
 
