@@ -1,6 +1,7 @@
 import { io } from '@benzed/util'
 
 import { App } from './app'
+import { Connection } from './connection'
 import { Module } from './modules'
 
 /*** Tests ***/
@@ -43,7 +44,7 @@ it(`.stop() cannot be called until started`, async () => {
     const app = App.create()
 
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`Could not find component of type Connection`)
+    expect(err.message).toContain(`${App.name} is missing module ${Connection.name}`)
 })
 
 it(`.stop() cannot be called consecutively`, async () => {

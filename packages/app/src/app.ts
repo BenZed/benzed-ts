@@ -36,14 +36,74 @@ type AppSettings<M extends Modules> = M extends [ infer Mx, ...infer Mr]
 
 /*** App ***/
 
-class App<C extends Command = any, M extends Modules = Modules> extends ServiceModule<C, M, AppSettings<M>> 
+class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSettings<M>> 
     implements Omit<Connection, '_started' | 'parentTo'> {
 
+    // Sealed Construction 
+
+    static create(): App<[]> {
+        return new App([])
+    }
+
+    private constructor(
+        modules: M
+    ) {
+        super(modules, {} as AppSettings<M>) 
+    }
+    
+    // Connection Interface
+
+    get connection(): Connection {
+        return this.get(Connection<any,any>, true)
+    }
+
+    get active(): boolean {
+        return this.has(Connection) ? this.connection.active : false
+    }
+
+    get settings(): AppSettings<M> {
+        return (this.has(Connection) ? this.connection.settings : {}) as AppSettings<M>
+    }
+
+    /**
+     * The connection type of this App. Null if
+     * it has not yet been assigned.
+     */
+    get type(): 'server' | 'client' | null {
+        return this.has(Connection) ? this.connection.type : null
+    }
+    
+    async start(): Promise<void> {
+        await this.connection.start()
+    }
+    
+    async stop(): Promise<void> {
+        await this.connection.stop()
+    }
+
+    // Command Implementation 
+    
+    _execute(command: Command): any {
+        const module = this
+            .commandModules
+            .find(m => m.canExecute(command)) as CommandModule
+
+        return module.execute(command)
+    }
+
+    canExecute(command: Command): command is Command {
+        return this
+            .commandModules
+            .some(m => m.canExecute(command))
+    }
+
+    // Build Interface
+    
     use<Mx extends Module<any>>(
         ...args: Mx extends ServiceModule<any,any> 
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
-    ): App<C, [...M, Mx]> {
+    ): App<[...M, Mx]> {
 
         const path = pluck(args, is.string).at(0) 
         let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
@@ -60,79 +120,24 @@ class App<C extends Command = any, M extends Modules = Modules> extends ServiceM
         ])
     }
 
-    // Sealed Construction 
-
-    static create(): App<Command, []> {
-        return new App([])
-    }
-
-    private constructor(
-        modules: M
-    ) {
-        super(modules, {} as AppSettings<M>) 
-    }
-    
-    // Connection Interface
-
-    get connection(): Connection {
-        return this.get(Connection, true)
-    }
-
-    get active(): boolean {
-        return this.has(Connection) ? this.connection.active : false
-    }
-
-    get settings(): AppSettings<M> {
-        return (this.has(Connection) ? this.connection.settings : {}) as AppSettings<M>
-    }
-
-    /**
-     * The connection type of this App. Null if
-     * it has not yet been assigned.
-     */
-    get type(): 'server' | 'client' | null {
-        return this.connection?.type ?? null
-    }
-    
-    async start(): Promise<void> {
-        await this.connection.start()
-    }
-    
-    async stop(): Promise<void> {
-        await this.connection.stop()
-    }
-
-    _execute(command: C): any {
-        const module = this
-            .commandModules
-            .find(m => m.canExecute(command)) as CommandModule
-
-        return module.execute(command)
-    }
-
-    canExecute(command: Command): command is C {
-        return this
-            .commandModules
-            .some(m => m.canExecute(command))
-    }
-
-    server(settings: Partial<ServerSettings> = {}): App {
+    server(settings: Partial<ServerSettings> = {}): App<[Server]> {
         return this.use(
             new Server({
                 ...DEFAULT_SERVER_SETTINGS,
                 ...settings
             })
-        )
+        ) as any
     } 
 
-    client(settings: Partial<ClientSettings> = {}): App {
+    client(settings: Partial<ClientSettings> = {}): App<[Client]> {
         return this.use(
             new Client({
                 ...DEFAULT_CLIENT_SETTINGS,
                 ...settings
             })
-        )
+        ) as any
     } 
+
 }
 
 /*** Export ***/

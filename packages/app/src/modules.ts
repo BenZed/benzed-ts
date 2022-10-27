@@ -17,11 +17,11 @@ export type SettingsOf<M extends Module<any>> = M extends Module<infer S> ? S : 
 
 export abstract class Module<S extends object = Empty> {
 
-    get settings():S {
+    get settings(): S {
         return this._settings
     }
     
-    constructor(
+    constructor( 
         private readonly _settings: S
     ) { 
         this._validateModules()
@@ -33,7 +33,7 @@ export abstract class Module<S extends object = Empty> {
     }
     
     parentTo(parent: ServiceModule): this {
-        const clone = new (this.constructor as any)
+        const clone = new (this.constructor as any)(this.settings)
         clone._parent = parent
 
         return clone
@@ -65,7 +65,7 @@ export abstract class Module<S extends object = Empty> {
 
     // Validation
 
-    protected _validateModules(): void { /**/ }
+    _validateModules(): void { /**/ }
 
     protected _assertSingle(): void { 
         if (this.has(this.constructor as ModuleConstructor))
@@ -107,16 +107,19 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
 
 export abstract class ServiceModule<C extends Command = any, M extends Modules = any, S extends object = Empty> extends CommandModule<C, S> {
 
-    get commandModules(): CommandModule<C>[] {
-        return this.modules.filter((m): m is CommandModule<C> => `execute` in m)
-    }
-    
     constructor(
         readonly modules: M, 
         settings: S
     ) {
         super(settings)
     }
+    
+    // Convenience getters
+    get commandModules(): CommandModule<C>[] {
+        return this.modules.filter((m): m is CommandModule<C> => `execute` in m)
+    }
+
+    // Service Implementation
 
     private _path = ``
     get path(): string {
@@ -128,6 +131,20 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
         clone._path = path
     
         return clone
+    }
+
+    // Module Implementation
+
+    get<M extends Module<any>, R extends boolean = false>(
+        type: ModuleConstructor<M>, 
+        required: R = false as R
+    ): R extends true ? M : M | null {
+
+        const module = this.modules.find(m => m instanceof type) ?? null
+        if (!module && required)
+            throw new Error(`${this.constructor.name} is missing module ${type.name}`)
+
+        return module as M
     }
 
 }
