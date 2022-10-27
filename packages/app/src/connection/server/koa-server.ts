@@ -3,10 +3,8 @@ import { Server as HttpServer } from 'http'
 import Koa, { Context } from 'koa'
 import cors from '@koa/cors'
 
-import { Compute } from '@benzed/ecs'
-
 import Server, { ServerOptions } from './server'
-import type { Command, CommandResult } from '../../command'
+import type { Command } from '../../command'
 import type { AppModules } from '../../app-module'
 
 /*** Helper ***/
@@ -23,12 +21,12 @@ import type { AppModules } from '../../app-module'
  */
 export class KoaServer extends Server {
 
-    static withOptions(options: ServerOptions, compute: Compute<Command, CommandResult | Promise<CommandResult>>): new (m: AppModules) => KoaServer {
+    static withOptions(options: ServerOptions): new (m: AppModules) => KoaServer {
         return class extends KoaServer {
             constructor (
                 components: AppModules,
             ) {
-                super(components, options, compute)
+                super(components, options)
             }
         }
     }
@@ -38,8 +36,7 @@ export class KoaServer extends Server {
 
     constructor(
         components: AppModules,
-        options: ServerOptions,
-        readonly compute: Compute<Command, CommandResult | Promise<CommandResult>>
+        options: ServerOptions
     ) {
         super(components, options)
 
@@ -49,9 +46,7 @@ export class KoaServer extends Server {
             await next()
             ctx.body = this._isInfoRequest(ctx)
                 ? { version: `0.0.1`, name: `benzed-ecs-app` }
-                : await this.compute(
-                    this._commandFromCtx(ctx)
-                )
+                : await this.compute(this._commandFromCtx(ctx))
         })
     }
 

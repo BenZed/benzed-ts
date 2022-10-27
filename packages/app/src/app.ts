@@ -1,7 +1,5 @@
 import { AppModule, AppModules } from './app-module'
 
-import type { Command, CommandResult } from './command'
-
 import { 
     Client, 
     ClientOptions, 
@@ -58,7 +56,7 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
     // Connection Interface
 
     get connection(): Connection {
-        return this.get(Connection) as Connection
+        return this.get(Connection)
     }
 
     get active(): boolean {
@@ -81,13 +79,6 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
         await this.connection.stop()
     }
 
-    compute(command: Command): CommandResult | Promise<CommandResult>{
-        if (this.has(Connection))
-            return this.connection.compute(command)
-
-        return this._invokeCommand(command)
-    }
-
     // Build Interface
 
     client(options: ClientOptions = DEFAULT_CLIENT_OPTIONS): App<[]> {
@@ -97,22 +88,9 @@ class App<M extends AppModules> extends AppModule implements Omit<Connection, '_
     }
 
     server(options: ServerOptions = DEFAULT_SERVER_OPTIONS): App<[]> {
-
-        const { _invokeCommand: invokeCommand } = this
-
         return this.use(
-            Server.withOptions(options, invokeCommand)
+            Server.withOptions(options)
         )
-    }
-
-    // Helper
-
-    private _invokeCommand(command: Command): CommandResult | Promise<CommandResult> {
-
-        for (const component of this.components) 
-            console.log(`${App.name} ${this.type} ${component.constructor.name} ${command}`)
-        
-        return command
     }
 
 }

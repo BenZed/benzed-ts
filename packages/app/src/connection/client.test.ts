@@ -8,7 +8,8 @@ const log: Command[] = []
 
 let server: Server
 beforeAll(async () => {
-    server = new Server([], DEFAULT_SERVER_OPTIONS, cmd => void log.push(cmd) ?? cmd)
+    server = new Server([], DEFAULT_SERVER_OPTIONS)
+    server.compute = cmd => void log.push(cmd) ?? cmd
     await server.start()
 })
 
