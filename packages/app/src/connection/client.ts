@@ -4,7 +4,7 @@ import Connection from './connection'
 
 class Client extends Connection {
 
-    readonly type = `client`
+    readonly type = `client` as const
 
     start(): Promise<void> {
         return Promise.resolve()

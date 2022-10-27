@@ -1,7 +1,7 @@
 import { io } from '@benzed/util'
 
 import { App } from './app'
-import { Server } from './connection'
+import { Client, Server } from './connection'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -28,6 +28,14 @@ it(`.start() to start an app with a server connection`, async () => {
 
     expect(app.type).toBe(`server`)
 
+    await app.stop()
+})
+
+it(`.start() to start an app with a client connection`, async () => {
+    const app = App.create()
+
+    await app.start(new Client())
+    expect(app.type).toBe(`client`)
     await app.stop()
 })
 
