@@ -1,92 +1,104 @@
 import { Server as HttpServer } from 'http'
 
 import Koa, { Context } from 'koa'
+import body from 'koa-body'
 import cors from '@koa/cors'
 
 import Server, { ServerSettings } from './server'
-import type { Command } from '../../command'
-
-/*** Command ***/
-
-const $$served = Symbol(`request-came-from-http-or-websocket-server`)
-
-export interface ToServerCommand extends Command {
-    [$$served]: true
-}
+import { Command } from '../../command'
+import { HttpStatus } from './http-codes'
 
 /*** KoaServer ***/
 
 /**
  * Server implementation using KOA/socket.io
  */
-export class KoaServer extends Server<ToServerCommand> {
+export class KoaServer extends Server {
 
     private readonly _koa 
     private _http: HttpServer | null = null
-
-    /**
-     * Servers emit commands, so they should only be able to execute commands 
-     * that have been built from a http or websocket request.
-     */
-    override canExecute(command: Command): command is ToServerCommand {
-        return !!this.parent && $$served in command && (command as ToServerCommand)[$$served] === true
-    }
-
-    override _execute(command: ToServerCommand): object | Promise<object> {
-        return this.parent?.execute(command)
-    }
 
     constructor(settings: ServerSettings) {
         super(settings)
 
         this._koa = new Koa()
         this._koa.use(cors())
+        this._koa.use(body())
         this._koa.use(async (ctx) => {
-            const cmd = { name: `hello`, [$$served]: true } as never // this._commandFromCtx(ctx)
-            const result = await this.execute(cmd)
 
-            delete result[$$served]
-            ctx.body = result
+            let response
+            if (this._isCommandListRequest(ctx))
+                response = await this.getCommandList()
+            else { 
+                const command = this._createCommandFromCtx(ctx)
+                response = await this._relayCommand(ctx, command)
+            }
+
+            ctx.body = response
         })
+    }
+
+    // Connection Implementation
+
+    override getCommandList(): Promise<Command['name'][]> {
+        return Promise.resolve([])
+    }
+    
+    override async start(): Promise<void> {
+    
+        await super.start()
+        const { _koa: koa } = this
+    
+        const { port } = this.settings
+    
+        await new Promise<void>((resolve, reject) => {
+            this._http = koa.listen(port, resolve)
+            this._http.once(`error`, reject)
+        })
+    }
+    
+    override async stop(): Promise<void> {
+        await super.stop()
+    
+        const http = this._http as HttpServer
+            
+        await new Promise<void>((resolve, reject) => {
+            http.close(err => err ? reject(err) : resolve())
+        })
+    }
+
+    // Helper
+
+    private _isCommandListRequest(ctx: Context): boolean {
+        return this._splitUrl(ctx).length === 0 && ctx.method.toLowerCase() === `options`
     }
 
     private _splitUrl(ctx: Context): string[] {
         return ctx.url.split(`/`).filter(w => w.trim())
     }
 
-    private _commandFromCtx(ctx: Context): ToServerCommand {
+    private _relayCommand(ctx: Context, command: Command): Promise<object> {
+        
+        if (!this.parent) {
+            return ctx.throw(
+                HttpStatus.InternalServerError, 
+                `${Server.name} cannot relay any commands.`
+            )
+        }
 
-        const name = this._splitUrl(ctx).join(`-`)
-        const action = null
-        if (!name || !action)
-            throw new Error(`Could not resolve command from context.`)
-
-        return { 
-            [$$served]: true,
-            name: `${action}-${name}`
+        try {
+            return this.parent.execute(command)
+        } catch (e) {
+            ctx.throw(HttpStatus.BadRequest, (e as Error).message)
         }
     }
 
-    override async start(): Promise<void> {
+    private _createCommandFromCtx(ctx: Context): Command {
 
-        await super.start()
-        const { _koa: koa } = this
+        // for now, all commands can be posted to the root with the command json as a body
+        if (ctx.method === `POST` && ctx.url === `/`)
+            return JSON.parse(ctx.request.body)
 
-        const { port } = this.settings
-
-        await new Promise<void>((resolve, reject) => {
-            this._http = koa.listen(port, resolve)
-            this._http.once(`error`, reject)
-        })
-    }
-
-    override async stop(): Promise<void> {
-        await super.stop()
-
-        const http = this._http as HttpServer
-        
-        await new Promise<void>((resolve, reject) => {
-            http.close(err => err ? reject(err) : resolve())
-        })
+        return ctx.throw(HttpStatus.InternalServerError, `${Server.name} cann`)
     }
 }

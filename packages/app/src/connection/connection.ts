@@ -1,16 +1,17 @@
 
 import { Empty } from '@benzed/util'
-
 import { Command } from '../command'
-import { CommandModule } from '../modules'
+
+import { Module } from '../modules'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<C extends Command = any, O extends object = Empty> extends CommandModule<C, O> {
+export abstract class Connection<O extends object = Empty> extends Module<O> {
 
     override validateModules(): void {
         this._assertSingle()
+        this._assertRoot()
     }
 
     abstract readonly type: `server` | `client` | null
@@ -37,6 +38,11 @@ export abstract class Connection<C extends Command = any, O extends object = Emp
         }
         this._started = false
     }
+
+    /**
+     * Retreive a list of all commands possible.
+     */
+    abstract getCommandList(): Promise<Command['name'][]>
 
 }
 

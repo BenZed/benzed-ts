@@ -83,12 +83,26 @@ export class Module<S extends object = Empty> {
 
     validateModules(): void { /**/ }
 
+    /**
+     * Must be the only module of it's type in a parent.
+     */
     protected _assertSingle(): void { 
         const clone = this.get(this.constructor as ModuleConstructor)
         if (clone && clone !== this)
             throw new Error(`${this.constructor.name} may only be used once`)
     }
+
+    /**
+     * Module must be a root-level module of an app, not nested.
+     */
+    protected _assertRoot(): void {
+        if (this.parent?.parent)
+            throw new Error(`${this.constructor.name} must be a root level module.`)
+    }
     
+    /**
+     * Module must have access to the given modules
+     */
     protected _assertRequired(...types: readonly ModuleConstructor[]): void {
         const missing = types.filter(t => !this.has(t))
         if (missing.length > 0) {
@@ -98,6 +112,9 @@ export class Module<S extends object = Empty> {
         }
     }
 
+    /**
+     * Module cannot be 
+     */
     protected _assertConflicting(...types: readonly ModuleConstructor[]): void { 
         const found = types.filter(t => this.has(t))
         if (found.length > 0) {

@@ -110,3 +110,12 @@ it(`settings match client component`, () => {
     expect(app.settings).toEqual(app.get(Client)?.settings)
     expectTypeOf<ModuleSettings<typeof app>>().toMatchTypeOf<ModuleSettings<Client>>()
 })
+
+it(`connection is typesafe`, () => {
+
+    const client = App.create().client().connection
+    expectTypeOf<typeof client>().toMatchTypeOf<Client>()
+
+    const server = App.create().server().connection
+    expectTypeOf<typeof server>().toMatchTypeOf<Server>()
+})
