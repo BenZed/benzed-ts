@@ -56,6 +56,16 @@ it(`.start() cannot be called consecutively`, async () => {
     expect(err.message).toContain(`${app.type} has already been started`)
 })
 
+it(`.generic() to remove connections`, () => {
+    const app = App.create().client().use(new DummyModule({})).generic()
+
+    type DummyClient = typeof app 
+    type Modules = DummyClient extends App<infer M> ? M : unknown 
+    expectTypeOf<Modules>().toEqualTypeOf<[DummyModule]>()
+
+    expect(app.modules.length).toBe(1)
+})
+
 it(`.stop() cannot be called until started`, async () => {
     const app = App.create()
 
@@ -83,4 +93,22 @@ class DummyModule extends Module {
 it(`.use() to add components`, () => {
     const app = App.create().use(new DummyModule({}))
     expect(app.has(DummyModule)).toBe(true)
+})
+
+describe(`.nesting()`, () => {
+
+    const dummy = App.create().use(new DummyModule({}))
+    const server = App.create().server()
+    const serverWithDummy = server.use(dummy)
+    const serverWithDummyEndpoint = server.use(`dummy`, dummy)
+
+    it(`places one as a module of the other`, () => {
+        expect(serverWithDummy.modules[1].parent).toBe(serverWithDummy)
+    })
+
+    it(`can place nested services at different endpoints`, () => {
+
+        expect(serverWithDummyEndpoint.modules[1].path).toBe(`dummy`)
+    })
+    
 })

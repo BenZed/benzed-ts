@@ -1,4 +1,4 @@
-import { ServiceModule, Module, Modules, CommandModule } from './modules'
+import { ServiceModule, Module, Modules } from './modules'
 
 import { 
 
@@ -91,22 +91,6 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
         await this.connection.stop()
     }
 
-    // Command Implementation 
-    
-    _execute(command: Command): any {
-        const module = this
-            .commandModules
-            .find(m => m.canExecute(command)) as CommandModule
-
-        return module.execute(command)
-    }
-
-    canExecute(command: Command): command is Command {
-        return this
-            .commandModules
-            .some(m => m.canExecute(command))
-    }
-
     // Build Interface
     
     use<Mx extends Module<any>>(
@@ -120,9 +104,8 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
         if (!module)
             throw new Error(`${Module.name} not provided.`)
 
-        module = path && module instanceof ServiceModule
-            ? module.parentToWithPath(this, path)
-            : module.parentTo(this)
+        if (path && module instanceof ServiceModule)
+            module = module.parentToWithPath(this, path)
 
         return new App([
             ...this.modules, 
@@ -153,7 +136,7 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
     } 
 
     /**
-     * Ensure this app
+     * Ensure this app has no connection module, which is important if it is going to be nested.
      */
     generic(): App<Remove<Client | Server, M>> {
 

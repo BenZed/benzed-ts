@@ -127,12 +127,35 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
     get path(): string {
         return this._path
     }
+
+    override parentTo(parent: ServiceModule<any, any, any>): this {
+        const clone = new (this.constructor as any)(this.modules, this.settings)
+        clone._parent = parent
+        clone._path = this._path
+        return clone
+    }
     
     parentToWithPath(parent: ServiceModule<any>, path: string):this {
-        const clone = super.parentTo(parent)
+        const clone = this.parentTo(parent)
         clone._path = path
     
         return clone
+    }
+
+    // Command Implementation 
+    
+    _execute(command: Command): any {
+        const module = this
+            .commandModules
+            .find(m => m.canExecute(command)) as CommandModule
+    
+        return module.execute(command)
+    }
+    
+    canExecute(command: Command): command is C {
+        return this
+            .commandModules
+            .some(m => m.canExecute(command))
     }
 
     // Module Implementation
