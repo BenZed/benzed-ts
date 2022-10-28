@@ -2,9 +2,12 @@
 import { App, AppCommands } from './app'
 import { ToServerCommand } from './connection/server/koa-server'
 
-import { expectTypeOf } from 'expect-type'
 import { CommandModule } from './modules'
 import { Command } from './command/types'
+
+import { expectTypeOf } from 'expect-type'
+
+/*** Types ***/
 
 interface FooCommand extends Command {
     name: 'get-foo'
@@ -21,6 +24,8 @@ class FooModule extends CommandModule<FooCommand>{
         return !!command
     }
 }
+
+/*** Tests ***/
 
 it(`command definitions from added components are added to the app as types`, () => {
 

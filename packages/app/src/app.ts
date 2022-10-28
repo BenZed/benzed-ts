@@ -1,4 +1,10 @@
-import { ServiceModule, Module, Modules, CommandModule, $$parentTo } from './modules'
+import { 
+    ServiceModule, 
+    Module, 
+    Modules, 
+    ServiceCommands,
+    ServiceModules 
+} from './modules'
 
 import { 
 
@@ -14,17 +20,11 @@ import {
 
 } from './connection'
 
-import { Command } from './command'
-
-import { pluck } from '@benzed/array'
-import { Empty } from '@benzed/util'
-import is from '@benzed/is'
-
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-/*** App Settings ***/
+/*** Types ***/
 
 type AppSettings<M extends Modules | App<any>> = M extends App<infer Mx>
     ? AppSettings<Mx> 
@@ -33,37 +33,32 @@ type AppSettings<M extends Modules | App<any>> = M extends App<infer Mx>
             ? O 
             : Mr extends Modules 
                 ? AppSettings<Mr> 
-                : Empty
-        : Empty
+                : never
+        : never
 
-type AppModules<A extends App> = A extends App<infer M> ? M : unknown
+type AppCommands<A extends App | Modules> = A extends App<infer M> 
+    ? ServiceCommands<M> 
+    : ServiceCommands<A>
 
-type _AppCommandArray<M extends Modules | App<any>> = 
-    M extends App<infer Mx>
-        ? _AppCommandArray<Mx>
-        : { [K in keyof M]: M[K] extends CommandModule<infer C, any> 
-            ? C 
-            : Empty }
+/*** Helper Types ***/
 
-type AppCommands<M extends Modules | App<any>> = _AppCommandArray<M>[number]
-
-type RemoveModule<Mx extends Module<any>, M extends Modules> = 
+type _RemoveModule<Mx extends Module<any>, M extends Modules> = 
     M extends [infer Mf, ...infer Mr]
         ? Mf extends Mx 
             ? Mr
             : Mr extends Modules 
-                ? [Mf, ...RemoveModule<Mx, Mr>]
+                ? [Mf, ..._RemoveModule<Mx, Mr>]
                 : [Mf]
         : []
 
 /*** App ***/
 
+type AppConnection = Omit<Connection<any,any>, '_started' | symbol>
+
 /**
  * Immutable builder pattern for apps and services
  */
-class App<M extends Modules = Modules> 
-    extends ServiceModule<Command, M, AppSettings<M>> 
-    implements Omit<Connection<any,any>, '_started' | symbol> {
+class App<M extends Modules = Modules> extends ServiceModule<M, AppSettings<M>> implements AppConnection {
 
     // Sealed Construction 
 
@@ -75,7 +70,6 @@ class App<M extends Modules = Modules>
         modules: M
     ) {
         super(modules, {} as AppSettings<M>) 
-        this.validateModules()
     }
     
     // Connection Interface
@@ -114,27 +108,17 @@ class App<M extends Modules = Modules>
 
     // Build Interface
     
-    use<Mx extends Module<any>>(
+    override use<Mx extends Module<any>>(
         ...args: Mx extends ServiceModule<any,any> 
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
     ): App<[...M, Mx]> {
-
-        const path = pluck(args, is.string).at(0) 
-        let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
-        if (!module)
-            throw new Error(`${Module.name} not provided.`)
-
-        if (path && module instanceof ServiceModule)
-            module = module[$$parentTo](this, path)
-
-        return new App([
-            ...this.modules, 
-            module
-        ])
+        return new App(
+            this._pushModule(...args)
+        )
     }
 
-    server(settings: Partial<ServerSettings> = {}): App<[...RemoveModule<Client | Server, M>, Server]> {
+    server(settings: Partial<ServerSettings> = {}): App<[..._RemoveModule<Client | Server, M>, Server]> {
         return this
             .generic()
             .use(
@@ -145,7 +129,7 @@ class App<M extends Modules = Modules>
             ) 
     } 
 
-    client(settings: Partial<ClientSettings> = {}): App<[...RemoveModule<Client | Server, M>, Client]> {
+    client(settings: Partial<ClientSettings> = {}): App<[..._RemoveModule<Client | Server, M>, Client]> {
         return this
             .generic()
             .use(
@@ -160,20 +144,12 @@ class App<M extends Modules = Modules>
      * Ensure this app has no connection module, which is important if it is going to be 
      * nested.
      */
-    generic(): App<RemoveModule<Client | Server, M>> {
+    generic(): App<_RemoveModule<Client | Server, M>> {
 
         const modules = this.modules.filter(m => m instanceof Connection === false)
 
-        return new App(modules as unknown as RemoveModule<Client | Server, M>)
+        return new App(modules as unknown as _RemoveModule<Client | Server, M>)
     }
-
-    // Module Implementation 
-
-    override validateModules(): void {
-        this.modules.forEach(m => m.validateModules())
-    }
-
-    // Helper 
 
 }
 
@@ -183,7 +159,7 @@ export default App
 
 export {
     App,
-    AppModules,
+    ServiceModules as AppModules,
     AppSettings,
     AppCommands
 }
