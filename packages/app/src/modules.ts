@@ -26,7 +26,7 @@ export abstract class Module<S extends object = Empty> {
     ) { }
 
     private readonly _parent: ServiceModule<any,any,any> | null = null 
-    get parent(): ServiceModule | null{
+    get parent(): ServiceModule<any,any,any> | null{
         return this._parent
     }
     
@@ -90,11 +90,11 @@ export abstract class Module<S extends object = Empty> {
     }
 }
 
-export abstract class CommandModule<C extends Command = any, S extends object = Empty> extends Module<S> {
+export abstract class CommandModule<C extends Command = any, S extends object = any> extends Module<S> {
 
     abstract canExecute(command: Command): command is C
 
-    execute(command: Command): any {
+    execute(command: C): any {
         if (!this.canExecute(command))
             throw new Error(`${this.constructor.name} cannot execute command ${command.name}`)
 
@@ -118,7 +118,9 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
     
     // Convenience getters
     get commandModules(): CommandModule<C>[] {
-        return this.modules.filter((m): m is CommandModule<C> => `execute` in m)
+        return this
+            .modules
+            .filter((m): m is CommandModule<C> => `execute` in m)
     }
 
     // Service Implementation
@@ -135,7 +137,7 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
         return clone
     }
     
-    parentToWithPath(parent: ServiceModule<any>, path: string):this {
+    parentToWithPath(parent: ServiceModule<any,any,any>, path: string):this {
         const clone = this.parentTo(parent)
         clone._path = path
     

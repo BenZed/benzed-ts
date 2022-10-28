@@ -2,8 +2,8 @@ import { io } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
-import { Client, Connection } from './connection'
-import { Module } from './modules'
+import { Client, Connection, Server } from './connection'
+import { Module, SettingsOf } from './modules'
 
 /*** Tests ***/
 
@@ -43,7 +43,8 @@ it(`connection shortcuts automatically remove previous connection`, () => {
 it(`created modules are parented to the app`, () => {
     const app = App.create().client().use(new DummyModule({}))
 
-    expect(app.modules.every(m => m.parent === app)).toBe(true)
+    expect(app.modules.every(m => m.parent === app))
+        .toBe(true)
 })
 
 it(`.start() cannot be called consecutively`, async () => {
@@ -103,12 +104,30 @@ describe(`.nesting()`, () => {
     const serverWithDummyEndpoint = server.use(`dummy`, dummy)
 
     it(`places one as a module of the other`, () => {
-        expect(serverWithDummy.modules[1].parent).toBe(serverWithDummy)
+        expect(serverWithDummy.modules[1].parent)
+            .toBe(serverWithDummy)
     })
 
     it(`can place nested services at different endpoints`, () => {
-
-        expect(serverWithDummyEndpoint.modules[1].path).toBe(`dummy`)
+        expect(serverWithDummyEndpoint.modules[1].path)
+            .toBe(`dummy`)
     })
+})
+
+it(`settings match server component`, () => {
+
+    const app = App.create().server()
+
+    expect(app.settings).toEqual(app.get(Server)?.settings)
+    expectTypeOf<SettingsOf<typeof app>>().toMatchTypeOf<SettingsOf<Server>>()
+    
+})
+
+it(`settings match client component`, () => {
+
+    const app = App.create().client()
+
+    expect(app.settings).toEqual(app.get(Client)?.settings)
+    expectTypeOf<SettingsOf<typeof app>>().toMatchTypeOf<SettingsOf<Client>>()
     
 })

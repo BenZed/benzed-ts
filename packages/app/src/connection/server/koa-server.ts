@@ -10,10 +10,8 @@ import type { Command } from '../../command'
 
 const $$served = Symbol(`request-came-from-http-or-websocket-server`)
 
-interface ToServerCommand extends Command {
-
+export interface ToServerCommand extends Command {
     [$$served]: true
-
 }
 
 /*** KoaServer ***/
@@ -34,7 +32,7 @@ export class KoaServer extends Server<ToServerCommand> {
         return !!this.parent && $$served in command && (command as ToServerCommand)[$$served] === true
     }
 
-    override _execute(command: Command): object | Promise<object> {
+    override _execute(command: ToServerCommand): object | Promise<object> {
         return this.parent?.execute(command)
     }
 
@@ -56,7 +54,7 @@ export class KoaServer extends Server<ToServerCommand> {
         return ctx.url.split(`/`).filter(w => w.trim())
     }
 
-    private _commandFromCtx(ctx: Context): Command {
+    private _commandFromCtx(ctx: Context): ToServerCommand {
 
         const name = this._splitUrl(ctx).join(`-`)
         const action = null
@@ -64,7 +62,8 @@ export class KoaServer extends Server<ToServerCommand> {
             throw new Error(`Could not resolve command from context.`)
 
         return { 
-            name: `${action}-${name}` 
+            [$$served]: true,
+            name: `${action}-${name}`
         }
     }
 

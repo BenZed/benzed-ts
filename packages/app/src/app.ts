@@ -1,4 +1,4 @@
-import { ServiceModule, Module, Modules } from './modules'
+import { ServiceModule, Module, Modules, CommandModule } from './modules'
 
 import { 
 
@@ -26,27 +26,39 @@ import is from '@benzed/is'
 
 /*** App Settings ***/
 
-type AppSettings<M extends Modules> = M extends [ infer Mx, ...infer Mr]
-    ? Mx extends Connection<infer O> 
-        ? O 
-        : Mr extends Modules 
-            ? AppSettings<Mr> 
-            : Empty
-    : Empty
+type AppSettings<M extends Modules | App<any>> = M extends App<infer Mx>
+    ? AppSettings<Mx> 
+    : M extends [ infer Mx, ...infer Mr]
+        ? Mx extends Connection<any, infer O> 
+            ? O 
+            : Mr extends Modules 
+                ? AppSettings<Mr> 
+                : Empty
+        : Empty
 
-type Remove<Mx extends Module<any>, M extends Modules> = 
+type AppModules<A extends App> = A extends App<infer M> ? M : unknown
+
+type _AppCommandArray<M extends Modules | App<any>> = 
+    M extends App<infer Mx>
+        ? _AppCommandArray<Mx>
+        : { [K in keyof M]: M[K] extends CommandModule<infer C, any> 
+            ? C 
+            : Empty }
+
+type AppCommands<M extends Modules | App<any>> = _AppCommandArray<M>[number]
+
+type RemoveModule<Mx extends Module<any>, M extends Modules> = 
     M extends [infer Mf, ...infer Mr]
         ? Mf extends Mx 
             ? Mr
             : Mr extends Modules 
-                ? [Mf, ...Remove<Mx, Mr>]
+                ? [Mf, ...RemoveModule<Mx, Mr>]
                 : [Mf]
         : []
 
 /*** App ***/
 
-class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSettings<M>> 
-    implements Omit<Connection, '_started' | 'parentTo'> {
+class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSettings<M>> implements Omit<Connection, '_started' | 'parentTo'> {
 
     // Sealed Construction 
 
@@ -72,7 +84,11 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
     }
 
     override get settings(): AppSettings<M> {
-        return (this.has(Connection) ? this.connection.settings : {}) as AppSettings<M>
+        return (
+            this.has(Connection) 
+                ? this.connection.settings 
+                : {}
+        ) as AppSettings<M>
     }
 
     /**
@@ -113,7 +129,7 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
         ])
     }
 
-    server(settings: Partial<ServerSettings> = {}): App<[...Remove<Client | Server, M>, Server]> {
+    server(settings: Partial<ServerSettings> = {}): App<[...RemoveModule<Client | Server, M>, Server]> {
         return this
             .generic()
             .use(
@@ -124,7 +140,7 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
             ) 
     } 
 
-    client(settings: Partial<ClientSettings> = {}): App<[...Remove<Client | Server, M>, Client]> {
+    client(settings: Partial<ClientSettings> = {}): App<[...RemoveModule<Client | Server, M>, Client]> {
         return this
             .generic()
             .use(
@@ -138,11 +154,11 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
     /**
      * Ensure this app has no connection module, which is important if it is going to be nested.
      */
-    generic(): App<Remove<Client | Server, M>> {
+    generic(): App<RemoveModule<Client | Server, M>> {
 
         const modules = this.modules.filter(m => m instanceof Connection === false)
 
-        return new App(modules as unknown as Remove<Client | Server, M>)
+        return new App(modules as unknown as RemoveModule<Client | Server, M>)
     }
 
     // Module Implementation 
@@ -160,5 +176,8 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
 export default App 
 
 export {
-    App
+    App,
+    AppModules,
+    AppSettings,
+    AppCommands
 }

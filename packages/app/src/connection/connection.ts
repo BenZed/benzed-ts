@@ -1,12 +1,13 @@
 
-import { Empty } from '@benzed/util/lib'
+import { Empty } from '@benzed/util'
+
 import { Command } from '../command'
 import { CommandModule } from '../modules'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<C extends Command = Command, O extends object = Empty> extends CommandModule<C, O> {
+export abstract class Connection<C extends Command = any, O extends object = Empty> extends CommandModule<C, O> {
 
     override validateModules(): void {
         this._assertSingle()
