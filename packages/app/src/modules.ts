@@ -23,16 +23,14 @@ export abstract class Module<S extends object = Empty> {
     
     constructor( 
         private readonly _settings: S
-    ) { 
-        this._validateModules()
-    }
+    ) { }
 
-    private readonly _parent: ServiceModule | null = null 
+    private readonly _parent: ServiceModule<any,any,any> | null = null 
     get parent(): ServiceModule | null{
         return this._parent
     }
     
-    parentTo(parent: ServiceModule): this {
+    parentTo(parent: ServiceModule<any,any,any>): this {
         const clone = new (this.constructor as any)(this.settings)
         clone._parent = parent
 
@@ -65,12 +63,14 @@ export abstract class Module<S extends object = Empty> {
 
     // Validation
 
-    _validateModules(): void { /**/ }
+    validateModules(): void { /**/ }
 
     protected _assertSingle(): void { 
-        if (this.has(this.constructor as ModuleConstructor))
+        const clone = this.get(this.constructor as ModuleConstructor)
+        if (clone && clone !== this)
             throw new Error(`${this.constructor.name} may only be used once`)
     }
+    
     protected _assertRequired(...types: readonly ModuleConstructor[]): void {
         const missing = types.filter(t => !this.has(t))
         if (missing.length > 0) {
@@ -107,11 +107,13 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
 
 export abstract class ServiceModule<C extends Command = any, M extends Modules = any, S extends object = Empty> extends CommandModule<C, S> {
 
+    readonly modules: M
     constructor(
-        readonly modules: M, 
+        modules: M, 
         settings: S
     ) {
         super(settings)
+        this.modules = modules.map(m => m.parentTo(this)) as unknown as M
     }
     
     // Convenience getters
@@ -145,6 +147,12 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
             throw new Error(`${this.constructor.name} is missing module ${type.name}`)
 
         return module as M
+    }
+
+    //
+
+    override validateModules(): void {
+        this.modules.forEach(m => m.validateModules())
     }
 
 }

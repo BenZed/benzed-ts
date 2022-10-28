@@ -8,10 +8,8 @@ import { CommandModule } from '../modules'
  */
 export abstract class Connection<C extends Command = Command, O extends object = Empty> extends CommandModule<C, O> {
 
-    protected _validateComponents(): void {
+    override validateModules(): void {
         this._assertSingle()
-        if (this.parent?.modules.at(0) !== this)
-            throw new Error(`${this.constructor.name} must be the first module.`)
     }
 
     abstract readonly type: `server` | `client` | null

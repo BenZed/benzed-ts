@@ -34,6 +34,15 @@ type AppSettings<M extends Modules> = M extends [ infer Mx, ...infer Mr]
             : Empty
     : Empty
 
+type Remove<Mx extends Module<any>, M extends Modules> = 
+    M extends [infer Mf, ...infer Mr]
+        ? Mf extends Mx 
+            ? Mr
+            : Mr extends Modules 
+                ? [Mf, ...Remove<Mx, Mr>]
+                : [Mf]
+        : []
+
 /*** App ***/
 
 class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSettings<M>> 
@@ -49,6 +58,7 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
         modules: M
     ) {
         super(modules, {} as AppSettings<M>) 
+        this.validateModules()
     }
     
     // Connection Interface
@@ -115,28 +125,50 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
             : module.parentTo(this)
 
         return new App([
-            ...this.modules.map(m => m.parentTo(this)) as unknown as M, 
+            ...this.modules, 
             module
         ])
     }
 
-    server(settings: Partial<ServerSettings> = {}): App<[Server]> {
-        return this.use(
-            new Server({
-                ...DEFAULT_SERVER_SETTINGS,
-                ...settings
-            })
-        ) as any
+    server(settings: Partial<ServerSettings> = {}): App<[...Remove<Client | Server, M>, Server]> {
+        return this
+            .generic()
+            .use(
+                new Server({
+                    ...DEFAULT_SERVER_SETTINGS,
+                    ...settings
+                })
+            ) 
     } 
 
-    client(settings: Partial<ClientSettings> = {}): App<[Client]> {
-        return this.use(
-            new Client({
-                ...DEFAULT_CLIENT_SETTINGS,
-                ...settings
-            })
-        ) as any
+    client(settings: Partial<ClientSettings> = {}): App<[...Remove<Client | Server, M>, Client]> {
+        return this
+            .generic()
+            .use(
+                new Client({
+                    ...DEFAULT_CLIENT_SETTINGS,
+                    ...settings
+                })
+            ) 
     } 
+
+    /**
+     * Ensure this app
+     */
+    generic(): App<Remove<Client | Server, M>> {
+
+        const modules = this.modules.filter(m => m instanceof Connection === false)
+
+        return new App(modules as unknown as Remove<Client | Server, M>)
+    }
+
+    // Module Implementation 
+
+    override validateModules(): void {
+        this.modules.forEach(m => m.validateModules())
+    }
+
+    // Helper 
 
 }
 
