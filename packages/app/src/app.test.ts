@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
 import { Client, Connection, Server } from './connection'
-import { Module, SettingsOf } from './modules'
+import { Module, ModuleSettings } from './modules'
 
 /*** Tests ***/
 
@@ -22,6 +22,13 @@ it(`.server() to convert to a server app`, () => {
     expect(app.type).toBe(`server`)
 })
 
+it(`.server() creates an immutable copy`, () => {
+
+    const generic = App.create()
+    const server = generic.server()
+    expect(server).not.toBe(generic)
+})
+
 it(`.client() to start an app with a client connection`, () => {
     const app = App.create().client()
 
@@ -29,19 +36,19 @@ it(`.client() to start an app with a client connection`, () => {
 })
 
 it(`connection shortcuts automatically remove previous connection`, () => {
-    const app = App.create().client().use(new DummyModule({})).client()
+    const app = App.create().client().use(new Module({})).client()
 
     expect(app.modules.length).toBe(2)
 
     type DummyClient = typeof app 
     type Modules = DummyClient extends App<infer M> ? M : unknown 
 
-    expectTypeOf<Modules>().toEqualTypeOf<[DummyModule, Client]>()
+    expectTypeOf<Modules>().toEqualTypeOf<[Module, Client]>()
 
 })
 
 it(`created modules are parented to the app`, () => {
-    const app = App.create().client().use(new DummyModule({}))
+    const app = App.create().client().use(new Module({}))
 
     expect(app.modules.every(m => m.parent === app))
         .toBe(true)
@@ -58,11 +65,11 @@ it(`.start() cannot be called consecutively`, async () => {
 })
 
 it(`.generic() to remove connections`, () => {
-    const app = App.create().client().use(new DummyModule({})).generic()
+    const app = App.create().client().use(new Module({})).generic()
 
     type DummyClient = typeof app 
     type Modules = DummyClient extends App<infer M> ? M : unknown 
-    expectTypeOf<Modules>().toEqualTypeOf<[DummyModule]>()
+    expectTypeOf<Modules>().toEqualTypeOf<[Module]>()
 
     expect(app.modules.length).toBe(1)
 })
@@ -88,39 +95,12 @@ it(`.type === null before started`, () => {
     expect(app.type).toBe(null)
 })
 
-class DummyModule extends Module {
-}
-
-it(`.use() to add components`, () => {
-    const app = App.create().use(new DummyModule({}))
-    expect(app.has(DummyModule)).toBe(true)
-})
-
-describe(`.nesting()`, () => {
-
-    const dummy = App.create().use(new DummyModule({}))
-    const server = App.create().server()
-    const serverWithDummy = server.use(dummy)
-    const serverWithDummyEndpoint = server.use(`dummy`, dummy)
-
-    it(`places one as a module of the other`, () => {
-        expect(serverWithDummy.modules[1].parent)
-            .toBe(serverWithDummy)
-    })
-
-    it(`can place nested services at different endpoints`, () => {
-        expect(serverWithDummyEndpoint.modules[1].path)
-            .toBe(`dummy`)
-    })
-})
-
 it(`settings match server component`, () => {
 
     const app = App.create().server()
 
     expect(app.settings).toEqual(app.get(Server)?.settings)
-    expectTypeOf<SettingsOf<typeof app>>().toMatchTypeOf<SettingsOf<Server>>()
-    
+    expectTypeOf<ModuleSettings<typeof app>>().toMatchTypeOf<ModuleSettings<Server>>()
 })
 
 it(`settings match client component`, () => {
@@ -128,6 +108,5 @@ it(`settings match client component`, () => {
     const app = App.create().client()
 
     expect(app.settings).toEqual(app.get(Client)?.settings)
-    expectTypeOf<SettingsOf<typeof app>>().toMatchTypeOf<SettingsOf<Client>>()
-    
+    expectTypeOf<ModuleSettings<typeof app>>().toMatchTypeOf<ModuleSettings<Client>>()
 })

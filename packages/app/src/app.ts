@@ -1,4 +1,4 @@
-import { ServiceModule, Module, Modules, CommandModule } from './modules'
+import { ServiceModule, Module, Modules, CommandModule, $$parentTo } from './modules'
 
 import { 
 
@@ -58,7 +58,12 @@ type RemoveModule<Mx extends Module<any>, M extends Modules> =
 
 /*** App ***/
 
-class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSettings<M>> implements Omit<Connection, '_started' | 'parentTo'> {
+/**
+ * Immutable builder pattern for apps and services
+ */
+class App<M extends Modules = Modules> 
+    extends ServiceModule<Command, M, AppSettings<M>> 
+    implements Omit<Connection<any,any>, '_started' | symbol> {
 
     // Sealed Construction 
 
@@ -121,7 +126,7 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
             throw new Error(`${Module.name} not provided.`)
 
         if (path && module instanceof ServiceModule)
-            module = module.parentToWithPath(this, path)
+            module = module[$$parentTo](this, path)
 
         return new App([
             ...this.modules, 
@@ -152,7 +157,8 @@ class App<M extends Modules = Modules> extends ServiceModule<Command, M, AppSett
     } 
 
     /**
-     * Ensure this app has no connection module, which is important if it is going to be nested.
+     * Ensure this app has no connection module, which is important if it is going to be 
+     * nested.
      */
     generic(): App<RemoveModule<Client | Server, M>> {
 

@@ -1,4 +1,3 @@
-
 import { Empty } from '@benzed/util'
 
 import { Command } from "./command"
@@ -7,15 +6,21 @@ import { Command } from "./command"
     @typescript-eslint/no-explicit-any
 */
 
+/*** Symbols ***/
+
+export const $$parentTo = Symbol(`set-parent`)
+
+/*** Types ***/
+
 export type Modules = readonly Module<any>[]
 
 export type ModuleConstructor<M extends Module<any> = Module<any>> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M)
 
-export type SettingsOf<M extends Module<any>> = M extends Module<infer S> ? S : Empty
+export type ModuleSettings<M extends Module<any>> = M extends Module<infer S> ? S : Empty
 
-export abstract class Module<S extends object = Empty> {
+export class Module<S extends object = Empty> {
 
     get settings(): S {
         return this._settings
@@ -25,18 +30,6 @@ export abstract class Module<S extends object = Empty> {
         private readonly _settings: S
     ) { }
 
-    private readonly _parent: ServiceModule<any,any,any> | null = null 
-    get parent(): ServiceModule<any,any,any> | null{
-        return this._parent
-    }
-    
-    parentTo(parent: ServiceModule<any,any,any>): this {
-        const clone = new (this.constructor as any)(this.settings)
-        clone._parent = parent
-
-        return clone
-    }
-
     // Component API
 
     get<M extends Module<any>, R extends boolean = false>(
@@ -44,7 +37,7 @@ export abstract class Module<S extends object = Empty> {
         required: R = false as R
     ): R extends true ? M : M | null {
 
-        const module = this.parent?.get(type) ?? null
+        const module = this.modules.find(t => t instanceof type) ?? null
         if (!module && required)
             throw new Error(`${this.constructor.name} is missing module ${type.name}`)
 
@@ -53,6 +46,28 @@ export abstract class Module<S extends object = Empty> {
 
     has<M extends Module>(type: ModuleConstructor<M>): boolean {
         return !!this.get(type)
+    }
+
+    get modules(): Modules {
+        return this.parent?.modules ?? []
+    }
+
+    private _parent: ServiceModule<any,any,any> | null = null 
+    get parent(): ServiceModule<any,any,any> | null{
+        return this._parent
+    }
+    
+    /**
+     * Creates an immutable instanceof this module with a set parent
+     */
+    [$$parentTo](parent: ServiceModule<any,any,any>): this {
+        const clone = new (
+            this.constructor as new (settings: object) => this
+        )(this.settings)
+
+        clone._parent = parent
+
+        return clone
     }
 
     // Lifecycle Hooks 
@@ -96,7 +111,7 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
 
     execute(command: C): any {
         if (!this.canExecute(command))
-            throw new Error(`${this.constructor.name} cannot execute command ${command.name}`)
+            throw new Error(`${this.constructor.name} cannot execute command ${(command as { name: string }).name}`)
 
         return this._execute(command)
     }
@@ -107,13 +122,17 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
 
 export abstract class ServiceModule<C extends Command = any, M extends Modules = any, S extends object = Empty> extends CommandModule<C, S> {
 
-    readonly modules: M
+    private readonly _modules: M
+    override get modules(): M {
+        return this._modules
+    }
+
     constructor(
         modules: M, 
         settings: S
     ) {
         super(settings)
-        this.modules = modules.map(m => m.parentTo(this)) as unknown as M
+        this._modules = modules.map(m => m[$$parentTo](this)) as unknown as M
     }
     
     // Convenience getters
@@ -130,17 +149,14 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
         return this._path
     }
 
-    override parentTo(parent: ServiceModule<any, any, any>): this {
-        const clone = new (this.constructor as any)(this.modules, this.settings)
-        clone._parent = parent
-        clone._path = this._path
-        return clone
-    }
-    
-    parentToWithPath(parent: ServiceModule<any,any,any>, path: string):this {
-        const clone = this.parentTo(parent)
+    override [$$parentTo](parent: ServiceModule<any, any, any>, path: string = this._path): this {
+        const clone = new (
+            this.constructor as new (modules: M, settings: S) => this
+        )(this.modules, this.settings)
+
+        clone[`_parent`] = parent
         clone._path = path
-    
+        
         return clone
     }
 
@@ -161,20 +177,6 @@ export abstract class ServiceModule<C extends Command = any, M extends Modules =
     }
 
     // Module Implementation
-
-    override get<M extends Module<any>, R extends boolean = false>(
-        type: ModuleConstructor<M>, 
-        required: R = false as R
-    ): R extends true ? M : M | null {
-
-        const module = this.modules.find(m => m instanceof type) ?? null
-        if (!module && required)
-            throw new Error(`${this.constructor.name} is missing module ${type.name}`)
-
-        return module as M
-    }
-
-    //
 
     override validateModules(): void {
         this.modules.forEach(m => m.validateModules())
