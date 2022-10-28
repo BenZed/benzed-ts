@@ -2,7 +2,7 @@ import { io } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
-import { Client, Connection, Server } from './connection'
+import { Client, Server } from './connection'
 import { Module, ModuleSettings } from './modules'
 
 /*** Tests ***/
@@ -64,8 +64,8 @@ it(`.start() cannot be called consecutively`, async () => {
     expect(err.message).toContain(`${app.type} has already been started`)
 })
 
-it(`.generic() to remove connections`, () => {
-    const app = App.create().client().use(new Module({})).generic()
+it(`.service() to remove connections`, () => {
+    const app = App.create().client().use(new Module({})).service()
 
     type DummyClient = typeof app 
     type Modules = DummyClient extends App<infer M> ? M : unknown 
@@ -75,10 +75,10 @@ it(`.generic() to remove connections`, () => {
 })
 
 it(`.stop() cannot be called until started`, async () => {
-    const app = App.create()
+    const app = App.create().server()
 
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`${App.name} is missing module ${Connection.name}`)
+    expect(err.message).toContain(`${app.type} has not been started`)
 })
 
 it(`.stop() cannot be called consecutively`, async () => {

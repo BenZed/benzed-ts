@@ -3,7 +3,7 @@ import {
     Module, 
     Modules, 
     ServiceCommands,
-    ServiceModules 
+    ModulesOf 
 } from './modules'
 
 import { 
@@ -19,6 +19,10 @@ import {
     DEFAULT_SERVER_SETTINGS, 
 
 } from './connection'
+
+import { 
+    ToServerCommand 
+} from './connection/server/koa-server'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -36,9 +40,17 @@ type AppSettings<M extends Modules | App<any>> = M extends App<infer Mx>
                 : never
         : never
 
-type AppCommands<A extends App | Modules> = A extends App<infer M> 
-    ? ServiceCommands<M> 
-    : ServiceCommands<A>
+type AppCommands<A extends App | Modules> = 
+    Exclude<
+    A extends App<infer M> 
+        // Do not include connection commands for type safety.
+        // Connection commands are generic because they're sending/receiving them
+        // them over a network boundary
+        ? ServiceCommands<_RemoveConnection<M>> 
+        : AppCommands<A>,
+
+    ToServerCommand
+    >
 
 /*** Helper Types ***/
 
@@ -50,6 +62,8 @@ type _RemoveModule<Mx extends Module<any>, M extends Modules> =
                 ? [Mf, ..._RemoveModule<Mx, Mr>]
                 : [Mf]
         : []
+
+type _RemoveConnection<M extends Modules> = _RemoveModule<Client | Server, M>
 
 /*** App ***/
 
@@ -97,17 +111,9 @@ class App<M extends Modules = Modules> extends ServiceModule<M, AppSettings<M>> 
     get type(): 'server' | 'client' | null {
         return this.has(Connection) ? this.connection.type : null
     }
-    
-    override async start(): Promise<void> {
-        await this.connection.start()
-    }
-    
-    override async stop(): Promise<void> {
-        await this.connection.stop()
-    }
 
     // Build Interface
-    
+
     override use<Mx extends Module<any>>(
         ...args: Mx extends ServiceModule<any,any> 
             ? [path: string, module: Mx] | [module: Mx] 
@@ -120,7 +126,7 @@ class App<M extends Modules = Modules> extends ServiceModule<M, AppSettings<M>> 
 
     server(settings: Partial<ServerSettings> = {}): App<[..._RemoveModule<Client | Server, M>, Server]> {
         return this
-            .generic()
+            .service()
             .use(
                 new Server({
                     ...DEFAULT_SERVER_SETTINGS,
@@ -131,7 +137,7 @@ class App<M extends Modules = Modules> extends ServiceModule<M, AppSettings<M>> 
 
     client(settings: Partial<ClientSettings> = {}): App<[..._RemoveModule<Client | Server, M>, Client]> {
         return this
-            .generic()
+            .service()
             .use(
                 new Client({
                     ...DEFAULT_CLIENT_SETTINGS,
@@ -141,10 +147,10 @@ class App<M extends Modules = Modules> extends ServiceModule<M, AppSettings<M>> 
     } 
 
     /**
-     * Ensure this app has no connection module, which is important if it is going to be 
-     * nested.
+     * Ensure this app has no connection module, essentially reducing it to a service.
+     * Convenient for nesting.
      */
-    generic(): App<_RemoveModule<Client | Server, M>> {
+    service(): App<_RemoveModule<Client | Server, M>> {
 
         const modules = this.modules.filter(m => m instanceof Connection === false)
 
@@ -159,7 +165,7 @@ export default App
 
 export {
     App,
-    ServiceModules as AppModules,
+    ModulesOf as AppModules,
     AppSettings,
     AppCommands
 }

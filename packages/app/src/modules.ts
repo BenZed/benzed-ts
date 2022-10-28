@@ -110,13 +110,15 @@ export class Module<S extends object = Empty> {
 
 /*** Command Modules ***/
 
+export type CommandsOf<M extends CommandModule> = M extends CommandModule<infer C, any> ? C : Empty
+
 export abstract class CommandModule<C extends Command = any, S extends object = any> extends Module<S> {
 
     abstract canExecute(command: Command): command is C
 
     execute(command: C): any {
         if (!this.canExecute(command))
-            throw new Error(`${this.constructor.name} cannot execute command ${(command as { name: string }).name}`)
+            throw new Error(`${this.constructor.name} cannot execute command: ${JSON.stringify(command)}`)
 
         return this._execute(command)
     }
@@ -127,7 +129,7 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
 
 /*** Service ***/
 
-export type ServiceModules<A extends ServiceModule> = A extends ServiceModule<infer M> ? M : []
+export type ModulesOf<A extends ServiceModule> = A extends ServiceModule<infer M> ? M : []
 
 export type ServiceCommands<M extends Modules | ServiceModule<any>> = _ServiceCommandsArray<M>[number]
 
@@ -159,6 +161,22 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
         return this
             .modules
             .filter((m): m is CommandModule<ServiceCommands<M>> => `execute` in m)
+    }
+
+    // Lifecycle Methods
+
+    override async start(): Promise<void> {
+        if (this.modules.length === 0)
+            throw new Error(`${this.constructor.name} cannot start without any modules.`)
+
+        await Promise.all(this.modules.map(m => m.start()))
+    }
+
+    override async stop(): Promise<void> {
+        if (this.modules.length === 0)
+            throw new Error(`${this.constructor.name} cannot stop without any modules.`)
+        
+        await Promise.all(this.modules.map(m => m.stop()))
     }
 
     // Service Implementation

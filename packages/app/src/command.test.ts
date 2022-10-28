@@ -1,6 +1,5 @@
 
 import { App, AppCommands } from './app'
-import { ToServerCommand } from './connection/server/koa-server'
 
 import { CommandModule } from './modules'
 import { Command } from './command/types'
@@ -21,17 +20,40 @@ class FooModule extends CommandModule<FooCommand>{
     }
 
     canExecute(command: Command): command is FooCommand {
-        return !!command
+        return command.name === `get-foo`
     }
 }
 
 /*** Tests ***/
 
-it(`command definitions from added components are added to the app as types`, () => {
+const fooApp = App.create().use(new FooModule({}))
 
-    const app = App.create().server().use(new FooModule({}))
+it(`App command definitions are gathered from it\'s modules`, () => {
 
-    type ACommands = AppCommands<typeof app>
+    type FooCommands = AppCommands<typeof fooApp>
+    expectTypeOf<FooCommands>().toEqualTypeOf<FooCommand>()
+
+    fooApp.execute({
+        name: `get-foo`,
+        foo: `baz`
+    })
+
+})
+
+it(`App commands are type-safe`, () => {
     
-    expectTypeOf<ACommands>().toEqualTypeOf<ToServerCommand | FooCommand>()
+    // @ts-expect-error Not a command
+    expect(() => fooApp.execute({ name: `not-a-command` })).toThrow(`${App.name} cannot execute command`)
+})
+
+it(`App commands do not include generic Server commands`, () => {
+    const fooServe = fooApp.server()
+    type FooServeCommands = AppCommands<typeof fooServe>
+    expectTypeOf<FooServeCommands>().toEqualTypeOf<FooCommand>()
+})
+
+it(`App commands do not include generic Client commands`, () => {
+    const fooClient = fooApp.client()
+    type FooClientCommands = AppCommands<typeof fooClient>
+    expectTypeOf<FooClientCommands>().toEqualTypeOf<FooCommand>()
 })
