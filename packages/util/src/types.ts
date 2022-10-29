@@ -125,6 +125,9 @@ export type IfEquals<T1, T2, Y, N = never> =
  */
 export type StringKeys<T> = Extract<keyof T, string>
 
+/**
+ * Object with no properties
+ */
 export type Empty = { [key: string]: never }
 
 export type Split<S extends string, D extends string> =
@@ -139,3 +142,14 @@ type _CamelCaseStringArray<K extends string[]> = `${K[0]}${Capitalize<_Undefined
 
 export type CamelCase<K> = K extends string ? _CamelCaseStringArray<_SplitOnWordSeparator<K>> : K
 
+/**
+ * Convert a static string type to a static number type
+ */
+export type StringToNumber<T> = T extends `${infer N extends number}` ? N : never
+
+/**
+ * Get a union of indexes of a tuple type
+ */
+export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
+    [K in keyof A as StringToNumber<K>]: never
+}
