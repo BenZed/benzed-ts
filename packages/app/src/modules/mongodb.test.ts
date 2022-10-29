@@ -13,6 +13,21 @@ beforeAll(async () => {
     startErr = await mongoDb.start()
 }, 500)
 
+let getResult: { _id: string }
+let createResult: { _id: string }
+beforeAll(async () => {
+
+    const todos = mongoDb.getCollection(`todos`)
+
+    createResult = await todos.create({ 
+        completed: false, 
+        description: `build an app`
+    }) as { _id: string }
+
+    getResult = await todos.get(createResult._id) as { _id: string }
+
+})
+
 let stopErr: unknown
 afterAll(async () => {
     stopErr = await mongoDb.stop()
@@ -26,4 +41,17 @@ it(`.start()`, () => {
 
 it(`.stop()`, () => {
     expect(stopErr).toBeUndefined()
+})
+
+it(`.create()`, () => {
+    expect(typeof createResult._id).toBe(`string`)
+    expect(createResult).toHaveProperty(`completed`, false)
+    expect(createResult).toHaveProperty(`description`, `build an app`)
+})
+
+it(`.get()`, () => {
+
+    expect(getResult).toHaveProperty(`_id`, createResult._id)
+    expect(getResult).toHaveProperty(`completed`, false)
+    expect(getResult).toHaveProperty(`description`, `build an app`)
 })
