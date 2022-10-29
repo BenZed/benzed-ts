@@ -52,6 +52,6 @@
         "@feathersjs/mongodb": "^5.0.0-pre.31",
         "@feathersjs/socketio": "^5.0.0-pre.31",
         "@feathersjs/socketio-client": "^5.0.0-pre.31",
-        "mongodb": "^4.9.0"
+        "mongodb": "^4.11.0"
     }
 }
