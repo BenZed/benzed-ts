@@ -7,7 +7,7 @@ import cors from '@koa/cors'
 import { Server as IOServer } from 'socket.io'
 
 import Server, { ServerSettings } from './server'
-import { Command } from '../../command'
+import { Command } from '../../../command'
 import { HttpStatus } from './http-codes'
 import { WEBSOCKET_PATH } from '../connection'
 

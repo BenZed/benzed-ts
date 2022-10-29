@@ -13,3 +13,5 @@ export {
     ServiceModule
 
 } from './module'
+
+export * from './modules'

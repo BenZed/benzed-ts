@@ -1,6 +1,6 @@
 import { inputToOutput } from '@benzed/util'
 
-import { Command } from "../command"
+import { Command } from "../../command"
 import { Client, DEFAULT_CLIENT_SETTINGS } from "./client"
 import { Server, DEFAULT_SERVER_SETTINGS } from "./server"
 

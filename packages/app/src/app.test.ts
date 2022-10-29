@@ -2,8 +2,8 @@ import { io } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
-import { Client, Server } from './connection'
 import { Module, ModuleSettings } from './module'
+import { Client, Server } from './modules'
 
 /*** Tests ***/
 

@@ -1,5 +1,5 @@
 import $, { Infer } from '@benzed/schema'
-import { Command } from '../../command'
+import { Command } from '../../../command'
 
 import Connection, { DEFAULT_PORT } from '../connection'
 

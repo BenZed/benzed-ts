@@ -1,5 +1,5 @@
 
-import type { Command } from '../../command'
+import type { Command } from '../../../command'
 import { WEBSOCKET_PATH } from '../connection'
 import Client, { ClientSettings } from './client'
 

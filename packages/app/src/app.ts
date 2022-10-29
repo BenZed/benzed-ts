@@ -18,7 +18,8 @@ import {
     ServerSettings,
     DEFAULT_SERVER_SETTINGS, 
 
-} from './connection'
+} from './modules'
+
 import { Command } from './command'
 import { Compile, CamelCase } from '@benzed/util'
 
