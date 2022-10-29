@@ -10,6 +10,7 @@ import {
 } from 'mongodb'
 
 import { DEFAULT_MONGODB_PORT } from '../constants'
+import { Empty } from '@benzed/util'
 
 /*** Eslint ***/
 
@@ -19,7 +20,18 @@ import { DEFAULT_MONGODB_PORT } from '../constants'
 
 /*** Base ***/
 
-type Id = { _id: string }
+type Id = string
+type Record<T extends object> = T & { _id: Id }
+type Paginated<T extends object> = {
+    total: number
+    records: Record<T>[]
+    // skip: number 
+    // limit: number
+}
+
+type CreateData<T extends object> = T
+type UpdateData<T extends object> = Partial<T>
+type FindQuery<T extends object> = Empty // { [K in keyof T]: ...etc }
 
 /**
  * Just in case I intend to add support for more databases later,
@@ -32,21 +44,36 @@ abstract class Database<S extends ModuleSetting> extends Module<S> {
         this._assertSingle()
     }
 
-    abstract getCollection<T extends Id, Q extends object>(collection: string): Collection<T, Q> 
+    abstract getCollection<T extends object>(collection: string): Collection<T> 
 
 }
 
-abstract class Collection<T extends Id, Q extends object> {
+abstract class Collection<T extends object> {
 
-    abstract get(id: Id['_id']): Promise<T | null> 
+    /**
+     * Returns a record if it exists, null otherwise.
+     */
+    abstract get(id: Id): Promise<Record<T> | null> 
 
-    // abstract find(query: Q): Promise<T> 
+    abstract find(query: FindQuery<T>): Promise<Paginated<T>> 
 
-    abstract create(data: Omit<T, '_id'>): Promise<T>
+    /**
+     * Adds a record to the collection, returns the given data 
+     * with the inserted id.
+     */
+    abstract create(data: CreateData<T>): Promise<Record<T>>
 
-    // abstract remove(data: T): Promise<T>
+    /**
+     * Removes the record within the collection and returns it.
+     * Returns null if there was no record to remove.
+     */
+    abstract remove(id: Id): Promise<Record<T> | null>
 
-    // abstract update(id: Id['_id'], data: T): Promise<T>
+    /**
+     * Updates the record within the collection and returns it.
+     * Returns null if there was no record to update. 
+     */
+    abstract update(id: Id, data: UpdateData<T>): Promise<Record<T> | null>
 
 }
 
@@ -70,7 +97,7 @@ const $mongoDbSettings = $.shape({
 
 /*** MongoDb ***/
 
-class MongoDbCollection<T extends Id, Q extends object> extends Collection<T, Q> {
+class MongoDbCollection<T extends object> extends Collection<T> {
 
     constructor(
         readonly _collection: any // < mongod types are absolutely fucked
@@ -78,20 +105,67 @@ class MongoDbCollection<T extends Id, Q extends object> extends Collection<T, Q>
         super()
     }
 
-    async get(id: Id['_id']): Promise<T | null> {
-        const result = await this._collection.findOne(new ObjectId(id))
+    async get(id: Id): Promise<Record<T> | null> {
+        const record = await this._collection.findOne(new ObjectId(id))
 
-        return result && { 
-            ...result,
-            _id: result._id.toString()
+        return record && { 
+            ...record,
+            _id: record._id.toString()
         }
     }
 
-    async create(data: Omit<T, '_id'>): Promise<T & Id> {
+    async find(query: FindQuery<T>): Promise<Paginated<T>> {
 
-        const { insertedId } = await this._collection.insertOne(data)
+        const records: Record<T>[] = []
 
-        return this.get(insertedId.toString()) as Promise<T & Id>
+        const total = await this._collection.estimatedDocumentCount(query)
+
+        if (total > 0) {
+            const cursor = await this._collection.find(query)
+            await cursor.forEach(({ _id, ...data }: Record<T>) => 
+                records.push({
+                    _id: _id.toString(),
+                    ...data
+                } as Record<T>)
+            )
+        }
+
+        return {
+            total,
+            records
+        }
+    }
+
+    async create(data: CreateData<T>): Promise<Record<T>> {
+
+        const { insertedId: objectId } = await this._collection.insertOne(data)
+
+        const id = objectId.toString()
+
+        return this.get(id) as Promise<Record<T>>
+    }
+
+    async update(id: Id, data: UpdateData<T>): Promise<Record<T> | null> {
+
+        await this._collection.updateOne({
+            _id: new ObjectId(id)
+        }, {
+            $set: data
+        })
+
+        return this.get(id)
+    }
+
+    async remove(id: Id): Promise<Record<T> | null> {
+        const record = await this.get(id)
+        
+        if (record) {
+            await this._collection.deleteOne({
+                _id: new ObjectId(id)
+            })
+        }
+
+        return record
     }
 
 }
@@ -102,7 +176,9 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
 
     static create(settings: MongoDbSettings): MongoDb {
         return new MongoDb(
-            $mongoDbSettings.validate(settings) as Required<MongoDbSettings>
+            $mongoDbSettings.validate(
+                settings
+            ) as Required<MongoDbSettings>
         )
     }
 
@@ -148,12 +224,14 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
 
     // Database Implementation
 
-    getCollection<T extends Id, Q extends object>(collection: string): MongoDbCollection<T, Q> {
+    getCollection<T extends object>(collection: string): MongoDbCollection<T> {
+
+        // if (this.find(Client)) throw new Error(`Cannot access ${this.constructor.name} as a client.`)
 
         if (!this._db)
             throw new Error(`${this.constructor.name} is not connected.`)
 
-        return new MongoDbCollection<T, Q>(
+        return new MongoDbCollection<T>(
             this._db.collection(collection)
         )
     }
@@ -167,5 +245,12 @@ export {
     MongoDbSettings,
     $mongoDbSettings,
 
-    DEFAULT_MONGODB_PORT
+    MongoDbCollection,
+
+    Paginated,
+    Record,
+    Id,
+    FindQuery,
+    CreateData,
+    UpdateData
 }

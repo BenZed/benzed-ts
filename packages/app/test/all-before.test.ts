@@ -1,6 +1,6 @@
 import { ensureMongoDbInstance } from '../../feathers/src/scripts/util'
 
-import { DEFAULT_MONGODB_PORT } from '../src/modules/mongodb'
+import { DEFAULT_MONGODB_PORT } from '../src/constants'
 
 /*** Config ***/
 
