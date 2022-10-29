@@ -3,23 +3,14 @@ export interface Command {
     name: string
 }
 
-// type Action = 'get' | 'create' | 'update' | 'remove'
+class CommandDefinition<N extends string, D extends object, R extends object> {
 
-// type _Command = {
-//     action: `get`
-//     id: string
-// } | {
-//     action: `create`
-//     data: object
-// } | {
-//     action: `update`
-//     id: string 
-//     data: object
-// } | {
-//     action: `remove`
-//     id: string
-// }
+    constructor(
+        readonly name: N
+    ) { }
 
-export interface CommandResult {
-    name: string
 }
+
+/*** Exports ***/
+
+export default CommandDefinition

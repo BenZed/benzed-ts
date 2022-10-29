@@ -1,7 +1,7 @@
 import $, { Infer } from "@benzed/schema"
-import { Command } from "../command"
-import { CommandModule } from "../module"
-import { $logIcon } from "../schemas"
+import { Command } from "../../command"
+import { CommandModule } from "../../module"
+import { $logIcon } from "../../schemas"
 
 /*** Types ***/
 
