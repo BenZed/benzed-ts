@@ -126,3 +126,16 @@ export type IfEquals<T1, T2, Y, N = never> =
 export type StringKeys<T> = Extract<keyof T, string>
 
 export type Empty = { [key: string]: never }
+
+export type Split<S extends string, D extends string> =
+    string extends S ? string[] :
+        S extends '' ? [] :
+            S extends `${infer T}${D}${infer U}` ? [T, ...Split<U, D>] :
+                [S]
+
+type _SplitOnWordSeparator<T extends string> = Split<T, "-"|"_"|" ">
+type _UndefinedToEmptyString<T extends string> = T extends undefined ? "" : T
+type _CamelCaseStringArray<K extends string[]> = `${K[0]}${Capitalize<_UndefinedToEmptyString<K[1]>>}`
+
+export type CamelCase<K> = K extends string ? _CamelCaseStringArray<_SplitOnWordSeparator<K>> : K
+

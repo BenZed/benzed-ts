@@ -186,6 +186,7 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
         if (this.modules.length === 0)
             throw new Error(`${this.constructor.name} cannot start without any modules.`)
 
+        await super.start()
         await Promise.all(this.modules.map(m => m.start()))
     }
 
@@ -193,6 +194,7 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
         if (this.modules.length === 0)
             throw new Error(`${this.constructor.name} cannot stop without any modules.`)
         
+        await super.stop()
         await Promise.all(this.modules.map(m => m.stop()))
     }
 

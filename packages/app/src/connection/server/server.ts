@@ -1,21 +1,28 @@
-import Connection from '../connection'
 
 import $, { Infer } from '@benzed/schema'
 
+import Connection, { DEFAULT_PORT } from '../connection'
+import { $clientSettings } from '../client'
+
 /*** Types ***/
 
-interface ServerSettings extends Infer<typeof $serverOptions> {}
-const $serverOptions = $({
+interface ServerSettings extends Infer<typeof $serverSettings> {}
+const $serverSettings = $({
     port: $.integer.range({ 
         min: 1025, 
         comparator: `...`, 
         max: 65536
-    })
+    }),
+
+    webSocket: $clientSettings.$.webSocket
 })
 
 /*** Constants ***/
 
-const DEFAULT_SERVER_SETTINGS: ServerSettings = { port: 3000 }
+const DEFAULT_SERVER_SETTINGS: ServerSettings = { 
+    port: DEFAULT_PORT, 
+    webSocket: false 
+}
 
 /*** Server ***/
 
@@ -35,6 +42,8 @@ export default Server
 export {
     Server,
     ServerSettings,
+    $serverSettings,
+
     DEFAULT_SERVER_SETTINGS,
 
 }

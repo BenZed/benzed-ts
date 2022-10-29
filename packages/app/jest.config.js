@@ -2,7 +2,8 @@
 module.exports = {
 
     roots: [
-        `./src`
+        `./src`,
+        `./test`
     ],
 
     transform: {

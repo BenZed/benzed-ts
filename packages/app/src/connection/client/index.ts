@@ -1,5 +1,5 @@
 
-export { ClientSettings, DEFAULT_CLIENT_SETTINGS } from './client'
+export { ClientSettings, $clientSettings, DEFAULT_CLIENT_SETTINGS } from './client'
 
 export { 
     FetchSocketIOClient as Client, 

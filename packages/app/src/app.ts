@@ -19,6 +19,8 @@ import {
     DEFAULT_SERVER_SETTINGS, 
 
 } from './connection'
+import { Command } from './command'
+import { Compile, CamelCase } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -39,9 +41,17 @@ type AppSettings<M extends Modules | App<any>> = M extends App<infer Mx>
 type AppCommands<A extends App | Modules> = 
     A extends App<infer M> 
         ? ServiceCommands<M> 
-        : ServiceCommands<A>
+        : A extends Modules 
+            ? ServiceCommands<A> 
+            : never
+
+type AppCommandInterface<A extends App> = _CommandInterface<AppCommands<A>>
 
 /*** Helper Types ***/
+
+type _CommandInterface<C extends Command> = {
+    [K in keyof C as CamelCase<C['name']> extends string ? CamelCase<C['name']> : K]: (data: Compile<Omit<C, 'name'>>) => unknown
+}
 
 type _RemoveModule<Mx extends Module<any>, M extends Modules> = 
     M extends [infer Mf, ...infer Mr]
@@ -127,12 +137,11 @@ class App<M extends Modules = Modules>
 
     // Command interface 
 
-    override execute(command: ServiceCommands<M>): Promise<object> {
+    override execute(command: AppCommands<M>): Promise<object> {
         const client = this.get(Client)
-        if (client)
-            return client.executeOnServer(command)
-
-        return super.execute(command)
+        return client
+            ? client.executeOnServer(command)
+            : super.execute(command)
     }
 
     // Build Interface
@@ -173,6 +182,12 @@ class App<M extends Modules = Modules>
         return this.connection.getCommandList()
     }
 
+    /* Nice to have, not a priority
+    getCommandInterface(): AppCommandInterface<M> {
+        return null as unknown as AppCommandInterface<M>
+    }
+    */
+
     /**
      * Ensure this app has no connection module, essentially reducing it to a service.
      * Convenient for nesting.
@@ -194,5 +209,7 @@ export {
     App,
     ModulesOf as AppModules,
     AppSettings,
-    AppCommands
+
+    AppCommands,
+    AppCommandInterface
 }

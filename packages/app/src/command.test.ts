@@ -1,5 +1,5 @@
 
-import { App, AppCommands } from './app'
+import { App, AppCommandInterface, AppCommands } from './app'
 
 import { CommandModule } from './modules'
 import { Command } from './command/types'
@@ -43,17 +43,13 @@ it(`App command definitions are gathered from it\'s modules`, () => {
 it(`App commands are type-safe`, () => {
     
     // @ts-expect-error Not a command
-    expect(() => fooApp.execute({ name: `not-a-command` })).toThrow(`${App.name} cannot execute command`)
+    expect(() => fooApp.execute({ name: `not-a-command` }))
+        .toThrow(`${App.name} cannot execute command`)
 })
 
-it(`App commands do not include generic Server commands`, () => {
-    const fooServe = fooApp.server()
-    type FooServeCommands = AppCommands<typeof fooServe>
-    expectTypeOf<FooServeCommands>().toEqualTypeOf<FooCommand>()
-})
+it(`App Command Interface Convience UI`, () => {
 
-it(`App commands do not include generic Client commands`, () => {
-    const fooClient = fooApp.client()
-    type FooClientCommands = AppCommands<typeof fooClient>
-    expectTypeOf<FooClientCommands>().toEqualTypeOf<FooCommand>()
+    type FooCommandUI = AppCommandInterface<typeof fooApp>
+
+    expectTypeOf<keyof FooCommandUI>().toEqualTypeOf<'getFoo'>()
 })

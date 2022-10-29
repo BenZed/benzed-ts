@@ -1,22 +1,21 @@
 import $, { Infer } from '@benzed/schema'
 import { Command } from '../../command'
 
-import Connection from '../connection'
-import { DEFAULT_SERVER_SETTINGS } from '../server'
+import Connection, { DEFAULT_PORT } from '../connection'
 
 /*** Types ***/
 
-interface ClientSettings extends Infer<typeof $clientOptions> {}
-const $clientOptions = $({
-    constant: $.boolean.default(false),
+interface ClientSettings extends Infer<typeof $clientSettings> {}
+const $clientSettings = $({
+    webSocket: $.boolean.default(false),
     host: $.string
 })
 
 /*** Constants ***/
 
 const DEFAULT_CLIENT_SETTINGS: ClientSettings = { 
-    constant: false,
-    host: `http://localhost:${DEFAULT_SERVER_SETTINGS.port}` 
+    webSocket: false,
+    host: `http://localhost:${DEFAULT_PORT}` 
 }
 
 /*** Client ***/
@@ -39,6 +38,7 @@ export default Client
 export {
     Client,
     ClientSettings,
+    $clientSettings,
 
     DEFAULT_CLIENT_SETTINGS
 
