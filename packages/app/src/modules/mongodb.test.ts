@@ -3,7 +3,7 @@ import { DEFAULT_MONGODB_PORT, MongoDb } from './mongodb'
 /*** Setup ***/
 
 const mongoDb = MongoDb.create({ 
-    uri: `mongodb://localhost:<port>/<database>`,
+    uri: `mongodb://127.0.0.1:<port>/<database>`,
     database: `app-ecs-test`,
     port: DEFAULT_MONGODB_PORT
 })
@@ -11,12 +11,12 @@ const mongoDb = MongoDb.create({
 let startErr: unknown
 beforeAll(async () => {
     startErr = await mongoDb.start()
-}, 10000)
+}, 500)
 
 let stopErr: unknown
 afterAll(async () => {
     stopErr = await mongoDb.stop()
-}, 10000)
+}, 500)
 
 /*** Tests ***/
 

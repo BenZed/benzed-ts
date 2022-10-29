@@ -1,9 +1,10 @@
 import { pluck } from '@benzed/array'
-import { createLogger, Empty, Logger } from '@benzed/util'
+import { createLogger, Empty, Logger, toVoid } from '@benzed/util'
 import is from '@benzed/is'
 
 import { Command } from "./command"
 import { $$copy } from '@benzed/immutable'
+import { ENV, TEST_LOGS_ENABLED } from './constants'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -40,7 +41,10 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
      
         this._settings = settings
         this.log = createLogger({
-            header: this._settings.logIcon
+            header: this._settings.logIcon,
+            onLog: ENV === `test` && !TEST_LOGS_ENABLED
+                ? toVoid 
+                : console.log.bind(console)
         })
 
     }

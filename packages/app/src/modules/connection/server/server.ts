@@ -1,15 +1,16 @@
 
 import $, { Infer } from '@benzed/schema'
 
-import Connection, { DEFAULT_PORT } from '../connection'
+import Connection from '../connection'
 import { $clientSettings } from '../client'
 import { $logIcon, $port } from '../../../schemas'
+import { DEFAULT_SERVER_PORT } from '../../../constants'
 
 /*** Types ***/
 
 interface ServerSettings extends Infer<typeof $serverSettings> {}
 const $serverSettings = $({
-    port: $port.optional.default(DEFAULT_PORT),
+    port: $port.optional.default(DEFAULT_SERVER_PORT),
 
     webSocket: $clientSettings.$.webSocket,
     logIcon: $logIcon.default(`🖥️`)

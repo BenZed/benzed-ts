@@ -1,10 +1,10 @@
 
 import type { Command } from '../../../command'
-import { WEBSOCKET_PATH } from '../connection'
 import Client, { $clientSettings, ClientSettings } from './client'
 
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
+import { WEBSOCKET_PATH } from '../../../constants'
 
 /*** FetchSocketIOClient ***/
 
@@ -74,6 +74,9 @@ export class FetchSocketIOClient extends Client {
 
         // TODO validate command list
         const commandList = await res.json()
+
+        this.log`fetched command list ${commandList}`
+
         return commandList
     }
 
@@ -81,15 +84,19 @@ export class FetchSocketIOClient extends Client {
     
     private async _startSocketIO(): Promise<void> {
         
+        const { host } = this.settings
+
         const io = this._io as Socket
         if (io.connected)
             return 
-    
+
         await new Promise<void>((resolve, reject) => {
             io.once(`connect`, resolve)
             io.once(`connect_error`, reject)
             io.connect()
         })
+
+        this.log`connected to server ${ host }`
     }
 
     private async _stopSocketIO(): Promise<void> {
@@ -101,6 +108,8 @@ export class FetchSocketIOClient extends Client {
             io.once(`disconnect`, () => resolve())
             io.disconnect()
         })
+
+        this.log`disconnected from server`
     }
 
     private _sendSocketIOCommand(command: Command): Promise<object> {

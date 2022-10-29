@@ -1,8 +1,9 @@
 import $, { Infer } from '@benzed/schema'
 import { Command } from '../../../command'
+import { DEFAULT_SERVER_PORT } from '../../../constants'
 import { $logIcon } from '../../../schemas'
 
-import Connection, { DEFAULT_PORT } from '../connection'
+import Connection from '../connection'
 
 /*** Types ***/
 
@@ -17,7 +18,7 @@ const $clientSettings = $({
     
     host: $.string
         .optional
-        .default(`http://localhost:${DEFAULT_PORT}`)
+        .default(`http://localhost:${DEFAULT_SERVER_PORT}`)
 })
 
 /*** Client ***/

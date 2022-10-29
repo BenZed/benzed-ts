@@ -3,10 +3,6 @@ import { Command } from '../../command'
 
 import { Module, ModuleSetting } from '../../module'
 
-export const DEFAULT_PORT = 3000
-
-export const WEBSOCKET_PATH = `/ws/`
-
 /**
  * Base class for creating connections either to or from the server.
  */

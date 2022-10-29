@@ -2,7 +2,7 @@
     "name": "benzed-file-server",
     "port": 4000,
     "db": {
-        "uri": "mongodb://localhost:<port>/<database>",
+        "uri": "mongodb://127.0.0.1:<port>/<database>",
         "port": 4250,
         "database": "benzed-file-server"
     },

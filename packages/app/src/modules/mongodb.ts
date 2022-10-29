@@ -4,6 +4,7 @@ import { $logIcon, $port } from "../schemas"
 import { Module, ModuleSetting } from "../module"
 
 import { MongoClient } from 'mongodb'
+import { DEFAULT_MONGODB_PORT } from '../constants'
 
 /*** Base ***/
 
@@ -17,10 +18,6 @@ abstract class Database<S extends ModuleSetting> extends Module<S> {
         this._assertSingle()
     }
 }
-
-/*** Constants ***/
-
-const DEFAULT_MONGODB_PORT = 27017
 
 /*** Types ***/
 
@@ -67,7 +64,6 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
             .replaceAll(`<password>`, settings.password ?? ``)
             .replaceAll(`<database>`, settings.database)
 
-        console.log(uri)
         this._mongoClient = await MongoClient.connect(uri)
 
         this.log`mongodb connected ${{ uri }}`

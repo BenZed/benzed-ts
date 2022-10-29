@@ -9,7 +9,7 @@ import { Server as IOServer } from 'socket.io'
 import Server, { $serverSettings, ServerSettings } from './server'
 import { Command } from '../../../command'
 import { HttpStatus } from './http-codes'
-import { WEBSOCKET_PATH } from '../connection'
+import { WEBSOCKET_PATH } from '../../../constants'
 
 /*** KoaServer ***/
 
@@ -53,6 +53,8 @@ export class KoaSocketIOServer extends Server {
             this._http.listen(port, resolve)
             this._http.once(`error`, reject)
         })
+
+        this.log`listening for connections ${{ port }}`
     }
     
     override async stop(): Promise<void> {
@@ -66,6 +68,8 @@ export class KoaSocketIOServer extends Server {
         await new Promise<void>((resolve, reject) => {
             http.close(err => err ? reject(err) : resolve())
         })
+
+        this.log`shutdown`
     }
 
     // Helper
@@ -117,6 +121,8 @@ export class KoaSocketIOServer extends Server {
                 response = await this.getCommandList()
             else { 
                 const command = this._createCommandFromCtx(ctx)
+
+                this.log`rest command: ${command}`
                 response = await this._relayCommand(command)
             }
 
@@ -137,13 +143,27 @@ export class KoaSocketIOServer extends Server {
         const io = new IOServer(http, { path: WEBSOCKET_PATH })
 
         io.on(`connection`, socket => {
+
+            this.log`${socket.id} connected`
+
             socket.on(`command`, async (cmd: Command, reply) => {
+
+                this.log`${socket.id} command: ${cmd}`
+
                 try {
                     const result = await this._relayCommand(cmd)
+
+                    this.log`${socket.id} reply: ${cmd}`
                     reply(null, result)
                 } catch (e) {
+
+                    this.log.error`${socket.id} command error: ${e}`
                     reply(e)
                 }
+            })
+
+            socket.once(`disconnected`, () => {
+                this.log`${socket.id} disconnected`
             })
         })
 
