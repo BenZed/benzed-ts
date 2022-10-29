@@ -2,7 +2,7 @@
 import { Empty } from '@benzed/util'
 import { Command } from '../command'
 
-import { Module } from '../modules'
+import { Module } from '../module'
 
 export const DEFAULT_PORT = 3000
 

@@ -1,7 +1,7 @@
 
 import { App, AppCommandInterface, AppCommands } from './app'
 
-import { CommandModule } from './modules'
+import { CommandModule } from './module'
 import { Command } from './command/types'
 
 import { expectTypeOf } from 'expect-type'
@@ -40,14 +40,14 @@ it(`App command definitions are gathered from it\'s modules`, () => {
 
 })
 
-it(`App commands are type-safe`, () => {
+it(`commands are type-safe`, () => {
     
     // @ts-expect-error Not a command
     expect(() => fooApp.execute({ name: `not-a-command` }))
         .toThrow(`${App.name} cannot execute command`)
 })
 
-it(`App Command Interface Convience UI`, () => {
+it(`command interface convience ui`, () => {
 
     type FooCommandUI = AppCommandInterface<typeof fooApp>
 

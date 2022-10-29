@@ -4,7 +4,7 @@ import {
     Modules, 
     ServiceCommands,
     ModulesOf 
-} from './modules'
+} from './module'
 
 import { 
 

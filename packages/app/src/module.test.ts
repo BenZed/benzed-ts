@@ -1,4 +1,4 @@
-import { Module } from "./modules"
+import { Module } from "./module"
 import { App } from './app'
 
 const m1 = new Module({})

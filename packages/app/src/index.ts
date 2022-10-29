@@ -12,4 +12,4 @@ export {
     CommandModule,
     ServiceModule
 
-} from './modules'
+} from './module'

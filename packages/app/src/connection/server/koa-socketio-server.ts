@@ -63,14 +63,6 @@ export class KoaSocketIOServer extends Server {
 
     // Helper
 
-    private _isCommandListRequest(ctx: Context): boolean {
-        return this._splitUrl(ctx).length === 0 && ctx.method.toLowerCase() === `options`
-    }
-
-    private _splitUrl(ctx: Context): string[] {
-        return ctx.url.split(`/`).filter(w => w.trim())
-    }
-
     private _relayCommand(command: Command): Promise<object> {
         
         if (!this.parent) {
@@ -82,6 +74,15 @@ export class KoaSocketIOServer extends Server {
         return this.parent.execute(command)
     }
 
+    // Koa Helpers
+
+    private _isCommandListRequest(ctx: Context): boolean {
+        return this._splitUrl(ctx).length === 0 && ctx.method.toLowerCase() === `options`
+    }
+
+    private _splitUrl(ctx: Context): string[] {
+        return ctx.url.split(`/`).filter(w => w.trim())
+    }
     private _createCommandFromCtx(ctx: Context): Command {
 
         // for now, all commands can be posted to the root with the command json as a body
@@ -91,10 +92,17 @@ export class KoaSocketIOServer extends Server {
         return ctx.throw(HttpStatus.InternalServerError, `${Server.name} cann`)
     }
 
+    // Initialization
+
     private _setupKoa(): Koa {
+
         const koa = new Koa()
+
+        // Standard Middleware
         koa.use(cors())
         koa.use(body())
+
+        // Route Everything to command handlers
         koa.use(async (ctx) => {
 
             let response
@@ -119,7 +127,8 @@ export class KoaSocketIOServer extends Server {
         if (!this.settings.webSocket)
             return null
 
-        const io = new IOServer(http, { path: WEBSOCKET_PATH }) 
+        const io = new IOServer(http, { path: WEBSOCKET_PATH })
+
         io.on(`connection`, socket => {
             socket.on(`command`, async (cmd: Command, reply) => {
                 try {

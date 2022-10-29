@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
 import { Client, Server } from './connection'
-import { Module, ModuleSettings } from './modules'
+import { Module, ModuleSettings } from './module'
 
 /*** Tests ***/
 
