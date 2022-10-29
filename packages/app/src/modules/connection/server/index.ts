@@ -1,13 +1,10 @@
 
 export { 
-    DEFAULT_SERVER_SETTINGS, 
     $serverSettings, 
-    ServerSettings 
+    ServerSettings
 } from './server'
 
-export {
-    HttpStatus
-} from './http-codes'
+export * from './http-codes'
 
 export { 
     KoaSocketIOServer as Server, 

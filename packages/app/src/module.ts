@@ -3,7 +3,7 @@ import { createLogger, Empty, Logger } from '@benzed/util'
 import is from '@benzed/is'
 
 import { Command } from "./command"
-import { $$copy } from '@benzed/immutable/lib'
+import { $$copy } from '@benzed/immutable'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -37,15 +37,12 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
     constructor( 
         settings: S
     ) { 
-
-        const { logIcon: header } = this._settings = {
-            logIcon: `ℹ️`,
-            ...settings
-        } 
-
+     
+        this._settings = settings
         this.log = createLogger({
-            header
+            header: this._settings.logIcon
         })
+
     }
 
     log!: Logger

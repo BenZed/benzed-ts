@@ -1,4 +1,4 @@
-import { Server, DEFAULT_SERVER_SETTINGS } from './server'
+import { Server } from './server'
 import fetch from 'cross-fetch'
 
 import { inputToOutput, io } from '@benzed/util'
@@ -8,7 +8,7 @@ import { inputToOutput, io } from '@benzed/util'
 let startErr: unknown
 let stopErr: unknown
 beforeAll(async () => {
-    const server = new Server(DEFAULT_SERVER_SETTINGS)
+    const server = Server.create()
     startErr = await server.start().catch(inputToOutput)
     stopErr = await server.stop().catch(inputToOutput)
 })
@@ -23,7 +23,7 @@ it(`.stop()`, () => {
 
 it(`.getCommandList()`, async () => {
 
-    const server = new Server(DEFAULT_SERVER_SETTINGS)
+    const server = Server.create()
     server.getCommandList = () => Promise.resolve([`command`, `list`, `here`])
     await server.start()
 
@@ -41,6 +41,6 @@ it(`.getCommandList()`, async () => {
 })
 
 it(`.type === "server"`, () => {
-    const server = new Server(DEFAULT_SERVER_SETTINGS)
+    const server = Server.create()
     expect(server.type).toBe(`server`)
 })

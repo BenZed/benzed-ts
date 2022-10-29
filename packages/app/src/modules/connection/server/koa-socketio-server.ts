@@ -6,7 +6,7 @@ import cors from '@koa/cors'
 
 import { Server as IOServer } from 'socket.io'
 
-import Server, { ServerSettings } from './server'
+import Server, { $serverSettings, ServerSettings } from './server'
 import { Command } from '../../../command'
 import { HttpStatus } from './http-codes'
 import { WEBSOCKET_PATH } from '../connection'
@@ -18,11 +18,18 @@ import { WEBSOCKET_PATH } from '../connection'
  */
 export class KoaSocketIOServer extends Server {
 
+    static create(settings: ServerSettings = {}): KoaSocketIOServer {
+
+        return new KoaSocketIOServer(
+            $serverSettings.validate(settings) as Required<ServerSettings>
+        )
+    }
+
     private readonly _http: HttpServer
     private readonly _koa: Koa
     private readonly _io: IOServer | null
 
-    constructor(settings: ServerSettings) {
+    constructor(settings: Required<ServerSettings>) {
         super(settings)
 
         this._koa = this._setupKoa()

@@ -1,7 +1,7 @@
 
 import type { Command } from '../../../command'
 import { WEBSOCKET_PATH } from '../connection'
-import Client, { ClientSettings } from './client'
+import Client, { $clientSettings, ClientSettings } from './client'
 
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
@@ -13,9 +13,16 @@ import { io, Socket } from 'socket.io-client'
  */
 export class FetchSocketIOClient extends Client {
 
+    static create(settings: ClientSettings = {}): FetchSocketIOClient {
+
+        return new FetchSocketIOClient(
+            $clientSettings.validate(settings) as Required<ClientSettings>
+        )
+    }
+
     _io: Socket | null = null
 
-    constructor(settings: ClientSettings) {
+    constructor(settings: Required<ClientSettings>) {
         super(settings)
 
         this._io = settings.webSocket 

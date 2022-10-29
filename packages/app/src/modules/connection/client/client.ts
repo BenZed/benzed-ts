@@ -1,5 +1,6 @@
 import $, { Infer } from '@benzed/schema'
 import { Command } from '../../../command'
+import { $logIcon } from '../../../schemas'
 
 import Connection, { DEFAULT_PORT } from '../connection'
 
@@ -7,25 +8,24 @@ import Connection, { DEFAULT_PORT } from '../connection'
 
 interface ClientSettings extends Infer<typeof $clientSettings> {}
 const $clientSettings = $({
-    logIcon: $.string.optional,
-    webSocket: $.boolean.default(false),
+    logIcon: $logIcon   
+        .default(`💻`),
+    
+    webSocket: $.boolean
+        .optional
+        .default(false),
+    
     host: $.string
+        .optional
+        .default(`http://localhost:${DEFAULT_PORT}`)
 })
-
-/*** Constants ***/
-
-const DEFAULT_CLIENT_SETTINGS: ClientSettings = { 
-    logIcon: `💻`, 
-    webSocket: false,
-    host: `http://localhost:${DEFAULT_PORT}` 
-}
 
 /*** Client ***/
 
 /**
  * Creates connection to server, allows commands to be emitted.
  */
-abstract class Client extends Connection<ClientSettings> {
+abstract class Client extends Connection<Required<ClientSettings>> {
 
     readonly type = `client` as const
 
@@ -40,8 +40,6 @@ export default Client
 export {
     Client,
     ClientSettings,
-    $clientSettings,
-
-    DEFAULT_CLIENT_SETTINGS
+    $clientSettings
 
 }

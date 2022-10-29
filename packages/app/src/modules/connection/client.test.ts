@@ -1,8 +1,8 @@
 import { inputToOutput } from '@benzed/util'
 
 import { Command } from "../../command"
-import { Client, DEFAULT_CLIENT_SETTINGS } from "./client"
-import { Server, DEFAULT_SERVER_SETTINGS } from "./server"
+import { Client } from "./client"
+import { Server} from "./server"
 
 /*** Setup ***/
 
@@ -13,8 +13,8 @@ for (const webSocket of [false, true]) {
 
         let server: Server
         beforeAll(async () => {
-            server = new Server({ ...DEFAULT_SERVER_SETTINGS, webSocket })
-            server[`_relayCommand`] = (cmd) => void log.push(cmd) ?? Promise.resolve(cmd)
+            server = Server.create({ webSocket })
+            server[`_relayCommand`] = (cmd: Command) => void log.push(cmd) ?? Promise.resolve(cmd)
             server.getCommandList = () => Promise.resolve([`get-test`])
             await server.start()
         })
@@ -28,13 +28,13 @@ for (const webSocket of [false, true]) {
         let stopErr: unknown
         let commandList: string[]
         beforeAll(async () => {
-            client = new Client({ ...DEFAULT_CLIENT_SETTINGS, webSocket })
+            client = Client.create({ webSocket })
             startErr = await client
                 .start()
-                .catch(inputToOutput)
+                ?.catch(inputToOutput)
     
             commandList = await client.getCommandList().catch(inputToOutput)
-            stopErr = await client.stop().catch(inputToOutput)
+            stopErr = await client.stop()?.catch(inputToOutput)
 
             await client.start()
         }, 500)

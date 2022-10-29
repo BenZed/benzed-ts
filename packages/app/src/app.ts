@@ -12,11 +12,9 @@ import {
 
     Client, 
     ClientSettings, 
-    DEFAULT_CLIENT_SETTINGS, 
     
     Server, 
     ServerSettings,
-    DEFAULT_SERVER_SETTINGS, 
 
 } from './modules'
 
@@ -159,25 +157,19 @@ class App<M extends Modules = Modules>
         )
     }
 
-    server(settings: Partial<ServerSettings> = {}): App<[..._RemoveConnection<M>, Server]> {
+    server(settings: ServerSettings = {}): App<[..._RemoveConnection<M>, Server]> {
         return this
             .service()
             .use(
-                new Server({
-                    ...DEFAULT_SERVER_SETTINGS,
-                    ...settings
-                })
+                Server.create(settings)
             ) 
     } 
 
-    client(settings: Partial<ClientSettings> = {}): App<[..._RemoveConnection<M>, Client]> {
+    client(settings: ClientSettings = {}): App<[..._RemoveConnection<M>, Client]> {
         return this
             .service()
             .use(
-                new Client({
-                    ...DEFAULT_CLIENT_SETTINGS,
-                    ...settings
-                })
+                Client.create(settings)
             ) 
     } 
 

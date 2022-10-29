@@ -3,35 +3,24 @@ import $, { Infer } from '@benzed/schema'
 
 import Connection, { DEFAULT_PORT } from '../connection'
 import { $clientSettings } from '../client'
+import { $logIcon, $port } from '../../../schemas'
 
 /*** Types ***/
 
 interface ServerSettings extends Infer<typeof $serverSettings> {}
 const $serverSettings = $({
-    port: $.integer.range({ 
-        min: 1025, 
-        comparator: `...`, 
-        max: 65536
-    }),
+    port: $port.optional.default(DEFAULT_PORT),
 
     webSocket: $clientSettings.$.webSocket,
-    logIcon: $clientSettings.$.logIcon
+    logIcon: $logIcon.default(`🖥️`)
 })
-
-/*** Constants ***/
-
-const DEFAULT_SERVER_SETTINGS: ServerSettings = { 
-    logIcon: `🖥️`, 
-    port: DEFAULT_PORT, 
-    webSocket: false 
-}
 
 /*** Server ***/
 
 /**
  * Serverside connections, sends commands sent to users to the app
  */
-abstract class Server extends Connection<ServerSettings> {
+abstract class Server extends Connection<Required<ServerSettings>> {
 
     readonly type = `server` as const
 
@@ -44,8 +33,6 @@ export default Server
 export {
     Server,
     ServerSettings,
-    $serverSettings,
-
-    DEFAULT_SERVER_SETTINGS,
+    $serverSettings
 
 }
