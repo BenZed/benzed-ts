@@ -100,6 +100,9 @@ export const toFalse = returns(false)
 
 export const toVoid = returns(undefined) as () => void
 
+/**
+ * Does nothing, returns undefined
+ */
 export const noop = returns(undefined) as () => void
 
 export const toUndefined = returns(undefined)
@@ -115,3 +118,7 @@ export {
     through as inputToOutput
 }
 
+/**
+ * Call a map function with set arguments
+ */
+export const call = <F extends Func>(...p: Parameters<F>) => (f: F) => f(...p)
