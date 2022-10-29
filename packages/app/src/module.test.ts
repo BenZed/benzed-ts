@@ -1,4 +1,4 @@
-import { Module } from "./module"
+import { Module, Service } from "./module"
 import { App } from './app'
 
 const m1 = new Module({})
@@ -64,6 +64,24 @@ it(`.withSettings() makes an immutable copy with new settings`, () => {
 
     expect(s1).not.toBe(s2)
     expect(s2.settings).toEqual({ logIcon: `!!` })
+})
+
+it(`.parent`, () => {
+    
+    const app = App.create().use(Service.create())
+
+    const service = app.modules[0]
+
+    expect(service.parent).toBe(app)
+
+})
+
+it(`.root`, () => {
+    const app = App.create().use(Service.create().use(Service.create()))
+
+    const child = app.modules[0].modules[0]
+
+    expect(child.root).toBe(app)
 })
 
 describe(`.use(path)`, () => {

@@ -1,10 +1,10 @@
-import { pluck } from '@benzed/array'
-import { createLogger, Empty, Logger, toVoid } from '@benzed/util'
 import is from '@benzed/is'
-
-import { Command } from "./command"
+import { pluck } from '@benzed/array'
 import { $$copy } from '@benzed/immutable'
+import { createLogger, Empty, Logger, toVoid } from '@benzed/util'
+
 import { ENV, TEST_LOGS_ENABLED } from './constants'
+import { Command } from "./command"
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -74,8 +74,17 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
     }
 
     private _parent: ServiceModule<any,any> | null = null 
-    get parent(): ServiceModule<any,any> | null{
+    get parent(): ServiceModule<any,any> | null {
         return this._parent
+    }
+
+    get root(): ServiceModule<any,any> | null {
+
+        let { parent: root } = this
+        while (root?.parent)
+            root = root.parent
+
+        return root
     }
 
     withSettings(settings: S): this {
