@@ -89,7 +89,9 @@ type _GetType<M extends Modules> = _HasModule<Server, M> extends true
 
 /*** App ***/
 
-type AppConnection = Omit<Connection<any>, '_started' | symbol>
+type AppConnection = {
+    [K in keyof Connection<any> as K extends '_active' | symbol ? never : K ]: Connection<any>[K]
+}
 
 /**
  * Immutable builder pattern for apps and services

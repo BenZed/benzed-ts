@@ -7,6 +7,7 @@ import Connection, { DEFAULT_PORT } from '../connection'
 
 interface ClientSettings extends Infer<typeof $clientSettings> {}
 const $clientSettings = $({
+    logIcon: $.string.optional,
     webSocket: $.boolean.default(false),
     host: $.string
 })
@@ -14,6 +15,7 @@ const $clientSettings = $({
 /*** Constants ***/
 
 const DEFAULT_CLIENT_SETTINGS: ClientSettings = { 
+    logIcon: `💻`, 
     webSocket: false,
     host: `http://localhost:${DEFAULT_PORT}` 
 }

@@ -14,12 +14,14 @@ const $serverSettings = $({
         max: 65536
     }),
 
-    webSocket: $clientSettings.$.webSocket
+    webSocket: $clientSettings.$.webSocket,
+    logIcon: $clientSettings.$.logIcon
 })
 
 /*** Constants ***/
 
 const DEFAULT_SERVER_SETTINGS: ServerSettings = { 
+    logIcon: `🖥️`, 
     port: DEFAULT_PORT, 
     webSocket: false 
 }

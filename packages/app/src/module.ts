@@ -1,8 +1,9 @@
 import { pluck } from '@benzed/array'
-import { Empty } from '@benzed/util'
+import { createLogger, Empty, Logger } from '@benzed/util'
 import is from '@benzed/is'
 
 import { Command } from "./command"
+import { $$copy } from '@benzed/immutable/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -10,7 +11,7 @@ import { Command } from "./command"
 
 /*** Symbols ***/
 
-export const $$parentTo = Symbol(`set-parent`)
+export const $$parentTo = Symbol(`set-parent-from-inside-module`)
 
 /*** Types ***/
 
@@ -22,15 +23,32 @@ export type ModuleConstructor<M extends Module<any> = Module<any>> =
 
 export type ModuleSettings<M extends Module<any>> = M extends Module<infer S> ? S : Empty
 
-export class Module<S extends object = Empty> {
+export interface ModuleSetting {
+    logIcon?: string
+}
 
+export class Module<S extends ModuleSetting = ModuleSetting> {
+    
+    private readonly _settings: S
     get settings(): S {
         return this._settings
     }
     
     constructor( 
-        private readonly _settings: S
-    ) { }
+        settings: S
+    ) { 
+
+        const { logIcon: header } = this._settings = {
+            logIcon: `ℹ️`,
+            ...settings
+        } 
+
+        this.log = createLogger({
+            header
+        })
+    }
+
+    log!: Logger
 
     // Component API
 
@@ -58,14 +76,22 @@ export class Module<S extends object = Empty> {
     get parent(): ServiceModule<any,any> | null{
         return this._parent
     }
-    
+
+    withSettings(settings: S): this {
+        return new (
+            this.constructor as new (settings: S) => this
+        )(settings)
+    }
+
+    [$$copy](): this {
+        return this.withSettings(this.settings)
+    }
+
     /**
      * Creates an immutable instanceof this module with a set parent
      */
     [$$parentTo](parent: ServiceModule<any,any>): this {
-        const clone = new (
-            this.constructor as new (settings: object) => this
-        )(this.settings)
+        const clone = this[$$copy]()
 
         clone._parent = parent
         clone.validateModules()
@@ -141,7 +167,6 @@ export abstract class CommandModule<C extends Command = any, S extends object = 
     }
 
     protected abstract _execute(command: C): object | Promise<object>
-
 }
 
 /*** Service ***/
@@ -205,10 +230,14 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
         return this._path
     }
 
-    override [$$parentTo](parent: ServiceModule<any, any>, path: string = this._path): this {
-        const clone = new (
+    override withSettings(settings: S): this {
+        return new (
             this.constructor as new (modules: M, settings: S) => this
-        )(this.modules, this.settings)
+        )(this.modules, settings)
+    }
+
+    override [$$parentTo](parent: ServiceModule<any, any>, path: string = this._path): this {
+        const clone = this[$$copy]()
 
         clone[`_parent`] = parent
         clone._path = path

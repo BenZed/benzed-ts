@@ -57,6 +57,15 @@ it(`.has() a module`, () => {
     expect(service.use(m1).has(Module)).toBe(true)
 })
 
+it(`.withSettings() makes an immutable copy with new settings`, () => {
+
+    const s1 = new Module({ logIcon: `!` })
+    const s2 = s1.withSettings({ logIcon: `!!` }) 
+
+    expect(s1).not.toBe(s2)
+    expect(s2.settings).toEqual({ logIcon: `!!` })
+})
+
 describe(`.use(path)`, () => {
 
     const app = App.create().server()
