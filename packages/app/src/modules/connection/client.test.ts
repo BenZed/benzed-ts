@@ -57,14 +57,7 @@ for (const webSocket of [false, true]) {
             expect(commandList).toEqual([`get-test`])
         })
     
-        it(`.executeOnServer()`, async () => {
-    
-            // since the server isn't connected to an app for this test, it sends
-            const result = await client.executeOnServer({ name: commandList[0] })
-            expect(result).toEqual({ name: commandList[0] })
-    
-            expect(log).toEqual([result])
-        })
+        it.todo(`.executeOnServer()`)
     
         it(`.type === "client"`, () => {
             expect(client.type).toBe(`client`)

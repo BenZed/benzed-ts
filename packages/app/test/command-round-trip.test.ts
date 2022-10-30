@@ -7,7 +7,7 @@ for (const webSocket of [true, false]) {
 
     describe(`websocket ${webSocket ? `enabled` : `disabled`}`, () => {
 
-        const app = App.create().use(new Calculator({}))
+        const app = App.create().use(new Calculator())
         const client = app.client({ webSocket })
         const server = app.server({ webSocket })
         

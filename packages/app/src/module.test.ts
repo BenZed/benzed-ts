@@ -147,25 +147,30 @@ describe(`.getCommands()`, () => {
 
         const cars = Service.create().use(
             new Orders()
+        ).use(
+            `/part`,
+            Service.create().use(new Orders())
         )
 
         const travel = App.create()
             .use(new Orders())
-            .use(`/cars`, cars)
-            .use(`/bikes`, bikes)
+            .use(`/car`, cars)
+            .use(`/bike`, bikes)
 
         const commands = travel.getCommands()
 
-        type TravelCommands = Compile<typeof commands, Command, false>
+        console.log(commands)
 
-        expectTypeOf(commands).toEqualTypeOf<{
-            find: Orders['find']
-            ceate: Orders['create']
-            carsFind: Orders['find']
-            carsCreate: Orders['create']
-            bikesFind: Orders['find']
-            bikesCreate: Orders['create']
-        }>()
+        // type TravelCommands = Compile<typeof commands, Command, false>
+
+        // expectTypeOf(commands).toEqualTypeOf<{
+        //     find: Orders['find']
+        //     ceate: Orders['create']
+        //     carsFind: Orders['find']
+        //     carsCreate: Orders['create']
+        //     bikesFind: Orders['find']
+        //     bikesCreate: Orders['create']
+        // }>()
 
     })
 

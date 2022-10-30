@@ -1,10 +1,12 @@
 import is from '@benzed/is'
 import { pluck } from '@benzed/array'
 import { $$copy } from '@benzed/immutable'
+import { capitalize } from '@benzed/string'
+
 import { createLogger, Logger, toVoid } from '@benzed/util'
 
 import { ENV, TEST_LOGS_ENABLED } from './constants'
-import { command, CommandsOf } from './command'
+import { Command, command, CommandsOf } from './command'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -22,6 +24,7 @@ export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M)
 
+// TODO make this and ModuleWithSettings abstract
 export class Module {
 
     constructor(
@@ -192,10 +195,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     ) {
         super(icon)
 
-        for (const module of modules)
-            module[$$parentTo](this)
-
-        this._modules = modules
+        this._modules = modules.map(m => m[$$parentTo](this)) as unknown as M
         this.validateModules()
     }
 
@@ -238,14 +238,23 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     getCommands(): CommandsOf<M[number]> {
         
-        let commands = {}
+        const commands: { [key: string]: Command } = {}
 
         for (const module of this.modules) {
 
-            commands = {
-                ...command.of(module)
-            }
+            const isService = module instanceof Service
 
+            const moduleCommands = isService 
+                ? module.getCommands()
+                : command.of(module)
+            for (const key in moduleCommands) {
+
+                const name = isService 
+                    ? `${module.path.replaceAll(`/`, ``)}${capitalize(key)}`
+                    : key
+                
+                commands[name] = moduleCommands[key as keyof typeof moduleCommands]
+            }
         }
 
         return commands as CommandsOf<M[number]>
@@ -313,7 +322,6 @@ export class Service<P extends `/${string}`, M extends Modules = any> extends Se
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
     ): Service<P, [...M, Mx]> {
-
         return new Service(
             this.path,
             this._pushModule(...args)
@@ -330,13 +338,13 @@ export class Service<P extends `/${string}`, M extends Modules = any> extends Se
 
     [$$parentTo]<Px extends `/${string}`>(
         parent: ServiceModule<any>,
-        path: Px
+        path: Px = this._path as unknown as Px
     ): this {
 
-        const clone = this[$$copy]()
+        const clone = super[$$parentTo](parent)
         clone._path = path as unknown as P
 
-        return super[$$parentTo](parent)
+        return clone
     }
 
 }
