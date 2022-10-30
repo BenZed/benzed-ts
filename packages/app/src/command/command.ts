@@ -22,7 +22,7 @@ import {
 
 type Validator<I extends object> = (data: unknown) => I
 
-interface Command<I extends object, O extends Promise<object>, P extends StringFields<I> | void> extends Pipe<I,O> {
+interface Command<I extends object = object, O extends Promise<object> = Promise<object>, P extends StringFields<I> | void = any> extends Pipe<I,O> {
     
     /**
      * Set data validation for this command
@@ -122,7 +122,7 @@ function command<I extends object, O extends Promise<object>>(execute: Pipe<I,O>
         // Command Methods
         {
 
-            req(this: Command<I,O, never>, ...args: any[]): any {
+            req(this: Command<I, O, any>, ...args: any[]): any {
 
                 const funcs = pluck(args, is.function)
         
@@ -144,7 +144,7 @@ function command<I extends object, O extends Promise<object>>(execute: Pipe<I,O>
                 return this
             },
 
-            validator(this: Command<I, O, never>, validator: Validator<I> | { validate: Validator<I> }) {
+            validator(this: Command<I, O, any>, validator: Validator<I> | { validate: Validator<I> }) {
                 this.validate = `validate` in validator ? validator.validate : validator
                 return this
             },

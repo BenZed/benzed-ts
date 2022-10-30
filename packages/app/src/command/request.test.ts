@@ -1,6 +1,7 @@
 import { HttpMethod } from '../modules/connection/server/http-methods'
 import { createNameToReq, createNameFromReq, ToRequest, FromRequest } from './request'
 import is from '@benzed/is'
+import { COMMAND_ENDPOINT } from '../constants'
 
 /*** Helper ***/
 
@@ -71,7 +72,7 @@ describe(`createNameToReq`, () => {
             {
                 name: `disconnect-users`,
                 data: { type: `all` },
-                request: [`POST`, `/command`, { type: `all` }] 
+                request: [`POST`, COMMAND_ENDPOINT, { type: `all` }] 
             }
         ] as const) {
             
@@ -120,7 +121,7 @@ describe(`createNameFromReq`, () => {
             { 
                 name: `disconnect-users`,
                 data: { type: `all` },
-                request: [ HttpMethod.Post, `/command`, { type: `all` } ]
+                request: [ HttpMethod.Post, COMMAND_ENDPOINT, { type: `all` } ]
             },
         ] as const) {
 

@@ -86,7 +86,7 @@ const createNameToReq = (name: string, param = `id`): ToRequest<any, any> => {
     const [method, url] = nameToMethodUrl(name)
     return method
         ? createToReq(method, url, param)
-        : createToReq(HttpMethod.Post, `/command`)
+        : createToReq(HttpMethod.Post, COMMAND_ENDPOINT)
 }
 
 const createToReq = <D extends object, P extends StringFields<D> = never>(
@@ -111,7 +111,7 @@ const createNameFromReq = (name: string, param = `id`): FromRequest<any,any> => 
     const [method, url] = nameToMethodUrl(name)
     return method
         ? createFromReq(method, url, param)
-        : createFromReq(HttpMethod.Post, `/command`)
+        : createFromReq(HttpMethod.Post, COMMAND_ENDPOINT)
 }
 
 const createFromReq = <D extends object, P extends StringFields<D> = never>(

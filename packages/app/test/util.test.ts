@@ -1,52 +1,18 @@
-import { Command } from '../src/command'
-import { CommandModule } from '../src/module'
+import { command } from '../src/command'
+import { Module } from '../src/module'
 
-import { match } from '@benzed/match'
-
-/*** Calculator Module ***/
-
-interface MathCommand extends Command {
-    readonly values: [number, number]
+type Calc = {
+    a: number
+    b: number
 }
+export class Calculator extends Module {
 
-interface AddCommand extends MathCommand {
-    readonly name: `add`
-}
+    add = command(({ a, b }: Calc) => Promise.resolve({ result: a + b }))
 
-interface SubtractCommand extends MathCommand {
-    readonly name: 'subtract'
-}
+    subtract = command(({ a, b }: Calc) => Promise.resolve({ result: a - b }))
 
-interface MultiplyCommand extends MathCommand {
-    readonly name: 'multiply'
-}
+    multiply = command(({ a, b }: Calc) => Promise.resolve({ result: a * b }))
 
-interface DivideCommand extends MathCommand {
-    readonly name: 'divide'
-}
-
-export type MathCommands = AddCommand | SubtractCommand | MultiplyCommand | DivideCommand
-
-export class Calculator extends CommandModule<MathCommands> {
-
-    _execute({ name, values: [a,b] }: MathCommands): { result: number } {
-
-        const [ result ] = match(name)
-        (`add`, a + b)
-        (`subtract`, a - b)
-        (`multiply`, a * b)
-        (`divide`, a / b)
- 
-        return { result }
-    }
-
-    canExecute(command: Command): command is MathCommands {
-        return match(command.name)
-        (`add`, true)
-        (`subtract`, true)
-        (`multiply`, true)
-        (`divide`, true)
-        (false).next()
-    }
+    divide = command(({ a, b }: Calc) => Promise.resolve({ result: a / b }))
 
 }

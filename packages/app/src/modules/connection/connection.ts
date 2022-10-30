@@ -1,6 +1,4 @@
 
-import { Command } from '../../command'
-
 import { Module, ModuleSetting } from '../../module'
 
 /**
@@ -44,7 +42,7 @@ export abstract class Connection<O extends ModuleSetting = ModuleSetting> extend
     /**
      * Retreive a list of all commands possible.
      */
-    abstract getCommandList(): Promise<Command['name'][]>
+    abstract getCommandList(): Promise<string[]>
 
 }
 

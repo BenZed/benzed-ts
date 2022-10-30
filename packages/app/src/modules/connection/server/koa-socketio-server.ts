@@ -82,7 +82,9 @@ export class KoaSocketIOServer extends Server {
             )
         }
 
-        return this.parent.execute(command)
+        throw new Error(
+            `not yet implementedp`
+        )
     }
 
     // Koa Helpers

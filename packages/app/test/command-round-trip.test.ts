@@ -1,4 +1,4 @@
-import { Calculator, MathCommands } from './util.test'
+import { Calculator } from './util.test'
 import { App } from '../src'
 
 /*** Setup ***/
@@ -26,7 +26,7 @@ for (const webSocket of [true, false]) {
             [ { name: `divide` , values: [10,10] }, { result: 1 } ],
             [ { name: `subtract` , values: [10,10] }, { result: 0 } ],
 
-        ] as [MathCommands, object][]) {
+        ]) {
             it(`calculator ${command.name} test ${command.values} should result in ${JSON.stringify(output)}`, async () => {
                 const result = await client.execute(command)
                 expect(result).toEqual(output)

@@ -7,9 +7,6 @@ export {
     ModuleSettings,
 
     ModulesOf,
-    CommandsOf,
-
-    CommandModule,
     ServiceModule
 
 } from './module'
