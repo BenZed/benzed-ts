@@ -2,7 +2,7 @@ import { io } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
-import { Module, ModuleSettings } from './module'
+import { ModuleWithSettings, Service } from './module'
 import { Client, Server } from './modules'
 
 /*** Tests ***/
@@ -36,19 +36,19 @@ it(`.client() to start an app with a client connection`, () => {
 })
 
 it(`connection shortcuts automatically remove previous connection`, () => {
-    const app = App.create().client().use(new Module({})).client()
+    const app = App.create().client().use(new ModuleWithSettings({})).client()
 
     expect(app.modules.length).toBe(2)
 
     type DummyClient = typeof app 
     type Modules = DummyClient extends App<infer M> ? M : unknown 
 
-    expectTypeOf<Modules>().toEqualTypeOf<[Module, Client]>()
+    expectTypeOf<Modules>().toEqualTypeOf<[ModuleWithSettings, Client]>()
 
 })
 
 it(`created modules are parented to the app`, () => {
-    const app = App.create().client().use(new Module({}))
+    const app = App.create().client().use(new ModuleWithSettings({}))
 
     expect(app.modules.every(m => m.parent === app))
         .toBe(true)
@@ -65,11 +65,11 @@ it(`.start() cannot be called consecutively`, async () => {
 })
 
 it(`.service() to remove connections`, () => {
-    const app = App.create().client().use(new Module({})).service()
+    const app = App.create().client().use(new ModuleWithSettings({})).service()
 
     type DummyClient = typeof app 
-    type Modules = DummyClient extends App<infer M> ? M : unknown 
-    expectTypeOf<Modules>().toEqualTypeOf<[Module]>()
+    type Modules = DummyClient extends Service<`/${string}`, infer M> ? M : unknown 
+    expectTypeOf<Modules>().toEqualTypeOf<[ModuleWithSettings]>()
 
     expect(app.modules.length).toBe(1)
 })
@@ -95,22 +95,6 @@ it(`.type === null before started`, () => {
     expect(app.type).toBe(null)
 })
 
-it(`settings match server component`, () => {
-
-    const app = App.create().server()
-
-    expect(app.settings).toEqual(app.get(Server)?.settings)
-    expectTypeOf<ModuleSettings<typeof app>>().toMatchTypeOf<ModuleSettings<Server>>()
-})
-
-it(`settings match client component`, () => {
-
-    const app = App.create().client()
-
-    expect(app.settings).toEqual(app.get(Client)?.settings)
-    expectTypeOf<ModuleSettings<typeof app>>().toMatchTypeOf<ModuleSettings<Client>>()
-})
-
 it(`connection is typesafe`, () => {
 
     const client = App.create().client().connection
@@ -119,3 +103,5 @@ it(`connection is typesafe`, () => {
     const server = App.create().server().connection
     expectTypeOf<typeof server>().toMatchTypeOf<Server>()
 })
+
+it.todo(`execute`)

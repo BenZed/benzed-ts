@@ -1,10 +1,10 @@
 import is from '@benzed/is'
 import { pluck } from '@benzed/array'
 import { $$copy } from '@benzed/immutable'
-import { createLogger, Empty, Logger, toVoid } from '@benzed/util'
+import { createLogger, Logger, toVoid } from '@benzed/util'
 
 import { ENV, TEST_LOGS_ENABLED } from './constants'
-import { Command, CommandData, CommandName, CommandResult } from "./command"
+import { command, CommandsOf } from './command'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -16,32 +16,20 @@ export const $$parentTo = Symbol(`set-parent-from-inside-module`)
 
 /*** Types ***/
 
-export type Modules = readonly Module<any>[]
+export type Modules = readonly Module[]
 
-export type ModuleConstructor<M extends Module<any> = Module<any>> =
+export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M)
 
-export type ModuleSettings<M extends Module<any>> = M extends Module<infer S> ? S : Empty
+export class Module {
 
-export interface ModuleSetting {
-    logIcon?: string
-}
-
-export class Module<S extends ModuleSetting = ModuleSetting> {
-    
-    private readonly _settings: S
-    get settings(): S {
-        return this._settings
-    }
-    
-    constructor( 
-        settings: S
+    constructor(
+        protected _icon?: string
     ) { 
-     
-        this._settings = settings
+
         this.log = createLogger({
-            header: this._settings.logIcon,
+            header: _icon,
             onLog: ENV === `test` && !TEST_LOGS_ENABLED
                 ? toVoid 
                 : console.log.bind(console)
@@ -53,7 +41,7 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
 
     // Component API
 
-    get<M extends Module<any>, R extends boolean = false>(
+    get<M extends Module, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required: R = false as R
     ): R extends true ? M : M | null {
@@ -73,12 +61,12 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
         return this.parent?.modules ?? []
     }
 
-    private _parent: ServiceModule<any,any> | null = null 
-    get parent(): ServiceModule<any,any> | null {
+    private _parent: ServiceModule<any> | null = null 
+    get parent(): ServiceModule<any> | null {
         return this._parent
     }
 
-    get root(): ServiceModule<any,any> | null {
+    get root(): ServiceModule<any> | null {
 
         let { parent: root } = this
         while (root?.parent)
@@ -87,22 +75,22 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
         return root
     }
 
-    withSettings(settings: S): this {
-        return new (
-            this.constructor as new (settings: S) => this
-        )(settings)
-    }
-
     [$$copy](): this {
-        return this.withSettings(this.settings)
+        const clone = new (
+            this.constructor as new (icon?: string) => this
+        )(this._icon)
+
+        return clone
     }
 
     /**
      * Creates an immutable instanceof this module with a set parent
      */
-    [$$parentTo](parent: ServiceModule<any,any>): this {
-        const clone = this[$$copy]()
+    [$$parentTo](parent: ServiceModule<any>, ...args: unknown[]): this {
+        void args 
 
+        const clone = this[$$copy]()
+        
         clone._parent = parent
         clone.validateModules()
 
@@ -161,52 +149,37 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
     }
 }
 
-/*** Command Modules ***/
+/*** Service ***/
 
-export type CommandExecuteData<C extends Command<any,any,any>, N extends CommandName<C>>
-    = CommandData<Extract<C, { name: N }>>
+export interface ModuleSettings {
+    logIcon?: string
+}
 
-export type CommandExecuteResult<C extends Command<any,any,any>, N extends CommandName<C>>
-    = CommandResult<Extract<C, { name: N }>>
+export class ModuleWithSettings<S extends object = ModuleSettings> extends Module {
 
-export type CommandsOf<M extends CommandModule> = M extends CommandModule<infer C, any> ? C : Empty
-
-export abstract class CommandModule<C extends Command<any,any,any> = any, S extends object = any> extends Module<S> {
-
-    abstract readonly commands: C[]
-
-    canExecute(name: string): boolean {
-        return this.commands.some(c => c.name === name)
+    get settings(): S {
+        return this._settings
+    }
+    
+    constructor( 
+        private readonly _settings: S
+    ) { 
+        super(`logIcon` in _settings ? (_settings as ModuleSettings).logIcon : ``)
     }
 
-    execute<N extends CommandName<C>>(
-        name: N, 
-        data: CommandExecuteData<C, N>
-    ): CommandExecuteResult<C, N> {
+    [$$copy](): this {
+        const clone = new (
+            this.constructor as new (settings: S) => this
+        )(this.settings)
 
-        const command = this.commands.find(c => c.name === name)
-        if (!command)
-            throw new Error(`${this.constructor.name} cannot execute command ${name}`)
-
-        return command.execute(data)
+        return clone
     }
 
 }
 
-/*** Service ***/
-
 export type ModulesOf<A extends ServiceModule> = A extends ServiceModule<infer M> ? M : []
 
-export type ServiceCommands<M extends Modules | ServiceModule<any>> = _ServiceCommandsArray<M>[number]
-
-type _ServiceCommandsArray<M extends Modules | ServiceModule<any>> = 
-    M extends ServiceModule<infer Mx>
-        ? _ServiceCommandsArray<Mx>
-        : { [K in keyof M]: M[K] extends CommandModule<infer C, any> 
-            ? C 
-            : never }
-
-export abstract class ServiceModule<M extends Modules = any, S extends object = Empty> extends CommandModule<ServiceCommands<M>, S> {
+export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     private readonly _modules: M
     override get modules(): M {
@@ -214,19 +187,24 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
     }
 
     constructor(
-        modules: M, 
-        settings: S
+        modules: M,
+        icon?: string
     ) {
-        super(settings)
-        this._modules = modules.map(m => m[$$parentTo](this)) as unknown as M
+        super(icon)
+
+        for (const module of modules)
+            module[$$parentTo](this)
+
+        this._modules = modules
         this.validateModules()
     }
-    
-    // Convenience getters
-    get commandModules(): CommandModule<ServiceCommands<M>>[] {
-        return this
-            .modules
-            .filter((m): m is CommandModule<ServiceCommands<M>> => `execute` in m)
+
+    [$$copy](): this {
+        const clone = new (
+            this.constructor as new (modules: M, icon?: string) => this
+        )(this.modules, this._icon)
+
+        return clone
     }
 
     // Lifecycle Methods
@@ -249,47 +227,28 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
 
     // Service Implementation
 
-    private _path = ``
-    get path(): string {
-        return this._path
-    }
-
-    override withSettings(settings: S): this {
-        return new (
-            this.constructor as new (modules: M, settings: S) => this
-        )(this.modules, settings)
-    }
-
-    override [$$parentTo](parent: ServiceModule<any, any>, path: string = this._path): this {
-        const clone = this[$$copy]()
-
-        clone[`_parent`] = parent
-        clone._path = path
-        clone.validateModules()
-        
-        return clone
-    }
-
-    abstract use<Mx extends Module<any>>(
-        ...args: Mx extends ServiceModule<any,any> 
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
+    abstract use<Mx extends ServiceModule<any>>(
+        path: string,
+        module: Mx
     ): unknown
 
-    // Command Implementation 
-    
-    _execute(command: Command): any {
-        const module = this
-            .commandModules
-            .find(m => m.canExecute(command)) as CommandModule
-    
-        return module.execute(command)
-    }
-    
-    canExecute(command: Command): command is ServiceCommands<M> {
-        return this
-            .commandModules
-            .some(m => m.canExecute(command))
+    abstract use<Mx extends Module>(
+        module: Mx
+    ): unknown
+
+    getCommands(): CommandsOf<M[number]> {
+        
+        let commands = {}
+
+        for (const module of this.modules) {
+
+            commands = {
+                ...command.of(module)
+            }
+
+        }
+
+        return commands as CommandsOf<M[number]>
     }
 
     // Module Implementation
@@ -300,18 +259,18 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
 
     // Helper 
 
-    protected _pushModule<Mx extends Module<any>>(
-        ...args: Mx extends ServiceModule<any,any> 
+    protected _pushModule<Mx extends Module>(
+        ...args: Mx extends Service<any> 
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
     ): [...M, Mx] {
 
-        const path = pluck(args, is.string).at(0) 
+        const path = pluck(args, is.string).at(0)
         let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
         if (!module)
             throw new Error(`${Module.name} not provided.`)
 
-        if (path && module instanceof ServiceModule)
+        if (path && module instanceof Service<any>)
             module = module[$$parentTo](this, path)
 
         return [ ...this.modules, module ] as [ ...M, Mx ]
@@ -323,25 +282,61 @@ export abstract class ServiceModule<M extends Modules = any, S extends object = 
  * Generic service with no settings of it's own.
  * Extend ServiceModule to create configurable services.
  */
-export class Service<M extends Modules = any> extends ServiceModule<M> {
+export class Service<P extends `/${string}`, M extends Modules = any> extends ServiceModule<M> {
 
-    static create(): Service<[]> {
-        return new Service([])
+    static create(): Service<'/', []> {
+        return new Service(`/`, [])
     }
 
-    use<Mx extends Module<any>>(
-        ...args: Mx extends ServiceModule<any, any> 
+    get path(): P {
+        return this._path
+    }
+    
+    private constructor(
+        private _path: P,
+        modules: M
+    ) {
+        super(modules, `💻`)
+    }
+
+    override use<Px extends `/${string}`, S extends Service<any>>(
+        path: Px,
+        module: S
+    ): Service<P, [...M, S extends Service<any, infer Mx> ? Service<Px, Mx> : never]>
+
+    override use<Mx extends Module>(
+        module: Mx
+    ): Service<P, [...M, Mx]>
+
+    override use<Mx extends Module>(
+        ...args: Mx extends Service<any> 
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
-    ): Service<[...M, Mx]> {
+    ): Service<P, [...M, Mx]> {
+
         return new Service(
-            this._pushModule(...args) 
+            this.path,
+            this._pushModule(...args)
         )
     }
 
-    private constructor(
-        modules: M
-    ) {
-        super(modules, {})
+    [$$copy](): this {
+        const clone = new (
+            this.constructor as new (path: P, modules: M, icon?: string) => this
+        )(this._path, this.modules, this._icon)
+
+        return clone
     }
+
+    [$$parentTo]<Px extends `/${string}`>(
+        parent: ServiceModule<any>,
+        path: Px
+    ): this {
+
+        const clone = this[$$copy]()
+        clone._path = path as unknown as P
+
+        return super[$$parentTo](parent)
+    }
+
 }

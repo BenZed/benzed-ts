@@ -2,12 +2,12 @@ export * from './app'
 
 export {
     
-    Module,
+    ModuleWithSettings,
     Modules,
     ModuleSettings,
 
-    ModulesOf,
-    ServiceModule
+    ModulesOf as ServiceModules,
+    Service
 
 } from './module'
 

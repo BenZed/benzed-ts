@@ -1,10 +1,10 @@
 
-import { Module, ModuleSetting } from '../../module'
+import { ModuleWithSettings, ModuleSettings } from '../../module'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<O extends ModuleSetting = ModuleSetting> extends Module<O> {
+export abstract class Connection<O extends ModuleSettings = ModuleSettings> extends ModuleWithSettings<O> {
 
     override validateModules(): void {
         this._assertSingle()

@@ -1,10 +1,16 @@
 import { Module, Service } from "./module"
 import { App } from './app'
+import { Command, command } from "./command"
 
-const m1 = new Module({})
-const m2 = new Module({})
+import { expectTypeOf } from 'expect-type'
+import { Compile } from "@benzed/util/lib"
 
-const service = App.create()
+/***  ***/
+
+const m1 = new Module()
+const m2 = new Module()
+
+const service = Service.create()
 
 /*** Tests ***/
 
@@ -18,9 +24,7 @@ it(`.use() to add module as immutable copy`, () => {
 
 it(`.use() sets parent`, () => {
 
-    const app = service
-        .server()
-        .use(m1)
+    const app = App.create().server().use(m1)
 
     const [m1c] = app.modules
     expect(m1c.parent).toBe(app)
@@ -57,15 +61,6 @@ it(`.has() a module`, () => {
     expect(service.use(m1).has(Module)).toBe(true)
 })
 
-it(`.withSettings() makes an immutable copy with new settings`, () => {
-
-    const s1 = new Module({ logIcon: `!` })
-    const s2 = s1.withSettings({ logIcon: `!!` }) 
-
-    expect(s1).not.toBe(s2)
-    expect(s2.settings).toEqual({ logIcon: `!!` })
-})
-
 it(`.parent`, () => {
     
     const app = App.create().use(Service.create())
@@ -88,7 +83,7 @@ describe(`.use(path)`, () => {
 
     const app = App.create().server()
     const appWithService = app.use(service)
-    const appWithServiceEndpoint = app.use(`todos`, service)
+    const appWithServiceEndpoint = app.use(`/todos`, service)
 
     it(`places one as a module of the other`, () => {
         expect(appWithService.modules[1].parent)
@@ -99,4 +94,79 @@ describe(`.use(path)`, () => {
         expect(appWithServiceEndpoint.modules[1].path)
             .toBe(`todos`)
     })
+})
+
+describe(`.getCommands()`, () => {
+
+    class Orders extends Module {
+
+        private _id = 0
+        private readonly _orders: { type: string, id: string }[] = []
+
+        create = command((data: { type: string }) => {
+
+            const order = {
+                type: data.type,
+                id: `${this._id++}`
+            }
+
+            return Promise.resolve(order)
+        })
+
+        find = command((data: { id: string }) => {
+
+            const order = this._orders.find(o => o.id === data.id) ?? null
+
+            return Promise.resolve({ order })
+        })
+
+    }
+
+    it(`gets all commands attached to modules`, () => {
+
+        const italian = new Orders()
+        const restaurant = App.create().use(italian)
+        const commands = restaurant.getCommands()
+
+        for (const key in commands)
+            expect(italian).toHaveProperty(key, italian[key as keyof typeof italian])
+
+        expectTypeOf<typeof commands>()
+            .toEqualTypeOf<{
+                create: typeof italian.create
+                find: typeof italian.find
+            }>
+
+    })
+
+    it(`handles nesting`, () => {
+
+        const bikes = Service.create().use(
+            new Orders()
+        )
+
+        const cars = Service.create().use(
+            new Orders()
+        )
+
+        const travel = App.create()
+            .use(new Orders())
+            .use(`/cars`, cars)
+            .use(`/bikes`, bikes)
+
+        const commands = travel.getCommands()
+
+        type TravelCommands = Compile<typeof commands, Command, false>
+
+        expectTypeOf(commands).toEqualTypeOf<{
+            find: Orders['find']
+            ceate: Orders['create']
+            carsFind: Orders['find']
+            carsCreate: Orders['create']
+            bikesFind: Orders['find']
+            bikesCreate: Orders['create']
+        }>()
+
+    })
+
 })
