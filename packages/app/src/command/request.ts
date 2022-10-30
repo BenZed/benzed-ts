@@ -55,7 +55,7 @@ const nameToMethodUrl = (name: string): [HttpMethod, `/${string}`] => {
     if (!method)
         return [HttpMethod.Post, COMMAND_ENDPOINT]
 
-    return [method, toPath(...rest)]
+    return [method, `/${rest.join(`-`)}`]
 }
 
 const createNameToReq = (name: string): ToRequest<any> => {
@@ -71,7 +71,7 @@ const createToReq = <D extends object>(method: HttpMethod, url: `/${string}`, ur
         if (urlParam && urlParam in data) {
             return [
                 method,
-                `${url}/${data[urlParam]}`,
+                toPath(url, (data as any)[urlParam]),
                 omit(data, urlParam) as any
             ]
         }

@@ -126,8 +126,6 @@ describe(`createDefaultFromReq`, () => {
                     createNameFromReq(name)(request)
                 ).toEqual(data)
             })
-    
         }
     })
-
 })
