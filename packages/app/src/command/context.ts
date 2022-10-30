@@ -1,5 +1,9 @@
 import App from "../app"
-import CommandDefinition, { Command } from "./types"
+import Command from "./command"
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 /**
  * Contains data about the current command, as well as implementations
@@ -10,6 +14,8 @@ class CommandContext<C extends Command> {
     // constructor(
     //     readonly definition: CommandDefinition<C>
     // ) { }
+
+    result: C['result'] | null = null
     
 }
 

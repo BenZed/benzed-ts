@@ -8,7 +8,7 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 import { Command } from '../../../command'
-import { HttpStatus } from './http-codes'
+import { HttpCode } from './http-codes'
 import { WEBSOCKET_PATH } from '../../../constants'
 
 /*** KoaServer ***/
@@ -100,7 +100,7 @@ export class KoaSocketIOServer extends Server {
         if (ctx.method === `POST` && ctx.url === `/`)
             return JSON.parse(ctx.request.body)
 
-        return ctx.throw(HttpStatus.InternalServerError, `${Server.name} cann`)
+        return ctx.throw(HttpCode.InternalServerError, `${Server.name} cann`)
     }
 
     // Initialization
