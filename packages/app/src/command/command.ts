@@ -1,196 +1,182 @@
-import { HttpCode } from "../modules/connection/server/http-codes"
-import { HttpMethod } from "../modules/connection/server/http-methods"
-
-import { inputToOutput, StringKeys } from "@benzed/util"
-import $, { Asserts } from "@benzed/schema"
-import { toDashCase } from '@benzed/string'
 import is from '@benzed/is'
+import { pluck } from "@benzed/array"
+import { Pipe } from "@benzed/util"
+
+import { HttpMethod } from "../modules/connection/server/http-methods"
 
 import {
     Request,
     ToRequest, 
     FromRequest, 
+    StringFields,
     
     createToReq,
-    createFromReq,
-    createNameToReq, 
-    createNameFromReq 
+    createFromReq
 } from './request'
 
-import { pluck } from "@benzed/array/lib"
-
-/*** Eslint ***/
-
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
+    @typescript-eslint/no-explicit-any
 */
 
 /*** Types ***/
 
-type ResultCode = {
-    code: HttpCode
-}
+type Validator<I extends object> = (data: unknown) => I
 
-type Context = {
-    name: string
-    data: object
-    result: object | null
-}
-
-type Validator<T extends object> = (i: unknown) => T
-
-type CommandName<C extends Command<any,any,any>> = C extends Command<infer N, any, any> ? N : never
-type CommandData<C extends Command<any,any,any>> = C extends Command<any, infer D, any> ? D : never
-type CommandResult<C extends Command<any,any,any>> = C extends Command<any, any, infer R> ? R : never
-
-/*** Helper ***/
-
-const isObject: Validator<object> = $.object.validate
-
-const $dashCase = $.string
-    .length(`>`, 0)
-    .asserts(i => i === toDashCase(i), i => `"${i}" must be dash cased`)
-
-const assertsDashCase: Asserts<typeof $dashCase> = $dashCase.assert 
-
-/*** Command ***/
-
-class Command<N extends string, D extends {}, R extends ResultCode> {
+interface Command<I extends object, O extends Promise<object>, P extends StringFields<I> | void> extends Pipe<I,O> {
     
-    static create<Nx extends string>(name: Nx): Command<Nx, object, ResultCode> {
-
-        assertsDashCase(name)
-
-        return new Command(
-            name,
-            isObject,
-            inputToOutput
-        )
-    } 
-
-    private constructor(
-        readonly name: N,
-        readonly validateData: Validator<D>,
-        readonly validateResult: Validator<R> | typeof inputToOutput,
-        private readonly _toReq: ToRequest<D> = createNameToReq(name),
-        private readonly _fromReq: FromRequest<D> = createNameFromReq(name)
-    ) {
-    }
-
-    // Build Interface
-
     /**
      * Set data validation for this command
      */
-    data<Dx extends object>(
-        validateData: Validator<Dx>
-    ): Command<N, Dx, R> {
-        return new Command(
-            this.name,
-            validateData,
-            this.validateResult
-        )
-    }
-
-    /**
-     * Set explicit request converters
-     * for this command
-     */
-    req(
-        toReq: ToRequest<D>,
-        fromReq: FromRequest<D>
-    ): Command<N,D,R> 
+    validator(validator: Validator<I> | { validate: Validator<I> }): Command<I, O, P>
 
     /**
      * Create generic request converters for this command
      */
     req(
         method: HttpMethod,
-        url: `/${string}`,
-        param?: StringKeys<D>
-    ): Command<N,D,R> 
-    
-    req(...args: any[]): any {
-
-        const funcs = pluck(args, is.function)
-
-        let toReq: ToRequest<D>
-        let fromReq: FromRequest<D>
+        url: `/${string}`
+    ): Command<I, O, void> 
         
-        if (funcs.length === 2) {
-            toReq = funcs[0] as any
-            fromReq = funcs[1] as any
-        } else {
-            const [method, url, param] = args
-            toReq = createToReq(method, url, param)
-            fromReq = createFromReq(method, url, param)
-        }
-
-        return new Command(
-            this.name,
-            this.validateData,
-            this.validateResult,
-            toReq,
-            fromReq
-        )
-
-    }
-
     /**
-     * Set result type or validation for this command
+     * Set explicit request converters
+     * for this command
      */
-    result<Rx extends object>(
-        validateResult?: Validator<Rx>
-    ): Command<N, D, Rx & ResultCode> {
+    req<Px extends StringFields<I>>(
+        toReq: ToRequest<I, Px>,
+        fromReq: FromRequest<I, Px>
+    ): Command<I, O, Px> 
 
-        const _validateResult = validateResult 
-            ? (i: unknown) => ({
-                ...validateResult(i),
-                code: HttpCode.Ok 
-            })
-            : inputToOutput
+    req<Px extends StringFields<I>>(
+        method: HttpMethod,
+        url: `/${string}`,
+        param: Px
+    ): Command<I, O, Px> 
 
-        return new Command(
-            this.name,
-            this.validateData,
-            _validateResult,
-            this._toReq,
-            this._fromReq
-        )
-    }
+    validate?: Validator<I>
 
-    toReq(data: D): Request<D> {
-        return this._toReq(data)
-    }
+    toReq?: ToRequest<I, P extends void ? never : P>
 
-    fromReq(request: Request<D>): D | null{
-
-        const data = this._fromReq(request)
-        if (!data)
-            return null
-
-        return this.validateData(data)
-    }
-
-    // Runtime Interface
+    fromReq?: FromRequest<I, P extends void ? never : P>
 
 }
 
+/**
+ * Get the input type of a command
+ */
+type CommandInput<C extends Command<any, any, any>> = C extends Command<infer I, any, any> ? I : never
+
+/**
+ * Get the output type of a command
+ */
+type CommandOutput<C extends Command<any, any, any>> = C extends Command<any, infer O, any> ? O : never
+
+/**
+ * Get a subobject of a type that is only comprised of commands
+ */
+type CommandsOf<T extends object> = {
+    [K in keyof T as T[K] extends Command<any, any, any> ? K : never]: T[K]
+}
+
+/*** Main ***/
+
+/**
+ * Is the provided value a command?
+ */
+function isCommand(input: unknown): input is Command<any, any, any> {
+
+    const cmd = input as any
+
+    return is.function(cmd) && 
+        is.function(cmd.validator) && 
+        is.function(cmd.req)
+}
+
+/**
+ * Extract the commands of an object to a new object
+ */
+function commandsOf<T extends object>(input: T): CommandsOf<T> {
+
+    const commands = {} as any
+
+    for (const key in input) {
+        if (isCommand(input[key]))
+            commands[key] = input[key]
+    }
+
+    return commands
+
+}
+
+/**
+ * Create a command out of a pipe method 
+ */
+function command<I extends object, O extends Promise<object>>(execute: Pipe<I,O>): Command<I, O, void> {
+    
+    const _command = Object.assign(
+
+        // Execute with validation
+        (input: I) => execute(
+            _command.validate?.(input) ?? input
+        ),
+
+        // Command Methods
+        {
+
+            req(this: Command<I,O, never>, ...args: any[]): any {
+
+                const funcs = pluck(args, is.function)
+        
+                let toReq: ToRequest<I, never>
+                let fromReq: FromRequest<I, never>
+                
+                if (funcs.length === 2) {
+                    toReq = funcs[0] as any
+                    fromReq = funcs[1] as any
+                } else {
+                    const [method, url, param] = args
+                    toReq = createToReq<I,never>(method, url, param)
+                    fromReq = createFromReq<I, never>(method, url, param)
+                }
+
+                this.toReq = toReq
+                this.fromReq = fromReq
+
+                return this
+            },
+
+            validator(this: Command<I, O, never>, validator: Validator<I> | { validate: Validator<I> }) {
+                this.validate = `validate` in validator ? validator.validate : validator
+                return this
+            },
+
+            validate: undefined as Validator<I> | undefined
+        }
+    )
+
+    return _command
+}
+
+/*** Extend ***/
+
+command.is = isCommand
+command.of = commandsOf
+
 /*** Exports ***/
 
-export default Command
+export default command 
 
 export {
-    
-    Command,
-    CommandData,
-    CommandName,
-    CommandResult,
-    ResultCode as CommandResultCode,
-    Validator as CommandDataValidator,
-    ToRequest as CommandToRequest,
-    FromRequest as RequestToCommandData,
+    command,
+    commandsOf,
+    isCommand,
 
-    Context
+    Command,
+    CommandsOf,
+    CommandInput,
+    CommandOutput,
+    Validator as CommandValidator,
+
+    Request as CommandRequestData,
+    ToRequest as CommandInputToRequestData,
+    FromRequest as RequestDataToCommandInput,
 }

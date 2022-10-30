@@ -4,7 +4,7 @@ import { $$copy } from '@benzed/immutable'
 import { createLogger, Empty, Logger, toVoid } from '@benzed/util'
 
 import { ENV, TEST_LOGS_ENABLED } from './constants'
-import { Command } from "./command"
+import { Command, CommandData, CommandName, CommandResult } from "./command"
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -163,20 +163,34 @@ export class Module<S extends ModuleSetting = ModuleSetting> {
 
 /*** Command Modules ***/
 
+export type CommandExecuteData<C extends Command<any,any,any>, N extends CommandName<C>>
+    = CommandData<Extract<C, { name: N }>>
+
+export type CommandExecuteResult<C extends Command<any,any,any>, N extends CommandName<C>>
+    = CommandResult<Extract<C, { name: N }>>
+
 export type CommandsOf<M extends CommandModule> = M extends CommandModule<infer C, any> ? C : Empty
 
-export abstract class CommandModule<C extends Command = any, S extends object = any> extends Module<S> {
+export abstract class CommandModule<C extends Command<any,any,any> = any, S extends object = any> extends Module<S> {
 
-    abstract canExecute(command: Command): command is C
+    abstract readonly commands: C[]
 
-    execute(command: C): any {
-        if (!this.canExecute(command))
-            throw new Error(`${this.constructor.name} cannot execute command: ${JSON.stringify(command)}`)
-
-        return this._execute(command)
+    canExecute(name: string): boolean {
+        return this.commands.some(c => c.name === name)
     }
 
-    protected abstract _execute(command: C): object | Promise<object>
+    execute<N extends CommandName<C>>(
+        name: N, 
+        data: CommandExecuteData<C, N>
+    ): CommandExecuteResult<C, N> {
+
+        const command = this.commands.find(c => c.name === name)
+        if (!command)
+            throw new Error(`${this.constructor.name} cannot execute command ${name}`)
+
+        return command.execute(data)
+    }
+
 }
 
 /*** Service ***/

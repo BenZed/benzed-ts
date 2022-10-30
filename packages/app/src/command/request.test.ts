@@ -1,9 +1,14 @@
 import { HttpMethod } from '../modules/connection/server/http-methods'
-import { createNameToReq, createNameFromReq } from './request'
+import { createNameToReq, createNameFromReq, ToRequest, FromRequest } from './request'
+import is from '@benzed/is'
+
+/*** Helper ***/
 
 const prettyObj = (obj: object): string => `{${Object.keys(obj).toString().trim()}}`
 
-describe(`defaultToReq`, () => {
+/*** Test ***/
+
+describe(`createNameToReq`, () => {
 
     describe(`creates request data from name and data`, () => {
 
@@ -82,7 +87,7 @@ describe(`defaultToReq`, () => {
     })
 })
 
-describe(`createDefaultFromReq`, () => {
+describe(`createNameFromReq`, () => {
 
     describe(`converts a req-url to command data`, () => {
 
@@ -128,4 +133,49 @@ describe(`createDefaultFromReq`, () => {
             })
         }
     })
+})
+
+it(`custom toReq`, () => {
+
+    const toReq: ToRequest<{ foo: string, bar: string, money: number }, 'foo' | 'bar'> = 
+    ({ foo, bar, money }) => 
+        [
+            HttpMethod.Patch, 
+            `/foo/${foo}/${bar}`, 
+            { money }
+        ]
+
+    const req = toReq({ foo: `hello`, bar: `world`, money: 1000 })
+
+    expect(req).toEqual([HttpMethod.Patch, `/foo/hello/world`, { money: 1000 }])
+
+})
+
+it(`custom fromReq`, () => {
+    
+    const reqToAceData: FromRequest<{ ace: string, base: number }, 'ace'> = 
+        ([method, url, data]) => {
+
+            if (
+                method === HttpMethod.Get && 
+                url.startsWith(`/ace`) && 
+                is.object<{base?: number}>(data) && 
+                is.number(data.base)
+            ) {
+                const { base } = data
+                const ace = url.replace(/\/ace\/?/, ``)
+                return { ace, base }
+            }
+                
+            return null
+        }
+
+    expect(
+        reqToAceData([ HttpMethod.Get, `/ace/100`, { base: 100 } ])
+    ).toEqual({ ace: `100`, base: 100 })
+
+    expect(
+        reqToAceData([ HttpMethod.Delete, `/monkey`, { count: `all` }])
+    ).toEqual(null)
+
 })

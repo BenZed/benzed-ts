@@ -2,41 +2,56 @@
 import { App, AppCommandInterface, AppCommands } from './app'
 
 import { CommandModule } from './module'
-import { Command } from './command/types'
+import { Command } from './command'
 
 import { expectTypeOf } from 'expect-type'
+import $ from '@benzed/schema'
 
 /*** Types ***/
 
-interface FooCommand extends Command {
-    name: 'get-foo'
-    foo: 'baz' | 'bar'
-}
+const $bazBar = $(`baz`, `bar`)
 
-class FooModule extends CommandModule<FooCommand>{
+const foo = Command
+    .create(`get-foo`, (data: { foo: 'bar' | 'baz'}) => ({ sup: `${data.foo}!` }))
+    .data(
+        $({
+            foo: $bazBar
+        }).validate
+    )
 
-    protected _execute(command: FooCommand): object | Promise<object> {
-        return command
-    }
+const bar = Command
+    .create(`get-bar`)
+    .data(
+        $({
+            bar: $.boolean
+        }).validate
+    )
 
-    canExecute(command: Command): command is FooCommand {
-        return command.name === `get-foo`
-    }
+type FooCommand = typeof foo
+
+type BarCommand = typeof bar
+
+class FooModule extends CommandModule<FooCommand | BarCommand>{
+
+    commands = [foo]
+
 }
 
 /*** Tests ***/
 
-const fooApp = App.create().use(new FooModule({}))
+const fooModule = new FooModule({})
+
+fooModule.execute(`get-bar`, { bar: true })
+fooModule.execute(`get-foo`, { foo: `baz` })
+
+const fooApp = App.create().use(fooModule)
 
 it(`App command definitions are gathered from it\'s modules`, () => {
 
     type FooCommands = AppCommands<typeof fooApp>
     expectTypeOf<FooCommands>().toEqualTypeOf<FooCommand>()
 
-    fooApp.execute({
-        name: `get-foo`,
-        foo: `baz`
-    })
+    fooApp.execute(`get-foo`)
 
 })
 

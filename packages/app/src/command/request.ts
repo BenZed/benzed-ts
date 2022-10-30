@@ -1,6 +1,6 @@
-import { equals } from '@benzed/immutable/lib'
+import { equals } from '@benzed/immutable'
 import match from '@benzed/match'
-import { omit, StringKeys } from "@benzed/util"
+import { omit } from "@benzed/util"
 import { COMMAND_ENDPOINT } from '../constants'
 
 import { HttpMethod } from "../modules/connection/server/http-methods"
@@ -13,15 +13,39 @@ import { HttpMethod } from "../modules/connection/server/http-methods"
 
 /*** Types ***/
 
-type Request<T extends object> = readonly [
+/**
+ * Keys on an object that have string as a value
+ */
+type StringFields<T extends object> = keyof {
+    [K in keyof T as T[K] extends string ? K : never]: T[K]
+}
+
+/**
+ * Where T is command data, and P is a list of keys of that data
+ * that will be serialized into the url
+ */
+type Request<T extends object, P extends StringFields<T>> = readonly [
     method: HttpMethod,
-    url: string,
-    data: T
+    url: `/${string}`,
+    data: Omit<T, P>
 ]
 
-type ToRequest<T extends object> = (data: T) => Request<T>
+/**
+ * Method that converts command data to Request data
+ */
+type ToRequest<T extends object, P extends StringFields<T>> = (data: T) => Request<T, P>
 
-type FromRequest<T extends object> = (request: Request<T>) => T | null
+/**
+ * Method that checks a request to see if it has the correct method, url and 
+ * data for a command.
+ * 
+ * If it does, returns the data for that command. If not, returns null.
+ */
+type FromRequest<T extends object, P extends StringFields<T>> = (request: readonly [
+    method: HttpMethod,
+    url: string,
+    data: object
+]) => Omit<T,P> | null
 
 /*** Helper ***/
 
@@ -33,8 +57,6 @@ const fromPath = (path: string): string[] =>
     path
         .split(`/`)
         .filter(word => word)
-
-/*** Main ***/
 
 const nameToMethodUrl = (name: string): [HttpMethod, `/${string}`] => {
     const [prefix, ...rest] = name.split(`-`)
@@ -58,20 +80,26 @@ const nameToMethodUrl = (name: string): [HttpMethod, `/${string}`] => {
     return [method, `/${rest.join(`-`)}`]
 }
 
-const createNameToReq = (name: string): ToRequest<any> => {
+/*** Main ***/
+
+const createNameToReq = (name: string, param = `id`): ToRequest<any, any> => {
     const [method, url] = nameToMethodUrl(name)
     return method
-        ? createToReq(method, url, `id`)
+        ? createToReq(method, url, param)
         : createToReq(HttpMethod.Post, `/command`)
 }
 
-const createToReq = <D extends object>(method: HttpMethod, url: `/${string}`, urlParam?: StringKeys<D>): ToRequest<D> => 
-    (data: D): Request<D> => {
+const createToReq = <D extends object, P extends StringFields<D> = never>(
+    method: HttpMethod, 
+    url: `/${string}`, 
+    urlParam?: P
+): ToRequest<D, P> => 
+    (data: any): Request<D, P> => {
 
         if (urlParam && urlParam in data) {
             return [
                 method,
-                toPath(url, (data as any)[urlParam]),
+                toPath(url, data[urlParam]),
                 omit(data, urlParam) as any
             ]
         }
@@ -79,16 +107,20 @@ const createToReq = <D extends object>(method: HttpMethod, url: `/${string}`, ur
         return [ method, url, data ]
     }
 
-const createNameFromReq = (name: string): FromRequest<any> => {
+const createNameFromReq = (name: string, param = `id`): FromRequest<any,any> => {
     const [method, url] = nameToMethodUrl(name)
     return method
-        ? createFromReq(method, url, `id`)
+        ? createFromReq(method, url, param)
         : createFromReq(HttpMethod.Post, `/command`)
 }
 
-const createFromReq = <D extends object>(method: HttpMethod, url: `/${string}`, paramKey?: StringKeys<D>): FromRequest<D> => {
+const createFromReq = <D extends object, P extends StringFields<D> = never>(
+    method: HttpMethod, 
+    url: `/${string}`, 
+    paramKey?: P
+): FromRequest<D, P> => {
     
-    const toReq = createToReq(method, url, paramKey)
+    const toReq = createToReq(method, url, paramKey as never)
     
     return ([ rMethod, rUrl, rData ]): D | null => {
 
@@ -107,7 +139,7 @@ const createFromReq = <D extends object>(method: HttpMethod, url: `/${string}`, 
             return null 
 
         const outputData = paramValue && paramKey ? { ...rData, [paramKey]: paramValue } : rData
-        return outputData
+        return outputData as D | null
     }
 }
 
@@ -117,6 +149,7 @@ export {
     Request,
     ToRequest,
     FromRequest,
+    StringFields,
 
     createToReq,
     createFromReq,
