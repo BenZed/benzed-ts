@@ -1,7 +1,10 @@
 
 /*** Main ***/
 
-class JsonMap<K,V> implements Map<K, V> {
+/**
+ * A map of values where keys are considered via their hash-equality. 
+ */
+class HashMap<K,V> implements Map<K, V> {
 
     private _cache: { [key: string]: V } = {}
 
@@ -48,7 +51,7 @@ class JsonMap<K,V> implements Map<K, V> {
     }
     
     forEach(
-        func: (value: V, key: K, map: JsonMap<K, V>) => void
+        func: (value: V, key: K, map: HashMap<K, V>) => void
     ): void {
         for (const [key, value] of this)
             func(value, key, this)
@@ -99,8 +102,8 @@ class JsonMap<K,V> implements Map<K, V> {
 
 /*** Exports ***/
 
-export default JsonMap
+export default HashMap
 
 export {
-    JsonMap
+    HashMap
 }
