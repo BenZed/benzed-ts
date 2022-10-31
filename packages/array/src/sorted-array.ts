@@ -44,7 +44,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param sorter 
      * @returns 
      */
-    sort(sorter: CompareFn<T> = ascending): this {
+    override sort(sorter: CompareFn<T> = ascending): this {
 
         const { length } = this
 
@@ -104,7 +104,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param value 
      * @returns found index or -1 if value cannot be found.
      */
-    lastIndexOf(value: T): number {
+    override lastIndexOf(value: T): number {
 
         let index = this._getIndexViaBinarySearch(value)
 
@@ -121,7 +121,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param value 
      * @returns found index or -1 if value cannot be found.
      */
-    indexOf(value: T): number {
+    override indexOf(value: T): number {
 
         let index = this._getIndexViaBinarySearch(value)
 
@@ -132,7 +132,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return index
     }
 
-    reverse(): this {
+    override reverse(): this {
         return super.reverse.call(this) as this
         // this needs to be implemented because the inherited Array['reverse']
         // method return type seems to be `Array<T>` instead of `this`

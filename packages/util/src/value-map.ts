@@ -7,6 +7,10 @@
 
 /*** Main ***/
 
+/**
+ * A Value Map implements the same interface as Map, 
+ * allowing customization of key equality calculation behaviour.
+ */
 abstract class ValueMap<K, V> implements Map<K,V> {
 
     // State 
@@ -29,7 +33,7 @@ abstract class ValueMap<K, V> implements Map<K,V> {
     // Abstract
 
     /**
-     * Should return true of both keys are equal.
+     * Should return true if both keys are equal.
      */
     protected abstract _keysEqual(l: K, r: K): boolean
 

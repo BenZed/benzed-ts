@@ -80,7 +80,6 @@ export default by
 
 export {
 
-    byValue as sort,
     Sort,
     Sortable,
     SortableKeys,

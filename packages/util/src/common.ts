@@ -121,4 +121,4 @@ export {
 /**
  * Call a map function with set arguments
  */
-export const call = <F extends Func>(...p: Parameters<F>) => (f: F) => f(...p)
+export const call = <F extends Func>(...p: Parameters<F>) => (f: F): ReturnType<F> => f(...p)
