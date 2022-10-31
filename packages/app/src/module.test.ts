@@ -1,9 +1,8 @@
-import { Module, Service } from "./module"
 import { App } from './app'
-import { Command, command } from "./command"
+import { command } from "./command"
+import { Module, Service } from "./module"
 
 import { expectTypeOf } from 'expect-type'
-import { Compile } from "@benzed/util/lib"
 
 /***  ***/
 
@@ -92,7 +91,7 @@ describe(`.use(path)`, () => {
 
     it(`can place nested services at different endpoints`, () => {
         expect(appWithServiceEndpoint.modules[1].path)
-            .toBe(`todos`)
+            .toBe(`/todos`)
     })
 })
 
@@ -147,10 +146,11 @@ describe(`.getCommands()`, () => {
 
         const cars = Service.create().use(
             new Orders()
-        ).use(
-            `/part`,
-            Service.create().use(new Orders())
         )
+            .use(
+                `/part`,
+                Service.create().use(new Orders())
+            )
 
         const travel = App.create()
             .use(new Orders())
@@ -159,18 +159,29 @@ describe(`.getCommands()`, () => {
 
         const commands = travel.getCommands()
 
-        console.log(commands)
+        expectTypeOf(commands).toEqualTypeOf<{
+            create: Orders['create']
+            find: Orders['find']
+            carCreate: Orders['create']
+            carFind: Orders['find']
+            carPartCreate: Orders['create']
+            carPartFind: Orders['find']
+            bikeCreate: Orders['create']
+            bikeFind: Orders['find']
+        }>()
 
-        // type TravelCommands = Compile<typeof commands, Command, false>
+    })
 
-        // expectTypeOf(commands).toEqualTypeOf<{
-        //     find: Orders['find']
-        //     ceate: Orders['create']
-        //     carsFind: Orders['find']
-        //     carsCreate: Orders['create']
-        //     bikesFind: Orders['find']
-        //     bikesCreate: Orders['create']
-        // }>()
+    it(`errors thrown if commands collide`, () => {
+
+        for (const path of [``, `/ace`]) {
+            for (const module of [App.create(), Service.create()]) {
+                expect(() => (module as any)
+                    .use(path, Service.create().use(new Orders()))
+                    .use(path, Service.create().use(new Orders()))
+                ).toThrow(`Command name collision`)
+            }
+        }
 
     })
 

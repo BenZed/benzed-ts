@@ -1,6 +1,6 @@
 import is from '@benzed/is'
 import { pluck } from "@benzed/array"
-import { Pipe } from "@benzed/util"
+import { Pipe, StringKeys } from "@benzed/util"
 
 import { HttpMethod } from "../modules/connection/server/http-methods"
 
@@ -13,6 +13,7 @@ import {
     createToReq,
     createFromReq
 } from './request'
+import { CamelCombine } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -73,8 +74,8 @@ type CommandOutput<C extends Command<any, any, any>> = C extends Command<any, in
 /**
  * Get a subobject of a type that is only comprised of commands
  */
-type CommandsOf<T extends object> = {
-    [K in keyof T as T[K] extends Command<any, any, any> ? K : never]: T[K]
+type CommandsOf<T extends object, P extends string = ''> = {
+    [K in StringKeys<T> as T[K] extends Command<any, any, any> ? CamelCombine<P, K> : never]: T[K]
 }
 
 /*** Main ***/

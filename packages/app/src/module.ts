@@ -3,13 +3,15 @@ import { pluck } from '@benzed/array'
 import { $$copy } from '@benzed/immutable'
 import { capitalize } from '@benzed/string'
 
-import { createLogger, Logger, toVoid } from '@benzed/util'
+import { Compile, createLogger, Logger, toVoid } from '@benzed/util'
 
+import { CamelCombine } from './types'
 import { ENV, TEST_LOGS_ENABLED } from './constants'
 import { Command, command, CommandsOf } from './command'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
 /*** Symbols ***/
@@ -182,6 +184,22 @@ export class ModuleWithSettings<S extends object = ModuleSettings> extends Modul
 
 export type ModulesOf<A extends ServiceModule> = A extends ServiceModule<infer M> ? M : []
 
+type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
+
+type _ModuleCommands<M extends Module, P extends string> = 
+    M extends Service<infer Px, infer Mx> 
+        ? _ModulesCommands<Mx, CamelCombine<P, _Unslash<Px>>>
+        : CommandsOf<M, P> 
+
+type _ModulesCommands<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
+    ? Mx extends Module 
+        ? Mr extends Modules 
+            ? _ModuleCommands<Mx, P> & _ModulesCommands<Mr, P>
+            : _ModuleCommands<Mx, P>
+        : {}
+    : {}
+
+export type ServiceModuleCommands<M extends Modules> = Compile<_ModulesCommands<M>, Command, true>
 export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     private readonly _modules: M
@@ -236,7 +254,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         module: Mx
     ): unknown
 
-    getCommands(): CommandsOf<M[number]> {
+    getCommands(): ServiceModuleCommands<M> {
         
         const commands: { [key: string]: Command } = {}
 
@@ -247,23 +265,28 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
             const moduleCommands = isService 
                 ? module.getCommands()
                 : command.of(module)
+
             for (const key in moduleCommands) {
 
-                const name = isService 
+                const name: string = isService 
                     ? `${module.path.replaceAll(`/`, ``)}${capitalize(key)}`
                     : key
+
+                if (name in commands)
+                    throw new Error(`Command name collision: "${name}" is used multiple times`)
                 
                 commands[name] = moduleCommands[key as keyof typeof moduleCommands]
             }
         }
 
-        return commands as CommandsOf<M[number]>
+        return commands as ServiceModuleCommands<M>
     }
 
     // Module Implementation
 
     override validateModules(): void {
         this.modules.forEach(m => m.validateModules())
+        this._assertNoCommandNameCollisions()
     }
 
     // Helper 
@@ -283,6 +306,10 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
             module = module[$$parentTo](this, path)
 
         return [ ...this.modules, module ] as [ ...M, Mx ]
+    }
+
+    private _assertNoCommandNameCollisions(): void {
+        void this.getCommands()
     }
 
 }
