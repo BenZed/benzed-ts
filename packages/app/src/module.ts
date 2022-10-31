@@ -282,6 +282,12 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         return commands as ServiceModuleCommands<M>
     }
 
+    getCommand<N extends keyof ServiceModuleCommands<M>>(name: N): ServiceModuleCommands<M>[N] {
+        const commands = this.getCommands()
+        return commands[name]
+
+    }
+
     // Module Implementation
 
     override validateModules(): void {

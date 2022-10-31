@@ -119,13 +119,6 @@ class App<M extends Modules = Modules> extends ServiceModule<M> implements AppCo
 
     // Command interface 
 
-    execute(command: AppCommands<M>): Promise<object> {
-        const client = this.get(Client)
-        return client
-            ? client.executeOnServer(command)
-            : command
-    }
-
     getCommandList(): Promise<string[]> {
         return this.connection.getCommandList()
     }

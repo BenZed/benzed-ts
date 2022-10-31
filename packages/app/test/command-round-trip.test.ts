@@ -19,15 +19,18 @@ for (const webSocket of [true, false]) {
 
         /*** Tests ***/
         
-        for (const [command, output] of [
+        for (const [{ name, ...data }, output] of [
 
             [ { name: `add` , values: [10,10] }, { result: 20 } ],
             [ { name: `multiply` , values: [10,10] }, { result: 100 } ],
             [ { name: `divide` , values: [10,10] }, { result: 1 } ],
             [ { name: `subtract` , values: [10,10] }, { result: 0 } ],
 
-        ]) {
-            it(`calculator ${command.name} test ${command.values} should result in ${JSON.stringify(output)}`, async () => {
+        ] as const) {
+            it(`calculator ${name} test ${data.values} should result in ${JSON.stringify(output)}`, async () => {
+
+                const command = client.getCommand(name)
+                
                 const result = await client.execute(command)
                 expect(result).toEqual(output)
             })
