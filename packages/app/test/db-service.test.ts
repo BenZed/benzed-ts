@@ -49,4 +49,5 @@ it('mongo db app connects to a database', async () => {
 
     const { commands } = client
 
+    console.log(commands)
 })

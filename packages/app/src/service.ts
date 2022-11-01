@@ -13,6 +13,7 @@ import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 
 import { CamelCombine, Path } from './types'
+import { Compile } from '@benzed/util/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -43,6 +44,18 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
             : _CommandsOfModule<Mx, P>
         : {}
     : {}
+
+type ModuleCommands<M extends Modules | Module> = 
+    Compile<
+    M extends CommandModule<infer Mx> 
+        ? _CommandsOfModules<Mx>
+        : M extends Modules 
+            ? _CommandsOfModules<M>
+            : CommandsOf<M>, 
+
+    Command, 
+    false
+    >
 
 //// Command Module ////
 
@@ -100,8 +113,8 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     //// Command Implementation ////
 
     private _commands: _CommandsOfModules<M> | null = null
-    get commands(): _CommandsOfModules<M> {
-        return this._commands ?? this._createCommands()
+    get commands(): ModuleCommands<M> {
+        return this._commands ?? this._createCommands() as any
     }
 
     //// Convenience Getters ////

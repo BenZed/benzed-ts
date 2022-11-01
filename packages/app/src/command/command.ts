@@ -24,7 +24,7 @@ import { CamelCombine, Path } from '../types'
 
 type Validator<I extends object> = (data: unknown) => I
 
-interface Command<I extends object = object, O extends Promise<object> = Promise<object>, P extends StringFields<I> | void = any> extends Pipe<I,O> {
+interface Command<I extends object = object, O extends object = object, P extends StringFields<I> | void = any> extends Pipe<I, Promise<O>> {
     
     /**
      * Set data validation for this command
@@ -112,7 +112,7 @@ function commandsOf<T extends object>(input: T): CommandsOf<T> {
 /**
  * Create a command out of a pipe method 
  */
-function command<I extends object, O extends Promise<object>>(execute: Pipe<I,O>): Command<I, O, void> {
+function command<I extends object, O extends object>(execute: Pipe<I, Promise<O>>): Command<I, O, void> {
     
     const _command = Object.assign(
 
