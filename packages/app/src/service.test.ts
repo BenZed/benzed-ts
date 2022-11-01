@@ -43,7 +43,7 @@ describe('.commands', () => {
             return Promise.resolve(order)
         })
 
-        find = command((data: { id: string }) => {
+        get = command((data: { id: string }) => {
 
             const order = this._orders.find(o => o.id === data.id) ?? null
 
@@ -64,7 +64,7 @@ describe('.commands', () => {
         expectTypeOf<typeof commands>()
             .toEqualTypeOf<{
                 create: typeof italian.create
-                find: typeof italian.find
+                get: typeof italian.get
             }>
 
     })
@@ -89,13 +89,13 @@ describe('.commands', () => {
 
         expectTypeOf(commands).toEqualTypeOf<{
             create: Orders['create']
-            find: Orders['find']
+            get: Orders['get']
             carCreate: Orders['create']
-            carFind: Orders['find']
+            carGet: Orders['get']
             carPartCreate: Orders['create']
-            carPartFind: Orders['find']
+            carPartGet: Orders['get']
             bikeCreate: Orders['create']
-            bikeFind: Orders['find']
+            bikeGet: Orders['get']
         }>()
 
     })

@@ -83,11 +83,8 @@ it('.req() sets request handling for a command', () => {
 it('CommandsOf<> finds commands on objects', () => {
 
     expectTypeOf<FooCommands>().toEqualTypeOf<{
-
-        setBar: Command<{ bar: boolean }, Promise<{ success: boolean }>, void>
-
-        getPizza: Command<{ slices: `${number}` }, Promise<{ slices: number, cost: number }>, 'slices'>
-
+        setBar: Command<{ bar: boolean }, { success: boolean }>
+        getPizza: Command<{ slices: `${number}` }, { slices: number, cost: number }>
     }>()
 
 })

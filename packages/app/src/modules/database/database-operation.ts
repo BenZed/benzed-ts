@@ -34,7 +34,7 @@ const $databaseOperationSettings = $({
 
 //// Command Helpers ////
 
-const ifMethodCommand = <M extends readonly Methods[], Mx extends Methods, C extends Command<any,any,any>>(
+const ifMethodCommand = <M extends readonly Methods[], Mx extends Methods, C extends Command<any,any>>(
     methods: M, 
     method: Mx, 
     command: C

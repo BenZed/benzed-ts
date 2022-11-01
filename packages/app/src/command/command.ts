@@ -24,12 +24,12 @@ import { CamelCombine, Path } from '../types'
 
 type Validator<I extends object> = (data: unknown) => I
 
-interface Command<I extends object = object, O extends object = object, P extends StringFields<I> | void = any> extends Pipe<I, Promise<O>> {
+interface Command<I extends object = object, O extends object = object> extends Pipe<I, Promise<O>> {
     
     /**
      * Set data validation for this command
      */
-    validator(validator: Validator<I> | { validate: Validator<I> }): Command<I, O, P>
+    validator(validator: Validator<I> | { validate: Validator<I> }): Command<I, O>
 
     /**
      * Create generic request converters for this command
@@ -37,7 +37,7 @@ interface Command<I extends object = object, O extends object = object, P extend
     req(
         method: HttpMethod,
         url: Path
-    ): Command<I, O, void> 
+    ): Command<I, O> 
         
     /**
      * Set explicit request converters
@@ -46,37 +46,37 @@ interface Command<I extends object = object, O extends object = object, P extend
     req<Px extends StringFields<I>>(
         toReq: ToRequest<I, Px>,
         fromReq: FromRequest<I, Px>
-    ): Command<I, O, Px> 
+    ): Command<I, O> 
 
     req<Px extends StringFields<I>>(
         method: HttpMethod,
         url: Path,
         param: Px
-    ): Command<I, O, Px> 
+    ): Command<I, O> 
 
     validate?: Validator<I>
 
-    toReq?: ToRequest<I, P extends void ? never : P>
+    toReq?: ToRequest<I, any>
 
-    fromReq?: FromRequest<I, P extends void ? never : P>
+    fromReq?: FromRequest<I, any>
 
 }
 
 /**
  * Get the input type of a command
  */
-type CommandInput<C extends Command<any, any, any>> = C extends Command<infer I, any, any> ? I : never
+type CommandInput<C extends Command<any, any>> = C extends Command<infer I, any> ? I : never
 
 /**
  * Get the output type of a command
  */
-type CommandOutput<C extends Command<any, any, any>> = C extends Command<any, infer O, any> ? O : never
+type CommandOutput<C extends Command<any, any>> = C extends Command<any, infer O> ? O : never
 
 /**
  * Get a subobject of a type that is only comprised of commands
  */
 type CommandsOf<T extends object, P extends string = ''> = {
-    [K in StringKeys<T> as T[K] extends Command<any, any, any> ? CamelCombine<P, K> : never]: T[K]
+    [K in StringKeys<T> as T[K] extends Command<any, any> ? CamelCombine<P, K> : never]: T[K]
 }
 
 //// Main ////
@@ -84,7 +84,7 @@ type CommandsOf<T extends object, P extends string = ''> = {
 /**
  * Is the provided value a command?
  */
-function isCommand(input: unknown): input is Command<any, any, any> {
+function isCommand(input: unknown): input is Command<any, any> {
 
     const cmd = input as any
 
@@ -112,7 +112,7 @@ function commandsOf<T extends object>(input: T): CommandsOf<T> {
 /**
  * Create a command out of a pipe method 
  */
-function command<I extends object, O extends object>(execute: Pipe<I, Promise<O>>): Command<I, O, void> {
+function command<I extends object, O extends object>(execute: Pipe<I, Promise<O>>): Command<I, O> {
     
     const _command = Object.assign(
 
@@ -124,7 +124,7 @@ function command<I extends object, O extends object>(execute: Pipe<I, Promise<O>
         // Command Methods
         {
 
-            req(this: Command<I, O, any>, ...args: any[]): any {
+            req(this: Command<I, O>, ...args: any[]): any {
 
                 const funcs = pluck(args, is.function)
         
@@ -146,7 +146,7 @@ function command<I extends object, O extends object>(execute: Pipe<I, Promise<O>
                 return this
             },
 
-            validator(this: Command<I, O, any>, validator: Validator<I> | { validate: Validator<I> }) {
+            validator(this: Command<I, O>, validator: Validator<I> | { validate: Validator<I> }) {
                 this.validate = 'validate' in validator ? validator.validate : validator
                 return this
             },
