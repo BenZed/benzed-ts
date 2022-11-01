@@ -25,22 +25,22 @@ import {
 import { reduceToVoid, by } from '@benzed/util'
 import { QueuePayload } from '@benzed/async'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 interface RenderServiceSettings extends RendererConfig {
     io: Server | Promise<Server>
     files: FeathersFileService
 }
 
-/*** Helper ***/
+//// Helper ////
 
 const isEventEmitter = (value: object): value is EventEmitter => `emit` in value
 
-/*** Main ***/
+//// Main ////
 
 class RenderService {
 
@@ -68,7 +68,7 @@ class RenderService {
         this._files = files
     }
 
-    /*** Service Interface ***/
+    //// Service Interface ////
 
     async create(
         _data: object, 
@@ -148,7 +148,7 @@ class RenderService {
         return Promise.resolve()
     }
 
-    /*** Non Service Interface ***/
+    //// Non Service Interface ////
 
     /**
      * Promise that resolves once all render queues are empty
@@ -299,7 +299,7 @@ class RenderService {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default RenderService
 

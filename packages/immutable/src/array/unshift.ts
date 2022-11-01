@@ -1,13 +1,13 @@
 
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { unshift: _unshift } = Array.prototype
 
 type UnshiftParams = Parameters<typeof Array.prototype.unshift>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably unshift an ArrayLike.

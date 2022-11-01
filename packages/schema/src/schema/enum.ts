@@ -12,13 +12,13 @@ import {
 
 import { TypeValidator } from '../validator/type'
 
-/*** Type ***/
+//// Type ////
 
 type EnumSchemaInput = readonly (string | number | boolean | null | undefined)[]
 
 type EnumSchemaOutput<I extends EnumSchemaInput> = I[number]
 
-/*** Helper ***/
+//// Helper ////
 
 function isEnumValue<
     I extends EnumSchemaInput,
@@ -28,7 +28,7 @@ function isEnumValue<
         values.some(value => value === input)
 }
 
-/*** Main ***/
+//// Main ////
 
 class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F extends Flags[] = []>
     extends Schema<I, O, F> {
@@ -54,7 +54,7 @@ class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F ext
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default EnumSchema
 

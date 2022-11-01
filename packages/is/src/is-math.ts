@@ -1,6 +1,6 @@
 import { isNumber } from './is-basic'
 
-/*** Main ***/
+//// Main ////
 
 export function isMultipleOf(input: unknown, multiple: number): input is number {
     return isNumber(input) && input % multiple === 0

@@ -1,11 +1,11 @@
 import { MethodNotAllowed } from '@feathersjs/errors'
 import { AroundHookFunction } from '@feathersjs/feathers'
 
-/*** Types ***/
+//// Types ////
 
 type Provider = 'server' | 'rest' | 'socketio' | 'primus' | 'external'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Disallow providers from using a given service method.
@@ -37,7 +37,7 @@ function disallow(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default disallow
 

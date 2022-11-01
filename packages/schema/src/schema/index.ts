@@ -71,7 +71,7 @@ import GenericSchema from './generic'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type SchemaFor<T> = Compile<{ 
     validate: Schema<any,T,any>['validate']
@@ -93,7 +93,7 @@ type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
                      ? GenericSchema<TypeGuard<O>, O>
                      : never
 
-/*** Convenience Type Defs ***/
+//// Convenience Type Defs ////
      
 type UndefinedSchema = EnumSchema<[undefined], undefined>
 
@@ -107,7 +107,7 @@ type ObjectSchema = RecordSchema<[UnknownSchema], RecordSchemaOutput<[UnknownSch
 
 type UnknownSchema = GenericSchema<TypeGuard<unknown>, unknown> 
 
-/*** Interface ***/
+//// Interface ////
 
 interface SchemaInterface {
 
@@ -161,7 +161,7 @@ interface SchemaInterface {
 
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function isEnumSchemaInput(args: SchemaInterfaceShortcutSignature): args is EnumSchemaInput {
     return [...args].every(arg =>
@@ -251,11 +251,11 @@ function extendSchemaInterface<T extends object, S extends SchemaInterface = Sch
     return Object.assign($ ?? createSchemaInterface() as S, addedProperties)
 }
 
-/*** Main ***/
+//// Main ////
 
 const $ = createSchemaInterface()
 
-/*** Exports ***/
+//// Exports ////
 
 export default $
 

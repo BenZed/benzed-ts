@@ -1,10 +1,10 @@
 import { Func } from './types'
 
-/*** Types ***/
+//// Types ////
 
 type Callback<T> = Func<[Error | null, T]>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Wrapper for promisifying oldschool callback pattern
@@ -28,7 +28,7 @@ function promisify<A extends any[], T>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default promisify
 

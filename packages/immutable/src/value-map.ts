@@ -12,7 +12,7 @@ import { ValueMap as _ValueMap } from '@benzed/util'
     @typescript-eslint/prefer-readonly-parameter-types
 */
 
-/*** Main ***/
+//// Main ////
 
 class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K, V>> {
 
@@ -22,7 +22,7 @@ class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K
 
     //  CopyComparable Implementation
 
-    public [$$copy](): ValueMap<K, V> {
+    [$$copy](): ValueMap<K, V> {
         const Type = this.constructor
 
         const args = []
@@ -32,7 +32,7 @@ class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K
         return new (Type as any)(args) as ValueMap<K, V>
     }
 
-    public [$$equals](right: unknown): right is ValueMap<K, V> {
+    [$$equals](right: unknown): right is ValueMap<K, V> {
         const left = this
 
         if (!(right instanceof ValueMap))
@@ -46,7 +46,7 @@ class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ValueMap
 

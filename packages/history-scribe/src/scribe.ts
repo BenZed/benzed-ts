@@ -22,14 +22,14 @@ import {
     toDate
 } from './helper'
 
-/*** Types ***/
+//// Types ////
 
 /**
  * By default, sigantures are strings.
  */
 type Signature = string
 
-/*** Main ***/
+//// Main ////
 
 /**
  * A scribe instance provides an interface for computing immutable history
@@ -211,7 +211,7 @@ class HistoryScribe<T extends object, I = Signature> {
         })
     }
 
-    /*** @benzed/immutable Implementation ***/
+    //// @benzed/immutable Implementation ////
 
     /**
      * Creates a deep copy of this scribe with the same state. 
@@ -239,7 +239,7 @@ class HistoryScribe<T extends object, I = Signature> {
             equals(this._history, other._history)
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     /**
      * Mutate a given historical to be valid, or throw if that is not possible.
@@ -382,7 +382,7 @@ class HistoryScribe<T extends object, I = Signature> {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default HistoryScribe
 

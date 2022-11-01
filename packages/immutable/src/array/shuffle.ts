@@ -2,7 +2,7 @@
 import copy from '../copy'
 import { shuffle as _shuffle } from '@benzed/array'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably shuffle an ArrayLike.

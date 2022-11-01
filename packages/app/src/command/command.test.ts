@@ -11,7 +11,7 @@ import { HttpMethod } from '../modules/connection/server/http-methods'
     @typescript-eslint/no-explicit-any
 */
 
-/*** Setup ***/
+//// Setup ////
 
 class Foo {
 
@@ -48,7 +48,7 @@ const foo = new Foo()
 
 type FooCommands = CommandsOf<Foo>
 
-/*** Test ***/
+//// Test ////
 
 it(`command() creates commands`, async () => {
 

@@ -14,7 +14,7 @@ import { BadRequest } from '@feathersjs/errors'
 import { FileData, File, FileQuery, FileServiceConfig, FilePayload } from './schema'
 import { MAX_UPLOAD_PART_SIZE, UPLOAD_QUERY_PARAM } from './constants'
 
-/*** Types ***/
+//// Types ////
 
 interface FileParams extends MongoDBAdapterParams<FileQuery> { 
 
@@ -39,7 +39,7 @@ interface FileServiceSettings extends MongoDBAdapterOptions {
 
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function* eachFilePart(
     file: File | number
@@ -53,7 +53,7 @@ function* eachFilePart(
         yield { index, total }
 }
 
-/*** Main ***/
+//// Main ////
 
 class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
 
@@ -138,7 +138,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default FileService
 

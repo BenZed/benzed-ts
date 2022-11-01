@@ -51,7 +51,7 @@ import { pass } from '@benzed/util'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type ApplyMutable<F extends Flags[], O> = HasMutable<F, O, Readonly<O>>
 type ApplyOptional<F extends Flags[], O> = HasOptional<F, O | undefined, O>
@@ -77,7 +77,7 @@ type TypeSetting<O, K extends keyof TypeValidatorSettings<O>> =
 type DefaultSetting<O, K extends keyof DefaultValidatorSettings<O>> =
     NonNullable<DefaultValidatorSettings<O>>[K]
 
-/*** Schema Class ***/
+//// Schema Class ////
 
 abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Schema<I, O, F>> {
 
@@ -104,7 +104,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this._typeValidator.settings.name
     }
 
-    /*** Construct ***/
+    //// Construct ////
 
     constructor (input: I, ...flags: F) {
         this._input = input
@@ -129,7 +129,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         })
     }
 
-    /*** Data Methods ***/
+    //// Data Methods ////
 
     is(input: unknown): input is ApplyOptional<F, O> {
         try {
@@ -148,7 +148,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this._validate(input, { transform: true })
     }
 
-    /*** Schema Methods ***/
+    //// Schema Methods ////
 
     name(
         option: TypeSetting<O, 'name'> | Partial<Pick<TypeValidatorSettings<O>, 'name' | 'article'>>
@@ -246,7 +246,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
      */
     readonly clearFlags = (() => this._copyWithInputAndFlags(this._input)) as unknown
 
-    /*** Main ***/
+    //// Main ////
 
     protected _validate(
         input: unknown,
@@ -290,7 +290,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return output as ApplyOptional<F, O>
     }
 
-    /*** Mutable Helpers ***/
+    //// Mutable Helpers ////
 
     protected _getPostTypeValidator(
         id: string
@@ -333,7 +333,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         this._defaultValidator.applySettings({ default: defaultValue })
     }
 
-    /*** Immutable Helpers ***/
+    //// Immutable Helpers ////
 
     private _copyWithInputAndFlags(input: I, ...flags: Flags[]): this {
         const ThisSchema = this.constructor as new (input: I, ...flags: Flags[]) => this
@@ -375,7 +375,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return schema
     }
 
-    /*** CopyComparable Implemention ***/
+    //// CopyComparable Implemention ////
 
     [$$copy](): this {
         return this._copyWithInputAndFlags(this._input, ...this._flags)
@@ -393,7 +393,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     }
 }
 
-/*** Primitive Schema ***/
+//// Primitive Schema ////
 
 abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     extends Schema<I, I, F> {
@@ -403,7 +403,7 @@ abstract class PrimitiveSchema<I extends Primitive, F extends Flags[] = []>
     }
 }
 
-/*** Parent Schema ***/
+//// Parent Schema ////
 
 abstract class ParentSchema<I, O, F extends Flags[]>
     extends Schema<I, O, F> {
@@ -437,7 +437,7 @@ abstract class ParentSchema<I, O, F extends Flags[]>
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Schema
 

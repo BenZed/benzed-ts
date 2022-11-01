@@ -5,7 +5,7 @@ import { isIterable, isArrayLike, isFunction, isObject, isInstanceOf } from '@be
 import { getKeys, isReferable, Prototypal } from './util'
 import { $$equals } from './symbols'
 
-/*** Types ***/
+//// Types ////
 
 interface Comparable<T> {
     [$$equals]: (this: Comparable<T>, right: unknown) => right is T
@@ -15,7 +15,7 @@ function isComparable<T>(input: unknown): input is Comparable<T> {
     return isFunction((input as Comparable<T>)[$$equals])
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function compareWithImplementation<T>(left: T, right: unknown): boolean {
 
@@ -51,7 +51,7 @@ function compareArrayLikes<T>(left: ArrayLike<T>, right: ArrayLike<T>): boolean 
     return true
 }
 
-/*** Standard Implementations ***/
+//// Standard Implementations ////
 
 function equalIs<T>(this: T, right: unknown): right is T {
     const left = this
@@ -114,7 +114,7 @@ function equalRegExp(this: RegExp, right: unknown): right is RegExp {
     return isInstanceOf(right, RegExp) && left.toString() === right.toString()
 }
 
-/*** Add Standard Implementations ***/
+//// Add Standard Implementations ////
 
 {
 
@@ -154,13 +154,13 @@ function equalRegExp(this: RegExp, right: unknown): right is RegExp {
         addToPrototype(ArrayType, equalArrayLike as any)
 }
 
-/*** Main ***/
+//// Main ////
 
 function equals<T>(a: T, b: unknown): b is T {
     return compareWithImplementation(a, b)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default equals
 

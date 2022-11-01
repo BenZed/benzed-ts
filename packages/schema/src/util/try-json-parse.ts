@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 function safeJsonParse<T>(
     json: string,
@@ -15,7 +15,7 @@ function safeJsonParse<T>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default safeJsonParse
 

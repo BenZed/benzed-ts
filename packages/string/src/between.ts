@@ -33,7 +33,7 @@ function between(
     return str.substring(openEndIndex, openEndIndex + closeLength)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default between
 

@@ -6,7 +6,7 @@ import { TypeValidator } from '../validator/type'
 
 import { isBoolean } from '@benzed/is'
 
-/*** Helper ***/
+//// Helper ////
 
 function tryCastToBoolean(value: unknown): unknown {
 
@@ -19,7 +19,7 @@ function tryCastToBoolean(value: unknown): unknown {
     return value
 }
 
-/*** Main ***/
+//// Main ////
 
 class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> {
 
@@ -49,7 +49,7 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
     }
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default BooleanSchema
 

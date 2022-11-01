@@ -7,7 +7,7 @@ import { matchAnyInput, matchCheck } from './util'
 
 /* eslint-disable @typescript-eslint/indent */
 
-/*** Main Interface Method ***/
+//// Main Interface Method ////
 
 function match<A extends readonly unknown[]>(...values: A): MatchInProgress<A[number], []>
 function match<A extends readonly unknown[], O>(...values: A): MatchInProgress<A[number], [], O>
@@ -21,7 +21,7 @@ function match(...values: unknown[]): unknown {
     )
 }
 
-/*** Extensions ***/
+//// Extensions ////
 
 /**
  * Match the provided input an arbitrary number of times
@@ -123,7 +123,7 @@ match.for = <I, O>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default match
 

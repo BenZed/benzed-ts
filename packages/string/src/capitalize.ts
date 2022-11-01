@@ -17,7 +17,7 @@ function capitalize<S extends string>(str: S): Capitalize<S> {
     return firstLetter.toUpperCase() + restOfTheString as Capitalize<S>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default capitalize
 

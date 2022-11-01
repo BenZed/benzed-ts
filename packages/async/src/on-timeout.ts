@@ -1,11 +1,11 @@
 
-/*** Types ***/
+//// Types ////
 
 interface Abort {
     (): void
 }
 
-/*** Main ***/
+//// Main ////
 
 function onTimeout(
     callback: () => unknown,
@@ -50,7 +50,7 @@ function onAnimationFrame(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     onTimeout,

@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 function toOptionsString(
     input: readonly (string | number | boolean | null | undefined)[]
@@ -15,7 +15,7 @@ function toOptionsString(
         ) // a, b or c
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toOptionsString
 

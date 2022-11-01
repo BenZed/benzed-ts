@@ -39,7 +39,7 @@ import {
     toLengthValidatorSettings 
 } from '../validator/length'
 
-/*** Helper ***/
+//// Helper ////
 
 function tryCastToString(value: unknown): unknown {
 
@@ -52,7 +52,7 @@ function tryCastToString(value: unknown): unknown {
     return value
 }
 
-/*** Main ***/
+//// Main ////
 
 class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
@@ -67,7 +67,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
         super(``, ...flags)
     }
 
-    /*** Chain Schema Methods ***/
+    //// Chain Schema Methods ////
 
     trim(settings?: TrimValidatorSettings): this {
         return this._copyWithPostTypeValidator(`trim`, new TrimValidator({ ...settings }))
@@ -126,7 +126,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     override readonly clearFlags!: () => StringSchema
 
-    /*** CopyComparable ***/
+    //// CopyComparable ////
 
     protected _copyWithCaseValidator<C extends Casing>(
         input: CaseValidatorSettingsShortcut<C>,
@@ -141,7 +141,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default StringSchema
 

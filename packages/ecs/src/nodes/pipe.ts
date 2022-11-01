@@ -17,7 +17,7 @@ import {
     Last 
 } from '@benzed/array'
 
-/*** Pipe Component ***/
+//// Pipe Component ////
 
 type PipeInput<C extends Components> = InputOf<First<C>>
 

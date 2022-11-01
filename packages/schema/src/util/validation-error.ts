@@ -1,6 +1,6 @@
 import { isFunction } from '@benzed/is'
 
-/*** Exports ***/
+//// Exports ////
 
 export default class ValidationError extends Error {
 

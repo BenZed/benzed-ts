@@ -2,7 +2,7 @@ import ensureAtLeastOneRecord from './ensure-at-least-one-record'
 
 import { createTestHookContext, createTestNextFunction, createTestApp } from '../util.test'
 
-/*** Tests ***/
+//// Tests ////
 
 type Building = {
     name: string

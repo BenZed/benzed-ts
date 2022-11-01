@@ -2,7 +2,7 @@
 import { AroundHookFunction, Service, Paginated } from '@feathersjs/feathers'
 import { toPaginated } from '../util'
 
-/*** Helper ***/
+//// Helper ////
 
 /**
  * Utility function that ensures a service has at least one record outside the context of a hook.
@@ -19,7 +19,7 @@ const createRecordIfNoneExists = async <R>(
         await service.create(defaultRecordData)
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Ensures a services has at least one record.
@@ -41,7 +41,7 @@ function ensureAtLeastOneRecord<R>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ensureAtLeastOneRecord
 

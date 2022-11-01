@@ -6,7 +6,7 @@ import IntersectionSchema from './intersection'
 import ShapeSchema from './shape'
 import NumberSchema from './number'
 
-/*** Input ***/
+//// Input ////
 
 const $vector = new IntersectionSchema([
     new ShapeSchema({ x: new NumberSchema() }),

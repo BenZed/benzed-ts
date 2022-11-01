@@ -4,11 +4,11 @@ import equals from '../equals'
 
 import { descending } from '@benzed/array'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { splice } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably uniquify an ArrayLike.

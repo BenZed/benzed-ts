@@ -2,7 +2,7 @@
 import { isFunction } from '@benzed/is'
 import { equals } from '@benzed/immutable'
 
-/*** Exports ***/
+//// Exports ////
 
 export function passThrough<I>(input: I): I {
     return input

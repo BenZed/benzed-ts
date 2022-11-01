@@ -1,11 +1,11 @@
 import { Func } from './types'
 
-/*** Types ***/
+//// Types ////
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Dispatcher<A extends any[]> = Func<A, void | Promise<void>>
 
-/*** dispatchAll ***/
+//// dispatchAll ////
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dispatchAll<A extends any[]>(
@@ -20,7 +20,7 @@ function dispatchAll<A extends any[]>(
         dispatchers.forEach(dispatcher => dispatcher(...args))
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default dispatchAll
 

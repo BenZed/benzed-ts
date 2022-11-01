@@ -32,7 +32,7 @@ import { DefaultValidatorSettings } from '../validator/default'
     @typescript-eslint/no-explicit-any
 */
 
-/*** Types ***/
+//// Types ////
 
 type TupleSchemaInput = readonly Schema<any, any, any>[]
 
@@ -40,7 +40,7 @@ type TupleSchemaOutput<T extends TupleSchemaInput> = {
     [K in keyof T]: SchemaOutput<T[K]>
 }
 
-/*** Main ***/
+//// Main ////
 
 class TupleSchema<
     I extends TupleSchemaInput,
@@ -68,13 +68,13 @@ class TupleSchema<
         )
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     get values(): I {
         return this._input
     }
 
-    /*** Chain Interface ***/
+    //// Chain Interface ////
 
     default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
 
@@ -107,7 +107,7 @@ class TupleSchema<
 
     override readonly clearFlags!: () => TupleSchema<I, O>
 
-    /*** Implementation ***/
+    //// Implementation ////
 
     protected _validateChildren(
         input: O,
@@ -130,7 +130,7 @@ class TupleSchema<
     }
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default TupleSchema
 

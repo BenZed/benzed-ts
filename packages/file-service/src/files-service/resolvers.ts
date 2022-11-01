@@ -31,15 +31,15 @@ import { HookContext } from '@feathersjs/feathers'
 
 /* eslint-disable require-await */
 
-/*** Constants ***/
+//// Constants ////
 
 const DEFAULT_MIME_TYPE = `application/octet-stream`
 
-/*** Types ***/
+//// Types ////
 
 type FileServiceHookContext = HookContext<MongoDBApplication, FileService>
 
-/*** Exports ***/
+//// Exports ////
 
 export const filePatchResolver = resolve<File, FileServiceHookContext>({
     schema: $filePatchData,

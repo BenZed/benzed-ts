@@ -12,7 +12,7 @@ import FileService from '../service'
 import { File, FilePayload, FileServiceConfig } from '../schema'
 import { UPLOAD_QUERY_PARAM } from '../constants'
 
-/*** Types ***/
+//// Types ////
 
 interface FileRoutingSettings {
 
@@ -42,7 +42,7 @@ function assertFileMiddlewareSettings(
     }
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function getCtxFileService(
     ctx: FeathersKoaContext,
@@ -79,7 +79,7 @@ function getFsFilePath(
 }
 
 export function throwInvalidPayload(): never {
-    throw new BadRequest('Invalid file upload payload.')
+    throw new BadRequest(`Invalid file upload payload.`)
 }
 
 export async function validatePayload(
@@ -92,12 +92,12 @@ export async function validatePayload(
         throwInvalidPayload()
 
     if (file.uploaded)
-        throw new BadRequest('File upload is already completed.')
+        throw new BadRequest(`File upload is already completed.`)
 
     return file
 }
 
-/*** Main ***/
+//// Main ////
 
 function createFileRoutingMiddleware(
     create: (settings: FileMiddlewareSettings) => Middleware    
@@ -109,9 +109,9 @@ function createFileRoutingMiddleware(
         const middleware = create(settings)
 
         const [method] = match(settings.method)
-        ('get', 'GET')
-        ('update', 'PUT')
-        ('create', 'POST')
+        (`get`, `GET`)
+        (`update`, `PUT`)
+        (`create`, `POST`)
         (undefined)
 
         return async (ctx, toServiceRoutes) => {
@@ -128,7 +128,7 @@ function createFileRoutingMiddleware(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     createFileRoutingMiddleware,

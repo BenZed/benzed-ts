@@ -29,7 +29,7 @@ import type { Constructor } from './types'
 import isArrayLike from './is-array-like'
 import isPlainObject from './is-plain-object'
 
-/*** Helper ***/
+//// Helper ////
 
 function everyItemInArray<T>(
     predicate: (input: unknown) => input is T,
@@ -41,7 +41,7 @@ function everyItemInArray<T>(
         input.every(predicate)
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * True if a given value is an arraylike of instances of the given types
@@ -102,6 +102,6 @@ export const isArrayOfTruthy = everyItemInArray(isTruthy)
 
 export const isArrayOfFalsy = everyItemInArray(isFalsy)
 
-/*** Exports ***/
+//// Exports ////
 
 export { isArrayOf }

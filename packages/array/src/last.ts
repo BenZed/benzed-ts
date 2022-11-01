@@ -2,7 +2,7 @@
 
 import { assertDefined } from '@benzed/util'
 
-/*** Type ***/
+//// Type ////
 
 type Last<T> = T extends readonly [...any, infer U]
     ? U
@@ -16,7 +16,7 @@ type Last<T> = T extends readonly [...any, infer U]
                 /**/ ? U | undefined
                 /**/ : T
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Returns the first element of an ArrayLike.
@@ -28,7 +28,7 @@ function first<T extends ArrayLike<any>>(
     return arrayLike[arrayLike.length - 1] as Last<T>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 first.assert = assertDefined(first)
 

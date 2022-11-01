@@ -5,7 +5,7 @@ import { $, Infer } from '@benzed/schema'
     @typescript-eslint/no-explicit-any
 */
 
-/*** Miscellaneous Schemas ***/
+//// Miscellaneous Schemas ////
 
 /**
  * Number in port range, 1024 - 65535

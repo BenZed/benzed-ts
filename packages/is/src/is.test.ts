@@ -6,7 +6,7 @@ import { isDefined } from './is-basic'
 import isArrayOf from './is-array-of'
 import isPlainObject from './is-plain-object'
 
-/*** Types ***/
+//// Types ////
 
 interface TestEachValueConfig {
     title: string
@@ -14,7 +14,7 @@ interface TestEachValueConfig {
     result: (input: unknown) => boolean
 }
 
-/*** Data ***/
+//// Data ////
 
 class Foo { }
 
@@ -80,7 +80,7 @@ const VALUES_PLUS_VALUES_IN_ARRAY = [
     ...VALUES.map(v => [v])
 ]
 
-/*** Helper ***/
+//// Helper ////
 
 function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): void {
     describe(title, () => {

@@ -8,7 +8,7 @@ import {
     expectValidationError
 } from '../util.test'
 
-/*** Input ***/
+//// Input ////
 
 const $buffer = new ArraySchema(new NumberSchema())
 

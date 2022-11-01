@@ -6,11 +6,11 @@
 
 import { StringKeys } from './types'
 
-/*** Constants ***/
+//// Constants ////
 
 const DEFAULT_MAX_LISTENERS = 10
 
-/*** Types ***/
+//// Types ////
 
 type EventSubscription<T extends object = any, K extends StringKeys<T> = StringKeys<T>> = {
 
@@ -389,7 +389,7 @@ class EventEmitter<T extends object = any> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default EventEmitter
 

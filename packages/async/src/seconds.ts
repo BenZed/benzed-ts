@@ -8,7 +8,7 @@ import milliseconds from './milliseconds'
 const seconds = (count: number): Promise<void> =>
     milliseconds(count * 1000)
 
-/*** Main ***/
+//// Main ////
 
 export default seconds
 

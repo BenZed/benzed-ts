@@ -1,6 +1,6 @@
 import { abs } from './overrides'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Iterates through each number in a given range with a given step.
@@ -19,7 +19,7 @@ function* range(from: number, to: number, step = 1): Iterable<number> {
         yield i
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default range
 

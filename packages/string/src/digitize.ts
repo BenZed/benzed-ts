@@ -1,7 +1,7 @@
 import { isFinite, isNaN, isInteger } from '@benzed/is'
 import { round } from '@benzed/math'
 
-/*** Types ***/
+//// Types ////
 
 interface DecimalOptions {
     /**
@@ -61,7 +61,7 @@ interface WholeOptions {
 
 type DigitizeOptions = DecimalOptions | WholeOptions | (DecimalOptions & WholeOptions)
 
-/*** Helper ***/
+//// Helper ////
 
 function parseOptions(
     input?: DigitizeOptions
@@ -87,7 +87,7 @@ function parseOptions(
     return output
 }
 
-/*** Main ***/
+//// Main ////
 
 function digitize(
     num: number | bigint,
@@ -138,7 +138,7 @@ function digitize(
     return `${whole}${decimal && `.` + decimal}` as `${number}`
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default digitize
 

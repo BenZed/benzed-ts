@@ -1,8 +1,8 @@
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { floor, random } = Math
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Randomly re-arranges a given array.
@@ -33,6 +33,6 @@ function shuffle<T extends ArrayLike<unknown>>(
     return input
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default shuffle

@@ -14,7 +14,7 @@ import { SchemaFor, ValidationError } from '@benzed/schema'
     @typescript-eslint/explicit-function-return-type
 */
 
-/*** Helper ***/
+//// Helper ////
 
 function validationErrorToBadRequest(err: ValidationError): BadRequest {
 
@@ -38,7 +38,7 @@ function validateSchema(schema: SchemaFor<unknown>, value: unknown) {
     }
 }
 
-/*** Types ***/
+//// Types ////
 
 export type PropertyResolver<T, V, C> = (
     value: V | undefined,

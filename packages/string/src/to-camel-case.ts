@@ -36,7 +36,7 @@ function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
     return camelCased
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toCamelCase
 

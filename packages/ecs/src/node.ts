@@ -3,11 +3,11 @@ import is from '@benzed/is'
 
 import { Component } from './component'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 /**
  * Array of Components
@@ -28,7 +28,7 @@ type HasComponent<C extends Components, Cx extends ComponentConstructor<any, A>,
         ? true 
         : false
 
-/*** Node ***/
+//// Node ////
 
 type ComponentConstructor<C extends Components, A extends boolean = false> = 
     A extends true 

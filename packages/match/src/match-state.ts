@@ -1,6 +1,6 @@
 import { matchCheck, resolveOutput } from './util'
 
-/*** Types ***/
+//// Types ////
 
 interface MatchCase<I, O> {
     input: I
@@ -13,7 +13,7 @@ interface AddMatchCaseOptions<I, O> extends Omit<MatchCase<I, O>, 'operation'> {
     finalize?: boolean
 }
 
-/*** Main ***/
+//// Main ////
 
 class MatchState<I, O> {
 
@@ -151,7 +151,7 @@ class MatchIterableState<I, O> extends MatchState<I, O> implements Iterable<O>{
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default MatchIterableState
 

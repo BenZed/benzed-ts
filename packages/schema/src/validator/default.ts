@@ -3,7 +3,7 @@ import { copy } from '@benzed/immutable'
 
 import { TransformValidator } from './validator'
 
-/*** Types ***/
+//// Types ////
 
 interface DefaultValidatorSettings<O> {
 
@@ -14,7 +14,7 @@ interface DefaultValidatorSettings<O> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 class DefaultValidator<O> extends TransformValidator<
 /**/ unknown,
@@ -26,7 +26,7 @@ class DefaultValidator<O> extends TransformValidator<
         return this._transform(input) as O | undefined
     }
 
-    /*** TransformValidator Implementation ***/
+    //// TransformValidator Implementation ////
 
     protected _transform(input: unknown): O | unknown {
 
@@ -43,7 +43,7 @@ class DefaultValidator<O> extends TransformValidator<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default DefaultValidator
 

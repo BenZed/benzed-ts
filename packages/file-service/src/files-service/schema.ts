@@ -2,7 +2,7 @@ import fs from '@benzed/fs'
 import $, { Infer } from '@benzed/schema'
 import { $id, $pagination, $querySyntax, $ref } from '@benzed/feathers'
 
-/*** Helper ***/
+//// Helper ////
 
 const $size = $.integer.range(`>`, 0)
 
@@ -20,7 +20,7 @@ export const $awsConfig = $({
 
 })
 
-/*** File Service Config ***/
+//// File Service Config ////
 
 export interface FileServiceConfig extends Infer<typeof $fileServiceConfig> {}
 export const $fileServiceConfig = $({
@@ -38,7 +38,7 @@ export const $fileServiceConfig = $({
     pagination: $pagination,
 })
 
-/*** File Payload ***/
+//// File Payload ////
 
 export interface FilePayload extends Infer<typeof $filePayload> {}
 export const $filePayload = $({
@@ -60,7 +60,7 @@ export const $filePayload = $({
 
 }).name(`file-payload`)
 
-/*** File ***/
+//// File ////
 
 export interface FileData extends Infer<typeof $fileData> {}
 export const $fileData = $({

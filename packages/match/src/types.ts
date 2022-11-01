@@ -7,11 +7,11 @@ import type { Func, TypeGuard } from '@benzed/util'
     @typescript-eslint/explicit-function-return-type
 */
 
-/*** Helper Types ***/
+//// Helper Types ////
 
 type Predicate<T> = (input: T) => boolean
 
-/*** Values ***/
+//// Values ////
 
 type DiscardValue<V, I> =
     I extends TypeGuard<infer O, any>
@@ -33,7 +33,7 @@ type FallValue<V, I, O> = {
     value: BreakValue<V, I> | O 
 }['value']
 
-/*** Exports ***/
+//// Exports ////
 
 /**
 * Add type to output if it doesn't exist already

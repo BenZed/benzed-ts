@@ -1,15 +1,15 @@
 import { Compile, Func } from './types'
 import { ValuesMap } from './value-map'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type _Keys<T> = (keyof T)[]
 
-/*** Main ***/
+//// Main ////
 
 type _Pick<T extends object, TK extends _Keys<T>> = Compile<Pick<T, TK[number]>, void, false>
 function _pick<T extends object, TK extends _Keys<T>>(input: T, ...keys: TK): _Pick<T, TK> {

@@ -17,11 +17,11 @@ import { $, Infer } from '@benzed/schema'
 
 import { $port } from '../schemas/util'
 
-/*** Constants ***/
+//// Constants ////
 
 const DEFAULT_MONGODB_PORT = 27017
 
-/*** Exports ***/
+//// Exports ////
 
 const $mongoDBConfig = $.shape({
 
@@ -40,7 +40,7 @@ const $mongoDBConfig = $.shape({
  */
 interface MongoDBConfig extends Infer<typeof $mongoDBConfig> {}
 
-/*** Main ***/
+//// Main ////
 
 export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
     app: MongoDBApplication<S, C>

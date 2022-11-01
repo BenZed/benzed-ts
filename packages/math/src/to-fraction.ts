@@ -1,10 +1,10 @@
 import { pow, floor } from './overrides'
 
-/*** Types ***/
+//// Types ////
 
 type Fraction = readonly [numerator: number, denominator: number]
 
-/*** Helper ***/
+//// Helper ////
 
 function getNumberOfDecimalPlaces(value: number): number {
     return floor(value) === value
@@ -23,7 +23,7 @@ function getGreatestCommonDivisor(numerator: number, denominator: number): numbe
 
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Converts the given number to a fractional representation.
@@ -51,7 +51,7 @@ function fromFraction(fraction: Fraction): number {
     return numerator / denominator
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toFraction
 

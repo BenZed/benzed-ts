@@ -1,7 +1,7 @@
 import { LinkedItem, LinkedList } from './linked-list'
 import { Stack } from './stack'
 
-/*** Tests ***/
+//// Tests ////
 
 it(`is a collection of linked items`, () => {
 

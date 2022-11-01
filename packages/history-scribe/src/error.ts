@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 class HistoryInvalidError extends Error {
 
@@ -10,7 +10,7 @@ class HistoryInvalidError extends Error {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default HistoryInvalidError
 

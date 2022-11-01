@@ -4,7 +4,7 @@ import semver from 'semver'
 
 import path from 'path'
 
-/*** Sync Package Versions ***/
+//// Sync Package Versions ////
 
 // So, up until mid version 3 of most benzed packages, I've been
 // using * as the inter-dependency version specifier, which is a 
@@ -14,7 +14,7 @@ import path from 'path'
 // because I have a customized publish script, I might as well use
 // a customized version script as well.
 
-/*** Helper ***/
+//// Helper ////
 
 type DependencyWeb = Record<string, {
     name: string
@@ -42,10 +42,10 @@ const createDependencyWeb = async (): Promise<DependencyWeb> => {
         }
 
         for (const dependency in dependencies) {
-            if (!dependency.startsWith('@benzed'))
+            if (!dependency.startsWith(`@benzed`))
                 continue
 
-            web[name].dependencies[dependency] = dependencies[dependency].replace('^', '')
+            web[name].dependencies[dependency] = dependencies[dependency].replace(`^`, ``)
         }
 
     })
@@ -63,8 +63,8 @@ function sourceVersionIncrement(
 
     // conveting * to an actual version. This should be major, but fuck it. 
     // I'm calling it a bug-fix.
-    if (fromVersion === '*')
-        return 'patch'
+    if (fromVersion === `*`)
+        return `patch`
 
     if (!fromParsed)
         throw new Error(`${fromVersion} could not be parsed!`)
@@ -73,13 +73,13 @@ function sourceVersionIncrement(
         throw new Error(`${toVersion} could not be parsed!`)
 
     if (toParsed.major > fromParsed.major)
-        return 'major'
+        return `major`
 
     if (toParsed.minor > fromParsed.minor)
-        return 'minor'
+        return `minor`
 
     if (toParsed.patch > fromParsed.patch)
-        return 'patch'
+        return `patch`
 
     return null
 }
@@ -146,27 +146,27 @@ async function updatePackages(web: DependencyWeb): Promise<void> {
         pkgJson.version = currPkg.nextVersion
 
         console.log(name,
-            'update version',
+            `update version`,
             currPkg.currVersion,
-            '->',
+            `->`,
             currPkg.nextVersion
         )
 
         for (const depPkgName in currPkg.dependencies)
-            pkgJson.dependencies[depPkgName] = '^' + currPkg.dependencies[depPkgName]
+            pkgJson.dependencies[depPkgName] = `^` + currPkg.dependencies[depPkgName]
 
-        await writeJson(pkgJson, path.join(pkgUrl, 'package.json'))
+        await writeJson(pkgJson, path.join(pkgUrl, `package.json`))
     })
 
 }
 
-/*** Execute ***/
+//// Execute ////
 
 void async function setPackageVersions() {
 
     try {
 
-        await assertBranch('master')
+        await assertBranch(`master`)
 
         const web = await createDependencyWeb()
 
@@ -174,10 +174,10 @@ void async function setPackageVersions() {
 
         await updatePackages(web)
 
-        console.log('version sync complete')
+        console.log(`version sync complete`)
 
     } catch (e) {
-        console.error('version sync failed: ', (e as Error).message)
+        console.error(`version sync failed: `, (e as Error).message)
     }
 
 }()

@@ -6,7 +6,7 @@
 const milliseconds = (count: number): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, count))
 
-/*** Exports ***/
+//// Exports ////
 
 export default milliseconds
 

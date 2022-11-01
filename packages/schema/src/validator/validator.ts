@@ -12,11 +12,11 @@ import {
     isInstanceOf
 } from '@benzed/is'
 
-/*** Linting ***/
+//// Linting ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 interface NoSettings {
     [key: string]: never
@@ -33,7 +33,7 @@ type ErrorDefault<T extends ErrorSettings> = NonNullable<T['error']>
 
 type ErrorDefaultAndArgs<T extends ErrorSettings> = [ErrorDefault<T>, ...ErrorArgs<T>]
 
-/*** Main ***/
+//// Main ////
 
 abstract class Validator<
     I,
@@ -41,25 +41,25 @@ abstract class Validator<
     S extends object = object,
 /**/> implements CopyComparable<Validator<I, O, S>> {
 
-    /*** State ***/
+    //// State ////
 
     private _settings: S
     get settings(): Readonly<S> {
         return this._settings
     }
 
-    /*** Construction ***/
+    //// Construction ////
 
     constructor (settings: S) {
         this._settings = this._stripUndefinedSettings(settings) as S
         this._onApplySettings()
     }
 
-    /*** Validation ***/
+    //// Validation ////
 
     abstract validate(input: I, allowTransform: boolean): I | O
 
-    /*** Helpers ***/
+    //// Helpers ////
 
     applySettings(settings: Partial<S>): void {
 
@@ -73,7 +73,7 @@ abstract class Validator<
 
     protected _onApplySettings(): void { /**/ }
 
-    /*** CopyComparable Implementation ***/
+    //// CopyComparable Implementation ////
 
     [$$equals](other: unknown): other is this {
         return isInstanceOf(other, this.constructor) &&
@@ -85,7 +85,7 @@ abstract class Validator<
         return new ThisValidator(this.settings)
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private _stripUndefinedSettings(settings: Partial<S>): Partial<S> {
 
@@ -139,7 +139,7 @@ abstract class AssertTransformValidator<
         return output
     }
 
-    /*** Helpers ***/
+    //// Helpers ////
 
     protected _throwWithErrorSetting(
         errorDefault: ErrorDefault<S>,
@@ -185,7 +185,7 @@ abstract class AssertValidTransformValidator<
 >
     extends AssertTransformValidator<O, O, S> {
 
-    /*** AssertTransformValidator Implementation ***/
+    //// AssertTransformValidator Implementation ////
 
     protected _assert(
         input: O
@@ -201,7 +201,7 @@ abstract class AssertValidTransformValidator<
         }
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     protected _isValid(input: O): boolean {
         return equals(input, this._transform(input))
@@ -213,7 +213,7 @@ abstract class AssertValidTransformValidator<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Validator
 

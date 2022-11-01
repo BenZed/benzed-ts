@@ -1,11 +1,11 @@
 import { Schema } from './schema'
 
-/*** Helper ***/
+//// Helper ////
 
 // eslint-disable-next-line
 type Asserts<S extends Schema<any,any,any>> = S['assert']
 
-/*** Export ***/
+//// Export ////
 
 export * from './schema'
 export { default } from './schema'

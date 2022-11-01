@@ -47,7 +47,7 @@ class App<M extends Modules = Modules> extends CommandModule<M> {
 
 }
 
-/*** Export ***/
+//// Export ////
 
 export default App 
 

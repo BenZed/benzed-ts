@@ -5,7 +5,7 @@ import { Switch } from './switch'
 
 import { isSortedArray } from '@benzed/is'
 
-/*** Test Components ***/
+//// Test Components ////
 
 const multiply = (by: number) => (i: number) => i * by
 
@@ -17,7 +17,7 @@ const multiplier = Switch.create(x2)
     .add(x3)
     .add(x4)
 
-/*** Tests ***/
+//// Tests ////
     
 it(`sealed class`, () => {
     // @ts-expect-error Private constructor

@@ -13,7 +13,7 @@ type User = {
     age: number
 }
 
-/*** Test ***/
+//// Test ////
 
 const app = createTestApp([`users`] as const)
 const users = app.service(`users`).hooks([

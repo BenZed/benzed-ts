@@ -2,7 +2,7 @@ import { ensureMongoDbInstance } from '../../feathers/src/scripts/util'
 
 import { DEFAULT_MONGODB_PORT } from '../src/constants'
 
-/*** Config ***/
+//// Config ////
 
 /**
  * Ensure a mongo db instance is running in the test cluster

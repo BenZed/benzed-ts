@@ -13,7 +13,7 @@ import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
 
-/*** Types ***/
+//// Types ////
 
 /**
  * Function that can be added to a queue as a task.
@@ -133,7 +133,7 @@ type QueueItem<V, T extends object | void> = Merge<[
 type QueueAddInput<V, T extends object | void> =
     T extends void ? QueueTask<V, T> : ({ task: QueueTask<V, T> } & T)
 
-/*** Queue ***/
+//// Queue ////
 
 class Queue<
 
@@ -196,7 +196,7 @@ class Queue<
      */
     readonly maxTotalItems: number
 
-    /*** Constructor ***/
+    //// Constructor ////
 
     constructor (
         options?: QueueOptions
@@ -226,7 +226,7 @@ class Queue<
         }
     }
 
-    /*** Main ***/
+    //// Main ////
 
     /**
      * Adds multiple tasks to the queue
@@ -447,7 +447,7 @@ class Queue<
         })
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private async _updateCurrentItems(): Promise<void> {
 
@@ -535,7 +535,7 @@ class Queue<
 
 }
 
-/*** Export ***/
+//// Export ////
 
 export default Queue
 

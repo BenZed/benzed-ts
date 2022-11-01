@@ -1,14 +1,14 @@
 // import { isPromise } from '@benzed/is'
 
-/*** Helper ***/
+//// Helper ////
 
 const isPromise = (i: unknown): i is Promise<unknown> => i instanceof Promise
 
-/*** Types ***/
+//// Types ////
 
 type ReduceToVoid<T> = (T extends Promise<unknown> | Promise<unknown>[] ? Promise<void> : void)
 
-/*** reduceToVoid ***/
+//// reduceToVoid ////
 
 function reduceToVoid<T>(
     input?: T
@@ -23,7 +23,7 @@ function reduceToVoid<T>(
     return undefined as ReduceToVoid<T>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default reduceToVoid
 

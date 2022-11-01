@@ -18,7 +18,7 @@ interface MongoDBServiceOptions extends Omit<MongoDBAdapterOptions, 'Model'> {
 
 }
 
-/*** Main ***/
+//// Main ////
 
 function setupMongoDBService<
     T,
@@ -51,7 +51,7 @@ function setupMongoDBService<
     return mongoApp.service(path) as FeathersService<MongoDBApplication, Service<T, D, P>>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default setupMongoDBService
 

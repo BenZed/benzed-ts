@@ -9,7 +9,7 @@ import {
 } from '../util.test'
 import $ from '.'
 
-/*** Input ***/
+//// Input ////
 
 const $vector2 = new ShapeSchema({
     x: new NumberSchema(),

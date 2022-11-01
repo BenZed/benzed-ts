@@ -5,7 +5,7 @@ import BooleanSchema from './boolean'
 import { expectValidationError } from '../util.test'
 import NumberSchema from './number'
 
-/*** Input ***/
+//// Input ////
 
 const $dict = new RecordSchema([new StringSchema()])
 

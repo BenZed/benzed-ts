@@ -2,7 +2,7 @@ import { Server } from './server'
 
 import { inputToOutput } from '@benzed/util'
 
-/*** Test ***/
+//// Test ////
 
 let startErr: unknown
 let stopErr: unknown

@@ -27,7 +27,7 @@ import {
 
 import { PrimitiveSchema } from './schema'
 
-/*** Helper ***/
+//// Helper ////
 
 function tryCastToNumber(value: unknown): unknown {
     if (isString(value)) {
@@ -39,17 +39,17 @@ function tryCastToNumber(value: unknown): unknown {
     return value
 }
 
-/*** Main ***/
+//// Main ////
 
 class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
-    /*** Constructor ***/
+    //// Constructor ////
 
     constructor (...flags: F) {
         super(0, ...flags)
     }
 
-    /*** Schema Implementation ***/
+    //// Schema Implementation ////
 
     protected _typeValidator = new TypeValidator({
         name: `number`,
@@ -58,7 +58,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
         cast: tryCastToNumber
     })
 
-    /*** Chain Methods ***/
+    //// Chain Methods ////
 
     range(...input: RangeValidatorSettingsShortcut<number>): this {
         return this._copyWithPostTypeValidator(
@@ -95,7 +95,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
         return super.default(defaultValue)
     }
 
-    /*** Private Chain Methods ***/
+    //// Private Chain Methods ////
 
     private _copyWithRounderValidator(
         rounder: RounderMethod,
@@ -114,7 +114,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default NumberSchema
 

@@ -12,13 +12,13 @@ import { TEST_FILE_SERVER_CONFIG } from '../util.test'
 
 import { expect, it, describe, beforeAll, afterAll } from '@jest/globals'
 import { SERVER_RENDERER_ID } from '../files-service'
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const server = createFileServer()
 
-/*** Test Server ***/
+//// Test Server ////
 
 const CLIENT = {
     host: `http://localhost:${server.get(`port`)}`,
@@ -61,7 +61,7 @@ beforeAll(async () => {
 afterAll(() => void client.io.connected && client.io.disconnect())
 afterAll(() => server.teardown())
 
-/*** Test ***/
+//// Test ////
 
 it(`render service is attached via the file service`, () => {
     expect(

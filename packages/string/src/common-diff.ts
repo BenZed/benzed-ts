@@ -3,7 +3,7 @@ import match from '@benzed/match'
 
 /* eslint-disable @typescript-eslint/unified-signatures */
 
-/*** Types ***/
+//// Types ////
 
 type CommonDiff = [
     common: string,
@@ -23,7 +23,7 @@ interface CommonDiffOptions {
     fromEnd: boolean
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): string {
 
@@ -80,7 +80,7 @@ function* createDiffs(
 
 }
 
-/*** Helper ***/
+//// Helper ////
 
 const matchCommonDiffOptions =
     match.for<
@@ -98,7 +98,7 @@ const matchCommonDiffOptions =
         )
     )
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Given an array of strings, return a common diff object
@@ -124,7 +124,7 @@ function commonDiff(
     ]
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default commonDiff
 

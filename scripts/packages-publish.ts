@@ -10,7 +10,7 @@ import {
     assertBranch,
 } from './util'
 
-/*** Publish Packages ***/
+//// Publish Packages ////
 
 // For each package, check that the version in the json is up-to-date with what is
 // on npm. 
@@ -37,12 +37,12 @@ async function getNpmVersionData(
         const { message } = e as Error
 
         if (
-            message.includes('is not in the npm registry') ||
-            message.includes('is not in this registry')
+            message.includes(`is not in the npm registry`) ||
+            message.includes(`is not in this registry`)
         ) {
             return {
                 upToDate: false,
-                version: '(unpublished)'
+                version: `(unpublished)`
             }
         } else
             throw e
@@ -57,7 +57,7 @@ async function createTarBallPackageJson(json: PackageJson, url: string): Promise
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tarBallRootJson = { ...json } as any
     delete tarBallRootJson.main
-    const tarBallRootJsonUrl = path.join(url, 'lib', 'package.json')
+    const tarBallRootJsonUrl = path.join(url, `lib`, `package.json`)
     await writeJson(tarBallRootJson, tarBallRootJsonUrl)
 
     // TODO npm pack, check for irregularities or unintentionally included files
@@ -70,30 +70,30 @@ async function createTarBallPackageJson(json: PackageJson, url: string): Promise
 
 async function publishPackage(json: PackageJson, url: string): Promise<void> {
 
-    process.stdout.write('test ')
-    await exec('npm run test', { cwd: url })
-    process.stdout.write('\b\b\b\b\b')
+    process.stdout.write(`test `)
+    await exec(`npm run test`, { cwd: url })
+    process.stdout.write(`\b\b\b\b\b`)
 
-    process.stdout.write('build ')
-    await exec('npm run build', { cwd: url })
-    process.stdout.write('\b\b\b\b\b\b')
+    process.stdout.write(`build `)
+    await exec(`npm run build`, { cwd: url })
+    process.stdout.write(`\b\b\b\b\b\b`)
 
     const tarBallPackageJsonUrl = await createTarBallPackageJson(json, url)
 
-    process.stdout.write('publish ')
-    await exec('npm publish --access=public', { cwd: path.join(url, 'lib') })
-    process.stdout.write('\bed √\n')
+    process.stdout.write(`publish `)
+    await exec(`npm publish --access=public`, { cwd: path.join(url, `lib`) })
+    process.stdout.write(`\bed √\n`)
 
     await fs.promises.unlink(tarBallPackageJsonUrl).catch(e => void e)
 }
 
-/*** Execute ***/
+//// Execute ////
 
 void async function publishPackages() {
 
     try {
 
-        await assertBranch('master')
+        await assertBranch(`master`)
 
         let publishCount = 0
         let failCount = 0
@@ -117,7 +117,7 @@ void async function publishPackages() {
                 await publishPackage(packageJson, packageUrl)
                 publishCount++
             } catch (e) {
-                process.stdout.write('x\n')
+                process.stdout.write(`x\n`)
                 failCount++
             }
         })
@@ -127,7 +127,7 @@ void async function publishPackages() {
             process.stdout.write(`${failCount} packages failed\n`)
 
     } catch (e) {
-        console.error('publish failed: ', (e as Error).message)
+        console.error(`publish failed: `, (e as Error).message)
     }
 
 }()

@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 class JsonMap<K,V> implements Map<K, V> {
 
@@ -77,7 +77,7 @@ class JsonMap<K,V> implements Map<K, V> {
         }
     }
     
-    /*** Helper ***/
+    //// Helper ////
     
     protected _getStringKey(key: K): string {
         return JSON.stringify(key)
@@ -87,7 +87,7 @@ class JsonMap<K,V> implements Map<K, V> {
         return Object.keys(this)
     }
     
-    /*** Symolic ***/
+    //// Symolic ////
     
     *[Symbol.iterator](): IterableIterator<[K, V]> {
         yield* this.entries()
@@ -97,7 +97,7 @@ class JsonMap<K,V> implements Map<K, V> {
     
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default JsonMap
 

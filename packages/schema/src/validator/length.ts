@@ -13,17 +13,17 @@ import {
     AssertValidator
 } from './validator'
 
-/*** Types ***/
+//// Types ////
 
 type LengthValidatorSettings = RangeValidatorSettings<number>
 type LengthValidatorSettingsShortcut = RangeValidatorSettingsShortcut<number>
 
-/*** Helper ***/
+//// Helper ////
 
 const defaultLengthError = (_input: unknown, lengthTransgressionDetail: string): string =>
     `length must be ${lengthTransgressionDetail}`
 
-/*** Main ***/
+//// Main ////
 
 class LengthValidator<O extends ArrayLike<unknown>>
 
@@ -38,7 +38,7 @@ class LengthValidator<O extends ArrayLike<unknown>>
         })
     }
 
-    /*** AssertValidator implementation ***/
+    //// AssertValidator implementation ////
 
     protected override _onApplySettings(): void {
 
@@ -54,7 +54,7 @@ class LengthValidator<O extends ArrayLike<unknown>>
         this._rangeValidator.validate(input.length)
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private _validateLengthSettings(): void {
 
@@ -83,7 +83,7 @@ class LengthValidator<O extends ArrayLike<unknown>>
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default LengthValidator
 

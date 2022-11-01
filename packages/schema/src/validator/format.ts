@@ -11,7 +11,7 @@ import {
     isString
 } from '@benzed/is'
 
-/*** DATA ***/
+//// DATA ////
 
 const alpha = asRegExp`^[a-zA-Z]*$`
 const numeric = asRegExp`^[0-9]*$`
@@ -37,7 +37,7 @@ const FORMAT_SHORTCUTS = {
     email,
 }
 
-/*** Types ***/
+//// Types ////
 
 type Format = RegExp | FormatShortcut
 
@@ -66,7 +66,7 @@ function isFormatShortcut(input: unknown): input is FormatShortcut {
     return (input as FormatShortcut) in FORMAT_SHORTCUTS
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function asRegExp(
     str: TemplateStringsArray
@@ -114,7 +114,7 @@ function toFormatValidatorSettings(
     return settings
 }
 
-/*** Main ***/
+//// Main ////
 
 class FormatValidator extends AssertValidator<string, FormatValidatorSettings> {
 
@@ -133,7 +133,7 @@ class FormatValidator extends AssertValidator<string, FormatValidatorSettings> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default FormatValidator
 

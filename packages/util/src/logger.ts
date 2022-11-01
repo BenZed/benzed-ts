@@ -1,7 +1,7 @@
 import ansi from './ansi'
 import { inspect } from 'util'
 
-/*** Types ***/
+//// Types ////
 
 type Log = (strings: TemplateStringsArray, ...inputs: unknown[]) => void
 
@@ -50,7 +50,7 @@ type LoggerOptions = {
 
 type LogHandler = (...items: unknown[]) => void
 
-/*** Constants ***/
+//// Constants ////
 
 const WARN_SYMBOL = `⚠️`
 
@@ -58,7 +58,7 @@ const ERR_SYMBOl = `‼️`
 
 const INPECT_DEPTH = 3
 
-/*** Helper ***/
+//// Helper ////
 
 function twoDigit(input: number, count = 2): string {
     return input.toString().padStart(count, `0`)
@@ -100,7 +100,7 @@ function isLogger(input: unknown): input is Logger {
         (input as Logger).info === input
 }
 
-/*** Main ***/
+//// Main ////
 
 const createLogger =
     (
@@ -170,7 +170,7 @@ const createLogger =
         return log
     }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createLogger
 

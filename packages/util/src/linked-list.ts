@@ -3,7 +3,7 @@
 
 import iterate from './iterate'
 
-/*** Types ***/
+//// Types ////
 
 // Private
 interface _LinkedItem<T> {
@@ -23,7 +23,7 @@ type LinkedItem<T> = {
 
 }
 
-/*** Main ***/
+//// Main ////
 
 class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
@@ -245,7 +245,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default LinkedList
 

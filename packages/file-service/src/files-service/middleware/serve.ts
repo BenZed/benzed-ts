@@ -17,7 +17,7 @@ import {
     getFsFilePath 
 } from './util'
 
-/*** Types ***/
+//// Types ////
 
 interface Range {
     start: number
@@ -25,13 +25,13 @@ interface Range {
     size: number
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function parseRange(str: string | undefined, size: number): Range | undefined {
 
     let [start, end] = isString(str) // eslint-disable-line prefer-const
-        ? str.replace(/bytes=/, '')
-            .split('-')
+        ? str.replace(/bytes=/, ``)
+            .split(`-`)
             .map(word => parseInt(word, 10))
         : []
 
@@ -49,7 +49,7 @@ function parseRange(str: string | undefined, size: number): Range | undefined {
     return { start, end, size }
 }
 
-/*** Main ***/
+//// Main ////
 
 const serveMiddleware = createFileRoutingMiddleware(({ path, fs: localDirPath }) => 
     async (ctx, toServiceRoutes) => {
@@ -66,7 +66,7 @@ const serveMiddleware = createFileRoutingMiddleware(({ path, fs: localDirPath })
         const filePath = getFsFilePath(file, localDirPath)
 
         const range = parseRange(
-            ctx.get('content-range'), 
+            ctx.get(`content-range`), 
             file.size
         )
         if (range) {
@@ -75,21 +75,21 @@ const serveMiddleware = createFileRoutingMiddleware(({ path, fs: localDirPath })
             const chunk = end - start + 1
 
             ctx.status = PARTIAL_STATUS_CODE
-            ctx.set('accept-ranges', 'bytes')
-            ctx.set('content-range', `bytes ${start}-${end}/${file.size}`)
-            ctx.set('content-length', `${chunk}`)
+            ctx.set(`accept-ranges`, `bytes`)
+            ctx.set(`content-range`, `bytes ${start}-${end}/${file.size}`)
+            ctx.set(`content-length`, `${chunk}`)
         } else 
-            ctx.set('content-length', `${file.size}`)
+            ctx.set(`content-length`, `${file.size}`)
 
-        ctx.set('content-type', file.type)
-        ctx.set('content-disposition', `inline; filename="${file.name + file.ext}"`)
-        ctx.set('cache-control', `public, max-age=${ONE_YEAR}`)
+        ctx.set(`content-type`, file.type)
+        ctx.set(`content-disposition`, `inline; filename="${file.name + file.ext}"`)
+        ctx.set(`cache-control`, `public, max-age=${ONE_YEAR}`)
 
         ctx.body = fs.createReadStream(filePath, range)
 
     })
 
-/*** Exports ***/
+//// Exports ////
 
 export default serveMiddleware
 

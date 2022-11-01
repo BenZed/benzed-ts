@@ -4,7 +4,7 @@ import { Components, Node } from '../node'
 
 import { IndexesOf, random, resolveIndex } from '@benzed/array'
 
-/*** Switch Node ***/
+//// Switch Node ////
 
 /**
  * Switch Node Options

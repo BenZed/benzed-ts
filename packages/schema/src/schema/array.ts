@@ -31,12 +31,12 @@ import { DefaultValidatorSettings } from '../validator/default'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type ArraySchemaInput = Schema<any, any, any>
 type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>[]
 
-/*** Helper ***/
+//// Helper ////
 
 function tryCastToArray(input: unknown): unknown {
     return isString(input)
@@ -44,7 +44,7 @@ function tryCastToArray(input: unknown): unknown {
         : input
 }
 
-/*** Main ***/
+//// Main ////
 
 class ArraySchema<
 
@@ -93,7 +93,7 @@ class ArraySchema<
         return output as unknown as ApplyMutable<F, O>
     }
 
-    /*** Schema Chain Methods ***/
+    //// Schema Chain Methods ////
 
     override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
         return super.default(defaultValue ?? [] as any)
@@ -117,7 +117,7 @@ class ArraySchema<
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default ArraySchema
 

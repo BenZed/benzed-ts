@@ -21,7 +21,7 @@ import is from '@benzed/is'
 
 import { getInternalServiceMethods } from '../util'
 
-/*** Types ***/
+//// Types ////
 
 type HookData = HookContext['data']
 
@@ -53,11 +53,11 @@ const $historyQueryParam = (({ or, string, shape, tuple, number }) => {
 
 interface HistoryQueryParam extends Infer<typeof $historyQueryParam> {}
 
-/*** Constants ***/
+//// Constants ////
 
 const HISTORY_QUERY_PARAM = `$history`
 
-/*** Helper ***/
+//// Helper ////
 
 async function getExistingHistory<T>(
     ctx: HookContext<unknown, Service<Historical<T>>>
@@ -158,7 +158,7 @@ function createEntry<T extends object>(
     return entry
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Updates the history of the of the given record.
@@ -218,7 +218,7 @@ function updateHistory<T extends object>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default updateHistory
 

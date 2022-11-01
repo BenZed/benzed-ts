@@ -59,7 +59,7 @@ import isPlainObject from './is-plain-object'
     @typescript-eslint/ban-types, 
 */
 
-/*** Types ***/
+//// Types ////
 
 type Is = typeof isInstanceOf & {
 
@@ -126,7 +126,7 @@ type Is = typeof isInstanceOf & {
     }
 }
 
-/*** Combine ***/
+//// Combine ////
 
 let is: Is
 {
@@ -197,6 +197,6 @@ let is: Is
     is.arrayOf.sortable = isArrayOfSortable
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default is

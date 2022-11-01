@@ -5,7 +5,7 @@ import { SettingsModule } from './module'
 import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
 
-/*** Tests ***/
+//// Tests ////
 
 it(`is sealed`, () => {
     // @ts-expect-error Cannot be extended

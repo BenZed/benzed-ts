@@ -5,11 +5,11 @@ import { Components, Node } from '../node'
 import is from '@benzed/is'
 import { TypeGuard } from '@benzed/util'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Match Node ***/
+//// Match Node ////
 
 type Primitive = string | boolean | number | bigint | null | undefined 
 
@@ -29,7 +29,7 @@ type MatchOutput<C extends Components> = OutputOf<C[number]>
 
 type MatchComponents<I> = Components<I, any>
 
-/*** Helper ***/
+//// Helper ////
 
 function toMatcher<I>(input: unknown): MatchPredicate<I> {
 

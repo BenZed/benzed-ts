@@ -11,7 +11,7 @@ import {
 import { TypeValidator } from '../validator/type'
 import { TypeGuard } from '@benzed/util'
 
-/*** Types ***/
+//// Types ////
 
 type GenericSchemaInput = TypeGuard<unknown> 
 
@@ -19,7 +19,7 @@ type GenericSchemaOutput<I> = I extends TypeGuard<infer O>
     ? O 
     : unknown
 
-/*** Main ***/
+//// Main ////
 
 class GenericSchema<
     I extends GenericSchemaInput,
@@ -56,7 +56,7 @@ class GenericSchema<
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default GenericSchema
 

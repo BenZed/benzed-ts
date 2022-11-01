@@ -21,7 +21,7 @@ import { clamp } from '@benzed/math'
 
 import { isDefined, isNumber } from '@benzed/is'
 
-/*** Types ***/
+//// Types ////
 
 type CreatePNGOptions =
     & Input
@@ -29,11 +29,11 @@ type CreatePNGOptions =
     & Partial<TimeSetting>
     & Partial<SizeSetting>
 
-/*** Constants ***/
+//// Constants ////
 
 const IMAGE_FORMAT = `png`
 
-/*** Helper ***/
+//// Helper ////
 
 async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
@@ -67,7 +67,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
 
@@ -110,7 +110,7 @@ async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createPNG
 

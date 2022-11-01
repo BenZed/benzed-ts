@@ -10,7 +10,7 @@ import { TypeValidator } from '../validator/type'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type IntersectionSchemaInput = readonly Schema<object, any>[]
 
@@ -19,7 +19,7 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> =
         [K in keyof T]: SchemaOutput<T[K]>
     }>
 
-/*** Main ***/
+//// Main ////
 
 class IntersectionSchema<
 
@@ -35,7 +35,7 @@ class IntersectionSchema<
         is: isObject as (input: unknown) => input is O
     })
 
-    /*** ParentSchema Implementation ***/
+    //// ParentSchema Implementation ////
 
     protected _validateChildren(input: O, inputContext: SchemaValidationContext): O {
 
@@ -55,7 +55,7 @@ class IntersectionSchema<
         return output
     }
 
-    /*** Schema methods ***/
+    //// Schema methods ////
 
     override readonly optional!: HasOptional<
     /**/ F,
@@ -73,7 +73,7 @@ class IntersectionSchema<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default IntersectionSchema
 

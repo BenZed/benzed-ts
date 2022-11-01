@@ -1,7 +1,7 @@
 import { Calculator } from './util.test'
 import { App, Client, Server } from '../src'
 
-/*** Setup ***/
+//// Setup ////
 
 for (const webSocketClient of [true, false]) {
     for (const webSocketServer of [true, false]) {
@@ -19,7 +19,7 @@ for (const webSocketClient of [true, false]) {
             afterAll(() => server.stop())
             afterAll(() => client.stop())
 
-            /*** Tests ***/
+            //// Tests ////
         
             for (const [{ name, ...data }, output] of [
 

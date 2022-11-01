@@ -16,7 +16,7 @@ import {
     toDashCase
 } from '@benzed/string'
 
-/*** Types ***/
+//// Types ////
 
 interface CaseValidatorSettings<C extends Casing = Casing>
     extends ErrorSettings<[input: string, casing: C]> {
@@ -58,11 +58,11 @@ function isDelimitedCasing(casing: Casing): casing is 'dash' | 'camel' | 'pascal
     return casing === `dash` || casing === `camel` || casing === `pascal`
 }
 
-/*** Constants ***/
+//// Constants ////
 
 const SPACE_DASH_UNDERSCORE = / |-|_/
 
-/*** Helper ***/
+//// Helper ////
 
 function toCaseValidatorSettings<C extends Casing>(
     input: CaseValidatorSettingsShortcut<C>,
@@ -86,7 +86,7 @@ function toCaseValidatorSettings<C extends Casing>(
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 class CaseValidator<C extends Casing>
     extends AssertValidTransformValidator<string, CaseValidatorSettings<C>> {
@@ -154,7 +154,7 @@ class CaseValidator<C extends Casing>
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default CaseValidator
 

@@ -1,6 +1,6 @@
 import { Compile } from './types'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* 
     eslint-disable 
@@ -8,7 +8,7 @@ import { Compile } from './types'
         @typescript-eslint/explicit-function-return-type
 */
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { 
     entries,
@@ -16,7 +16,7 @@ const {
     getOwnPropertyDescriptors: getDescriptors 
 } = Object
 
-/*** Constants ***/
+//// Constants ////
 
 const INVALID_DEFINED_STATIC_NAMES = [
     `prototype`, `name`, `length`, `create`
@@ -24,7 +24,7 @@ const INVALID_DEFINED_STATIC_NAMES = [
 
 type InvalidDefinedStaticNames = typeof INVALID_DEFINED_STATIC_NAMES[number]
 
-/*** Types ***/
+//// Types ////
 
 type StructDefinition = new (...args: any[]) => any
 
@@ -40,7 +40,7 @@ type StructDefined<C extends StructDefinition> =
     StructDefaultStatics<C> & 
     StructDefinedStatics<C> 
 
-/*** Helper ***/
+//// Helper ////
 
 const createDefaultStatics = <C extends StructDefinition>(
     Constructor: C
@@ -81,7 +81,7 @@ const addDefinedStatics = <C extends StructDefinition>(
             return struct
         }, struct) as StructDefined<C>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Utility for defining non-extendable plain objects with class syntax
@@ -101,7 +101,7 @@ const Struct = {
 
 } as const
 
-/*** Exports ***/
+//// Exports ////
 
 export default Struct 
 

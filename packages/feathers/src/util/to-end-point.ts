@@ -1,6 +1,6 @@
 import { toDashCase } from '@benzed/string'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Converts a string into a pretty url friendly endpoint.
@@ -11,7 +11,7 @@ function toEndPoint(input: string | number): string {
     return toDashCase(input.toString())
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toEndPoint
 

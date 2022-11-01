@@ -19,7 +19,7 @@ import { $renderServiceConfig } from '../render-service/schema'
 
 import socketio from './socket-io'
 
-/*** Types ***/
+//// Types ////
 
 interface FileServerConfig extends Infer<typeof $fileServerConfig> { }
 
@@ -44,7 +44,7 @@ interface FileServerApp extends MongoDBApplication<FileServices, FileServerConfi
 interface FileServerHookContext<S extends FileServices[keyof FileServices]> extends
     HookContext<FileServerApp, S> {}
 
-/*** Main ***/
+//// Main ////
 
 function createFileServerApp(config?: FileServerConfig): FileServerApp {
 
@@ -58,7 +58,7 @@ function createFileServerApp(config?: FileServerConfig): FileServerApp {
     return fileServerApp
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createFileServerApp
 

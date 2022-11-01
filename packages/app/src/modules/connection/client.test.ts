@@ -4,7 +4,7 @@ import { Command } from "../../command"
 import { Client } from "./client"
 import { Server} from "./server"
 
-/*** Setup ***/
+//// Setup ////
 
 for (const webSocket of [false, true]) {
 
@@ -39,7 +39,7 @@ for (const webSocket of [false, true]) {
             await client.stop()
         })
     
-        /*** Tests ***/
+        //// Tests ////
     
         it(`.start()`, () => {
             expect(startErr).toEqual(undefined)

@@ -1,7 +1,7 @@
 import { Pipe } from './pipe'
 import { Component } from '../component'
 
-/*** Test Components ***/
+//// Test Components ////
 
 const double = Component.from(
     (i: number) => i * 2
@@ -19,7 +19,7 @@ const deserialize = Component.from(
             : parseFloat(i)
 )
 
-/*** Test ***/
+//// Test ////
 
 it(`is sealed`, () => {
     // @ts-expect-error Private constructor

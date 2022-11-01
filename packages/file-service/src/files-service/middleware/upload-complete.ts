@@ -22,19 +22,19 @@ import {
     validatePayload 
 } from './util'
 
-/*** Helper ***/
+//// Helper ////
 
 function readRequestBody(ctx: FeathersKoaContext): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         
-        let result = ''
+        let result = ``
 
         ctx.req
-            .on('data', chunk => {
+            .on(`data`, chunk => {
                 result += `${chunk}`
             })
-            .once('error', reject)
-            .once('end', () => resolve(result))
+            .once(`error`, reject)
+            .once(`end`, () => resolve(result))
     })
 }
 
@@ -45,7 +45,7 @@ async function validatePayloadComplete(
 
     const file = await validatePayload(files, payload)
 
-    if (!('complete' in payload.action))
+    if (!(`complete` in payload.action))
         throwInvalidPayload()
 
     return file
@@ -61,20 +61,20 @@ async function validateUploadCompleteSignal(
         const body = await readRequestBody(ctx)
 
         // body to array of part signals
-        const partSignals = body.split(',')
+        const partSignals = body.split(`,`)
         if (!is.arrayOf.string(partSignals))
-            throw new Error('Must be an array of strings')
+            throw new Error(`Must be an array of strings`)
 
         // part signals to parts
         const parts: number[] = []
         for (const partSignal of partSignals) {
-            const [fileId, partStr] = partSignal.split('-')
+            const [fileId, partStr] = partSignal.split(`-`)
             if (fileId !== file._id)
-                throw new Error('Part signal id must match file id')
+                throw new Error(`Part signal id must match file id`)
             
             const part = parseInt(partStr)
             if (is.nan(part))
-                throw new Error('Part signal index invalid.')
+                throw new Error(`Part signal index invalid.`)
 
             parts.push(part)            
         }
@@ -82,12 +82,12 @@ async function validateUploadCompleteSignal(
 
         // ensure parts match 
         if (!equals(parts, partsExpected))
-            throw new Error('Part signal does not match parts expected')
+            throw new Error(`Part signal does not match parts expected`)
 
         return parts
 
     } catch {
-        throw new BadRequest('Upload complete signal invalid.')
+        throw new BadRequest(`Upload complete signal invalid.`)
     }
 }
 
@@ -143,12 +143,12 @@ async function writePartToFile(
 ): Promise<void> {
 
     const partRead = fs.createReadStream(partPath)
-    const fileWrite = fs.createWriteStream(filePath, { flags: 'a+' })
+    const fileWrite = fs.createWriteStream(filePath, { flags: `a+` })
 
     await new Promise((resolve, reject) => {
         partRead.pipe(fileWrite)
-            .on('finish', resolve)
-            .on('error', reject)
+            .on(`finish`, resolve)
+            .on(`error`, reject)
     })
 }
 
@@ -177,7 +177,7 @@ async function mergePartsIntoFile(
 
 }
 
-/*** Main ***/
+//// Main ////
 
 const uploadCompleteMiddleware = createFileRoutingMiddleware(({ verify, path, fs: localDir }) => 
     async (ctx, toService) => {
@@ -203,7 +203,7 @@ const uploadCompleteMiddleware = createFileRoutingMiddleware(({ verify, path, fs
         }
     })
 
-/*** Exports ***/
+//// Exports ////
 
 export default uploadCompleteMiddleware
 

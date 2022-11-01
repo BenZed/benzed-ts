@@ -3,7 +3,7 @@ import { Component } from './component'
 
 import { Pipe } from './nodes'
 
-/*** Test Components ***/
+//// Test Components ////
 
 class Shout extends Component<string> {
 
@@ -35,9 +35,9 @@ const node = Pipe.create(invert)
     .add(serialize)
     .add(new Shout())
 
-/*** Tests ***/
+//// Tests ////
 
-it('typesafe .get()', () => {
+it(`typesafe .get()`, () => {
 
     const c1 = node.get(0)
     const c2 = node.get(1)
@@ -49,23 +49,23 @@ it('typesafe .get()', () => {
 
 })
 
-it('typesafe .get() in range', () => {
+it(`typesafe .get() in range`, () => {
     // @ts-expect-error Index out of range
-    expect(() => node.get(4)).toThrow('Could not find component at index')
+    expect(() => node.get(4)).toThrow(`Could not find component at index`)
 })
 
-it('typesafe .get() by constructor', () => {
+it(`typesafe .get() by constructor`, () => {
     
     const shouter = node.get(Shout)
 
     expectTypeOf<typeof shouter>().toEqualTypeOf<Shout>()
 
     // @ts-expect-error node does not have this component
-    expect(() => node.get(Unused)).toThrow('Could not find component of type')
+    expect(() => node.get(Unused)).toThrow(`Could not find component of type`)
     
 })
 
-it('typesafe .first', () => {
+it(`typesafe .first`, () => {
 
     const { first } = node 
 
@@ -74,7 +74,7 @@ it('typesafe .first', () => {
 
 })
 
-it('typesafe .last', () => {
+it(`typesafe .last`, () => {
 
     const { last } = node 
 
@@ -83,7 +83,7 @@ it('typesafe .last', () => {
 
 })
 
-it ('typesafe .has', () => {
+it (`typesafe .has`, () => {
 
     const hasZero = node.has(0)
     const hasFour = node.has(4)

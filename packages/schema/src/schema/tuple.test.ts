@@ -7,7 +7,7 @@ import StringSchema from './string'
 import { expectValidationError } from '../util.test'
 import EnumSchema from './enum'
 
-/*** Input ***/
+//// Input ////
 
 const $name = new TupleSchema([new StringSchema(), new StringSchema()])
 

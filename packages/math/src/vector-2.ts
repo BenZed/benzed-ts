@@ -6,7 +6,7 @@ import { isArray, isArrayOfNumber, isObject, isString } from '@benzed/is'
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'
 
-/*** Types ***/
+//// Types ////
 
 type V2String = `${number},${number}`
 
@@ -16,7 +16,7 @@ type V2Signature = Partial<V2Json> | V2String | [number, number]
 
 type V2ConstructorSignature = [V2Signature] | [number, number] | [number] | []
 
-/*** Main ***/
+//// Main ////
 
 class V2 {
 
@@ -228,7 +228,7 @@ class V2 {
 
 }
 
-/*** Util ***/
+//// Util ////
 
 interface V2Utility {
     (...args: V2ConstructorSignature): V2
@@ -279,7 +279,7 @@ Object.defineProperties(v2, {
     },
 })
 
-/*** Exports ***/
+//// Exports ////
 
 export default V2
 

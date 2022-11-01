@@ -1,7 +1,7 @@
 import first from './first'
 import { expectTypeOf } from 'expect-type'
 
-/*** Tests ***/
+//// Tests ////
 
 it(`returns the first element of an array`, () => {
     expect(first([1, 2, 3, 4, 5]))

@@ -1,6 +1,6 @@
 import { ensureMongoDbInstance } from '../../feathers/src/scripts/util'
 
-/*** Config ***/
+//// Config ////
 
 /**
  * Ensure a mongo db instance is running in the test cluster

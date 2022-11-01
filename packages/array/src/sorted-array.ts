@@ -1,10 +1,10 @@
 import { Sortable, isSortedArray } from '@benzed/is'
 
-/*** Types ***/
+//// Types ////
 
 type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
 
-/*** Helper ***/
+//// Helper ////
 
 /**
  * Sorter method that places the items in an array in ascending order.
@@ -24,7 +24,7 @@ function descending<T>(a: T, b: T): number {
     return (b as unknown as number) - (a as unknown as number)
 }
 
-/*** Main ***/
+//// Main ////
 class SortedArray<T extends Sortable> extends Array<T> {
 
     constructor (...params: readonly T[]) {
@@ -138,7 +138,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
         // method return type seems to be `Array<T>` instead of `this`
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private _getIndexViaBinarySearch(value: T): number {
 
@@ -167,7 +167,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default SortedArray
 

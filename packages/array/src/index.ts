@@ -16,7 +16,7 @@ import unwrap from './unwrap'
 import first from './first'
 import last from './last'
 
-/*** Exports ***/
+//// Exports ////
 
 export {
 

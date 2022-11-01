@@ -6,7 +6,7 @@ import { $clientSettings } from '../client'
 import { $logIcon, $port } from '../../../schemas'
 import { DEFAULT_SERVER_PORT } from '../../../constants'
 
-/*** Types ***/
+//// Types ////
 
 interface ServerSettings extends Infer<typeof $serverSettings> {}
 const $serverSettings = $({
@@ -16,7 +16,7 @@ const $serverSettings = $({
     logIcon: $logIcon.default(`🖥️`)
 })
 
-/*** Server ***/
+//// Server ////
 
 /**
  * Serverside connections, sends commands sent to users to the app
@@ -25,7 +25,7 @@ abstract class Server extends Connection<Required<ServerSettings>> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Server
 

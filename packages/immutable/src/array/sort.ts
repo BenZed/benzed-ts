@@ -1,13 +1,13 @@
 
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { sort: _sort } = Array.prototype
 
 type SortParams = Parameters<typeof Array.prototype.sort>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably sort an ArrayLike.

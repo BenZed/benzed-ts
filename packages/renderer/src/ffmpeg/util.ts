@@ -6,12 +6,12 @@ import { Output, SizeSetting } from './settings'
 
 import { Readable, Writable } from 'stream'
 
-/*** Typesw ***/
+//// Typesw ////
 
 type AxisString = `${number | '?'}x${number | '?'}`
 type ScaleString = `${number}%`
 
-/*** Exports ***/
+//// Exports ////
 
 /**
  * Get an ffmpeg size string from SizeOptions

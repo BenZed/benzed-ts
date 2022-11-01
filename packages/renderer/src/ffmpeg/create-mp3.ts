@@ -12,19 +12,19 @@ import {
     Output
 } from './settings'
 
-/*** Types ***/
+//// Types ////
 
 type CreateMP3Options =
     & Input
     & Output
     & AudioSetting
 
-/*** Constants ***/
+//// Constants ////
 
 const AUDIO_CODEC = `libmp3lame`
 const OUTPUT_FORMAT = `mp3`
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Converts a source stream to an mp4 
@@ -55,7 +55,7 @@ function createMP3(
     return Promise.resolve({ renderTime })
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createMP3
 

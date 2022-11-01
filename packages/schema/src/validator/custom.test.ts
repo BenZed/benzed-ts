@@ -6,14 +6,14 @@ import {
     toCustomValidatorSettings 
 } from './custom'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const custom = <I, O extends I = I>(
     ...input: CustomValidatorSettingsShortcut<I,O>
 ): CustomValidator<I,O> => 
     new CustomValidator(toCustomValidatorSettings(input))
 
-/*** Tests ***/
+//// Tests ////
 
 describe(`custom transform-equal validator`, () => {
 

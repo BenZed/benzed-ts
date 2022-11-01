@@ -17,7 +17,7 @@ import {
 } from './flags'
 import Schema from './schema'
 
-/*** Helper ***/
+//// Helper ////
 
 function isValidDate(date: unknown): date is Date {
     return isDate(date) && 
@@ -32,7 +32,7 @@ function tryCastToDate(value: unknown): unknown {
     return value
 }
 
-/*** Main ***/
+//// Main ////
 
 class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
@@ -47,7 +47,7 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
         super( new Date(), ...flags)
     }
 
-    /*** Chain Schema Methods ***/
+    //// Chain Schema Methods ////
 
     range(...input: RangeValidatorSettingsShortcut<Date>): this {
         return this._copyWithPostTypeValidator(
@@ -74,7 +74,7 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default DateSchema
 

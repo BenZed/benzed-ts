@@ -6,13 +6,13 @@ import { COMMAND_ENDPOINT } from '../constants'
 import { HttpMethod } from "../modules/connection/server/http-methods"
 import { Path } from '../types'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-/*** Types ***/
+//// Types ////
 
 /**
  * Keys on an object that have string as a value
@@ -48,7 +48,7 @@ type FromRequest<T extends object, P extends StringFields<T>> = (request: readon
     data: object
 ]) => Omit<T,P> | null
 
-/*** Helper ***/
+//// Helper ////
 
 const toPath = (...words: string[]): Path => 
     `/${words.join(`/`)}`
@@ -81,7 +81,7 @@ const nameToMethodUrl = (name: string): [HttpMethod, Path] => {
     return [method, `/${rest.join(`-`)}`]
 }
 
-/*** Main ***/
+//// Main ////
 
 const createNameToReq = (name: string, param = `id`): ToRequest<any, any> => {
     const [method, url] = nameToMethodUrl(name)
@@ -144,7 +144,7 @@ const createFromReq = <D extends object, P extends StringFields<D> = never>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
     
 export {
 

@@ -11,12 +11,12 @@ import {
     FileRenderApp 
 } from '../client/create-file-render-app'
 
-/*** Const ***/
+//// Const ////
 
 const PASSWORD = `some-test-password`
 const TEST_CLIENT_RENDERERS = 0
 
-/*** Setup ***/
+//// Setup ////
 
 const server = createFileServerApp()
 const users = server.service(`users`)
@@ -80,7 +80,7 @@ beforeAll(async () => {
 
 afterAll(() => server.teardown())
 
-/*** Helpers ***/
+//// Helpers ////
 
 const getUploadedFileRenderResults = (
     file: File
@@ -108,7 +108,7 @@ const getFilesAssignedToAgents = (): string[] => {
     return assignedIds
 }
 
-/*** Tests ***/
+//// Tests ////
 
 const MEDIA_EXTS = [`.mp4`, `.gif`, `.png`, `.jpg`]
 const NON_MEDIA_EXTS = [`.txt`, `.json`]

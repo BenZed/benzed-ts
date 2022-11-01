@@ -10,7 +10,7 @@ function isArrayLike<T>(input: unknown): input is ArrayLike<T> {
         typeof (input as ArrayLike<T>).length === `number`
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default isArrayLike
 

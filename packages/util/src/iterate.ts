@@ -1,5 +1,5 @@
 
-/*** Helper ***/
+//// Helper ////
 
 function isIterable<T>(input: unknown): input is Iterable<T> {
 
@@ -13,7 +13,7 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
 
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Iterate through generic collections
@@ -47,7 +47,7 @@ function* iterate<T>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default iterate
 

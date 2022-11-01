@@ -4,7 +4,7 @@ import { BadRequest } from '@feathersjs/errors'
 
 import { StringKeys } from '../types'
 
-/*** Types ***/
+//// Types ////
 
 type ServicesOf<A extends Application> = A extends Application<infer S> ? S : unknown
 

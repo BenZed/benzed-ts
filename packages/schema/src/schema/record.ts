@@ -13,7 +13,7 @@ import UnionSchema from './union'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type RecordSchemaInput = 
     [ 
@@ -41,7 +41,7 @@ type RecordSchemaOutput<T extends RecordSchemaInput> =
     /**/ ? RecordSchemaKeyValueOutput<T[0], T[1]>
     /**/ : RecordSchemaKeyValueOutput<StringSchema<any>, T[0]>
 
-/*** Main ***/
+//// Main ////
 
 class RecordSchema<
     /**/
@@ -113,7 +113,7 @@ class RecordSchema<
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default RecordSchema
 

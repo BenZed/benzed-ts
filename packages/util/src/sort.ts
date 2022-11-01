@@ -6,7 +6,7 @@ import { Pipe } from './pipe'
     @typescript-eslint/explicit-function-return-type
  */
 
-/*** Types ***/
+//// Types ////
 
 type Sortable = string | bigint | number | { valueOf(): string | bigint | number }
 
@@ -16,7 +16,7 @@ type SortableKeys<T> = keyof {
 
 type Sort<T = Sortable> = (a: T, b: T) => number
 
-/*** By ***/
+//// By ////
 
 /**
  * Compares inputs as values
@@ -65,7 +65,7 @@ const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K)
         )
     )
 
-/*** By Interface ***/
+//// By Interface ////
 
 const by = <T>(...args: Pipe<T, Sortable>[]) => byMap(...args)
 
@@ -74,7 +74,7 @@ by.many = byMany
 by.map = byMap
 by.prop = byProp
 
-/*** Exports ***/
+//// Exports ////
 
 export default by
 

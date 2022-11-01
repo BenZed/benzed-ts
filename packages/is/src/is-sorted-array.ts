@@ -1,7 +1,7 @@
 import { isArrayOfSortable } from './is-array-of'
 import { Sortable } from './types'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Returns true if the given value is a sorted array.
@@ -38,7 +38,7 @@ function isSortedArray<T extends Sortable>(
     return true
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default isSortedArray
 

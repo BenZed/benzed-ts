@@ -1,5 +1,5 @@
 
-/*** Types ***/
+//// Types ////
 
 interface Pipe<I = unknown, O = unknown> {
     (input: I): O
@@ -19,7 +19,7 @@ interface PipeBuilder<
     merge(): Pipe<Ix, O>
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Run an input through a series of type-matched pipes
@@ -63,7 +63,7 @@ function pipe(p: unknown, i?: unknown): unknown {
     return _pipe 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default pipe
 

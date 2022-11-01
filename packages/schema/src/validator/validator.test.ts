@@ -169,7 +169,7 @@ describe(AssertTransformEqualValidator.name, () => {
         /**/ { modulo: number } & ErrorSettings<[modulo: number]>
         > {
 
-        /*** AssertTransformEqual Implementation ***/
+        //// AssertTransformEqual Implementation ////
 
         protected _transform(input: number): number {
             return input - input % this.settings.modulo

@@ -17,14 +17,14 @@ import {
 
 } from './ffmpeg/settings'
 
-/*** Type ***/
+//// Type ////
 
 export interface AudioRenderSetting extends AudioSetting {
     type: 'audio'
 }
 const $audioRenderSetting =
     $({
-        type: $.enum('audio' as const),
+        type: $.enum(`audio` as const),
         ...$audioSetting.$
     })
 
@@ -34,7 +34,7 @@ export interface VideoRenderSetting extends VideoSetting, AudioSetting {
 }
 
 const $videoRenderSetting = $({
-    type: $('video' as const),
+    type: $(`video` as const),
     ...$videoSetting.$,
     ...$audioSetting.$,
     size: $sizeSetting.optional
@@ -47,12 +47,12 @@ export interface ImageRenderSetting {
     time?: TimeSetting
 }
 const $imageRenderSetting = $({
-    type: $('image' as const),
+    type: $(`image` as const),
     size: $sizeSetting.optional,
     time: $timeSetting.optional
 })
 
-/*** Expots ***/
+//// Expots ////
 
 export type RenderSetting = AudioRenderSetting | VideoRenderSetting | ImageRenderSetting
 export const $renderSetting = $.or(
@@ -69,6 +69,6 @@ export interface RendererConfig {
 }
 
 export const $rendererConfig = $({
-    maxConcurrent: $.number.range('>', 0).optional,
+    maxConcurrent: $.number.range(`>`, 0).optional,
     settings: $.record($renderSetting)
 })

@@ -9,7 +9,7 @@ type BenchmarkHandler<T> = Func<[time: number, result: Sync<T>], void | string>
 
 type Sync<T> = T extends PromiseLike<infer U> ? U : T
 
-/*** Helper ***/
+//// Helper ////
 
 function onBenchmarkComplete(
     this: {
@@ -43,7 +43,7 @@ function onBenchmarkComplete(
         console.log(handler, delta)
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Return a function that logs the provided message when it
@@ -89,7 +89,7 @@ function benchmark<A extends any[], R, T = void>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default benchmark
 

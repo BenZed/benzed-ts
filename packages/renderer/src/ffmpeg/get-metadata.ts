@@ -12,7 +12,7 @@ import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
 import $ from '@benzed/schema'
 
-/*** Type ***/
+//// Type ////
 
 interface Metadata extends Partial<Width>, Partial<Height>, Partial<Duration> {
     format?: string
@@ -35,7 +35,7 @@ const $metaData = $.shape({
 
 type GetMetadataOptions = Input
 
-/*** Helper ***/
+//// Helper ////
 
 function parseOutputDuration(
     stream: FfprobeStream,
@@ -69,7 +69,7 @@ function parseOutputFrameRate(
 
 }
 
-/*** Main ***/
+//// Main ////
 
 async function getMetadata(
     options: GetMetadataOptions
@@ -109,7 +109,7 @@ async function getMetadata(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default getMetadata
 

@@ -12,13 +12,13 @@ import {
 import { DEFAULT_MONGODB_PORT } from '../constants'
 import { Empty } from '@benzed/util'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-/*** Base ***/
+//// Base ////
 
 type Id = string
 type Record<T extends object> = T & { _id: Id }
@@ -77,7 +77,7 @@ abstract class Collection<T extends object> {
 
 }
 
-/*** Types ***/
+//// Types ////
 
 interface MongoDbSettings extends Infer<typeof $mongoDbSettings>{}
 
@@ -95,7 +95,7 @@ const $mongoDbSettings = $.shape({
 
 })
 
-/*** MongoDb ***/
+//// MongoDb ////
 
 class MongoDbCollection<T extends object> extends Collection<T> {
 
@@ -238,7 +238,7 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
     
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     MongoDb,

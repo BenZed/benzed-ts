@@ -23,7 +23,7 @@ import { $, Infer, SchemaFor } from '@benzed/schema'
 @typescript-eslint/no-explicit-any
 */
 
-/*** Schemas ***/
+//// Schemas ////
 
 const $mongoDBApplicationConfig = $({
     name: $.string,
@@ -31,7 +31,7 @@ const $mongoDBApplicationConfig = $({
     db: $mongoDBConfig,
 })
 
-/*** Types ***/
+//// Types ////
 
 interface MongoDBApplicationConfig extends Infer<typeof $mongoDBApplicationConfig> {}
 
@@ -52,7 +52,7 @@ interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
     mode(): Env
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
     expressApp: KoaApplication<S, C>
@@ -91,7 +91,7 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
     ) as MongoDBApplication<S, C>
 }
 
-/*** Main ***/
+//// Main ////
 
 export default function createMongoDBApplication<S, C extends MongoDBApplicationConfig>(
     config: C | SchemaFor<C> = $mongoDBApplicationConfig as unknown as SchemaFor<C>,

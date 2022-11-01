@@ -1,7 +1,7 @@
 import { createFileRenderApp } from '../client/create-file-render-app'
 import os from 'os'
 
-/*** Execute ***/
+//// Execute ////
 
 void createFileRenderApp({
     host: `http://localhost:3000`

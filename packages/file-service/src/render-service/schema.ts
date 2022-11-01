@@ -3,7 +3,7 @@ import { $, Infer } from '@benzed/schema'
 
 import { $fileServiceConfig } from '../files-service'
 
-/*** Exports ***/
+//// Exports ////
 
 export interface RenderServiceConfig extends Infer<typeof $renderServiceConfig> {}
 

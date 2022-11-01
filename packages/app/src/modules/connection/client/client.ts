@@ -5,7 +5,7 @@ import { $logIcon } from '../../../schemas'
 
 import Connection from '../connection'
 
-/*** Types ***/
+//// Types ////
 
 interface ClientSettings extends Infer<typeof $clientSettings> {}
 const $clientSettings = $({
@@ -21,7 +21,7 @@ const $clientSettings = $({
         .default(`http://localhost:${DEFAULT_SERVER_PORT}`)
 })
 
-/*** Client ***/
+//// Client ////
 
 /**
  * Creates connection to server, allows commands to be emitted.
@@ -30,7 +30,7 @@ abstract class Client extends Connection<Required<ClientSettings>> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Client
 

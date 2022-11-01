@@ -13,12 +13,12 @@ import {
 
 import { AssertValidator, ErrorSettings } from './validator'
 
-/*** Types ***/
+//// Types ////
 
 const BINARY_COMPARATORS = [`-`, `..`, `...`] as const
 const UNARY_COMPARATORS = [`>=`, `>`, `==`, `<`, `<=`] as const
 
-/*** Types ***/
+//// Types ////
 
 type BinaryComparator = typeof BINARY_COMPARATORS[number]
 type UnaryComparator = typeof UNARY_COMPARATORS[number]
@@ -49,7 +49,7 @@ type RangeValidatorSettingsShortcut<O extends Sortable> =
     RangeValidatorSettingsArrayShortcut<O> |
     [RangeValidatorSettings<O>]
 
-/*** Type Guards ***/
+//// Type Guards ////
 
 const isNumericSortable = (input: unknown): input is Sortable => 
     !isString(input) && isSortable(input)
@@ -85,7 +85,7 @@ function isRangeValidatorSettings<O extends Sortable>(
     return false
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function parseRangeValidatorSettingsArrayShortcut<O extends Sortable>(
     range: RangeValidatorSettingsArrayShortcut<O>
@@ -134,7 +134,7 @@ function toRangeValidatorSettings<O extends Sortable>(
     return settings
 }
 
-/*** Main ***/
+//// Main ////
 
 class RangeValidator<O extends Sortable = number> extends AssertValidator<
 /**/ O,
@@ -143,7 +143,7 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
 
     private _rangeTest!: (input: O) => string | null
 
-    /*** AssertValidator Implementation ***/
+    //// AssertValidator Implementation ////
 
     protected override _onApplySettings(): void {
         this._rangeTest = this._createRangeTest()
@@ -162,7 +162,7 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
         )
     }
 
-    /*** Helpers ***/
+    //// Helpers ////
 
     private _createRangeTest(): (input: O) => string | null {
 
@@ -223,7 +223,7 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default RangeValidator
 

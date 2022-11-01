@@ -49,7 +49,7 @@ function toDashCase(
     return output
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toDashCase
 

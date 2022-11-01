@@ -5,7 +5,7 @@
 
 import Struct from './struct'
     
-/*** Example ***/
+//// Example ////
 
 it(`allows creation of sealed instance-less plain objects with class syntax`, () => {
 

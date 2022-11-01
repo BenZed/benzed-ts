@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import cp, { ExecOptions } from 'child_process'
 
-/*** Types ***/
+//// Types ////
 
 export type PackageJson = {
     name: string
@@ -14,16 +14,16 @@ export type PackageJson = {
     }
 }
 
-/*** Constants ***/
+//// Constants ////
 
-export const PACKAGES_DIR = path.join(process.cwd(), 'packages')
+export const PACKAGES_DIR = path.join(process.cwd(), `packages`)
 
-/*** Helper ***/
+//// Helper ////
 
 // I'm not using the helpers I created in @benzed/fs because I feel like
 // the script helpers should be a decoupled codebase from the packages.
 export async function readJson(url: string): Promise<unknown> {
-    const str = await fs.promises.readFile(url, 'utf-8')
+    const str = await fs.promises.readFile(url, `utf-8`)
     return JSON.parse(str)
 }
 
@@ -61,13 +61,13 @@ export async function forEachPackage(
             if (!packageStat.isDirectory())
                 continue
 
-            const packageJsonUrl = path.join(packageUrl, 'package.json')
+            const packageJsonUrl = path.join(packageUrl, `package.json`)
             const packageJson = await readJson(packageJsonUrl) as PackageJson
 
             await func(packageJson, packageUrl)
         } catch (e) {
             const message = (e as Error).message
-            if (!message.includes('ENOENT'))
+            if (!message.includes(`ENOENT`))
                 console.error((e as { message: string }).message)
         }
     }
@@ -75,7 +75,7 @@ export async function forEachPackage(
 }
 
 export async function assertBranch(target: string): Promise<void> {
-    const branch = (await exec('git rev-parse --abbrev-ref HEAD')).trim()
+    const branch = (await exec(`git rev-parse --abbrev-ref HEAD`)).trim()
     if (branch !== target)
         throw new Error(`current branch "${branch}" is not "${target}"`)
 }

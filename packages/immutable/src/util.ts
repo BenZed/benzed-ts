@@ -4,7 +4,7 @@
     @typescript-eslint/indent
 */
 
-/*** Prototypal ***/
+//// Prototypal ////
 
 export type Prototypal = { prototype: unknown }
 export function isPrototypal(input: unknown): input is Prototypal {
@@ -17,10 +17,10 @@ export function isReferable<T>(value: unknown): value is Referable<T> {
         return false
 
     const type = typeof value
-    return type === 'object' || type === 'function'
+    return type === `object` || type === `function`
 }
 
-/*** Mutable ***/
+//// Mutable ////
 
 /**
  * Make a readonly type mutable
@@ -34,7 +34,7 @@ type ImmutableMap<K, V> = ReadonlyMap<Immutable<K>, Immutable<V>>
 type ImmutableSet<T> = ReadonlySet<Immutable<T>>
 type ImmutableObject<T> = { readonly [K in keyof T]: Immutable<T[K]> }
 
-/*** Immutable ***/
+//// Immutable ////
 
 /**
  * Deep immutability
@@ -44,7 +44,7 @@ export type Immutable<T> =
     T extends Map<infer K, infer V> ? ImmutableMap<K, V> :
     T extends Set<infer M> ? ImmutableSet<M> : ImmutableObject<T>
 
-/*** Helper ***/
+//// Helper ////
 
 export function getKeys<T>(value: T): (keyof T)[] {
     return Object.getOwnPropertyNames(value) as (keyof T)[]

@@ -5,7 +5,7 @@ import { expectTypeOf } from 'expect-type'
 
 import is from '@benzed/is'
 
-/*** Test Components ***/
+//// Test Components ////
 
 const double = Component.from(
     (i: number) => i * 2
@@ -19,7 +19,7 @@ const deserialize = Component.from(
             : parseFloat(i)
 )
 
-/*** Tests ***/
+//// Tests ////
     
 it(`sealed class`, () => {
     // @ts-expect-error Private constructor

@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Clamps a value between a min and a max.
@@ -19,7 +19,7 @@ function clamp(value: number, min = 0, max = 1): number {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default clamp
 

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { splice } = Array.prototype
 
-/*** Types ***/
+//// Types ////
 
 type TypeGuard<I, O extends I = I> = (item: I, index: number, input: ArrayLike<I>) => item is O
 type Predicate<T> = ((item: T, index: number, input: ArrayLike<T>) => boolean) 
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Removes a number of items from an array that pass a test.
@@ -76,6 +76,6 @@ function pluck(
     return results
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default pluck

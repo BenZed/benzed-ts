@@ -29,7 +29,7 @@ import { DefaultValidatorSettings } from '../validator/default'
     @typescript-eslint/indent
 */
 
-/*** Types ***/
+//// Types ////
 
 type IsMutableAndOptional<I, Y, N = never> =
     HasMutable<I, HasOptional<I, Y, N>, N>
@@ -55,7 +55,7 @@ type ShapeSchemaOutput<T extends ShapeSchemaInput> =
         { [K in keyof T as IsMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> }
     >
 
-/*** Main ***/
+//// Main ////
 
 class ShapeSchema<
     I extends ShapeSchemaInput,
@@ -142,7 +142,7 @@ class ShapeSchema<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ShapeSchema
 

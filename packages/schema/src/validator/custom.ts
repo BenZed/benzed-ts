@@ -7,11 +7,11 @@ import {
     ErrorSettings 
 } from './validator'
 
-/*** Constants ***/
+//// Constants ////
 
 const CUSTOM_VALIDATOR_DEFAULT_ERROR = `Validation failed`
 
-/*** Type ***/
+//// Type ////
 
 interface CustomTransform<I, O extends I = I> {
 
@@ -61,7 +61,7 @@ type CustomValidatorSettingsShortcut<I, O extends I = I> =
         CustomValidatorSettings<I, O>
     ]
 
-/*** Helper ***/
+//// Helper ////
 
 const toCustomValidatorSettings = <I, O extends I = I>(
 
@@ -98,7 +98,7 @@ const toCustomValidatorSettings = <I, O extends I = I>(
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 class CustomValidator<I, O extends I = I> 
     extends AssertValidTransformValidator<I, CustomValidatorSettings<I,O>> {
@@ -126,7 +126,7 @@ class CustomValidator<I, O extends I = I>
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default CustomValidator
 

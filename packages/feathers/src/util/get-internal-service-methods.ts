@@ -3,11 +3,11 @@ import { Service, ServiceGenericType } from '@feathersjs/feathers'
 
 import { StringKeys } from '../types'
 
-/*** Types ***/
+//// Types ////
 
 type InternalServiceMethodKeys = StringKeys<InternalServiceMethods>[]
 
-/*** Main ***/
+//// Main ////
 
 function getInternalServiceMethods<
     S extends Service,
@@ -32,7 +32,7 @@ function getInternalServiceMethods<
     return service as unknown as InternalServiceMethods<ServiceGenericType<S>>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default getInternalServiceMethods
 

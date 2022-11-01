@@ -5,7 +5,7 @@
     @typescript-eslint/prefer-readonly-parameter-types
 */
 
-/*** Main ***/
+//// Main ////
 
 /**
  * A Value Map implements the same interface as Map, 
@@ -113,7 +113,7 @@ abstract class ValueMap<K, V> implements Map<K,V> {
         }
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     protected _getValueIndex(key: K): number {
         for (let i = 0; i < this.size; i++) {
@@ -124,7 +124,7 @@ abstract class ValueMap<K, V> implements Map<K,V> {
         return -1
     }
 
-    /*** Symolic ***/
+    //// Symolic ////
 
     *[Symbol.iterator](): IterableIterator<[K, V]> {
         yield* this.entries()
@@ -134,7 +134,7 @@ abstract class ValueMap<K, V> implements Map<K,V> {
 
 }
 
-/*** ValuesMap ***/
+//// ValuesMap ////
 
 /**
  * Value Map based on the identicaly of given arrays
@@ -155,7 +155,7 @@ class ValuesMap<K extends unknown[], V> extends ValueMap<K, V> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ValueMap
 

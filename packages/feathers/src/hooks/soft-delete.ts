@@ -10,14 +10,14 @@ import {
     AroundHookFunction
 } from '@feathersjs/feathers'
 
-/*** Types ***/
+//// Types ////
 
 interface SoftDeleteOptions {
     deleteField?: string
     deleteQueryParam?: string
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function consumeDeleteQueryParam(
     query: Params['query'],
@@ -44,7 +44,7 @@ function softDeleteQueryParam(): SoftDeleteQueryProperty {
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Disallow providers from using a given service method.
@@ -127,7 +127,7 @@ function softDelete<
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default softDelete
 

@@ -4,7 +4,7 @@ import { primes } from '@benzed/math'
 import is from '@benzed/is'
 import { toTrue } from '@benzed/util'
 
-/*** Tests ***/
+//// Tests ////
 
 /* eslint-disable @typescript-eslint/indent */
 

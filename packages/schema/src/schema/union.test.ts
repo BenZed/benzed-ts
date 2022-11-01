@@ -6,7 +6,7 @@ import UnionSchema from './union'
 import StringSchema from './string'
 import BooleanSchema from './boolean'
 
-/*** Input ***/
+//// Input ////
 
 const $stringOrBool = new UnionSchema([new StringSchema(), new BooleanSchema()])
 

@@ -12,7 +12,7 @@ import { isNumber } from '@benzed/is'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Helper ***/
+//// Helper ////
 
 function signatureToOptions<I, O>(
     args: unknown[],
@@ -44,7 +44,7 @@ function signatureToOptions<I, O>(
 
 const SIGNATURE_OK = {}
 
-/*** Main ***/
+//// Main ////
 
 function matchCreateInstance<I, O extends OutputArray, OT>(
     state: MatchState<I, MatchOutput<OT, O>>
@@ -132,7 +132,7 @@ function matchCreateInstance<I, O extends OutputArray, OT>(
     return match as MatchInProgress<I, O, OT>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default matchCreateInstance
 

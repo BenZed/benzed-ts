@@ -1,7 +1,7 @@
 
 const { indexOf, splice } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Removes all values equal to input in an array-like.
@@ -27,6 +27,6 @@ function remove<T>(input: ArrayLike<T>, value: T): ArrayLike<T> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default remove

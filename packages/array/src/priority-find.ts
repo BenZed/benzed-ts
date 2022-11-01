@@ -1,13 +1,13 @@
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { findIndex } = Array.prototype
 
-/*** Type ***/
+//// Type ////
 
 type Predicate<T> = (value: T, index: number, array: ArrayLike<T>) => boolean
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Execute findIndex with multiple predicates. Subsequent
@@ -46,7 +46,7 @@ function priorityFind<T>(
         : undefined
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default priorityFind
 

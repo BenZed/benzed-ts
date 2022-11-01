@@ -5,7 +5,7 @@
 
 import { Falsy, Sortable } from './types'
 
-/*** Constants ***/
+//// Constants ////
 
 const BOXABLE_PRIMITIVES = {
     string: String,
@@ -13,7 +13,7 @@ const BOXABLE_PRIMITIVES = {
     boolean: Boolean
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function isLiteralOrBoxed(
     input: unknown,
@@ -24,7 +24,7 @@ function isLiteralOrBoxed(
         type === `object` && input instanceof BOXABLE_PRIMITIVES[primitive]
 }
 
-/*** Main ***/
+//// Main ////
 
 export function isString(input: unknown): input is string {
     return isLiteralOrBoxed(input, `string`)

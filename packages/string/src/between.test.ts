@@ -1,6 +1,6 @@
 import between from './between'
 
-/*** Tests ***/
+//// Tests ////
 
 const str = `{one}, (two), [three], |four|, <!--five-->, <SIX/>`
 

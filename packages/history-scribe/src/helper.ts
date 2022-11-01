@@ -3,7 +3,7 @@ import { resolveIndex as _resolveIndex } from '@benzed/array'
 import { equals } from '@benzed/immutable'
 import { HistoryEntry, HistoryMeta } from './types'
 
-/*** Exports ***/
+//// Exports ////
 
 export function toDate(a: Date | number | string): Date {
     return is.date(a) ? a : new Date(a)

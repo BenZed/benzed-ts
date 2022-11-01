@@ -1,6 +1,6 @@
 import iterate from './iterate'
 
-/*** Internal Types ***/
+//// Internal Types ////
 
 /**
  * Mutable numeric index signature
@@ -9,7 +9,7 @@ interface _Stack<T> {
     [key: number]: T
 }
 
-/*** Types ***/
+//// Types ////
 
 /**
  * Really, the Stack<T> implementation is for fun.
@@ -28,9 +28,9 @@ interface StackLike<T> extends ArrayLike<T>, Iterable<T> {
 
 }
 
-/*** Helper ***/
+//// Helper ////
 
-/*** Custom Implementation ***/
+//// Custom Implementation ////
 
 class Stack<T> implements StackLike<T> {
 
@@ -115,7 +115,7 @@ class Stack<T> implements StackLike<T> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Stack
 

@@ -1,7 +1,7 @@
 import { readFile } from './export'
 import { PathLike } from './types'
 
-/*** Main ***/
+//// Main ////
 
 async function readJson<T>(
     url: PathLike,
@@ -16,7 +16,7 @@ async function readJson<T>(
     return json as T
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default readJson
 

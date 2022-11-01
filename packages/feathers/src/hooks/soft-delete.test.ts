@@ -6,7 +6,7 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Test ***/
+//// Test ////
 
 const app = createTestApp([`users`] as const)
 const users = app.service(`users`).hooks([softDelete()])

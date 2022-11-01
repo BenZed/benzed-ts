@@ -1,6 +1,6 @@
 import adjacent from './adjacent'
 
-/*** Tests ***/
+//// Tests ////
 
 const array = [`a`, `b`, `c`, `d`, `e`, `f`, `g`]
 

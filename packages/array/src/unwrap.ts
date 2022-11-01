@@ -4,7 +4,7 @@ import { isArray } from '@benzed/is'
 import { assertDefined } from '@benzed/util'
 import first from './first'
 
-/*** Types ***/
+//// Types ////
 
 type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
     ? V
@@ -12,7 +12,7 @@ type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
     /**/ ? V | undefined
     /**/ : T
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Unwraps an array if it is one.
@@ -27,7 +27,7 @@ function unwrap<T>(array: T): Unwrap<T> {
         : array) as Unwrap<T>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 unwrap.assert = assertDefined(unwrap)
 

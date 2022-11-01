@@ -6,7 +6,7 @@ import { milliseconds } from './milliseconds'
 const untilNextTick = (): Promise<void> =>
     milliseconds(0)
 
-/*** Exports ***/
+//// Exports ////
 
 export default untilNextTick
 

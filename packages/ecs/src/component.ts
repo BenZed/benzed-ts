@@ -1,10 +1,10 @@
 import is from '@benzed/is'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Compute ***/
+//// Compute ////
 
 /**
  * Pure function that gives an output from a single input
@@ -27,7 +27,7 @@ export type OutputOf<T> = T extends Compute<any, infer O> | Component<any, infer
     ? O
     : unknown
 
-/*** Component ***/
+//// Component ////
     
 /**
  * Input that can be turned into a component

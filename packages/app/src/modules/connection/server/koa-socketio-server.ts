@@ -15,7 +15,7 @@ import { WEBSOCKET_PATH } from '../../../constants'
 import { HttpCode } from './http-codes'
 import { HttpMethod } from './http-methods'
 
-/*** KoaServer ***/
+//// KoaServer ////
 
 /**
  * Server implementation using KOA/socket.io

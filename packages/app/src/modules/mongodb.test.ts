@@ -8,7 +8,7 @@ import {
     Paginated 
 } from './mongodb'
 
-/*** Setup ***/
+//// Setup ////
 
 const mongoDb = MongoDb.create({ 
     uri: `mongodb://127.0.0.1:<port>/<database>`,
@@ -51,7 +51,7 @@ afterAll(async () => {
     stopErr = await mongoDb.stop()
 }, 500)
 
-/*** Tests ***/
+//// Tests ////
 
 it(`.start()`, () => {
     expect(startErr).toBeUndefined()

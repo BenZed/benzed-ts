@@ -1,7 +1,7 @@
 import { inspect } from 'util'
 import isArrayLike from './is-array-like'
 
-/*** DATA ***/
+//// DATA ////
 
 class CustomTypeWithLength {
     length = 5
@@ -38,7 +38,7 @@ const ARRAY_UNLIKES = [
     new CustomTypeWithoutLength()
 ]
 
-/*** Tests ***/
+//// Tests ////
 
 describe(`returns true if an object is array-like`, function () {
 

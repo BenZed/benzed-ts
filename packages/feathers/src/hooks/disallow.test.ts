@@ -5,7 +5,7 @@ import {
     createTestNextFunction
 } from '../util.test'
 
-/*** Tests ***/
+//// Tests ////
 
 for (const provider of [`rest`, `socketio`, `server`, `external`, `primus`] as const) {
     for (const method of [`get`, `patch`, `update`, `find`, `create`] as const) {

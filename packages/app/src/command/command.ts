@@ -79,7 +79,7 @@ type CommandsOf<T extends object, P extends string = ''> = {
     [K in StringKeys<T> as T[K] extends Command<any, any, any> ? CamelCombine<P, K> : never]: T[K]
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Is the provided value a command?
@@ -158,12 +158,12 @@ function command<I extends object, O extends Promise<object>>(execute: Pipe<I,O>
     return _command
 }
 
-/*** Extend ***/
+//// Extend ////
 
 command.is = isCommand
 command.of = commandsOf
 
-/*** Exports ***/
+//// Exports ////
 
 export default command 
 

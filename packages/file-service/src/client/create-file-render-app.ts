@@ -18,7 +18,7 @@ import clientDownload from './client-download'
 import clientUpload from './client-upload'
 import { getRenderAgentResults, RenderAgentResult } from '../render-service/render-agent'
 
-/*** Types ***/
+//// Types ////
 
 interface FileRenderApp extends 
     Application<
@@ -46,7 +46,7 @@ interface FileRenderAppSettings {
     auth?: AuthenticationRequest
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function untilConnect(app: FileRenderApp): Promise<void> {
     return new Promise(resolve => 
@@ -89,7 +89,7 @@ async function start(
     })
 }
 
-/*** Main ***/
+//// Main ////
 
 export default async function createFileRenderApp(
     config: FileRenderAppSettings
@@ -127,7 +127,7 @@ export default async function createFileRenderApp(
     return app
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     createFileRenderApp,

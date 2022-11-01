@@ -8,7 +8,7 @@ import {
 
 import { createLogger, reduceToVoid } from '@benzed/util'
 
-/*** Constants ***/
+//// Constants ////
 
 const ROOT_DIR = process.cwd()
 const DEFAULT_MONGO_DB_PORT = 27017
@@ -25,7 +25,7 @@ const CHECK_PORT_CMD = os.platform() === `win32`
     ? `netstat -a -p udp | find ":${DEFAULT_MONGO_DB_PORT}"`
     : `netstat -a -p udp | grep ".${DEFAULT_MONGO_DB_PORT}"`
 
-/*** Types ***/
+//// Types ////
 
 type EnsureMongoDbInstanceOptions = ({
 
@@ -51,11 +51,11 @@ type EnsureMongoDbInstanceOptions = ({
     log?: boolean | 'process'
 }
 
-/*** Module State ***/
+//// Module State ////
 
 let mongoProcess: ChildProcessWithoutNullStreams | null = null
 
-/*** Helper ***/
+//// Helper ////
 
 function execute(cmd: string): Promise<string> {
 
@@ -145,7 +145,7 @@ async function untilPortFree(port: number): Promise<void> {
 
 }
 
-/*** Main ***/
+//// Main ////
 
 async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promise<void> {
 
@@ -234,7 +234,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     })
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ensureMongoDbInstance
 
