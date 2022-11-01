@@ -22,9 +22,7 @@ class App<M extends Modules = Modules> extends CommandModule<M> {
         return new App([])
     }
 
-    private constructor(
-        modules: M
-    ) {
+    private constructor(modules: M) {
         super(modules)
     }
   
@@ -33,17 +31,15 @@ class App<M extends Modules = Modules> extends CommandModule<M> {
     override use<Px extends Path, S extends CommandModule<any>>(
         path: Px,
         module: S
-    ): App<[...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : never]>
+    ): App<[...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : Module]>
 
     override use<Mx extends Module>(
         module: Mx
     ): App<[...M, Mx]>
 
-    override use<Mx extends Module>(
-        ...args: Mx extends CommandModule<any>
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
-    ): App<[...M, Mx]> {
+    override use(
+        ...args: [path: Path, module: Module] | [module: Module] 
+    ): App<Modules> {
         return new App(
             this._pushModule(...args)
         )

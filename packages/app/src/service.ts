@@ -12,6 +12,7 @@ import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 
 import { CamelCombine, Path } from './types'
+import $ from '@benzed/schema/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -36,6 +37,12 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
             : _CommandsOfModule<Mx, P>
         : {}
     : {}
+
+//// Helper ////
+
+const isModule = $(Module).is
+
+const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith(`/`)
 
 //// Command Module ////
 
@@ -82,7 +89,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     //// Command Module Implementation ////
 
     abstract use<Mx extends CommandModule<any>>(
-        path: string,
+        path: Path,
         module: Mx
     ): unknown
 
@@ -125,27 +132,26 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
     //// Helper ////
 
-    protected _pushModule<Mx extends Module>(
-        ...args: Mx extends CommandModule<any> 
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
-    ): [...M, Mx] {
+    protected _pushModule(
+        ...args: [path: Path, module: Module] | [module: Module] 
+    ): Modules {
 
-        const path = pluck(args, is.string).at(0) as Path
-        let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
+        const path = pluck(args, isPath).at(0)
+        let module = pluck(args, isModule).at(0)
         if (!module)
             throw new Error(`${Module.name} not provided.`)
 
-        if (path && module instanceof Service<any>)
-            module = module._copyWithPath(path) as unknown as Mx
+        if (path && module instanceof CommandModule<any>)
+            module = Service._create(path, module._modules)
 
         else if (path)
             throw new Error(`${module.name} is not a service, and cannot be used at path: ${path}`)
 
-        return [ ...this.modules, module ] as [ ...M, Mx ]
+        return [ ...this.modules, module ]
     }
 
     private _assertNoCommandNameCollisions(): void {
+        // commands throw on collision during creation anyway
         void this._createCommands()
     }
 
@@ -160,7 +166,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
             for (const key in moduleCommands) {
 
-                const name: string = module instanceof Service  
+                const name: string = module instanceof Service
                     ? `${module.path.replaceAll(`/`, ``)}${capitalize(key)}`
                     : key
 
@@ -185,11 +191,23 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 export class Service<P extends Path, M extends Modules = any> extends CommandModule<M> {
 
     //// Sealed ////
-    
+
+    /**
+     * Create a service with a given path and set of modules
+     * @internal
+     */
+    static _create<Px extends Path, Mx extends Modules>(path: Px, modules: Mx): Service<Px, Mx> {
+        return new Service(path, modules)
+    }
+
+    /**
+     * Create a new empty service
+     * @returns Service
+     */
     static create(): Service<'/', []> {
         return new Service(`/`, [])
     }
-    
+  
     private constructor(
         private readonly _path: Path,
         modules: M
@@ -212,13 +230,11 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
         module: Mx
     ): Service<P, [...M, Mx]>
 
-    override use<Mx extends Module>(
-        ...args: Mx extends CommandModule<any> 
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
-    ): Service<P, [...M, Mx]> {
-        return new Service(
-            this.path,
+    override use(
+        ...args: [path: Path, module: Module] | [module: Module] 
+    ): Service<Path, Modules> {
+        return Service._create(
+            this._path,
             this._pushModule(...args)
         )
     }
@@ -227,18 +243,6 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
 
     protected override get _copyParams(): unknown[] {
         return [this._path, this.modules]
-    }
-
-    //// Helper ////
-    
-    /**
-     * @internal
-     */
-    _copyWithPath<Px extends Path>(path: Px): Service<Px, M> {
-        return new Service(
-            path,
-            this.modules
-        )
     }
 
 }

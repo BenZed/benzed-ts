@@ -88,7 +88,7 @@ describe(`.commands`, () => {
             .use(`/car`, cars)
             .use(`/bike`, bikes)
 
-        const {commands} = travel
+        const { commands } = travel
 
         expectTypeOf(commands).toEqualTypeOf<{
             create: Orders['create']

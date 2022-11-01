@@ -14,7 +14,7 @@ export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M)
 
-// TODO make this and ModuleWithSettings abstract
+// TODO make this and SettingsModule abstract
 export class Module {
 
     //// Module Interface ////

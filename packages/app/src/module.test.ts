@@ -43,7 +43,7 @@ it(`.stop() cannot be called consecutively`, async () => {
         await test.stop()
         await test.stop()
     } catch (e: any) {
-        expect(e.message).toContain(`${test.name} has already been started`)
+        expect(e.message).toContain(`${test.name} has not been started`)
     }
     expect.assertions(1)
 })

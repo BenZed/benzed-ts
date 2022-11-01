@@ -39,7 +39,6 @@ function toQueryString(data: object, prefix = ``): string {
     }
 
     const queryString = queryStrings.join(`&`)
-
     return queryString && !prefix ? `?${queryString}` : queryString
 }
 
@@ -77,7 +76,8 @@ export class FetchSocketIOClient extends Client {
     override async start(): Promise<void> {
         await super.start()
         if (this.settings.webSocket)
-            await this._startSocketIO()
+            // 
+            await this._startSocketIO().catch(io)
     }
 
     override async stop(): Promise<void> {
@@ -91,7 +91,7 @@ export class FetchSocketIOClient extends Client {
     execute(name: string, data: object): Promise<object> {
 
         const { webSocket } = this.settings
-        return webSocket 
+        return webSocket && this._io?.connected
             ? this._executeSocketIOCommand(name, data)
             : this._executeFetchCommand(name, data)
     }
