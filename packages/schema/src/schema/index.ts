@@ -204,7 +204,7 @@ function createSchemaInterface(): SchemaInterface {
                         : null
 
         if (!schema)
-            throw new Error(`Input not recognized.`)
+            throw new Error('Input not recognized.')
 
         return schema as SchemaInterfaceShortcutOuput<T>
     }
@@ -219,8 +219,8 @@ function createSchemaInterface(): SchemaInterface {
 
     $.number = new NumberSchema()
     $.integer = $.number
-        .floor(1, `must be an integer`)
-        .name(`integer`)
+        .floor(1, 'must be an integer')
+        .name('integer')
 
     $.string = new StringSchema()
     $.boolean = new BooleanSchema()
@@ -231,7 +231,7 @@ function createSchemaInterface(): SchemaInterface {
     $.null = $.enum(null)
 
     $.typeOf = guard => new GenericSchema(guard)
-    $.symbol = $.typeOf(isSymbol).name({ name: `symbol`, article: `a` })
+    $.symbol = $.typeOf(isSymbol).name({ name: 'symbol', article: 'a' })
     $.unknown = $.typeOf((_): _ is unknown => true)
 
     $.object = $.record($.unknown)

@@ -10,10 +10,10 @@ import { isBoolean } from '@benzed/is'
 
 function tryCastToBoolean(value: unknown): unknown {
 
-    if (value === `true` || value === 1)
+    if (value === 'true' || value === 1)
         return true
 
-    if (value === `false` || value === 0)
+    if (value === 'false' || value === 0)
         return false
 
     return value
@@ -24,8 +24,8 @@ function tryCastToBoolean(value: unknown): unknown {
 class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `boolean`,
-        article: `a`,
+        name: 'boolean',
+        article: 'a',
         is: isBoolean,
         cast: tryCastToBoolean
     })

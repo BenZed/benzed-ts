@@ -57,58 +57,58 @@ function tryCastToString(value: unknown): unknown {
 class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `string`,
-        article: `a`,
+        name: 'string',
+        article: 'a',
         is: isString,
         cast: tryCastToString
     })
 
     constructor (...flags: F) {
-        super(``, ...flags)
+        super('', ...flags)
     }
 
     //// Chain Schema Methods ////
 
     trim(settings?: TrimValidatorSettings): this {
-        return this._copyWithPostTypeValidator(`trim`, new TrimValidator({ ...settings }))
+        return this._copyWithPostTypeValidator('trim', new TrimValidator({ ...settings }))
     }
 
     format(...input: FormatValidatorSettingsShortcut): this {
-        return this._copyWithPostTypeValidator(`format`, new FormatValidator(
+        return this._copyWithPostTypeValidator('format', new FormatValidator(
             toFormatValidatorSettings(input)
         ))
     }
 
     upperCase(...input: CaseValidatorSettingsShortcut<'upper'>): this {
-        return this._copyWithCaseValidator(input, `upper`)
+        return this._copyWithCaseValidator(input, 'upper')
     }
 
     lowerCase(...input: CaseValidatorSettingsShortcut<'lower'>): this {
-        return this._copyWithCaseValidator(input, `lower`)
+        return this._copyWithCaseValidator(input, 'lower')
     }
 
     camelCase(...input: CaseValidatorSettingsShortcut<'camel'>): this {
-        return this._copyWithCaseValidator(input, `camel`)
+        return this._copyWithCaseValidator(input, 'camel')
     }
 
     pascalCase(...input: CaseValidatorSettingsShortcut<'pascal'>): this {
-        return this._copyWithCaseValidator(input, `pascal`)
+        return this._copyWithCaseValidator(input, 'pascal')
     }
 
     dashCase(...input: CaseValidatorSettingsShortcut<'dash'>): this {
-        return this._copyWithCaseValidator(input, `dash`)
+        return this._copyWithCaseValidator(input, 'dash')
     }
 
     capitalize(...input: CaseValidatorSettingsShortcut<'capital'>): this {
-        return this._copyWithCaseValidator(input, `capital`)
+        return this._copyWithCaseValidator(input, 'capital')
     }
 
     length(...input: LengthValidatorSettingsShortcut): this {
         const settings = toLengthValidatorSettings(input)
-        return this._copyWithPostTypeValidator(`length`, new LengthValidator(settings))
+        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
     }
 
-    default(defaultValue = ``): this {
+    override default(defaultValue = ''): this {
         return super.default(defaultValue)
     }
 
@@ -134,7 +134,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
     ): this {
         const settings = toCaseValidatorSettings(input, casing)
 
-        return this._copyWithPostTypeValidator(`case`,
+        return this._copyWithPostTypeValidator('case',
             new CaseValidator(settings)
         )
     }

@@ -131,7 +131,7 @@ abstract class AssertTransformValidator<
 
     protected abstract _assert(input: I): asserts input is O
 
-    validate(input: I, allowTransform: boolean): O {
+    override validate(input: I, allowTransform: boolean): O {
         const output = super.validate(input, allowTransform)
 
         this._assert(output)

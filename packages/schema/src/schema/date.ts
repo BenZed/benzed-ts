@@ -37,8 +37,8 @@ function tryCastToDate(value: unknown): unknown {
 class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `date`,
-        article: `a`,
+        name: 'date',
+        article: 'a',
         is: isValidDate,
         cast: tryCastToDate
     })
@@ -51,7 +51,7 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     range(...input: RangeValidatorSettingsShortcut<Date>): this {
         return this._copyWithPostTypeValidator(
-            `range`,
+            'range',
             new RangeValidator(
                 toRangeValidatorSettings(input)
             )

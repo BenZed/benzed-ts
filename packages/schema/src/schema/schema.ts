@@ -202,7 +202,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this.validates({
             transform,
             isValid: pass,
-            error: `` // validator will never throw.
+            error: '' // validator will never throw.
         })
     }
 
@@ -276,7 +276,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
                 if (isUndefinedPostDefaultValidation && isOptional)
                     return output as ApplyOptional<F, O>
                 else if (isUndefinedPostDefaultValidation && !isOptional)
-                    throw new Error(`is required`)
+                    throw new Error('is required')
 
             } catch ({ message }) {
                 throw new ValidationError(
