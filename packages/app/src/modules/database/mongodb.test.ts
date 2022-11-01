@@ -1,19 +1,18 @@
-import { DEFAULT_MONGODB_PORT } from '../constants'
 import { 
-    MongoDbCollection, 
-    MongoDb, 
-    
     Record,
     Id, 
     Paginated 
+} from './database'
+
+import {
+    MongoDbCollection, 
+    MongoDb, 
 } from './mongodb'
 
 //// Setup ////
 
 const mongoDb = MongoDb.create({ 
-    uri: 'mongodb://127.0.0.1:<port>/<database>',
-    database: 'app-ecs-test',
-    port: DEFAULT_MONGODB_PORT
+    database: 'app-ecs-test'
 })
 
 let startErr: unknown

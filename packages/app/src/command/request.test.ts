@@ -1,7 +1,9 @@
-import { HttpMethod } from '../modules/connection/server/http-methods'
-import { createNameToReq, createNameFromReq, ToRequest, FromRequest } from './request'
 import is from '@benzed/is'
+
+import { HttpMethod } from '../modules/connection/server/http-methods'
+
 import { COMMAND_ENDPOINT } from '../constants'
+import { createNameToReq, createNameFromReq, ToRequest, FromRequest } from './request'
 
 //// Helper ////
 

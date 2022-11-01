@@ -1,9 +1,9 @@
 import $, { Infer } from '@benzed/schema'
 
-import { DEFAULT_SERVER_PORT } from '../../../constants'
-import { $logIcon } from '../../../schemas'
-
 import Connection from '../connection'
+
+import { $logIcon } from '../../../schemas'
+import { DEFAULT_SERVER_PORT } from '../../../constants'
 
 //// Types ////
 

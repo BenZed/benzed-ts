@@ -1,16 +1,14 @@
 import { $, Infer } from '@benzed/schema'
 
-import { $logIcon, $port } from '../schemas'
-import { SettingsModule } from '../module'
+import { $logIcon, $port } from '../../schemas'
+import { DEFAULT_MONGODB_PORT } from '../../constants'
+import { DatabaseCollection, CreateData, Database, FindQuery, Id, Paginated, Record, UpdateData } from './database'
 
 import { 
     MongoClient as _MongoClient, 
     Db as _MongoDatabase, 
-    ObjectId
+    ObjectId,
 } from 'mongodb'
-
-import { DEFAULT_MONGODB_PORT } from '../constants'
-import { Empty } from '@benzed/util'
 
 //// Eslint ////
 
@@ -18,75 +16,20 @@ import { Empty } from '@benzed/util'
     @typescript-eslint/no-explicit-any,
 */
 
-//// Base ////
-
-type Id = string
-type Record<T extends object> = T & { _id: Id }
-type Paginated<T extends object> = {
-    total: number
-    records: Record<T>[]
-    // skip: number 
-    // limit: number
-}
-
-type CreateData<T extends object> = T
-type UpdateData<T extends object> = Partial<T>
-type FindQuery<T extends object> = Empty // { [K in keyof T]: ...etc }
-
-/**
- * Just in case I intend to add support for more databases later,
- * they should all have the same interface
- */
-abstract class Database<S extends object> extends SettingsModule<S> {
-
-    override _validateModules(): void {
-        this._assertRoot()
-        this._assertSingle()
-    }
-
-    abstract getCollection<T extends object>(collection: string): Collection<T> 
-
-}
-
-abstract class Collection<T extends object> {
-
-    /**
-     * Returns a record if it exists, null otherwise.
-     */
-    abstract get(id: Id): Promise<Record<T> | null> 
-
-    abstract find(query: FindQuery<T>): Promise<Paginated<T>> 
-
-    /**
-     * Adds a record to the collection, returns the given data 
-     * with the inserted id.
-     */
-    abstract create(data: CreateData<T>): Promise<Record<T>>
-
-    /**
-     * Removes the record within the collection and returns it.
-     * Returns null if there was no record to remove.
-     */
-    abstract remove(id: Id): Promise<Record<T> | null>
-
-    /**
-     * Updates the record within the collection and returns it.
-     * Returns null if there was no record to update. 
-     */
-    abstract update(id: Id, data: UpdateData<T>): Promise<Record<T> | null>
-
-}
-
 //// Types ////
 
 interface MongoDbSettings extends Infer<typeof $mongoDbSettings>{}
 
 const $mongoDbSettings = $.shape({
 
-    uri: $.string,
+    uri: $.string
+        .optional
+        .default('mongodb://127.0.0.1:<port>/<database>'),
     database: $.string,
 
-    port: $port.default(DEFAULT_MONGODB_PORT),
+    port: $port
+        .optional
+        .default(DEFAULT_MONGODB_PORT),
 
     user: $.string.optional,
     password: $.string.optional,
@@ -97,7 +40,7 @@ const $mongoDbSettings = $.shape({
 
 //// MongoDb ////
 
-class MongoDbCollection<T extends object> extends Collection<T> {
+class MongoDbCollection<T extends object> extends DatabaseCollection<T> {
 
     constructor(
         readonly _collection: any // < mongod types are absolutely fucked
@@ -241,16 +184,11 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
 //// Exports ////
 
 export {
+
     MongoDb,
     MongoDbSettings,
     $mongoDbSettings,
 
     MongoDbCollection,
 
-    Paginated,
-    Record,
-    Id,
-    FindQuery,
-    CreateData,
-    UpdateData
 }

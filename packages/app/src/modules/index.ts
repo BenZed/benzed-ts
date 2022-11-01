@@ -1,6 +1,4 @@
 
 export * from './connection'
 
-export * from './crud'
-
-export * from './mongodb'
+export * from './database'

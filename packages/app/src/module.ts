@@ -155,8 +155,24 @@ export class Module {
         const missing = types.filter(t => !this.hasModule(t))
         if (missing.length > 0) {
             throw new Error(
-                `${this.name} is missing required components: ${missing.map(t => t.name)}`
+                `${this.name} is missing required module${missing.length > 1 ? 's' : '' }: ${missing.map(t => t.name)}`
             )
+        }
+    }
+
+    /**
+     * Root module must have components
+     */
+    protected _assertRootRequired(...types: readonly ModuleConstructor[]): void {
+        try {
+            this.root._assertRequired(...types)
+        } catch (e: any) {
+            if (e.message.includes('missing required')) {
+                throw new Error(
+                    `${this.name} requires ${e.message.replace('is missing required', 'to have')}`
+                )
+            }
+
         }
     }
 

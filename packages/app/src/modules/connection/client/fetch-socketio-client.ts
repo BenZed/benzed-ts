@@ -1,13 +1,14 @@
+import is from '@benzed/is'
+
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
+
+import { HttpMethod } from '../server'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
 import { WEBSOCKET_PATH } from '../../../constants'
 import { createNameToReq } from '../../../command/request'
-
-import is from '@benzed/is'
-import { HttpMethod } from '../server'
 
 //// Eslint ////
 

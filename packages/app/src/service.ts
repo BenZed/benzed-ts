@@ -1,4 +1,5 @@
 import is from '@benzed/is'
+import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { capitalize } from '@benzed/string'
 
@@ -12,12 +13,17 @@ import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 
 import { CamelCombine, Path } from './types'
-import $ from '@benzed/schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
+
+//// Helper ////
+
+const isModule = $(Module).is
+
+const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith('/')
 
 //// Helper Types ////
 
@@ -37,12 +43,6 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
             : _CommandsOfModule<Mx, P>
         : {}
     : {}
-
-//// Helper ////
-
-const isModule = $(Module).is
-
-const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith('/')
 
 //// Command Module ////
 
