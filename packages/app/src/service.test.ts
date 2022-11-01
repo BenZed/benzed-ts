@@ -103,6 +103,16 @@ describe(`.commands`, () => {
 
     })
 
+    it(`services using apps turns them into services`, () => {
+
+        const app = App.create()
+
+        const service = Service.create().use(`/todos`, app)
+        const wasApp = service.modules[0]
+
+        expectTypeOf(wasApp).toEqualTypeOf<Service<'/todos', []>>()
+    })
+
     it(`errors thrown if commands collide`, () => {
 
         for (const path of [``, `/ace`] as Path[]) {

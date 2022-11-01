@@ -206,7 +206,7 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
     override use<Px extends Path, S extends CommandModule<any>>(
         path: Px,
         module: S
-    ): Service<P, [...M, S extends Service<any, infer Mx> ? Service<Px, Mx> : never]>
+    ): Service<P, [...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : never]>
 
     override use<Mx extends Module>(
         module: Mx
