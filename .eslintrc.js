@@ -32,7 +32,7 @@ module.exports = {
         '@typescript-eslint/prefer-nullish-coalescing': ['warn'],
         '@typescript-eslint/prefer-readonly': ['error'],
         '@typescript-eslint/semi': ['error', 'never'],
-        '@typescript-eslint/quotes': ['error', 'backtick'],
+        '@typescript-eslint/quotes': ['error', 'single'],
         '@typescript-eslint/indent': ['error', 4],
         '@typescript-eslint/no-extra-parens': 'warn',
         '@typescript-eslint/restrict-plus-operands': 'error',

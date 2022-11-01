@@ -330,7 +330,7 @@ class EventEmitter<T extends object = any> {
 
         const { prepend = false, internal = false, invocations = Infinity } = options ?? {}
 
-        const method = prepend ? `unshift` : `push`
+        const method = prepend ? 'unshift' : 'push'
 
         if (subscription.length + 1 > this.maxListeners) {
             throw new Error(
@@ -341,7 +341,7 @@ class EventEmitter<T extends object = any> {
 
         if (invocations < 1) {
             throw new Error(
-                `Number of invocations must be 1 or higher.`
+                'Number of invocations must be 1 or higher.'
             )
         }
 

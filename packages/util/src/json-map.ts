@@ -93,7 +93,7 @@ class JsonMap<K,V> implements Map<K, V> {
         yield* this.entries()
     }
     
-    [Symbol.toStringTag] = `JsonMap`
+    [Symbol.toStringTag] = 'JsonMap'
     
 }
 

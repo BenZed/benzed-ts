@@ -28,16 +28,16 @@ const ANSI_COLOR_CODES = {
 
 const ANSI_BACKGROUND_DELTA = 10
 
-const ANSI_BRIGHT_SUFFIX = `;1`
+const ANSI_BRIGHT_SUFFIX = ';1'
 
 const ANSI_UTIL_TAGS = {
 
-    bold: `\u001b[1m`,
-    dim: `\u001b[2m`,
-    italic: `\u001b[3m`,
-    underline: `\u001b[4m`,
-    reset: `\u001b[0m`,
-    inverted: `\u001b[7m`
+    bold: '\u001b[1m',
+    dim: '\u001b[2m',
+    italic: '\u001b[3m',
+    underline: '\u001b[4m',
+    reset: '\u001b[0m',
+    inverted: '\u001b[7m'
 
 } as const
 
@@ -53,7 +53,7 @@ const ansiColorTag = (
 
     const delta = background ? ANSI_BACKGROUND_DELTA : 0
 
-    const suffix = bright ? ANSI_BRIGHT_SUFFIX : ``
+    const suffix = bright ? ANSI_BRIGHT_SUFFIX : ''
 
     return `\u001b[${code + delta}${suffix}m`
 }
@@ -82,7 +82,7 @@ function ansi(
         inverted,
         background
 
-    } = typeof options === `string` ? { color: options } as AnsiOptions : options
+    } = typeof options === 'string' ? { color: options } as AnsiOptions : options
 
     // Compile Output
     const tags: string[] = []
@@ -100,16 +100,16 @@ function ansi(
         tags.push(ANSI_UTIL_TAGS.inverted)
 
     if (color)
-        tags.push(ansiColorTag(color, intensity === `bright`, background))
+        tags.push(ansiColorTag(color, intensity === 'bright', background))
 
-    if (intensity === `dim`)
+    if (intensity === 'dim')
         tags.push(ANSI_UTIL_TAGS.dim)
 
     // No tags? Return input as is.
     if (tags.length === 0)
         return input.toString()
 
-    return `${tags.join(``)}${input}${ANSI_UTIL_TAGS.reset}`
+    return `${tags.join('')}${input}${ANSI_UTIL_TAGS.reset}`
 }
 
 //// Exports ////

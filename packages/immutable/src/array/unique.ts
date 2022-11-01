@@ -17,9 +17,9 @@ const { splice } = Array.prototype
  */
 export default function unique<T extends string | ArrayLike<unknown>>(input: T): typeof input {
 
-    if (typeof input === `string`) {
+    if (typeof input === 'string') {
 
-        let output = ``
+        let output = ''
         for (const char of input) {
             if (!output.includes(char))
                 output += char

@@ -20,7 +20,7 @@ async function writeJson<T extends Json>(
 
     const str = JSON.stringify(input, replacer, spaces)
 
-    await writeFile(url, str, `utf-8`)
+    await writeFile(url, str, 'utf-8')
 }
 
 //// Exports ////

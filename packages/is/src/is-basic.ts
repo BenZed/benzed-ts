@@ -21,25 +21,25 @@ function isLiteralOrBoxed(
 ): boolean {
     const type = typeof input
     return type === primitive ||
-        type === `object` && input instanceof BOXABLE_PRIMITIVES[primitive]
+        type === 'object' && input instanceof BOXABLE_PRIMITIVES[primitive]
 }
 
 //// Main ////
 
 export function isString(input: unknown): input is string {
-    return isLiteralOrBoxed(input, `string`)
+    return isLiteralOrBoxed(input, 'string')
 }
 
 export function isBoolean(input: unknown): input is boolean {
-    return isLiteralOrBoxed(input, `boolean`)
+    return isLiteralOrBoxed(input, 'boolean')
 }
 
 export function isNumber(input: unknown): input is number {
-    return !isNaN(input) && isLiteralOrBoxed(input, `number`)
+    return !isNaN(input) && isLiteralOrBoxed(input, 'number')
 }
 
 export function isSymbol(input: unknown): input is symbol {
-    return typeof input === `symbol`
+    return typeof input === 'symbol'
 }
 
 export function isNaN(input: unknown): boolean {
@@ -47,11 +47,11 @@ export function isNaN(input: unknown): boolean {
 }
 
 export function isBigInt(input: unknown): input is bigint {
-    return typeof input === `bigint`
+    return typeof input === 'bigint'
 }
 
 export function isObject<O extends object>(input: unknown): input is O {
-    return input !== null && typeof input === `object`
+    return input !== null && typeof input === 'object'
 }
 
 export function isArray<T extends unknown[] = unknown[]>(input: unknown): input is T {
@@ -59,7 +59,7 @@ export function isArray<T extends unknown[] = unknown[]>(input: unknown): input 
 }
 
 export function isFunction<F extends Function>(input: unknown): input is F {
-    return typeof input === `function`
+    return typeof input === 'function'
 }
 
 export function isPromise<T>(input: unknown): input is Promise<T> {

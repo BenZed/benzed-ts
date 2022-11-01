@@ -19,7 +19,7 @@ const {
 //// Constants ////
 
 const INVALID_DEFINED_STATIC_NAMES = [
-    `prototype`, `name`, `length`, `create`
+    'prototype', 'name', 'length', 'create'
 ] as const
 
 type InvalidDefinedStaticNames = typeof INVALID_DEFINED_STATIC_NAMES[number]
@@ -52,7 +52,7 @@ const createDefaultStatics = <C extends StructDefinition>(
 
         const instanceProperties = getDescriptors(Constructor.prototype)
         for (const name in instanceProperties) {
-            if (name === `constructor`)
+            if (name === 'constructor')
                 continue
 
             const instancePropertyDescriptor = instanceProperties[name]

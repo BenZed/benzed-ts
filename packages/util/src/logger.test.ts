@@ -7,7 +7,7 @@ import {
     ERR_SYMBOl
 } from './logger'
 
-describe(`Logger`, () => {
+describe('Logger', () => {
 
     const createTestLogger = (
         options: Omit<LoggerOptions, 'onLog'> = {}
@@ -27,24 +27,24 @@ describe(`Logger`, () => {
         return { log, logs }
     }
 
-    it(`Accepts a function to defer logs to`, () => {
+    it('Accepts a function to defer logs to', () => {
         const { log, logs } = createTestLogger()
         void log`Hello world.`
-        expect(logs).toContain(`Hello world.`)
+        expect(logs).toContain('Hello world.')
     })
 
-    it(`Can be configured with a header`, () => {
+    it('Can be configured with a header', () => {
 
         const { log, logs } = createTestLogger({
-            header: `!`
+            header: '!'
         })
 
         void log`Hey.`
 
-        expect(logs).toContain(`!`)
+        expect(logs).toContain('!')
     })
 
-    it(`Header can be omitted`, () => {
+    it('Header can be omitted', () => {
 
         const { log, logs } = createTestLogger()
 
@@ -53,31 +53,31 @@ describe(`Logger`, () => {
         expect(logs).not.toContain(undefined)
     })
 
-    it(`Includes timestamp`, () => {
+    it('Includes timestamp', () => {
         const { log, logs } = createTestLogger()
 
         void log`Yo.`
 
-        expect(logs[0]).toContain(`[`)
-        expect(logs[0]).toContain(`]`)
+        expect(logs[0]).toContain('[')
+        expect(logs[0]).toContain(']')
     })
 
-    it(`Timestamp can be omitted`, () => {
+    it('Timestamp can be omitted', () => {
         const { log, logs } = createTestLogger({ timeStamp: false })
 
         void log`Bruh what's good`
 
-        expect(logs.join(``)).toContain(`Bruh what's good`)
+        expect(logs.join('')).toContain('Bruh what\'s good')
     })
 
-    it(`Subsequent identical timestamps are greyed out`, () => {
+    it('Subsequent identical timestamps are greyed out', () => {
         const { log, logs } = createTestLogger({})
 
         void log`Bruh what's good`
         void log`Ntm`
         void log`Nice`
 
-        expect(logs.join(``)).toContain(ANSI_UTIL_TAGS.dim)
+        expect(logs.join('')).toContain(ANSI_UTIL_TAGS.dim)
     })
 
     it(`log.warn prefixes ${WARN_SYMBOL} `, () => {
@@ -91,24 +91,24 @@ describe(`Logger`, () => {
     it(`log.error prefixes ${ERR_SYMBOl}`, () => {
         const { log, logs } = createTestLogger({})
 
-        void log.error`Oh ${ansi(`No`, { italic: true })}`
+        void log.error`Oh ${ansi('No', { italic: true })}`
 
         expect(logs).toContain(ERR_SYMBOl)
     })
 
-    it(`no color on directly interpolated strings`, () => {
+    it('no color on directly interpolated strings', () => {
         const { log, logs } = createTestLogger()
 
-        void log`This ${`string`} should not be green.`
-        expect(logs.join(``)).not.toContain(ansiColorTag(`green`))
+        void log`This ${'string'} should not be green.`
+        expect(logs.join('')).not.toContain(ansiColorTag('green'))
     })
 
-    it(`does not log "this" unless it is a string`, () => {
+    it('does not log "this" unless it is a string', () => {
         const { log, logs } = createTestLogger()
 
         const notAString = {
             log,
-            property: `should-be-invisible`
+            property: 'should-be-invisible'
         }
 
         void notAString.log`Hello!`

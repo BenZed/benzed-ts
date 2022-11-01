@@ -1,8 +1,8 @@
 import { iterate, isIterable } from './iterate'
 
-describe(`isIterable()`, () => {
+describe('isIterable()', () => {
 
-    it(`returns true if object is iterable`, () => {
+    it('returns true if object is iterable', () => {
 
         for (const iterable of [
             [],
@@ -13,13 +13,13 @@ describe(`isIterable()`, () => {
                     yield iterate(this)
                 }
             },
-            `string`
+            'string'
         ])
             expect(isIterable(iterable)).toBe(true)
 
     })
 
-    it(`returns false if object is not iterable`, () => {
+    it('returns false if object is not iterable', () => {
 
         for (const notIterable of [
             null,
@@ -35,29 +35,29 @@ describe(`isIterable()`, () => {
 
 })
 
-describe(`iterate()`, () => {
+describe('iterate()', () => {
 
-    it(`iterates through arraylikes`, () => {
+    it('iterates through arraylikes', () => {
         const arr = { length: 5 }
         expect([...iterate(arr)]).toEqual(Array.from(arr))
     })
 
-    it(`iterates through iterables`, () => {
+    it('iterates through iterables', () => {
         expect([...iterate(new Set([1, 2, 3, 4]))])
             .toEqual([1, 2, 3, 4])
     })
 
-    it(`iterates through objects`, () => {
+    it('iterates through objects', () => {
 
         const foo = { 'a': 1, 'b': 2, 'c': 3 }
 
         expect([...iterate(foo)]).toEqual([1, 2, 3])
     })
 
-    it(`iterates through strings`, () => {
-        const str = `foo`
+    it('iterates through strings', () => {
+        const str = 'foo'
 
-        expect([...iterate(str)]).toEqual([`f`, `o`, `o`])
+        expect([...iterate(str)]).toEqual(['f', 'o', 'o'])
     })
 
 })

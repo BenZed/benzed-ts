@@ -52,16 +52,16 @@ type LogHandler = (...items: unknown[]) => void
 
 //// Constants ////
 
-const WARN_SYMBOL = `⚠️`
+const WARN_SYMBOL = '⚠️'
 
-const ERR_SYMBOl = `‼️`
+const ERR_SYMBOl = '‼️'
 
 const INPECT_DEPTH = 3
 
 //// Helper ////
 
 function twoDigit(input: number, count = 2): string {
-    return input.toString().padStart(count, `0`)
+    return input.toString().padStart(count, '0')
 }
 
 function createTimeStamp(date: Date): string {
@@ -82,21 +82,21 @@ function colorTimeStamp(
     if (status) {
 
         const isErr = status === ERR_SYMBOl
-        const color = isErr ? `red` : `yellow`
+        const color = isErr ? 'red' : 'yellow'
 
         return ansi(timeStamp, { color, inverted: true })
     }
 
     if (timeStamp === lastTimeStamp)
-        return ansi(timeStamp, { intensity: `dim` })
+        return ansi(timeStamp, { intensity: 'dim' })
 
     return timeStamp
 }
 
 function isLogger(input: unknown): input is Logger {
-    return typeof input === `function` &&
-        typeof (input as Logger).error === `function` &&
-        typeof (input as Logger).warn === `function` &&
+    return typeof input === 'function' &&
+        typeof (input as Logger).error === 'function' &&
+        typeof (input as Logger).warn === 'function' &&
         (input as Logger).info === input
 }
 
@@ -113,7 +113,7 @@ const createLogger =
             onLog = console.log.bind(console),
         } = options
 
-        let lastTimeStamp = ``
+        let lastTimeStamp = ''
 
         const log: Logger = function (
             this: typeof WARN_SYMBOL | typeof ERR_SYMBOl | void,
@@ -122,7 +122,7 @@ const createLogger =
         ): void {
 
             // eslint-disable-next-line @typescript-eslint/no-this-alias
-            const status = typeof this === `string` ? this : undefined
+            const status = typeof this === 'string' ? this : undefined
 
             const outputs: unknown[] = []
             for (let i = 0; i < strings.length; i++) {
@@ -131,7 +131,7 @@ const createLogger =
                 outputs.push(string)
                 if (i in inputs) {
                     outputs.push(
-                        typeof inputs[i] === `string`
+                        typeof inputs[i] === 'string'
                             ? inputs[i]
                             : inspect(inputs[i], false, INPECT_DEPTH, true)
                     )
@@ -160,7 +160,7 @@ const createLogger =
             if (status)
                 prefix.push(status)
 
-            onLog(...prefix, outputs.join(``))
+            onLog(...prefix, outputs.join(''))
         }
 
         log.info = log

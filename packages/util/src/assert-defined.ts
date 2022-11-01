@@ -14,7 +14,7 @@ import { Func } from './types'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function assertDefined<A extends any[], T>(
     input: Func<A, T | undefined | null>,
-    err = `Value null or undefined.`
+    err = 'Value null or undefined.'
 ): Func<A, T> {
     return (...args: A) => {
 

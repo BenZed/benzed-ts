@@ -1,8 +1,8 @@
 import { promisify } from './promisify'
 
-describe(`Promisify`, () => {
+describe('Promisify', () => {
 
-    it(`wraps callback pattern methods as promises`, async () => {
+    it('wraps callback pattern methods as promises', async () => {
 
         const oldUglyWait = (
             time: number,
@@ -21,24 +21,24 @@ describe(`Promisify`, () => {
 
     })
 
-    it(`properly rejects errors`, async () => {
+    it('properly rejects errors', async () => {
 
         const ohNoYouFuckedUp = (
             input: 'throw' | 'dont-throw',
             callback: (e: Error | null, output: typeof input) => void
         ): void => {
             setTimeout(() => {
-                if (input === `throw`)
-                    callback(new Error(`Oh, you fucked up.`), input)
+                if (input === 'throw')
+                    callback(new Error('Oh, you fucked up.'), input)
             })
         }
 
         const ohNo = promisify(ohNoYouFuckedUp)
 
         try {
-            await ohNo(`throw`)
+            await ohNo('throw')
         } catch (e) {
-            expect((e as Error).message).toEqual(`Oh, you fucked up.`)
+            expect((e as Error).message).toEqual('Oh, you fucked up.')
         }
 
         expect.assertions(1)

@@ -83,7 +83,7 @@ class Stack<T> implements StackLike<T> {
 
         const index = this._length - 1
         if (index in this === false)
-            throw new Error(`Stack is empty.`)
+            throw new Error('Stack is empty.')
 
         const item = this[index] as T
         delete (this as _Stack<T>)[index]
