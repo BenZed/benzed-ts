@@ -1,12 +1,49 @@
-
-import type { Command } from '../../../command'
-import Client, { $clientSettings, ClientSettings } from './client'
-
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
-import { WEBSOCKET_PATH } from '../../../constants'
 
-/*** FetchSocketIOClient ***/
+import Client, { $clientSettings, ClientSettings } from './client'
+
+import { WEBSOCKET_PATH } from '../../../constants'
+import { createNameToReq } from '../../../command/request'
+
+import is from '@benzed/is'
+import { HttpMethod } from '../server'
+
+//// Eslint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
+
+//// Helper ////
+
+function toQueryString(data: object, prefix = ``): string {
+
+    const queryStrings: string[] = []
+ 
+    for (const key in data) {
+
+        if (data.hasOwnProperty(key)) {
+
+            const value = (data as any)[key]
+
+            const keyWithPrefix = prefix ? `${prefix}[${key}]` : key
+
+            const queryString = is.object(value)
+                ? toQueryString(value, keyWithPrefix) 
+                : encodeURIComponent(keyWithPrefix) + `=` + encodeURIComponent(value)
+
+            queryStrings.push(queryString)
+        }
+
+    }
+
+    const queryString = queryStrings.join(`&`)
+
+    return queryString && !prefix ? `?${queryString}` : queryString
+}
+
+//// FetchSocketIoClient ////
 
 /**
  * Client that connects to a server using fetch or socket.io
@@ -41,13 +78,6 @@ export class FetchSocketIOClient extends Client {
         await super.start()
         if (this.settings.webSocket)
             await this._startSocketIO()
-        else 
-            /**
-             * There's no maintaining a connection when using rest,
-             * so instead we just get a command list to ensure that it is
-             * still there.
-             */
-            await this.getCommandList()
     }
 
     override async stop(): Promise<void> {
@@ -58,26 +88,12 @@ export class FetchSocketIOClient extends Client {
 
     // Connection Implementation 
 
-    executeOnServer(command: Command): Promise<object> {
+    execute(name: string, data: object): Promise<object> {
 
         const { webSocket } = this.settings
         return webSocket 
-            ? this._sendSocketIOCommand(command)
-            : this._sendFetchCommand(command)
-    }
-
-    async getCommandList(): Promise<Command['name'][]> {
-
-        const { host } = this.settings
-
-        const res = await fetch(host, { method: `options` })
-
-        // TODO validate command list
-        const commandList = await res.json()
-
-        this.log`fetched command list ${commandList}`
-
-        return commandList
+            ? this._executeSocketIOCommand(name, data)
+            : this._executeFetchCommand(name, data)
     }
 
     // Helper 
@@ -112,11 +128,11 @@ export class FetchSocketIOClient extends Client {
         this.log`disconnected from server`
     }
 
-    private _sendSocketIOCommand(command: Command): Promise<object> {
+    private _executeSocketIOCommand(name: string, data: object): Promise<object> {
         const io = this._io as Socket 
 
         return new Promise<object>((resolve, reject) => {
-            io.emit(`command`, command, (err: null, result: object) => {
+            io.emit(`command`, name, data, (err: null, result: object) => {
                 if (err)
                     reject(err)
                 else 
@@ -125,11 +141,22 @@ export class FetchSocketIOClient extends Client {
         })
     }
 
-    private async _sendFetchCommand(command: Command): Promise<object> {
+    private async _executeFetchCommand(name: string, cmdData: object): Promise<object> {
         const { host } = this.settings
 
-        const req = await fetch(host, { method: `post`, body: JSON.stringify(command) })
-        return req.json()
+        const command = this.getCommand(name)
+
+        const toReq = command.toReq ?? createNameToReq(name)
+        const [ method, url, reqData ] = toReq(cmdData)
+
+        const fetchData = {
+            method,
+            body: method === HttpMethod.Get ? null : JSON.stringify(reqData),
+            url: method === HttpMethod.Get ? `${url}${toQueryString(reqData)}` : url
+        }
+
+        const response = await fetch(host, fetchData)
+        return response.json()
     }
 
 }

@@ -1,7 +1,6 @@
 import { Server } from './server'
-import fetch from 'cross-fetch'
 
-import { inputToOutput, io } from '@benzed/util'
+import { inputToOutput } from '@benzed/util'
 
 /*** Test ***/
 
@@ -19,25 +18,6 @@ it(`.start()`, () => {
 
 it(`.stop()`, () => {
     expect(stopErr).toBe(undefined)
-})
-
-it(`.getCommandList()`, async () => {
-
-    const server = Server.create()
-    server.getCommandList = () => Promise.resolve([`command`, `list`, `here`])
-    await server.start()
-
-    const res = await fetch(
-        `http://localhost:${server.settings.port}/`, 
-        { method: `options` }
-    ).catch(io)
-    
-    expect(res).not.toHaveProperty(`code`, `ECONNREFUSED`)
-
-    await server.stop()
-
-    const json = await res.json()
-    expect(json).toEqual([`command`, `list`, `here`])
 })
 
 it(`.type === "server"`, () => {

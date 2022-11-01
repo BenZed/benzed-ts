@@ -1,48 +1,34 @@
 
-import { ModuleWithSettings, ModuleSettings } from '../../module'
+import { Command } from '../../command'
+import { ModuleWithSettings } from '../../module'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<O extends ModuleSettings = ModuleSettings> extends ModuleWithSettings<O> {
-
-    override validateModules(): void {
-        this._assertSingle()
-        this._assertRoot()
-    }
+export abstract class Connection<O extends object> extends ModuleWithSettings<O> {
 
     abstract readonly type: `server` | `client` | null
 
-    readonly active: boolean = false
-
-    override start(): void | Promise<void> {
-        if (this.active) {
-            throw new Error(
-                `${this.type} has already been started`
-            )
-        }
-
-        // why am I casting to object with a mutable active property?
-        // I'm getting a very strange bug where the App class is intended
-        // to extend the most of the Connection interface, but it kept 
-        // telling me I was missing the _active despite it being private
-        // and Omit<>ing it
-        (this as { active: boolean }).active = true
-    }
-
-    override stop(): void | Promise<void> {
-        if (!this.active) {
-            throw new Error(
-                `${this.type} has not been started`
-            )
-        }
-        (this as { active: boolean }).active = false
-    }
-
     /**
-     * Retreive a list of all commands possible.
+     * Execute a command with the given name and data
      */
-    abstract getCommandList(): Promise<string[]>
+    abstract execute(name: string, data: object): Promise<object>
+
+    getCommand(name: string): Command {
+        const commands = (this.parent?.commands ?? {}) as { [key: string]: Command | undefined } 
+        const command = commands[name]
+        if (!command)
+            throw new Error(`Command ${name} could not be found.`)
+
+        return command
+    }
+
+    //// Module Implementation ////
+
+    override _validateModules(): void {
+        this._assertSingle()
+        this._assertRoot()
+    }
 
 }
 

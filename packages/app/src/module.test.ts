@@ -1,8 +1,10 @@
 import { App } from './app'
 import { command } from "./command"
-import { Module, Service } from "./module"
+import { Module } from "./module"
 
 import { expectTypeOf } from 'expect-type'
+import { Service } from './service'
+import { Path } from './types'
 
 /***  ***/
 
@@ -125,7 +127,7 @@ describe(`.getCommands()`, () => {
 
         const italian = new Orders()
         const restaurant = App.create().use(italian)
-        const commands = restaurant.getCommands()
+        const { commands } = restaurant
 
         for (const key in commands)
             expect(italian).toHaveProperty(key, italian[key as keyof typeof italian])
@@ -157,7 +159,7 @@ describe(`.getCommands()`, () => {
             .use(`/car`, cars)
             .use(`/bike`, bikes)
 
-        const commands = travel.getCommands()
+        const {commands} = travel
 
         expectTypeOf(commands).toEqualTypeOf<{
             create: Orders['create']
@@ -174,15 +176,13 @@ describe(`.getCommands()`, () => {
 
     it(`errors thrown if commands collide`, () => {
 
-        for (const path of [``, `/ace`]) {
-            for (const module of [App.create(), Service.create()]) {
-                expect(() => (module as any)
+        for (const path of [``, `/ace`] as Path[]) {
+            for (const service of [App.create(), Service.create()]) {
+                expect(() => (service as Service<Path>)
                     .use(path, Service.create().use(new Orders()))
                     .use(path, Service.create().use(new Orders()))
                 ).toThrow(`Command name collision`)
             }
         }
-
     })
-
 })

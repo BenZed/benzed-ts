@@ -1,14 +1,27 @@
-export * from './app'
 
 export {
     
-    ModuleWithSettings,
+    Module,
     Modules,
-    ModuleSettings,
 
-    ModulesOf as ServiceModules,
-    Service
+    ModuleWithSettings
 
 } from './module'
 
+export {
+
+    ModulesOf as ServiceModules,
+    ModulesOf as AppModules,
+    
+    Service,
+
+    ExecuteInput,
+    ExecuteOutput
+
+} from './service'
+
 export * from './modules'
+
+export {
+    App,
+} from './app'

@@ -1,5 +1,5 @@
 import $, { Infer } from '@benzed/schema'
-import { Command } from '../../../command'
+
 import { DEFAULT_SERVER_PORT } from '../../../constants'
 import { $logIcon } from '../../../schemas'
 
@@ -29,8 +29,6 @@ const $clientSettings = $({
 abstract class Client extends Connection<Required<ClientSettings>> {
 
     readonly type = `client` as const
-
-    abstract executeOnServer(command: Command): Promise<object>
 
 }
 

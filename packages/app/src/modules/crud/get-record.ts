@@ -1,50 +1,35 @@
 import $, { Infer } from "@benzed/schema"
-import { Command } from "../../command"
-import { CommandModule } from "../../module"
-import { $logIcon } from "../../schemas"
+import { ModuleWithSettings } from "../../module"
 
-/*** Types ***/
+//// Types ////
 
-interface GetCommand<N extends string> extends Command {
-
-    name: `get-${N}`
-
-}
-
-interface GetSettings<N extends string> extends _GetSettings {
-
-    collection: N
-
-}
-
-type _GetSettings = Infer<typeof $getSetting>
+interface GetRecordSettings extends Infer<typeof $getSetting> {}
 const $getSetting = $({
-    logIcon: $logIcon.default(`🗄️`),
     collection: $.string.asserts(name => name.startsWith(`get-`), `must start with "get-"`)
 })
 
-/*** Main ***/
+//// GetRecord ////
 
-class Get<N extends string> extends CommandModule<GetCommand<N>, { collection: N }> {
+class GetRecord extends ModuleWithSettings<GetRecordSettings> {
 
-    static create<Nx extends string>(settings: GetSettings<Nx>): Get<Nx> {
-        return new Get($getSetting.validate(settings)) as Get<Nx>
+    //// Sealed ////
+    
+    static create (settings: GetRecordSettings): GetRecord {
+        return new GetRecord($getSetting.validate(settings))
     }
 
-    protected _execute(command: GetCommand<N>): object | Promise<object> {
-        return {}
-    }
-
-    canExecute(command: Command): command is GetCommand<N> {
-        return command.name === `get-${this.settings.collection}`
+    private constructor(
+        settings: GetRecordSettings
+    ) {
+        super(settings)
     }
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
-export default Get 
+export default GetRecord 
 
 export {
-    Get
+    GetRecord
 }

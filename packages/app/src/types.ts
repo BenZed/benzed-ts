@@ -6,3 +6,5 @@ export type CamelCombine<P extends string, K extends string> =
     P extends `` 
         ? K 
         : `${P}${Capitalize<K>}`
+
+export type Path = `/${string}`

@@ -1,22 +1,10 @@
-import is from '@benzed/is'
-import { pluck } from '@benzed/array'
 import { $$copy } from '@benzed/immutable'
-import { capitalize } from '@benzed/string'
-
-import { Compile, createLogger, Logger, toVoid } from '@benzed/util'
-
-import { CamelCombine } from './types'
-import { ENV, TEST_LOGS_ENABLED } from './constants'
-import { Command, command, CommandsOf } from './command'
+import { CommandModule } from './service'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
-
-/*** Symbols ***/
-
-export const $$parentTo = Symbol(`set-parent-from-inside-module`)
 
 /*** Types ***/
 
@@ -29,22 +17,17 @@ export type ModuleConstructor<M extends Module = Module> =
 // TODO make this and ModuleWithSettings abstract
 export class Module {
 
-    constructor(
-        protected _icon?: string
-    ) { 
+    //// Module Interface ////
 
-        this.log = createLogger({
-            header: _icon,
-            onLog: ENV === `test` && !TEST_LOGS_ENABLED
-                ? toVoid 
-                : console.log.bind(console)
-        })
-
+    get name(): string {
+        return this.constructor.name
     }
 
-    log!: Logger
-
-    // Component API
+    log(strings: TemplateStringsArray, ...items: unknown[]): void {
+        void strings
+        void items
+        // TODO implement
+    }
 
     get<M extends Module, R extends boolean = false>(
         type: ModuleConstructor<M>, 
@@ -53,7 +36,7 @@ export class Module {
 
         const module = this.modules.find(t => t instanceof type) ?? null
         if (!module && required)
-            throw new Error(`${this.constructor.name} is missing module ${type.name}`)
+            throw new Error(`${this.name} is missing module ${type.name}`)
 
         return module as M
     }
@@ -66,13 +49,26 @@ export class Module {
         return this.parent?.modules ?? []
     }
 
-    private _parent: ServiceModule<any> | null = null 
-    get parent(): ServiceModule<any> | null {
+    private _parent: CommandModule | null = null
+    get parent(): CommandModule | null {
         return this._parent
     }
 
-    get root(): ServiceModule<any> | null {
+    /**
+     * Copies a module, sets the parent of that module to the given parent
+     * @internal
+     */
+    _copyWithParent(parent: CommandModule): this {
+        const _this = this[$$copy]()
+        _this._parent = parent
 
+        return _this
+    }
+
+    /**
+     * Root Command module
+     */
+    get root(): CommandModule | null {
         let { parent: root } = this
         while (root?.parent)
             root = root.parent
@@ -80,37 +76,54 @@ export class Module {
         return root
     }
 
+    //// Immutable Implementation ////
+    
     [$$copy](): this {
-        const clone = new (
-            this.constructor as new (icon?: string) => this
-        )(this._icon)
-
-        return clone
+        const ThisModule = this.constructor as new (...params: unknown[]) => this
+        return new ThisModule(...this._copyParams)
     }
+
+    protected get _copyParams(): unknown[] {
+        return []
+    }
+
+    //// Lifecycle Hooks ////
+
+    private _active = false
+    /**
+     * True if this module has been started, false otherwise.
+     */
+    get active() : boolean {
+        return this._active
+    }
+
+    start(): void | Promise<void> {
+        if (this.active) {
+            throw new Error(
+                `${this.name} has already been started`
+            )
+        }
+
+        this._active = true
+    }
+
+    stop(): void | Promise<void> {
+        if (!this.active) {
+            throw new Error(
+                `${this.name} has not been started`
+            )
+        }
+        this._active = false
+    }
+
+    //// Validation ////
 
     /**
-     * Creates an immutable instanceof this module with a set parent
+     * // TODO make abstract
+     * Should only be called by parent module
+     * @internal
      */
-    [$$parentTo](parent: ServiceModule<any>, ...args: unknown[]): this {
-        void args 
-
-        const clone = this[$$copy]()
-        
-        clone._parent = parent
-        clone.validateModules()
-
-        return clone
-    }
-
-    // Lifecycle Hooks 
-
-    start(): void | Promise<void> { /**/ }
-
-    stop(): void | Promise<void> { /**/ }
-
-    // Validation
-
-    validateModules(): void { /**/ }
+    _validateModules(): void { /**/ }
 
     /**
      * Must be the only module of it's type in a parent.
@@ -118,7 +131,7 @@ export class Module {
     protected _assertSingle(): void { 
         const clone = this.get(this.constructor as ModuleConstructor)
         if (clone && clone !== this)
-            throw new Error(`${this.constructor.name} may only be used once`)
+            throw new Error(`${this.name} may only be used once`)
     }
 
     /**
@@ -126,7 +139,7 @@ export class Module {
      */
     protected _assertRoot(): void {
         if (this.parent?.parent)
-            throw new Error(`${this.constructor.name} must be a root level module.`)
+            throw new Error(`${this.name} must be a root level module.`)
     }
     
     /**
@@ -136,31 +149,27 @@ export class Module {
         const missing = types.filter(t => !this.has(t))
         if (missing.length > 0) {
             throw new Error(
-                `${this.constructor.name} is missing required components: ${missing.map(t => t.name)}`
+                `${this.name} is missing required components: ${missing.map(t => t.name)}`
             )
         }
     }
 
     /**
-     * Module cannot be 
+     * Module must not be on the same service/app as the given modules
      */
     protected _assertConflicting(...types: readonly ModuleConstructor[]): void { 
         const found = types.filter(t => this.has(t))
         if (found.length > 0) {
             throw new Error(
-                `${this.constructor.name} may not be used with conflicting components: ${found.map(t => t.name)}`
+                `${this.name} may not be used with conflicting components: ${found.map(t => t.name)}`
             )
         }
     }
 }
 
-/*** Service ***/
+/*** ModuleWithSettings ***/
 
-export interface ModuleSettings {
-    logIcon?: string
-}
-
-export class ModuleWithSettings<S extends object = ModuleSettings> extends Module {
+export class ModuleWithSettings<S extends object> extends Module {
 
     get settings(): S {
         return this._settings
@@ -169,215 +178,11 @@ export class ModuleWithSettings<S extends object = ModuleSettings> extends Modul
     constructor( 
         private readonly _settings: S
     ) { 
-        super(`logIcon` in _settings ? (_settings as ModuleSettings).logIcon : ``)
+        super()
     }
 
-    [$$copy](): this {
-        const clone = new (
-            this.constructor as new (settings: S) => this
-        )(this.settings)
-
-        return clone
-    }
-
-}
-
-export type ModulesOf<A extends ServiceModule> = A extends ServiceModule<infer M> ? M : []
-
-type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
-
-type _ModuleCommands<M extends Module, P extends string> = 
-    M extends Service<infer Px, infer Mx> 
-        ? _ModulesCommands<Mx, CamelCombine<P, _Unslash<Px>>>
-        : CommandsOf<M, P> 
-
-type _ModulesCommands<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
-    ? Mx extends Module 
-        ? Mr extends Modules 
-            ? _ModuleCommands<Mx, P> & _ModulesCommands<Mr, P>
-            : _ModuleCommands<Mx, P>
-        : {}
-    : {}
-
-export type ServiceModuleCommands<M extends Modules> = Compile<_ModulesCommands<M>, Command, true>
-export abstract class ServiceModule<M extends Modules = any> extends Module {
-
-    private readonly _modules: M
-    override get modules(): M {
-        return this._modules
-    }
-
-    constructor(
-        modules: M,
-        icon?: string
-    ) {
-        super(icon)
-
-        this._modules = modules.map(m => m[$$parentTo](this)) as unknown as M
-        this.validateModules()
-    }
-
-    [$$copy](): this {
-        const clone = new (
-            this.constructor as new (modules: M, icon?: string) => this
-        )(this.modules, this._icon)
-
-        return clone
-    }
-
-    // Lifecycle Methods
-
-    override async start(): Promise<void> {
-        if (this.modules.length === 0)
-            throw new Error(`${this.constructor.name} cannot start without any modules.`)
-
-        await super.start()
-        await Promise.all(this.modules.map(m => m.start()))
-    }
-
-    override async stop(): Promise<void> {
-        if (this.modules.length === 0)
-            throw new Error(`${this.constructor.name} cannot stop without any modules.`)
-        
-        await super.stop()
-        await Promise.all(this.modules.map(m => m.stop()))
-    }
-
-    // Service Implementation
-
-    abstract use<Mx extends ServiceModule<any>>(
-        path: string,
-        module: Mx
-    ): unknown
-
-    abstract use<Mx extends Module>(
-        module: Mx
-    ): unknown
-
-    getCommands(): ServiceModuleCommands<M> {
-        
-        const commands: { [key: string]: Command } = {}
-
-        for (const module of this.modules) {
-
-            const isService = module instanceof Service
-
-            const moduleCommands = isService 
-                ? module.getCommands()
-                : command.of(module)
-
-            for (const key in moduleCommands) {
-
-                const name: string = isService 
-                    ? `${module.path.replaceAll(`/`, ``)}${capitalize(key)}`
-                    : key
-
-                if (name in commands)
-                    throw new Error(`Command name collision: "${name}" is used multiple times`)
-                
-                commands[name] = moduleCommands[key as keyof typeof moduleCommands]
-            }
-        }
-
-        return commands as ServiceModuleCommands<M>
-    }
-
-    getCommand<N extends keyof ServiceModuleCommands<M>>(name: N): ServiceModuleCommands<M>[N] {
-        const commands = this.getCommands()
-        return commands[name]
-
-    }
-
-    // Module Implementation
-
-    override validateModules(): void {
-        this.modules.forEach(m => m.validateModules())
-        this._assertNoCommandNameCollisions()
-    }
-
-    // Helper 
-
-    protected _pushModule<Mx extends Module>(
-        ...args: Mx extends Service<any> 
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
-    ): [...M, Mx] {
-
-        const path = pluck(args, is.string).at(0)
-        let module = pluck(args, m => is(m, Module)).at(0) as Mx | undefined
-        if (!module)
-            throw new Error(`${Module.name} not provided.`)
-
-        if (path && module instanceof Service<any>)
-            module = module[$$parentTo](this, path)
-
-        return [ ...this.modules, module ] as [ ...M, Mx ]
-    }
-
-    private _assertNoCommandNameCollisions(): void {
-        void this.getCommands()
-    }
-
-}
-
-/**
- * Generic service with no settings of it's own.
- * Extend ServiceModule to create configurable services.
- */
-export class Service<P extends `/${string}`, M extends Modules = any> extends ServiceModule<M> {
-
-    static create(): Service<'/', []> {
-        return new Service(`/`, [])
-    }
-
-    get path(): P {
-        return this._path
-    }
-    
-    private constructor(
-        private _path: P,
-        modules: M
-    ) {
-        super(modules, `💻`)
-    }
-
-    override use<Px extends `/${string}`, S extends Service<any>>(
-        path: Px,
-        module: S
-    ): Service<P, [...M, S extends Service<any, infer Mx> ? Service<Px, Mx> : never]>
-
-    override use<Mx extends Module>(
-        module: Mx
-    ): Service<P, [...M, Mx]>
-
-    override use<Mx extends Module>(
-        ...args: Mx extends Service<any> 
-            ? [path: string, module: Mx] | [module: Mx] 
-            : [module: Mx]
-    ): Service<P, [...M, Mx]> {
-        return new Service(
-            this.path,
-            this._pushModule(...args)
-        )
-    }
-
-    [$$copy](): this {
-        const clone = new (
-            this.constructor as new (path: P, modules: M, icon?: string) => this
-        )(this._path, this.modules, this._icon)
-
-        return clone
-    }
-
-    [$$parentTo]<Px extends `/${string}`>(
-        parent: ServiceModule<any>,
-        path: Px = this._path as unknown as Px
-    ): this {
-
-        const clone = super[$$parentTo](parent)
-        clone._path = path as unknown as P
-
-        return clone
+    protected override get _copyParams(): unknown[] {
+        return [this._settings]
     }
 
 }

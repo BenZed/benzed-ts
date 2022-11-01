@@ -1,7 +1,7 @@
 import { $, Infer } from '@benzed/schema'
 
 import { $logIcon, $port } from "../schemas"
-import { ModuleWithSettings, ModuleSettings } from "../module"
+import { ModuleWithSettings } from "../module"
 
 import { 
     MongoClient as _MongoClient, 
@@ -37,9 +37,9 @@ type FindQuery<T extends object> = Empty // { [K in keyof T]: ...etc }
  * Just in case I intend to add support for more databases later,
  * they should all have the same interface
  */
-abstract class Database<S extends ModuleSettings> extends ModuleWithSettings<S> {
+abstract class Database<S extends object> extends ModuleWithSettings<S> {
 
-    override validateModules(): void {
+    override _validateModules(): void {
         this._assertRoot()
         this._assertSingle()
     }
@@ -226,10 +226,10 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
 
     getCollection<T extends object>(collection: string): MongoDbCollection<T> {
 
-        // if (this.find(Client)) throw new Error(`Cannot access ${this.constructor.name} as a client.`)
+        // if (this.find(Client)) throw new Error(`Cannot access ${this.name} as a client.`)
 
         if (!this._db)
-            throw new Error(`${this.constructor.name} is not connected.`)
+            throw new Error(`${this.name} is not connected.`)
 
         return new MongoDbCollection<T>(
             this._db.collection(collection)

@@ -1,9 +1,10 @@
 import { equals } from '@benzed/immutable'
 import match from '@benzed/match'
 import { omit } from "@benzed/util"
-import { COMMAND_ENDPOINT } from '../constants'
 
+import { COMMAND_ENDPOINT } from '../constants'
 import { HttpMethod } from "../modules/connection/server/http-methods"
+import { Path } from '../types'
 
 /*** Eslint ***/
 
@@ -26,7 +27,7 @@ type StringFields<T extends object> = keyof {
  */
 type Request<T extends object, P extends StringFields<T>> = readonly [
     method: HttpMethod,
-    url: `/${string}`,
+    url: Path,
     data: Omit<T, P>
 ]
 
@@ -49,16 +50,16 @@ type FromRequest<T extends object, P extends StringFields<T>> = (request: readon
 
 /*** Helper ***/
 
-const toPath = (...words: string[]): `/${string}` => 
+const toPath = (...words: string[]): Path => 
     `/${words.join(`/`)}`
-        .replace(/\/(\/+)/g, `/`) as `/${string}`
+        .replace(/\/(\/+)/g, `/`) as Path
 
 const fromPath = (path: string): string[] => 
     path
         .split(`/`)
         .filter(word => word)
 
-const nameToMethodUrl = (name: string): [HttpMethod, `/${string}`] => {
+const nameToMethodUrl = (name: string): [HttpMethod, Path] => {
     const [prefix, ...rest] = name.split(`-`)
 
     const [method] = match(prefix)
@@ -91,7 +92,7 @@ const createNameToReq = (name: string, param = `id`): ToRequest<any, any> => {
 
 const createToReq = <D extends object, P extends StringFields<D> = never>(
     method: HttpMethod, 
-    url: `/${string}`, 
+    url: Path, 
     urlParam?: P
 ): ToRequest<D, P> => 
     (data: any): Request<D, P> => {
@@ -116,7 +117,7 @@ const createNameFromReq = (name: string, param = `id`): FromRequest<any,any> => 
 
 const createFromReq = <D extends object, P extends StringFields<D> = never>(
     method: HttpMethod, 
-    url: `/${string}`, 
+    url: Path, 
     paramKey?: P
 ): FromRequest<D, P> => {
     
@@ -146,6 +147,7 @@ const createFromReq = <D extends object, P extends StringFields<D> = never>(
 /*** Exports ***/
     
 export {
+
     Request,
     ToRequest,
     FromRequest,
@@ -155,4 +157,5 @@ export {
     createFromReq,
     createNameToReq,
     createNameFromReq
+
 }

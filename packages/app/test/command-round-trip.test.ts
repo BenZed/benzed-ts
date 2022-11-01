@@ -21,20 +21,17 @@ for (const webSocket of [true, false]) {
         
         for (const [{ name, ...data }, output] of [
 
-            [ { name: `add` , values: [10,10] }, { result: 20 } ],
-            [ { name: `multiply` , values: [10,10] }, { result: 100 } ],
-            [ { name: `divide` , values: [10,10] }, { result: 1 } ],
-            [ { name: `subtract` , values: [10,10] }, { result: 0 } ],
+            [ { name: `add` , a: 10, b: 10 }, { result: 20 } ],
+            [ { name: `multiply` , a: 10, b: 10 }, { result: 100 } ],
+            [ { name: `divide` , a: 10, b: 10 }, { result: 1 } ],
+            [ { name: `subtract` , a: 10, b: 10 }, { result: 0 } ],
 
         ] as const) {
-            it(`calculator ${name} test ${data.values} should result in ${JSON.stringify(output)}`, async () => {
+            it(`calculator ${name} test ${data} should result in ${JSON.stringify(output)}`, async () => {
 
-                const command = client.getCommand(name)
-                
-                const result = await client.execute(command)
+                const result = await client.execute(name, data)
                 expect(result).toEqual(output)
             })
         }
     })
-
 }

@@ -1,10 +1,12 @@
 import { 
-    ServiceModule, 
     Module, 
     Modules, 
-    ModulesOf, 
-    Service
 } from './module'
+
+import { 
+    CommandModule, 
+    Service,
+} from './service'
 
 import { 
 
@@ -18,30 +20,14 @@ import {
 
 } from './modules'
 
+import { Path } from './types'
+import { Command } from './command'
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-/*** Types ***/
-
-type AppSettings<M extends Modules | App<any>> = M extends App<infer Mx>
-    ? AppSettings<Mx> 
-    : M extends [ infer Mx, ...infer Mr]
-        ? Mx extends Connection<infer O> 
-            ? O 
-            : Mr extends Modules 
-                ? AppSettings<Mr> 
-                : never
-        : never
-
-type AppCommands<A extends App | Modules> = 
-    A extends App<infer M> 
-        ? any 
-        : A extends Modules 
-            ? any
-            : never
-
-/*** Helper Types ***/
+//// Helper Types ////
 
 type _RemoveModule<Mx extends Module, M extends Modules> = 
     M extends [infer Mf, ...infer Mr]
@@ -76,16 +62,14 @@ type _GetType<M extends Modules> = _HasModule<Server, M> extends true
         ? `client` 
         : null
 
-/*** App ***/
+//// App ////
 
-type AppConnection = {
-    [K in keyof Connection<any> as K extends '_active' | symbol | 'settings' ? never : K ]: Connection<any>[K]
-}
+type AppConnection = Omit<Connection<object>, 'copy' | 'settings' | '_copyWithParent' | symbol>
 
 /**
  * Immutable builder pattern for apps and services
  */
-class App<M extends Modules = Modules> extends ServiceModule<M> implements AppConnection {
+class App<M extends Modules = Modules> extends CommandModule<M> implements AppConnection {
 
     // Sealed Construction 
 
@@ -96,17 +80,13 @@ class App<M extends Modules = Modules> extends ServiceModule<M> implements AppCo
     private constructor(
         modules: M
     ) {
-        super(modules, `🖥️`)
+        super(modules)
     }
     
     // Connection Interface
 
     get connection(): _GetConnection<M> {
         return this.get(Connection<any>, true) as _GetConnection<M>
-    }
-
-    get active(): boolean {
-        return this.has(Connection) ? this.connection.active : false
     }
 
     /**
@@ -117,15 +97,17 @@ class App<M extends Modules = Modules> extends ServiceModule<M> implements AppCo
         return (this.has(Connection) ? this.connection.type : null) as _GetType<M>
     }
 
-    // Command interface 
+    getCommand(name: string): Command {
 
-    getCommandList(): Promise<string[]> {
-        return this.connection.getCommandList()
+        if (name in this.commands)
+            return this.commands[name as keyof typeof this.commands] as Command
+
+        throw new Error(`Command ${name} could not be found.`)
     }
     
     // Build Interface
 
-    override use<Px extends `/${string}`, S extends Service<any>>(
+    override use<Px extends Path, S extends Service<any>>(
         path: Px,
         module: S
     ): App<[...M, S extends Service<any, infer Mx> ? Service<Px, Mx> : never]>
@@ -173,10 +155,10 @@ class App<M extends Modules = Modules> extends ServiceModule<M> implements AppCo
      * Useful for nesting.
      */
     service(): Service<'/', _RemoveConnection<M>> {
-
-        const modules = this.generic().modules as any
-
-        return modules.reduce((s: any, m: any) => s.use(m), Service.create())
+        return this
+            .modules
+            .filter(module => module instanceof Connection === false)
+            .reduce((service: any, module: any) => service.use(module), Service.create())
     }
 
 }
@@ -186,9 +168,5 @@ class App<M extends Modules = Modules> extends ServiceModule<M> implements AppCo
 export default App 
 
 export {
-    App,
-    ModulesOf as AppModules,
-    AppSettings,
-
-    AppCommands
+    App
 }

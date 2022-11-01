@@ -7,7 +7,7 @@ import { DEFAULT_MONGODB_PORT } from '../src/constants'
 /**
  * Ensure a mongo db instance is running in the test cluster
  */
-export default (): Promise<void> => ensureMongoDbInstance({
+export default (): boolean | Promise<void> => ensureMongoDbInstance({
 
     isRunning: true,
 

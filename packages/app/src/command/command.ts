@@ -13,7 +13,8 @@ import {
     createToReq,
     createFromReq
 } from './request'
-import { CamelCombine } from '../types'
+
+import { CamelCombine, Path } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -35,7 +36,7 @@ interface Command<I extends object = object, O extends Promise<object> = Promise
      */
     req(
         method: HttpMethod,
-        url: `/${string}`
+        url: Path
     ): Command<I, O, void> 
         
     /**
@@ -49,7 +50,7 @@ interface Command<I extends object = object, O extends Promise<object> = Promise
 
     req<Px extends StringFields<I>>(
         method: HttpMethod,
-        url: `/${string}`,
+        url: Path,
         param: Px
     ): Command<I, O, Px> 
 
@@ -97,15 +98,15 @@ function isCommand(input: unknown): input is Command<any, any, any> {
  */
 function commandsOf<T extends object>(input: T): CommandsOf<T> {
 
-    const commands = {} as any
+    const commands: { [name: string]: Command } = {}
 
     for (const key in input) {
-        if (isCommand(input[key]))
-            commands[key] = input[key]
+        const command = input[key]
+        if (isCommand(command))
+            commands[key] = command
     }
 
-    return commands
-
+    return commands as CommandsOf<T>
 }
 
 /**

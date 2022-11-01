@@ -1,3 +1,3 @@
-import { Get } from './get-record'
+// import { GetRecord } from './get-record'
 
 it.todo(`gets something`)

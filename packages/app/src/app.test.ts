@@ -2,8 +2,10 @@ import { io } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import { App } from './app'
-import { ModuleWithSettings, Service } from './module'
+import { ModuleWithSettings } from './module'
 import { Client, Server } from './modules'
+import { Service } from './service'
+import { Path } from './types'
 
 /*** Tests ***/
 
@@ -43,7 +45,7 @@ it(`connection shortcuts automatically remove previous connection`, () => {
     type DummyClient = typeof app 
     type Modules = DummyClient extends App<infer M> ? M : unknown 
 
-    expectTypeOf<Modules>().toEqualTypeOf<[ModuleWithSettings, Client]>()
+    expectTypeOf<Modules>().toEqualTypeOf<[ModuleWithSettings<object>, Client]>()
 
 })
 
@@ -61,15 +63,15 @@ it(`.start() cannot be called consecutively`, async () => {
     const err = await app.start().catch(io)
     await app.stop()
 
-    expect(err.message).toContain(`${app.type} has already been started`)
+    expect(err.message).toContain(`${app.name} has already been started`)
 })
 
 it(`.service() to remove connections`, () => {
     const app = App.create().client().use(new ModuleWithSettings({})).service()
 
     type DummyClient = typeof app 
-    type Modules = DummyClient extends Service<`/${string}`, infer M> ? M : unknown 
-    expectTypeOf<Modules>().toEqualTypeOf<[ModuleWithSettings]>()
+    type Modules = DummyClient extends Service<Path, infer M> ? M : unknown 
+    expectTypeOf<Modules>().toEqualTypeOf<[ModuleWithSettings<object>]>()
 
     expect(app.modules.length).toBe(1)
 })
@@ -78,7 +80,7 @@ it(`.stop() cannot be called until started`, async () => {
     const app = App.create().server()
 
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`${app.type} has not been started`)
+    expect(err.message).toContain(`${app.name} has not been started`)
 })
 
 it(`.stop() cannot be called consecutively`, async () => {
@@ -87,7 +89,7 @@ it(`.stop() cannot be called consecutively`, async () => {
     await app.start()
     await app.stop()
     const err = await app.stop().catch(io)
-    expect(err.message).toContain(`${app.type} has not been started`)
+    expect(err.message).toContain(`${app.name} has not been started`)
 })
 
 it(`.type === null before started`, () => {

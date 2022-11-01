@@ -14,8 +14,6 @@ for (const webSocket of [false, true]) {
         let server: Server
         beforeAll(async () => {
             server = Server.create({ webSocket })
-            server[`_relayCommand`] = (cmd: Command) => void log.push(cmd) ?? Promise.resolve(cmd)
-            server.getCommandList = () => Promise.resolve([`get-test`])
             await server.start()
         })
     
@@ -26,14 +24,12 @@ for (const webSocket of [false, true]) {
         let client: Client
         let startErr: unknown
         let stopErr: unknown
-        let commandList: string[]
         beforeAll(async () => {
             client = Client.create({ webSocket })
             startErr = await client
                 .start()
                 ?.catch(inputToOutput)
     
-            commandList = await client.getCommandList().catch(inputToOutput)
             stopErr = await client.stop()?.catch(inputToOutput)
 
             await client.start()
@@ -52,11 +48,7 @@ for (const webSocket of [false, true]) {
         it(`.stop()`, () => {
             expect(stopErr).toEqual(undefined)
         })
-    
-        it(`.getServerCommandList()`, () => {
-            expect(commandList).toEqual([`get-test`])
-        })
-    
+
         it.todo(`.executeOnServer()`)
     
         it(`.type === "client"`, () => {
