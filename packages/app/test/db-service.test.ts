@@ -2,7 +2,6 @@ import { App } from '../src/app'
 import { 
     Client, 
     Database, 
-    DatabaseOperation, 
     Server 
 } from '../src/modules'
 
@@ -12,10 +11,6 @@ const app = App
         Database.create({ 
             database: 'db-test'
         })
-    ).useModule(
-        DatabaseOperation.create({
-            collection: 'users'
-        }, 'get', 'find', 'remove')
     )
 
 const server = app

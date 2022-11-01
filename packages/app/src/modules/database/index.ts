@@ -12,8 +12,6 @@ export {
 
 } from './database'
 
-export * from './database-operation'
-
 export {
 
     MongoDb as Database,
