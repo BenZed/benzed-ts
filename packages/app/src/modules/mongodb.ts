@@ -1,6 +1,6 @@
 import { $, Infer } from '@benzed/schema'
 
-import { $logIcon, $port } from "../schemas"
+import { $logIcon, $port } from '../schemas'
 import { SettingsModule } from '../module'
 
 import { 
@@ -91,7 +91,7 @@ const $mongoDbSettings = $.shape({
     user: $.string.optional,
     password: $.string.optional,
 
-    logIcon: $logIcon.default(`🗄️`)
+    logIcon: $logIcon.default('🗄️')
 
 })
 
@@ -198,10 +198,10 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
         const { settings } = this
 
         const uri = settings.uri
-            .replaceAll(`<port>`, settings.port.toString())
-            .replaceAll(`<user>`, settings.user ?? ``)
-            .replaceAll(`<password>`, settings.password ?? ``)
-            .replaceAll(`<database>`, settings.database)
+            .replaceAll('<port>', settings.port.toString())
+            .replaceAll('<user>', settings.user ?? '')
+            .replaceAll('<password>', settings.password ?? '')
+            .replaceAll('<database>', settings.database)
 
         this._mongoClient = await _MongoClient.connect(uri)
         this._db = this._mongoClient.db(settings.database)

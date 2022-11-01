@@ -59,7 +59,7 @@ export class KoaSocketIOServer extends Server {
     
         await new Promise<void>((resolve, reject) => {
             this._http.listen(port, resolve)
-            this._http.once(`error`, reject)
+            this._http.once('error', reject)
         })
 
         this.log`listening for connections ${{ port }}`
@@ -139,12 +139,12 @@ export class KoaSocketIOServer extends Server {
 
         const io = new IOServer(http, { path: WEBSOCKET_PATH })
 
-        io.on(`connection`, socket => {
+        io.on('connection', socket => {
 
             this.log`${socket.id} connected`
 
             // Handle commands from socket
-            socket.on(`command`, async (name: string, input: object, reply) => {
+            socket.on('command', async (name: string, input: object, reply) => {
 
                 this.log`${socket.id} command: ${name} ${input}`
 
@@ -162,7 +162,7 @@ export class KoaSocketIOServer extends Server {
             })
 
             // 
-            socket.once(`disconnected`, () => {
+            socket.once('disconnected', () => {
                 this.log`${socket.id} disconnected`
             })
         })

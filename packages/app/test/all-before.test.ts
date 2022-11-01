@@ -15,6 +15,6 @@ export default (): boolean | Promise<void> => ensureMongoDbInstance({
     log: false,
 
     port: DEFAULT_MONGODB_PORT,
-    cluster: `test`
+    cluster: 'test'
 
 })

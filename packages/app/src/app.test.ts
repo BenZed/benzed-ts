@@ -7,17 +7,17 @@ import { Service } from './service'
 
 //// Tests ////
 
-it(`is sealed`, () => {
+it('is sealed', () => {
     // @ts-expect-error Cannot be extended
     void class extends App {}
 })
 
-it(`.create()`, () => {
+it('.create()', () => {
     const app = App.create()
     expect(app).toBeInstanceOf(App)
 })
 
-it(`used modules are parented`, () => {
+it('used modules are parented', () => {
     const app = App
         .create()
         .useModule(Client.create())
@@ -27,11 +27,11 @@ it(`used modules are parented`, () => {
         .toBe(true)
 })
 
-it(`apps using apps turns them into services`, () => {
+it('apps using apps turns them into services', () => {
 
     const app = App
         .create()
-        .useModule(`/users`, App.create())
+        .useModule('/users', App.create())
 
     expectTypeOf(app.modules[0]).toMatchTypeOf<Service<'/users', []>>()
 })

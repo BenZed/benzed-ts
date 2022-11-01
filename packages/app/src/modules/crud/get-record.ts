@@ -1,11 +1,11 @@
-import $, { Infer } from "@benzed/schema"
-import { SettingsModule } from "../../module"
+import $, { Infer } from '@benzed/schema'
+import { SettingsModule } from '../../module'
 
 //// Types ////
 
 interface GetRecordSettings extends Infer<typeof $getSetting> {}
 const $getSetting = $({
-    collection: $.string.asserts(name => name.startsWith(`get-`), `must start with "get-"`)
+    collection: $.string.asserts(name => name.startsWith('get-'), 'must start with "get-"')
 })
 
 //// GetRecord ////

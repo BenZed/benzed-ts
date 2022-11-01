@@ -1,9 +1,9 @@
 import { equals } from '@benzed/immutable'
 import match from '@benzed/match'
-import { omit } from "@benzed/util"
+import { omit } from '@benzed/util'
 
 import { COMMAND_ENDPOINT } from '../constants'
-import { HttpMethod } from "../modules/connection/server/http-methods"
+import { HttpMethod } from '../modules/connection/server/http-methods'
 import { Path } from '../types'
 
 //// Eslint ////
@@ -51,39 +51,39 @@ type FromRequest<T extends object, P extends StringFields<T>> = (request: readon
 //// Helper ////
 
 const toPath = (...words: string[]): Path => 
-    `/${words.join(`/`)}`
-        .replace(/\/(\/+)/g, `/`) as Path
+    `/${words.join('/')}`
+        .replace(/\/(\/+)/g, '/') as Path
 
 const fromPath = (path: string): string[] => 
     path
-        .split(`/`)
+        .split('/')
         .filter(word => word)
 
 const nameToMethodUrl = (name: string): [HttpMethod, Path] => {
-    const [prefix, ...rest] = name.split(`-`)
+    const [prefix, ...rest] = name.split('-')
 
     const [method] = match(prefix)
-    (`get`, HttpMethod.Get)
-    (`find`, HttpMethod.Get)
-    (`post`, HttpMethod.Post)
-    (`create`, HttpMethod.Post)
-    (`put`, HttpMethod.Put)
-    (`update`, HttpMethod.Put)
-    (`patch`, HttpMethod.Patch)
-    (`edit`, HttpMethod.Patch)
-    (`delete`, HttpMethod.Delete)
-    (`remove`, HttpMethod.Delete)
+    ('get', HttpMethod.Get)
+    ('find', HttpMethod.Get)
+    ('post', HttpMethod.Post)
+    ('create', HttpMethod.Post)
+    ('put', HttpMethod.Put)
+    ('update', HttpMethod.Put)
+    ('patch', HttpMethod.Patch)
+    ('edit', HttpMethod.Patch)
+    ('delete', HttpMethod.Delete)
+    ('remove', HttpMethod.Delete)
     (null)
 
     if (!method)
         return [HttpMethod.Post, COMMAND_ENDPOINT]
 
-    return [method, `/${rest.join(`-`)}`]
+    return [method, `/${rest.join('-')}`]
 }
 
 //// Main ////
 
-const createNameToReq = (name: string, param = `id`): ToRequest<any, any> => {
+const createNameToReq = (name: string, param = 'id'): ToRequest<any, any> => {
     const [method, url] = nameToMethodUrl(name)
     return method
         ? createToReq(method, url, param)
@@ -108,7 +108,7 @@ const createToReq = <D extends object, P extends StringFields<D> = never>(
         return [ method, url, data ]
     }
 
-const createNameFromReq = (name: string, param = `id`): FromRequest<any,any> => {
+const createNameFromReq = (name: string, param = 'id'): FromRequest<any,any> => {
     const [method, url] = nameToMethodUrl(name)
     return method
         ? createFromReq(method, url, param)

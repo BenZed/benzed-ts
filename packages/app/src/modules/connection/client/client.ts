@@ -10,7 +10,7 @@ import Connection from '../connection'
 interface ClientSettings extends Infer<typeof $clientSettings> {}
 const $clientSettings = $({
     logIcon: $logIcon   
-        .default(`📱`),
+        .default('📱'),
     
     webSocket: $.boolean
         .optional

@@ -12,11 +12,11 @@ beforeAll(async () => {
     stopErr = await server.stop().catch(inputToOutput)
 })
 
-it(`.start()`, () => {
+it('.start()', () => {
     expect(startErr).toBe(undefined)
 })
 
-it(`.stop()`, () => {
+it('.stop()', () => {
     expect(stopErr).toBe(undefined)
 })
 

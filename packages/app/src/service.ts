@@ -42,7 +42,7 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
 
 const isModule = $(Module).is
 
-const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith(`/`)
+const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith('/')
 
 //// Command Module ////
 
@@ -167,7 +167,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
             for (const key in moduleCommands) {
 
                 const name: string = module instanceof Service
-                    ? `${module.path.replaceAll(`/`, ``)}${capitalize(key)}`
+                    ? `${module.path.replaceAll('/', '')}${capitalize(key)}`
                     : key
 
                 if (name in commands)
@@ -205,7 +205,7 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
      * @returns Service
      */
     static create(): Service<'/', []> {
-        return new Service(`/`, [])
+        return new Service('/', [])
     }
   
     private constructor(

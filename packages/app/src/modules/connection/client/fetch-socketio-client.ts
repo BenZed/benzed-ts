@@ -17,7 +17,7 @@ import { HttpMethod } from '../server'
 
 //// Helper ////
 
-function toQueryString(data: object, prefix = ``): string {
+function toQueryString(data: object, prefix = ''): string {
 
     const queryStrings: string[] = []
  
@@ -31,14 +31,14 @@ function toQueryString(data: object, prefix = ``): string {
 
             const queryString = is.object(value)
                 ? toQueryString(value, keyWithPrefix) 
-                : encodeURIComponent(keyWithPrefix) + `=` + encodeURIComponent(value)
+                : encodeURIComponent(keyWithPrefix) + '=' + encodeURIComponent(value)
 
             queryStrings.push(queryString)
         }
 
     }
 
-    const queryString = queryStrings.join(`&`)
+    const queryString = queryStrings.join('&')
     return queryString && !prefix ? `?${queryString}` : queryString
 }
 
@@ -107,8 +107,8 @@ export class FetchSocketIOClient extends Client {
             return 
 
         await new Promise<void>((resolve, reject) => {
-            io.once(`connect`, resolve)
-            io.once(`connect_error`, reject)
+            io.once('connect', resolve)
+            io.once('connect_error', reject)
             io.connect()
         })
 
@@ -121,7 +121,7 @@ export class FetchSocketIOClient extends Client {
             return 
 
         await new Promise<void>((resolve) => {
-            io.once(`disconnect`, () => resolve())
+            io.once('disconnect', () => resolve())
             io.disconnect()
         })
 
@@ -132,7 +132,7 @@ export class FetchSocketIOClient extends Client {
         const io = this._io as Socket 
 
         return new Promise<object>((resolve, reject) => {
-            io.emit(`command`, name, data, (err: null, result: object) => {
+            io.emit('command', name, data, (err: null, result: object) => {
                 if (err)
                     reject(err)
                 else 

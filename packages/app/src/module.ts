@@ -64,7 +64,7 @@ export class Module {
         while (root._parent)
             root = root._parent
 
-        const useModule: keyof CommandModule = `useModule`
+        const useModule: keyof CommandModule = 'useModule'
         if (!(useModule in root))
             throw new Error(`${this.name} is not in a command heirarchy.`)
     

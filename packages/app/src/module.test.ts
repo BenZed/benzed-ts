@@ -1,5 +1,5 @@
 import { App } from './app'
-import { Module } from "./module"
+import { Module } from './module'
 
 import { Service } from './service'
 
@@ -15,7 +15,7 @@ class Test extends Module {
 
 //// Tests ////
 
-it(`.start() cannot be called consecutively`, async () => {
+it('.start() cannot be called consecutively', async () => {
     const test = new Test()
     try {
         await test.start()
@@ -26,7 +26,7 @@ it(`.start() cannot be called consecutively`, async () => {
     expect.assertions(1)
 })
 
-it(`.stop() cannot be called until started`, async () => {
+it('.stop() cannot be called until started', async () => {
     const test = new Test()
     try {
         await test.stop()
@@ -36,7 +36,7 @@ it(`.stop() cannot be called until started`, async () => {
     expect.assertions(1)
 })
 
-it(`.stop() cannot be called consecutively`, async () => {
+it('.stop() cannot be called consecutively', async () => {
     const test = new Test()
     try {
         await test.start()
@@ -48,7 +48,7 @@ it(`.stop() cannot be called consecutively`, async () => {
     expect.assertions(1)
 })
 
-it(`.modules redirects to parent modules`, () => {
+it('.modules redirects to parent modules', () => {
     const service = Service.create()
     const m1 = new Test()
 
@@ -58,12 +58,12 @@ it(`.modules redirects to parent modules`, () => {
     expect(m1c.modules).toBe(s1.modules)
 })
 
-it(`.modules is empty on modules with no parent`, () => {
+it('.modules is empty on modules with no parent', () => {
     const m1 = new Test()
     expect(m1.modules).toEqual([])
 })
 
-it(`.get() a module`, () => {
+it('.get() a module', () => {
 
     const m1 = new Test()
     const m2 = new Test()
@@ -76,12 +76,12 @@ it(`.get() a module`, () => {
     expect(m1f).toBeInstanceOf(Module)
 })
 
-it(`.get() returns null if no modules could be found`, () => {
+it('.get() returns null if no modules could be found', () => {
     const m1 = new Test()
     expect(m1.getModule(Module)).toBe(null)
 })
 
-it(`.has() a module`, () => {
+it('.has() a module', () => {
 
     const service = Service.create()
     const m1 = new Test()
@@ -90,7 +90,7 @@ it(`.has() a module`, () => {
     expect(service.useModule(m1).hasModule(Module)).toBe(true)
 })
 
-it(`.parent`, () => {
+it('.parent', () => {
     
     const app = App.create().useModule(Service.create())
 
@@ -100,7 +100,7 @@ it(`.parent`, () => {
 
 })
 
-it(`.root`, () => {
+it('.root', () => {
     const app = App.create().useModule(Service.create().useModule(Service.create()))
 
     const child = app.modules[0].modules[0]

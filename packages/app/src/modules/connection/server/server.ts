@@ -13,7 +13,7 @@ const $serverSettings = $({
     port: $port.optional.default(DEFAULT_SERVER_PORT),
 
     webSocket: $clientSettings.$.webSocket,
-    logIcon: $logIcon.default(`🖥️`)
+    logIcon: $logIcon.default('🖥️')
 })
 
 //// Server ////

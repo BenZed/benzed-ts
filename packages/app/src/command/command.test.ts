@@ -36,11 +36,11 @@ class Foo {
     }).validator(
         $({
             slices: $.string
-                .asserts(s => is.number(parseInt(s)), `must be a numeric string`)
-                .asserts(s => parseInt(s) > 0, `must be above 0`)
+                .asserts(s => is.number(parseInt(s)), 'must be a numeric string')
+                .asserts(s => parseInt(s) > 0, 'must be above 0')
         
         }) as SchemaFor<{slices: `${number}`}>
-    ).req(HttpMethod.Get, `/slices`, `slices`)
+    ).req(HttpMethod.Get, '/slices', 'slices')
 
 }
 
@@ -50,7 +50,7 @@ type FooCommands = CommandsOf<Foo>
 
 //// Test ////
 
-it(`command() creates commands`, async () => {
+it('command() creates commands', async () => {
 
     const output = await foo.setBar({ bar: true })
 
@@ -58,29 +58,29 @@ it(`command() creates commands`, async () => {
     expect(foo.bar).toBe(true)
 })
 
-it(`.validator() sets a validator for a command`, () => {
+it('.validator() sets a validator for a command', () => {
 
-    expect(() => foo.getPizza({ slices: `-1` })).toThrow(`must be above 0`)
+    expect(() => foo.getPizza({ slices: '-1' })).toThrow('must be above 0')
 
 })
 
-it(`.req() sets request handling for a command`, () => {
+it('.req() sets request handling for a command', () => {
 
     expect(
-        foo.getPizza.toReq?.({ slices: `5` })
+        foo.getPizza.toReq?.({ slices: '5' })
     ).toEqual(
-        [HttpMethod.Get, `/slices/5`, {}]
+        [HttpMethod.Get, '/slices/5', {}]
     )
     
     expect(
-        foo.getPizza.fromReq?.([ HttpMethod.Get, `/slices/2`, { } ])
+        foo.getPizza.fromReq?.([ HttpMethod.Get, '/slices/2', { } ])
     ).toEqual(
-        { slices: `2` }
+        { slices: '2' }
     )
 
 })
 
-it(`CommandsOf<> finds commands on objects`, () => {
+it('CommandsOf<> finds commands on objects', () => {
 
     expectTypeOf<FooCommands>().toEqualTypeOf<{
 

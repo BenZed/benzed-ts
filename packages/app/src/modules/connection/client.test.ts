@@ -1,8 +1,8 @@
 import { inputToOutput } from '@benzed/util'
 
-import { Command } from "../../command"
-import { Client } from "./client"
-import { Server} from "./server"
+import { Command } from '../../command'
+import { Client } from './client'
+import { Server} from './server'
 
 //// Setup ////
 
@@ -41,11 +41,11 @@ for (const webSocket of [false, true]) {
     
         //// Tests ////
     
-        it(`.start()`, () => {
+        it('.start()', () => {
             expect(startErr).toEqual(undefined)
         })
     
-        it(`.stop()`, () => {
+        it('.stop()', () => {
             expect(stopErr).toEqual(undefined)
         })
 

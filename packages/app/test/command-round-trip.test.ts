@@ -6,7 +6,7 @@ import { App, Client, Server } from '../src'
 for (const webSocketClient of [true, false]) {
     for (const webSocketServer of [true, false]) {
 
-        describe(`websocket ${webSocketClient ? `enabled` : `disabled`} on client, ${webSocketServer ? `enabled` : `disabled`} on server`, () => {
+        describe(`websocket ${webSocketClient ? 'enabled' : 'disabled'} on client, ${webSocketServer ? 'enabled' : 'disabled'} on server`, () => {
 
             const app = App.create().useModule(new Calculator())
 
@@ -23,10 +23,10 @@ for (const webSocketClient of [true, false]) {
         
             for (const [{ name, ...data }, output] of [
 
-                [ { name: `add` , a: 10, b: 10 }, { result: 20 } ],
-                [ { name: `multiply` , a: 10, b: 10 }, { result: 100 } ],
-                [ { name: `divide` , a: 10, b: 10 }, { result: 1 } ],
-                [ { name: `subtract` , a: 10, b: 10 }, { result: 0 } ],
+                [ { name: 'add' , a: 10, b: 10 }, { result: 20 } ],
+                [ { name: 'multiply' , a: 10, b: 10 }, { result: 100 } ],
+                [ { name: 'divide' , a: 10, b: 10 }, { result: 1 } ],
+                [ { name: 'subtract' , a: 10, b: 10 }, { result: 0 } ],
 
             ] as const) {
                 it(`calculator ${name} test ${data} should result in ${JSON.stringify(output)}`, async () => {

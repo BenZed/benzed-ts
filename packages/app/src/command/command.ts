@@ -1,8 +1,8 @@
 import is from '@benzed/is'
-import { pluck } from "@benzed/array"
-import { Pipe, StringKeys } from "@benzed/util"
+import { pluck } from '@benzed/array'
+import { Pipe, StringKeys } from '@benzed/util'
 
-import { HttpMethod } from "../modules/connection/server/http-methods"
+import { HttpMethod } from '../modules/connection/server/http-methods'
 
 import {
     Request,
@@ -147,7 +147,7 @@ function command<I extends object, O extends Promise<object>>(execute: Pipe<I,O>
             },
 
             validator(this: Command<I, O, any>, validator: Validator<I> | { validate: Validator<I> }) {
-                this.validate = `validate` in validator ? validator.validate : validator
+                this.validate = 'validate' in validator ? validator.validate : validator
                 return this
             },
 

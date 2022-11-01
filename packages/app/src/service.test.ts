@@ -1,6 +1,6 @@
 import { App } from './app'
-import { command } from "./command"
-import { Module } from "./module"
+import { command } from './command'
+import { Module } from './module'
 
 import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
@@ -8,25 +8,25 @@ import { Path } from './types'
 
 //// Tests ////
 
-describe(`.useModule(path)`, () => {
+describe('.useModule(path)', () => {
     const service = Service.create()
 
     const app = App.create().useModule(service)
 
-    const todoApp = app.useModule(`/todos`, service)
+    const todoApp = app.useModule('/todos', service)
 
-    it(`places one as a module of the other`, () => {
+    it('places one as a module of the other', () => {
         expect(app.modules[0].parent)
             .toBe(app)
     })
 
-    it(`can place nested services at different endpoints`, () => {
+    it('can place nested services at different endpoints', () => {
         expect(todoApp.modules[1].path)
-            .toBe(`/todos`)
+            .toBe('/todos')
     })
 })
 
-describe(`.commands`, () => {
+describe('.commands', () => {
 
     class Orders extends Module {
 
@@ -52,7 +52,7 @@ describe(`.commands`, () => {
 
     }
 
-    it(`gets all commands attached to modules`, () => {
+    it('gets all commands attached to modules', () => {
 
         const italian = new Orders()
         const restaurant = App.create().useModule(italian)
@@ -69,21 +69,21 @@ describe(`.commands`, () => {
 
     })
 
-    it(`handles nesting`, () => {
+    it('handles nesting', () => {
 
         const bikes = Service.create().useModule(new Orders())
 
         const cars = Service.create()
             .useModule(new Orders())
             .useModule(
-                `/part`,
+                '/part',
                 Service.create().useModule(new Orders())
             )
 
         const travel = App.create()
             .useModule(new Orders())
-            .useModule(`/car`, cars)
-            .useModule(`/bike`, bikes)
+            .useModule('/car', cars)
+            .useModule('/bike', bikes)
 
         const { commands } = travel
 
@@ -100,24 +100,24 @@ describe(`.commands`, () => {
 
     })
 
-    it(`services using apps turns them into services`, () => {
+    it('services using apps turns them into services', () => {
 
         const app = App.create()
 
-        const service = Service.create().useModule(`/todos`, app)
+        const service = Service.create().useModule('/todos', app)
         const wasApp = service.modules[0]
 
         expectTypeOf(wasApp).toEqualTypeOf<Service<'/todos', []>>()
     })
 
-    it(`errors thrown if commands collide`, () => {
+    it('errors thrown if commands collide', () => {
 
-        for (const path of [``, `/ace`] as Path[]) {
+        for (const path of ['', '/ace'] as Path[]) {
             for (const service of [App.create(), Service.create()]) {
                 expect(() => (service as Service<Path>)
                     .useModule(path, Service.create().useModule(new Orders()))
                     .useModule(path, Service.create().useModule(new Orders()))
-                ).toThrow(`Command name collision`)
+                ).toThrow('Command name collision')
             }
         }
     })
