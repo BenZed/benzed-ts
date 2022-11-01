@@ -21,7 +21,7 @@ it(`returns results to new array`, () => {
 it(`callback takes value, index, array args`, () => {
     const arr = [`zero`]
 
-    pluck(arr, (v, i, a) => {
+    pluck(arr, (v,i,a) => {
         expect(v).toEqual(`zero`)
         expect(i).toEqual(0)
         expect(a).toEqual(arr)
@@ -54,7 +54,7 @@ describe(`count`, () => {
     })
 })
 
-it(`optionally allows type guard predicates`, () => {
+it(`optionally allows type guards`, () => {
 
     const arr = [0, 1, 2, 3, `four`, `five`, `six`]
 
