@@ -12,11 +12,11 @@ interface PipeBuilder<
 > {
 
     <Ox>(f: Pipe<O, Ox>): PipeBuilder<Ix, I, Ox>
-    //  ^ Output new
+    //   ^ Output new
 
     [Symbol.iterator](): Iterator<Pipe<Ix, O>>
 
-    merge(): Pipe<Ix, O>
+    build(): Pipe<Ix, O>
 }
 
 //// Main ////
@@ -42,21 +42,21 @@ function pipe(p: unknown, i?: unknown): unknown {
     }
 
     // Handle build signature
-    const _f: Pipe[] = [p as Pipe]
+    const pipes: Pipe[] = [p as Pipe]
 
     const _pipe = ((n: Pipe): PipeBuilder => {
-        _f.push(n)
+        pipes.push(n)
 
         return _pipe
     }) as PipeBuilder
 
     _pipe[Symbol.iterator] = function* () {
-        yield _pipe.merge()
+        yield _pipe.build()
     }
 
-    _pipe.merge = () => (x: unknown) => {
-        for (const f of _f)
-            x = f(x)
+    _pipe.build = () => (x: unknown) => {
+        for (const p of pipes)
+            x = p(x)
         return x
     }
 
@@ -69,5 +69,6 @@ export default pipe
 
 export {
     pipe,
-    Pipe
+    Pipe,
+    PipeBuilder
 }
