@@ -49,10 +49,5 @@ for (const webSocket of [false, true]) {
             expect(stopErr).toEqual(undefined)
         })
 
-        it.todo(`.executeOnServer()`)
-    
-        it(`.type === "client"`, () => {
-            expect(client.type).toBe(`client`)
-        })
     })
 }

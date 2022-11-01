@@ -144,9 +144,7 @@ export class FetchSocketIOClient extends Client {
     private async _executeFetchCommand(name: string, cmdData: object): Promise<object> {
         const { host } = this.settings
 
-        const command = this.getCommand(name)
-
-        const toReq = command.toReq ?? createNameToReq(name)
+        const toReq = this.root.getCommand(name).toReq ?? createNameToReq(name)
         const [ method, url, reqData ] = toReq(cmdData)
 
         const fetchData = {

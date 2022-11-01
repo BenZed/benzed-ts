@@ -23,8 +23,6 @@ const $serverSettings = $({
  */
 abstract class Server extends Connection<Required<ServerSettings>> {
 
-    readonly type = `server` as const
-
 }
 
 /*** Exports ***/

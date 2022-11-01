@@ -28,8 +28,6 @@ const $clientSettings = $({
  */
 abstract class Client extends Connection<Required<ClientSettings>> {
 
-    readonly type = `client` as const
-
 }
 
 /*** Exports ***/

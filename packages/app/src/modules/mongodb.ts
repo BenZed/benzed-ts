@@ -1,7 +1,7 @@
 import { $, Infer } from '@benzed/schema'
 
 import { $logIcon, $port } from "../schemas"
-import { ModuleWithSettings } from "../module"
+import { SettingsModule } from '../module'
 
 import { 
     MongoClient as _MongoClient, 
@@ -37,7 +37,7 @@ type FindQuery<T extends object> = Empty // { [K in keyof T]: ...etc }
  * Just in case I intend to add support for more databases later,
  * they should all have the same interface
  */
-abstract class Database<S extends object> extends ModuleWithSettings<S> {
+abstract class Database<S extends object> extends SettingsModule<S> {
 
     override _validateModules(): void {
         this._assertRoot()

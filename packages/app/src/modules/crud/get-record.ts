@@ -1,5 +1,5 @@
 import $, { Infer } from "@benzed/schema"
-import { ModuleWithSettings } from "../../module"
+import { SettingsModule } from "../../module"
 
 //// Types ////
 
@@ -10,7 +10,7 @@ const $getSetting = $({
 
 //// GetRecord ////
 
-class GetRecord extends ModuleWithSettings<GetRecordSettings> {
+class GetRecord extends SettingsModule<GetRecordSettings> {
 
     //// Sealed ////
     

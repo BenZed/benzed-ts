@@ -9,7 +9,6 @@ import cors from '@koa/cors'
 import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
-import { Command } from '../../../command'
 import { createNameFromReq } from '../../../command/request'
 import { WEBSOCKET_PATH } from '../../../constants'
 
@@ -47,7 +46,7 @@ export class KoaSocketIOServer extends Server {
     // Connection Implementation
 
     execute(name: string, data: object): Promise<object> {
-        return this.getCommand(name)(data)
+        return this.root.getCommand(name)(data)
     }
 
     // Module Implementation
@@ -98,11 +97,9 @@ export class KoaSocketIOServer extends Server {
 
         const ctxData = this._getCtxCommandData(ctx)
 
-        for (const name in this.parent?.commands) {
+        for (const name in this.root.commands) {
 
-            const command = this.getCommand(name)
-
-            const fromReq = command.fromReq ?? createNameFromReq(name)
+            const fromReq = this.root.getCommand(name).fromReq ?? createNameFromReq(name)
 
             const cmdData = fromReq([ ctx.method as HttpMethod, ctx.url, ctxData ])
             if (cmdData)
@@ -153,9 +150,7 @@ export class KoaSocketIOServer extends Server {
 
                 try {
 
-                    const command = this.getCommand(name)
-
-                    const output = await command(input)
+                    const output = await this.execute(name, input)
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)

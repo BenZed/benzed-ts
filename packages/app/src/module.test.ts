@@ -1,38 +1,57 @@
 import { App } from './app'
-import { command } from "./command"
 import { Module } from "./module"
 
-import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
-import { Path } from './types'
 
-/***  ***/
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
-const m1 = new Module()
-const m2 = new Module()
+//// Setup ////
 
-const service = Service.create()
+class Test extends Module {
 
-/*** Tests ***/
+}
 
-it(`.use() to add module as immutable copy`, () => {
-    const app = App.create().use(m1)
-    expect(app.has(Module)).toBe(true)
+//// Tests ////
 
-    const [m1c] = app.modules
-    expect(m1c).not.toBe(m1)
+it(`.start() cannot be called consecutively`, async () => {
+    const test = new Test()
+    try {
+        await test.start()
+        await test.start()
+    } catch (e: any) {
+        expect(e.message).toContain(`${test.name} has already been started`)
+    }
+    expect.assertions(1)
 })
 
-it(`.use() sets parent`, () => {
+it(`.stop() cannot be called until started`, async () => {
+    const test = new Test()
+    try {
+        await test.stop()
+    } catch (e: any) {
+        expect(e.message).toContain(`${test.name} has not been started`)
+    }
+    expect.assertions(1)
+})
 
-    const app = App.create().server().use(m1)
-
-    const [m1c] = app.modules
-    expect(m1c.parent).toBe(app)
-    expect(m1.parent).toBe(null)
+it(`.stop() cannot be called consecutively`, async () => {
+    const test = new Test()
+    try {
+        await test.start()
+        await test.stop()
+        await test.stop()
+    } catch (e: any) {
+        expect(e.message).toContain(`${test.name} has already been started`)
+    }
+    expect.assertions(1)
 })
 
 it(`.modules redirects to parent modules`, () => {
+    const service = Service.create()
+    const m1 = new Test()
+
     const s1 = service.use(m1)
 
     const [m1c] = s1.modules
@@ -40,10 +59,15 @@ it(`.modules redirects to parent modules`, () => {
 })
 
 it(`.modules is empty on modules with no parent`, () => {
+    const m1 = new Test()
     expect(m1.modules).toEqual([])
 })
 
 it(`.get() a module`, () => {
+
+    const m1 = new Test()
+    const m2 = new Test()
+
     const service = App.create()
         .use(m1)
         .use(m2)
@@ -53,11 +77,15 @@ it(`.get() a module`, () => {
 })
 
 it(`.get() returns null if no modules could be found`, () => {
-    const m = m1.get(Module)
-    expect(m).toBe(null)
+    const m1 = new Test()
+    expect(m1.get(Module)).toBe(null)
 })
 
 it(`.has() a module`, () => {
+
+    const service = Service.create()
+    const m1 = new Test()
+
     expect(service.has(Module)).toBe(false)
     expect(service.use(m1).has(Module)).toBe(true)
 })
@@ -78,111 +106,4 @@ it(`.root`, () => {
     const child = app.modules[0].modules[0]
 
     expect(child.root).toBe(app)
-})
-
-describe(`.use(path)`, () => {
-
-    const app = App.create().server()
-    const appWithService = app.use(service)
-    const appWithServiceEndpoint = app.use(`/todos`, service)
-
-    it(`places one as a module of the other`, () => {
-        expect(appWithService.modules[1].parent)
-            .toBe(appWithService)
-    })
-
-    it(`can place nested services at different endpoints`, () => {
-        expect(appWithServiceEndpoint.modules[1].path)
-            .toBe(`/todos`)
-    })
-})
-
-describe(`.getCommands()`, () => {
-
-    class Orders extends Module {
-
-        private _id = 0
-        private readonly _orders: { type: string, id: string }[] = []
-
-        create = command((data: { type: string }) => {
-
-            const order = {
-                type: data.type,
-                id: `${this._id++}`
-            }
-
-            return Promise.resolve(order)
-        })
-
-        find = command((data: { id: string }) => {
-
-            const order = this._orders.find(o => o.id === data.id) ?? null
-
-            return Promise.resolve({ order })
-        })
-
-    }
-
-    it(`gets all commands attached to modules`, () => {
-
-        const italian = new Orders()
-        const restaurant = App.create().use(italian)
-        const { commands } = restaurant
-
-        for (const key in commands)
-            expect(italian).toHaveProperty(key, italian[key as keyof typeof italian])
-
-        expectTypeOf<typeof commands>()
-            .toEqualTypeOf<{
-                create: typeof italian.create
-                find: typeof italian.find
-            }>
-
-    })
-
-    it(`handles nesting`, () => {
-
-        const bikes = Service.create().use(
-            new Orders()
-        )
-
-        const cars = Service.create().use(
-            new Orders()
-        )
-            .use(
-                `/part`,
-                Service.create().use(new Orders())
-            )
-
-        const travel = App.create()
-            .use(new Orders())
-            .use(`/car`, cars)
-            .use(`/bike`, bikes)
-
-        const {commands} = travel
-
-        expectTypeOf(commands).toEqualTypeOf<{
-            create: Orders['create']
-            find: Orders['find']
-            carCreate: Orders['create']
-            carFind: Orders['find']
-            carPartCreate: Orders['create']
-            carPartFind: Orders['find']
-            bikeCreate: Orders['create']
-            bikeFind: Orders['find']
-        }>()
-
-    })
-
-    it(`errors thrown if commands collide`, () => {
-
-        for (const path of [``, `/ace`] as Path[]) {
-            for (const service of [App.create(), Service.create()]) {
-                expect(() => (service as Service<Path>)
-                    .use(path, Service.create().use(new Orders()))
-                    .use(path, Service.create().use(new Orders()))
-                ).toThrow(`Command name collision`)
-            }
-        }
-    })
 })

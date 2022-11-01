@@ -1,17 +1,16 @@
 import is from '@benzed/is'
 import { pluck } from '@benzed/array'
 import { capitalize } from '@benzed/string'
-import { StringKeys } from '@benzed/util'
 
 import { 
     command,
     Command,  
-    CommandInput, 
-    CommandOutput,
     CommandsOf, 
 } from './command'
 
 import { Module, Modules } from './module'
+import { Client, Server } from './modules'
+
 import { CamelCombine, Path } from './types'
 
 /* eslint-disable 
@@ -37,16 +36,6 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
             : _CommandsOfModule<Mx, P>
         : {}
     : {}
-
-//// Execute Types ////
-
-type _ExecutableCommand<M extends Modules, N extends keyof _CommandsOfModules<M>> = _CommandsOfModules<M>[N] extends Command<any,any,any> 
-    ? _CommandsOfModules<M>[N]
-    : never 
-
-export type ExecuteInput<M extends Modules, N extends keyof _CommandsOfModules<M>> = CommandInput<_ExecutableCommand<M,N>>
-
-export type ExecuteOutput<M extends Modules, N extends keyof _CommandsOfModules<M>> = CommandOutput<_ExecutableCommand<M,N>>
 
 //// Command Module ////
 
@@ -90,7 +79,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
         await Promise.all(this.modules.map(m => m.stop()))
     }
 
-    //// Service Implementation ////
+    //// Command Module Implementation ////
 
     abstract use<Mx extends CommandModule<any>>(
         path: string,
@@ -108,16 +97,23 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
         return this._commands ?? this._createCommands()
     }
 
-    execute<N extends StringKeys<_CommandsOfModules<M>>>(
-        name: N,
-        data: ExecuteInput<M, N>
-    ): ExecuteOutput<M, N> {
+    //// Convenience Getters ////
 
-        const _command = this.commands[name]
-        if (!command.is(_command))
-            throw new Error(`${name} is not a command`)
-
-        return _command(data)
+    getCommand(name: string): Command {
+        const commands = this.root.commands as { [key: string]: Command | undefined } 
+        const command = commands[name]
+        if (!command)
+            throw new Error(`Command ${name} could not be found.`)
+    
+        return command
+    }
+    
+    get client(): Client | null {
+        return this.root.get(Client) ?? null
+    }
+    
+    get server(): Server | null {
+        return this.root.get(Server) ?? null
     }
 
     //// Module Implementation ////
@@ -130,7 +126,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     //// Helper ////
 
     protected _pushModule<Mx extends Module>(
-        ...args: Mx extends Service<any> 
+        ...args: Mx extends CommandModule<any> 
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
     ): [...M, Mx] {
@@ -158,15 +154,13 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
         for (const module of this.modules) {
 
-            const isService = module instanceof Service
-
-            const moduleCommands = isService 
+            const moduleCommands = module instanceof CommandModule 
                 ? module.commands
                 : command.of(module)
 
             for (const key in moduleCommands) {
 
-                const name: string = isService 
+                const name: string = module instanceof Service  
                     ? `${module.path.replaceAll(`/`, ``)}${capitalize(key)}`
                     : key
 
@@ -209,7 +203,7 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
         return this._path as P
     }
 
-    override use<Px extends Path, S extends Service<any>>(
+    override use<Px extends Path, S extends CommandModule<any>>(
         path: Px,
         module: S
     ): Service<P, [...M, S extends Service<any, infer Mx> ? Service<Px, Mx> : never]>
@@ -219,7 +213,7 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
     ): Service<P, [...M, Mx]>
 
     override use<Mx extends Module>(
-        ...args: Mx extends Service<any> 
+        ...args: Mx extends CommandModule<any> 
             ? [path: string, module: Mx] | [module: Mx] 
             : [module: Mx]
     ): Service<P, [...M, Mx]> {

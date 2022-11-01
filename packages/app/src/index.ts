@@ -3,25 +3,14 @@ export {
     
     Module,
     Modules,
-
-    ModuleWithSettings
+    SettingsModule
 
 } from './module'
 
 export {
-
-    ModulesOf as ServiceModules,
-    ModulesOf as AppModules,
-    
-    Service,
-
-    ExecuteInput,
-    ExecuteOutput
-
+    Service
 } from './service'
 
 export * from './modules'
 
-export {
-    App,
-} from './app'
+export { App } from './app'

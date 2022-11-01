@@ -20,7 +20,3 @@ it(`.stop()`, () => {
     expect(stopErr).toBe(undefined)
 })
 
-it(`.type === "server"`, () => {
-    const server = Server.create()
-    expect(server.type).toBe(`server`)
-})

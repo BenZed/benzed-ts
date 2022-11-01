@@ -1,12 +1,12 @@
 import { $$copy } from '@benzed/immutable'
-import { CommandModule } from './service'
+import type { CommandModule } from './service'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
 
-/*** Types ***/
+//// Types ////
 
 export type Modules = readonly Module[]
 
@@ -46,12 +46,28 @@ export class Module {
     }
 
     get modules(): Modules {
-        return this.parent?.modules ?? []
+        return this._parent?.modules ?? []
     }
 
     private _parent: CommandModule | null = null
     get parent(): CommandModule | null {
         return this._parent
+    }
+
+    /**
+     * Gets the root module of the app heirarchy.
+     * Throws an error on modules that are not parented to anything.
+     */
+    get root(): CommandModule {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        let root: CommandModule | Module = this
+        while (root._parent)
+            root = root._parent
+
+        if (!(`use` in root))
+            throw new Error(`${this.name} is not in a command heirarchy.`)
+    
+        return root
     }
 
     /**
@@ -63,17 +79,6 @@ export class Module {
         _this._parent = parent
 
         return _this
-    }
-
-    /**
-     * Root Command module
-     */
-    get root(): CommandModule | null {
-        let { parent: root } = this
-        while (root?.parent)
-            root = root.parent
-
-        return root
     }
 
     //// Immutable Implementation ////
@@ -138,7 +143,7 @@ export class Module {
      * Module must be a root-level module of an app, not nested.
      */
     protected _assertRoot(): void {
-        if (this.parent?.parent)
+        if (this._parent?.parent)
             throw new Error(`${this.name} must be a root level module.`)
     }
     
@@ -167,9 +172,12 @@ export class Module {
     }
 }
 
-/*** ModuleWithSettings ***/
+//// Module With Settings ////
 
-export class ModuleWithSettings<S extends object> extends Module {
+/**
+ * A module with settings
+ */
+export class SettingsModule<S extends object> extends Module {
 
     get settings(): S {
         return this._settings
