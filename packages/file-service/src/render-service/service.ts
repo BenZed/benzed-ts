@@ -23,7 +23,7 @@ import {
 } from '../files-service/constants'
 
 import { reduceToVoid, by } from '@benzed/util'
-import { QueuePayload } from '@benzed/async/lib'
+import { QueuePayload } from '@benzed/async'
 
 /*** Eslint ***/
 

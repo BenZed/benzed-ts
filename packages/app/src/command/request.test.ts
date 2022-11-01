@@ -3,11 +3,11 @@ import { createNameToReq, createNameFromReq, ToRequest, FromRequest } from './re
 import is from '@benzed/is'
 import { COMMAND_ENDPOINT } from '../constants'
 
-/*** Helper ***/
+//// Helper ////
 
 const prettyObj = (obj: object): string => `{${Object.keys(obj).toString().trim()}}`
 
-/*** Test ***/
+//// Test ////
 
 describe(`createNameToReq`, () => {
 

@@ -28,16 +28,16 @@ class App<M extends Modules = Modules> extends CommandModule<M> {
   
     // Use Interface
 
-    override use<Px extends Path, S extends CommandModule<any>>(
+    override useModule<Px extends Path, S extends CommandModule<any>>(
         path: Px,
         module: S
     ): App<[...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : Module]>
 
-    override use<Mx extends Module>(
+    override useModule<Mx extends Module>(
         module: Mx
     ): App<[...M, Mx]>
 
-    override use(
+    override useModule(
         ...args: [path: Path, module: Module] | [module: Module] 
     ): App<Modules> {
         return new App(

@@ -52,7 +52,7 @@ it(`.modules redirects to parent modules`, () => {
     const service = Service.create()
     const m1 = new Test()
 
-    const s1 = service.use(m1)
+    const s1 = service.useModule(m1)
 
     const [m1c] = s1.modules
     expect(m1c.modules).toBe(s1.modules)
@@ -69,16 +69,16 @@ it(`.get() a module`, () => {
     const m2 = new Test()
 
     const service = App.create()
-        .use(m1)
-        .use(m2)
+        .useModule(m1)
+        .useModule(m2)
 
-    const m1f = service.get(Module)
+    const m1f = service.getModule(Module)
     expect(m1f).toBeInstanceOf(Module)
 })
 
 it(`.get() returns null if no modules could be found`, () => {
     const m1 = new Test()
-    expect(m1.get(Module)).toBe(null)
+    expect(m1.getModule(Module)).toBe(null)
 })
 
 it(`.has() a module`, () => {
@@ -86,13 +86,13 @@ it(`.has() a module`, () => {
     const service = Service.create()
     const m1 = new Test()
 
-    expect(service.has(Module)).toBe(false)
-    expect(service.use(m1).has(Module)).toBe(true)
+    expect(service.hasModule(Module)).toBe(false)
+    expect(service.useModule(m1).hasModule(Module)).toBe(true)
 })
 
 it(`.parent`, () => {
     
-    const app = App.create().use(Service.create())
+    const app = App.create().useModule(Service.create())
 
     const service = app.modules[0]
 
@@ -101,7 +101,7 @@ it(`.parent`, () => {
 })
 
 it(`.root`, () => {
-    const app = App.create().use(Service.create().use(Service.create()))
+    const app = App.create().useModule(Service.create().useModule(Service.create()))
 
     const child = app.modules[0].modules[0]
 

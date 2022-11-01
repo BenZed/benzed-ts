@@ -20,7 +20,7 @@ import { CamelCombine, Path } from '../types'
     @typescript-eslint/no-explicit-any
 */
 
-/*** Types ***/
+//// Types ////
 
 type Validator<I extends object> = (data: unknown) => I
 

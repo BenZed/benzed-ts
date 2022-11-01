@@ -12,7 +12,7 @@ import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 
 import { CamelCombine, Path } from './types'
-import $ from '@benzed/schema/lib'
+import $ from '@benzed/schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -88,12 +88,12 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
     //// Command Module Implementation ////
 
-    abstract use<Mx extends CommandModule<any>>(
+    abstract useModule<Mx extends CommandModule<any>>(
         path: Path,
         module: Mx
     ): unknown
 
-    abstract use<Mx extends Module>(
+    abstract useModule<Mx extends Module>(
         module: Mx
     ): unknown
 
@@ -116,11 +116,11 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     }
     
     get client(): Client | null {
-        return this.root.get(Client) ?? null
+        return this.root.getModule(Client) ?? null
     }
     
     get server(): Server | null {
-        return this.root.get(Server) ?? null
+        return this.root.getModule(Server) ?? null
     }
 
     //// Module Implementation ////
@@ -221,16 +221,16 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
         return this._path as P
     }
 
-    override use<Px extends Path, S extends CommandModule<any>>(
+    override useModule<Px extends Path, S extends CommandModule<any>>(
         path: Px,
         module: S
     ): Service<P, [...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : never]>
 
-    override use<Mx extends Module>(
+    override useModule<Mx extends Module>(
         module: Mx
     ): Service<P, [...M, Mx]>
 
-    override use(
+    override useModule(
         ...args: [path: Path, module: Module] | [module: Module] 
     ): Service<Path, Modules> {
         return Service._create(

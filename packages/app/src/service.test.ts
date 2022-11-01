@@ -8,12 +8,12 @@ import { Path } from './types'
 
 //// Tests ////
 
-describe(`.use(path)`, () => {
+describe(`.useModule(path)`, () => {
     const service = Service.create()
 
-    const app = App.create().use(service)
+    const app = App.create().useModule(service)
 
-    const todoApp = app.use(`/todos`, service)
+    const todoApp = app.useModule(`/todos`, service)
 
     it(`places one as a module of the other`, () => {
         expect(app.modules[0].parent)
@@ -55,7 +55,7 @@ describe(`.commands`, () => {
     it(`gets all commands attached to modules`, () => {
 
         const italian = new Orders()
-        const restaurant = App.create().use(italian)
+        const restaurant = App.create().useModule(italian)
         const { commands } = restaurant
 
         for (const key in commands)
@@ -71,22 +71,19 @@ describe(`.commands`, () => {
 
     it(`handles nesting`, () => {
 
-        const bikes = Service.create().use(
-            new Orders()
-        )
+        const bikes = Service.create().useModule(new Orders())
 
-        const cars = Service.create().use(
-            new Orders()
-        )
-            .use(
+        const cars = Service.create()
+            .useModule(new Orders())
+            .useModule(
                 `/part`,
-                Service.create().use(new Orders())
+                Service.create().useModule(new Orders())
             )
 
         const travel = App.create()
-            .use(new Orders())
-            .use(`/car`, cars)
-            .use(`/bike`, bikes)
+            .useModule(new Orders())
+            .useModule(`/car`, cars)
+            .useModule(`/bike`, bikes)
 
         const { commands } = travel
 
@@ -107,7 +104,7 @@ describe(`.commands`, () => {
 
         const app = App.create()
 
-        const service = Service.create().use(`/todos`, app)
+        const service = Service.create().useModule(`/todos`, app)
         const wasApp = service.modules[0]
 
         expectTypeOf(wasApp).toEqualTypeOf<Service<'/todos', []>>()
@@ -118,8 +115,8 @@ describe(`.commands`, () => {
         for (const path of [``, `/ace`] as Path[]) {
             for (const service of [App.create(), Service.create()]) {
                 expect(() => (service as Service<Path>)
-                    .use(path, Service.create().use(new Orders()))
-                    .use(path, Service.create().use(new Orders()))
+                    .useModule(path, Service.create().useModule(new Orders()))
+                    .useModule(path, Service.create().useModule(new Orders()))
                 ).toThrow(`Command name collision`)
             }
         }

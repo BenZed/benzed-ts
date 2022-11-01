@@ -29,7 +29,7 @@ export class Module {
         // TODO implement
     }
 
-    get<M extends Module, R extends boolean = false>(
+    getModule<M extends Module, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required: R = false as R
     ): R extends true ? M : M | null {
@@ -41,8 +41,8 @@ export class Module {
         return module as M
     }
 
-    has<M extends Module>(type: ModuleConstructor<M>): boolean {
-        return !!this.get(type)
+    hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
+        return !!this.getModule(type)
     }
 
     get modules(): Modules {
@@ -64,7 +64,8 @@ export class Module {
         while (root._parent)
             root = root._parent
 
-        if (!(`use` in root))
+        const useModule: keyof CommandModule = `useModule`
+        if (!(useModule in root))
             throw new Error(`${this.name} is not in a command heirarchy.`)
     
         return root
@@ -134,7 +135,7 @@ export class Module {
      * Must be the only module of it's type in a parent.
      */
     protected _assertSingle(): void { 
-        const clone = this.get(this.constructor as ModuleConstructor)
+        const clone = this.getModule(this.constructor as ModuleConstructor)
         if (clone && clone !== this)
             throw new Error(`${this.name} may only be used once`)
     }
@@ -151,7 +152,7 @@ export class Module {
      * Module must have access to the given modules
      */
     protected _assertRequired(...types: readonly ModuleConstructor[]): void {
-        const missing = types.filter(t => !this.has(t))
+        const missing = types.filter(t => !this.hasModule(t))
         if (missing.length > 0) {
             throw new Error(
                 `${this.name} is missing required components: ${missing.map(t => t.name)}`
@@ -163,7 +164,7 @@ export class Module {
      * Module must not be on the same service/app as the given modules
      */
     protected _assertConflicting(...types: readonly ModuleConstructor[]): void { 
-        const found = types.filter(t => this.has(t))
+        const found = types.filter(t => this.hasModule(t))
         if (found.length > 0) {
             throw new Error(
                 `${this.name} may not be used with conflicting components: ${found.map(t => t.name)}`

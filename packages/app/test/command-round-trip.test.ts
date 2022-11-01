@@ -8,10 +8,10 @@ for (const webSocketClient of [true, false]) {
 
         describe(`websocket ${webSocketClient ? `enabled` : `disabled`} on client, ${webSocketServer ? `enabled` : `disabled`} on server`, () => {
 
-            const app = App.create().use(new Calculator())
+            const app = App.create().useModule(new Calculator())
 
-            const client = app.use(Client.create({ webSocket: webSocketClient }))
-            const server = app.use(Server.create({ webSocket: webSocketServer }))
+            const client = app.useModule(Client.create({ webSocket: webSocketClient }))
+            const server = app.useModule(Server.create({ webSocket: webSocketServer }))
         
             beforeAll(() => server.start())
             beforeAll(() => client.start())

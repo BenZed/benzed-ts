@@ -18,7 +18,10 @@ it(`.create()`, () => {
 })
 
 it(`used modules are parented`, () => {
-    const app = App.create().use(Client.create()).use(new SettingsModule({}))
+    const app = App
+        .create()
+        .useModule(Client.create())
+        .useModule(new SettingsModule({}))
 
     expect(app.modules.every(m => m.parent === app))
         .toBe(true)
@@ -26,7 +29,9 @@ it(`used modules are parented`, () => {
 
 it(`apps using apps turns them into services`, () => {
 
-    const app = App.create().use(`/users`, App.create())
+    const app = App
+        .create()
+        .useModule(`/users`, App.create())
 
     expectTypeOf(app.modules[0]).toMatchTypeOf<Service<'/users', []>>()
 })
