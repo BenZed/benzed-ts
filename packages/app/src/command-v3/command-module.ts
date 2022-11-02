@@ -1,7 +1,9 @@
 import $ from '@benzed/schema'
 import { toDashCase } from '@benzed/string'
+import { Chain } from '@benzed/util/lib'
 
 import { Module } from '../module'
+import { HttpMethod } from '../modules'
 
 //// Validation ////
 
@@ -19,7 +21,27 @@ abstract class CommandModule<
         return this._name
     }
 
-    abstract execute(input: I): O
+    protected abstract _execute: Chain<I,O>
+
+    execute(input: I /* context <- user/etc */): O | Promise<O> {
+
+        const client = this.parent?.root.client ?? null
+        if (client)
+            return client.execute(this.name, input) as Promise<O>
+
+        /*
+        const permissions = this.getModule(Permissions)
+        if (permissions && context)
+            permissions.check(context.user)
+        */  
+
+        return this._execute(input)
+    }
+
+    /**
+     * Get a list of http methods this command may use for cors/options reasons 
+     */
+    abstract get methods(): HttpMethod[]
 
     /*
     abstract toRequest(input: I): {

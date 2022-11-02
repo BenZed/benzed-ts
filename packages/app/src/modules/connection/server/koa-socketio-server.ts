@@ -46,7 +46,8 @@ export class KoaSocketIOServer extends Server {
     // Connection Implementation
 
     execute(name: string, data: object): Promise<object> {
-        return this.root.getCommand(name)(data)
+        // return this.root.getCommand(name).execute(data)
+        throw new Error('Not yet implemented')
     }
 
     // Module Implementation

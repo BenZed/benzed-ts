@@ -1,5 +1,5 @@
-import { pipe, Pipe, PipeBuilder } from '@benzed/util'
-import { isFunction, isString } from '@benzed/is'
+import { isObject, isString } from '@benzed/is'
+import { Chain, chain, Link } from '@benzed/util'
 import { pluck } from '@benzed/array'
 
 import CommandModule from './command-module'
@@ -17,10 +17,18 @@ import { HttpMethod } from '../modules'
  * Command without build interface
  */
 export type RuntimeCommand<N extends string, I extends object> = 
-    Omit<Command<N,I,object>, 'pipe'>
+    Omit<Command<N, I, object>, 'useHook'>
 
-export type Execute<I extends object, O extends object, N extends string> =
-     ((this: RuntimeCommand<N, I>, input: I) => O) | Pipe<I, O>
+// type CommandHookTypeGuard<I extends object, O extends I, N extends string> = 
+//     ((this: RuntimeCommand<N, I>, input: I) => input is O) | TypeGuard<O, I>
+
+// export type CommandHookPredicate<I extends object, N extends string> = 
+//     ((this: RuntimeCommand<N,I>, input: I) => boolean) | Link<I, boolean>
+
+export type CommandHook<I extends object, O extends object, N extends string> =
+    ((this: RuntimeCommand<N, I>, input: I) => O) | Link<I, O> 
+
+type CommandValidate<I extends object> = { validate: Link<I, I> }
 
 //// Command ////
 
@@ -31,35 +39,34 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Create a new generic command
      * @param name - Name of the command, must be dash-cased.
-     * @param execute - Handle command input to output
+     * @param validate - Validate incoming idata
      * @param method - Http method this command maps to
      * @param path - url endpoint this command maps to
      * @returns new Command
      */
-    static create<Nx extends string, Ix extends object, Ox extends object>(
+    static create<Nx extends string, Ix extends object>(
         name: Nx,
-        execute: Execute<Ix, Ox, Nx>,
+        validate: CommandValidate<Ix>,
         method?: HttpMethod,
         path?: Path
-    ): Command<Nx,Ix,Ox>
+    ): Command<Nx, Ix, Ix>
 
     /**
      * Convience method for defining a POST command named 'create'
-     * @param execute - Handle command input to output
+     * @param validate - Validate incoming idata
      * @returns - new POST Command
      */
-    static create<Ix extends object, Ox extends object>(
-        execute: Execute<Ix, Ox, 'create'>
-    ): Command<'create', Ix, Ox>
+    static create<Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ): Command<'create', Ix, Ix>
 
     static create(...args: unknown[]) {
 
         const isNamed = isString(args[0])
 
         const [
-            execute
-
-        ] = pluck(args, isFunction<Pipe<object,object>>)
+            { validate }
+        ] = pluck(args, isObject<CommandValidate<object>>)
 
         const [
             name = 'create', 
@@ -70,144 +77,160 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             ? args
             : ['create', ...args]) as [string | undefined, HttpMethod | undefined, Path | undefined]
 
-        return new Command(name, execute, method, path)
+        return new Command(name, validate, method, path)
     }
 
     /**
      * Convience interface for defining a GET command named 'get'
-     * @param execute - Handle command input to output
+     * @param validate - Validate incoming idata
      * @returns new GET Command
      */
-    static get = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'get'>
-    ) => new Command('get', execute, HttpMethod.Get, '/')
+    static get = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('get', validate, HttpMethod.Get, '/')
 
     /**
      * Convience interface for defining a GET command named 'find'
-     * @param execute - Handle command input to output
+     * @param validate - Handle command input to output
      * @returns new GET Command
      */
-    static find = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'find'>
-    ) => new Command('find', execute, HttpMethod.Get, '/')
+    static find = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('find', validate, HttpMethod.Get, '/')
 
     /**
      * Convience interface for defining a DELETE command named 'delete'
-     * @param execute - Handle command input to output
+     * @param validate - Validate incoming idata
      * @returns new DELETE Command
      */
-    static delete = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'delete'>
-    ) => new Command('delete', execute, HttpMethod.Delete, '/')
+    static delete = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('delete', validate, HttpMethod.Delete, '/')
         
     /**
      * Convience interface for defining a DELETE command named 'remove'
-     * @param execute - Handle command input to output
+     * @param validate - validate incoming data
      * @returns new DELETE Command
      */
-    static remove = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'remove'>
-    ) => new Command('remove', execute, HttpMethod.Delete, '/')
+    static remove = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('remove', validate, HttpMethod.Delete, '/')
 
     /**
      * Convience interface for defining a PATCH command named 'patch'
-     * @param execute - Handle command input to output
+     * @param validate - validate incoming data
      * @returns new PATCH Command
      */
-    static patch = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'patch'>
-    ) => new Command('patch', execute, HttpMethod.Patch, '/')
+    static patch = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('patch', validate, HttpMethod.Patch, '/')
 
     /**
      * Convience interface for defining a PATCH command named 'edit'
-     * @param execute - Handle command input to output
+     * @param validate - validate incoming data
      * @returns new PATCH Command
      */
-    static edit = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'edit'>
-    ) => new Command('edit', execute, HttpMethod.Patch, '/')
+    static edit = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('edit', validate, HttpMethod.Patch, '/')
 
     /**
      * Convience interface for defining a PUT command named 'update'
-     * @param execute - Handle command input to output
+     * @param validate - validate incoming data
      * @returns new PUT Command
      */
-    static update = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'update'>
-    ) => new Command('update', execute, HttpMethod.Put, '/')
+    static update = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('update', validate, HttpMethod.Put, '/')
 
     /**
      * Convience interface for defining a OPTIONS command named 'options'
-     * @param execute - Handle command input to output
+     * @param validate - validate incoming data
      * @returns new OPTIONS Command
      */
-    static options = <Ix extends object, Ox extends object>(
-        execute: Execute<Ix,Ox, 'options'>
-    ) => new Command('options', execute, HttpMethod.Options, '/')
+    static options = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('options', validate, HttpMethod.Options, '/')
         
     //// Sealed ////
     
     private constructor(
         name: N,
-        executeOrBuild: Execute<I, O, N> | PipeBuilder<I, I, O>,
-        readonly method: HttpMethod,
-        readonly path: Path
+        hookOrValidate: CommandHook<I, O, N>,
+        readonly _method: HttpMethod,
+        readonly _path: Path
     ) {
         super(name)
-        this._pipe = 'build' in executeOrBuild ? executeOrBuild : pipe(executeOrBuild)
+        this._execute = chain(hookOrValidate)
     }
+
+    protected readonly _execute: Chain<I,O> 
 
     protected override get _copyParams(): unknown[] {
         return [
             this.name,
-            this._pipe,
-            this.method,
-            this.path
+            this._execute,
+            this.http.method,
+            this.http.path
         ]
     }
 
-    //// Execute ////
+    //// State ////
+    
+    get http(): { method: HttpMethod, path: Path } {
+        const { _method: method, _path: path } = this
+        return { method, path }
+    }
 
-    private readonly _pipe: PipeBuilder<I, I, O>
+    override get methods(): [HttpMethod] {
+        return [this.http.method]
+    }
 
-    execute(input: I): O {
-        const _execute = this._pipe.build()
-        return _execute.call(this, input)
+    //// Valiation Interface ////
+
+    /**
+     * Validates given input 
+     */
+    validateData(data: object): I {
+        return this._execute.links[0](data) as I
+    }
+
+    /**
+     * Is the given input valid data for this command?
+     */
+    isData(data: object): data is I {
+        try {
+            this.validateData(data)
+            return true
+        } catch {
+            return false
+        }
     }
 
     //// Instance Build Interface ////
 
+    // TODO add first class match support
     /**
-     * Chain another execute method onto this command
+     * Add a hook that conditionally executes given the output of a
+     * supplied predicate method
      */
-    pipe<Ox extends object>(execute: Execute<O, Ox, N>): Command<N, I, Ox> {
+    // useHook<Ox extends object>(
+    //     predicate: CommandHookPredicate<Ox, N>,
+    //     hook: CommandHook<O, Ox, N>
+    // ): Command<N, I, Ox>
 
-        const { name, method, path, _pipe: pipe } = this
+    /**
+     * Add a hook to this command
+     */
+    useHook<Ox extends object>(hook: CommandHook<O, Ox, N>): Command<N, I, Ox> {
+
+        const { name, http } = this
 
         return new Command(
             name,
-            pipe(execute),
-            method,
-            path
-        )
-    }
-
-    /**
-     * Set an input valiator for this command
-     */
-    validate(validator: Pipe<I, I> | { validate: Pipe<I, I> }): Command<N, I, O> {
-
-        const validate = 'validate' in validator 
-            ? validator.validate 
-            : validator
-
-        const execute = this._pipe.build()
-
-        return new Command(
-            this.name,
-            pipe(validate)(execute),
-            this.method,
-            this.path
+            this._execute.append(hook),
+            http.method,
+            http.path
         )
     }
 

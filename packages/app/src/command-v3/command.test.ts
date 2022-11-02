@@ -1,13 +1,12 @@
 import { ObjectId } from 'mongodb'
 
-import { Command, RuntimeCommand } from './command'
-
 import { Module } from '../module'
 import { HttpMethod, Id } from '../modules'
+import { Command, RuntimeCommand } from './command'
 
 import { omit } from '@benzed/util'
 import match from '@benzed/match'
-import $ from '@benzed/schema'
+import $, { Infer } from '@benzed/schema'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -17,9 +16,22 @@ import { expectTypeOf } from 'expect-type'
 
 //// Todo ////
 
-type TodoId = { id: Id }
-type Todo = { id: Id, completed: boolean, description: string }
-const todo: Todo = { id: '001', completed: true, description: 'Create a command builder pattern interface' }
+interface TodoData extends Infer<typeof $todoData> {}
+const $todoData = $({
+    completed: $.boolean,
+    description: $.string
+})
+
+interface TodoId extends Infer<typeof $todoId> {}
+const $todoId = $({
+    id: $.string
+})
+
+interface Todo extends Infer<typeof $todo> {}
+const $todo = $({
+    ...$todoId.$,
+    ...$todoData.$
+})
 
 //// Tests ////
 
@@ -29,74 +41,56 @@ it('is sealed', () => {
 })
 
 it('is a module', () => {
-    const getTodo = Command.create('get-todo', (i: TodoId) => ({ ...i, ...todo }))
+    const getTodo = Command.create('get-todo', $todoId)
+
     expect(getTodo).toBeInstanceOf(Module)
 })
 
 it('is strongly typed', () => {
 
-    const getTodo = Command.create('get-todo', (i: TodoId) => ({ ...i, ...todo }))
+    const getTodo = Command.create('get-todo', $todoId)
 
     type GetTodoTypes = typeof getTodo extends Command<infer N, infer I, infer O> 
         ? { name: N, input: I, output: O}
         : never
 
-    expectTypeOf<GetTodoTypes>().toEqualTypeOf<{
+    expectTypeOf<GetTodoTypes>().toMatchTypeOf<{
         name: 'get-todo'
         input: TodoId
-        output: Todo
+        output: TodoId
     }>()
 
 })
 
 describe('static builder pattern', () => {
 
-    const completeImportantTodo = (id: TodoId): Todo =>     
-        ({ ...id, ...todo, description: 'Kill all the orphans' })
-
     describe('.create()', () => {
         
         it('generic signature: name, execute, method, path', () => {
             const generic = Command.create(
                 'kill-orphans',
-                completeImportantTodo,
+                $todo,
                 HttpMethod.Put,
                 '/orphans'
             )
 
-            expect(generic.method).toBe(HttpMethod.Put)
-            expect(generic.path).toBe('/orphans')
+            expect(generic.http.method).toBe(HttpMethod.Put)
+            expect(generic.http.path).toBe('/orphans')
             expect(generic.name).toBe('kill-orphans')
         })
 
         it('generic signature: name, execute, method', () => {
-            const makeRed = Command.create('make-red', completeImportantTodo, HttpMethod.Options)
+            const makeRed = Command.create('make-red', $todo, HttpMethod.Options)
             expect(makeRed.name).toEqual('make-red')
-            expect(makeRed.method).toEqual(HttpMethod.Options)
-            expect(makeRed.path).toEqual('/make-red')
+            expect(makeRed.http.method).toEqual(HttpMethod.Options)
+            expect(makeRed.http.path).toEqual('/make-red')
         })
 
         it('generic signature: name, execute', () => {
-            const create = Command.create('create', completeImportantTodo)
+            const create = Command.create('create', $todo)
             expect(create.name).toEqual('create')
-            expect(create.method).toEqual(HttpMethod.Post)
-            expect(create.path).toEqual('/')
-        })
-
-        it('has access to module interface', () => {
-
-            Command.create(
-                'has-module-interface',
-                function(id: TodoId) {
-
-                    expect(this.name).toEqual('has-module-interface')
-                    expect(this.method).toEqual(HttpMethod.Post)
-                    expect(this.path).toEqual('/has-module-interface')
-
-                    return id
-                }).execute({ id: '0' })
-
-            expect.assertions(3)
+            expect(create.http.method).toEqual(HttpMethod.Post)
+            expect(create.http.path).toEqual('/')
         })
 
     })
@@ -115,62 +109,45 @@ describe('static builder pattern', () => {
             ('update', HttpMethod.Put)
             ('options', HttpMethod.Options)
 
-            const cmd = (Command as any)[name](completeImportantTodo)
+            const cmd = (Command as any)[name]($todo)
 
             it(`name == ${name}`, () => {
                 expect(cmd.name).toEqual(name)
             })
 
             it(`method == ${method}`, () => {
-                expect(cmd.method).toEqual(method)
+                expect(cmd.http.method).toEqual(method)
             })
 
             it('path == "/"', () => {
-                expect(cmd.path).toEqual('/')
+                expect(cmd.http.path).toEqual('/')
             })
 
-            it('has access to the module interface', () => {
-
-                (Command as any)[name](function(this: any, todo: TodoId) {
-
-                    expect(this?.method).toEqual(method)
-                    expect(this?.name).toEqual(name)
-                    expect(this).toBeInstanceOf(Command)
-
-                    return todo
-                }).execute({ id: '0' })
-
-                expect.assertions(3)
-
-            })
         })
     }
-
 })
 
 describe('instance builder pattern', () => {
 
-    describe('.pipe()', () => {
+    describe('.useHook()', () => {
 
-        it('pipe an additional execute method, changing the commands output', () => {
+        it('append a hook method, changing the commands output', async () => {
 
             const id = new ObjectId()
 
             const getTodo = Command
-                .create((data: Omit<Todo, 'id'>) => ({
-                    ...data,
-                    id
-                }))
+                .create($todoData)
 
             const dispatchTodo = getTodo
-                // convert id to string
-                .pipe(data => ({ ...data, id: data.id.toString() }))
-                // set created timestamp
-                .pipe(data => ({ ...data, created: new Date() }))
-                // remove complete
-                .pipe(omit('completed'))
 
-            const todo = dispatchTodo.execute({ completed: false, description: 'Pipe commands around' })
+                // add id
+                .useHook(data => ({ ...data, id: id.toString() }))
+                // set created timestamp
+                .useHook(data => ({ ...data, created: new Date() }))
+                // remove complete
+                .useHook(omit('completed'))
+
+            const todo = await dispatchTodo.execute({ completed: false, description: 'Pipe commands around' })
 
             expect(todo.id).toBe(id.toString())
             expect(todo.created).toBeInstanceOf(Date)
@@ -180,19 +157,12 @@ describe('instance builder pattern', () => {
         it('has access to partial module interface', () => {
 
             const getTodo = Command
-                .get(function (id: TodoId) {
-                    expect(this).toBeInstanceOf(Command)
-                    return {
-                        ...id,
-                        completed: true,
-                        description: this.name as string
-                    }
-                })
-                .pipe(function (todo) {
+                .get($todoId)
+                .useHook(function (todo) {
 
-                    expectTypeOf<typeof this>().toMatchTypeOf<RuntimeCommand<'get', Todo>>()
+                    expectTypeOf<typeof this>().toMatchTypeOf<RuntimeCommand<'get', TodoId>>()
 
-                    expect(this?.method).toEqual(HttpMethod.Get)
+                    expect(this?.http.method).toEqual(HttpMethod.Get)
                     expect(this?.name).toEqual('get')
                     return todo
                 })
@@ -200,43 +170,27 @@ describe('instance builder pattern', () => {
             const todo = getTodo.execute({ id: '0' })
             expect(todo).toEqual({ 
                 id: '0', 
-                completed: true, 
-                description: 'get' 
             })
 
-            expect.assertions(4)
-        })
-
-    })
-
-    describe('.validate()', () => {
-
-        it('sets an input validator for the command', () => {
-
-            const getTodo = Command
-                .get((data: TodoId) => data)
-                .validate(
-                    $({ 
-                        id: $.string.length('>', 0) 
-                    })
-                )
-                .pipe(i => ({ ...i, id: '0' }))
-
-            expect(() => getTodo.execute({ id: '' })).toThrow('must be above 0')
-
+            expect.assertions(3)
         })
     })
+
+    describe('.dispatch()', () => {
+        it.todo('applies a supplied hook method if the output is being returned to a client')
+    })
+
 })
 
 describe('name', () => {
 
     it('must be dash-cased', () => {
-        expect(() => Command.create('HolyMackaral', i => i))
+        expect(() => Command.create('HolyMackaral', $todo))
             .toThrow('must be dash-cased')
     })
 
     it('is typed', () => {
-        const killOrphans = Command.create('kill-orphans', i => i)
+        const killOrphans = Command.create('kill-orphans', $todo)
         type KillOrphans = typeof killOrphans
         type KillOrphansName = KillOrphans extends Command<infer N, any, any> ? N : never 
         expectTypeOf<KillOrphansName>().toEqualTypeOf<'kill-orphans'>()
