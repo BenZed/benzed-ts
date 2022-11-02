@@ -1,5 +1,5 @@
 import { Compile, Func } from './types'
-import { ValuesMap } from './value-map'
+import { ValuesMap } from './structures'
 
 //// Eslint ////
 
