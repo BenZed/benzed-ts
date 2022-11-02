@@ -22,6 +22,8 @@ interface Chain<I = unknown, O = unknown> extends Link<I,O> {
      */
     prepend<Ix = I>(link: Link<Ix, I>, ...links: Link<I, I>[]): Chain<Ix, O>
 
+    links: readonly Link[]
+
     [Symbol.iterator](): Iterator<Link>
 
 }
@@ -30,6 +32,11 @@ interface Chain<I = unknown, O = unknown> extends Link<I,O> {
 
 function isChain(input: (i: unknown) => unknown): input is Chain {
     return 'append' in input && 'prepend' in input
+}
+
+function * iterateLinks(this: Chain): Generator<Link> {
+    for (const link of this.links)
+        yield link
 }
 
 /**
@@ -63,9 +70,10 @@ function chain(...links: Link[]): Chain {
                 return chain(...links, link, ...s)
             },
 
-            *[Symbol.iterator]() {
-                yield* links
-            }
+            links,
+
+            [Symbol.iterator]: iterateLinks
+
         }
 
     ) as Chain
