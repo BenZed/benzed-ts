@@ -1,18 +1,33 @@
 import match from './match'
 
-it('allows you to match one set of values to another', () => {
+it('match a value', () => {
 
-    const match1to4 = match(1, 2, 3, 4)
+    const [ one ] = match(1)
         .case(1, 'one')
         .case(2, 'two')
         .case(3, 'three')
         .case(4, 'four')
 
-    const [ out1 ] = match1to4
-    expect(out1).toEqual('one')
+    expect(one).toEqual('one')
+})
 
-    const out2 = match1to4(4)
-    console.log(match1to4.cases)
+it('match a set of values', () => {
 
-    console.log(match(10))
+    const [ one, two, three, four ] = match(1, 2, 3, 4)
+        .case(1, 'one')
+        .case(2, 'two')
+        .case(3, 'three')
+        .case(4, 'four')
+
+    expect([ one, two, three, four ]).toEqual([ 'one', 'two', 'three', 'four' ])
+})
+
+it('match', () => {
+
+    const match1to3 = match
+        .case(1, 'one')
+        .case(2, 'two')
+        .case(3, 'three')
+
+    console.log(match1to3(1))
 })
