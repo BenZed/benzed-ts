@@ -52,8 +52,8 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
     //// Schema Implementation ////
 
     protected _typeValidator = new TypeValidator({
-        name: `number`,
-        article: `a`,
+        name: 'number',
+        article: 'a',
         is: isNumber,
         cast: tryCastToNumber
     })
@@ -62,7 +62,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
     range(...input: RangeValidatorSettingsShortcut<number>): this {
         return this._copyWithPostTypeValidator(
-            `range`,
+            'range',
             new RangeValidator(
                 toRangeValidatorSettings(input)
             )
@@ -70,15 +70,15 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
     }
 
     round(...input: RoundValidatorSettingsShortcut): this {
-        return this._copyWithRounderValidator(`round`, input)
+        return this._copyWithRounderValidator('round', input)
     }
 
     floor(...input: RoundValidatorSettingsShortcut): this {
-        return this._copyWithRounderValidator(`floor`, input)
+        return this._copyWithRounderValidator('floor', input)
     }
 
     ceil(...input: RoundValidatorSettingsShortcut): this {
-        return this._copyWithRounderValidator(`ceil`, input)
+        return this._copyWithRounderValidator('ceil', input)
     }
 
     override readonly optional!: HasOptional<
@@ -102,7 +102,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
         input: RoundValidatorSettingsShortcut
     ): this {
         return this._copyWithPostTypeValidator(
-            `rounder`,
+            'rounder',
             new RoundValidator(
                 toRoundValidatorSettings(
                     rounder,

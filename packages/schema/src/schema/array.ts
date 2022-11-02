@@ -59,8 +59,8 @@ class ArraySchema<
     }
 
     protected _typeValidator = new TypeValidator({
-        name: `array`,
-        article: `an`,
+        name: 'array',
+        article: 'an',
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,
         cast: tryCastToArray
     })
@@ -81,7 +81,7 @@ class ArraySchema<
         const output = [...input]
 
         for (let i = 0; i < output.length; i++) {
-            output[i] = childSchema[`_validate`](
+            output[i] = childSchema['_validate'](
                 output[i],
                 {
                     ...context,
@@ -102,7 +102,7 @@ class ArraySchema<
     length(...input: LengthValidatorSettingsShortcut): this {
         const settings = toLengthValidatorSettings(input)
 
-        return this._copyWithPostTypeValidator(`length`, new LengthValidator(settings))
+        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
     }
 
     override readonly optional!: HasOptional<

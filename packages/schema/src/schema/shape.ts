@@ -20,7 +20,7 @@ import {
 } from './schema'
 
 import { isObject, isString } from '@benzed/is'
-import { Compile, Merge } from '@benzed/util'
+import { Compile } from '@benzed/util'
 import { push } from '@benzed/immutable'
 import { DefaultValidatorSettings } from '../validator/default'
 
@@ -64,8 +64,8 @@ class ShapeSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `object`,
-        article: `an`,
+        name: 'object',
+        article: 'an',
         is: isObject as (input: unknown) => input is O,
         cast: (input: unknown) => isString(input)
             ? safeJsonParse(input, isObject) ?? input
@@ -90,7 +90,7 @@ class ShapeSchema<
         for (const key in propertySchemas) {
             const propertySchema = propertySchemas[key]
 
-            output[key] = propertySchema[`_validate`](
+            output[key] = propertySchema['_validate'](
                 input[key],
                 {
                     ...context,
@@ -116,7 +116,7 @@ class ShapeSchema<
         return this._input
     }
 
-    default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+    override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
 
         defaultValue ??= (): O => {
             let output: undefined | O = undefined
@@ -124,11 +124,11 @@ class ShapeSchema<
                 const schema = this._input[key]
 
                 // first used default validator output
-                let value = schema[`_defaultValidator`].transform(undefined)
+                let value = schema['_defaultValidator'].transform(undefined)
 
                 // use identify if primitive
                 if (value === undefined && schema instanceof PrimitiveSchema)
-                    value = schema[`_input`]
+                    value = schema['_input']
 
                 // assign if value 
                 if (value !== undefined)

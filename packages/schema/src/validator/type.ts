@@ -59,7 +59,7 @@ class TypeValidator<O> extends AssertTransformValidator<
 
         if (!is(input)) {
             this._throwWithErrorSetting(
-                `must be ${article ? article + ` ` + name : name}`,
+                `must be ${article ? article + ' ' + name : name}`,
                 input,
                 name,
                 article
