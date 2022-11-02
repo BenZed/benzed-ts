@@ -5,8 +5,9 @@ import { Command, RuntimeCommand } from './command'
 import { Module } from '../module'
 import { HttpMethod, Id } from '../modules'
 
-import match from '@benzed/match'
 import { omit } from '@benzed/util'
+import match from '@benzed/match'
+import $ from '@benzed/schema'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -206,6 +207,24 @@ describe('instance builder pattern', () => {
             expect.assertions(4)
         })
 
+    })
+
+    describe('.validate()', () => {
+
+        it('sets an input validator for the command', () => {
+
+            const getTodo = Command
+                .get((data: TodoId) => data)
+                .validate(
+                    $({ 
+                        id: $.string.length('>', 0) 
+                    })
+                )
+                .pipe(i => ({ ...i, id: '0' }))
+
+            expect(() => getTodo.execute({ id: '' })).toThrow('must be above 0')
+
+        })
     })
 })
 

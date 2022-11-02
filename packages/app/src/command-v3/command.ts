@@ -149,40 +149,65 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     
     private constructor(
         name: N,
-        pipe: Execute<I, O, N> | PipeBuilder<I, I, O>,
+        executeOrBuild: Execute<I, O, N> | PipeBuilder<I, I, O>,
         readonly method: HttpMethod,
         readonly path: Path
     ) {
         super(name)
-        this._pipe = 'build' in pipe ? pipe : pipe.bind(this)
+        this._pipe = 'build' in executeOrBuild ? executeOrBuild : pipe(executeOrBuild)
     }
 
-    private _pipe: Execute<I, O, N> | PipeBuilder<I, I, O>
+    protected override get _copyParams(): unknown[] {
+        return [
+            this.name,
+            this._pipe,
+            this.method,
+            this.path
+        ]
+    }
+
+    //// Execute ////
+
+    private readonly _pipe: PipeBuilder<I, I, O>
 
     execute(input: I): O {
-        
-        if ('build' in this._pipe)
-            this._pipe = this._pipe.build()
-
-        return this._pipe(input)
+        const _execute = this._pipe.build()
+        return _execute.call(this, input)
     }
 
-    //// HTTP ////
+    //// Instance Build Interface ////
 
     /**
      * Chain another execute method onto this command
      */
     pipe<Ox extends object>(execute: Execute<O, Ox, N>): Command<N, I, Ox> {
 
-        const { name, method, path, _pipe } = this
-
-        const builder = 'build' in _pipe ? _pipe : pipe(_pipe)
+        const { name, method, path, _pipe: pipe } = this
 
         return new Command(
             name,
-            builder(execute.bind(this)),
+            pipe(execute),
             method,
             path
+        )
+    }
+
+    /**
+     * Set an input valiator for this command
+     */
+    validate(validator: Pipe<I, I> | { validate: Pipe<I, I> }): Command<N, I, O> {
+
+        const validate = 'validate' in validator 
+            ? validator.validate 
+            : validator
+
+        const execute = this._pipe.build()
+
+        return new Command(
+            this.name,
+            pipe(validate)(execute),
+            this.method,
+            this.path
         )
     }
 
