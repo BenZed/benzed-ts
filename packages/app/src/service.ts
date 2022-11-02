@@ -7,7 +7,7 @@ import {
     command,
     Command,  
     CommandsOf, 
-} from './command'
+} from './_old-command'
 
 import { Module, Modules } from './module'
 import { Client, Server } from './modules'

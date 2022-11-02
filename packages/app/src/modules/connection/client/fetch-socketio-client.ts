@@ -8,7 +8,7 @@ import { HttpMethod } from '../server'
 import Client, { $clientSettings, ClientSettings } from './client'
 
 import { WEBSOCKET_PATH } from '../../../constants'
-import { createNameToReq } from '../../../command/request'
+import { createNameToReq } from '../../../_old-command/request'
 
 //// Eslint ////
 

@@ -1,184 +1,245 @@
-import is from '@benzed/is'
+import { isObject, isString } from '@benzed/is'
+import { Chain, chain, Link } from '@benzed/util'
 import { pluck } from '@benzed/array'
-import { Pipe, StringKeys } from '@benzed/util'
 
-import { HttpMethod } from '../modules/connection/server/http-methods'
+import CommandModule from './command-module'
 
-import {
-    Request,
-    ToRequest, 
-    FromRequest, 
-    StringFields,
-    
-    createToReq,
-    createFromReq
-} from './request'
-
-import { CamelCombine, Path } from '../types'
+import { Path } from '../types'
+import { HttpMethod } from '../modules'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/explicit-function-return-type
 */
 
 //// Types ////
 
-type Validator<I extends object> = (data: unknown) => I
+/**
+ * Command without build interface
+ */
+export type RuntimeCommand<N extends string, I extends object> = 
+    Omit<Command<N, I, object>, 'useHook'>
 
-interface Command<I extends object = object, O extends object = object> extends Pipe<I, Promise<O>> {
-    
+// type CommandHookTypeGuard<I extends object, O extends I, N extends string> = 
+//     ((this: RuntimeCommand<N, I>, input: I) => input is O) | TypeGuard<O, I>
+
+// export type CommandHookPredicate<I extends object, N extends string> = 
+//     ((this: RuntimeCommand<N,I>, input: I) => boolean) | Link<I, boolean>
+
+export type CommandHook<I extends object, O extends object, N extends string> =
+    ((this: RuntimeCommand<N, I>, input: I) => O) | Link<I, O> 
+
+type CommandValidate<I extends object> = { validate: Link<I, I> }
+
+//// Command ////
+
+class Command<N extends string, I extends object, O extends object> extends CommandModule<N,I,O> {
+
+    //// Static Interface ////
+
     /**
-     * Set data validation for this command
+     * Create a new generic command
+     * @param name - Name of the command, must be dash-cased.
+     * @param validate - Validate incoming idata
+     * @param method - Http method this command maps to
+     * @param path - url endpoint this command maps to
+     * @returns new Command
      */
-    validator(validator: Validator<I> | { validate: Validator<I> }): Command<I, O>
+    static create<Nx extends string, Ix extends object>(
+        name: Nx,
+        validate: CommandValidate<Ix>,
+        method?: HttpMethod,
+        path?: Path
+    ): Command<Nx, Ix, Ix>
 
     /**
-     * Create generic request converters for this command
+     * Convience method for defining a POST command named 'create'
+     * @param validate - Validate incoming idata
+     * @returns - new POST Command
      */
-    req(
-        method: HttpMethod,
-        url: Path
-    ): Command<I, O> 
-        
-    /**
-     * Set explicit request converters
-     * for this command
-     */
-    req<Px extends StringFields<I>>(
-        toReq: ToRequest<I, Px>,
-        fromReq: FromRequest<I, Px>
-    ): Command<I, O> 
+    static create<Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ): Command<'create', Ix, Ix>
 
-    req<Px extends StringFields<I>>(
-        method: HttpMethod,
-        url: Path,
-        param: Px
-    ): Command<I, O> 
+    static create(...args: unknown[]) {
 
-    validate?: Validator<I>
+        const isNamed = isString(args[0])
 
-    toReq?: ToRequest<I, any>
+        const [
+            { validate }
+        ] = pluck(args, isObject<CommandValidate<object>>)
 
-    fromReq?: FromRequest<I, any>
+        const [
+            name = 'create', 
+            method = HttpMethod.Post, 
+            path = name === 'create' ? '/' : `/${name}`
 
-}
+        ] = (isNamed
+            ? args
+            : ['create', ...args]) as [string | undefined, HttpMethod | undefined, Path | undefined]
 
-/**
- * Get the input type of a command
- */
-type CommandInput<C extends Command<any, any>> = C extends Command<infer I, any> ? I : never
-
-/**
- * Get the output type of a command
- */
-type CommandOutput<C extends Command<any, any>> = C extends Command<any, infer O> ? O : never
-
-/**
- * Get a subobject of a type that is only comprised of commands
- */
-type CommandsOf<T extends object, P extends string = ''> = {
-    [K in StringKeys<T> as T[K] extends Command<any, any> ? CamelCombine<P, K> : never]: T[K]
-}
-
-//// Main ////
-
-/**
- * Is the provided value a command?
- */
-function isCommand(input: unknown): input is Command<any, any> {
-
-    const cmd = input as any
-
-    return is.function(cmd) && 
-        is.function(cmd.validator) && 
-        is.function(cmd.req)
-}
-
-/**
- * Extract the commands of an object to a new object
- */
-function commandsOf<T extends object>(input: T): CommandsOf<T> {
-
-    const commands: { [name: string]: Command } = {}
-
-    for (const key in input) {
-        const command = input[key]
-        if (isCommand(command))
-            commands[key] = command
+        return new Command(name, validate, method, path)
     }
 
-    return commands as CommandsOf<T>
-}
+    /**
+     * Convience interface for defining a GET command named 'get'
+     * @param validate - Validate incoming idata
+     * @returns new GET Command
+     */
+    static get = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('get', validate, HttpMethod.Get, '/')
 
-/**
- * Create a command out of a pipe method 
- */
-function command<I extends object, O extends object>(execute: Pipe<I, Promise<O>>): Command<I, O> {
-    
-    const _command = Object.assign(
+    /**
+     * Convience interface for defining a GET command named 'find'
+     * @param validate - Handle command input to output
+     * @returns new GET Command
+     */
+    static find = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('find', validate, HttpMethod.Get, '/')
 
-        // Execute with validation
-        (input: I) => execute(
-            _command.validate?.(input) ?? input
-        ),
-
-        // Command Methods
-        {
-
-            req(this: Command<I, O>, ...args: any[]): any {
-
-                const funcs = pluck(args, is.function)
+    /**
+     * Convience interface for defining a DELETE command named 'delete'
+     * @param validate - Validate incoming idata
+     * @returns new DELETE Command
+     */
+    static delete = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('delete', validate, HttpMethod.Delete, '/')
         
-                let toReq: ToRequest<I, never>
-                let fromReq: FromRequest<I, never>
-                
-                if (funcs.length === 2) {
-                    toReq = funcs[0] as any
-                    fromReq = funcs[1] as any
-                } else {
-                    const [method, url, param] = args
-                    toReq = createToReq<I,never>(method, url, param)
-                    fromReq = createFromReq<I, never>(method, url, param)
-                }
+    /**
+     * Convience interface for defining a DELETE command named 'remove'
+     * @param validate - validate incoming data
+     * @returns new DELETE Command
+     */
+    static remove = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('remove', validate, HttpMethod.Delete, '/')
 
-                this.toReq = toReq
-                this.fromReq = fromReq
+    /**
+     * Convience interface for defining a PATCH command named 'patch'
+     * @param validate - validate incoming data
+     * @returns new PATCH Command
+     */
+    static patch = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('patch', validate, HttpMethod.Patch, '/')
 
-                return this
-            },
+    /**
+     * Convience interface for defining a PATCH command named 'edit'
+     * @param validate - validate incoming data
+     * @returns new PATCH Command
+     */
+    static edit = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('edit', validate, HttpMethod.Patch, '/')
 
-            validator(this: Command<I, O>, validator: Validator<I> | { validate: Validator<I> }) {
-                this.validate = 'validate' in validator ? validator.validate : validator
-                return this
-            },
+    /**
+     * Convience interface for defining a PUT command named 'update'
+     * @param validate - validate incoming data
+     * @returns new PUT Command
+     */
+    static update = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('update', validate, HttpMethod.Put, '/')
 
-            validate: undefined as Validator<I> | undefined
+    /**
+     * Convience interface for defining a OPTIONS command named 'options'
+     * @param validate - validate incoming data
+     * @returns new OPTIONS Command
+     */
+    static options = <Ix extends object>(
+        validate: CommandValidate<Ix>,
+    ) => this.create('options', validate, HttpMethod.Options, '/')
+        
+    //// Sealed ////
+    
+    private constructor(
+        name: N,
+        hookOrValidate: CommandHook<I, O, N>,
+        readonly _method: HttpMethod,
+        readonly _path: Path
+    ) {
+        super(name)
+        this._execute = chain(hookOrValidate)
+    }
+
+    protected readonly _execute: Chain<I,O> 
+
+    protected override get _copyParams(): unknown[] {
+        return [
+            this.name,
+            this._execute,
+            this.http.method,
+            this.http.path
+        ]
+    }
+
+    //// State ////
+    
+    get http(): { method: HttpMethod, path: Path } {
+        const { _method: method, _path: path } = this
+        return { method, path }
+    }
+
+    override get methods(): [HttpMethod] {
+        return [this.http.method]
+    }
+
+    //// Valiation Interface ////
+
+    /**
+     * Validates given input 
+     */
+    validateData(data: object): I {
+        return this._execute.links[0](data) as I
+    }
+
+    /**
+     * Is the given input valid data for this command?
+     */
+    isData(data: object): data is I {
+        try {
+            this.validateData(data)
+            return true
+        } catch {
+            return false
         }
-    )
+    }
 
-    return _command
+    //// Instance Build Interface ////
+
+    // TODO add first class match support
+    /**
+     * Add a hook that conditionally executes given the output of a
+     * supplied predicate method
+     */
+    // useHook<Ox extends object>(
+    //     predicate: CommandHookPredicate<Ox, N>,
+    //     hook: CommandHook<O, Ox, N>
+    // ): Command<N, I, Ox>
+
+    /**
+     * Add a hook to this command
+     */
+    useHook<Ox extends object>(hook: CommandHook<O, Ox, N>): Command<N, I, Ox> {
+
+        const { name, http } = this
+
+        return new Command(
+            name,
+            this._execute.append(hook),
+            http.method,
+            http.path
+        )
+    }
+
 }
-
-//// Extend ////
-
-command.is = isCommand
-command.of = commandsOf
 
 //// Exports ////
 
-export default command 
+export default Command
 
 export {
-    command,
-    commandsOf,
-    isCommand,
-
-    Command,
-    CommandsOf,
-    CommandInput,
-    CommandOutput,
-    Validator as CommandValidator,
-
-    Request as CommandRequestData,
-    ToRequest as CommandInputToRequestData,
-    FromRequest as RequestDataToCommandInput,
+    Command
 }

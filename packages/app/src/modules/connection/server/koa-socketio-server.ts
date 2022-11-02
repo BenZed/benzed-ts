@@ -9,7 +9,7 @@ import cors from '@koa/cors'
 import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
-import { createNameFromReq } from '../../../command/request'
+import { createNameFromReq } from '../../../_old-command/request'
 import { WEBSOCKET_PATH } from '../../../constants'
 
 import { HttpCode } from './http-codes'
