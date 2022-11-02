@@ -1,7 +1,7 @@
 
 /* eslint-disable @typescript-eslint/unified-signatures */
 
-import iterate from './iterate'
+import iterate from '../iterate'
 
 //// Types ////
 

@@ -1,4 +1,4 @@
-import { Compile } from './types'
+import { Compile } from '../types'
 
 //// Eslint ////
 

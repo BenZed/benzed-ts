@@ -4,7 +4,7 @@
     @typescript-eslint/no-explicit-any,
 */
 
-import { StringKeys } from './types'
+import { StringKeys } from '../types'
 
 //// Constants ////
 
