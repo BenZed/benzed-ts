@@ -4,13 +4,6 @@
 
 export type Func<A extends any[] = any, V = any, T = void> = (this: T, ...args: A) => V
 
-/**
- * Pure function that computes an output from a single input
- */
-export interface Compute<I = unknown, O = unknown> {
-    (input: I): O
-}
-
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O

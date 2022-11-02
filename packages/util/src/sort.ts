@@ -1,6 +1,4 @@
 
-import { Pipe } from './pipe'
-
 /* eslint-disable
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/explicit-function-return-type
@@ -45,7 +43,7 @@ const byMany = <T>(...sorters: Sort<T>[]): Sort<T> => (a, b) => {
  * Multiple maps may be provided, and will be checked if 
  * the previous outputs were equivalent.
  */
-const byMap = <T>(...maps: Pipe<T, Sortable>[]): Sort<T> =>
+const byMap = <T>(...maps: ((input: T) => Sortable)[]): Sort<T> =>
     byMany(
         ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b))
         )
@@ -58,7 +56,9 @@ const byMap = <T>(...maps: Pipe<T, Sortable>[]): Sort<T> =>
  * Multiple properties may be provided, and will be checked if
  * previous property values were equivalent.
  */
-const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K): Sort<T> =>
+const byProp = <T extends object, K extends SortableKeys<T>[]>(
+    ...properties: K
+): Sort<T> =>
     byMany(
         ...properties.map(property =>
             byMap((t: any) => t[property])
@@ -67,7 +67,7 @@ const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K)
 
 //// By Interface ////
 
-const by = <T>(...args: Pipe<T, Sortable>[]) => byMap(...args)
+const by = <T>(...args: ((input: T) => Sortable)[]) => byMap(...args)
 
 by.value = byValue
 by.many = byMany
