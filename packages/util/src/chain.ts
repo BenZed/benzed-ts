@@ -14,13 +14,13 @@ interface Chain<I = unknown, O = unknown> extends Link<I,O> {
      * Add link(s) to the end of the chain
      * @param link 
      */
-    append<Ox = O>(link: Link<O, Ox>, ...links: Link<Ox, Ox>[]): Chain<I, Ox>
+    append<Ox>(link: Link<O, Ox>, ...links: Link<Ox, Ox>[]): Chain<I, Ox>
 
     /**
      * Add link(s) to the beginning of the chain
      * @param link 
      */
-    prepend<Ix = I>(link: Link<Ix, I>, ...links: Link<I, I>[]): Chain<Ix, O>
+    prepend<Ix>(link: Link<Ix, I>, ...links: Link<I, I>[]): Chain<Ix, O>
 
     links: readonly Link[]
 
@@ -28,15 +28,39 @@ interface Chain<I = unknown, O = unknown> extends Link<I,O> {
 
 }
 
-//// Main ////
-
-function isChain(input: (i: unknown) => unknown): input is Chain {
-    return 'append' in input && 'prepend' in input
-}
+//// Helper ////
 
 function * iterateLinks(this: Chain): Generator<Link> {
     for (const link of this.links)
         yield link
+}
+
+function flattenLinks(input: readonly Link[]): Link[] {
+    const output: Link[] = []
+
+    for (const link of input) {
+        if (isChain(link))
+            output.push(...link)
+        else 
+            output.push(link)
+    }
+
+    return output
+}
+
+function append(this: Chain, link: Link, ...s: Link[]): Chain {
+    return chain(...this.links, link, ...s)
+}
+
+function prepend(this: Chain, link: Link, ...s: Link[]): Chain {
+    return chain(link, ...s, ...this.links)
+
+}
+
+//// Main ////
+
+function isChain(input: (i: unknown) => unknown): input is Chain {
+    return 'append' in input && 'prepend' in input
 }
 
 /**
@@ -51,29 +75,24 @@ function chain<T>(...links: Link<T,T>[]): Chain<T,T>
 
 function chain(...links: Link[]): Chain {
 
-    links = links.map(link => isChain(link) ? [...link] : link).flat()
+    links = flattenLinks(links)
 
     return Object.assign(
-        function(this: unknown, x: unknown) {
+        function pipe(this: unknown, x: unknown) {
             for (const link of links) 
-                x = link.call(this, x)
+                x = this === undefined ? link(x) : link.call(this, x)
 
             return x
         },
         {
 
-            prepend(link: Link, ...s: Link[]) {
-                return chain(link, ...s, ...links)
-            },
+            prepend,
 
-            append(link: Link, ...s: Link[]) {
-                return chain(...links, link, ...s)
-            },
+            append,
 
             links,
 
             [Symbol.iterator]: iterateLinks
-
         }
 
     ) as Chain
@@ -85,6 +104,8 @@ function chain(...links: Link[]): Chain {
 export default chain
 
 export {
+    Link, 
+
     chain,
     Chain,
     isChain
