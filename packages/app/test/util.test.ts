@@ -17,7 +17,7 @@ const add = Command
     .useHook(({ a, b }) => ({ result: a + b }))
 
 const subtract = Command
-    .create('subract', $values, HttpMethod.Get)
+    .create('subtract', $values, HttpMethod.Get)
     .useHook(({ a, b }) => ({ result: a - b }))
 
 const divide = Command

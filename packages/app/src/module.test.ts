@@ -92,14 +92,17 @@ it('.has() a module', () => {
 
 it('.parent', () => {
     
-    const app = App.create().useModule(Service.create())
+    const app = App.create().useModule(new Module())
     const service = app.modules[0]
     expect(service.parent).toBe(app)
 
 })
 
 it('.root', () => {
-    const app = App.create().useModule(Service.create().useModule(Service.create()))
+
+    const service = Service.create().useModule(new Module())
+
+    const app = App.create().useModule(service.useService('/eh', service))
     const child = app.modules[0].modules[0]
     expect(child.root).toBe(app)
 })

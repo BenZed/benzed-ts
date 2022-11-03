@@ -144,15 +144,16 @@ export class FetchSocketIOClient extends Client {
     private async _executeFetchCommand(name: string, cmdData: object): Promise<object> {
         const { host } = this.settings
 
-        const [ method, url, reqData ] = this.root.getCommand(name).toRequest(cmdData)
+        const [ method, cmdEndPoint, reqData ] = this.root.getCommand(name).toRequest(cmdData)
 
         const fetchData = {
             method,
-            body: method === HttpMethod.Get ? null : JSON.stringify(reqData),
-            url: method === HttpMethod.Get ? `${url}${toQueryString(reqData)}` : url
+            body: method === HttpMethod.Get ? null : JSON.stringify(reqData)
         }
 
-        const response = await fetch(host, fetchData)
+        const fetchEndPoint = method === HttpMethod.Get ? `${cmdEndPoint}${toQueryString(reqData)}` : cmdEndPoint
+
+        const response = await fetch(`${host}${fetchEndPoint}`, fetchData)
         return response.json()
     }
 

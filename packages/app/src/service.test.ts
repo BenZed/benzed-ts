@@ -11,12 +11,11 @@ import { Command } from './command'
 
 //// Tests ////
 
-describe('.useModule(path)', () => {
-    const service = Service.create()
+describe('.useService(path)', () => {
 
-    const app = App.create().useModule(service)
+    const app = App.create().useModule(new Module())
 
-    const todoApp = app.useModule('/todos', service)
+    const todoApp = app.useService('/todos', Service.create())
 
     it('places one as a module of the other', () => {
         expect(app.modules[0].parent)
@@ -115,19 +114,17 @@ describe('.commands', () => {
 
         const cars = Service.create()
             .useModule(orders)
-            .useModule(
+            .useService(
                 '/part',
                 orders
             )
 
         const travel = App.create()
             .useModule(orders)
-            .useModule('/car', cars)
-            .useModule('/bike', bikes)
+            .useService('/car', cars)
+            .useService('/bike', bikes)
 
         const { commands } = travel
-
-        const output = commands.carPartCreate.execute({ type: 'Face' })
 
         expectTypeOf(commands).toEqualTypeOf<{
             create: Command<'create', OrderData, { order: Order }>
@@ -146,7 +143,7 @@ describe('.commands', () => {
 
         const app = App.create()
 
-        const service = Service.create().useModule('/todos', app)
+        const service = Service.create().useService('/todos', app)
         const wasApp = service.modules[0]
 
         expectTypeOf(wasApp).toEqualTypeOf<Service<'/todos', []>>()
@@ -156,10 +153,13 @@ describe('.commands', () => {
 
         for (const path of ['', '/ace'] as Path[]) {
             for (const service of [App.create(), Service.create()]) {
-                expect(() => (service as Service<Path>)
-                    .useModule(path, Service.create().useModule(createOrder))
-                    .useModule(path, Service.create().useModule(createOrder))
-                ).toThrow('Command name collision')
+                expect(() => {
+                    
+                    const app = (service as Service<Path>)
+                        .useService(path, Service.create().useModule(createOrder))
+                        .useService(path, Service.create().useModule(createOrder))
+
+                }).toThrow('Command name collision')
             }
         }
     })

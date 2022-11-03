@@ -100,8 +100,8 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     //// Command Module Implementation ////
 
-    abstract useModule<Mx extends ServiceModule<any>>(
-        path: Path,
+    abstract useService<P extends Path, Mx extends ServiceModule<any>>(
+        path: P,
         module: Mx
     ): unknown
 
@@ -149,17 +149,22 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     ): Modules {
 
         const path = pluck(args, isPath).at(0)
-        let module = pluck(args, isModule).at(0)
+        const module = pluck(args, isModule).at(0)
         if (!module)
             throw new Error(`${Module.name} not provided.`)
 
-        if (path && module instanceof ServiceModule<any>)
-            module = Service._create(path, module._modules)
+        const isService = module instanceof ServiceModule<any>
 
-        else if (path)
+        const newModules = isService && path
+            ? [Service._create(path, module._modules)]
+            : isService 
+                ? [...module.modules] 
+                : [module]
+
+        if (path && !isService)
             throw new Error(`${module.name} is not a service, and cannot be used at path: ${path}`)
 
-        return [ ...this.modules, module ]
+        return [ ...this.modules, ...newModules ]
     }
 
     private _assertNoCommandNameCollisions(): void {
@@ -171,7 +176,15 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
         const commands: { [key: string]: CommandModule<string, object, object> } = {}
 
+        const setCommand = (name: string, command: CommandModule<string, object, object>): void => {
+            if (name in commands)
+                throw new Error(`Command name collision: "${name}" is used multiple times`)
+
+            commands[name] = command
+        }
+
         for (const module of this.modules) {
+
             if (module instanceof ServiceModule) {
                 for (const key in module.commands) {
     
@@ -179,17 +192,12 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
                         ? `${module.path.replaceAll('/', '')}${capitalize(key)}`
                         : key
 
-                    if (name in commands)
-                        throw new Error(`Command name collision: "${name}" is used multiple times`)
-
-                    commands[name] = module.commands[key as keyof typeof module.commands]
+                    setCommand(name, module.commands[key as keyof typeof module.commands])
                 }
-            }
-            
-            if (module instanceof CommandModule) {
+            } else if (module instanceof CommandModule) {
+                
                 const name = toCamelCase(module.name)
-
-                commands[name] = module
+                setCommand(name, module)
             }
 
         }
@@ -238,22 +246,23 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
         return this._path as P
     }
 
-    override useModule<Px extends Path, S extends ServiceModule<any>>(
+    override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): Service<P, [...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : never]>
+    ): Service<P, [...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]> {
+        return Service._create(
+            this._path,
+            this._pushModule(path, module)
+        ) as Service<P, [...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]> 
+    }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, [...M, Mx]>
-
-    override useModule(
-        ...args: [path: Path, module: Module] | [module: Module] 
-    ): Service<Path, Modules> {
+    ): Service<P, [...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]> {
         return Service._create(
             this._path,
-            this._pushModule(...args)
-        )
+            this._pushModule(module)
+        ) as Service<P, [...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]> 
     }
 
     //// Module Implementation ////

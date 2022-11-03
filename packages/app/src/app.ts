@@ -28,21 +28,21 @@ class App<M extends Modules = Modules> extends ServiceModule<M> {
   
     // Use Interface
 
-    override useModule<Px extends Path, S extends ServiceModule<any>>(
+    override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): App<[...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]>
+    ): App<[...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]> {
+        return new App(
+            this._pushModule(path, module)
+        ) as App<[...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]>
+    }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): App<[...M, Mx]>
-
-    override useModule(
-        ...args: [path: Path, module: Module] | [module: Module] 
-    ): App<Modules> {
+    ): App<[...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]> {
         return new App(
-            this._pushModule(...args)
-        )
+            this._pushModule(module)
+        ) as App<[...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]>
     }
 
 }

@@ -13,6 +13,7 @@ import { WEBSOCKET_PATH } from '../../../constants'
 
 import { HttpCode } from './http-codes'
 import { HttpMethod } from './http-methods'
+import { text } from 'stream/consumers'
 
 //// KoaServer ////
 
@@ -99,7 +100,10 @@ export class KoaSocketIOServer extends Server {
         const ctxData = this._getCtxCommandData(ctx)
 
         for (const name in this.root.commands) {
-            const cmdData = this.root.getCommand(name).fromRequest(ctx.method as HttpMethod, ctx.url, ctxData)
+
+            const urlWithoutQueryString = ctx.url.split('?')[0]
+
+            const cmdData = this.root.getCommand(name).fromRequest(ctx.method as HttpMethod, urlWithoutQueryString, ctxData)
             if (cmdData)
                 return this.execute(name, cmdData)
         }
