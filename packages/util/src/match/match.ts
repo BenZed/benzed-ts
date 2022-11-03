@@ -1,11 +1,12 @@
 import { NoMatchError, NoIterableValuesError } from './error'
 import { 
     Case, 
-    MatchBuilder, 
     MatchIterable, 
-    MatchCases,
-    MatchState, 
-    MatchIterableEmptyBuilder
+    MatchState,
+    MatchIterableState, 
+    MatcherIterableEmpty,
+    Matchable,
+    Matcher
 } from './types'
 
 //// Match Methods ////
@@ -15,7 +16,7 @@ import {
  * Will throw if no value can be found.
  */
 function value(
-    this: MatchCases,
+    this: MatchState,
     value: unknown, 
 ): unknown {
     for (const { input, output, default: isDefault } of this.cases) {
@@ -52,14 +53,14 @@ function * iterateValues(this: MatchIterable): Generator<unknown> {
  * Create a matcher for a single value
  * @param value 
  */
-function match(value: unknown): MatchIterableEmptyBuilder
+function match<I extends Matchable>(value: I): MatcherIterableEmpty<I>
 /**
  * Create a matcher for a set of values
  * @param values
  */
-function match(...values: unknown[]): MatchIterableEmptyBuilder
+function match<A extends readonly Matchable[]>(...values: A): MatcherIterableEmpty<A[number]>
 
-function match(this: MatchState, input: unknown, output: unknown): MatchBuilder
+function match(this: MatchIterableState, input: unknown, output: unknown): Matcher
 
 /**
  * Handle all create-match signatures
@@ -72,7 +73,7 @@ function match(this: unknown, ...args: unknown[]): unknown {
     }
 
     // immutable add
-    const prevState = this as MatchState | void
+    const prevState = this as MatchIterableState | void
     if (prevState) {
         // .case() signature
         const newCase = args.length === 2 
@@ -113,7 +114,10 @@ function match(this: unknown, ...args: unknown[]): unknown {
 match.case = match.bind({ 
     cases: [], 
     values: [] 
-}) as (input: unknown, output: unknown) => MatchBuilder
+}) as <I extends Matchable, O extends Matchable>(
+    input: I, 
+    output: O
+) => Matcher<I,O>
 
 //// Exports ////
 

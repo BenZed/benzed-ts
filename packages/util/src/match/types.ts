@@ -1,4 +1,17 @@
 
+//// Matchable ////
+
+export type Matchable = string | number | boolean | bigint | object
+type _FromMatchable<I> = I extends string 
+    ? string 
+    : I extends number 
+        ? number 
+        : I extends boolean 
+            ? boolean 
+            : I extends bigint 
+                ? bigint 
+                : object
+
 //// Match State ////
 
 export interface Case {
@@ -7,49 +20,52 @@ export interface Case {
     readonly default: boolean
 }
 
-export interface MatchCases {
+export interface MatchState {
     cases: readonly Case[]
-}
-
-export interface MatchState extends MatchCases {
-    values: readonly unknown[]
 }
 
 //// Match ////
 
-export interface MatchBuilder extends MatchState {
+export interface Match<I = unknown, O = unknown> extends MatchState {
 
-    case(input: unknown, output: unknown): MatchBuilder 
+    (value: I): O
 
-    default(output: unknown): Match
+    value(value: I): O
 
 }
 
-export interface Match extends MatchCases {
+export interface Matcher<I = unknown, O = unknown> extends Match<I, O> {
 
-    (value: unknown): unknown
+    case<Ix extends Matchable, Ox extends Matchable>(
+        input: Ix, 
+        output: Ox
+    ): Matcher<I | Ix, O | Ox>
 
-    value(value: unknown): unknown
+    default<Ox extends Matchable>(output: Ox): Match<_FromMatchable<I>, O | Ox>
 
 }
 
 //// Iterable Match ////
 
-export interface MatchIterableEmptyBuilder extends MatchState {
+export interface MatchIterableState<V = unknown> extends MatchState {
+    values: readonly V[]
+}
 
-    case(input: unknown, output: unknown): MatchIterableBuilder 
+export interface MatcherIterableEmpty<I = unknown> extends MatchIterableState<I> {
+
+    case<Ox>(input: I, output: Ox): MatcherIterable<I, Ox>
 
 }
 
-export interface MatchIterableBuilder extends MatchIterableEmptyBuilder {
+export interface MatcherIterable<I = unknown, O = unknown> extends MatcherIterableEmpty<I> {
 
-    default(output: unknown): MatchIterable
+    default<Ox>(output: Ox): MatchIterable<I, O | Ox>
 
 }
 
-export interface MatchIterable extends Match, MatchState {
+export interface MatchIterable<I = unknown, O = unknown> extends Match<I, O>, MatchIterableState<I> {
 
-    [Symbol.iterator](): Generator<unknown>
+    [Symbol.iterator](): Generator<O>
 
 }
 

@@ -4,7 +4,7 @@ export class NoMatchError extends Error {
     constructor(
         protected value: unknown
     ) {
-        super(`Could not find a match for ${value}`)
+        super(`Unmatched value: ${value}`)
         this.name = 'NoMatchError'
     }
  
