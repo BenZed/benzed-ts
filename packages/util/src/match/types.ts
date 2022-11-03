@@ -11,12 +11,16 @@ export interface MatchCases {
     cases: readonly Case[]
 }
 
-export interface MatchState extends MatchCases{
+export interface MatchState extends MatchCases {
     values: readonly unknown[]
 }
 
 export interface Match_ extends MatchCases {
+
     (value: unknown): unknown
+
+    value(value: unknown): unknown
+
 }
 
 export interface Match extends MatchState, Match_ {
