@@ -1,9 +1,10 @@
 import $ from '@benzed/schema'
 import { toDashCase } from '@benzed/string'
-import { Chain } from '@benzed/util/lib'
+import { Chain } from '@benzed/util'
 
 import { Module } from '../module'
 import { HttpMethod } from '../modules'
+import { Request, StringFields } from './request'
 
 //// Validation ////
 
@@ -43,20 +44,13 @@ abstract class CommandModule<
      */
     abstract get methods(): HttpMethod[]
 
-    /*
-    abstract toRequest(input: I): {
-        method: HttpMethod
-        url: string
-        body: object
-    }
+    abstract toRequest(input: I): Request<I, StringFields<I>>
 
     abstract fromRequest(
         method: HttpMethod,
         url: string,
-        query: object,
-        body: object
+        data: object,
     ): I | null
-    */
 
     constructor(
         readonly _name: N

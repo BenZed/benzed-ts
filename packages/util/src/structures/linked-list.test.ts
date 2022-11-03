@@ -95,7 +95,7 @@ describe('.insert()', () => {
         const item = numbers1.at(0) as LinkedItem<number>
 
         expect(() => {
-            console.log(numbers2.insert(3, item))
+            numbers2.insert(3, item)
         }).toThrow('Item not in list')
 
     })

@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 
 import { Module } from '../module'
-import { HttpMethod, Id } from '../modules'
+import { HttpMethod } from '../modules'
 import { Command, RuntimeCommand } from './command'
 
 import { omit } from '@benzed/util'
@@ -16,7 +16,7 @@ import { expectTypeOf } from 'expect-type'
 
 //// Todo ////
 
-interface TodoData extends Infer<typeof $todoData> {}
+// interface TodoData extends Infer<typeof $todoData> {}
 const $todoData = $({
     completed: $.boolean,
     description: $.string
@@ -27,7 +27,7 @@ const $todoId = $({
     id: $.string
 })
 
-interface Todo extends Infer<typeof $todo> {}
+// interface Todo extends Infer<typeof $todo> {}
 const $todo = $({
     ...$todoId.$,
     ...$todoData.$
@@ -162,7 +162,7 @@ describe('instance builder pattern', () => {
                 .get($todoId)
                 .useHook(function (todo) {
 
-                    expectTypeOf<typeof this>().toMatchTypeOf<RuntimeCommand<'get', TodoId>>()
+                    expectTypeOf<typeof this>().toMatchTypeOf<RuntimeCommand<TodoId>>()
 
                     expect(this?.http.method).toEqual(HttpMethod.Get)
                     expect(this?.name).toEqual('get')

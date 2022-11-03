@@ -1,4 +1,4 @@
-import { Calculator } from './util.test'
+import { calculator } from './util.test'
 import { App, Client, Server } from '../src'
 
 //// Setup ////
@@ -8,7 +8,7 @@ for (const webSocketClient of [true, false]) {
 
         describe(`websocket ${webSocketClient ? 'enabled' : 'disabled'} on client, ${webSocketServer ? 'enabled' : 'disabled'} on server`, () => {
 
-            const app = App.create().useModule(new Calculator())
+            const app = App.create().useModule(calculator)
 
             const client = app.useModule(Client.create({ webSocket: webSocketClient }))
             const server = app.useModule(Server.create({ webSocket: webSocketServer }))
@@ -30,8 +30,8 @@ for (const webSocketClient of [true, false]) {
 
             ] as const) {
                 it(`calculator ${name} test ${data} should result in ${JSON.stringify(output)}`, async () => {
-
-                    const result = await client.getCommand(name)(data)
+                    const command = client.getCommand(name)
+                    const result = await command.execute(data)
                     expect(result).toEqual(output)
                 })
             }

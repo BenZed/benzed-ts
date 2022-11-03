@@ -9,7 +9,6 @@ import cors from '@koa/cors'
 import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
-import { createNameFromReq } from '../../../_old-command/request'
 import { WEBSOCKET_PATH } from '../../../constants'
 
 import { HttpCode } from './http-codes'
@@ -46,8 +45,9 @@ export class KoaSocketIOServer extends Server {
     // Connection Implementation
 
     execute(name: string, data: object): Promise<object> {
-        // return this.root.getCommand(name).execute(data)
-        throw new Error('Not yet implemented')
+        return Promise.resolve(
+            this.root.getCommand(name).execute(data)
+        )
     }
 
     // Module Implementation
@@ -99,10 +99,7 @@ export class KoaSocketIOServer extends Server {
         const ctxData = this._getCtxCommandData(ctx)
 
         for (const name in this.root.commands) {
-
-            const fromReq = this.root.getCommand(name).fromReq ?? createNameFromReq(name)
-
-            const cmdData = fromReq([ ctx.method as HttpMethod, ctx.url, ctxData ])
+            const cmdData = this.root.getCommand(name).fromRequest(ctx.method as HttpMethod, ctx.url, ctxData)
             if (cmdData)
                 return this.execute(name, cmdData)
         }

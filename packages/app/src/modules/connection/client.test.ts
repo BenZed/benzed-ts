@@ -1,6 +1,5 @@
 import { inputToOutput } from '@benzed/util'
 
-import { Command } from '../../command'
 import { Client } from './client'
 import { Server} from './server'
 
@@ -9,7 +8,7 @@ import { Server} from './server'
 for (const webSocket of [false, true]) {
 
     describe(`websocket: ${webSocket}`, () => {
-        const log: Command[] = []
+        // const log: Command[] = []
 
         let server: Server
         beforeAll(async () => {

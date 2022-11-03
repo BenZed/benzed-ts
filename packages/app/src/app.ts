@@ -1,6 +1,6 @@
 import { Module, Modules } from './module'
 
-import { CommandModule, Service } from './service'
+import { ServiceModule, Service } from './service'
 
 import { Path } from './types'
 
@@ -14,7 +14,7 @@ import { Path } from './types'
  * An app is essentially just a Service without a path. 
  * The root 
  */
-class App<M extends Modules = Modules> extends CommandModule<M> {
+class App<M extends Modules = Modules> extends ServiceModule<M> {
 
     // Sealed Construction 
 
@@ -28,10 +28,10 @@ class App<M extends Modules = Modules> extends CommandModule<M> {
   
     // Use Interface
 
-    override useModule<Px extends Path, S extends CommandModule<any>>(
+    override useModule<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): App<[...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : Module]>
+    ): App<[...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]>
 
     override useModule<Mx extends Module>(
         module: Mx

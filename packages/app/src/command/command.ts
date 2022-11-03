@@ -6,6 +6,7 @@ import CommandModule from './command-module'
 
 import { Path } from '../types'
 import { HttpMethod } from '../modules'
+import { createFromReq, createToReq, Request, StringFields } from './request'
 
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type
@@ -16,8 +17,8 @@ import { HttpMethod } from '../modules'
 /**
  * Command without build interface
  */
-export type RuntimeCommand<N extends string, I extends object> = 
-    Omit<Command<N, I, object>, 'useHook'>
+export type RuntimeCommand<I extends object> = 
+    Omit<Command<string, I, object>, 'useHook'>
 
 // type CommandHookTypeGuard<I extends object, O extends I, N extends string> = 
 //     ((this: RuntimeCommand<N, I>, input: I) => input is O) | TypeGuard<O, I>
@@ -25,8 +26,8 @@ export type RuntimeCommand<N extends string, I extends object> =
 // export type CommandHookPredicate<I extends object, N extends string> = 
 //     ((this: RuntimeCommand<N,I>, input: I) => boolean) | Link<I, boolean>
 
-export type CommandHook<I extends object, O extends object, N extends string> =
-    ((this: RuntimeCommand<N, I>, input: I) => O) | Link<I, O> 
+export type CommandHook<I extends object, O extends object> =
+    ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O> 
 
 type CommandValidate<I extends object> = { validate: Link<I, I> }
 
@@ -156,7 +157,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     
     private constructor(
         name: N,
-        hookOrValidate: CommandHook<I, O, N>,
+        hookOrValidate: CommandHook<I, O>,
         readonly _method: HttpMethod,
         readonly _path: Path
     ) {
@@ -207,6 +208,16 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         }
     }
 
+    //// Request Interface ////
+    
+    toRequest(input: I): Request<I, StringFields<I>> {
+        return createToReq<I, StringFields<I>>(this.http.method, this.http.path)(input)
+    }
+
+    fromRequest(method: HttpMethod, url: string, data: object): I | null {
+        return createFromReq(this.http.method, this.http.path)([method, url, data]) as I | null
+    }
+
     //// Instance Build Interface ////
 
     // TODO add first class match support
@@ -222,7 +233,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Add a hook to this command
      */
-    useHook<Ox extends object>(hook: CommandHook<O, Ox, N>): Command<N, I, Ox> {
+    useHook<Ox extends object>(hook: CommandHook<O, Ox>): Command<N, I, Ox> {
 
         const { name, http } = this
 

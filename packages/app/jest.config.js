@@ -1,19 +1,19 @@
 
-const BEFORE_ALL_TESTS = `./test/all-before.test.ts`
-const AFTER_ALL_TESTS = `./test/all-after.test.ts`
+const BEFORE_ALL_TESTS = './test/all-before.test.ts'
+const AFTER_ALL_TESTS = './test/all-after.test.ts'
 
 module.exports = {
 
     roots: [
-        `./src`,
-        `./test`
+        './src',
+        './test'
     ],
 
     transform: {
         '^.+\\.tsx?$': [
-            `ts-jest`,
+            'ts-jest',
             {
-                tsconfig: `../../tsconfig.test.json`
+                tsconfig: '../../tsconfig.test.json'
             }
         ]
     },
@@ -24,7 +24,8 @@ module.exports = {
     modulePathIgnorePatterns: [
         BEFORE_ALL_TESTS,
         AFTER_ALL_TESTS,
-        `util.test.ts`,
+        'util.test.ts',
+        '_old*'
     ]
 
 }

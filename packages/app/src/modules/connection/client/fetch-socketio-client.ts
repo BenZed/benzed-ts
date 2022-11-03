@@ -8,7 +8,6 @@ import { HttpMethod } from '../server'
 import Client, { $clientSettings, ClientSettings } from './client'
 
 import { WEBSOCKET_PATH } from '../../../constants'
-import { createNameToReq } from '../../../_old-command/request'
 
 //// Eslint ////
 
@@ -145,8 +144,7 @@ export class FetchSocketIOClient extends Client {
     private async _executeFetchCommand(name: string, cmdData: object): Promise<object> {
         const { host } = this.settings
 
-        const toReq = this.root.getCommand(name).toReq ?? createNameToReq(name)
-        const [ method, url, reqData ] = toReq(cmdData)
+        const [ method, url, reqData ] = this.root.getCommand(name).toRequest(cmdData)
 
         const fetchData = {
             method,

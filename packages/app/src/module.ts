@@ -1,5 +1,5 @@
 import { $$copy } from '@benzed/immutable'
-import type { CommandModule } from './service'
+import type { ServiceModule } from './service'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -49,8 +49,8 @@ export class Module {
         return this._parent?.modules ?? []
     }
 
-    private _parent: CommandModule | null = null
-    get parent(): CommandModule | null {
+    private _parent: ServiceModule | null = null
+    get parent(): ServiceModule | null {
         return this._parent
     }
 
@@ -58,13 +58,13 @@ export class Module {
      * Gets the root module of the app heirarchy.
      * Throws an error on modules that are not parented to anything.
      */
-    get root(): CommandModule {
+    get root(): ServiceModule {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let root: CommandModule | Module = this
+        let root: ServiceModule | Module = this
         while (root._parent)
             root = root._parent
 
-        const useModule: keyof CommandModule = 'useModule'
+        const useModule: keyof ServiceModule = 'useModule'
         if (!(useModule in root))
             throw new Error(`${this.name} is not in a command heirarchy.`)
     
@@ -75,7 +75,7 @@ export class Module {
      * Copies a module, sets the parent of that module to the given parent
      * @internal
      */
-    _copyWithParent(parent: CommandModule): this {
+    _copyWithParent(parent: ServiceModule): this {
         const _this = this[$$copy]()
         _this._parent = parent
 

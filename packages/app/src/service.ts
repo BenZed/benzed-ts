@@ -1,19 +1,13 @@
 import is from '@benzed/is'
 import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
-import { capitalize } from '@benzed/string'
+import { Compile } from '@benzed/util'
+import { capitalize, toCamelCase } from '@benzed/string'
 
-import { 
-    command,
-    Command,  
-    CommandsOf, 
-} from './_old-command'
-
+import { Command, CommandModule } from './command'
+import { CamelCombine, Path } from './types'
 import { Module, Modules } from './module'
 import { Client, Server } from './modules'
-
-import { CamelCombine, Path } from './types'
-import { Compile } from '@benzed/util/lib'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -32,10 +26,14 @@ type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
 
 //// Commands Type ////
 
+// type CommandsOf<M extends Module, P extends string> = any
+
 type _CommandsOfModule<M extends Module, P extends string> = 
     M extends Service<infer Px, infer Mx> 
         ? _CommandsOfModules<Mx, CamelCombine<P, _Unslash<Px>>>
-        : CommandsOf<M, P> 
+        : M extends CommandModule<infer N, any, any> 
+            ? { [K in N as CamelCombine<P, N>]: M }
+            : {}
 
 type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends Module 
@@ -47,13 +45,14 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
 
 type ModuleCommands<M extends Modules | Module> = 
     Compile<
-    M extends CommandModule<infer Mx> 
+    M extends ServiceModule<infer Mx> 
         ? _CommandsOfModules<Mx>
         : M extends Modules 
             ? _CommandsOfModules<M>
-            : CommandsOf<M>, 
-
-    Command, 
+            : M extends Module 
+                ? _CommandsOfModule<M, ''> 
+                : never,
+    Function,
     false
     >
 
@@ -62,12 +61,12 @@ type ModuleCommands<M extends Modules | Module> =
 /**
  * Get the Module types of a Command Module
  */
-export type ModulesOf<S extends CommandModule<any>> = S extends CommandModule<infer M> ? M : never
+export type ModulesOf<S extends ServiceModule<any>> = S extends ServiceModule<infer M> ? M : never
 
 /**
  * Contains other modules, provides an interface for grouping and executing their commands.
  */
-export abstract class CommandModule<M extends Modules = any> extends Module {
+export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     private readonly _modules: M
     override get modules(): M {
@@ -101,7 +100,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
     //// Command Module Implementation ////
 
-    abstract useModule<Mx extends CommandModule<any>>(
+    abstract useModule<Mx extends ServiceModule<any>>(
         path: Path,
         module: Mx
     ): unknown
@@ -119,9 +118,9 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
     //// Convenience Getters ////
 
-    getCommand(name: string): Command {
-        const commands = this.root.commands as { [key: string]: Command | undefined } 
-        const command = commands[name]
+    getCommand(name: string): Command<string, object, object> {
+        const commands = this.root.commands as { [key: string]: Command<string, object, object> | undefined } 
+        const command = commands[toCamelCase(name)]
         if (!command)
             throw new Error(`Command ${name} could not be found.`)
     
@@ -154,7 +153,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
         if (!module)
             throw new Error(`${Module.name} not provided.`)
 
-        if (path && module instanceof CommandModule<any>)
+        if (path && module instanceof ServiceModule<any>)
             module = Service._create(path, module._modules)
 
         else if (path)
@@ -169,29 +168,34 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     }
 
     private _createCommands(): _CommandsOfModules<M> {
-        const commands: { [key: string]: Command } = {}
+
+        const commands: { [key: string]: CommandModule<string, object, object> } = {}
 
         for (const module of this.modules) {
+            if (module instanceof ServiceModule) {
+                for (const key in module.commands) {
+    
+                    const name: string = module instanceof Service
+                        ? `${module.path.replaceAll('/', '')}${capitalize(key)}`
+                        : key
 
-            const moduleCommands = module instanceof CommandModule 
-                ? module.commands
-                : command.of(module)
+                    if (name in commands)
+                        throw new Error(`Command name collision: "${name}" is used multiple times`)
 
-            for (const key in moduleCommands) {
-
-                const name: string = module instanceof Service
-                    ? `${module.path.replaceAll('/', '')}${capitalize(key)}`
-                    : key
-
-                if (name in commands)
-                    throw new Error(`Command name collision: "${name}" is used multiple times`)
-                
-                commands[name] = moduleCommands[key as keyof typeof moduleCommands]
+                    commands[name] = module.commands[key as keyof typeof module.commands]
+                }
             }
+            
+            if (module instanceof CommandModule) {
+                const name = toCamelCase(module.name)
+
+                commands[name] = module
+            }
+
         }
 
         this._commands = commands as _CommandsOfModules<M>
-        return this._commands 
+        return this._commands
     }
 
 }
@@ -201,7 +205,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 /**
  * Service 
  */
-export class Service<P extends Path, M extends Modules = any> extends CommandModule<M> {
+export class Service<P extends Path, M extends Modules = any> extends ServiceModule<M> {
 
     //// Sealed ////
 
@@ -234,10 +238,10 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
         return this._path as P
     }
 
-    override useModule<Px extends Path, S extends CommandModule<any>>(
+    override useModule<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): Service<P, [...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : never]>
+    ): Service<P, [...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : never]>
 
     override useModule<Mx extends Module>(
         module: Mx

@@ -1,18 +1,37 @@
-import { command } from '../src/command'
-import { Module } from '../src/module'
+import $ from '@benzed/schema'
+import { Command } from '../src/command'
+import { HttpMethod } from '../src/modules'
+import { Service } from '../src/service'
 
-type Calc = {
-    a: number
-    b: number
-}
-export class Calculator extends Module {
+/* eslint-disable 
+    @typescript-eslint/restrict-plus-operands
+*/
 
-    add = command(({ a, b }: Calc) => Promise.resolve({ result: a + b }))
+const $values = $({
+    a: $.number,
+    b: $.number
+})
 
-    subtract = command(({ a, b }: Calc) => Promise.resolve({ result: a - b }))
+const add = Command
+    .create('add', $values, HttpMethod.Get)
+    .useHook(({ a, b }) => ({ result: a + b }))
 
-    multiply = command(({ a, b }: Calc) => Promise.resolve({ result: a * b }))
+const subtract = Command
+    .create('subract', $values, HttpMethod.Get)
+    .useHook(({ a, b }) => ({ result: a - b }))
 
-    divide = command(({ a, b }: Calc) => Promise.resolve({ result: a / b }))
+const divide = Command
+    .create('divide', $values, HttpMethod.Get)
+    .useHook(({ a, b }) => ({ result: a / b }))
 
-}
+const multiply = Command
+    .create('multiply', $values, HttpMethod.Get)
+    .useHook(({ a, b }) => ({ result: a * b }))
+
+const calculator = Service.create()
+    .useModule(add)
+    .useModule(subtract)
+    .useModule(divide)
+    .useModule(multiply)
+
+export { calculator }
