@@ -14,13 +14,7 @@ interface Chain<I = unknown, O = unknown> extends Link<I,O> {
      * Add link(s) to the end of the chain
      * @param link 
      */
-    append<Ox>(link: Link<O, Ox>, ...links: Link<Ox, Ox>[]): Chain<I, Ox>
-
-    /**
-     * Add link(s) to the beginning of the chain
-     * @param link 
-     */
-    prepend<Ix>(link: Link<Ix, I>, ...links: Link<I, I>[]): Chain<Ix, O>
+    link<Ox>(link: Link<O, Ox>, ...links: Link<Ox, Ox>[]): Chain<I, Ox>
 
     links: readonly Link[]
 
@@ -48,19 +42,14 @@ function flattenLinks(input: readonly Link[]): Link[] {
     return output
 }
 
-function append(this: Chain, link: Link, ...s: Link[]): Chain {
+function link(this: Chain, link: Link, ...s: Link[]): Chain {
     return chain(...this.links, link, ...s)
-}
-
-function prepend(this: Chain, link: Link, ...s: Link[]): Chain {
-    return chain(link, ...s, ...this.links)
-
 }
 
 //// Main ////
 
 function isChain(input: (i: unknown) => unknown): input is Chain {
-    return 'append' in input && 'prepend' in input
+    return 'link' in input && typeof input['link' as keyof typeof input] === 'function'
 }
 
 /**
@@ -86,9 +75,7 @@ function chain(...links: Link[]): Chain {
         },
         {
 
-            prepend,
-
-            append,
+            link,
 
             links,
 

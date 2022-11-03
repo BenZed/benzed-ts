@@ -117,8 +117,3 @@ export {
     through as io,
     through as inputToOutput
 }
-
-/**
- * Call a map function with set arguments
- */
-export const call = <F extends Func>(...p: Parameters<F>) => (f: F): ReturnType<F> => f(...p)

@@ -49,7 +49,7 @@ it('creating a chain out of multiple chains flattens the links', () => {
 
 describe('iterable', () => {
 
-    const pow = chain((i: number) => i++).append(i => i * 2)
+    const pow = chain((i: number) => i++).link(i => i * 2)
     
     it('iterates through each link in the chain', () => {
         expect([...pow]).toHaveLength(2)
@@ -57,10 +57,10 @@ describe('iterable', () => {
 
 })
 
-describe('.append()', () => {
+describe('.link()', () => {
 
     const parse = chain(parseInt)
-    const isPositiveDigit = parse.append(i => i > 0)
+    const isPositiveDigit = parse.link(i => i > 0)
 
     it('adds another link method onto a chain', () => {
 
@@ -73,7 +73,7 @@ describe('.append()', () => {
 
     it('input type of the appendee link must match chain output', () => {
         // @ts-expect-error incorrect input type
-        void parse.append((i: boolean) => !i)
+        void parse.link((i: boolean) => !i)
     })
 
     it('immutable copy', () => {
@@ -86,23 +86,6 @@ describe('.append()', () => {
 
         const m3 = chain(m1, m2)
         expect([...m3]).toHaveLength(4)
-    })
-
-})
-
-describe('.prepend()', () => {
-
-    it('adds another link to the beginning of a chain', () => {
-        
-        const p1 = chain(x2).prepend(parseInt)
-
-        expect(p1('1')).toEqual(2)
-
-    })
-
-    it('output type of the prependee link must match chain input', () => {
-        // @ts-expect-error incorrect input type
-        void chain(parseInt).prepend(x2)
     })
 
 })
