@@ -12,7 +12,7 @@ export class NoMatchError extends Error {
 
 export class NoIterableValuesError extends Error {
     constructor( ) {
-        super('No values provided to iterate.')
+        super('Match is not iterable.')
         this.name = 'NoValuesError'
     }
 

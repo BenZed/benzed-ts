@@ -1,5 +1,5 @@
 
-//// Types ////
+//// Match State ////
 
 export interface Case {
     readonly input: unknown | ((input: unknown) => boolean)
@@ -15,7 +15,17 @@ export interface MatchState extends MatchCases {
     values: readonly unknown[]
 }
 
-export interface Match_ extends MatchCases {
+//// Match ////
+
+export interface MatchBuilder extends MatchState {
+
+    case(input: unknown, output: unknown): MatchBuilder 
+
+    default(output: unknown): Match
+
+}
+
+export interface Match extends MatchCases {
 
     (value: unknown): unknown
 
@@ -23,12 +33,23 @@ export interface Match_ extends MatchCases {
 
 }
 
-export interface Match extends MatchState, Match_ {
+//// Iterable Match ////
 
-    case(input: unknown, output: unknown): Match
+export interface MatchIterableEmptyBuilder extends MatchState {
 
-    default(output: unknown): Match
+    case(input: unknown, output: unknown): MatchIterableBuilder 
+
+}
+
+export interface MatchIterableBuilder extends MatchIterableEmptyBuilder {
+
+    default(output: unknown): MatchIterable
+
+}
+
+export interface MatchIterable extends Match, MatchState {
 
     [Symbol.iterator](): Generator<unknown>
+
 }
 

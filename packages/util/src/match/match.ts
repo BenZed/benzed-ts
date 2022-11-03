@@ -1,14 +1,21 @@
 import { NoMatchError, NoIterableValuesError } from './error'
-import { Case, Match, MatchState } from './types'
+import { 
+    Case, 
+    MatchBuilder, 
+    MatchIterable, 
+    MatchCases,
+    MatchState, 
+    MatchIterableEmptyBuilder
+} from './types'
 
 //// Match Methods ////
 
 /**
  * Match a value against a set of cases.
- * Will throw if no value can be found
+ * Will throw if no value can be found.
  */
 function value(
-    this: { cases: readonly Case[] },
+    this: MatchCases,
     value: unknown, 
 ): unknown {
     for (const { input, output, default: isDefault } of this.cases) {
@@ -27,9 +34,9 @@ function value(
 }
 
 /**
- * Iterate through the previously defined values
+ * Iterate through the previously defined values.
  */
-function * iterateValues(this: Match): Generator<unknown> {
+function * iterateValues(this: MatchIterable): Generator<unknown> {
 
     if (this.values.length === 0)
         throw new NoIterableValuesError()
@@ -45,23 +52,14 @@ function * iterateValues(this: Match): Generator<unknown> {
  * Create a matcher for a single value
  * @param value 
  */
-function match(value: unknown): Match
+function match(value: unknown): MatchIterableEmptyBuilder
 /**
  * Create a matcher for a set of values
  * @param values
  */
-function match(...values: unknown[]): Match
-/**
- * Add a default case
- * @param output Value to use if match cannot be found in previously defined cases
- */
-function match(this: MatchState, output: unknown): Match
-/**
- * Add a match case
- * @param input Input to match against
- * @param output Output to match to
- */
-function match(this: MatchState, input: unknown, output: unknown): Match
+function match(...values: unknown[]): MatchIterableEmptyBuilder
+
+function match(this: MatchState, input: unknown, output: unknown): MatchBuilder
 
 /**
  * Handle all create-match signatures
@@ -70,7 +68,7 @@ function match(this: unknown, ...args: unknown[]): unknown {
 
     const nextState = {
         cases: [] as readonly Case[],
-        values:  args as readonly unknown[]
+        values: args as readonly unknown[]
     }
 
     // immutable add
@@ -90,7 +88,7 @@ function match(this: unknown, ...args: unknown[]): unknown {
                 default: true 
             }
         
-        nextState.cases = newCase ? [ ...prevState.cases ] : prevState.cases
+        nextState.cases = newCase ? [ ...prevState.cases, newCase ] : prevState.cases
         nextState.values = prevState.values
     }
 
@@ -112,7 +110,10 @@ function match(this: unknown, ...args: unknown[]): unknown {
 /**
  * Create a match for a non-defined set of values
  */
-match.case = match as (input: unknown, output: unknown) => Match
+match.case = match.bind({ 
+    cases: [], 
+    values: [] 
+}) as (input: unknown, output: unknown) => MatchBuilder
 
 //// Exports ////
 

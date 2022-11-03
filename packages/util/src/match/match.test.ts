@@ -1,33 +1,19 @@
-import addCase from './match'
+import match from './match'
 
-it('create a match for a value', () => {
+const match1to3 = match
+    .case(1, 'one')
+    .case(2, 'two')
+    .default('three')
 
-    const [ one ] = addCase(1)
-        .case(1, 'one')
-        .case(2, 'two')
-        .case(3, 'three')
-        .case(4, 'four')
-
-    expect(one).toEqual('one')
-})
-
-it('create a match for a set of values', () => {
-
-    const [ one, two, three, four ] = addCase(1, 2, 3, 4)
-        .case(1, 'one')
-        .case(2, 'two')
-        .case(3, 'three')
-        .case(4, 'four')
-
-    expect([ one, two, three, four ]).toEqual([ 'one', 'two', 'three', 'four' ])
-})
-
-it('create a match for a', () => {
-
-    const match1to3 = addCase
-        .case(1, 'one')
-        .case(2, 'two')
-        .case(3, 'three')
-
+it('create a match', () => {
     expect(match1to3(1)).toEqual('one')
+})
+
+it('cannot iterate through a regular match', () => {
+
+    expect(() => {
+        // @ts-expect-error can't iterate
+        for (const value of match1to3)
+            void value
+    }).toThrow('Match is not iterable')
 })
