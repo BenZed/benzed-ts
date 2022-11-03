@@ -13,7 +13,6 @@ import { WEBSOCKET_PATH } from '../../../constants'
 
 import { HttpCode } from './http-codes'
 import { HttpMethod } from './http-methods'
-import { text } from 'stream/consumers'
 
 //// KoaServer ////
 
@@ -87,6 +86,7 @@ export class KoaSocketIOServer extends Server {
     private _getCtxCommandData(ctx: Context): object {
         const [ ctxData ] = match(ctx.method)
         (HttpMethod.Get, ctx.query)
+        (HttpMethod.Delete, ctx.query)
         (HttpMethod.Post, ctx.body ?? {})
         (HttpMethod.Put, ctx.body ?? {})
         (HttpMethod.Patch, ctx.body ?? {})

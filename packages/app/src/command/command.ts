@@ -239,7 +239,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
         return new Command(
             name,
-            this._execute.append(hook),
+            this._execute.link(hook),
             http.method,
             http.path
         )
