@@ -22,6 +22,7 @@ module.exports = {
         'eqeqeq': ['error', 'always', { null: 'ignore' }],
         'curly': ['error', 'multi-or-nest'],
         'no-multi-spaces': 'warn',
+        'object-curly-spacing': 'always',
         'no-multiple-empty-lines': ['warn', { max: 1 }],
         'max-len': ['error', 150],
         'no-return-assign': 'error',

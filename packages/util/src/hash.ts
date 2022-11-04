@@ -1,6 +1,5 @@
-import crypto from 'crypto'
-import { Int32 } from 'mongodb'
-import { Writable } from 'stream'
+import crypto, { BinaryToTextEncoding, Hash } from 'crypto'
+import {  Writable } from 'stream'
 import { Func } from './types'
 
 //// CONSTANTS ////
@@ -91,17 +90,15 @@ interface HashOptions<T extends object> {
  * @param object Value to hash
  * @return Hashed value
  */
-function hash<T extends object>(object: T, options: Partial<HashOptions<T>> = {}): string {
-    options = applyDefaults(options)
-
-    return hashObject(object, options)
+function hash<T extends object>(object: T, options: Partial<HashOptions<T>> = {}): string | Buffer {
+    return hashObject(object, applyDefaults(options))
 }
 
 /**
  * @param object Value to hash
  * @returns Hashed value
  */
-function sha1<T extends object>(object: T): string {
+function sha1<T extends object>(object: T): string | Buffer {
     return hash(object)
 }
 
@@ -110,7 +107,7 @@ function sha1<T extends object>(object: T): string {
  * @param object 
  * @returns Hashed value
  */
-function keys<T extends object>(object: T): string {
+function keys<T extends object>(object: T): string | Buffer {
     return hash(object, { excludeValues: true })
 }
 
@@ -119,7 +116,7 @@ function keys<T extends object>(object: T): string {
  * @param object Value to hash
  * @returns Hashed value
  */
-function MD5<T extends object>(object: T): string {
+function MD5<T extends object>(object: T): string | Buffer {
     return hash(object, { algorithm: `md5` })
 }
 
@@ -128,9 +125,15 @@ function MD5<T extends object>(object: T): string {
  * @param object 
  * @returns 
  */
-function keysMD5<T extends object>(object: T): string {
+function keysMD5<T extends object>(object: T): string | Buffer {
     return hash(object, {algorithm: `md5`, excludeValues: true})
 }
+
+
+function writeToStream<T extends object>(
+    object: T, 
+    stream: Writable
+): ReturnType<typeof typeHasher>
 
 /**
  * Expose streaming API
@@ -143,16 +146,18 @@ function writeToStream<T extends object>(
     object: T, 
     options: Partial<HashOptions<T>>, 
     stream: Writable
-) {
+): ReturnType<typeof typeHasher>
+
+function writeToStream(args: [object, Partial<HashOptions<object>>, Writable] | [object, Writable])  {
+
+    let [object, options, stream] = args
 
     if (typeof stream === `undefined`) {
-        stream = options
+        stream = options as Writable
         options = {}
     }
 
-    options = applyDefaults(options)
-
-    return typeHasher(options, stream).dispatch(object)
+    return typeHasher(applyDefaults(options as HashOptions<object>), stream).dispatch(object)
 }
 
 //// Helper ////
@@ -193,8 +198,8 @@ function isNativeFunction(f: unknown): f is Func {
     return exp.exec(Function.prototype.toString.call(f)) != null
 }
 
-function hashObject<T extends object>(object: T, options: HashOptions<T>): string {
-    let hashingStream: Writable
+function hashObject<T extends object>(object: T, options: HashOptions<T>): string | Buffer {
+    let hashingStream: Hash | HashPassThrough
 
     if (options.algorithm !== `passthrough`) 
         hashingStream = crypto.createHash(options.algorithm)
@@ -202,19 +207,21 @@ function hashObject<T extends object>(object: T, options: HashOptions<T>): strin
         hashingStream = new HashPassThrough()
 
     if (typeof hashingStream.write === `undefined`) {
-        hashingStream.write = hashingStream.update
-        hashingStream.end = hashingStream.update
+        hashingStream.write = (hashingStream as Hash).update
+        hashingStream.end = (hashingStream as Hash).update
     }
 
     const hasher = typeHasher(options, hashingStream)
     hasher.dispatch(object)
-    if (!hashingStream.update) 
+    if (!('update' in hashingStream)) 
         hashingStream.end(``)
 
-    if (hashingStream.digest) 
-        return hashingStream.digest(options.encoding === `buffer` ? undefined : options.encoding)
+    if ('digest' in hashingStream)
+        return options.encoding === `buffer` 
+            ? hashingStream.digest().toString()
+            : hashingStream.digest(options.encoding)
 
-    const buf = hashingStream.read()
+    const buf = hashingStream.read() as string | Buffer
     if (options.encoding === `buffer`) 
         return buf
 
@@ -222,10 +229,8 @@ function hashObject<T extends object>(object: T, options: HashOptions<T>): strin
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function typeHasher<T extends object>(options: HashOptions<T>, writeTo, context: unknown[]) {
+function typeHasher<T extends object>(options: HashOptions<T>, writeTo: Hash | HashPassThrough, context: unknown[] = []) {
 
-    context = context || []
-    
     const write = (str: string) => writeTo.update 
         ? writeTo.update(str, `utf8`) 
         : writeTo.write(str, `utf8`)
@@ -306,6 +311,7 @@ function typeHasher<T extends object>(options: HashOptions<T>, writeTo, context:
                 })
             }
         },
+
         _array(arr: unknown[], unordered: boolean = options.unorderedArrays) {
 
             write(`array:${arr.length}:`)
@@ -343,22 +349,28 @@ function typeHasher<T extends object>(options: HashOptions<T>, writeTo, context:
             entries.sort()
             return this._array(entries, false)
         },
+
         _date(date: Date){
             return write(`date:` + date.toJSON())
         },
+
         _symbol(sym: symbol){
             return write(`symbol:` + sym.toString())
         },
+
         _error(err: Error){
             return write(`error:` + err.toString())
         },
+
         _boolean(bool: boolean){
             return write(`bool:` + bool.toString())
         },
+
         _string(str: string){
             write(`string:${str.length}:`)
             write(str.toString())
         },
+
         _function(fn: { name: string, toString(): string }){
             write(`fn:`)
             if (isNativeFunction(fn)) 
@@ -377,78 +389,98 @@ function typeHasher<T extends object>(options: HashOptions<T>, writeTo, context:
                 this._object(fn)
       
         },
+
         _number(number: number){
             return write(`number:${number}`)
         },
+
         _xml(xml: { toString(): string }){
             return write(`xml:${xml}`)
         },
+
         _null() {
             return write(`Null`)
         },
+
         _undefined() {
             return write(`Undefined`)
         },
+
         _regexp(regex: RegExp){
             return write(`regex:${regex}`)
         },
+
         _uint8array(arr: Uint8Array){
             write(`uint8array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _uint8clampedarray(arr: Uint8ClampedArray){
             write(`uint8clampedarray:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _int8array(arr: Int8Array){
             write(`int8array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _uint16array(arr: Uint16Array){
             write(`uint16array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _int16array(arr: Int16Array){
             write(`int16array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _uint32array(arr: Uint32Array){
             write(`uint32array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _int32array(arr: Int32Array){
             write(`int32array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _float32array(arr: Float32Array){
             write(`float32array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _float64array(arr: Float64Array){
             write(`float64array:`)
             return this.dispatch(Array.prototype.slice.call(arr))
         },
+
         _arraybuffer(arr: ArrayBuffer){
             write(`arraybuffer:`)
             return this.dispatch(new Uint8Array(arr))
         },
+
         _url(url: string) {
-            return write(`url:` + url.toString(), `utf8`)
+            return write(`url:` + url.toString())
         },
+
         _map(map: Map<unknown,unknown>) {
             write(`map:`)
             const arr = Array.from(map)
             return this._array(arr, options.unorderedSets !== false)
         },
+
         _set(set: Set<unknown>) {
             write(`set:`)
             const arr = Array.from(set)
             return this._array(arr, options.unorderedSets !== false)
         },
+
         _file(file: { name: string, size: number, type: string, lastModfied: number }) {
             write(`file:`)
             return this.dispatch([file.name, file.size, file.type, file.lastModfied])
         },
+
         _blob() {
             if (options.ignoreUnknown) 
                 return write(`[blob]`)
@@ -459,64 +491,84 @@ function typeHasher<T extends object>(options: HashOptions<T>, writeTo, context:
                 `Use "options.replacer" or "options.ignoreUnknown"\n`
             )
         },
+
         _domwindow() {
             return write(`domwindow`) 
         },
+
         _bigint(number: bigint) {
             return write(`bigint:` + number.toString())
         },
+
         /* Node.js standard native objects */
         _process() {
             return write(`process`) 
         },
+
         _timer() {
             return write(`timer`) 
         },
+
         _pipe() {
             return write(`pipe`) 
         },
+
         _tcp() {
             return write(`tcp`) 
         },
+
         _udp() {
             return write(`udp`) 
         },
+
         _tty() {
             return write(`tty`) 
         },
+
         _statwatcher() {
             return write(`statwatcher`) 
         },
+
         _securecontext() {
             return write(`securecontext`) 
         },
+
         _connection() {
             return write(`connection`) 
         },
+
         _zlib() {
             return write(`zlib`) 
         },
+
         _context() {
             return write(`context`) 
         },
+
         _nodescript() {
             return write(`nodescript`) 
         },
+
         _httpparser() {
             return write(`httpparser`) 
         },
+
         _dataview() {
             return write(`dataview`) 
         },
+
         _signal() {
             return write(`signal`) 
         },
+
         _fsevent() {
             return write(`fsevent`) 
         },
+
         _tlswrap() {
             return write(`tlswrap`) 
         },
+
     }
 }
 
