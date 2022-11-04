@@ -1,7 +1,13 @@
 
 //// Matchable ////
 
-export type Matchable = string | number | boolean | bigint | object
+type Primitives = string | number | boolean | bigint | object
+
+export type Matchable = 
+    | Primitives 
+    | ((input: Primitives) => boolean)
+    | ((input: unknown) => input is Primitives)
+
 type _FromMatchable<I> = I extends string 
     ? string 
     : I extends number 
@@ -10,7 +16,9 @@ type _FromMatchable<I> = I extends string
             ? boolean 
             : I extends bigint 
                 ? bigint 
-                : object
+                : I extends object 
+                    ? object 
+                    : I
 
 //// Match State ////
 

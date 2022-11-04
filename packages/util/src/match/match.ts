@@ -50,12 +50,17 @@ function * iterateValues(this: MatchIterable): Generator<unknown> {
 //// Interface ////
 
 /**
- * Create a matcher for a single value
+ * Create a non-iterable match
+ */
+function match(): Matcher<never, never>
+
+/**
+ * Create an iterable match with a single value
  * @param value 
  */
 function match<I extends Matchable>(value: I): MatcherIterableEmpty<I>
 /**
- * Create a matcher for a set of values
+ * Create an iterable match with a set of values
  * @param values
  */
 function match<A extends readonly Matchable[]>(...values: A): MatcherIterableEmpty<A[number]>
@@ -109,14 +114,14 @@ function match(this: unknown, ...args: unknown[]): unknown {
 }
 
 /**
- * Create a match for a non-defined set of values
+ * Create a non-iterable match
  */
 match.case = match.bind({ 
     cases: [], 
     values: [] 
 }) as <I extends Matchable, O extends Matchable>(
     input: I, 
-    output: O
+    outut: O
 ) => Matcher<I,O>
 
 //// Exports ////
