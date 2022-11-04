@@ -1,6 +1,7 @@
+import { Flatten } from 'mongodb'
 import { Module, Modules } from './module'
 
-import { ServiceModule, Service } from './service'
+import { ServiceModule, Service, FlattenModules, ToService } from './service'
 
 import { Path } from './types'
 
@@ -31,18 +32,26 @@ class App<M extends Modules = Modules> extends ServiceModule<M> {
     override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): App<[...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]> {
+    ): App<[...M, ToService<Px ,S>]> {
         return new App(
             this._pushModule(path, module)
-        ) as App<[...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]>
+        ) as App<[...M, ToService<Px ,S>]>
     }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): App<[...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]> {
+    ): App<FlattenModules<[...M, Mx]>> {
         return new App(
             this._pushModule(module)
-        ) as App<[...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]>
+        ) as App<FlattenModules<[...M, Mx]>>
+    }
+
+    override useModules<Mx extends Modules>(
+        ...modules: Mx
+    ): App<FlattenModules<[...M, ...Mx]>> {
+        return new App(
+            this._pushModule(...modules)
+        ) as App<FlattenModules<[...M, ...Mx]>>
     }
 
 }

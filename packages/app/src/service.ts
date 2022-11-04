@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import $ from '@benzed/schema'
+import $, { Flags } from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { Compile, StringKeys } from '@benzed/util'
 import { capitalize, toCamelCase } from '@benzed/string'
@@ -25,8 +25,6 @@ const isPath = (input: unknown): input is Path => is.string(input) && input.star
 type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
 
 //// Commands Type ////
-
-// type CommandsOf<M extends Module, P extends string> = any
 
 type _CommandsOfModule<M extends Module, P extends string> = 
     M extends Service<infer Px, infer Mx> 
@@ -57,6 +55,23 @@ type ModuleCommands<M extends Modules | Module> =
     >
 
 //// Command Module ////
+
+export type FlattenModules<M extends Modules> = 
+    M extends [infer Mx, ...infer Mr]
+        ? Mx extends Module
+            ? Mr extends Modules 
+                ? Mx extends ServiceModule<infer Mrx> 
+                    ? FlattenModules<[...Mrx, ...Mr]>
+                    : [Mx, ...FlattenModules<Mr>]
+                : Mx extends ServiceModule<infer Mrx> 
+                    ? FlattenModules<Mrx>
+                    : [Mx]
+            : []
+        : [] 
+
+export type ToService<P extends Path, S extends ServiceModule> = S extends ServiceModule<infer M>
+    ? Service<P, M>
+    : never
 
 /**
  * Get the Module types of a Command Module
@@ -109,6 +124,10 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         module: Mx
     ): unknown
 
+    abstract useModules<Mx extends Modules>(
+        ...modules: Mx
+    ): unknown
+
     //// Command Implementation ////
 
     private _commands: _CommandsOfModules<M> | null = null
@@ -152,24 +171,28 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     //// Helper ////
 
     protected _pushModule(
-        ...args: [path: Path, module: Module] | [module: Module] 
+        ...args: [path: Path, module: Module] | [module: Module] | Modules
     ): Modules {
 
         const path = pluck(args, isPath).at(0)
-        const module = pluck(args, isModule).at(0)
-        if (!module)
+        const inputModules = pluck(args, isModule)
+        if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)
 
-        const isService = module instanceof ServiceModule<any>
+        const newModules: Module[] = []
+        for (const module of inputModules) {
+            const isService = module instanceof ServiceModule<any>
 
-        const newModules = isService && path
-            ? [Service._create(path, module._modules)]
-            : isService 
-                ? [...module.modules] 
-                : [module]
+            newModules.push(...isService && path
+                ? [Service._create(path, module._modules)]
+                : isService 
+                    ? module.modules 
+                    : [module]
+            )
 
-        if (path && !isService)
-            throw new Error(`${module.name} is not a service, and cannot be used at path: ${path}`)
+            if (path && !isService)
+                throw new Error(`${module.name} is not a service, and cannot be used at path: ${path}`)
+        }
 
         return [ ...this.modules, ...newModules ]
     }
@@ -256,20 +279,29 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
     override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): Service<P, [...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]> {
+    ): Service<P, [...M, ToService<Px ,S>]> {
         return Service._create(
             this._path,
             this._pushModule(path, module)
-        ) as Service<P, [...M, S extends ServiceModule<infer Mx> ? Service<Px, Mx> : Module]> 
+        ) as Service<P, [...M, ToService<Px ,S>]> 
     }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, [...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]> {
+    ): Service<P, FlattenModules<[...M, Mx]>> {
         return Service._create(
             this._path,
             this._pushModule(module)
-        ) as Service<P, [...M, ...(Mx extends ServiceModule<infer Mxx> ? Mxx : [Mx])]> 
+        ) as Service<P, FlattenModules<[...M, Mx]>> 
+    }
+
+    override useModules<Mx extends Modules>(
+        ...modules: Mx
+    ): Service<P, FlattenModules<[...M, ...Mx]>> {
+        return Service._create(
+            this._path,
+            this._pushModule(...modules)
+        ) as Service<P, FlattenModules<[...M, ...Mx]>> 
     }
 
     //// Module Implementation ////

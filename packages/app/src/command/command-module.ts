@@ -26,6 +26,7 @@ abstract class CommandModule<
 
     execute(input: I /* context <- user/etc */): O | Promise<O> {
 
+        // Redirect this command to the client
         const client = this.parent?.root.client ?? null
         if (client)
             return client.execute(this.name, input) as Promise<O>
