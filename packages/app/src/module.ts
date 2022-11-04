@@ -1,7 +1,7 @@
 import { $$copy, unique } from '@benzed/immutable'
 import { wrap } from '@benzed/array'
 
-import type { ServiceModule } from './service'
+import type { Service, ServiceModule } from './service'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -68,7 +68,7 @@ export class Module {
         }, scope)
 
         if (modules.length === 0 && required)
-            throw new Error(`${this.name} is missing module ${type.name}`)
+            throw new Error(`${this.name} is missing module ${type.name} ${scope ? `in scope ${scope}` : ''}`.trim())
 
         return modules
     }
@@ -129,26 +129,16 @@ export class Module {
         return root
     }
 
-    /**
-     * Copies a module, sets the parent of that module to the given parent
-     * @internal
-     */
-    _copyWithParent(parent: ServiceModule): this {
-        const _this = this[$$copy]()
-        _this._parent = parent
+    get pathFromRoot(): string {
 
-        return _this
-    }
+        const path: string[] = []
 
-    //// Immutable Implementation ////
-    
-    [$$copy](): this {
-        const ThisModule = this.constructor as new (...params: unknown[]) => this
-        return new ThisModule(...this._copyParams)
-    }
+        this._forEachAscendent(m => {
+            if ('path' in m)
+                path.push((m as Service<any,any>).path)
+        })
 
-    protected get _copyParams(): unknown[] {
-        return []
+        return path.reverse().join('')
     }
 
     //// Lifecycle Hooks ////
@@ -246,6 +236,30 @@ export class Module {
                 m._forEachDesendent(f)
             }
         }
+    }
+
+    // Helper 
+
+    /**
+     * Copies a module, sets the parent of that module to the given parent
+     * @internal
+     */
+    _copyWithParent(parent: ServiceModule): this {
+        const _this = this[$$copy]()
+        _this._parent = parent
+    
+        return _this
+    }
+    
+    //// Immutable Implementation ////
+        
+    [$$copy](): this {
+        const ThisModule = this.constructor as new (...params: unknown[]) => this
+        return new ThisModule(...this._copyParams)
+    }
+    
+    protected get _copyParams(): unknown[] {
+        return []
     }
 
 }

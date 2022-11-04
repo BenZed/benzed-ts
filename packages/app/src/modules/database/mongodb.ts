@@ -49,7 +49,7 @@ const $mongoDbSettings = $.shape({
 
 })
 
-//// MongoDb ////
+//// MongoDbCollection ////
 
 class MongoDbCollection<T extends object> extends RecordCollection<T> {
 
@@ -118,6 +118,8 @@ class MongoDbCollection<T extends object> extends RecordCollection<T> {
 
 }
 
+//// Mongodb Database ////
+
 class MongoDb extends Database<Required<MongoDbSettings>> {
 
     // Static Create with Schema Validation
@@ -175,6 +177,9 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
     getCollection<T extends object>(collection: string): MongoDbCollection<T> {
 
         // if (this.find(Client)) throw new Error(`Cannot access ${this.name} as a client.`)
+
+        if (!collection)
+            throw new Error('Collection name cannot be empty.')
 
         if (!this._db)
             throw new Error(`${this.name} is not connected.`)

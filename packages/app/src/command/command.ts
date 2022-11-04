@@ -5,9 +5,9 @@ import { pluck } from '@benzed/array'
 import CommandModule from './command-module'
 
 import { Path } from '../types'
-import { Record } from '../modules/database'
 
-import { DatabaseCollection, HttpMethod } from '../modules'
+import { HttpMethod, toDatabase, ToDatabaseOutput } from '../modules'
+
 import { createFromReq, createToReq, Request, StringFields } from './request'
 
 /* eslint-disable 
@@ -21,7 +21,7 @@ import { createFromReq, createToReq, Request, StringFields } from './request'
  * Command without build interface
  */
 export type RuntimeCommand<I extends object> = 
-    Omit<Command<string, I, object>, 'useHook'>
+    Omit<Command<string, I, object>, 'useHook' | 'useDatabase'>
 
 // type CommandHookTypeGuard<I extends object, O extends I, N extends string> = 
 //     ((this: RuntimeCommand<N, I>, input: I) => input is O) | TypeGuard<O, I>
@@ -213,7 +213,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             return false
         }
     }
-
+ 
     //// Request Interface ////
     
     toRequest(input: I): Request<I, StringFields<I>> {
@@ -251,27 +251,21 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         )
     }
 
-    getCollection<T extends object = O>(): DatabaseCollection<T> {
-        return this.getModule(
-            DatabaseCollection, 
-            true, 
-            'parents'
-        )
-    }
-
     /**
-     * Send the current output to the database
+     * Sends the current output to the database. Operation is
+     * inferred from http.method.
+     * 
+     * Collection name can be provied, or it default to constructing
+     * a collection name from the service path.
      */
-    useCreateDb(): Command<N, I, Promise<Record<O>>> {
+    useDatabase(collection?: string): Command<N, I, ToDatabaseOutput<I, O>> {
         return this.useHook(
-            function (this: RuntimeCommand<I>, input) {
-                return this
-                    .getCollection<O>()
-                    .create(input)
-            }
+            toDatabase<I,O>(
+                this.http.method, 
+                collection ?? this.pathFromRoot.replaceAll('/', '-')
+            )
         )
     }
-
 }
 
 //// Exports ////
