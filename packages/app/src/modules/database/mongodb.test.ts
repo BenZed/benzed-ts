@@ -1,3 +1,4 @@
+import { Service } from '../../service'
 import { 
     Record,
     Id, 
@@ -62,6 +63,20 @@ it('.stop()', () => {
 
 it('.getCollection()', () => {
     expect(todos).toBeInstanceOf(MongoDbCollection)
+})
+
+describe('module validation', () => {
+
+    it('must be single', () => {
+
+        expect(() => {
+            Service.create()
+                .useModule(MongoDb.create({ database: 'test' }))
+                .useModule(MongoDb.create({ database: 'test' }))
+        })
+
+    })
+
 })
 
 describe('MongoDbCollection', () => {

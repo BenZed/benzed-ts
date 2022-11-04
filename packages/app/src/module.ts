@@ -1,4 +1,6 @@
-import { $$copy } from '@benzed/immutable'
+import { $$copy, unique } from '@benzed/immutable'
+import { wrap } from '@benzed/array'
+
 import type { ServiceModule } from './service'
 
 /* eslint-disable 
@@ -13,6 +15,12 @@ export type Modules = readonly Module[]
 export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M)
+
+type GetScope = 'siblings' | 'parents' | 'children' | readonly ('siblings' | 'parents' | 'children')[]
+
+type GetPredicate = (input: Module) => boolean
+
+type GetGuard<M extends Module> = (input: Module) => input is M 
 
 // TODO make this and SettingsModule abstract
 export class Module {
@@ -30,15 +38,56 @@ export class Module {
     }
 
     getModule<M extends Module, R extends boolean = false>(
-        type: ModuleConstructor<M>, 
-        required: R = false as R
+        type: ModuleConstructor<M> | GetPredicate | GetGuard<M>, 
+        required?: R,
+        scope?: GetScope
     ): R extends true ? M : M | null {
+        return this
+            .getModules(type, required, scope)
+            .at(0) ?? null as R extends true ? M : M | null
+    }
 
-        const module = this.modules.find(t => t instanceof type) ?? null
-        if (!module && required)
+    getModules<M extends Module, R extends boolean = false>(
+        type: ModuleConstructor<M> | GetPredicate | GetGuard<M>, 
+        required?: R,
+        scope?: GetScope
+    ): M[] {
+
+        const modules: M[] = []
+
+        const guard: GetGuard<M> = 'prototype' in type 
+            ? (i): i is M => i instanceof type 
+            : type
+        
+        this.forEachModule(m => {
+            for (const m1 of m.modules) {
+                if (guard(m1) && !modules.includes(m1)) 
+                    modules.push(m1)
+            }
+        }, scope)
+
+        if (modules.length === 0 && required)
             throw new Error(`${this.name} is missing module ${type.name}`)
 
-        return module as M
+        return modules
+    }
+
+    forEachModule(f: (input: Module) => void, scope: GetScope = 'siblings'): void {
+        const scopes = unique(wrap(scope)) as unknown as Exclude<GetScope, string>
+
+        for (const scope of scopes) {
+            switch (scope) {
+                case 'siblings': {
+                    this.modules.forEach(f)
+                }
+                case 'parents': {
+                    this._forEachAscendent(f)
+                }
+                case 'children': {
+                    this._forEachDesendent(f)
+                }
+            }
+        }
     }
 
     hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
@@ -95,13 +144,13 @@ export class Module {
 
     //// Lifecycle Hooks ////
 
-    private _active = false
     /**
      * True if this module has been started, false otherwise.
      */
     get active() : boolean {
         return this._active
     }
+    private _active = false
 
     start(): void | Promise<void> {
         if (this.active) {
@@ -134,8 +183,8 @@ export class Module {
     /**
      * Must be the only module of it's type in a parent.
      */
-    protected _assertSingle(): void { 
-        const clone = this.getModule(this.constructor as ModuleConstructor)
+    protected _assertSingle(scope?: GetScope): void { 
+        const clone = this.getModule(this.constructor as ModuleConstructor, false, scope)
         if (clone && clone !== this)
             throw new Error(`${this.name} may only be used once`)
     }
@@ -187,6 +236,27 @@ export class Module {
             )
         }
     }
+
+    // Helper 
+
+    private _forEachAscendent(f: (input: Module) => void): void {
+        let ref = this._parent
+
+        while (ref) {
+            f(ref)
+            ref = ref.parent
+        }
+    }
+
+    private _forEachDesendent(f: (input: Module) => void): void {
+        for (const m of this.modules) {
+            if (m.modules !== this.modules) {
+                f(m)
+                m._forEachDesendent(f)
+            }
+        }
+    }
+
 }
 
 //// Module With Settings ////

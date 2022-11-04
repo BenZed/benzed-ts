@@ -1,7 +1,7 @@
 import { App } from './app'
 import { Module } from './module'
 
-import { Service } from './service'
+import { Service, ServiceModule } from './service'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -63,7 +63,7 @@ it('.modules is empty on modules with no parent', () => {
     expect(m1.modules).toEqual([])
 })
 
-it('.get() a module', () => {
+it('.getModule()', () => {
 
     const m1 = new Test()
     const m2 = new Test()
@@ -76,12 +76,55 @@ it('.get() a module', () => {
     expect(m1f).toBeInstanceOf(Module)
 })
 
-it('.get() returns null if no modules could be found', () => {
+it('.getModule() required param true', () => {
+
+    const m1 = new Test()
+
+    expect(() => m1.getModule(ServiceModule, true)).toThrow('is missing')
+})
+
+it('.getModule() required param false', () => {
     const m1 = new Test()
     expect(m1.getModule(Module)).toBe(null)
 })
 
-it('.has() a module', () => {
+it('.getModule() scope param "parents"', () => {
+
+    const s1 = Service
+        .create()
+        .useModule(new Test())
+
+    const s2 = s1.useService('/child', s1)
+    
+    const m = s2.modules[0].modules[0].getModule(Test, false, 'parents')
+    expect(m).toBe(s2.modules[0])
+})
+
+it('.getModule() scope param "children"', () => {
+
+    const s1 = Service
+        .create()
+        .useModule(new Test())
+
+    const s2 = Service.create().useService('/child', s1)
+    
+    const m = s2.getModule(Test, false, 'children')
+    expect(m).toBe(s2.modules[0].modules[0])
+})
+
+it('.getModule() predicate', () => {
+
+    const s1 = Service
+        .create()
+        .useModule(new Test())
+
+    const s2 = Service.create().useService('/child', s1)
+    
+    const m = s2.getModule(i => i instanceof Test, false, 'children')
+    expect(m).toBe(s2.modules[0].modules[0])
+})
+
+it('.hasModule()', () => {
 
     const service = Service.create()
     const m1 = new Test()

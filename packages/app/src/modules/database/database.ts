@@ -35,11 +35,11 @@ abstract class Database<S extends object = object> extends SettingsModule<S> {
         this._assertSingle()
     }
 
-    abstract getCollection<T extends object>(collection: string): DatabaseCollection<T> 
+    abstract getCollection<T extends object>(collection: string): RecordCollection<T> 
 
 }
 
-abstract class DatabaseCollection<T extends object> {
+abstract class RecordCollection<T extends object> {
 
     /**
      * Returns a record if it exists, null otherwise.
@@ -68,12 +68,54 @@ abstract class DatabaseCollection<T extends object> {
 
 }
 
+export class DatabaseCollection<T extends object, S extends { collection: string }> 
+    extends SettingsModule<S> 
+    implements RecordCollection<T> {
+
+    override _validateModules(): void {
+        this._assertSingle()
+    }
+
+    get database(): Database<object> {
+        return this.getModule(Database, true)   
+    }
+
+    get collection(): RecordCollection<T> {
+        return this
+            .database
+            .getCollection(
+                this.settings.collection
+            )
+    }
+    
+    get(id: Id): Promise<Record<T> | null> {
+        return this.collection.get(id)
+    }
+        
+    find(query: FindQuery<T>): Promise<Paginated<T>> {
+        return this.collection.find(query)
+    }
+
+    create(data: CreateData<T>): Promise<Record<T>>{
+        return this.collection.create(data)
+    }
+
+    remove(id: Id): Promise<Record<T> | null>{
+        return this.collection.remove(id)
+    }
+ 
+    update(id: Id, data: UpdateData<T>): Promise<Record<T> | null> {
+        return this.collection.update(id, data)
+    }
+
+}
+
 //// Exports ////
 
 export {
 
     Database,
-    DatabaseCollection,
+    RecordCollection,
 
     Paginated,
     Record,

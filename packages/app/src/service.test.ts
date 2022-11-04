@@ -154,11 +154,9 @@ describe('.commands', () => {
         for (const path of ['', '/ace'] as Path[]) {
             for (const service of [App.create(), Service.create()]) {
                 expect(() => {
-                    
-                    const app = (service as Service<Path>)
+                    (service as Service<Path>)
                         .useService(path, Service.create().useModule(createOrder))
                         .useService(path, Service.create().useModule(createOrder))
-
                 }).toThrow('Command name collision')
             }
         }

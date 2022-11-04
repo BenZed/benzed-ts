@@ -2,7 +2,18 @@ import { $, Infer } from '@benzed/schema'
 
 import { $logIcon, $port } from '../../schemas'
 import { DEFAULT_MONGODB_PORT } from '../../constants'
-import { DatabaseCollection, CreateData, Database, FindQuery, Id, Paginated, Record, UpdateData } from './database'
+import { 
+    Record, 
+    RecordCollection, 
+
+    CreateData, 
+    Database, 
+    FindQuery, 
+    UpdateData,
+    
+    Id, 
+    Paginated, 
+} from './database'
 
 import { 
     MongoClient as _MongoClient, 
@@ -40,7 +51,7 @@ const $mongoDbSettings = $.shape({
 
 //// MongoDb ////
 
-class MongoDbCollection<T extends object> extends DatabaseCollection<T> {
+class MongoDbCollection<T extends object> extends RecordCollection<T> {
 
     constructor(
         readonly _collection: any // < mongod types are absolutely fucked
@@ -125,7 +136,7 @@ class MongoDb extends Database<Required<MongoDbSettings>> {
         )
     }
 
-    constructor(
+    private constructor(
         settings: Required<MongoDbSettings>
     ) {
         super(settings)
