@@ -1,10 +1,10 @@
 import is from '@benzed/is'
 import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
-import { Compile } from '@benzed/util'
+import { Compile, StringKeys } from '@benzed/util'
 import { capitalize, toCamelCase } from '@benzed/string'
 
-import { Command, CommandModule } from './command'
+import { Command, CommandInput, CommandModule, CommandOutput } from './command'
 import { CamelCombine, Path } from './types'
 import { Module, Modules } from './module'
 import { Client, Server } from './modules'
@@ -114,6 +114,13 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     private _commands: _CommandsOfModules<M> | null = null
     get commands(): ModuleCommands<M> {
         return this._commands ?? this._createCommands() as any
+    }
+
+    execute<K extends StringKeys<ModuleCommands<M>>>(
+        name: K,
+        input: CommandInput<ModuleCommands<M>[K]>
+    ): CommandOutput<ModuleCommands<M>[K]> {
+        return this.getCommand(name).execute(input as object) as any
     }
 
     //// Convenience Getters ////

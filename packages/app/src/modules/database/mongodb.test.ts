@@ -68,13 +68,11 @@ it('.getCollection()', () => {
 describe('module validation', () => {
 
     it('must be single', () => {
-
         expect(() => {
             Service.create()
                 .useModule(MongoDb.create({ database: 'test' }))
                 .useModule(MongoDb.create({ database: 'test' }))
-        })
-
+        }).toThrow('may only be used once')
     })
 
 })

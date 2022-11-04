@@ -5,10 +5,13 @@ import { pluck } from '@benzed/array'
 import CommandModule from './command-module'
 
 import { Path } from '../types'
-import { HttpMethod } from '../modules'
+import { Record } from '../modules/database'
+
+import { DatabaseCollection, HttpMethod } from '../modules'
 import { createFromReq, createToReq, Request, StringFields } from './request'
 
 /* eslint-disable 
+    @typescript-eslint/no-explicit-any,
     @typescript-eslint/explicit-function-return-type
 */
 
@@ -30,6 +33,9 @@ export type CommandHook<I extends object, O extends object> =
     ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O> 
 
 type CommandValidate<I extends object> = { validate: Link<I, I> }
+
+type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
+type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
 //// Command ////
 
@@ -245,6 +251,27 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         )
     }
 
+    getCollection<T extends object = O>(): DatabaseCollection<T> {
+        return this.getModule(
+            DatabaseCollection, 
+            true, 
+            'parents'
+        )
+    }
+
+    /**
+     * Send the current output to the database
+     */
+    useCreateDb(): Command<N, I, Promise<Record<O>>> {
+        return this.useHook(
+            function (this: RuntimeCommand<I>, input) {
+                return this
+                    .getCollection<O>()
+                    .create(input)
+            }
+        )
+    }
+
 }
 
 //// Exports ////
@@ -252,5 +279,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 export default Command
 
 export {
-    Command
+    Command,
+    CommandInput,
+    CommandOutput
 }

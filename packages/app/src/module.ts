@@ -14,9 +14,10 @@ export type Modules = readonly Module[]
 
 export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
-     (abstract new (...args: any[]) => M)
+     (abstract new (...args: any[]) => M) | 
+     { name: string, prototype: M }
 
-type GetScope = 'siblings' | 'parents' | 'children' | readonly ('siblings' | 'parents' | 'children')[]
+type GetScope = 'siblings' | 'parents' | 'children' | 'root' | readonly ('siblings' | 'parents' | 'children' | 'root')[]
 
 type GetPredicate = (input: Module) => boolean
 
@@ -56,7 +57,7 @@ export class Module {
         const modules: M[] = []
 
         const guard: GetGuard<M> = 'prototype' in type 
-            ? (i): i is M => i instanceof type 
+            ? (i): i is M => i instanceof (type as any) 
             : type
         
         this.forEachModule(m => {
@@ -79,12 +80,20 @@ export class Module {
             switch (scope) {
                 case 'siblings': {
                     this.modules.forEach(f)
+                    break
                 }
                 case 'parents': {
                     this._forEachAscendent(f)
+                    break
+
                 }
                 case 'children': {
                     this._forEachDesendent(f)
+                    break
+                }
+                case 'root': {
+                    this.root.modules.forEach(f)
+                    break
                 }
             }
         }
@@ -186,7 +195,7 @@ export class Module {
     protected _assertSingle(scope?: GetScope): void { 
         const clone = this.getModule(this.constructor as ModuleConstructor, false, scope)
         if (clone && clone !== this)
-            throw new Error(`${this.name} may only be used once`)
+            throw new Error(`${this.name} may only be used once in scope ${scope}`)
     }
 
     /**
@@ -200,39 +209,21 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(...types: readonly ModuleConstructor[]): void {
-        const missing = types.filter(t => !this.hasModule(t))
-        if (missing.length > 0) {
+    protected _assertRequired(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetScope): void {
+        if (!this.getModule(type, false, scope)) {
             throw new Error(
-                `${this.name} is missing required module${missing.length > 1 ? 's' : '' }: ${missing.map(t => t.name)}`
+                `${this.name} is missing required module ${type.name} in scope ${scope}`
             )
-        }
-    }
-
-    /**
-     * Root module must have components
-     */
-    protected _assertRootRequired(...types: readonly ModuleConstructor[]): void {
-        try {
-            this.root._assertRequired(...types)
-        } catch (e: any) {
-            if (e.message.includes('missing required')) {
-                throw new Error(
-                    `${this.name} requires ${e.message.replace('is missing required', 'to have')}`
-                )
-            }
-
         }
     }
 
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(...types: readonly ModuleConstructor[]): void { 
-        const found = types.filter(t => this.hasModule(t))
-        if (found.length > 0) {
+    protected _assertConflicting(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetScope): void { 
+        if (this.getModule(type, false, scope)) {
             throw new Error(
-                `${this.name} may not be used with conflicting components: ${found.map(t => t.name)}`
+                `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`
             )
         }
     }

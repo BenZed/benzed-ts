@@ -13,10 +13,14 @@ export {
 } from './database'
 
 export {
+    DatabaseCollection 
+} from './database-collection'
+
+export {
 
     MongoDb as Database,
  
-    MongoDbCollection as DatabaseCollection,
+    MongoDbCollection as RecordCollection,
     MongoDbSettings as DatabaseSettings,
     $mongoDbSettings as $databaseSettings,
 

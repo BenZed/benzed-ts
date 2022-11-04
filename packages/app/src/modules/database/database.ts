@@ -12,7 +12,8 @@ import { Empty } from '@benzed/util'
 //// Base ////
 
 type Id = string
-type Record<T extends object> = T & { _id: Id }
+type WithId = { _id: Id }
+type Record<T extends object> = T & WithId
 type Paginated<T extends object> = {
     total: number
     records: Record<T>[]
@@ -31,7 +32,6 @@ type FindQuery<T extends object> = Empty // { [K in keyof T]: ...etc }
 abstract class Database<S extends object = object> extends SettingsModule<S> {
 
     override _validateModules(): void {
-        this._assertRoot()
         this._assertSingle()
     }
 
@@ -68,48 +68,6 @@ abstract class RecordCollection<T extends object> {
 
 }
 
-export class DatabaseCollection<T extends object, S extends { collection: string }> 
-    extends SettingsModule<S> 
-    implements RecordCollection<T> {
-
-    override _validateModules(): void {
-        this._assertSingle()
-    }
-
-    get database(): Database<object> {
-        return this.getModule(Database, true)   
-    }
-
-    get collection(): RecordCollection<T> {
-        return this
-            .database
-            .getCollection(
-                this.settings.collection
-            )
-    }
-    
-    get(id: Id): Promise<Record<T> | null> {
-        return this.collection.get(id)
-    }
-        
-    find(query: FindQuery<T>): Promise<Paginated<T>> {
-        return this.collection.find(query)
-    }
-
-    create(data: CreateData<T>): Promise<Record<T>>{
-        return this.collection.create(data)
-    }
-
-    remove(id: Id): Promise<Record<T> | null>{
-        return this.collection.remove(id)
-    }
- 
-    update(id: Id, data: UpdateData<T>): Promise<Record<T> | null> {
-        return this.collection.update(id, data)
-    }
-
-}
-
 //// Exports ////
 
 export {
@@ -120,6 +78,7 @@ export {
     Paginated,
     Record,
     Id,
+    WithId,
     FindQuery,
     CreateData,
     UpdateData

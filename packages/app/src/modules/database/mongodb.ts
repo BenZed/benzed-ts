@@ -71,7 +71,6 @@ class MongoDbCollection<T extends object> extends RecordCollection<T> {
     async find(query: FindQuery<T>): Promise<Paginated<T>> {
 
         const records: Record<T>[] = []
-
         const total = await this._collection.estimatedDocumentCount(query)
 
         if (total > 0) {
@@ -93,9 +92,7 @@ class MongoDbCollection<T extends object> extends RecordCollection<T> {
     async create(data: CreateData<T>): Promise<Record<T>> {
 
         const { insertedId: objectId } = await this._collection.insertOne(data)
-
         const id = objectId.toString()
-
         return this.get(id) as Promise<Record<T>>
     }
 
@@ -106,19 +103,16 @@ class MongoDbCollection<T extends object> extends RecordCollection<T> {
         }, {
             $set: data
         })
-
         return this.get(id)
     }
 
     async remove(id: Id): Promise<Record<T> | null> {
         const record = await this.get(id)
-        
         if (record) {
             await this._collection.deleteOne({
                 _id: new ObjectId(id)
             })
         }
-
         return record
     }
 
