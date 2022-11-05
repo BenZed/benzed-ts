@@ -90,13 +90,16 @@ class ShapeSchema<
         for (const key in propertySchemas) {
             const propertySchema = propertySchemas[key]
 
-            output[key] = propertySchema['_validate'](
+            const value = propertySchema['_validate'](
                 input[key],
                 {
                     ...context,
                     path: push(context.path, key)
                 }
             )
+
+            if (value !== undefined || !propertySchema.isOptional)
+                output[key] = value
         }
 
         return output as O

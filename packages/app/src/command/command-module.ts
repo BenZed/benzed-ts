@@ -1,5 +1,5 @@
 import $ from '@benzed/schema'
-import { toDashCase } from '@benzed/string'
+import { capitalize, toCamelCase } from '@benzed/string'
 import { Chain } from '@benzed/util'
 
 import { Module } from '../module'
@@ -8,7 +8,7 @@ import { Request, StringFields } from './request'
 
 //// Validation ////
 
-const $dashCase = $.string.validates(toDashCase, n => `"${n}" must be dash-cased`)
+const $camelCase = $.string.validates(toCamelCase, n => `"${n}" must be camelCased`)
 
 //// Command Module ////
 
@@ -28,8 +28,20 @@ abstract class CommandModule<
 
         // Redirect this command to the client
         const client = this.parent?.root.client ?? null
-        if (client)
-            return client.execute(this.name, input) as Promise<O>
+        if (client) {
+            const path = this.pathFromRoot
+            const rootName = path.length > 1
+                ? path // "/deep/nested/service" => "deepNestedService${name}"
+                    .split('/')
+                    .filter(i => i)
+                    .concat(this.name)
+                    .map((n,i) => i === 0 ? n : capitalize(n))
+                    .join('')
+                
+                : this.name
+
+            return client.execute(rootName, input) as Promise<O>
+        }
 
         /*
         const permissions = this.getModule(Permissions)
@@ -56,7 +68,7 @@ abstract class CommandModule<
     constructor(
         readonly _name: N
     ) {
-        void $dashCase.assert(_name)
+        void $camelCase.assert(_name)
         super()
     }
 

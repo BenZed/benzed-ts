@@ -21,7 +21,8 @@ const $todoData = $({
 })
 
 const $todoQuery = $({
-    query: $.object
+    completed: $todoData.$.completed.optional,
+    description: $todoData.$.description.optional,
 })
 
 const $todoId = $({
@@ -40,7 +41,9 @@ const todos = Service
         Command.update($todo).useHook(toDatabase(HttpMethod.Patch, 'todos')),
         Command.remove($todoId).useHook(toDatabase(HttpMethod.Delete, 'todos')),
         Command.get($todoId).useHook(toDatabase(HttpMethod.Get, 'todos')),
-        Command.find($todoQuery).useHook(toDatabase(HttpMethod.Get, 'todos')),
+        Command.find($todoQuery)
+            .useHook(query => ({ query }))    
+            .useHook(toDatabase(HttpMethod.Get, 'todos')),
     )
 
 const app = base.useService('/todos', todos)
@@ -131,6 +134,8 @@ it('get toDatabase()', async () => {
 it('find toDatabase()', async () => {
 
     const collectionFind = await collection.find({})
-    const commandFind = await app.execute('todosFind', { query: {} })
+
+    const commandFind = await app.execute('todosFind', {})
+
     expect(collectionFind).toEqual(commandFind)
 })

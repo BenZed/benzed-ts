@@ -1,6 +1,8 @@
+import $ from '@benzed/schema'
+import { pluck } from '@benzed/array'
+import { toDashCase } from '@benzed/string'
 import { isObject, isString } from '@benzed/is'
 import { Chain, chain, Link } from '@benzed/util'
-import { pluck } from '@benzed/array'
 
 import CommandModule from './command-module'
 
@@ -14,6 +16,13 @@ import { createFromReq, createToReq, Request, StringFields } from './request'
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/explicit-function-return-type
 */
+
+////  ////
+
+const $dashCase = $.string.validates(
+    i => '/' + toDashCase(i.replace('/', '')),
+    p => `path "${p}" must be in dash-case`
+)
 
 //// Types ////
 
@@ -78,7 +87,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         const [
             name = 'create', 
             method = HttpMethod.Post, 
-            path = name === 'create' ? '/' : `/${name}`
+            path = name === 'create' ? '/' : `/${toDashCase(name)}`
 
         ] = (isNamed
             ? args
@@ -158,15 +167,17 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     static options = <Ix extends object>(
         validate: CommandValidate<Ix>,
     ) => this.create('options', validate, HttpMethod.Options, '/')
-        
+
     //// Sealed ////
-    
+
     private constructor(
         name: N,
         hookOrValidate: CommandHook<I, O>,
         readonly _method: HttpMethod,
         readonly _path: Path
     ) {
+        void $dashCase.assert(_path)
+
         super(name)
         this._execute = chain(hookOrValidate)
     }
@@ -217,11 +228,28 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     //// Request Interface ////
     
     toRequest(input: I): Request<I, StringFields<I>> {
-        return createToReq<I, StringFields<I>>(this.http.method, this.http.path)(input)
+
+        const { pathFromRoot } = this
+        const { method, path } = this.http
+
+        return createToReq<I, StringFields<I>>(
+            method, 
+            `${pathFromRoot}${path}`
+        )(input)
     }
 
     fromRequest(method: HttpMethod, url: string, data: object): I | null {
-        return createFromReq(this.http.method, this.http.path)([method, url, data]) as I | null
+
+        const { http, pathFromRoot } = this
+
+        return createFromReq(
+            http.method, 
+            `${pathFromRoot}${http.path}`   
+        )([
+            method, 
+            url, 
+            data
+        ]) as I | null
     }
 
     //// Instance Build Interface ////
@@ -259,10 +287,11 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * a collection name from the service path.
      */
     useDatabase(collection?: string): Command<N, I, ToDatabaseOutput<I, O>> {
+
         return this.useHook(
             toDatabase<I,O>(
                 this.http.method, 
-                collection ?? this.pathFromRoot.replaceAll('/', '-')
+                collection
             )
         )
     }

@@ -93,6 +93,7 @@ class MongoDbCollection<T extends object> extends RecordCollection<T> {
 
         const { insertedId: objectId } = await this._collection.insertOne(data)
         const id = objectId.toString()
+
         return this.get(id) as Promise<Record<T>>
     }
 

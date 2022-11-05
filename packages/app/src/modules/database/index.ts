@@ -5,6 +5,7 @@ export {
 
     Record,
     Id,
+    WithId,
 
     FindQuery,
     CreateData,

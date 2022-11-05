@@ -1,4 +1,4 @@
-import { isObject, isString } from '@benzed/is'
+import { isObject, isString, isTruthy } from '@benzed/is'
 import { Empty } from '@benzed/util'
 import match from '@benzed/match'
 
@@ -20,8 +20,10 @@ type ToDatabase<I extends object, O extends object> = CommandHook<O, ToDatabaseO
 
 //// Hook ////
 
-const toDatabase = <I extends object, O extends object>(method: HttpMethod, collectionName: string): ToDatabase<I,O> => 
+const toDatabase = <I extends object, O extends object>(method: HttpMethod, collectionName?: string): ToDatabase<I,O> => 
     function (this: RuntimeCommand<I>, input: O) {
+
+        collectionName = (collectionName ?? '') || this.pathFromRoot.split('/').filter(isTruthy).join('-')
 
         const database = this.getModule(Database, true, 'parents')
         const collection = database.getCollection<O>(collectionName)
@@ -33,6 +35,7 @@ const toDatabase = <I extends object, O extends object>(method: HttpMethod, coll
             .break(HttpMethod.Delete, () => collection.remove(splitIdFromData(input)[0]))
             .break(HttpMethod.Get, () => {
                 const idOrQuery = splitIdQueryFromData(input)
+
                 return isString(idOrQuery)
                     ? collection.get(idOrQuery)
                     : collection.find(idOrQuery as Empty) // TODO support queries

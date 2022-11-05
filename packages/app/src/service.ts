@@ -54,6 +54,19 @@ type ModuleCommands<M extends Modules | Module> =
     false
     >
 
+//// Service Paths ////
+
+// type CombinePath<P1 extends string, P2 extends Path> = P1 extends '/' ? P2 : `${P1}${P2}`
+
+// type ServicePaths<M extends Modules, P extends Path> = 
+//     M extends [infer Mx, ...infer Mr]
+//         ? Mx extends Service<infer Px, infer Mxr>
+//             ? Mr extends Modules 
+//                 ? [CombinePath<P,Px>, ...ServicePaths<Mxr, CombinePath<P,Px>>, ...ServicePaths<Mr, P>]
+//                 : [CombinePath<P,Px>, ...ServicePaths<Mxr, CombinePath<P,Px>>]
+//             : Mr extends Modules ? ServicePaths<Mr, P> : []
+//         : []
+
 //// Command Module ////
 
 export type FlattenModules<M extends Modules> = 
@@ -139,14 +152,15 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         name: K,
         input: CommandInput<ModuleCommands<M>[K]>
     ): CommandOutput<ModuleCommands<M>[K]> {
-        return this.getCommand(name).execute(input as object) as any
+        return this.getCommand(name).execute(input as object) as CommandOutput<ModuleCommands<M>[K]>
     }
 
     //// Convenience Getters ////
 
-    getCommand(name: string): Command<string, object, object> {
-        const commands = this.root.commands as { [key: string]: Command<string, object, object> | undefined } 
-        const command = commands[toCamelCase(name)]
+    getCommand(name: string): Command<string, object, object>
+
+    getCommand<K extends StringKeys<ModuleCommands<M>>>(name: K): ModuleCommands<M>[K] {
+        const command = this.commands[name]
         if (!command)
             throw new Error(`Command ${name} could not be found.`)
     
@@ -288,20 +302,20 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, FlattenModules<[...M, Mx]>> {
+    ): Service<P, [...M, ...FlattenModules<[Mx]>]> {
         return Service._create(
             this._path,
             this._pushModule(module)
-        ) as Service<P, FlattenModules<[...M, Mx]>> 
+        ) as Service<P, [...M, ...FlattenModules<[Mx]>]> 
     }
 
     override useModules<Mx extends Modules>(
         ...modules: Mx
-    ): Service<P, FlattenModules<[...M, ...Mx]>> {
+    ): Service<P, [...M, ...FlattenModules<Mx>]> {
         return Service._create(
             this._path,
             this._pushModule(...modules)
-        ) as Service<P, FlattenModules<[...M, ...Mx]>> 
+        ) as Service<P, [...M, ...FlattenModules<Mx>]> 
     }
 
     //// Module Implementation ////

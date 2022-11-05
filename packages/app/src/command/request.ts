@@ -129,14 +129,14 @@ const createFromReq = <D extends object, P extends StringFields<D> = never>(
         if (rMethod !== matchMethod)
             return null
 
-        const keys = fromPath(rUrl)
-        const matchKeys = fromPath(matchUrl)
+        const fromSegments = fromPath(rUrl)
+        const matchSegments = fromPath(matchUrl)
 
-        const paramValue = keys.length === matchKeys.length + 1 
-            ? keys.pop()
+        const paramValue = paramKey && fromSegments.length === matchSegments.length + 1 
+            ? fromSegments.pop()
             : null 
 
-        if (!equals(keys, matchKeys)) 
+        if (!equals(fromSegments, matchSegments)) 
             return null 
 
         const outputData = paramValue && paramKey ? { ...rData, [paramKey]: paramValue } : rData

@@ -128,11 +128,11 @@ export class FetchSocketIOClient extends Client {
         this.log`disconnected from server`
     }
 
-    private _executeSocketIOCommand(name: string, data: object): Promise<object> {
+    private _executeSocketIOCommand(rootName: string, data: object): Promise<object> {
         const io = this._io as Socket 
 
         return new Promise<object>((resolve, reject) => {
-            io.emit('command', name, data, (err: null, result: object) => {
+            io.emit('command', rootName, data, (err: null, result: object) => {
                 if (err)
                     reject(err)
                 else 
@@ -141,10 +141,12 @@ export class FetchSocketIOClient extends Client {
         })
     }
 
-    private async _executeFetchCommand(name: string, cmdData: object): Promise<object> {
+    private async _executeFetchCommand(rootName: string, cmdData: object): Promise<object> {
         const { host } = this.settings
 
-        const [ method, cmdEndPoint, reqData ] = this.root.getCommand(name).toRequest(cmdData)
+        const command = this.root.getCommand(rootName)
+
+        const [ method, cmdEndPoint, reqData ] = command.toRequest(cmdData)
 
         const fetchData = {
             method,

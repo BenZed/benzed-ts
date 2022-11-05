@@ -2,6 +2,7 @@ import { $$copy, unique } from '@benzed/immutable'
 import { wrap } from '@benzed/array'
 
 import type { Service, ServiceModule } from './service'
+import { Path } from './types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -129,7 +130,7 @@ export class Module {
         return root
     }
 
-    get pathFromRoot(): string {
+    get pathFromRoot(): Path {
 
         const path: string[] = []
 
@@ -138,7 +139,10 @@ export class Module {
                 path.push((m as Service<any,any>).path)
         })
 
-        return path.reverse().join('')
+        if ('path' in this)
+            path.push((this as Service<any,any>).path)
+
+        return path.reverse().join('') as Path
     }
 
     //// Lifecycle Hooks ////

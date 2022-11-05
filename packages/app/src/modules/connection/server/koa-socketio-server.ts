@@ -85,11 +85,11 @@ export class KoaSocketIOServer extends Server {
 
     private _getCtxCommandData(ctx: Context): object {
         const [ ctxData ] = match(ctx.method)
-        (HttpMethod.Get, ctx.query)
-        (HttpMethod.Delete, ctx.query)
-        (HttpMethod.Post, ctx.body ?? {})
-        (HttpMethod.Put, ctx.body ?? {})
-        (HttpMethod.Patch, ctx.body ?? {})
+        (HttpMethod.Get, {...ctx.query})
+        (HttpMethod.Delete, {...ctx.query})
+        (HttpMethod.Post, JSON.parse(ctx.request.body ?? '{}'))
+        (HttpMethod.Put, JSON.parse(ctx.request.body ?? '{}'))
+        (HttpMethod.Patch, JSON.parse(ctx.request.body ?? '{}'))
         ({})
 
         return ctxData
@@ -103,9 +103,12 @@ export class KoaSocketIOServer extends Server {
 
             const urlWithoutQueryString = ctx.url.split('?')[0]
 
-            const cmdData = this.root.getCommand(name).fromRequest(ctx.method as HttpMethod, urlWithoutQueryString, ctxData)
-            if (cmdData)
-                return this.execute(name, cmdData)
+            const commandData = this.root
+                .getCommand(name)
+                .fromRequest(ctx.method as HttpMethod, urlWithoutQueryString, ctxData)
+
+            if (commandData) 
+                return this.execute(name, commandData)
         }
 
         return ctx.throw(

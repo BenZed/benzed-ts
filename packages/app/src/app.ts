@@ -40,18 +40,18 @@ class App<M extends Modules = Modules> extends ServiceModule<M> {
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): App<FlattenModules<[...M, Mx]>> {
+    ): App<[...M, ...FlattenModules<[Mx]>]> {
         return new App(
             this._pushModule(module)
-        ) as App<FlattenModules<[...M, Mx]>>
+        ) as App<[...M, ...FlattenModules<[Mx]>]>
     }
 
     override useModules<Mx extends Modules>(
         ...modules: Mx
-    ): App<FlattenModules<[...M, ...Mx]>> {
+    ): App<[...M, ...FlattenModules<Mx>]> {
         return new App(
             this._pushModule(...modules)
-        ) as App<FlattenModules<[...M, ...Mx]>>
+        ) as App<[...M, ...FlattenModules<Mx>]>
     }
 
 }

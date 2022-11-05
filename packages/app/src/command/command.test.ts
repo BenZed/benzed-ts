@@ -41,21 +41,21 @@ it('is sealed', () => {
 })
 
 it('is a module', () => {
-    const getTodo = Command.create('get-todo', $todoId)
+    const getTodo = Command.create('getTodo', $todoId)
 
     expect(getTodo).toBeInstanceOf(Module)
 })
 
 it('is strongly typed', () => {
 
-    const getTodo = Command.create('get-todo', $todoId)
+    const getTodo = Command.create('getTodo', $todoId)
 
     type GetTodoTypes = typeof getTodo extends Command<infer N, infer I, infer O> 
         ? { name: N, input: I, output: O}
         : never
 
     expectTypeOf<GetTodoTypes>().toMatchTypeOf<{
-        name: 'get-todo'
+        name: 'getTodo'
         input: TodoId
         output: TodoId
     }>()
@@ -68,7 +68,7 @@ describe('static builder pattern', () => {
         
         it('generic signature: name, execute, method, path', () => {
             const generic = Command.create(
-                'kill-orphans',
+                'killOrphans',
                 $todo,
                 HttpMethod.Put,
                 '/orphans'
@@ -76,12 +76,12 @@ describe('static builder pattern', () => {
 
             expect(generic.http.method).toBe(HttpMethod.Put)
             expect(generic.http.path).toBe('/orphans')
-            expect(generic.name).toBe('kill-orphans')
+            expect(generic.name).toBe('killOrphans')
         })
 
         it('generic signature: name, execute, method', () => {
-            const makeRed = Command.create('make-red', $todo, HttpMethod.Options)
-            expect(makeRed.name).toEqual('make-red')
+            const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
+            expect(makeRed.name).toEqual('makeRed')
             expect(makeRed.http.method).toEqual(HttpMethod.Options)
             expect(makeRed.http.path).toEqual('/make-red')
         })
@@ -186,16 +186,16 @@ describe('instance builder pattern', () => {
 
 describe('name', () => {
 
-    it('must be dash-cased', () => {
-        expect(() => Command.create('HolyMackaral', $todo))
-            .toThrow('must be dash-cased')
+    it('must be camelCased', () => {
+        expect(() => Command.create('holy-mackarel', $todo))
+            .toThrow('must be camelCased')
     })
 
     it('is typed', () => {
-        const killOrphans = Command.create('kill-orphans', $todo)
+        const killOrphans = Command.create('killOrphans', $todo)
         type KillOrphans = typeof killOrphans
         type KillOrphansName = KillOrphans extends Command<infer N, any, any> ? N : never 
-        expectTypeOf<KillOrphansName>().toEqualTypeOf<'kill-orphans'>()
+        expectTypeOf<KillOrphansName>().toEqualTypeOf<'killOrphans'>()
     })
 
 })
