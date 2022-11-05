@@ -10,10 +10,11 @@ export class NoMatchError extends Error {
  
 }
 
-export class NoIterableValuesError extends Error {
+export class NotMatchExpressionError extends Error {
+
     constructor( ) {
-        super('Match is not iterable.')
-        this.name = 'NoValuesError'
+        super('Match is not iterable')
+        this.name = 'NotMatchExpressionError'
     }
 
 }

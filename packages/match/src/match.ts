@@ -1,12 +1,19 @@
-import { NoMatchError, NoIterableValuesError } from './error'
-import { 
-    Case, 
-    MatchIterable, 
+import { NoMatchError, NotMatchExpressionError } from './error'
+
+import {
+
+    Case,
+
+    MatchExpression, 
+    MatchExpressionState, 
+    MatchExpressionBuilderEmpty,
+
     MatchState,
-    MatchIterableState, 
-    MatcherIterableEmpty,
-    Matchable,
-    Matcher
+    MatchBuilder,
+    MatchInput,
+
+    MatchInputType
+
 } from './types'
 
 //// Match Methods ////
@@ -37,10 +44,10 @@ function value(
 /**
  * Iterate through the previously defined values.
  */
-function * iterateValues(this: MatchIterable): Generator<unknown> {
+function * iterateValues(this: MatchExpression): Generator<unknown> {
 
     if (this.values.length === 0)
-        throw new NoIterableValuesError()
+        throw new NotMatchExpressionError()
 
     for (const value of this.values)
         yield this.value(value)
@@ -50,22 +57,18 @@ function * iterateValues(this: MatchIterable): Generator<unknown> {
 //// Interface ////
 
 /**
- * Create a non-iterable match
- */
-function match(): Matcher<never, never>
-
-/**
  * Create an iterable match with a single value
  * @param value 
  */
-function match<I extends Matchable>(value: I): MatcherIterableEmpty<I>
+function match<I extends MatchInput>(value: I): MatchExpressionBuilderEmpty<I>
+
 /**
  * Create an iterable match with a set of values
  * @param values
  */
-function match<A extends readonly Matchable[]>(...values: A): MatcherIterableEmpty<A[number]>
+function match<A extends readonly MatchInput[]>(...values: A): MatchExpressionBuilderEmpty<A[number]>
 
-function match(this: MatchIterableState, input: unknown, output: unknown): Matcher
+function match(this: MatchExpressionState, input: unknown, output: unknown): MatchBuilder
 
 /**
  * Handle all create-match signatures
@@ -77,8 +80,8 @@ function match(this: unknown, ...args: unknown[]): unknown {
         values: args as readonly unknown[]
     }
 
-    // immutable add
-    const prevState = this as MatchIterableState | void
+    // Immutable case increment
+    const prevState = this as MatchExpressionState | void
     if (prevState) {
         // .case() signature
         const newCase = args.length === 2 
@@ -96,7 +99,10 @@ function match(this: unknown, ...args: unknown[]): unknown {
         
         nextState.cases = newCase ? [ ...prevState.cases, newCase ] : prevState.cases
         nextState.values = prevState.values
-    }
+    
+    // match() is an illegal call
+    } else if (args.length === 0)
+        throw new Error('match expression requires at least one value')
 
     const instance = {
         ...nextState,
@@ -119,10 +125,10 @@ function match(this: unknown, ...args: unknown[]): unknown {
 match.case = match.bind({ 
     cases: [], 
     values: [] 
-}) as <I extends Matchable, O extends Matchable>(
+}) as <I extends MatchInput, O extends MatchInput>(
     input: I, 
-    outut: O
-) => Matcher<I,O>
+    output: O
+) => MatchBuilder<MatchInputType<I>, O>
 
 //// Exports ////
 
