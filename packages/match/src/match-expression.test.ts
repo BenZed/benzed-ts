@@ -10,6 +10,6 @@ it.todo('create an expression for a value')
 it.todo('create an expression for a set of values')
 
 it('match() should throw an error', () => {
-    expect(() => match())
+    expect(match)
         .toThrow(MatchExpressionValueRequiredError)
 })

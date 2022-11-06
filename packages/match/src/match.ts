@@ -1,7 +1,12 @@
 import { equals } from '@benzed/immutable'
 import is from '@benzed/is'
 
-import { MatchExpressionValueRequiredError, UnmatchedValueError, NoMultipleDefaultCasesError, NotMatchExpressionError } from './error'
+import { 
+    MatchExpressionValueRequiredError, 
+    UnmatchedValueError, 
+    NoMultipleDefaultCasesError,
+    NotMatchExpressionError 
+} from './error'
 
 import {
 
@@ -67,7 +72,7 @@ function value(
         // optimization for nested match
         if (isMatch(result)) {
 
-            // prevent this expression from being rebuilt
+            // prevent the match expression from being rebuilt
             (_case as { output: unknown }).output = result
 
             result = result(value)
@@ -75,6 +80,7 @@ function value(
 
         return result
     }
+
     throw new UnmatchedValueError(value)
 }
 

@@ -23,7 +23,13 @@ export type MatchOutput<I> =
     | Primitives 
     | Object 
 
-type _GeneralizeMatchInput<I> = I extends string 
+type MatchDefaultOutput = 
+
+    | MatchPredicate<unknown, any>
+    | Primitives 
+    | Object 
+
+type _BroadMatchInput<I> = I extends string 
     ? string 
     : I extends number 
         ? number 
@@ -32,7 +38,7 @@ type _GeneralizeMatchInput<I> = I extends string
             : I extends bigint 
                 ? bigint 
                 : I extends Object 
-                    ? { -readonly [K in keyof I]: _GeneralizeMatchInput<I[K]> } 
+                    ? { -readonly [K in keyof I]: _BroadMatchInput<I[K]> } 
                     : I
 
 export type MatchInputType<I> = 
@@ -86,7 +92,7 @@ export interface MatchBuilder<I = unknown, O = unknown> extends Match<I, O> {
         output: Ox
     ): MatchBuilder<I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
 
-    default<Ox extends MatchInput>(output: Ox): Match<_GeneralizeMatchInput<I>, O | Ox>
+    default<Ox extends MatchDefaultOutput>(output: Ox): Match<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
 
 }
 

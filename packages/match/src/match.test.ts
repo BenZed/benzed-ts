@@ -1,13 +1,12 @@
 import match from './match'
 import { Match, MatchBuilder } from './types'
 
-import { expectTypeOf } from 'expect-type'
 import is, { isBoolean, isNumber, isString } from '@benzed/is'
+import { expectTypeOf } from 'expect-type'
 
-import { 
-    UnmatchedValueError, 
-    NoMultipleDefaultCasesError, 
-    NotMatchExpressionError
+import {
+    NoMultipleDefaultCasesError,
+    NotMatchExpressionError, UnmatchedValueError
 } from './error'
 
 /* eslint-disable 
@@ -177,6 +176,18 @@ describe('method input', () => {
         // @ts-expect-error No typed methods
         match.case((i: boolean) => !i, 'Ace')
     })
+
+    it('default method', () => {
+
+        const m1 = match
+            .case('One', 1)
+            .case('Two', 2)
+            .default(i => `${i}!`)
+
+        expect(m1('3')).toEqual('3!')
+        expectTypeOf(m1).toMatchTypeOf<Match<string, 1 | 2 | string>>()
+
+    })
 })
 
 describe('objects', () => {
@@ -244,7 +255,7 @@ describe('output with method', () => {
 
 })
 
-describe('nesting match expressions', () => {
+describe('nested match expressions', () => {
 
     it('can handle nested expressions', () => {
 
@@ -271,7 +282,7 @@ describe('nesting match expressions', () => {
         expectTypeOf(m1).toEqualTypeOf<Match<number | boolean, string | number>>()
     })
 
-    it('nested match expressions are only built once', () => {
+    it('optimize nested matches', () => {
 
         let buildMatchCalls = 0
 
