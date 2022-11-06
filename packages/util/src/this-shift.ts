@@ -2,7 +2,7 @@ import { Func } from './types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type FirstParameter<F extends Func> = Parameters<F>[0]
 
@@ -36,7 +36,7 @@ type BindPopped<F extends Func> = (
     ...args: AllButLastParameter<F>
 ) => ReturnType<F>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Returns a function that shifts the first parameter of the input function,
@@ -112,7 +112,7 @@ function bindPop<F extends Func<any, any, any>, T>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default thisShift
 

@@ -11,10 +11,10 @@
  */
 function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
 
-    let camelCased = ''
+    let camelCased = ``
     let capitalizeNext = false
 
-    if (typeof delimiter === 'string')
+    if (typeof delimiter === `string`)
         delimiter = new RegExp(delimiter)
 
     for (let i = 0; i < str.length; i++) {
@@ -36,7 +36,7 @@ function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
     return camelCased
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toCamelCase
 

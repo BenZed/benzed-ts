@@ -1,7 +1,6 @@
 import { $, Infer } from './index'
 
 import IntersectionSchema from './intersection'
-import UndefinedSchema from './undefined'
 import BooleanSchema from './boolean'
 import NumberSchema from './number'
 import StringSchema from './string'
@@ -10,85 +9,103 @@ import ArraySchema from './array'
 import RecordSchema from './record'
 import UnionSchema from './union'
 import TupleSchema from './tuple'
-import NullSchema from './null'
 
 import { expectTypeOf } from 'expect-type'
+import { isSymbol } from '@benzed/is'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+        @typescript-eslint/no-explicit-any
+    */
 
 for (const [key, SchemaType, ...args] of [
-    ['number', NumberSchema],
-    ['boolean', BooleanSchema],
-    ['string', StringSchema],
-    ['shape', ShapeSchema, { property: new BooleanSchema() }],
-    ['record', RecordSchema, new NumberSchema()],
-    ['array', ArraySchema, new StringSchema()],
-    ['tuple', TupleSchema, new NumberSchema(), new NumberSchema()],
+    [`shape`, ShapeSchema, { property: new BooleanSchema() }],
+    [`record`, RecordSchema, new NumberSchema()],
+    [`array`, ArraySchema, new StringSchema()],
+    [`tuple`, TupleSchema, new NumberSchema(), new NumberSchema()],
     [
-        'and',
+        `and`,
         IntersectionSchema,
         new ShapeSchema({ x: new NumberSchema() }),
         new ShapeSchema({ y: new NumberSchema() })
     ],
-    ['or', UnionSchema, new NumberSchema(), new StringSchema()],
-    ['null', NullSchema],
-    ['undefined', UndefinedSchema]
+    [`or`, UnionSchema, new NumberSchema(), new StringSchema()]
 
 ] as const) {
 
-    it(`$.${key}() creates ${SchemaType.name}`, () => {
+    it(`$.${key} creates ${SchemaType.name}`, () => {
         const $schema = ($ as any)[key](...args)
         expect($schema).toBeInstanceOf(SchemaType)
     })
 
 }
 
-describe('$() shortcut', () => {
+describe(`$() shortcut`, () => {
 
-    it('allows shapes', () => {
+    it(`allows shapes`, () => {
         const $vector = $({
-            x: $.number(),
-            y: $.number()
+            x: $.number,
+            y: $.number
         })
 
         expect($vector).toBeInstanceOf(ShapeSchema)
     })
 
-    it('allows tuples', () => {
-        const $range = $($.number(), $.number())
+    it(`allows tuples`, () => {
+        const $range = $($.number, $.number)
         expect($range).toBeInstanceOf(TupleSchema)
+    })
+
+    it.todo(`allows enums`)
+
+    it(`allows constructors`, () => {
+        class Foo {}
+        class Bar {}
+
+        const foo = new Foo()
+
+        const $foo = $(Foo)
+        
+        expect($foo.validate(foo))
+            .toEqual(foo)
+        
+        expect(() => $foo.validate(new Bar()))
+            .toThrow(`must be Foo`)
+        
+    })
+
+    it(`does not allow Symbol`, () => {
+        // @ts-expect-error Symbol is not a constructor
+        $(Symbol)
     })
 
 })
 
-describe('shortcut type tests', () => {
+describe(`shortcut type tests`, () => {
 
-    it('primitives', () => {
+    it(`primitives`, () => {
 
-        const $null = $.null()
+        const $null = $.null
         expectTypeOf<Infer<typeof $null>>().toEqualTypeOf<null>()
 
-        const $undefined = $.undefined()
+        const $undefined = $.undefined
         expectTypeOf<Infer<typeof $undefined>>().toEqualTypeOf<undefined>()
 
-        const $number = $.number()
+        const $number = $.number
         expectTypeOf<Infer<typeof $number>>().toEqualTypeOf<number>()
 
-        const $boolean = $.boolean()
+        const $boolean = $.boolean
         expectTypeOf<Infer<typeof $boolean>>().toEqualTypeOf<boolean>()
 
-        const $string = $.string().optional()
+        const $string = $.string.optional
         expectTypeOf<Infer<typeof $string>>().toEqualTypeOf<string | undefined>()
     })
 
-    it('shapes', () => {
+    it(`shapes`, () => {
 
         const $vector = $({
-            x: $.number().mutable(),
-            y: $.number().mutable(),
-            z: $.number().optional()
+            x: $.number.mutable,
+            y: $.number.mutable,
+            z: $.number.optional
         })
 
         expectTypeOf<Infer<typeof $vector>>().toEqualTypeOf<{
@@ -99,40 +116,40 @@ describe('shortcut type tests', () => {
 
     })
 
-    it('nested shapes', () => {
+    it(`nested shapes`, () => {
 
         const $todo = $({
-            completed: $.boolean().mutable(),
+            completed: $.boolean.mutable,
             description: $({
-                content: $.string(),
-                deadline: $.number()
-            }).mutable()
+                content: $.string,
+                deadline: $.number
+            }).mutable
         })
 
-        type Todo = Infer<typeof $todo>
-        expectTypeOf<Todo>().toEqualTypeOf<{
-            completed: boolean
-            description: {
-                readonly content: string
-                readonly deadline: number
-            }
-        }>()
+            type Todo = Infer<typeof $todo>
+            expectTypeOf<Todo>().toEqualTypeOf<{
+                completed: boolean
+                description: {
+                    readonly content: string
+                    readonly deadline: number
+                }
+            }>()
 
     })
 
-    it('arrays', () => {
+    it(`arrays`, () => {
 
-        const $optionalStringArr = $.array($.string()).mutable().optional()
+        const $optionalStringArr = $.array($.string).mutable.optional
         expectTypeOf<Infer<typeof $optionalStringArr>>()
             .toEqualTypeOf<string[] | undefined>()
 
-        const $optionalNumArr = $.array($.number().optional())
+        const $optionalNumArr = $.array($.number.optional)
         expectTypeOf<Infer<typeof $optionalNumArr>>()
             .toEqualTypeOf<readonly (number | undefined)[]>()
 
         const $todo = $({
-            complete: $.boolean().mutable(),
-            description: $.string(),
+            complete: $.boolean.mutable,
+            description: $.string,
         })
 
         const $todoArray = $.array($todo)
@@ -140,53 +157,100 @@ describe('shortcut type tests', () => {
             .toEqualTypeOf<readonly { complete: boolean, readonly description: string }[]>()
     })
 
-    it('records', () => {
+    it(`records`, () => {
 
-        const $switches = $.record($.boolean())
+        const $switches = $.record($.boolean)
         expectTypeOf<Infer<typeof $switches>>()
             .toEqualTypeOf<Readonly<Record<string, boolean>>>()
 
-        const $scores = $.record($.number().mutable())
+        const $scores = $.record($.number.mutable)
         expectTypeOf<Infer<typeof $scores>>()
             .toEqualTypeOf<Record<string, number>>()
     })
 
-    it('enums', () => {
-        const $trafficLight = $('red', 'green', 'yellow')
+    it(`enums`, () => {
+        const $trafficLight = $(`red`, `green`, `yellow`)
         expectTypeOf<Infer<typeof $trafficLight>>()
             .toEqualTypeOf<'red' | 'green' | 'yellow'>()
     })
 
-    it('tuples', () => {
-        const $range = $.tuple($.number(), $.number())
+    it(`tuples`, () => {
+        const $range = $.tuple($.number, $.number)
         expectTypeOf<Infer<typeof $range>>()
             .toEqualTypeOf<readonly [number, number]>()
 
-        const $between = $.tuple($.number(), $.or($('<'), $('>')), $.number()).mutable()
+        const $between = $.tuple($.number, $.or($(`<`), $(`>`)), $.number).mutable
         expectTypeOf<Infer<typeof $between>>()
             .toEqualTypeOf<[number, '<' | '>', number]>()
     })
 
-    it('unions', () => {
+    it(`unions`, () => {
 
-        const $id = $.or($.string(), $.number())
+        const $id = $.or($.string, $.number)
         expectTypeOf<Infer<typeof $id>>()
             .toEqualTypeOf<string | number>()
     })
 
-    it('intersections', () => {
+    it(`intersections`, () => {
 
         const $quaternion = $.and(
             $({
-                x: $.number().mutable(),
-                y: $.number().mutable(),
-                z: $.number().mutable()
+                x: $.number.mutable,
+                y: $.number.mutable,
+                z: $.number.mutable
             }),
-            $({ w: $.number().mutable().optional() })
+            $({ w: $.number.mutable.optional })
         )
 
         expectTypeOf<Infer<typeof $quaternion>>()
             .toEqualTypeOf<{ x: number, y: number, z: number } & { w?: number }>()
+    })
+
+})
+
+describe(`compositing`, () => {
+
+    it(`shape composite type safety`, () => {
+
+        const $v2 = $({ x: $.number.mutable, y: $.number.mutable })
+
+        const $v3 = $({ ...$v2.$, z: $.number.mutable })
+
+        expectTypeOf<Infer<typeof $v3>>()
+            .toEqualTypeOf<{ x: number, y: number, z: number }>()
+
+    })
+
+    it(`tuple composite type safety`, () => {
+
+        const $range = $($.number, $.number)
+        const $op = $(`>`, `==`, `<`)
+        const $rangeWithOp = $.tuple(...$range.$, $op)
+
+        expectTypeOf<Infer<typeof $rangeWithOp>>()
+            .toEqualTypeOf<readonly [number, number, '<' | '>' | '==']>()
+    })
+
+})
+
+it(`wtf`, () => {
+
+    const $error = $({
+        message: $.string,
+        name: $.string
+    })
+
+})
+describe(`$.typeOf`, () => {
+
+    it(`allows typeguards`, () => {
+        const $foo = $.typeOf(isSymbol)
+       
+        const symbol = Symbol()
+    
+        expect($foo.validate(symbol)).toEqual(symbol)
+        expect(() => $foo.validate(`not a symbol`))
+            .toThrow(`must be Symbol`)
     })
 
 })

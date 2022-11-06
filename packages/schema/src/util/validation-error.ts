@@ -1,12 +1,13 @@
 import { isFunction } from '@benzed/is'
 
-/*** Exports ***/
+//// Exports ////
 
 export default class ValidationError extends Error {
 
-    public constructor (
+    constructor (
         msgOrFormat: string | ((path: readonly (string | number)[]) => string),
-        public readonly path: readonly (string | number)[]
+        readonly path: readonly (string | number)[],
+        readonly value: unknown
     ) {
 
         const message = isFunction(msgOrFormat)
@@ -15,9 +16,11 @@ export default class ValidationError extends Error {
 
         super(message)
 
-        this.name = 'ValidationError'
+        this.name = `ValidationError`
 
     }
-
 }
 
+export {
+    ValidationError
+}

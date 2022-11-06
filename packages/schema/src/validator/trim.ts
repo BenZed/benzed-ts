@@ -1,14 +1,14 @@
-import { AssertTransformEqualValidator, ErrorDefaultAndArgs, ErrorSettings } from './validator'
+import { AssertValidTransformValidator, ErrorDefaultAndArgs, ErrorSettings } from './validator'
 
-/*** Main ***/
+//// Main ////
 
 type TrimValidatorSettings = ErrorSettings<[input: string]>
 
-/*** Main ***/
+//// Main ////
 
-class TrimValidator extends AssertTransformEqualValidator<string, TrimValidatorSettings> {
+class TrimValidator extends AssertValidTransformValidator<string, TrimValidatorSettings> {
 
-    /*** AssertTransformEqualValidator Implementation ***/
+    //// AssertTransformEqualValidator Implementation ////
 
     protected _transform(input: string): string {
         return input.trim()
@@ -16,14 +16,14 @@ class TrimValidator extends AssertTransformEqualValidator<string, TrimValidatorS
 
     protected _getErrorDefaultAndArgs(input: string): ErrorDefaultAndArgs<TrimValidatorSettings> {
         return [
-            'cannot begin or end with whitespace',
+            `cannot begin or end with whitespace`,
             input
         ]
     }
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default TrimValidator
 

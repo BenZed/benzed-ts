@@ -12,13 +12,13 @@ import {
 
 import { TypeValidator } from '../validator/type'
 
-/*** Type ***/
+//// Type ////
 
-type EnumSchemaInput = readonly (string | number | boolean)[]
+type EnumSchemaInput = readonly (string | number | boolean | null | undefined)[]
 
 type EnumSchemaOutput<I extends EnumSchemaInput> = I[number]
 
-/*** Helper ***/
+//// Helper ////
 
 function isEnumValue<
     I extends EnumSchemaInput,
@@ -28,7 +28,7 @@ function isEnumValue<
         values.some(value => value === input)
 }
 
-/*** Main ***/
+//// Main ////
 
 class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F extends Flags[] = []>
     extends Schema<I, O, F> {
@@ -38,23 +38,23 @@ class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F ext
         is: isEnumValue(this._input)
     })
 
-    public override default(defaultValue = this._input[0] as O): this {
+    override default(defaultValue = this._input[0] as O): this {
         return super.default(defaultValue)
     }
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F, never, () => EnumSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F, never, () => EnumSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => EnumSchema<I, O>
+    override readonly clearFlags!: () => EnumSchema<I, O>
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default EnumSchema
 

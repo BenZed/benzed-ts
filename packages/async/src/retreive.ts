@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Main ***/
+//// Main ////
 
 /**
  * re-use the same promise to prevent multiple invocations of the
@@ -22,7 +22,7 @@ function retreive<T, A extends any[]>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default retreive
 

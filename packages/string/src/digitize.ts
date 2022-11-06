@@ -1,7 +1,7 @@
 import { isFinite, isNaN, isInteger } from '@benzed/is'
 import { round } from '@benzed/math'
 
-/*** Types ***/
+//// Types ////
 
 interface DecimalOptions {
     /**
@@ -61,14 +61,14 @@ interface WholeOptions {
 
 type DigitizeOptions = DecimalOptions | WholeOptions | (DecimalOptions & WholeOptions)
 
-/*** Helper ***/
+//// Helper ////
 
 function parseOptions(
     input?: DigitizeOptions
 ): Partial<DecimalOptions> & Partial<WholeOptions> {
 
-    const hasDecimalOptions = input && 'decimalPlaces' in input
-    const hasWholeOptions = input && 'wholePlaces' in input
+    const hasDecimalOptions = input && `decimalPlaces` in input
+    const hasWholeOptions = input && `wholePlaces` in input
 
     const output = {
         decimalPlaces: hasDecimalOptions ? input.decimalPlaces : undefined,
@@ -79,15 +79,15 @@ function parseOptions(
     }
 
     if (output.decimalPlaces !== undefined && !isInteger(output.decimalPlaces))
-        throw new Error('options.decimalPlaces must be an integer.')
+        throw new Error(`options.decimalPlaces must be an integer.`)
 
     if (output.wholePlaces !== undefined && !isInteger(output.wholePlaces))
-        throw new Error('options.wholePlaces must be an integer.')
+        throw new Error(`options.wholePlaces must be an integer.`)
 
     return output
 }
 
-/*** Main ***/
+//// Main ////
 
 function digitize(
     num: number | bigint,
@@ -112,12 +112,12 @@ function digitize(
     }
 
     const str = num.toString()
-    let [whole, decimal = ''] = str.split('.')
+    let [whole, decimal = ``] = str.split(`.`)
 
     // Apply Whole Options
     if (wholePlaces !== undefined) {
         whole = whole
-            .padStart(wholePlaces, '0')
+            .padStart(wholePlaces, `0`)
         whole = truncateWhole
             ? whole
                 .substring(whole.length - wholePlaces, whole.length)
@@ -131,14 +131,14 @@ function digitize(
 
         decimal = trailingZeros
             ? decimal
-                .padEnd(decimalPlaces, '0')
+                .padEnd(decimalPlaces, `0`)
             : decimal
     }
 
-    return `${whole}${decimal && '.' + decimal}` as `${number}`
+    return `${whole}${decimal && `.` + decimal}` as `${number}`
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default digitize
 

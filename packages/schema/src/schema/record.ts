@@ -13,11 +13,11 @@ import UnionSchema from './union'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
-type RecordSchemaInput =
-    [
-        value: Schema<any, any, any>
+type RecordSchemaInput = 
+    [ 
+        value: Schema<any, any, any> 
     ] |
     [
         key:
@@ -41,7 +41,7 @@ type RecordSchemaOutput<T extends RecordSchemaInput> =
     /**/ ? RecordSchemaKeyValueOutput<T[0], T[1]>
     /**/ : RecordSchemaKeyValueOutput<StringSchema<any>, T[0]>
 
-/*** Main ***/
+//// Main ////
 
 class RecordSchema<
     /**/
@@ -53,7 +53,8 @@ class RecordSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'object',
+        name: `object`,
+        article: `an`,
         is: (input): input is O => isObject(input),
     })
 
@@ -79,32 +80,40 @@ class RecordSchema<
             }
 
             const validKey = keySchema
-                ? keySchema['_validate'](key, keyContext) as typeof key
+                ? keySchema[`_validate`](key, keyContext) as typeof key
                 : key
 
-            output[validKey] = valueSchema['_validate'](value, keyContext)
+            output[validKey] = valueSchema[`_validate`](value, keyContext)
         }
 
         return output
     }
 
-    public override readonly optional!: HasOptional<
-    /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Optional, F>>
+    get $key() : I[0] {
+        return this._input[0]
+    }
+
+    get $value() : I[1] {
+        return this._input[1]
+    }
+
+    override readonly optional!: HasOptional<
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
-    /**/ F, never, () => RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
+    override readonly mutable!: HasMutable<
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => RecordSchema<I, O>
+    override readonly clearFlags!: () => RecordSchema<I, O>
 
-    public override default(defaultValue = {} as O): this {
+    override default(defaultValue = {} as O): this {
         return super.default(defaultValue)
     }
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default RecordSchema
 

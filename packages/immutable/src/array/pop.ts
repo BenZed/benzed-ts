@@ -1,10 +1,10 @@
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { pop: _pop } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably pop an ArrayLike.

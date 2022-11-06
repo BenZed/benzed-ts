@@ -1,8 +1,10 @@
 import { Func } from './types'
 
+//// Types ////
+
 type Callback<T> = Func<[Error | null, T]>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Wrapper for promisifying oldschool callback pattern
@@ -14,21 +16,19 @@ function promisify<A extends any[], T>(
     func: (Func<[...A, Callback<T>], void>)
 ): Func<A, Promise<T>> {
 
-    return (...args: A) =>
+    return (...args: A) => new Promise((resolve, reject) =>
+        func(
+            ...args,
 
-        new Promise((resolve, reject) =>
-            func(
-                ...args,
-
-                (e: Error | null, value: T) => e
-                    ? reject(e)
-                    : resolve(value)
-            )
+            (e: Error | null, value: T) => e
+                ? reject(e)
+                : resolve(value)
         )
+    )
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default promisify
 

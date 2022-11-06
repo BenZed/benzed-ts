@@ -1,39 +1,46 @@
 import {
-    isRenderSetting,
-    isRenderSettings
+    $renderSetting,
+    $rendererConfig
 } from './render-settings'
 
 import { describeValidator } from './util.test'
 
 describeValidator({
-    describe: 'isRendererSettings validator',
-    factory: () => isRenderSettings,
+    describe: '$rendererConfig.is validator',
+    factory: () => $rendererConfig.is,
     input: [],
     data: [
         [
             {
-                music: {
-                    type: 'audio',
-                    abr: 100
+                settings: {
+                    music: {
+                        type: 'audio',
+                        abr: 100
+                    }
                 }
             },
             true
         ],
         [
             {
-                movie: {
-                    type: 'video',
-                    vbr: 100
+                settings: {
+                    movie: {
+                        type: 'video',
+                        vbr: 100
+                    }
                 }
             },
             true
         ],
         [
             {
-                picture: {
-                    type: 'image',
-                    size: { scale: 1 },
-                    time: { seconds: 0 }
+                settings: {
+
+                    picture: {
+                        type: 'image',
+                        size: { scale: 1 },
+                        time: { seconds: 0 }
+                    }
                 }
             },
             true
@@ -45,13 +52,27 @@ describeValidator({
         [
             null,
             false
+        ],
+        [
+            {
+                maxConcurrent: 'none',
+                settings: {
+
+                    picture: {
+                        type: 'image',
+                        size: { scale: 1 },
+                        time: { seconds: 0 }
+                    }
+                }
+            },
+            false
         ]
     ],
 })
 
 describeValidator({
-    describe: 'isRenderSetting validator',
-    factory: () => isRenderSetting,
+    describe: '$renderSetting.is validator',
+    factory: () => $renderSetting.is,
     input: [],
     data: [
         [

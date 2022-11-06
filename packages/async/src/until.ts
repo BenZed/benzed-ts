@@ -2,7 +2,7 @@ import { isFunction, isNumber, isObject, isString } from '@benzed/is'
 
 import milliseconds from './milliseconds'
 
-/*** Types ***/
+//// Types ////
 
 type Condition = ((deltaTime: number) => boolean) | (() => boolean)
 
@@ -23,7 +23,7 @@ type UntilArgs =
     [condition: Condition, timeoutMsg: TimeoutMessage] |
     [condition: Condition, options: UntilOptions]
 
-/*** Constants ***/
+//// Constants ////
 
 const DEFAULT_INTERVAL = 25 // ms 
 const DEFAULT_TIMEOUT = Infinity
@@ -31,7 +31,7 @@ const DEFAULT_TIMEOUT_MSG = ((timeout?: number) => {
     throw new Error(`Could not resolve condition in ${timeout} ms`)
 }) as TimeoutMessage
 
-/*** Helper ***/
+//// Helper ////
 
 const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMessage] => {
 
@@ -67,7 +67,7 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
     return [condition, timeout, interval, timeoutMsg]
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Wait until a given condition passes. 
@@ -105,7 +105,7 @@ async function until(
     return elapsed
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default until
 

@@ -9,13 +9,13 @@ import {
 } from '@benzed/math'
 
 import {
-    AssertTransformEqualValidator,
+    AssertValidTransformValidator,
     ErrorDefaultAndArgs,
     ErrorSettings,
     ErrorDefault
 } from './validator'
 
-/*** Types ***/
+//// Types ////
 
 interface RoundValidatorSettings extends ErrorSettings<[
     value: number,
@@ -37,11 +37,11 @@ type RoundValidatorSettingsShortcut = [
     Omit<RoundValidatorSettings, 'method'>
 ]
 
-/*** Const ***/
+//// Const ////
 
 const ROUNDER_METHODS = { round, ceil, floor }
 
-/*** Helper ***/
+//// Helper ////
 
 function toRoundValidatorSettings(
     method: RounderMethod,
@@ -60,14 +60,14 @@ function toRoundValidatorSettings(
 
 }
 
-/*** Main ***/
+//// Main ////
 
-class RoundValidator extends AssertTransformEqualValidator<
+class RoundValidator extends AssertValidTransformValidator<
 /**/ number,
 /**/ RoundValidatorSettings
 > {
 
-    /*** AssertTransformEqualValidator Implementation ***/
+    //// AssertTransformEqualValidator Implementation ////
 
     protected _transform(input: number): number {
 
@@ -94,7 +94,7 @@ class RoundValidator extends AssertTransformEqualValidator<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default RoundValidator
 

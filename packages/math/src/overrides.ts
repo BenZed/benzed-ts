@@ -1,4 +1,4 @@
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const {
     abs, acos, acosh, asin, asinh, atan, atan2, atanh, cbrt, ceil: _ceil, clz32,
@@ -7,11 +7,11 @@ const {
     min, max
 } = Math
 
-/*** Constants ***/
+//// Constants ////
 
 const SIN_PSUEDO_RANDOM_MULTIPLIER = 1000000000
 
-/*** Overridden ***/
+//// Overridden ////
 
 /**
  * Get a random number within the given range.
@@ -28,7 +28,7 @@ export function random(min = 0, max = 1, seed?: number): number {
     let value
 
     // handle seed
-    if (typeof seed === 'number') {
+    if (typeof seed === `number`) {
         value = sin(seed) * SIN_PSUEDO_RANDOM_MULTIPLIER
         value -= _floor(value)
 
@@ -97,7 +97,7 @@ export function ceil(value: number, precision = 1): number {
 
 }
 
-/*** Re Exports ***/
+//// Re Exports ////
 
 /**
  * Q: Why all the re-exports?

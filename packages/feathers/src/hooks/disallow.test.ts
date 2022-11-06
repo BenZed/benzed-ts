@@ -5,21 +5,21 @@ import {
     createTestNextFunction
 } from '../util.test'
 
-/*** Tests ***/
+//// Tests ////
 
-for (const provider of ['rest', 'socketio', 'server', 'external', 'primus'] as const) {
-    for (const method of ['get', 'patch', 'update', 'find', 'create'] as const) {
+for (const provider of [`rest`, `socketio`, `server`, `external`, `primus`] as const) {
+    for (const method of [`get`, `patch`, `update`, `find`, `create`] as const) {
 
         it(`prevents configured "${provider}" from using "${method}" method`, async () => {
 
-            const correctedProvider = provider === 'server'
+            const correctedProvider = provider === `server`
                 ? undefined
-                : provider === 'external'
-                    ? 'rest'
+                : provider === `external`
+                    ? `rest`
                     : provider
 
             const ctx = createTestHookContext({
-                serviceName: 'users',
+                serviceName: `users`,
                 method,
                 params: {
                     provider: correctedProvider
@@ -31,8 +31,8 @@ for (const provider of ['rest', 'socketio', 'server', 'external', 'primus'] as c
             await expect(disallow(provider)(ctx, next))
                 .rejects
                 .toHaveProperty(
-                    'message',
-                    `Provider '${correctedProvider ?? 'server'}' can not call '${method}'.`
+                    `message`,
+                    `Provider '${correctedProvider ?? `server`}' can not call '${method}'.`
                 )
 
             expect(next.calls).toBe(0)
@@ -41,11 +41,11 @@ for (const provider of ['rest', 'socketio', 'server', 'external', 'primus'] as c
     }
 }
 
-it('can prevent method from being called at all', async () => {
+it(`can prevent method from being called at all`, async () => {
 
     const ctx = createTestHookContext({
-        serviceName: 'users',
-        method: 'find',
+        serviceName: `users`,
+        method: `find`,
     })
 
     const next = createTestNextFunction()
@@ -53,8 +53,8 @@ it('can prevent method from being called at all', async () => {
     await expect(disallow()(ctx, next))
         .rejects
         .toHaveProperty(
-            'message',
-            'Provider \'server\' can not call \'find\'.'
+            `message`,
+            `Provider 'server' can not call 'find'.`
         )
 
     expect(next.calls).toBe(0)

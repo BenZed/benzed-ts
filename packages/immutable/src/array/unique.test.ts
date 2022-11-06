@@ -39,9 +39,9 @@ describe('unique()', () => {
 
         class Foo {
 
-            public bar: unknown
+            bar: unknown
 
-            public constructor (bar: unknown) {
+            constructor (bar: unknown) {
                 this.bar = bar
             }
 
@@ -59,7 +59,7 @@ describe('unique()', () => {
         })
 
         class UltraFoo extends Foo implements Comparable<Foo> {
-            public [$$equals] = Foo.prototype.equals
+            [$$equals] = Foo.prototype.equals
         }
 
         const ultrafoos = primitives.map(p => new UltraFoo(p))

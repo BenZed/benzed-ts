@@ -29,7 +29,7 @@ import { DefaultValidatorSettings } from '../validator/default'
     @typescript-eslint/indent
 */
 
-/*** Types ***/
+//// Types ////
 
 type IsMutableAndOptional<I, Y, N = never> =
     HasMutable<I, HasOptional<I, Y, N>, N>
@@ -49,17 +49,13 @@ type ShapeSchemaInput = { [key: string]: Schema<any, any, any> }
 
 type ShapeSchemaOutput<T extends ShapeSchemaInput> =
     Compile<
-        Merge<[
-            { readonly [K in keyof T as NotMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> },
-            { readonly [K in keyof T as IsOptionalNotMutable<T[K], K>]?: SchemaOutput<T[K]> },
-            { [K in keyof T as IsMutableAndOptional<T[K], K>]?: SchemaOutput<T[K]> },
-            { [K in keyof T as IsMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> }
-        ]>
+        { readonly [K in keyof T as NotMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> } &
+        { readonly [K in keyof T as IsOptionalNotMutable<T[K], K>]?: SchemaOutput<T[K]> } &
+        { [K in keyof T as IsMutableAndOptional<T[K], K>]?: SchemaOutput<T[K]> } &
+        { [K in keyof T as IsMutableNotOptional<T[K], K>]: SchemaOutput<T[K]> }
     >
 
-/*** Helper ***/
-
-/*** Main ***/
+//// Main ////
 
 class ShapeSchema<
     I extends ShapeSchemaInput,
@@ -68,7 +64,8 @@ class ShapeSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'object',
+        name: `object`,
+        article: `an`,
         is: isObject as (input: unknown) => input is O,
         cast: (input: unknown) => isString(input)
             ? safeJsonParse(input, isObject) ?? input
@@ -93,7 +90,7 @@ class ShapeSchema<
         for (const key in propertySchemas) {
             const propertySchema = propertySchemas[key]
 
-            output[key] = propertySchema['_validate'](
+            output[key] = propertySchema[`_validate`](
                 input[key],
                 {
                     ...context,
@@ -105,17 +102,21 @@ class ShapeSchema<
         return output as O
     }
 
-    public override readonly optional!: HasOptional<
-    /**/ F, () => never, () => ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
+    override readonly optional!: HasOptional<
+    /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
-    /**/ F, () => never, () => ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
+    override readonly mutable!: HasMutable<
+    /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => ShapeSchema<I, O>
+    override readonly clearFlags!: () => ShapeSchema<I, O>
 
-    public default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+    get properties(): Readonly<I> {
+        return this._input
+    }
+
+    default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
 
         defaultValue ??= (): O => {
             let output: undefined | O = undefined
@@ -123,11 +124,11 @@ class ShapeSchema<
                 const schema = this._input[key]
 
                 // first used default validator output
-                let value = schema['_defaultValidator'].transform(undefined)
+                let value = schema[`_defaultValidator`].transform(undefined)
 
                 // use identify if primitive
                 if (value === undefined && schema instanceof PrimitiveSchema)
-                    value = schema['_input']
+                    value = schema[`_input`]
 
                 // assign if value 
                 if (value !== undefined)
@@ -141,7 +142,7 @@ class ShapeSchema<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ShapeSchema
 

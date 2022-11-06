@@ -1,0 +1,32 @@
+{
+    "maxConcurrent": 2,
+    "settings": {
+        "image-low": {
+            "type": "image",
+            "time": {
+                "progress": 0.5
+            },
+            "size": {
+                "width": 64
+            }
+        },
+        "image-medium": {
+            "type": "image",
+            "time": {
+                "progress": 0.5
+            },
+            "size": {
+                "width": 512
+            }
+        },
+        "image-high": {
+            "type": "image",
+            "time": {
+                "progress": 0.5
+            },
+            "size": {
+                "width": 512
+            }
+        }
+    }
+}

@@ -1,7 +1,8 @@
 
-import { stat, StatOptions, PathLike } from './overrides'
+import { stat } from './export'
+import { StatOptions, PathLike } from './types'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Returns true if the file exists, false otherwise.
@@ -16,7 +17,7 @@ async function exists(url: PathLike, statOpts?: StatOptions): Promise<boolean> {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default exists
 

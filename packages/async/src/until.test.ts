@@ -1,5 +1,5 @@
 import until from './until'
-import fs from 'fs'
+import fs from '@benzed/fs'
 import path from 'path'
 
 // eslint-disable-next-line no-unused-vars

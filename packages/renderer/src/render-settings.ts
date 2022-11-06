@@ -1,82 +1,74 @@
 
+import $ from '@benzed/schema'
+
 import {
-    isSizeSetting,
-    isTimeSetting,
-    isAudioSetting,
-    isVideoSetting,
+
+    $sizeSetting,
     SizeSetting,
+
+    $timeSetting,
     TimeSetting,
-    VideoSetting,
+
+    $audioSetting,
     AudioSetting,
+
+    $videoSetting,
+    VideoSetting
+
 } from './ffmpeg/settings'
 
-import {
-    enumOf,
-    or,
-    and,
-    shapeOf,
-    recordOf,
-    optional,
-    ValidatesType,
-    Validator,
-    assertify
-} from './validator'
-
-/*** Type ***/
-
-const hasType = <S extends string>(type: S): Validator<{ type: S }> =>
-    shapeOf({
-        type: enumOf(type)
-    })
+//// Type ////
 
 export interface AudioRenderSetting extends AudioSetting {
     type: 'audio'
 }
-const isAudioRenderSetting: Validator<AudioRenderSetting> = and(
-    hasType('audio'),
-    isAudioSetting
-)
+const $audioRenderSetting =
+    $({
+        type: $.enum(`audio` as const),
+        ...$audioSetting.$
+    })
 
 export interface VideoRenderSetting extends VideoSetting, AudioSetting {
     type: 'video'
     size?: SizeSetting
 }
 
-const isVideoRenderSetting: Validator<VideoRenderSetting> = and(
-    hasType('video'),
-    isVideoSetting,
-    isAudioSetting,
-    shapeOf({
-        size: optional(isSizeSetting)
-    })
-)
+const $videoRenderSetting = $({
+    type: $(`video` as const),
+    ...$videoSetting.$,
+    ...$audioSetting.$,
+    size: $sizeSetting.optional
+
+})
 
 export interface ImageRenderSetting {
     type: 'image'
     size?: SizeSetting
     time?: TimeSetting
 }
-const isImageRenderSetting: Validator<ImageRenderSetting> = shapeOf({
-    type: enumOf('image'),
-    size: optional(isSizeSetting),
-    time: optional(isTimeSetting)
+const $imageRenderSetting = $({
+    type: $(`image` as const),
+    size: $sizeSetting.optional,
+    time: $timeSetting.optional
 })
 
-/*** Expots ***/
+//// Expots ////
 
-export type RenderSetting = ValidatesType<typeof isRenderSetting>
-export const isRenderSetting = or(
-    isAudioRenderSetting,
-    isVideoRenderSetting,
-    isImageRenderSetting
+export type RenderSetting = AudioRenderSetting | VideoRenderSetting | ImageRenderSetting
+export const $renderSetting = $.or(
+    $audioRenderSetting,
+    $videoRenderSetting,
+    $imageRenderSetting
 )
 
-export interface RenderSettings {
-    [key: string]: RenderSetting
+export interface RendererConfig {
+    readonly maxConcurrent?: number
+    readonly settings: {
+        readonly [key: string]: RenderSetting
+    }
 }
-export const isRenderSettings: Validator<RenderSettings> = recordOf(isRenderSetting)
 
-export const assertRenderSettings = assertify(
-    isRenderSettings,
-    'not a valid RenderSettings object'
-)
+export const $rendererConfig = $({
+    maxConcurrent: $.number.range(`>`, 0).optional,
+    settings: $.record($renderSetting)
+})

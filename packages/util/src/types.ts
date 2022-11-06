@@ -2,17 +2,11 @@
     @typescript-eslint/no-explicit-any 
 */
 
-/*** Value Types ***/
+export type Func<A extends any[] = any, V = any, T = void> = (this: T, ...args: A) => V
 
-export type Constructor<T> = (new (...args: any[]) => T) | { prototype: T }
+export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
-export type Falsy = null | undefined | false | 0 | ''
-
-export type Sortable = string | bigint | number | { valueOf(): string | bigint | number }
-
-export type Func<A extends any[] = unknown[], V = unknown, T = void> = (this: T, ...args: A) => V
-
-export type TypeGuard<I, O extends I> = (input: I) => input is O
+export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
 
 export type Json =
     null | string | number | boolean |
@@ -24,25 +18,25 @@ export type Json =
 /**
  * Reduce two types to only their matching key values.
  */
-export type Collapse<LEFT, RIGHT> =
+export type Collapse<L, R> =
     {
-        [K in keyof LEFT as
+        [K in keyof L as
 
         // Only include key of left if right has the same key and value
-        /**/ K extends keyof RIGHT ?
-            /**/ RIGHT[K] extends LEFT[K]
+        /**/ K extends keyof R ?
+            /**/ R[K] extends L[K]
                 /**/ ? K
                 /**/ : never
             /**/ : never
 
-        ]: LEFT[K]
+        ]: L[K]
     }
 
 /**
  * Create an interesection out of an arbitrary number of types
  */
-export type Intersect<T> = T extends [infer FIRST, ...infer REST]
-    ? FIRST & Intersect<REST>
+export type Intersect<T> = T extends [infer F, ...infer R]
+    ? F & Intersect<R>
     : unknown
 
 /**
@@ -87,9 +81,38 @@ export type UndefinedToOptional<T> = Optional<T, undefined>
 /**
  * Get a compiled contract of a type.
  */
-export type Compile<T> = T extends object
-    ? T extends infer O ? { [K in keyof O]: Compile<O[K]> } : never
-    : T
+export type Compile<T, E = void, R extends boolean = true> = 
+    T extends E 
+        ? T
+
+        : T extends Map<infer K, infer V>
+            ? R extends true 
+                ? Map<Compile<K, E, R>, Compile<V, E, R>>
+                : Map<K,V>
+
+            : T extends Set<infer V> 
+                ? Set<V>
+
+                : T extends Promise<infer A> 
+                    ? R extends true 
+                        ? Promise<Compile<A, E, R>>
+                        : Promise<A>
+
+                    : T extends object 
+
+                        ? T extends Date | RegExp | Func<any,any,any> | Error
+
+                            ? T
+
+                            : T extends infer O 
+
+                                ? { [K in keyof O]: R extends true 
+                                    ? Compile<O[K], E, R> 
+                                    : O[K] 
+                                } 
+                                : never
+
+                        : T 
 
 /**
  * Retreive conditional types if two input types are equal.
@@ -103,3 +126,32 @@ export type IfEquals<T1, T2, Y, N = never> =
  * Get the string keys of a type.
  */
 export type StringKeys<T> = Extract<keyof T, string>
+
+/**
+ * Object with no properties
+ */
+export type Empty = { [key: string]: never }
+
+export type Split<S extends string, D extends string> =
+    string extends S ? string[] :
+        S extends '' ? [] :
+            S extends `${infer T}${D}${infer U}` ? [T, ...Split<U, D>] :
+                [S]
+
+type _SplitOnWordSeparator<T extends string> = Split<T, '-'|'_'|' '>
+type _UndefinedToEmptyString<T extends string> = T extends undefined ? '' : T
+type _CamelCaseStringArray<K extends string[]> = `${K[0]}${Capitalize<_UndefinedToEmptyString<K[1]>>}`
+
+export type CamelCase<K> = K extends string ? _CamelCaseStringArray<_SplitOnWordSeparator<K>> : K
+
+/**
+ * Convert a static string type to a static number type
+ */
+export type StringToNumber<T> = T extends `${infer N extends number}` ? N : never
+
+/**
+ * Get a union of indexes of a tuple type
+ */
+export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
+    [K in keyof A as StringToNumber<K>]: never
+}

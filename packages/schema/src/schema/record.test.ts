@@ -5,41 +5,41 @@ import BooleanSchema from './boolean'
 import { expectValidationError } from '../util.test'
 import NumberSchema from './number'
 
-/*** Input ***/
+//// Input ////
 
 const $dict = new RecordSchema([new StringSchema()])
 
 // TODO move me
 
-describe('validate()', () => {
+describe(`validate()`, () => {
 
-    it('validates records', () => {
-        expect($dict.validate({ word: 'definition' }))
-            .toEqual({ word: 'definition' })
+    it(`validates records`, () => {
+        expect($dict.validate({ word: `definition` }))
+            .toEqual({ word: `definition` })
 
         expect(() => $dict.validate(false))
-            .toThrow('false is not object')
+            .toThrow(`must be an object`)
     })
 
-    it('validates children', () => {
+    it(`validates children`, () => {
         const expectError = expectValidationError(() => $dict.validate({ power: {} }))
-        expectError.toHaveProperty('path', ['power'])
-        expectError.toHaveProperty('message', '[object Object] is not string')
+        expectError.toHaveProperty(`path`, [`power`])
+        expectError.toHaveProperty(`message`, `must be a string`)
     })
 
-    it('validates nested children', () => {
+    it(`validates nested children`, () => {
         expectValidationError(
             () => $dict.validate({
-                america: 'country',
+                america: `country`,
                 jamiroquia: {
                     space: true,
                     race: false
                 }
             })
-        ).toHaveProperty('path', ['jamiroquia'])
+        ).toHaveProperty(`path`, [`jamiroquia`])
     })
 
-    it('optionally validates keys', () => {
+    it(`optionally validates keys`, () => {
         const $switches = new RecordSchema([
             new NumberSchema(),
             new BooleanSchema()
@@ -49,24 +49,24 @@ describe('validate()', () => {
             .toEqual({ 0: true, 1: false })
 
         expectValidationError(() => $switches.validate({ 'x': true, 'y': false }))
-            .toHaveProperty('path', ['x'])
+            .toHaveProperty(`path`, [`x`])
     })
 
 })
 
-describe('default()', () => {
+describe(`default()`, () => {
 
-    it('defaults to empty object', () => {
+    it(`defaults to empty object`, () => {
         expect($dict.default().validate(undefined)).toEqual({})
     })
 
-    it('respects default setting, if valid', () => {
+    it(`respects default setting, if valid`, () => {
         expect(
             $dict
-                .default({ word: 'play' })
+                .default({ word: `play` })
                 .validate(undefined)
 
-        ).toEqual({ word: 'play' })
+        ).toEqual({ word: `play` })
     })
 
 })

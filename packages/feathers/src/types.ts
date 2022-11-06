@@ -1,13 +1,5 @@
 
-import type { ObjectId } from './mongo-db-app/setup-mongo-db'
-
-/*** Exports ***/
-
-export type IdType = string | number | ObjectId
-
-export interface Id<I extends IdType> {
-    _id: I
-}
+//// Exports ////
 
 export type {
     StringKeys

@@ -6,7 +6,9 @@ module.exports = {
         tsconfigRootDir: __dirname
     },
 
-    plugins: ['@typescript-eslint'],
+    plugins: [
+        '@typescript-eslint'
+    ],
 
     extends: [
         'plugin:@typescript-eslint/recommended',
@@ -21,7 +23,7 @@ module.exports = {
         'curly': ['error', 'multi-or-nest'],
         'no-multi-spaces': 'warn',
         'no-multiple-empty-lines': ['warn', { max: 1 }],
-        'max-len': ['error', 100],
+        'max-len': ['error', 150],
         'no-return-assign': 'error',
         'nonblock-statement-body-position': ['warn', 'below'],
 
@@ -40,9 +42,10 @@ module.exports = {
         '@typescript-eslint/await-thenable': 'error',
         '@typescript-eslint/no-implied-eval': 'error',
         '@typescript-eslint/no-explicit-any': 'error',
+        '@typescript-eslint/no-empty-interface': 'off',
         '@typescript-eslint/unified-signatures': 'error',
         '@typescript-eslint/no-duplicate-imports': 'error',
-        '@typescript-eslint/explicit-member-accessibility': 'error',
+        '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
         '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
         '@typescript-eslint/member-delimiter-style': ['error', {
             'multiline': {

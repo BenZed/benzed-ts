@@ -1,12 +1,12 @@
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { push: _push } = Array.prototype
 
 type PushParams = Parameters<typeof Array.prototype.push>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably pop an ArrayLike.

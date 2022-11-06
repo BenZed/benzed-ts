@@ -4,6 +4,9 @@
         "types": [
             "node"
         ],
+        "lib": [
+            "DOM"
+        ],
         "outDir": "./lib"
     },
     "include": [

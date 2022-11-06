@@ -1,32 +1,61 @@
 import fs from 'fs'
 import path from 'path'
+import { cpus } from 'os'
 
-import { isRenderSetting } from './render-settings'
-import { AddRenderTaskOptions, Renderer, RenderItem } from './renderer'
+import { $renderSetting } from './render-settings'
+import { Renderer, RenderItem } from './renderer'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../test-assets'
-import { getMetadata, isMetadata } from './ffmpeg'
-import { floor } from '@benzed/math/lib'
+import { getMetadata, $metaData } from './ffmpeg'
 
+import { floor } from '@benzed/math'
+
+//
 describe('construct', () => {
     it('throws if no render options are provided', () => {
-        expect(() => new Renderer({}))
+        expect(() => new Renderer({ settings: {} }))
             .toThrow('requires at least one RenderSetting')
+    })
+
+    it('defaults maxConcurrent to number of processors - 1 if not provided', () => {
+
+        const renderer = new Renderer({
+            maxConcurrent: undefined,
+            settings: {
+                thumbnail: {
+                    type: 'image'
+                }
+            }
+        })
+
+        expect(renderer.config.maxConcurrent).toEqual(cpus().length - 1)
+    })
+
+    it('throws if maxConcurrent is higher than the number of processors', () => {
+        expect(() => new Renderer({
+            maxConcurrent: cpus().length + 1,
+            settings: {
+                thumbnail: {
+                    type: 'image'
+                }
+            }
+        })).toThrow(`processors on this system (${cpus().length})`)
     })
 })
 
 describe('static from() method', () => {
     it('gets a render option from a json url', async () => {
-        const renderer = await Renderer.from(TEST_ASSETS.settings)
-        expect(isRenderSetting(renderer.settings['image-low'])).toBe(true)
-        expect(isRenderSetting(renderer.settings['image-medium'])).toBe(true)
-        expect(isRenderSetting(renderer.settings['image-high'])).toBe(true)
+        const renderer = await Renderer.from(TEST_ASSETS.config)
+        expect($renderSetting.is(renderer.config.settings['image-low'])).toBe(true)
+        expect($renderSetting.is(renderer.config.settings['image-medium'])).toBe(true)
+        expect($renderSetting.is(renderer.config.settings['image-high'])).toBe(true)
     })
 
     it('throws if provided json is not formatted correctly', async () => {
-        await expect(Renderer.from(TEST_ASSETS.badSettings))
-            .rejects
-            .toThrow('not a valid RenderSettings object')
+        const err = await Renderer.from(TEST_ASSETS.badConfig).catch(e => e)
+
+        expect(err.path).toEqual(['settings'])
+        expect(err.message).toContain('is required')
     })
 })
 
@@ -35,39 +64,41 @@ describe('add() method', () => {
     const MP4_SCALE = 0.25
     const PNG_SCALE = 0.25
 
-    const settings = {
-        movie: {
-            type: 'video' as const,
-            vbr: 500,
-            abr: 250,
-            size: { scale: MP4_SCALE }
-        },
-        picture: {
-            type: 'image' as const,
-            size: { scale: PNG_SCALE },
-            time: { progress: 0.5 }
+    const config = {
+        settings: {
+            movie: {
+                type: 'video' as const,
+                vbr: 500,
+                abr: 250,
+                size: { scale: MP4_SCALE }
+            },
+            picture: {
+                type: 'image' as const,
+                size: { scale: PNG_SCALE },
+                time: { progress: 0.5 }
+            }
         }
     }
 
     const INPUT_SOURCE = TEST_ASSETS.mp4
 
-    let renderer: Renderer<typeof settings>
-    let items: RenderItem<typeof settings>[]
+    let renderer: Renderer
+    let items: RenderItem[]
     beforeAll(async () => {
-        renderer = new Renderer(settings)
+        renderer = new Renderer(config)
 
         items = renderer.add({
             source: INPUT_SOURCE,
             target: RENDER_FOLDER
         })
 
-        await Promise.all(items.map(item => item.finished()))
+        await Promise.all(items.map(item => item.complete()))
     })
 
     it('creates an item for each render option', () => {
 
         const itemForEachRenderKey = Object
-            .keys(renderer.settings)
+            .keys(renderer.config.settings)
             .every(key => items.find(item => item.setting === key))
 
         expect(itemForEachRenderKey).toEqual(true)
@@ -97,7 +128,7 @@ describe('add() method', () => {
             }
         })
 
-        await Promise.all(items.map(item => item.finished()))
+        await Promise.all(items.map(item => item.complete()))
 
         const allItemsUsedTargetMethod = items
             .every(item => item
@@ -124,15 +155,23 @@ describe('add() method', () => {
             }
         })
 
-        await Promise.all(items.map(item => item.finished()))
+        await Promise.all(items.map(item => item.complete()))
 
         expect(items.length).toBe(1)
         expect(items[0].setting).toBe('picture')
     })
 
+    it('settings option throws if key does not exist', () => {
+        expect(() => renderer.add({
+            source: TEST_ASSETS.png,
+            settings: ['bad-setting'],
+            target: './no-where'
+        })).toThrow('bad-setting is not a valid setting')
+    })
+
     it('gets metadata results', () => {
         for (const item of items)
-            expect(isMetadata(item.value)).toBe(true)
+            expect($metaData.is(item.result?.value)).toBe(true)
     })
 
     it('size settings are respected', async () => {
@@ -143,23 +182,47 @@ describe('add() method', () => {
         for (const dimensionKey of ['width', 'height'] as const) {
             const dimension = meta[dimensionKey] ?? 0
 
-            expect(movie?.value?.[dimensionKey]).toBe(floor(dimension * MP4_SCALE, 2))
-            expect(image?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
+            expect(movie.result?.value?.[dimensionKey]).toBe(floor(dimension * MP4_SCALE, 2))
+            expect(image.result?.value?.[dimensionKey]).toBe(floor(dimension * PNG_SCALE, 2))
         }
     })
+})
 
-    it('has typesafe support for render settings', () => {
+describe('items', () => {
 
-        const options: AddRenderTaskOptions<typeof settings> = {
-            source: '',
-            target: '',
-            settings: [
-                'movie',
-                // @ts-expect-error picture should not be a valid render setting
-                'song'
-            ]
+    it('retrieves items in queue', async () => {
+        
+        const renderer = await Renderer.from(TEST_ASSETS.config)
+        renderer['_queue'].pause()
+
+        for (let id = 0; id < 10; id++) {
+            renderer.add({
+                id,
+                source: TEST_ASSETS.mp4,
+                target: path.join(RENDER_FOLDER, 'item-test-1.mp4')
+            })
         }
-        void options
+        expect(renderer.items.length).toBeGreaterThan(0)
     })
+})
+
+it('stress test', async () => {
+
+    const renderer = await Renderer.from(TEST_ASSETS.config)
+
+    const items: RenderItem[] = []
+    for (let i = 0; i < cpus().length / 2; i++) {
+        items.push(
+            ...renderer.add({
+                source: TEST_ASSETS.mp4,
+                target: ({ ext, setting }) =>
+                    path.join(RENDER_FOLDER, `stress-test_${setting}_${i}${ext}`)
+            })
+        )
+    }
+
+    await expect(Promise.all(items.map(i => i.complete())))
+        .resolves
+        .toHaveLength(items.length)
 
 })

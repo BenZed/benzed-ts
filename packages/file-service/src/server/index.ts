@@ -1,7 +1,6 @@
-import createFileServerApp from './create-file-server-app'
 
-/*** Exports ***/
+//// Exports ////
 
-export default createFileServerApp
-
+export { default } from './create-file-server-app'
 export * from './create-file-server-app'
+export * from './socket-io'

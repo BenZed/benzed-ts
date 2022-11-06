@@ -1,10 +1,10 @@
 import { isIterable } from '@benzed/is'
 
-/*** Shortcut ***/
+//// Shortcut ////
 
 const { random: _random, floor } = Math
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Returns a random element from an ArrayLike or Iterable
@@ -22,6 +22,6 @@ function random<T>(input: ArrayLike<T> | Iterable<T>): T {
     return input[rIndex]
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default random

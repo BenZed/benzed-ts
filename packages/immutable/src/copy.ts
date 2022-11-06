@@ -8,7 +8,7 @@ import { isFunction } from '@benzed/is'
 import { getKeys, isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
 
-/*** Types ***/
+//// Types ////
 
 type Refs = any[]
 interface Copyable<T> {
@@ -19,7 +19,7 @@ function isCopyable<T>(input: unknown): input is Copyable<T> {
     return isFunction((input as Copyable<T>)[$$copy])
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function hasCircularRef<T>(value: T, refs: Refs): boolean {
     const hasCircularReference = isReferable(value) && refs.includes(value)
@@ -29,7 +29,7 @@ function hasCircularRef<T>(value: T, refs: Refs): boolean {
 function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
 
     if (hasCircularRef(value, refs))
-        throw new Error('Cannot copy, circular reference deteced.')
+        throw new Error(`Cannot copy, circular reference deteced.`)
 
     if (isReferable(value) && !refs.includes(value))
         refs = [...refs, value]
@@ -74,11 +74,11 @@ function copyWithImplementation<T>(value: T, refs?: Refs): T {
         return copyObjectWithoutCircularRefs(value, refs)
 
     throw new Error(
-        `${value.constructor?.name || 'value'} does not implement Copyable<T>`
+        `${value.constructor?.name || `value`} does not implement Copyable<T>`
     )
 }
 
-/*** Standard Implementations ***/
+//// Standard Implementations ////
 
 function copyImmutable<T>(this: Readonly<T>): T {
     return this
@@ -116,7 +116,7 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
     return new Map(args)
 }
 
-/*** Add Standard Implementations ***/
+//// Add Standard Implementations ////
 {
 
     const addToPrototype = <T>(
@@ -143,7 +143,7 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
     addToPrototype(Object, copyObject)
     addToPrototype(Date, copyDate)
 
-    if (typeof Buffer !== 'undefined') {
+    if (typeof Buffer !== `undefined`) {
         addToPrototype(Buffer, function (this: Readonly<Buffer>): Buffer {
             return Buffer.from(this)
         })
@@ -178,7 +178,7 @@ function copy<T>(value: T): T {
     return copyWithImplementation(value)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default copy
 

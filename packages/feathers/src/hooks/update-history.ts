@@ -1,4 +1,3 @@
-import is from '@benzed/is'
 
 import { BadRequest } from '@feathersjs/errors'
 import {
@@ -9,10 +8,6 @@ import {
     Service
 } from '@feathersjs/feathers'
 
-import { schema, Infer, getSchemaDefinition } from '../schemas'
-
-import { getInternalServiceMethods } from '../util'
-
 import {
     Historical,
     HistoryEntry,
@@ -21,7 +16,12 @@ import {
     HistoryInvalidError
 } from '@benzed/history-scribe'
 
-/*** Types ***/
+import $, { Infer, SchemaFor } from '@benzed/schema'
+import is from '@benzed/is'
+
+import { getInternalServiceMethods } from '../util'
+
+//// Types ////
 
 type HookData = HookContext['data']
 
@@ -35,43 +35,36 @@ interface UpdateHistoryOptions<H> extends HistoryScribeOptions<H> {
 
 }
 
-const HistoryQueryParamSchema = schema({
-    $id: 'HistoryQueryParam',
-    type: 'object',
-    additionalProperties: false,
+const $historyQueryParam = (({ or, string, shape, tuple, number }) => {
+    /*
+        // New syntax
+        shape({ 
+            splice: optional.tuple(string.or.number, number),
+            revert: optional.string.or.number
+        })
+    */
 
-    properties: {
-        splice: {
-            type: 'array',
-            minItems: 2,
-            maxItems: 2,
-            items: [{
-                type: ['string', 'number'],
-            }, {
-                type: 'number'
-            }]
-        },
-        revert: {
-            type: ['string', 'number']
-        },
-    }
+    const stringOrNumber = or(string, number)
+    const splice = tuple(stringOrNumber, number).optional
+    const revert = stringOrNumber.optional
 
-} as const)
+    return shape({ splice, revert }).default({})
+})($)
 
-type HistoryQueryParam = Infer<typeof HistoryQueryParamSchema>
+interface HistoryQueryParam extends Infer<typeof $historyQueryParam> {}
 
-/*** Constants ***/
+//// Constants ////
 
-const HISTORY_QUERY_PARAM = '$history'
+const HISTORY_QUERY_PARAM = `$history`
 
-/*** Helper ***/
+//// Helper ////
 
 async function getExistingHistory<T>(
     ctx: HookContext<unknown, Service<Historical<T>>>
 ): Promise<Historical<T>['history']> {
 
     if (ctx.id === undefined)
-        throw new Error('Cannot retrieve existing history, id missing.')
+        throw new Error(`Cannot retrieve existing history, id missing.`)
 
     const record = await getInternalServiceMethods(ctx.service).$get(ctx.id) as Historical<T>
     return record.history
@@ -81,13 +74,13 @@ function getEntryData<T extends object>(input: HookData, mask?: (d: unknown) => 
 
     if (is.array(input)) {
         throw new BadRequest(
-            'Multi record requests are invalid.'
+            `Multi record requests are invalid.`
         )
     }
 
     const output = applyMask(input, mask)
 
-    if ('history' in output)
+    if (`history` in output)
         delete output.history
 
     return output
@@ -108,17 +101,24 @@ function applyMask<T>(input: T, mask?: ((data: unknown) => T)): T {
     return output
 }
 
+// TODO move me
+function consumeQueryParam<T>(
+    query: Params['query'],
+    name: string,
+    $schema: SchemaFor<T>
+): T {
+    if (query && name in query) {
+        const historyParam = query[name]
+        delete query[name]
+        return $schema.validate(historyParam)
+    }
+    return $schema.validate(undefined)
+}
+
 function consumeHistoryQueryParam(
     query: Params['query'],
 ): HistoryQueryParam {
-
-    if (query && HISTORY_QUERY_PARAM in query) {
-        const historyParam = query[HISTORY_QUERY_PARAM]
-        delete query[HISTORY_QUERY_PARAM]
-        return historyParam
-    }
-
-    return {}
+    return consumeQueryParam(query, HISTORY_QUERY_PARAM, $historyQueryParam)
 }
 
 async function applyScribeData<T extends object>(
@@ -134,7 +134,7 @@ async function applyScribeData<T extends object>(
     } else if (ctx.service && ctx.id)
         await getInternalServiceMethods(ctx.service).$patch(ctx.id, scribeData)
     else
-        throw new BadRequest('Invalid history input.')
+        throw new BadRequest(`Invalid history input.`)
 }
 
 function createEntry<T extends object>(
@@ -151,14 +151,14 @@ function createEntry<T extends object>(
     const timestamp = Date.now()
     const method = ctx.method as 'patch' | 'remove' | 'create'
 
-    const entry: HistoryEntry<T> = method === 'remove'
+    const entry: HistoryEntry<T> = method === `remove`
         ? { method, signature, timestamp }
         : { method, signature, timestamp, data: getEntryData(ctx.data, dataMask) }
 
     return entry
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Updates the history of the of the given record.
@@ -178,7 +178,7 @@ function updateHistory<T extends object>(
 
         // Validate Call
         const method = ctx.method as 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get'
-        if (method === 'find' || method === 'get' || method === 'update')
+        if (method === `find` || method === `get` || method === `update`)
             throw new Error(`Cannot use updateHistory hook with '${method}' method`)
 
         try {
@@ -186,14 +186,14 @@ function updateHistory<T extends object>(
             // Compute Next History
             let scribe = new HistoryScribe<T>({
                 ...scribeOptions,
-                history: method === 'create'
+                history: method === `create`
                     ? []
                     : await getExistingHistory(ctx)
             })
 
             // Prevent history errors from being thrown when they should probably 
             // be bad requests.
-            if (scribe.history.some(e => e.method === 'remove'))
+            if (scribe.history.some(e => e.method === `remove`))
                 scribe = scribe.revert(-1)
 
             const entry = createEntry(ctx, dataMask)
@@ -201,7 +201,7 @@ function updateHistory<T extends object>(
 
             const { revert, splice } = consumeHistoryQueryParam(ctx.params.query)
             if (is.defined(splice))
-                scribe = scribe.splice(...splice as Parameters<typeof scribe.splice>)
+                scribe = scribe.splice(...splice)
             if (is.defined(revert))
                 scribe = scribe.revert(revert)
 
@@ -218,10 +218,7 @@ function updateHistory<T extends object>(
     }
 }
 
-const historyQueryParam = (): Omit<typeof HistoryQueryParamSchema.definition, '$id'> =>
-    getSchemaDefinition(HistoryQueryParamSchema)
-
-/*** Exports ***/
+//// Exports ////
 
 export default updateHistory
 
@@ -230,8 +227,6 @@ export {
     updateHistory,
     UpdateHistoryOptions,
 
-    HistoryQueryParamSchema,
+    $historyQueryParam,
     HistoryQueryParam,
-    historyQueryParam
-
 }

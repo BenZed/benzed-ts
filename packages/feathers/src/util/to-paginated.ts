@@ -1,7 +1,7 @@
 import { isArray } from '@benzed/is'
 import { Paginated } from '@feathersjs/feathers'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Casts a feathers result to a paginated feathers result
@@ -14,7 +14,7 @@ function toPaginated<R>(input: R[] | Paginated<R>): Paginated<R> {
         : input
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toPaginated
 

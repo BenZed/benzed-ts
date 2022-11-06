@@ -1,28 +1,64 @@
+import '@benzed/util'
+import {
 
-import { createMongoApplication, MongoApplication, MongoApplicationConfig } from '@benzed/feathers'
+    createMongoDBApplication,
+    MongoDBApplication,
 
-import services from './services'
-import middleware from './middleware'
+    $mongoDBApplicationConfig,
+    $pagination,
 
-/*** Types ***/
+} from '@benzed/feathers'
+import $, { Infer } from '@benzed/schema'
 
-type FileServerConfig = MongoApplicationConfig
+import { HookContext } from '@feathersjs/feathers'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface FileServices { }
+import services, { FileServices } from './services'
 
-type FileServerApp = MongoApplication<FileServices, FileServerConfig>
+import { $fileServiceConfig } from '../files-service/schema'
+import { $renderServiceConfig } from '../render-service/schema'
 
-/*** Main ***/
+import socketio from './socket-io'
 
-function createFileServerApp(): FileServerApp {
-    return createMongoApplication({
-        services,
-        middleware
-    })
+//// Types ////
+
+interface FileServerConfig extends Infer<typeof $fileServerConfig> { }
+
+const $fileServerConfig = $({
+
+    ...$mongoDBApplicationConfig.$,
+
+    s3: $fileServiceConfig.$.s3,
+    fs: $fileServiceConfig.$.fs,
+    renderer: $.or(
+        $renderServiceConfig.$.renderer,
+        $.null
+    ),
+
+    pagination: $pagination,
+    authentication: $.object,
+
+})
+
+interface FileServerApp extends MongoDBApplication<FileServices, FileServerConfig> {}
+
+interface FileServerHookContext<S extends FileServices[keyof FileServices]> extends
+    HookContext<FileServerApp, S> {}
+
+//// Main ////
+
+function createFileServerApp(config?: FileServerConfig): FileServerApp {
+
+    const fileServerApp = createMongoDBApplication<FileServices, FileServerConfig>(
+        config ? $fileServerConfig.validate(config) : $fileServerConfig
+    )
+
+    fileServerApp.configure(socketio)
+    fileServerApp.configure(services)
+
+    return fileServerApp
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createFileServerApp
 
@@ -31,6 +67,8 @@ export {
     createFileServerApp,
 
     FileServerApp,
-    FileServerConfig,
-    FileServices
+    FileServerHookContext,
+
+    $fileServerConfig,
+    FileServerConfig
 }

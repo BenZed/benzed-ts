@@ -7,7 +7,7 @@ import {
     MongoDBConfig
 } from './mongo-db-app'
 
-/*** Config ***/
+//// Config ////
 
 const config = (configuration()() as unknown as MongoDBApplicationConfig).db as MongoDBConfig
 
@@ -20,5 +20,5 @@ export default (): Promise<void> => ensureMongoDbInstance({
     clean: true,
     log: false,
     port: config.port,
-    cluster: 'test'
+    cluster: `test`
 })

@@ -3,7 +3,7 @@ import { resolveIndex as _resolveIndex } from '@benzed/array'
 import { equals } from '@benzed/immutable'
 import { HistoryEntry, HistoryMeta } from './types'
 
-/*** Exports ***/
+//// Exports ////
 
 export function toDate(a: Date | number | string): Date {
     return is.date(a) ? a : new Date(a)
@@ -67,7 +67,7 @@ export function entryContainsData<T extends object, I>(
 ): entry is
     ({ method: 'patch', data: Partial<T> } | { method: 'create', data: T })
     & HistoryMeta<I> {
-    return 'data' in entry &&
+    return `data` in entry &&
         Object.keys(entry.data).length > 0
 }
 
@@ -81,7 +81,7 @@ export function resolveHistoryMeta<I>(
 ): HistoryMeta<I> {
 
     const partialMeta = is.object(signatureOrMeta) &&
-        ('signature' in signatureOrMeta || 'timestamp' in signatureOrMeta)
+        (`signature` in signatureOrMeta || `timestamp` in signatureOrMeta)
         ? signatureOrMeta
         : {
             signature: signatureOrMeta ?? null

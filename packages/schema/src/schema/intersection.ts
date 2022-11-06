@@ -10,7 +10,7 @@ import { TypeValidator } from '../validator/type'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type IntersectionSchemaInput = readonly Schema<object, any>[]
 
@@ -19,7 +19,7 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> =
         [K in keyof T]: SchemaOutput<T[K]>
     }>
 
-/*** Main ***/
+//// Main ////
 
 class IntersectionSchema<
 
@@ -30,12 +30,12 @@ class IntersectionSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator<O>({
-        name: 'intersection',
-        error: value => `${value} is not object`,
+        name: `object`,
+        article: `an`,
         is: isObject as (input: unknown) => input is O
     })
 
-    /*** ParentSchema Implementation ***/
+    //// ParentSchema Implementation ////
 
     protected _validateChildren(input: O, inputContext: SchemaValidationContext): O {
 
@@ -48,32 +48,32 @@ class IntersectionSchema<
 
             Object.assign(
                 output as any,
-                schema['_validate'](input, context)
+                schema[`_validate`](input, context)
             )
         }
 
         return output
     }
 
-    /*** Schema methods ***/
+    //// Schema methods ////
 
-    public override readonly optional!: HasOptional<
+    override readonly optional!: HasOptional<
     /**/ F,
     /**/ never,
-    /**/ () => IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
+    /**/ IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
+    override readonly mutable!: HasMutable<
     /**/ F,
     /**/ never,
-    /**/ () => IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
+    /**/ IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => IntersectionSchema<I, O>
+    override readonly clearFlags!: () => IntersectionSchema<I, O>
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default IntersectionSchema
 

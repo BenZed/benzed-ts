@@ -32,7 +32,7 @@ import { DefaultValidatorSettings } from '../validator/default'
     @typescript-eslint/no-explicit-any
 */
 
-/*** Types ***/
+//// Types ////
 
 type TupleSchemaInput = readonly Schema<any, any, any>[]
 
@@ -40,7 +40,7 @@ type TupleSchemaOutput<T extends TupleSchemaInput> = {
     [K in keyof T]: SchemaOutput<T[K]>
 }
 
-/*** Main ***/
+//// Main ////
 
 class TupleSchema<
     I extends TupleSchemaInput,
@@ -49,38 +49,45 @@ class TupleSchema<
 /**/> extends ParentSchema<I, ApplyMutable<F, O>, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: 'tuple',
+        name: `tuple`,
+        article: `a`,
         is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>
     })
 
-    public constructor (input: I, ...flags: F) {
+    constructor (input: I, ...flags: F) {
         super(input, ...flags)
 
         // Set length validator
         this._setPostTypeValidator(
-            'tuple-length',
+            `tuple-length`,
             new LengthValidator({
-                comparator: '==',
+                comparator: `==`,
                 value: input.length,
                 error: `must have exactly ${input.length} items`
             })
         )
     }
 
-    /***  ***/
+    //// Helper ////
 
-    public default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
+    get values(): I {
+        return this._input
+    }
+
+    //// Chain Interface ////
+
+    default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
 
         defaultValue ??= (): ApplyMutable<F, O> => {
             const output = [] as unknown[]
             for (const schema of this._input) {
 
                 // first used default validator output
-                let value = schema['_defaultValidator'].transform(undefined)
+                let value = schema[`_defaultValidator`].transform(undefined)
 
                 // use identify if primitive
                 if (value === undefined && schema instanceof PrimitiveSchema)
-                    value = schema['_input']
+                    value = schema[`_input`]
 
                 output.push(value)
             }
@@ -90,7 +97,17 @@ class TupleSchema<
         return super.default(defaultValue)
     }
 
-    /***  ***/
+    override readonly optional!: HasOptional<
+    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Optional, F>>
+    >
+
+    override readonly mutable!: HasMutable<
+    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
+    >
+
+    override readonly clearFlags!: () => TupleSchema<I, O>
+
+    //// Implementation ////
 
     protected _validateChildren(
         input: O,
@@ -103,7 +120,7 @@ class TupleSchema<
 
             const schema = this._input[i]
 
-            output[i] = schema['_validate'](output[i], {
+            output[i] = schema[`_validate`](output[i], {
                 ...context,
                 path: push(context.path, i)
             })
@@ -111,20 +128,9 @@ class TupleSchema<
 
         return output as unknown as ApplyMutable<F, O>
     }
-
-    public override readonly optional!: HasOptional<
-    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Optional, F>>
-    >
-
-    public override readonly mutable!: HasMutable<
-    /**/ F, never, () => TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
-    >
-
-    public override readonly clearFlags!: () => TupleSchema<I, O>
-
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default TupleSchema
 

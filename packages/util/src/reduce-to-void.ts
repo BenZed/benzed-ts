@@ -1,19 +1,29 @@
 // import { isPromise } from '@benzed/is'
 
+//// Helper ////
+
 const isPromise = (i: unknown): i is Promise<unknown> => i instanceof Promise
 
-/*** reduceToVoid ***/
+//// Types ////
 
-function reduceToVoid(input: unknown): void | Promise<void> {
+type ReduceToVoid<T> = (T extends Promise<unknown> | Promise<unknown>[] ? Promise<void> : void)
+
+//// reduceToVoid ////
+
+function reduceToVoid<T>(
+    input?: T
+): ReduceToVoid<T> {
 
     if (isPromise(input))
-        return input.then(reduceToVoid)
+        return input.then(reduceToVoid) as ReduceToVoid<T>
 
     if (Array.isArray(input) && input.some(isPromise))
-        return Promise.all(input).then(reduceToVoid)
+        return Promise.all(input).then(reduceToVoid) as ReduceToVoid<T>
+
+    return undefined as ReduceToVoid<T>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default reduceToVoid
 

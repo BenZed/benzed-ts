@@ -19,7 +19,7 @@ import {
 import { MemoryService } from '@feathersjs/memory'
 import { AdapterParams } from '@feathersjs/adapter-commons'
 
-/*** Types ***/
+//// Types ////
 
 export type TestApplication<S extends readonly string[]> =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,7 +38,7 @@ declare module '@feathersjs/memory' {
     }
 }
 
-/*** Helper ***/
+//// Helper ////
 
 export const createTestApp = <S extends readonly string[]>(
     services: S
@@ -80,7 +80,7 @@ export const createTestHookContext = <S extends string>(config: {
         event: method,
         path: serviceName,
         params,
-        type: 'i-dont-think-this-is-used-anymore' as HookContext<unknown>['type'],
+        type: `i-dont-think-this-is-used-anymore` as HookContext<unknown>['type'],
         arguments: []
     }
 

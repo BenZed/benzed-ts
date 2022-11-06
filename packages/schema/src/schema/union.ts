@@ -22,18 +22,18 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type UnionSchemaInput = TupleSchemaInput
 type UnionSchemaOutput<T extends UnionSchemaInput> = TupleSchemaOutput<T>[number]
 
-/*** Helper ***/
+//// Helper ////
 
 function isUnion<O>(schemas: UnionSchemaInput): (input: unknown) => input is O {
     return (input): input is O => schemas.some(schema => schema.is(input))
 }
 
-/*** Main ***/
+//// Main ////
 
 class UnionSchema<
 
@@ -48,21 +48,21 @@ class UnionSchema<
         is: isUnion<O>(this._input)
     })
 
-    /*** Schema Interface ***/
+    //// Schema Interface ////
 
-    public override readonly optional!: HasOptional<
-    /**/ F, never, () => UnionSchema<I, O, AddFlag<Flags.Optional, F>>
+    override readonly optional!: HasOptional<
+    /**/ F, never, UnionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
-    /**/ F, never, () => UnionSchema<I, O, AddFlag<Flags.Mutable, F>>
+    override readonly mutable!: HasMutable<
+    /**/ F, never, UnionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => UnionSchema<I, O>
+    override readonly clearFlags!: () => UnionSchema<I, O>
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default UnionSchema
 

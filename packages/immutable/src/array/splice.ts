@@ -1,14 +1,14 @@
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { splice: _splice } = Array.prototype
 
-/*** Types ***/
+//// Types ////
 
 type SpliceParams = Parameters<typeof Array.prototype.splice>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Splice an Array immutably; returned Array is a spliced copy of the 

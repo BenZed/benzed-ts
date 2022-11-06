@@ -19,15 +19,15 @@ describe('Sorted Array', () => {
     describe('sort()', () => {
         class Person {
 
-            public name: string
-            public age: number
+            name: string
+            age: number
 
-            public constructor (name: string, age: number) {
+            constructor (name: string, age: number) {
                 this.name = name
                 this.age = age
             }
 
-            public valueOf(): number {
+            valueOf(): number {
                 return this.age
             }
         }
@@ -71,14 +71,14 @@ describe('Sorted Array', () => {
 
             class Body {
 
-                public parent: Body | null
+                parent: Body | null
 
-                public mass: number
-                public valueOf(): number {
+                mass: number
+                valueOf(): number {
                     return this.mass
                 }
 
-                public constructor (mass: number, parent: Body | null = null) {
+                constructor (mass: number, parent: Body | null = null) {
                     this.mass = mass
                     this.parent = parent
                 }

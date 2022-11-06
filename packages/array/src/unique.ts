@@ -1,10 +1,10 @@
 import { descending } from './sorted-array'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { splice } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Removes all duplicate values in a given array.
@@ -47,6 +47,6 @@ function unique<T extends string | ArrayLike<unknown>>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default unique

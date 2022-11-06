@@ -27,7 +27,7 @@ import {
 
 import { PrimitiveSchema } from './schema'
 
-/*** Helper ***/
+//// Helper ////
 
 function tryCastToNumber(value: unknown): unknown {
     if (isString(value)) {
@@ -39,70 +39,70 @@ function tryCastToNumber(value: unknown): unknown {
     return value
 }
 
-/*** Main ***/
+//// Main ////
 
 class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
-    /*** Constructor ***/
+    //// Constructor ////
 
-    public constructor (input?: number, ...flags: F) {
-        super(input ?? 0, ...flags)
-        this._applyDefaultValue(input)
+    constructor (...flags: F) {
+        super(0, ...flags)
     }
 
-    /*** Schema Implementation ***/
+    //// Schema Implementation ////
 
     protected _typeValidator = new TypeValidator({
-        name: 'number',
+        name: `number`,
+        article: `a`,
         is: isNumber,
         cast: tryCastToNumber
     })
 
-    /*** Chain Methods ***/
+    //// Chain Methods ////
 
-    public range(...input: RangeValidatorSettingsShortcut): this {
+    range(...input: RangeValidatorSettingsShortcut<number>): this {
         return this._copyWithPostTypeValidator(
-            'range',
+            `range`,
             new RangeValidator(
                 toRangeValidatorSettings(input)
             )
         )
     }
 
-    public round(...input: RoundValidatorSettingsShortcut): this {
-        return this._copyWithRounderValidator('round', input)
+    round(...input: RoundValidatorSettingsShortcut): this {
+        return this._copyWithRounderValidator(`round`, input)
     }
 
-    public floor(...input: RoundValidatorSettingsShortcut): this {
-        return this._copyWithRounderValidator('floor', input)
+    floor(...input: RoundValidatorSettingsShortcut): this {
+        return this._copyWithRounderValidator(`floor`, input)
     }
 
-    public ceil(...input: RoundValidatorSettingsShortcut): this {
-        return this._copyWithRounderValidator('ceil', input)
+    ceil(...input: RoundValidatorSettingsShortcut): this {
+        return this._copyWithRounderValidator(`ceil`, input)
     }
 
-    public override readonly optional!: HasOptional<
-    /**/ F, never, () => NumberSchema<AddFlag<Flags.Optional, F>>
+    override readonly optional!: HasOptional<
+    /**/ F, never, NumberSchema<AddFlag<Flags.Optional, F>>
     >
 
-    public override readonly mutable!: HasMutable<
-    /**/ F, never, () => NumberSchema<AddFlag<Flags.Mutable, F>>
+    override readonly mutable!: HasMutable<
+    /**/ F, never, NumberSchema<AddFlag<Flags.Mutable, F>>
     >
 
-    public override readonly clearFlags!: () => NumberSchema
+    override readonly clearFlags!: () => NumberSchema
 
-    public override default(defaultValue = 0): this {
+    override default(defaultValue = 0): this {
         return super.default(defaultValue)
     }
 
-    /*** Private Chain Methods ***/
+    //// Private Chain Methods ////
 
     private _copyWithRounderValidator(
         rounder: RounderMethod,
         input: RoundValidatorSettingsShortcut
     ): this {
         return this._copyWithPostTypeValidator(
-            'rounder',
+            `rounder`,
             new RoundValidator(
                 toRoundValidatorSettings(
                     rounder,
@@ -114,7 +114,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default NumberSchema
 

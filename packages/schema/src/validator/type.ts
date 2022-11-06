@@ -1,9 +1,13 @@
 
 import { AssertTransformValidator, ErrorSettings } from './validator'
 
-/*** Types ***/
+//// Types ////
 
-interface TypeValidatorSettings<T> extends ErrorSettings<[value: unknown, typeName: string]> {
+interface TypeValidatorSettings<T> extends ErrorSettings<[
+    value: unknown, 
+    typeName: string, 
+    typeArticle: string | undefined
+]> {
 
     /**
      * Type guard for the given type.
@@ -20,9 +24,15 @@ interface TypeValidatorSettings<T> extends ErrorSettings<[value: unknown, typeNa
      */
     readonly name: string
 
+    /**
+     * Article of the type, for errors. Defaults to "a"
+     * 
+     * Eg: `must be a string`
+     */
+    readonly article?: string
 }
 
-/*** Main ***/
+//// Main ////
 
 class TypeValidator<O> extends AssertTransformValidator<
 /**/ unknown,
@@ -30,7 +40,7 @@ class TypeValidator<O> extends AssertTransformValidator<
 /**/ TypeValidatorSettings<O>
 > {
 
-    /*** AssertTransformValidator Implementation ***/
+    //// AssertTransformValidator Implementation ////
 
     protected _transform(input: unknown): unknown | O {
 
@@ -45,20 +55,21 @@ class TypeValidator<O> extends AssertTransformValidator<
 
     protected _assert(input: unknown): asserts input is O {
 
-        const { is, name } = this.settings
+        const { is, name, article } = this.settings
 
         if (!is(input)) {
             this._throwWithErrorSetting(
-                `${String(input)} is not ${name}`,
+                `must be ${article ? article + ` ` + name : name}`,
                 input,
-                name
+                name,
+                article
             )
         }
     }
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default TypeValidator
 

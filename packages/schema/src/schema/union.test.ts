@@ -6,23 +6,23 @@ import UnionSchema from './union'
 import StringSchema from './string'
 import BooleanSchema from './boolean'
 
-/*** Input ***/
+//// Input ////
 
 const $stringOrBool = new UnionSchema([new StringSchema(), new BooleanSchema()])
 
 // TODO move me
 
-describe('validate()', () => {
+describe(`validate()`, () => {
 
-    it('validates unions', () => {
-        expect($stringOrBool.validate('str'))
-            .toEqual('str')
+    it(`validates unions`, () => {
+        expect($stringOrBool.validate(`str`))
+            .toEqual(`str`)
 
         expect($stringOrBool.validate(true))
             .toEqual(true)
 
         expectValidationError(() => $stringOrBool.validate(100))
-            .toHaveProperty('message', '100 is not string or boolean')
+            .toHaveProperty(`message`, `must be string or boolean`)
     })
 
 })

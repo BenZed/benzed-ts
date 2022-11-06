@@ -1,6 +1,6 @@
 import { isNumber } from '@benzed/is'
 
-/*** Main ***/
+//// Main ////
 
 function resolveIndex(
     arrLikeOrLength: number | ArrayLike<unknown>,
@@ -19,6 +19,6 @@ function resolveIndex(
     //                                       case the only valid index is 0, anyway
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default resolveIndex

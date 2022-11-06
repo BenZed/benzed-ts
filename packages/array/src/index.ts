@@ -16,7 +16,7 @@ import unwrap from './unwrap'
 import first from './first'
 import last from './last'
 
-/*** Exports ***/
+//// Exports ////
 
 export {
 
@@ -42,3 +42,4 @@ export * from './min-max'
 export * from './adjacent'
 export * from './sorted-array'
 export * from './priority-find'
+export * from './types'

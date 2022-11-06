@@ -2,12 +2,12 @@ import { min, max } from './min-max'
 
 class Role {
 
-    public constructor(
+    constructor(
         public name: string,
         public worth: number
     ) { }
 
-    public valueOf(): number {
+    valueOf(): number {
         return this.worth
     }
 }

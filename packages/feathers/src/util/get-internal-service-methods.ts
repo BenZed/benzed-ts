@@ -3,11 +3,11 @@ import { Service, ServiceGenericType } from '@feathersjs/feathers'
 
 import { StringKeys } from '../types'
 
-/*** Types ***/
+//// Types ////
 
 type InternalServiceMethodKeys = StringKeys<InternalServiceMethods>[]
 
-/*** Main ***/
+//// Main ////
 
 function getInternalServiceMethods<
     S extends Service,
@@ -15,12 +15,12 @@ function getInternalServiceMethods<
     ['$find', '$get', '$create', '$update', '$patch', '$remove']
 >(
     service: S,
-    methods: M = ['$find', '$get', '$create', '$update', '$patch', '$remove'] as M
+    methods: M = [`$find`, `$get`, `$create`, `$update`, `$patch`, `$remove`] as M
 ): Pick<InternalServiceMethods<ServiceGenericType<S>>, M[number]> {
 
     if (methods.length === 0) {
         throw new Error(
-            'No methods provided.'
+            `No methods provided.`
         )
     }
 
@@ -32,7 +32,7 @@ function getInternalServiceMethods<
     return service as unknown as InternalServiceMethods<ServiceGenericType<S>>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default getInternalServiceMethods
 

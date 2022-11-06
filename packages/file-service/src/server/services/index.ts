@@ -1,13 +1,53 @@
 import type { FileServerApp } from '../create-file-server-app'
 
-import authentication from './authentication'
-import files from './files'
+import setupAuthenticationService, { AuthenticationService } from './authentication'
 
-/*** Main ***/
+import setupUserService, { UserService } from './users'
+import setupFileService, { FileService } from '../../files-service'
+import setupRenderService, { RenderService } from '../../render-service'
+
+export interface FileServices {
+
+    'authentication': AuthenticationService
+
+    'users': UserService
+
+    'files': FileService
+    'files/render': RenderService
+
+}
+
+//// Main ////
 
 export default function setupFileServices(app: FileServerApp): void {
 
-    app.configure(authentication)
-    app.configure(files)
+    setupUserService(app)
 
+    const auth = setupAuthenticationService(app)
+
+    const files = setupFileService(
+        {
+            app,
+            auth,
+            
+            path: `/files`,
+            s3: app.get(`s3`),
+            fs: app.get(`fs`),
+            pagination: app.get(`pagination`)
+        }
+    )
+
+    const renderer = app.get(`renderer`)
+    if (renderer) {
+        setupRenderService(
+            {
+                app,
+                files,
+                auth,
+
+                path: `/files/render`,
+                channel: `renderer`,
+                renderer
+            })
+    }
 }

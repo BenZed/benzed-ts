@@ -2,13 +2,13 @@
 
 import { isArray } from '@benzed/is'
 
-/*** Types ***/
+//// Types ////
 
 type Wrap<T> = T extends any[] | readonly any[]
     ? T
     : T[]
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Wraps an input in an Array, if it isn't an array already.
@@ -23,7 +23,7 @@ function wrap<T>(
     return (isArray(value) ? value : [value]) as Wrap<T>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default wrap
 

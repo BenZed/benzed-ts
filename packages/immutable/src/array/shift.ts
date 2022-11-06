@@ -1,11 +1,11 @@
 
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { shift: _shift } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably shift an ArrayLike.

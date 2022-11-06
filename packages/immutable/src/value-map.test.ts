@@ -11,7 +11,7 @@ import { $$copy, $$equals } from './symbols'
     @typescript-eslint/prefer-readonly-parameter-types
 */
 
-/*** Types ***/
+//// Types ////
 
 class CustomId {
 
@@ -40,9 +40,8 @@ class CustomId {
 
 }
 
-/******************************************************************************/
 // Data
-/******************************************************************************/
+////************************************************************************////
 
 /* eslint-disable no-multi-spaces */
 const pairs: [unknown, unknown][] = [

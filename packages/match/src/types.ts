@@ -1,145 +1,122 @@
-import type { Merge, TypeGuard } from '@benzed/util'
-
-/* 
-    eslint-disable 
-    @typescript-eslint/indent, 
+/* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/explicit-function-return-type
+    @typescript-eslint/ban-types
 */
 
-/*** Helper Types ***/
+//// Matchable ////
 
-type Predicate<T> = (input: T) => boolean
+type Primitives = string | number | boolean | bigint | symbol
+type Object = { [key: string | number | symbol]: unknown }
 
-type DiscardValue<V, I> =
-    I extends TypeGuard<any, infer T>
-    ? Exclude<V, T>
-    : Exclude<V, I>
+type MatchPredicate<I, O> = ((input: I) => O)
+type MatchGuard<T> = ((input: unknown) => input is T)
 
-type KeepValue<V, I> =
-    I extends TypeGuard<any, infer T>
-    ? Extract<V, T>
-    : Extract<V, I>
+export type MatchInput = 
+    | MatchGuard<unknown>
+    | MatchPredicate<unknown, any>
+    | Primitives 
+    | Object
 
-/**
- * Fall should be smart enough to use type guards to eliminate
- * types from the remaining cases and add the Output as 
- * a new case
- */
-type FallValue<V, I, O> =
-    // Merge<...>['value'] to make the output type nicer
-    Merge<[{
-        value: DiscardValue<V, I> | O
-    }]>['value']
+export type MatchOutput<I> = 
+ 
+    | MatchPredicate<MatchInputType<I>, unknown>
+    | Primitives 
+    | Object 
 
-/**
-* Add type to output if it doesn't exist already
-*/
-type EnsureOutput<ON, O extends readonly unknown[]> = O extends [infer O1, ...infer OR]
-    ? ON extends O1 ? O : [O1, ...EnsureOutput<ON, OR>]
-    : [ON]
+type MatchDefaultOutput = 
 
-type OutputMethod<V, I, O> = I extends TypeGuard<any, infer I2>
-    ? (input: I2) => O
-    : (input: V) => O
+    | MatchPredicate<unknown, any>
+    | Primitives 
+    | Object 
 
-/*** Exports ***/
+type _BroadMatchInput<I> = I extends string 
+    ? string 
+    : I extends number 
+        ? number 
+        : I extends boolean 
+            ? boolean 
+            : I extends bigint 
+                ? bigint 
+                : I extends Object 
+                    ? { -readonly [K in keyof I]: _BroadMatchInput<I[K]> } 
+                    : I
 
-export type Output<V, I, O> =
-    OutputMethod<V, I, O> | O
+export type MatchInputType<I> = 
+    I extends Primitives 
+        ? I 
+        : I extends MatchGuard<infer Ix>
+            ? Ix 
+            : I extends Object 
+                ? I
+                : I extends (i: unknown) => any 
+                    ? unknown
+                    : never 
 
-export type Outputs<A extends readonly unknown[] = unknown[]> = A
+export type MatchOutputType<O> = 
+    O extends Primitives 
+        ? O 
+        : O extends MatchPredicate<any, infer Ox>
+            ? Ox extends Match<any, infer Oxx> | MatchExpression<any, infer Oxx> | MatcherExpressionBuilder<any, infer Oxx>
+                ? Oxx
+                : Ox
+            : O
 
-export type Input<T> = Predicate<T> | TypeGuard<T, T> | T
+//// Match State ////
 
-export interface MatchFinalized<O extends readonly unknown[]> {
+export type CaseInput = MatchPredicate<unknown, boolean>
+export type CaseOutput = MatchPredicate<unknown, unknown>
 
-    /**
-     * Iterate output provided output cases are not empty
-     */
-    [Symbol.iterator]: (O extends [] ? never : () => Iterator<O[number]>)
+export interface Case {
+    readonly input?: CaseInput
+    readonly output: CaseOutput
+}
 
-    /**
-     * Returns the next output
-     */
-    next(): O[number]
+export interface MatchState {
+    cases: readonly Case[]
+}
 
-    /**
-     * Returns the remaining outputs as an array
-     */
-    rest(): O[number][]
+//// Match ////
+
+export interface Match<I = unknown, O = unknown> extends MatchState {
+
+    (value: I): O
+
+    value(value: I): O
 
 }
 
-export interface Match<V, O extends Outputs> extends MatchFinalized<O> {
+export interface MatchBuilder<I = unknown, O = unknown> extends Match<I, O> {
 
-    /**
-     * Create new case that breaks on match.
-     */
-    <O1, I extends Input<V>>(
-        input: I,
-        output: Output<V, I, O1>
-    ): Match<V, EnsureOutput<O1, O>>
+    case<Ix extends MatchInput, Ox extends MatchOutput<Ix>>(
+        input: Ix, 
+        output: Ox
+    ): MatchBuilder<I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
 
-    <O1, I extends Input<V>>(
-        defaultOutput: Output<V, I, O1>
-    ): MatchFinalized<EnsureOutput<O1, O>>
-
-    /**
-     * Create new case that breaks on match.
-     */
-    break<O1, I extends Input<V>>(
-        input: I,
-        output: Output<V, I, O1>
-    ): Match<V, EnsureOutput<O1, O>>
-
-    /**
-     * Create new case that breaks on match.
-     */
-    break<I extends Input<V>>(
-        input: I,
-    ): Match<V, EnsureOutput<V, O>>
-
-    /**
-     * Create a new case that passes the output to input on match
-     */
-    fall<O1, I extends Input<V>>(
-        input: I,
-        output: Output<V, I, O1>
-    ): Match<FallValue<V, I, O1>, O>
-    fall<O1, I extends Input<V>>(
-        pass: OutputMethod<V, I, O1>
-    ): Match<O1, O>
-
-    /**
-     * Do not create outputs for the match
-     * @param input 
-     */
-    discard<I extends Input<V>>(
-        input: I
-    ): Match<DiscardValue<V, I>, O>
-    discard(): Match<never, O>
-
-    /**
-     * Only create outputs for this match
-     * @param input 
-     */
-    keep<I extends Input<V>>(
-        input: I
-    ): Match<KeepValue<V, I>, O>
-
-    /**
-     * Create a final case that handles any remaining cases
-     */
-    default<O1, I extends Input<V>>(
-        output: Output<V, I, O1>
-    ): MatchFinalized<EnsureOutput<O1, O>>
-
-    default(): MatchFinalized<EnsureOutput<V, O>>
-
-    /**
-     * Prevent any further cases from being added
-     */
-    finalize: (O extends [] ? never : () => MatchFinalized<O>)
+    default<Ox extends MatchDefaultOutput>(output: Ox): Match<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
 
 }
+
+//// Match Expression ////
+
+export interface MatchExpressionState<V = unknown> extends MatchState {
+    values: readonly V[]
+}
+
+export interface MatchExpressionBuilderEmpty<I = unknown> extends MatchExpressionState<I> {
+
+    case<Ox>(input: I, output: Ox): MatcherExpressionBuilder<I, Ox>
+
+}
+
+export interface MatcherExpressionBuilder<I = unknown, O = unknown> extends MatchExpressionBuilderEmpty<I> {
+
+    default<Ox>(output: Ox): MatchExpression<I, O | Ox>
+
+}
+
+export interface MatchExpression<I = unknown, O = unknown> extends Match<I, O>, MatchExpressionState<I> {
+
+    [Symbol.iterator](): Generator<O>
+
+}
+

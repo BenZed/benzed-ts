@@ -1,5 +1,5 @@
 
-/*** Types ***/
+//// Types ////
 
 type AnsiColor = keyof typeof ANSI_COLOR_CODES
 
@@ -13,7 +13,7 @@ type AnsiOptions = {
     underline?: boolean
 }
 
-/*** Constants ***/
+//// Constants ////
 
 const ANSI_COLOR_CODES = {
     black: 30,
@@ -41,7 +41,7 @@ const ANSI_UTIL_TAGS = {
 
 } as const
 
-/*** Helper ***/
+//// Helper ////
 
 const ansiColorTag = (
     color: AnsiColor,
@@ -58,7 +58,7 @@ const ansiColorTag = (
     return `\u001b[${code + delta}${suffix}m`
 }
 
-/*** Main ***/
+//// Main ////
 
 // TODO much better syntax: 
 // ansi.bright.bold.red.underline`This rocks!`
@@ -112,7 +112,7 @@ function ansi(
     return `${tags.join('')}${input}${ANSI_UTIL_TAGS.reset}`
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ansi
 

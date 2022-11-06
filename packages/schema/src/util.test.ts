@@ -2,7 +2,7 @@ import ValidationError from './util/validation-error'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Exports ***/
+//// Exports ////
 
 export function expectValidationError(func: () => unknown): ReturnType<typeof expect> {
 
@@ -13,8 +13,8 @@ export function expectValidationError(func: () => unknown): ReturnType<typeof ex
         error = e
     }
 
-    expect(error).toHaveProperty('name', ValidationError.name)
-    expect(error).toHaveProperty('path')
+    expect(error).toHaveProperty(`name`, ValidationError.name)
+    expect(error).toHaveProperty(`path`)
 
     return expect(error)
 }

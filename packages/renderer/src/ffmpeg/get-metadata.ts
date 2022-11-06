@@ -1,24 +1,18 @@
 import ffmpeg, { FfprobeData, FfprobeStream } from 'fluent-ffmpeg'
 
 import {
-    optional,
-    or,
-    shapeOf,
-    Validator
-} from '../validator'
-
-import {
     Duration,
     Width,
     Height,
-    Input,
+    Input
 } from './settings'
 
-import { isNaN, isNumber, isString } from '@benzed/is'
+import { isNaN, isString } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
+import $ from '@benzed/schema'
 
-/*** Type ***/
+//// Type ////
 
 interface Metadata extends Partial<Width>, Partial<Height>, Partial<Duration> {
     format?: string
@@ -30,20 +24,18 @@ interface RenderMetadata extends Metadata {
     renderTime: number
 }
 
-const isNotApplicable = (value: unknown): value is 'N/A' => value === 'N/A'
-
-const isMetadata: Validator<Metadata> = shapeOf({
-    width: optional(isNumber),
-    height: optional(isNumber),
-    duration: optional(isNumber),
-    format: optional(isString),
-    size: optional(or(isNumber, isNotApplicable)),
-    frameRate: optional(isNumber)
+const $metaData = $.shape({
+    width: $.number.optional,
+    height:$.number.optional,
+    duration: $.number.optional,
+    format: $.string.optional,
+    size: $.or($.number, $(`N/A`)).optional,
+    frameRate: $.number.optional
 })
 
 type GetMetadataOptions = Input
 
-/*** Helper ***/
+//// Helper ////
 
 function parseOutputDuration(
     stream: FfprobeStream,
@@ -70,14 +62,14 @@ function parseOutputFrameRate(
     if (!frameRateFraction)
         return undefined
 
-    const [numerator, denominator] = frameRateFraction.split('/').map(parseFloat)
+    const [numerator, denominator] = frameRateFraction.split(`/`).map(parseFloat)
 
     const frameRate = numerator / denominator
     return isNaN(frameRate) ? undefined : round(frameRate, 0.001)
 
 }
 
-/*** Main ***/
+//// Main ////
 
 async function getMetadata(
     options: GetMetadataOptions
@@ -96,12 +88,12 @@ async function getMetadata(
     // Get stream
     const stream = priorityFind(
         probed.streams,
-        stream => stream.codec_type === 'video',
-        stream => stream.codec_type === 'audio'
+        stream => stream.codec_type === `video`,
+        stream => stream.codec_type === `audio`
     )
     if (!stream) {
         throw new Error(
-            'Could not get relevent streams from source.'
+            `Could not get relevent streams from source.`
         )
     }
 
@@ -117,7 +109,7 @@ async function getMetadata(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default getMetadata
 
@@ -126,7 +118,7 @@ export {
     GetMetadataOptions,
 
     Metadata,
-    isMetadata,
+    $metaData,
 
     RenderMetadata
 }

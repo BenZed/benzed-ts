@@ -1,3 +1,6 @@
 {
-    "port": "PORT"
+    "port": "PORT",
+    "authentication": {
+        "secret": "AUTH-SECRET"
+    }
 }

@@ -1,5 +1,4 @@
 import os from 'os'
-import { resolve } from 'path'
 
 import {
     spawn,
@@ -9,24 +8,24 @@ import {
 
 import { createLogger, reduceToVoid } from '@benzed/util'
 
-/*** Constants ***/
+//// Constants ////
 
-const ROOT_DIR = resolve(__dirname, '../../../')
+const ROOT_DIR = process.cwd()
 const DEFAULT_MONGO_DB_PORT = 27017
-const PROTECTED_CLUSTERS = ['production'] // in case a local machine is used to run production
-const MONGO_CMD = os.platform() === 'win32'
-    ? 'C:\\Program Files\\MongoDB\\Server\\5.0\\bin\\mongod.exe'
-    : 'mongod'
+const PROTECTED_CLUSTERS = [`production`] // in case a local machine is used to run production
+const MONGO_CMD = os.platform() === `win32`
+    ? `C:\\Program Files\\MongoDB\\Server\\5.0\\bin\\mongod.exe`
+    : `mongod`
 
-const KILL_MONGO_CMD = os.platform() === 'win32'
+const KILL_MONGO_CMD = os.platform() === `win32`
     ? `taskkill /F /IM ${MONGO_CMD}`
     : `killall ${MONGO_CMD}`
 
-const CHECK_PORT_CMD = os.platform() === 'win32'
+const CHECK_PORT_CMD = os.platform() === `win32`
     ? `netstat -a -p udp | find ":${DEFAULT_MONGO_DB_PORT}"`
     : `netstat -a -p udp | grep ".${DEFAULT_MONGO_DB_PORT}"`
 
-/*** Types ***/
+//// Types ////
 
 type EnsureMongoDbInstanceOptions = ({
 
@@ -52,11 +51,11 @@ type EnsureMongoDbInstanceOptions = ({
     log?: boolean | 'process'
 }
 
-/*** Module State ***/
+//// Module State ////
 
 let mongoProcess: ChildProcessWithoutNullStreams | null = null
 
-/*** Helper ***/
+//// Helper ////
 
 function execute(cmd: string): Promise<string> {
 
@@ -82,8 +81,8 @@ function isMongoProcessInCorrectState(options: Required<EnsureMongoDbInstanceOpt
         return false
 
     const clusterArg = mongoProcess.spawnargs[1]
-        ?.replace(/^\.\/storage\//, '')
-        .replace(/\/db$/, '')
+        ?.replace(/^\.\/storage\//, ``)
+        .replace(/\/db$/, ``)
 
     const portArg = parseInt(mongoProcess.spawnargs[3])
 
@@ -100,7 +99,7 @@ function defaultifyOptions(
 
     const {
         clean = false,
-        cluster = 'dev',
+        cluster = `dev`,
         port = DEFAULT_MONGO_DB_PORT
     } = options
 
@@ -112,7 +111,7 @@ function killMongoProcess(): Promise<void> {
     if (mongoProcess) {
         return new Promise(resolve => {
             mongoProcess?.kill()
-            mongoProcess?.once('close', resolve)
+            mongoProcess?.once(`close`, resolve)
             mongoProcess = null
         })
 
@@ -122,18 +121,20 @@ function killMongoProcess(): Promise<void> {
             .catch(reduceToVoid)
             .then(reduceToVoid)
     }
-
 }
 
-function isPortFree(port: number): Promise<boolean> {
-    return execute(
-        CHECK_PORT_CMD.replace(
-            CHECK_PORT_CMD.toString(),
-            port.toString()
+async function isPortFree(port: number): Promise<boolean> {
+    try {
+        await execute(
+            CHECK_PORT_CMD.replace(
+                CHECK_PORT_CMD.toString(),
+                port.toString()
+            )
         )
-    )
-        .then(() => false)
-        .catch(() => true)
+        return false
+    } catch {
+        return true
+    }
 }
 
 async function untilPortFree(port: number): Promise<void> {
@@ -144,23 +145,23 @@ async function untilPortFree(port: number): Promise<void> {
 
 }
 
-/*** Main ***/
+//// Main ////
 
 async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promise<void> {
 
     const options = defaultifyOptions(input)
 
     const log = createLogger({
-        header: '💾',
+        header: `💾`,
         onLog: options.log
             ? console.log.bind(console)
             : (...args) => void args
     })
 
     log`Ensuring mongodb ${options.isRunning
-        ? `is running ${options.clean ? 'clean ' : ''}` +
+        ? `is running ${options.clean ? `clean ` : ``}` +
         `on port ${options.port} for cluster "${options.cluster}"`
-        : 'is not running'}`
+        : `is not running`}`
 
     if (isMongoProcessInCorrectState(options))
         return
@@ -188,7 +189,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
         await execute(`rm -rf ./storage/${cluster}`).catch(() => null)
     }
 
-    await execute('shx mkdir ./storage').catch(() => null)
+    await execute(`shx mkdir ./storage`).catch(() => null)
     await execute(`shx mkdir ./storage/${cluster}`).catch(() => null)
     await execute(`shx mkdir ./storage/${cluster}/db`).catch(() => null)
     await execute(`shx mkdir ./storage/${cluster}/files`).catch(() => null)
@@ -198,42 +199,42 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     await new Promise<void>((resolve, reject) => {
 
         mongoProcess = spawn(MONGO_CMD, [
-            '--dbpath', `./storage/${cluster}/db`,
-            '--port', port.toString()
+            `--dbpath`, `./storage/${cluster}/db`,
+            `--port`, port.toString()
         ])
 
-        mongoProcess.stdout.on('data', (data: Buffer) => {
+        mongoProcess.stdout.on(`data`, (data: Buffer) => {
 
-            const jsonStr = '[' +
+            const jsonStr = `[` +
                 data.toString()
-                    .split('\n')
+                    .split(`\n`)
                     .filter(word => word)
-                    .join(',')
-                + ']'
+                    .join(`,`)
+                + `]`
 
             try {
 
                 const output = JSON.parse(jsonStr) as { msg: string }[]
                 for (const { msg } of output) {
-                    if (options.log === 'process')
+                    if (options.log === `process`)
                         log`Process: ${msg}`
 
-                    if (msg.includes('Waiting for connections'))
+                    if (msg.includes(`Waiting for connections`))
                         resolve()
 
-                    if (msg.includes('Now exiting') || msg.includes('Fatal assertion'))
-                        reject(new Error('MongoDb could not start.'))
+                    if (msg.includes(`Now exiting`) || msg.includes(`Fatal assertion`))
+                        reject(new Error(`MongoDb could not start.`))
                 }
 
             } catch (e) {
-                if (options.log === 'process')
+                if (options.log === `process`)
                     log`Process error: ${jsonStr}`
             }
         })
     })
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ensureMongoDbInstance
 

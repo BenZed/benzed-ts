@@ -6,17 +6,13 @@
 
 import { StringKeys } from './types'
 
-/*** Constants ***/
+//// Constants ////
 
 const DEFAULT_MAX_LISTENERS = 10
 
-/*** Types ***/
+//// Types ////
 
-type Events = {
-    [key: string]: any[]
-}
-
-type EventSubscription<T extends Events, K extends StringKeys<T>> = {
+type EventSubscription<T extends object = any, K extends StringKeys<T> = StringKeys<T>> = {
 
     /**
      * Number of times the listener will be called before being removed.
@@ -31,8 +27,10 @@ type EventSubscription<T extends Events, K extends StringKeys<T>> = {
     listener: EventListener<T, K>
 }
 
-type EventListener<T extends Events, K extends StringKeys<T>> =
-    (...args: T[K]) => void | Promise<void>
+type AsArray<T> = T extends unknown[] ? T : never
+
+type EventListener<T extends object, K extends StringKeys<T>> =
+    (...args: AsArray<T[K]>) => void | Promise<void>
 
 /**
  * A type-safe event emitter.
@@ -45,13 +43,13 @@ type EventListener<T extends Events, K extends StringKeys<T>> =
  * event. Extend the class and it's addListener / removeListener methods 
  * to gain equivalent functionality. 
  */
-class EventEmitter<T extends Events> {
+class EventEmitter<T extends object = any> {
 
     protected readonly _subscriptions: {
         [K in StringKeys<T>]?: Array<EventSubscription<T, K>>
     } = {}
 
-    public constructor (
+    constructor (
         private _maxListeners = DEFAULT_MAX_LISTENERS
     ) { }
 
@@ -62,7 +60,7 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @param listener Event function
      */
-    public addListener<K extends StringKeys<T>>(
+    addListener<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>
     ): void {
@@ -80,7 +78,7 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @param listener Event listener
      */
-    public addOnceListener<K extends StringKeys<T>>(
+    addOnceListener<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>
     ): void {
@@ -98,7 +96,7 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @param listener Event function
      */
-    public on<K extends StringKeys<T>>(
+    on<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>
     ): void {
@@ -112,7 +110,7 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @param listener Event listener
      */
-    public once<K extends StringKeys<T>>(
+    once<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>
     ): void {
@@ -127,7 +125,7 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @param listener Event function
      */
-    public prependListener<K extends StringKeys<T>>(
+    prependListener<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>
     ): void {
@@ -146,7 +144,7 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @param listener Event listener
      */
-    public prependOnceListener<K extends StringKeys<T>>(
+    prependOnceListener<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>
     ): void {
@@ -165,7 +163,7 @@ class EventEmitter<T extends Events> {
      * @param listener Event listener
      * @param all Removes every listener for the given event.
      */
-    public removeListener<K extends StringKeys<T>>(
+    removeListener<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>,
     ): void {
@@ -179,13 +177,14 @@ class EventEmitter<T extends Events> {
      * @param listener Event listener
      * @param all Removes every listener for the given event.
      */
-    public removeAllListeners<K extends StringKeys<T>>(
+    removeAllListeners<K extends StringKeys<T>>(
         event: K,
     ): void {
-        const listeners = this._subscriptions[event] ?? []
+        const subscriptions = this._subscriptions[event] ?? []
 
-        for (const { listener } of [...listeners])
-            this.removeListener(event, listener)
+        for (const { listener } of [...subscriptions])
+            //                     ^ shallow copy to prevent skipping.
+            this._removeListener(event, listener)
     }
 
     /**
@@ -199,7 +198,7 @@ class EventEmitter<T extends Events> {
      * @param listener Event listener
      * @param all Removes every listener for the given event.
      */
-    public off<K extends StringKeys<T>>(
+    off<K extends StringKeys<T>>(
         event: K,
         listener: EventListener<T, K>,
     ): void {
@@ -212,12 +211,12 @@ class EventEmitter<T extends Events> {
      * @param event Event to be emitted
      * @param args Arguments to provided to event listener function.
      */
-    public emit<K extends StringKeys<T>>(event: K, ...args: T[K]): void {
+    emit<K extends StringKeys<T>>(event: K, ...args: AsArray<T[K]>): void {
 
         const subscriptions = this._subscriptions[event] ?? []
 
         for (const subscription of [...subscriptions]) {
-            //                     ^ shallow copy so that removing non-persitent
+            //                     ^ shallow copy so that removing non-persistent
             //                       listeners doesn't cause any skipping.
             subscription.listener.apply(this, args)
 
@@ -232,11 +231,11 @@ class EventEmitter<T extends Events> {
      * @param event Event name
      * @returns Number of listeners.
      */
-    public getNumListeners<K extends StringKeys<T>>(event: K): number {
+    getNumListeners<K extends StringKeys<T>>(event: K): number {
         return this._getNumListeners(event)
     }
 
-    public _getNumListeners<K extends StringKeys<T>>(
+    _getNumListeners<K extends StringKeys<T>>(
         event: K,
         options?: { internal?: boolean }
     ): number {
@@ -251,7 +250,7 @@ class EventEmitter<T extends Events> {
     /**
      * A list of event names that have listeners attached.
      */
-    public get eventNames(): (StringKeys<T>)[] {
+    get eventNames(): (StringKeys<T>)[] {
         return this._getEventNames()
     }
 
@@ -287,11 +286,11 @@ class EventEmitter<T extends Events> {
      * The maximum number of listeners that can be
      * added to events.
      */
-    public get maxListeners(): number {
+    get maxListeners(): number {
         return this._maxListeners
     }
 
-    public set maxListeners(value: number) {
+    set maxListeners(value: number) {
         value = Math.round(value)
 
         if (value <= 0)
@@ -390,7 +389,7 @@ class EventEmitter<T extends Events> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default EventEmitter
 

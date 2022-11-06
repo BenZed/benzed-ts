@@ -1,11 +1,11 @@
 import { Copyable } from './copy'
 import { Comparable } from './equals'
 
-/*** Types ***/
+//// Types ////
 
 type CopyComparable<T> = Copyable<T> & Comparable<T>
 
-/*** Exports ***/
+//// Exports ////
 
 export * from './copy'
 export * from './equals'

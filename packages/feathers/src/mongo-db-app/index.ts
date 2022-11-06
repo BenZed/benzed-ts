@@ -1,8 +1,8 @@
-import { createMongoApplication } from './create-mongo-db-application'
+import { createMongoDBApplication } from './create-mongo-db-application'
 
-/*** Exports ***/
+//// Exports ////
 
-export default createMongoApplication
+export default createMongoDBApplication
 
 export * from './create-mongo-db-application'
 export * from './setup-mongo-db'

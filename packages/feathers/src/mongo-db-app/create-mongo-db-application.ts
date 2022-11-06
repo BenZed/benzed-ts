@@ -1,9 +1,7 @@
 
 import type { Collection } from 'mongodb'
-import type { Schema } from '../schemas'
 
 import { feathers } from '@feathersjs/feathers'
-import configuration from '@feathersjs/configuration'
 import {
     koa,
     rest,
@@ -11,25 +9,35 @@ import {
     errorHandler,
     parseAuthentication as authParser,
 
-    Application as KoaApplication
+    Application as KoaApplication,
 } from '@feathersjs/koa'
 
+import setupMongoDB, { $mongoDBConfig } from './setup-mongo-db'
+import { configure } from '../util'
+import { $port } from '../schemas'
+
 import { createLogger, Logger } from '@benzed/util'
+import { $, Infer, SchemaFor } from '@benzed/schema'
 
-import setupMongoDB, { MongoDBConfig } from './setup-mongo-db'
+/* eslint-disable 
+@typescript-eslint/no-explicit-any
+*/
 
-/*** Types ***/
+//// Schemas ////
 
-export interface MongoDBApplicationConfig {
-    name: string
-    port: number
-    db: MongoDBConfig
-}
+const $mongoDBApplicationConfig = $({
+    name: $.string,
+    port: $port,
+    db: $mongoDBConfig,
+})
+
+//// Types ////
+
+interface MongoDBApplicationConfig extends Infer<typeof $mongoDBApplicationConfig> {}
 
 type Env = 'test' | 'development' | 'production'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
+interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, C> {
 
     log: Logger
 
@@ -44,36 +52,36 @@ export interface MongoDBApplication<S = any, C = any> extends KoaApplication<S, 
     mode(): Env
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
     expressApp: KoaApplication<S, C>
 ): MongoDBApplication<S, C> {
 
     const mode = function mode(): Env {
-        return (process.env.NODE_ENV ?? 'development') as Env
+        return (process.env.NODE_ENV ?? `development`) as Env
     }
 
     const log = createLogger({
-        header: '⚙️',
+        header: `⚙️`,
         timeStamp: true,
-        onLog: mode() === 'test'
+        onLog: mode() === `test`
             ? () => { /* no logging in test mode */ }
             : console.log.bind(console)
     })
 
     const db = function db(_collection: string): Promise<Collection> {
-        return Promise.reject(new Error('MongoDb not yet configured'))
+        return Promise.reject(new Error(`MongoDb not yet configured`))
     }
 
     const start = async function start(this: MongoDBApplication<S, C>): Promise<void> {
 
-        const name = this.get('name')
-        const port = this.get('port')
+        const name = this.get(`name`)
+        const port = this.get(`port`)
         const env = this.mode()
 
         await this.listen(port)
-
+        this.emit(`listen`, port, env)
         this.log`${name} listening on port ${port} in ${env} mode`
     }
 
@@ -83,16 +91,17 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
     ) as MongoDBApplication<S, C>
 }
 
-/*** Main ***/
+//// Main ////
 
-export default function createMongoApplication<S, C extends MongoDBApplicationConfig>(
-    configSchema?: Schema<C>
+export default function createMongoDBApplication<S, C extends MongoDBApplicationConfig>(
+    config: C | SchemaFor<C> = $mongoDBApplicationConfig as unknown as SchemaFor<C>,
 ): MongoDBApplication<S, C> {
 
     // Create feathers instance and configure it
     const mongoApp = applyMongoAddons(koa(feathers()))
 
-    mongoApp.configure(configuration(configSchema))
+    mongoApp.configure(configure(config))
+
     mongoApp.configure(setupMongoDB)
     mongoApp.configure(rest())
 
@@ -103,4 +112,11 @@ export default function createMongoApplication<S, C extends MongoDBApplicationCo
     return mongoApp
 }
 
-export { createMongoApplication }
+export {
+    
+    createMongoDBApplication,
+
+    MongoDBApplication,
+    MongoDBApplicationConfig,
+    $mongoDBApplicationConfig,
+}

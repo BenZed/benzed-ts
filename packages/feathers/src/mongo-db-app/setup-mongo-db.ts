@@ -1,66 +1,58 @@
 import { milliseconds } from '@benzed/async'
 
-import {
-    MongoClient,
+import type {
     Db,
     ObjectId,
     Collection
 } from 'mongodb'
+
+import { MongoClient } from 'mongodb'
 
 import type {
     MongoDBApplication,
     MongoDBApplicationConfig
 } from './create-mongo-db-application'
 
-/*** Constants ***/
+import { $, Infer } from '@benzed/schema'
+
+import { $port } from '../schemas/util'
+
+//// Constants ////
 
 const DEFAULT_MONGODB_PORT = 27017
 
-/*** Types ***/
+//// Exports ////
 
-interface MongoDBConfig {
-    uri: string
-    database: string
+const $mongoDBConfig = $.shape({
 
-    port?: number
-    user?: string
-    password?: string
-}
+    uri: $.string,
+    database: $.string,
 
-/*** Helper ***/
+    port: $port.default(DEFAULT_MONGODB_PORT),
 
-function isMongoDbConfig(input: unknown): input is MongoDBConfig {
+    user: $.string.optional,
+    password: $.string.optional
 
-    if (
-        input == null ||
-        typeof input !== 'object'
-    )
-        return false
+})
 
-    const config = input as MongoDBConfig
+/**
+ * Items required for mongodb
+ */
+interface MongoDBConfig extends Infer<typeof $mongoDBConfig> {}
 
-    return typeof config.uri === 'string' &&
-        typeof config.database === 'string' &&
-        ['undefined', 'number'].includes(typeof config.port) &&
-        ['undefined', 'string'].includes(typeof config.user) &&
-        ['undefined', 'string'].includes(typeof config.password)
-}
-
-/*** Main ***/
+//// Main ////
 
 export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
     app: MongoDBApplication<S, C>
 ): void {
 
-    const config = app.get('db')
-    if (!isMongoDbConfig(config))
-        throw new Error('config.mongodb is invalid.')
+    const config = app.get(`db`)
 
     const uri = config.uri
-        .replaceAll('<port>', (config.port ?? DEFAULT_MONGODB_PORT).toString())
-        .replaceAll('<user>', config.user ?? '')
-        .replaceAll('<password>', config.password ?? '')
-        .replaceAll('<database>', config.database)
+        .replaceAll(`<port>`, config.port.toString())
+        .replaceAll(`<user>`, config.user ?? ``)
+        .replaceAll(`<password>`, config.password ?? ``)
+        .replaceAll(`<database>`, config.database)
 
     app.log`mongodb initialized ${{ uri }}`
 
@@ -108,10 +100,10 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
 }
 
 export {
-
     setupMongoDB,
+    
+    $mongoDBConfig,
     MongoDBConfig,
-    isMongoDbConfig,
 
     ObjectId,
     Db

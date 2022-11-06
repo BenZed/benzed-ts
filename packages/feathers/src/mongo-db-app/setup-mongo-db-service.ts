@@ -1,67 +1,64 @@
-import { FeathersService, Service } from '@feathersjs/feathers'
+import { FeathersService, Service, ServiceOptions } from '@feathersjs/feathers'
 import { MongoDBService, MongoDBAdapterOptions, MongoDBAdapterParams } from '@feathersjs/mongodb'
+
 import { MongoDBApplication } from './create-mongo-db-application'
 
-declare module '@feathersjs/mongodb' {
-    interface MongoDBService
-    /**/ //eslint-disable-next-line @typescript-eslint/no-explicit-any        
-    /**/ <T = any, D = Partial<T>, P extends MongoDBAdapterParams<any> = MongoDBAdapterParams> {
-
-        update(id: null, data: D, params?: P): Promise<T[]>
-        // TODO FIXME
-        // I don't know how long this will be necessary for, but the current MongoDBService 
-        // definition doesn't match that of other services, which causes type errors
-
-    }
-}
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface MongoDBServiceOptions extends Omit<MongoDBAdapterOptions, 'Model'> {
-
-    /**
-     * Name of the database collection to store documents
-     */
-    collection: string
 
     /**
      * Path the service should be registered, uses the collection name if not specified.
      */
     path?: string
+         
+    /**
+     * Name of the database collection to store documents
+     */
+    collection: string
+
 }
 
-/*** Main ***/
+//// Main ////
 
 function setupMongoDBService<
     T,
     D = Partial<T>,
-    P extends MongoDBAdapterParams = MongoDBAdapterParams
+    P extends MongoDBAdapterParams<any> = MongoDBAdapterParams<any>
 >(
     mongoApp: MongoDBApplication,
-    options: MongoDBServiceOptions
+    mongoServiceOptions: MongoDBServiceOptions,
+    feathersServiceOptions?: ServiceOptions
 ): FeathersService<MongoDBApplication, Service<T, D, P>> {
 
     const {
         collection,
         path = collection,
         ...rest
-    } = options
+    } = mongoServiceOptions
 
     const service = new MongoDBService<T, D, P>({
         ...rest,
         Model: mongoApp.db(collection)
     })
 
-    mongoApp.use(path, service)
+    mongoApp.use(
+        path,
+        service as unknown as Service, 
+        feathersServiceOptions
+    )
     mongoApp.log`${path} service configured`
 
-    return mongoApp.service(path)
+    return mongoApp.service(path) as FeathersService<MongoDBApplication, Service<T, D, P>>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default setupMongoDBService
 
 export {
     setupMongoDBService,
     MongoDBServiceOptions,
-    MongoDBService
+    MongoDBService,
+
+    MongoDBAdapterParams
 }

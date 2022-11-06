@@ -1,5 +1,11 @@
 {
+    "name": "benzed-file-server",
     "port": 4000,
+    "db": {
+        "uri": "mongodb://127.0.0.1:<port>/<database>",
+        "port": 4250,
+        "database": "benzed-file-server"
+    },
     "authentication": {
         "entity": "user",
         "service": "users",
@@ -19,6 +25,44 @@
         "local": {
             "usernameField": "email",
             "passwordField": "password"
+        }
+    },
+    "pagination": {
+        "default": 100,
+        "max": 1000
+    },
+    "fs": "./storage/development/files",
+    "s3": null,
+    "renderer": {
+        "maxConcurrent": 1,
+        "settings": {
+            "thumbnail-small": {
+                "type": "image",
+                "time": {
+                    "progress": 0.5
+                },
+                "size": {
+                    "width": 128
+                }
+            },
+            "thumbnail-medium": {
+                "type": "image",
+                "time": {
+                    "progress": 0.5
+                },
+                "size": {
+                    "width": 256
+                }
+            },
+            "thumbnail-large": {
+                "type": "image",
+                "time": {
+                    "progress": 0.5
+                },
+                "size": {
+                    "width": 512
+                }
+            }
         }
     }
 }

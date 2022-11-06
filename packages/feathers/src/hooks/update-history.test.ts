@@ -13,79 +13,79 @@ type User = {
     age: number
 }
 
-/*** Test ***/
+//// Test ////
 
-const app = createTestApp(['users'] as const)
-const users = app.service('users').hooks([
+const app = createTestApp([`users`] as const)
+const users = app.service(`users`).hooks([
     updateHistory()
 ])
 
 // remove all users
 afterEach(() => getInternalServiceMethods(users).$remove(null))
 
-describe('create method', () => {
+describe(`create method`, () => {
     //
-    it('initializes history', async () => {
+    it(`initializes history`, async () => {
 
         const alice = await users
             .create(
-                { name: 'Alice' },
+                { name: `Alice` },
                 {
                     user: {
-                        [users.id]: 'admin'
+                        [users.id]: `admin`
                     }
                 } as Params
             )
 
         expect(alice.history).toEqual([{
-            method: 'create',
+            method: `create`,
             timestamp: expect.any(Number),
-            signature: 'admin',
+            signature: `admin`,
             data: {
-                name: 'Alice'
+                name: `Alice`
             }
         }])
     })
 
     //
-    it('ignores provided history field', async () => {
+    it(`ignores provided history field`, async () => {
 
         const bob = await users.create({
-            name: 'Bob',
+            name: `Bob`,
             history: [{
-                thing: 'invalid history declaration'
+                thing: `invalid history declaration`
             }]
         })
 
         expect(bob.history).toEqual([{
-            method: 'create',
+            method: `create`,
             timestamp: expect.any(Number),
             signature: null,
             data: {
-                name: 'Bob'
+                name: `Bob`
             }
         }])
 
     })
 })
 
-describe('remove method', () => {
+describe(`remove method`, () => {
 
-    it('returns record with removed history entry', async () => {
+    it(`returns record with removed history entry`, async () => {
 
-        const joe1 = await users.create({ name: 'Joe' })
+        const joe1 = await users.create({ name: `Joe` })
 
         const joe2 = await users.remove(joe1[users.id] as number)
 
         expect(joe2.history).toEqual([
             {
-                method: 'create',
+                method: `create`,
                 signature: null,
                 timestamp: expect.any(Number),
-                data: { name: 'Joe' }
+                data: { name: `Joe` }
             },
             {
-                method: 'remove',
+                method: `remove`,
                 signature: null,
                 timestamp: expect.any(Number),
             },
@@ -93,29 +93,29 @@ describe('remove method', () => {
     })
 })
 
-describe('patch method', () => {
+describe(`patch method`, () => {
 
-    it('increments record history', async () => {
+    it(`increments record history`, async () => {
 
-        let steve = await users.create({ name: 'Steve', age: 30 })
+        let steve = await users.create({ name: `Steve`, age: 30 })
         steve = await users.patch(steve[users.id] as number, { age: 31 })
         steve = await users.patch(steve[users.id] as number, { age: 32 })
 
         expect(steve.history).toEqual([
             {
-                method: 'create',
+                method: `create`,
                 signature: null,
                 timestamp: expect.any(Number),
-                data: { name: 'Steve', age: 30 }
+                data: { name: `Steve`, age: 30 }
             },
             {
-                method: 'patch',
+                method: `patch`,
                 signature: null,
                 timestamp: expect.any(Number),
                 data: { age: 31 }
             },
             {
-                method: 'patch',
+                method: `patch`,
                 signature: null,
                 timestamp: expect.any(Number),
                 data: { age: 32 }
@@ -124,23 +124,23 @@ describe('patch method', () => {
     })
 
     it(
-        'collapses multiple entries from the same user ' +
-        'within a certain interval into one update',
+        `collapses multiple entries from the same user ` +
+        `within a certain interval into one update`,
 
         async () => {
 
-            const app = createTestApp(['users'] as const)
-            const users = app.service('users').hooks([
+            const app = createTestApp([`users`] as const)
+            const users = app.service(`users`).hooks([
                 updateHistory({
                     collapseInterval: 100
                 })
             ])
 
-            const user = { [users.id]: 'admin', age: 100, name: 'Boss' } as User
+            const user = { [users.id]: `admin`, age: 100, name: `Boss` } as User
 
             const params = { user } as Params
 
-            let robyn = await users.create({ name: 'Robin', age: 26 }, params)
+            let robyn = await users.create({ name: `Robin`, age: 26 }, params)
             robyn = await users.patch(robyn[users.id] as number, { age: 27 }, params)
 
             const timeStampOfFirstCollapsablePatch = robyn.history.at(-1).timestamp
@@ -150,47 +150,47 @@ describe('patch method', () => {
 
             robyn = await users.patch(robyn[users.id] as number, { age: 25 }, params)
             robyn = await users.patch(robyn[users.id] as number, { age: 23 }, params)
-            robyn = await users.patch(robyn[users.id] as number, { name: 'Robyn' }, params)
+            robyn = await users.patch(robyn[users.id] as number, { name: `Robyn` }, params)
 
-            expect(robyn.name).toBe('Robyn')
+            expect(robyn.name).toBe(`Robyn`)
             expect(robyn.history).toEqual([
                 {
-                    method: 'create',
-                    signature: 'admin',
+                    method: `create`,
+                    signature: `admin`,
                     timestamp: expect.any(Number),
-                    data: { name: 'Robin', age: 26 }
+                    data: { name: `Robin`, age: 26 }
                 },
                 {
-                    method: 'patch',
-                    signature: 'admin',
+                    method: `patch`,
+                    signature: `admin`,
                     timestamp: timeStampOfFirstCollapsablePatch,
-                    data: { name: 'Robyn', age: 23 }
+                    data: { name: `Robyn`, age: 23 }
                 }
             ])
         })
 })
 
-describe('find method', () => {
-    it('should throw', async () => {
+describe(`find method`, () => {
+    it(`should throw`, async () => {
         await expect(users.find())
             .rejects
-            .toThrow('Cannot use updateHistory hook with \'find\' method')
+            .toThrow(`Cannot use updateHistory hook with 'find' method`)
     })
 })
 
-describe('get method', () => {
-    it('should throw', async () => {
+describe(`get method`, () => {
+    it(`should throw`, async () => {
         await expect(users.get(-1))
             .rejects
-            .toThrow('Cannot use updateHistory hook with \'get\' method')
+            .toThrow(`Cannot use updateHistory hook with 'get' method`)
     })
 })
 
-describe('revert query params', () => {
+describe(`revert query params`, () => {
 
-    it('history can be reverted with the $history query param', async () => {
+    it(`history can be reverted with the $history query param`, async () => {
 
-        let alice = await users.create({ name: 'Alice', age: 30 })
+        let alice = await users.create({ name: `Alice`, age: 30 })
         while (alice.age < 40)
             alice = await users.patch(alice[users.id], { age: (alice.age as number) + 1 })
 
@@ -203,16 +203,16 @@ describe('revert query params', () => {
         })
 
         expect(alice.history).toEqual([{
-            method: 'create',
+            method: `create`,
             signature: null,
             timestamp: expect.any(Number),
-            data: { name: 'Alice', age: 30 }
+            data: { name: `Alice`, age: 30 }
         }])
     })
 
-    it('history can be spliced with the $history query param', async () => {
+    it(`history can be spliced with the $history query param`, async () => {
 
-        let alice = await users.create({ name: 'Alice', age: 30 })
+        let alice = await users.create({ name: `Alice`, age: 30 })
         while (alice.age < 40)
             alice = await users.patch(alice[users.id], { age: (alice.age as number) + 1 })
 
@@ -225,12 +225,12 @@ describe('revert query params', () => {
         })
 
         expect(alice.history).toEqual([{
-            method: 'create',
+            method: `create`,
             signature: null,
             timestamp: expect.any(Number),
-            data: { name: 'Alice', age: 30 }
+            data: { name: `Alice`, age: 30 }
         }, {
-            method: 'patch',
+            method: `patch`,
             signature: null,
             timestamp: expect.any(Number),
             data: { age: 40 }

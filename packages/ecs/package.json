@@ -1,0 +1,32 @@
+{
+    "name": "@benzed/ecs",
+    "description": "Type oriented immutable entity component system",
+    "main": "./lib",
+    "private": true,
+    "version": "0.9.0",
+    "scripts": {
+        "test": "NODE_ENV=test jest --maxWorkers=1 -o",
+        "test:dev": "npm run test -- --verbose --watch",
+        "build": "npm run lint && npm run tsc",
+        "build:dev": "npm run tsc -- -w",
+        "lint": "eslint src/**/*.ts --fix",
+        "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "@benzed/array": "^3.2.1",
+        "@benzed/util": "^3.9.1",
+        "@benzed/is": "^3.1.2"
+    },
+    "peerDependencies": {},
+    "devDependencies": {}
+}

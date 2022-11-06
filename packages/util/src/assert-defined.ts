@@ -1,6 +1,6 @@
 import { Func } from './types'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Takes a method that optionally returns a nullable value and 
@@ -26,7 +26,7 @@ function assertDefined<A extends any[], T>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default assertDefined
 

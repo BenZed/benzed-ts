@@ -8,13 +8,12 @@ module.exports = {
     ],
 
     transform: {
-        '^.+\\\.tsx?$': 'ts-jest'
-    },
-
-    globals: {
-        'ts-jest': {
-            'tsconfig': '../../tsconfig.test.json'
-        }
+        '^.+\\.tsx?$': [
+            'ts-jest',
+            {
+                tsconfig: '../../tsconfig.test.json'
+            }
+        ]
     },
     globalSetup: BEFORE_ALL_TESTS,
     globalTeardown: AFTER_ALL_TESTS,

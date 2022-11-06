@@ -7,62 +7,63 @@ import BoolSchema from './boolean'
 import {
     expectValidationError
 } from '../util.test'
+import $ from '.'
 
-/*** Input ***/
+//// Input ////
 
-const $vector = new ShapeSchema({
+const $vector2 = new ShapeSchema({
     x: new NumberSchema(),
     y: new NumberSchema()
 })
 
 const $todo = new ShapeSchema({
-    completed: new BoolSchema().mutable(),
+    completed: new BoolSchema().mutable,
     description: new ShapeSchema({
         content: new StringSchema(),
         deadline: new NumberSchema()
-    }).mutable()
+    }).mutable
 })
 
 // TODO move me
 
-describe('validate()', () => {
+describe(`validate()`, () => {
 
-    it('validates shapes', () => {
-        expect($vector.validate({ x: 0, y: 0 }))
+    it(`validates shapes`, () => {
+        expect($vector2.validate({ x: 0, y: 0 }))
             .toEqual({ x: 0, y: 0 })
 
-        expect(() => $vector.validate(false))
-            .toThrow('false is not object')
+        expect(() => $vector2.validate(false))
+            .toThrow(`must be an object`)
     })
 
-    it('validates children', () => {
-        const expectError = expectValidationError(() => $vector.validate({ x: 0, y: 'One' }))
-        expectError.toHaveProperty('path', ['y'])
-        expectError.toHaveProperty('message', 'One is not number')
+    it(`validates children`, () => {
+        const expectError = expectValidationError(() => $vector2.validate({ x: 0, y: `One` }))
+        expectError.toHaveProperty(`path`, [`y`])
+        expectError.toHaveProperty(`message`, `must be a number`)
     })
 
-    it('validates nested children', () => {
+    it(`validates nested children`, () => {
         expectValidationError(
             () => $todo.validate({
                 completed: true,
                 description: {
-                    content: 'Complete this schema validation library',
-                    deadline: 'never lol'
+                    content: `Complete this schema validation library`,
+                    deadline: `never lol`
                 }
             })
-        ).toHaveProperty('path', ['description', 'deadline'])
+        ).toHaveProperty(`path`, [`description`, `deadline`])
     })
 
-    it('omits unspecified properties', () => {
-        expect($vector.validate({ x: 10, y: 20, z: 100 }))
+    it(`omits unspecified properties`, () => {
+        expect($vector2.validate({ x: 10, y: 20, z: 100 }))
             .toEqual({ x: 10, y: 20 })
     })
 
 })
 
-describe('default()', () => {
+describe(`default()`, () => {
 
-    it('defaults to constructed object', () => {
+    it(`defaults to constructed object`, () => {
 
         const $hash = new ShapeSchema({
             secret: new StringSchema(),
@@ -74,13 +75,13 @@ describe('default()', () => {
             $hash
                 .default()
                 .validate(undefined)
-        ).toEqual({ secret: '', count: 0, flag: false })
+        ).toEqual({ secret: ``, count: 0, flag: false })
     })
 
-    it('default constructed object respects nested default values', () => {
+    it(`default constructed object respects nested default values`, () => {
 
         const $count = new ShapeSchema({
-            value: new NumberSchema(10)
+            value: new NumberSchema().default(10)
         })
 
         expect(
@@ -90,12 +91,23 @@ describe('default()', () => {
         ).toEqual({ value: 10 })
     })
 
-    it('respects default setting, if valid', () => {
+    it(`respects default setting, if valid`, () => {
         expect(
-            $vector
+            $vector2
                 .default({ x: 10, y: 10 })
                 .validate(undefined)
         ).toEqual({ x: 10, y: 10 })
     })
+
+})
+
+it(`properties can be spread into new schemas`, () => {
+
+    const $vector3 = new ShapeSchema({
+        ...$vector2.properties,
+        z: $.number
+    })
+
+    expect($vector3.validate({ x: 0, y: 0, z: 0 })).toEqual({ x: 0, y: 0, z: 0 })
 
 })
