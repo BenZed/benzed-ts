@@ -1,6 +1,6 @@
 import { DefaultFlags, SetFlag, Flags, Flag } from './flags'
 
-import { TypeMethod, IsMethod, AssertMethod, ValidateMethod, ATS } from './type-methods'
+import { TypeMethod, IsMethod, AssertMethod, ValidateMethod } from './type-methods'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -11,7 +11,7 @@ import { TypeMethod, IsMethod, AssertMethod, ValidateMethod, ATS } from './type-
 
 type Schema<T = any, F extends Flags = DefaultFlags> = TypeMethod<T, F[0]> & {
     get is(): IsMethod<T>
-    get assert(): AssertMethod<T, ATS.Off>
+    get assert(): AssertMethod<T>
     get validate(): ValidateMethod<T>
 }
 
