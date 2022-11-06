@@ -1,21 +1,41 @@
 
-export class NoMatchError extends Error {
+abstract class MatchError extends Error {
+
+    constructor(message: string) {
+        super(message)
+        this.name = this.constructor.name
+    }
+}
+export class UnmatchedValueError extends MatchError {
 
     constructor(
         protected value: unknown
     ) {
-        super(`Unmatched value: ${value}`)
-        this.name = 'NoMatchError'
+        super(`Unmatched value: ${JSON.stringify(value)}`)
     }
  
 }
 
-export class NotMatchExpressionError extends Error {
+export class NotMatchExpressionError extends MatchError {
 
-    constructor( ) {
+    constructor() {
         super('Match is not iterable')
-        this.name = 'NotMatchExpressionError'
     }
 
 }
 
+export class MatchExpressionValueRequiredError extends MatchError {
+
+    constructor() {
+        super('Match expression requires at least one value')
+    }
+
+}
+
+export class NoMultipleDefaultCasesError extends MatchError {
+
+    constructor() {
+        super('Match already has a default case')
+    }
+
+}

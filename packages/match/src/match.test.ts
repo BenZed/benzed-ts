@@ -2,7 +2,13 @@ import match from './match'
 import { Match, MatchBuilder } from './types'
 
 import { expectTypeOf } from 'expect-type'
-import is from '@benzed/is'
+import is, { isBoolean, isNumber, isString } from '@benzed/is'
+
+import { 
+    UnmatchedValueError, 
+    NoMultipleDefaultCasesError, 
+    NotMatchExpressionError
+} from './error'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -24,7 +30,7 @@ it('match.case() to create a match', () => {
         // @ts-expect-error can't iterate
         for (const value of match1to3)
             void value
-    }).toThrow('Match is not iterable')
+    }).toThrow(NotMatchExpressionError)
 })
 
 it('match.case() as well', () => {
@@ -37,7 +43,7 @@ it('match.case() as well', () => {
 
     // @ts-expect-error Match match 2, not a possible input
     expect(() => m2.value(2))
-        .toThrow(`Unmatched value: ${2}`)
+        .toThrow(UnmatchedValueError)
 
 })
 
@@ -106,7 +112,15 @@ it('.default()', () => {
 
 })
 
-describe('typeguard input', () => {
+it('.default() multiple times throws', () => {
+
+    // @ts-expect-error .default() twice not supported by types anyway
+    expect(() => match.case(0, 'Zero').default('One').default('Two'))
+        .toThrow(NoMultipleDefaultCasesError)
+
+})
+
+describe('method input', () => {
 
     it('all typeguards', () => {
 
@@ -144,8 +158,8 @@ describe('typeguard input', () => {
         const m1 = match
             .case(100, 'One Hundred')
             .case(true, 'One')
-            .case(false, 'Zero')
             .case(is.number, 'Number')
+            .default('Zero')
 
         expect(m1(100)).toEqual('One Hundred')
         expect(m1(true)).toEqual('One')
@@ -154,10 +168,121 @@ describe('typeguard input', () => {
 
     })
 
-    it('must be a type predicate', () => {
+    it('regular methods must be of unknown type', () => {
+        const m1 = match.case(i => i, 'Truthy').default('Falsy')
 
-        // @ts-expect-error predicate no good
-        match.case((i: boolean) => i, 'PreTask')
+        expect(m1(0)).toBe('Falsy')
+        expect(m1(1)).toBe('Truthy')
+
+        // @ts-expect-error No typed methods
+        match.case((i: boolean) => !i, 'Ace')
+    })
+})
+
+describe('objects', () => {
+
+    it('objects are checked for deep equality', () => {
+
+        const m1 = match 
+            .case({ foo: 'bar' }, 'FooBar')
+            .case({ bar: 'foo' }, 'BarFoo')
+
+        expect(m1({ foo: 'bar'})).toEqual('FooBar')
+        expect(m1({ bar: 'foo'})).toEqual('BarFoo')
+        expect(() => m1({ foo: 'baz' })).toThrow(UnmatchedValueError)
+    })
+
+    it('objects and primitives', () => {
+    
+        const m1 = match    
+            .case({ ace: [0,1,2,3] } as const, 'Wheel')
+            .case('Base', 'Base')
+
+        expect(m1({ ace: [0,1,2,3] })).toEqual('Wheel')
+        expect(m1('Base')).toEqual('Base')
+        // @ts-expect-error Invalid input
+        expect(() => m1({ ace: [0, 1 ] })).toThrow(UnmatchedValueError)
+        
+    })
+
+    it('objects with default', () => {
+
+        const m1 = match    
+            .case(0, 'Zero')
+            .case(1, 'One')
+            .case({ ten: 10 } as const, 'Ten')
+            .default('Unknown')
+
+        expectTypeOf(m1)
+            .toEqualTypeOf<MatchBuilder<number | { ten: number}, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
+    })
+
+})
+
+describe('output with method', () => {
+
+    it('outputs strongly typed', () => {
+
+        const m1 = match
+            .case(100, n => ({ hundy: n }))
+            .case(20, n => ({ twenty: n }))
+
+        expectTypeOf(m1).toEqualTypeOf<MatchBuilder<20 | 100, { hundy: 100 } | { twenty: 20 }>>()
 
     })
+    
+    it('union method output', () => {
+
+        const m1 = match
+            .case(isNumber, i => i > 50 ? 'Big' : 'Small')
+            .case(isString, i => `${i}!` as const)
+
+        expect(m1(0)).toEqual('Small')
+        expect(m1(100)).toEqual('Big')
+        expect(m1('Hey')).toEqual('Hey!')
+    })
+
+})
+
+describe('nesting match expressions', () => {
+
+    it('can handle nested expressions', () => {
+
+        const m1 = match
+        
+            .case(isNumber, i => match(i)
+                // @ts-expect-error not yet supported syntax
+                .case((i: number) => i > 0, '+')
+                // @ts-expect-error not yet supported syntax
+                .case((i: number) => i < 0, '-')
+                .default(0)
+
+            ).case(isBoolean, i => match(i) 
+                .case(true, '+')
+                .case(false, '-')
+            )
+
+        expect(m1(100)).toBe('+')
+        expect(m1(-100)).toBe('-')
+        expect(m1(0)).toBe(0)
+        expect(m1(true)).toBe('+')
+        expect(m1(false)).toBe('-')
+
+        expectTypeOf(m1).toEqualTypeOf<Match<number | boolean, string | number>>()
+    })
+
+    it('nested match expressions are only built once', () => {
+
+        let buildMatchCalls = 0
+
+        const m1 = match.case(isString, i => {
+            buildMatchCalls++
+            return match(i).case('Hi!', 'Hello?').default('Fuck Off.')
+        })
+
+        expect(m1('Hi!')).toEqual('Hello?')
+        expect(m1('Wtf')).toEqual('Fuck Off.')
+        expect(buildMatchCalls).toBe(1)
+    })
+
 })

@@ -1,17 +1,27 @@
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
 //// Matchable ////
 
 type Primitives = string | number | boolean | bigint | symbol
+type Object = { [key: string | number | symbol]: unknown }
 
-// type MatchPredicate<T> = ((input: T) => boolean)
+type MatchPredicate<I, O> = ((input: I) => O)
 type MatchGuard<T> = ((input: unknown) => input is T)
 
 export type MatchInput = 
-    | Primitives 
     | MatchGuard<unknown>
+    | MatchPredicate<unknown, any>
+    | Primitives 
+    | Object
+
+export type MatchOutput<I> = 
+
+    | MatchPredicate<MatchInputType<I>, unknown>
+    | Primitives 
+    | Object 
 
 type _GeneralizeMatchInput<I> = I extends string 
     ? string 
@@ -21,21 +31,38 @@ type _GeneralizeMatchInput<I> = I extends string
             ? boolean 
             : I extends bigint 
                 ? bigint 
-                : never
+                : I extends Object 
+                    ? { -readonly [K in keyof I]: _GeneralizeMatchInput<I[K]> } 
+                    : I
 
 export type MatchInputType<I> = 
     I extends Primitives 
         ? I 
         : I extends MatchGuard<infer Ix>
             ? Ix 
-            : never
+            : I extends Object 
+                ? I
+                : I extends (i: unknown) => any 
+                    ? unknown
+                    : never 
+
+export type MatchOutputType<O> = 
+    O extends Primitives 
+        ? O 
+        : O extends MatchPredicate<any, infer Ox>
+            ? Ox extends Match<any, infer Oxx> | MatchExpression<any, infer Oxx> | MatcherExpressionBuilder<any, infer Oxx>
+                ? Oxx
+                : Ox
+            : O
 
 //// Match State ////
 
+export type CaseInput = MatchPredicate<unknown, boolean>
+export type CaseOutput = MatchPredicate<unknown, unknown>
+
 export interface Case {
-    readonly input: unknown | ((input: unknown) => boolean)
-    readonly output: unknown | ((input: unknown) => unknown)
-    readonly default: boolean
+    readonly input?: CaseInput
+    readonly output: CaseOutput
 }
 
 export interface MatchState {
@@ -54,16 +81,16 @@ export interface Match<I = unknown, O = unknown> extends MatchState {
 
 export interface MatchBuilder<I = unknown, O = unknown> extends Match<I, O> {
 
-    case<Ix extends MatchInput, Ox extends MatchInput>(
+    case<Ix extends MatchInput, Ox extends MatchOutput<Ix>>(
         input: Ix, 
         output: Ox
-    ): MatchBuilder<I | MatchInputType<Ix>, O | Ox>
+    ): MatchBuilder<I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
 
     default<Ox extends MatchInput>(output: Ox): Match<_GeneralizeMatchInput<I>, O | Ox>
 
 }
 
-//// Iterable Match ////
+//// Match Expression ////
 
 export interface MatchExpressionState<V = unknown> extends MatchState {
     values: readonly V[]

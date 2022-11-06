@@ -1,4 +1,7 @@
-import { NoMatchError, NotMatchExpressionError } from './error'
+import { equals } from '@benzed/immutable'
+import is from '@benzed/is'
+
+import { MatchExpressionValueRequiredError, UnmatchedValueError, NoMultipleDefaultCasesError, NotMatchExpressionError } from './error'
 
 import {
 
@@ -12,9 +15,34 @@ import {
     MatchBuilder,
     MatchInput,
 
-    MatchInputType
+    MatchInputType,
+    CaseInput,
+    CaseOutput,
+    MatchOutput,
+    MatchOutputType,
+    Match
 
 } from './types'
+
+//// Helper ////
+
+function toInput(value: unknown): CaseInput{
+    return is.function<CaseInput>(value) 
+        ? value 
+        : (i: unknown) => equals(i, value)
+}
+
+function toOutput(value: unknown): CaseOutput{
+    return is.function<CaseOutput>(value) 
+        ? value 
+        : () => value
+}
+
+function isMatch(input: unknown): input is Match<unknown,unknown> {
+    return is.function<Match<unknown,unknown>>(input)
+        && is.array(input.cases) 
+        && input.cases.length > 0
+}
 
 //// Match Methods ////
 
@@ -26,19 +54,28 @@ function value(
     this: MatchState,
     value: unknown, 
 ): unknown {
-    for (const { input, output, default: isDefault } of this.cases) {
-        if (
-            isDefault || ( typeof input === 'function' 
-                ? input(value) 
-                : input === value
-            )
-        ) {
-            return typeof output === 'function'
-                ? output(value)
-                : output
+    for (const _case of this.cases) {
+
+        const { input, output } = _case
+
+        const isDefault = input === undefined
+        if (!isDefault && !input(value))
+            continue 
+            
+        let result = output(value)
+
+        // optimization for nested match
+        if (isMatch(result)) {
+
+            // prevent this expression from being rebuilt
+            (_case as { output: unknown }).output = result
+
+            result = result(value)
         }
+
+        return result
     }
-    throw new NoMatchError(value)
+    throw new UnmatchedValueError(value)
 }
 
 /**
@@ -60,13 +97,13 @@ function * iterateValues(this: MatchExpression): Generator<unknown> {
  * Create an iterable match with a single value
  * @param value 
  */
-function match<I extends MatchInput>(value: I): MatchExpressionBuilderEmpty<I>
+function match<I extends MatchInput>(value: I): MatchExpressionBuilderEmpty<MatchInputType<I>>
 
 /**
  * Create an iterable match with a set of values
  * @param values
  */
-function match<A extends readonly MatchInput[]>(...values: A): MatchExpressionBuilderEmpty<A[number]>
+function match<A extends readonly MatchInput[]>(...values: A): MatchExpressionBuilderEmpty<MatchInputType<A[number]>>
 
 function match(this: MatchExpressionState, input: unknown, output: unknown): MatchBuilder
 
@@ -83,26 +120,29 @@ function match(this: unknown, ...args: unknown[]): unknown {
     // Immutable case increment
     const prevState = this as MatchExpressionState | void
     if (prevState) {
+
         // .case() signature
         const newCase = args.length === 2 
             ? { 
-                input: args[0], 
-                output: args[1], 
-                default: false 
+                input: toInput(args[0]), 
+                output: toOutput(args[1]) 
             }
             // .default() signature
             : { 
-                input: undefined, 
-                output: args[0], 
-                default: true 
+                output: toOutput(args[0])
             }
+
+        const isDefaultCase = !newCase.input
+        const hasDefaultCase = prevState.cases.some(c => !c.input)
+        if (isDefaultCase && hasDefaultCase)
+            throw new NoMultipleDefaultCasesError()
         
         nextState.cases = newCase ? [ ...prevState.cases, newCase ] : prevState.cases
         nextState.values = prevState.values
     
     // match() is an illegal call
     } else if (args.length === 0)
-        throw new Error('match expression requires at least one value')
+        throw new MatchExpressionValueRequiredError()
 
     const instance = {
         ...nextState,
@@ -125,10 +165,10 @@ function match(this: unknown, ...args: unknown[]): unknown {
 match.case = match.bind({ 
     cases: [], 
     values: [] 
-}) as <I extends MatchInput, O extends MatchInput>(
+}) as <I extends MatchInput, O extends MatchOutput<I>>(
     input: I, 
     output: O
-) => MatchBuilder<MatchInputType<I>, O>
+) => MatchBuilder<MatchInputType<I>, MatchOutputType<O>>
 
 //// Exports ////
 
