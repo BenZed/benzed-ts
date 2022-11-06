@@ -5,7 +5,12 @@ import { match } from './match'
 
 //// Tests ////
 
-it.todo('create an expression for a value')
+it('create an expression for a value', () => {
+
+    const [ one ] = match(1)
+        .case(1, 'One')
+
+})
 
 it.todo('create an expression for a set of values')
 

@@ -1,5 +1,5 @@
-import { equals } from '@benzed/immutable'
 import is from '@benzed/is'
+import { equals } from '@benzed/immutable'
 
 import { 
     MatchExpressionValueRequiredError, 
@@ -150,17 +150,15 @@ function match(this: unknown, ...args: unknown[]): unknown {
     } else if (args.length === 0)
         throw new MatchExpressionValueRequiredError()
 
-    const instance = {
-        ...nextState,
-        value,
-        case: match,
-        default: match,
-        [Symbol.iterator]: iterateValues
-    }
-
     return Object.assign(
-        value.bind(instance), 
-        instance
+        value.bind(nextState), 
+        {
+            ...nextState,
+            value,
+            case: match,
+            default: match,
+            [Symbol.iterator]: iterateValues
+        }
     )
 
 }

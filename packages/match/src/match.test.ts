@@ -2,12 +2,15 @@ import match from './match'
 import { Match, MatchBuilder } from './types'
 
 import is, { isBoolean, isNumber, isString } from '@benzed/is'
-import { expectTypeOf } from 'expect-type'
 
 import {
     NoMultipleDefaultCasesError,
-    NotMatchExpressionError, UnmatchedValueError
+    NotMatchExpressionError, 
+    UnmatchedValueError
+
 } from './error'
+
+import { expectTypeOf } from 'expect-type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -16,6 +19,20 @@ import {
 //// Tests ////
 
 it('match.case() to create a match', () => {
+    
+    const m1 = match.case(0, 'zero')
+    const m2 = m1.case(1, 'one')
+
+    expectTypeOf(m1).toEqualTypeOf<MatchBuilder<0, 'zero'>>()
+    expectTypeOf(m2).toEqualTypeOf<MatchBuilder<0 | 1, 'zero' | 'one'>>()
+
+    // @ts-expect-error Match match 2, not a possible input
+    expect(() => m2.value(2))
+        .toThrow(UnmatchedValueError)
+
+})
+
+it('match.case() is non iterable', () => {
 
     const match1to3 = match
         .case(1, 'one')
@@ -30,20 +47,6 @@ it('match.case() to create a match', () => {
         for (const value of match1to3)
             void value
     }).toThrow(NotMatchExpressionError)
-})
-
-it('match.case() as well', () => {
-    
-    const m1 = match.case(0, 'zero')
-    const m2 = m1.case(1, 'one')
-
-    expectTypeOf(m1).toEqualTypeOf<MatchBuilder<0, 'zero'>>()
-    expectTypeOf(m2).toEqualTypeOf<MatchBuilder<0 | 1, 'zero' | 'one'>>()
-
-    // @ts-expect-error Match match 2, not a possible input
-    expect(() => m2.value(2))
-        .toThrow(UnmatchedValueError)
-
 })
 
 it('explicit I/O types', () => {
@@ -230,7 +233,7 @@ describe('objects', () => {
 
 })
 
-describe('output with method', () => {
+describe('method output', () => {
 
     it('outputs strongly typed', () => {
 

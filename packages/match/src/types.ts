@@ -18,7 +18,7 @@ export type MatchInput =
     | Object
 
 export type MatchOutput<I> = 
-
+ 
     | MatchPredicate<MatchInputType<I>, unknown>
     | Primitives 
     | Object 
