@@ -1,5 +1,5 @@
 import $, { Infer } from '@benzed/schema'
-import { omit } from '@benzed/util/lib'
+import { omit } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
@@ -88,9 +88,12 @@ class Auth extends SettingsModule<Required<AuthSettings>> {
 
         // Validate
         if (validatePayload) {
-            void (typeof validatePayload === 'function' 
-                ? validatePayload(payload) 
-                : validatePayload.assert(payload))
+
+            const validator = typeof validatePayload === 'function' 
+                ? { assert: validatePayload } 
+                : validatePayload
+
+            void validator.assert(payload)
         }
 
         return omit(

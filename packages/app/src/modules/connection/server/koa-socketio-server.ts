@@ -1,4 +1,5 @@
 import match from '@benzed/match'
+import { isObject, isString } from '@benzed/is'
 
 import { createServer, Server as HttpServer } from 'http'
 
@@ -13,6 +14,19 @@ import { WEBSOCKET_PATH } from '../../../constants'
 
 import { HttpCode } from './http-codes'
 import { HttpMethod } from './http-methods'
+
+//// Helper ////
+
+function ctxBodyToObject(ctx: Context): Record<string, unknown> {
+
+    if (isObject<Record<string, unknown>>(ctx.request.body))   
+        return ctx.request.body
+
+    if (isString(ctx.request.body))
+        return JSON.parse(ctx.request.body)
+
+    return {}
+}
 
 //// KoaServer ////
 
@@ -85,12 +99,12 @@ export class KoaSocketIOServer extends Server {
 
     private _getCtxCommandData(ctx: Context): object {
         const [ ctxData ] = match(ctx.method)
-        (HttpMethod.Get, {...ctx.query})
-        (HttpMethod.Delete, {...ctx.query})
-        (HttpMethod.Post, JSON.parse(ctx.request.body ?? '{}'))
-        (HttpMethod.Put, JSON.parse(ctx.request.body ?? '{}'))
-        (HttpMethod.Patch, JSON.parse(ctx.request.body ?? '{}'))
-        ({})
+            .case(HttpMethod.Get, {...ctx.query})
+            .case(HttpMethod.Delete, {...ctx.query})
+            .case(HttpMethod.Post, ctxBodyToObject(ctx))
+            .case(HttpMethod.Put, ctxBodyToObject(ctx))
+            .case(HttpMethod.Patch, ctxBodyToObject(ctx))
+            .default({})
 
         return ctxData
     }

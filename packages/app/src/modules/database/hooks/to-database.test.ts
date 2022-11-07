@@ -76,7 +76,7 @@ it('create toDatabase()', async () => {
 
     const { records, total: postTotal } = await collection.find({})
 
-    expect(records.some(r => r._id === record._id)).toBe(true)
+    expect(records.some(r => r._id === record?._id)).toBe(true)
     expect(postTotal).toEqual(preTotal + 1)
     expect($todoData.is(record)).toBe(true)
 })

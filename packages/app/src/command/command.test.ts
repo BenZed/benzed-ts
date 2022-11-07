@@ -99,15 +99,15 @@ describe('static builder pattern', () => {
         describe(`.${name}()`, () => {
 
             const [method] = match(name)
-            ('create', HttpMethod.Post)
-            ('get', HttpMethod.Get)
-            ('find', HttpMethod.Get)
-            ('delete', HttpMethod.Delete)
-            ('remove', HttpMethod.Delete)
-            ('patch', HttpMethod.Patch)
-            ('edit', HttpMethod.Patch)
-            ('update', HttpMethod.Put)
-            ('options', HttpMethod.Options)
+                .case('create', HttpMethod.Post)
+                .case('get', HttpMethod.Get)
+                .case('find', HttpMethod.Get)
+                .case('delete', HttpMethod.Delete)
+                .case ('remove', HttpMethod.Delete)
+                .case('patch', HttpMethod.Patch)
+                .case('edit', HttpMethod.Patch)
+                .case('update', HttpMethod.Put)
+                .case('options', HttpMethod.Options)
 
             const cmd = (Command as any)[name]($todo)
 

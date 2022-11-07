@@ -1,6 +1,6 @@
 import { isObject, isString, isTruthy } from '@benzed/is'
-import { Empty } from '@benzed/util'
 import match from '@benzed/match'
+import { Empty } from '@benzed/util'
 
 import { HttpMethod } from '../../../modules'
 
@@ -13,7 +13,7 @@ type ToDatabaseOutput<I extends object, O extends object> =
     Promise<
     I extends { query: object } 
         ? Paginated<Record<O>>
-        : Record<O>
+        : Record<O> | null
     >
 
 type ToDatabase<I extends object, O extends object> = CommandHook<O, ToDatabaseOutput<I,O>>
@@ -28,19 +28,24 @@ const toDatabase = <I extends object, O extends object>(method: HttpMethod, coll
         const database = this.getModule(Database, true, 'parents')
         const collection = database.getCollection<O>(collectionName)
 
-        return match(method)
-            .break(HttpMethod.Post, () => collection.create(input))
-            .break(HttpMethod.Put, () => collection.update(...splitIdFromData(input)))
-            .break(HttpMethod.Patch, () => collection.update(...splitIdFromData(input)))
-            .break(HttpMethod.Delete, () => collection.remove(splitIdFromData(input)[0]))
-            .break(HttpMethod.Get, () => {
+        const resultMatch = match(method)
+            .case(HttpMethod.Post, () => collection.create(input))
+            .case(HttpMethod.Put, () => collection.update(...splitIdFromData(input)))
+            .case(HttpMethod.Patch, () => collection.update(...splitIdFromData(input)))
+            .case(HttpMethod.Delete, () => collection.remove(splitIdFromData(input)[0]))
+            .case(HttpMethod.Get, () => {
                 const idOrQuery = splitIdQueryFromData(input)
 
                 return isString(idOrQuery)
                     ? collection.get(idOrQuery)
                     : collection.find(idOrQuery as Empty) // TODO support queries
             })
-            .next() as ToDatabaseOutput<I, O>
+            .default(() => Promise.resolve(null))
+            // .next() as ToDatabaseOutput<I, O>
+
+        const [ result ] = resultMatch
+
+        return result as ToDatabaseOutput<I,O>
     }
 
 //// Helpers ////

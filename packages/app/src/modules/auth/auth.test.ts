@@ -1,5 +1,6 @@
-import $ from '@benzed/schema/lib'
-import { io } from '@benzed/util/lib'
+import $ from '@benzed/schema'
+import { io } from '@benzed/util'
+
 import { Auth } from './auth'
 
 it('is sealed', () => {

@@ -1,5 +1,5 @@
-import is from '@benzed/is'
 import { equals } from '@benzed/immutable'
+import is from '@benzed/is'
 
 import { 
     MatchExpressionValueRequiredError, 
