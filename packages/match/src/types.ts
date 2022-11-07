@@ -3,31 +3,11 @@
     @typescript-eslint/ban-types
 */
 
-//// Matchable ////
-
-type Primitives = string | number | boolean | bigint | symbol
-type Object = { [key: string | number | symbol]: unknown }
-
-type MatchPredicate<I, O> = ((input: I) => O)
-type MatchGuard<T> = ((input: unknown) => input is T)
-
-export type MatchInput = 
-    | MatchGuard<unknown>
-    | MatchPredicate<unknown, any>
-    | Primitives 
-    | Object
-
-export type MatchOutput<I> = 
- 
-    | MatchPredicate<MatchInputType<I>, unknown>
-    | Primitives 
-    | Object 
-
-type MatchDefaultOutput = 
-
-    | MatchPredicate<unknown, any>
-    | Primitives 
-    | Object 
+//// Helper Types ////
+    
+type _UnusedInput<I, Ix> = Ix extends MatchGuard<infer Ixx> 
+    ? Exclude<I, Ixx>
+    : Exclude<I, Ix>
 
 type _BroadMatchInput<I> = I extends string 
     ? string 
@@ -40,6 +20,37 @@ type _BroadMatchInput<I> = I extends string
                 : I extends Object 
                     ? { -readonly [K in keyof I]: _BroadMatchInput<I[K]> } 
                     : I
+                    
+//// Matchable ////
+
+type Primitives = string | number | boolean | bigint | symbol
+type Object = { [key: string | number | symbol]: unknown }
+
+type MatchPredicate<I, O> = ((input: I) => O)
+type MatchGuard<T> = ((input: unknown) => input is T)
+
+//// Match ////
+
+export type MatchInput = 
+    | MatchGuard<unknown>
+    | MatchPredicate<unknown, unknown>
+    | Primitives 
+    | Object
+
+export type MatchExpressionInput<T> =
+    | Primitives
+    | Object
+    | MatchPredicate<T, unknown>
+    
+export type MatchOutput<I> = 
+    | Object 
+    | Primitives 
+    | MatchPredicate<MatchInputType<I>, unknown>
+
+type MatchDefaultOutput = 
+    | Object 
+    | Primitives 
+    | MatchPredicate<unknown, any>
 
 export type MatchInputType<I> = 
     I extends Primitives 
@@ -56,7 +67,7 @@ export type MatchOutputType<O> =
     O extends Primitives 
         ? O 
         : O extends MatchPredicate<any, infer Ox>
-            ? Ox extends Match<any, infer Oxx> | MatchExpression<any, infer Oxx> | MatcherExpressionBuilder<any, infer Oxx>
+            ? Ox extends Match<any, infer Oxx> | MatchExpression<any, infer Oxx> 
                 ? Oxx
                 : Ox
             : O
@@ -64,6 +75,7 @@ export type MatchOutputType<O> =
 //// Match State ////
 
 export type CaseInput = MatchPredicate<unknown, boolean>
+
 export type CaseOutput = MatchPredicate<unknown, unknown>
 
 export interface Case {
@@ -104,13 +116,19 @@ export interface MatchExpressionState<V = unknown> extends MatchState {
 
 export interface MatchExpressionBuilderEmpty<I = unknown> extends MatchExpressionState<I> {
 
-    case<Ox>(input: I, output: Ox): MatcherExpressionBuilder<I, Ox>
+    case<Ix extends MatchExpressionInput<I>, O extends MatchOutput<Ix>>(input: Ix, output: O): _UnusedInput<I, Ix> extends never 
+        ? MatchExpression<I, MatchOutputType<O>>
+        : MatchExpressionBuilder<_UnusedInput<I, Ix>, I, MatchOutputType<O>>
 
 }
 
-export interface MatcherExpressionBuilder<I = unknown, O = unknown> extends MatchExpressionBuilderEmpty<I> {
+export interface MatchExpressionBuilder<U extends I, I = unknown, O = unknown> extends MatchExpressionState<I> {
 
-    default<Ox>(output: Ox): MatchExpression<I, O | Ox>
+    case<Ux extends MatchExpressionInput<I>, Ox extends MatchOutput<Ux>>(input: Ux, output: Ox): _UnusedInput<U, Ux> extends never 
+        ? MatchExpression<I, O | MatchOutputType<Ox>>
+        : MatchExpressionBuilder<_UnusedInput<U, Ux>, I, O | MatchOutputType<Ox>>
+
+    default<Ox extends MatchOutput<I>>(output: Ox): MatchExpression<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
 
 }
 

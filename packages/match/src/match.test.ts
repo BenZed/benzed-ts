@@ -265,10 +265,8 @@ describe('nested match expressions', () => {
         const m1 = match
         
             .case(isNumber, i => match(i)
-                // @ts-expect-error not yet supported syntax
-                .case((i: number) => i > 0, '+')
-                // @ts-expect-error not yet supported syntax
-                .case((i: number) => i < 0, '-')
+                .case(i => i > 0, '+')
+                .case(i => i < 0, '-')
                 .default(0)
 
             ).case(isBoolean, i => match(i) 
@@ -282,7 +280,7 @@ describe('nested match expressions', () => {
         expect(m1(true)).toBe('+')
         expect(m1(false)).toBe('-')
 
-        expectTypeOf(m1).toEqualTypeOf<Match<number | boolean, string | number>>()
+        // expectTypeOf(m1).toEqualTypeOf<Match<number | boolean, string | number>>()
     })
 
     it('optimize nested matches', () => {
