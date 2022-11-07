@@ -2,7 +2,7 @@
     "name": "@benzed/match",
     "description": "Structure for tracking historical changes to data.",
     "main": "./lib",
-    "version": "1.0.0",
+    "version": "0.9.0",
     "private": true,
     "scripts": {
         "test": "NODE_ENV=test jest --maxWorkers=1 -o",

@@ -51,27 +51,14 @@ const client = app
         Client.create({ webSocket: false })
     )
 
-//// Start ////
+beforeAll(() => server.start())
 
-beforeAll(async () => {
-    await server.start()
-})
+beforeAll(() => client.start())
 
-beforeAll(async () => {
-    await client.start()
-})
+afterAll(() => server.stop())
 
-afterAll(async () => {
-    await client.stop()
-})
-
-afterAll(async () => {
-    await server.stop()
-})
-
-//// Tests ////
-
-it('getDatabaseSettings', async () => {
+// We're going to do an exhaustive query test here
+it('mongo db app connects to a database', async () => {
 
     const { getDatabaseSettings } = client.commands
 
