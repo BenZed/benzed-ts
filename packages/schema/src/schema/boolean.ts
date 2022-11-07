@@ -44,7 +44,7 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
 
     override readonly clearFlags!: () => BooleanSchema
 
-    override default(defaultValue = false): this {
+    override default(defaultValue: boolean | (() => boolean) = false): this {
         return super.default(defaultValue)
     }
 }

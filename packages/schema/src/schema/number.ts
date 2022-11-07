@@ -91,7 +91,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
 
     override readonly clearFlags!: () => NumberSchema
 
-    override default(defaultValue = 0): this {
+    override default(defaultValue: number | (() => number) = 0): this {
         return super.default(defaultValue)
     }
 

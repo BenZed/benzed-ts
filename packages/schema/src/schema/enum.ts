@@ -38,7 +38,7 @@ class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F ext
         is: isEnumValue(this._input)
     })
 
-    override default(defaultValue = this._input[0] as O): this {
+    override default(defaultValue: O | (() => O) = this._input[0] as O): this {
         return super.default(defaultValue)
     }
 
