@@ -9,7 +9,7 @@ export abstract class Connection<O extends object> extends SettingsModule<O> {
     /**
      * Execute a command with the given name and data
      */
-    abstract execute(name: string, data: object): Promise<object>
+    abstract execute(name: string, data: object, headers?: Headers): Promise<object>
 
     //// Module Implementation ////
 

@@ -238,7 +238,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         )(input)
     }
 
-    fromRequest(method: HttpMethod, url: string, data: object): I | null {
+    fromRequest(method: HttpMethod, url: string, data: object, headers: Headers): I | null {
 
         const { http, pathFromRoot } = this
 
@@ -248,7 +248,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         )([
             method, 
             url, 
-            data
+            data,
+            headers
         ]) as I | null
     }
 

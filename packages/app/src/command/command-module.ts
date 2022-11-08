@@ -1,6 +1,5 @@
 import $ from '@benzed/schema'
 import { capitalize, toCamelCase } from '@benzed/string'
-import { Chain } from '@benzed/util'
 
 import { Module } from '../module'
 import { HttpMethod } from '../modules'
@@ -22,7 +21,7 @@ abstract class CommandModule<
         return this._name
     }
 
-    protected abstract _execute: Chain<I,O>
+    protected abstract _execute(input: I) : O | Promise<O>
 
     execute(input: I /* context <- user/etc */): O | Promise<O> {
 
@@ -63,6 +62,7 @@ abstract class CommandModule<
         method: HttpMethod,
         url: string,
         data: object,
+        headers: Headers
     ): I | null
 
     constructor(

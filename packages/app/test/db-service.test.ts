@@ -9,6 +9,7 @@ import {
     Database, 
     HttpMethod, 
     Server, 
+    Record,
 
     WithId
 } from '../src/modules'
@@ -63,7 +64,7 @@ it('mongo db app connects to a database', async () => {
     const { getDatabaseSettings } = client.commands
 
     expect(getDatabaseSettings.toRequest({}))
-        .toEqual(['GET', '/get-database-settings', {}])
+        .toEqual(['GET', '/get-database-settings', {}, null])
 
     const settings = await getDatabaseSettings.execute({})
     expect(settings).toEqual(app.modules[0].settings)
@@ -76,7 +77,7 @@ it('send client command from nested service', async () => {
     const { _id, ...rest } = await nestedOrderService
         .commands
         .create
-        .execute({ some: 'data', goes: 'here' })
+        .execute({ some: 'data', goes: 'here' }) as Record<object>
 
     expect(rest).toEqual({ some: 'data', goes: 'here' })
     expect(_id).toBeTruthy()

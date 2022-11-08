@@ -25,12 +25,12 @@ type StringFields<T extends object> = keyof {
  * Where T is command data, and P is a list of keys of that data
  * that will be serialized into the url
  */
-type Request<T extends object, P extends StringFields<T>> = readonly [
+type Request<T extends object, P extends StringFields<T> = never> = readonly [
     method: HttpMethod,
     url: Path,
-    data: Omit<T, P>
-]
-
+    data: Omit<T, P>,
+    headers: Headers | null
+] 
 /**
  * Method that converts command data to Request data
  */
@@ -45,7 +45,8 @@ type ToRequest<T extends object, P extends StringFields<T>> = (data: T) => Reque
 type FromRequest<T extends object, P extends StringFields<T>> = (request: readonly [
     method: HttpMethod,
     url: string,
-    data: object
+    data: object,
+    headers: Headers | null
 ]) => Omit<T,P> | null
 
 //// Helper ////
@@ -63,17 +64,17 @@ const nameToMethodUrl = (name: string): [HttpMethod, Path] => {
     const [prefix, ...rest] = name.split('-')
 
     const [method] = match(prefix)
-    ('get', HttpMethod.Get)
-    ('find', HttpMethod.Get)
-    ('post', HttpMethod.Post)
-    ('create', HttpMethod.Post)
-    ('put', HttpMethod.Put)
-    ('update', HttpMethod.Put)
-    ('patch', HttpMethod.Patch)
-    ('edit', HttpMethod.Patch)
-    ('delete', HttpMethod.Delete)
-    ('remove', HttpMethod.Delete)
-    (null)
+        .case('get', HttpMethod.Get)
+        .case('find', HttpMethod.Get)
+        .case('post', HttpMethod.Post)
+        .case('create', HttpMethod.Post)
+        .case ('put', HttpMethod.Put)
+        .case ('update', HttpMethod.Put)
+        .case('patch', HttpMethod.Patch)
+        .case('edit', HttpMethod.Patch)
+        .case('delete', HttpMethod.Delete)
+        .case('remove', HttpMethod.Delete)
+        .default(null)
 
     if (!method)
         return [HttpMethod.Post, COMMAND_ENDPOINT]
@@ -101,11 +102,12 @@ const createToReq = <D extends object, P extends StringFields<D> = never>(
             return [
                 method,
                 toPath(url, data[urlParam]),
-                omit(data, urlParam) as any
+                omit(data, urlParam) as any,
+                null
             ]
         }
 
-        return [ method, url, data ]
+        return [ method, url, data, null ]
     }
 
 const createNameFromReq = (name: string, param = 'id'): FromRequest<any,any> => {

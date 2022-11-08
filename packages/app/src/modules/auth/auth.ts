@@ -1,9 +1,13 @@
+import { isString } from '@benzed/is'
 import $, { Infer } from '@benzed/schema'
-import { omit } from '@benzed/util'
+import { Empty, fromBase64, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
+import { CommandModule } from '../../command'
+import { Request } from '../../command/request'
+import { Client, HttpMethod } from '../connection'
 
-import { SettingsModule } from '../../module'
+import { Database, RecordCollection } from '../database'
 
 //// Helper ////
 
@@ -13,12 +17,16 @@ const randomSecret = (() => {
     const random = Math.random() * 10000000
 
     return () => {
+
         const date = new Date()
-        date.setMilliseconds(0)
-        date.setSeconds(0)
-        date.setMinutes(0)
         date.setHours(0)
-        return (date.getTime() + random).toString().replace('.', '')
+        date.setMinutes(0)
+        date.setSeconds(0)
+        date.setMilliseconds(0)
+
+        return (date.getTime() + random)
+            .toString()
+            .replaceAll('.', '')
     }
 
 })()
@@ -27,7 +35,8 @@ const randomSecret = (() => {
 
 interface AuthSettings extends Infer<typeof $authSettings> {}
 const $authSettings = $({
-    secret: $.string.optional.default(randomSecret)
+    secret: $.string.optional.default(randomSecret),
+    collection: $.string.optional.default('users')
 })
 
 type AssertPayload<T extends object> = 
@@ -36,18 +45,115 @@ type AssertPayload<T extends object> =
 
 //// Module ////
 
-class Auth extends SettingsModule<Required<AuthSettings>> {
+class Auth extends CommandModule<'authenticate', { email: string, password: string }, { accessToken: string }> {
 
-    static create(settings: AuthSettings): Auth {
+    static create(settings: AuthSettings = {}): Auth {
         return new Auth(
             $authSettings.validate(settings) as Required<AuthSettings>
         )
     }
 
     private constructor(
-        settings: Required<AuthSettings>
+        readonly settings: Required<AuthSettings>
     ) {
-        super(settings)
+        super('authenticate')
+    }
+
+    protected override get _copyParams(): unknown[] {
+        return [this.settings]
+    }
+
+    //// State ////
+    
+    /**
+     * Access token if authenticated on the client
+     */
+    get accessToken(): string | null {
+        return this._accessToken
+    }
+    private _accessToken: string | null = null // TODO serialize this
+
+    //// Module Interface ////
+
+    override _validateModules(): void {
+        this._assertSingle()
+    }
+
+    get collection(): RecordCollection<{ password: string }> {
+
+        const { settings } = this
+
+        const database = this.getModule(Database, true)
+
+        const collection = database.getCollection<{ password: string }>(settings.collection)
+        return collection
+    }
+    
+    //// Command Module Implementation ////
+
+    async _execute(
+        credentials: { email: string, password: string }
+    ): Promise<{ accessToken: string }> {
+
+        const records = await this.collection.find({ email: credentials.email } as { /**/ })
+
+        const entity = records
+            .records
+            .find(r => this._comparePasswords(credentials.password, r.password))
+        if (!entity)
+            throw new Error('Invalid credentials')
+
+        const accessToken = await this.createAccessToken({ _id: entity._id, })
+        return { accessToken }
+    }
+
+    override async execute(input: { email: string, password: string }): Promise<{ accessToken: string }> {
+        const { accessToken } = await super.execute(input)
+
+        if (this.parent?.root.getModule(Client))
+            this._accessToken = accessToken
+
+        return { accessToken }
+    }
+
+    fromRequest(method: HttpMethod, url: string, _data: object, headers: Headers): { email: string, password: string } | null {
+        if (method !== HttpMethod.Put)
+            return null
+
+        if (url !== `/${this.name}`)
+            return null
+
+        const auth = headers.get('authorization')
+        if (!auth)
+            return null 
+
+        const [email, password] = fromBase64(auth).split(':') 
+        if (!isString(email) || !isString(password))
+            return null
+            
+        return { email, password }
+    }
+
+    toRequest(input: { email: string, password: string }): Request<Empty> {
+
+        const headers = new Headers()
+
+        const { email, password } = input
+
+        const credentials = toBase64(`${email}:${password}`)
+
+        headers.set('authorization', `Basic ${credentials}`)
+
+        return [
+            HttpMethod.Put,
+            `/${this.name}`,
+            {},
+            headers
+        ]
+    }
+
+    get methods(): HttpMethod[] {
+        return [HttpMethod.Put]
     }
 
     //// Token Interface ////
@@ -96,12 +202,15 @@ class Auth extends SettingsModule<Required<AuthSettings>> {
             void validator.assert(payload)
         }
 
-        return omit(
-            payload, 
-            'iat' // remove jwt fields added to the payload
-        ) as T
+        return omit(payload, 'iat') as T // remove jwt fields added to the payload 
     }
 
+    //// Util ////
+
+    private _comparePasswords(a: string, b: string): boolean {
+        // TODO hash these
+        return a === b
+    }
 }
 
 //// Exports ////

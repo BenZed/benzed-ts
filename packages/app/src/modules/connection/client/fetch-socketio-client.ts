@@ -146,11 +146,12 @@ export class FetchSocketIOClient extends Client {
 
         const command = this.root.getCommand(rootName)
 
-        const [ method, cmdEndPoint, reqData ] = command.toRequest(cmdData)
+        const [ method, cmdEndPoint, reqData, headers ] = command.toRequest(cmdData)
 
         const fetchData = {
             method,
-            body: method === HttpMethod.Get ? null : JSON.stringify(reqData)
+            body: method === HttpMethod.Get ? null : JSON.stringify(reqData),
+            headers: headers ?? undefined
         }
 
         const fetchEndPoint = method === HttpMethod.Get ? `${cmdEndPoint}${toQueryString(reqData)}` : cmdEndPoint

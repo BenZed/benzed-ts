@@ -19,62 +19,62 @@ describe('createNameToReq', () => {
             { 
                 name: 'get-user', 
                 data: {}, 
-                request: ['GET', '/user', {}] 
+                request: ['GET', '/user', {}, null] 
             },
             { 
                 name: 'get-todos', 
                 data: { id: 1234 }, 
-                request: ['GET', '/todos/1234', {}] 
+                request: ['GET', '/todos/1234', {}, null] 
             },
             { 
                 name: 'find', 
                 data: { id: 'important-thing.txt' }, 
-                request: ['GET', '/important-thing.txt', {}] 
+                request: ['GET', '/important-thing.txt', {}, null] 
             },
             { 
                 name: 'create-new-user', 
                 data: { name: 'jimmy' }, 
-                request: ['POST', '/new-user', { name: 'jimmy' }] 
+                request: ['POST', '/new-user', { name: 'jimmy' }, null] 
             },
             {
                 name: 'post-bail',
                 data: { amount: 1000 },
-                request: ['POST', '/bail', { amount: 1000 }] 
+                request: ['POST', '/bail', { amount: 1000 }, null] 
             },
             {
                 name: 'put-cart',
                 data: { },
-                request: ['PUT', '/cart', { }] 
+                request: ['PUT', '/cart', { }, null] 
             },
             {
                 name: 'update-sun-shine',
                 data: { id: 1000 },
-                request: ['PUT', '/sun-shine/1000', { }] 
+                request: ['PUT', '/sun-shine/1000', { }, null] 
             },
             {
                 name: 'edit-tire',
                 data: { id: 'front-left' },
-                request: ['PATCH', '/tire/front-left', { }] 
+                request: ['PATCH', '/tire/front-left', { }, null] 
             },
             {
                 name: 'edit-gang',
                 data: { members: 5 },
-                request: ['PATCH', '/gang', { members: 5 }] 
+                request: ['PATCH', '/gang', { members: 5 }, null] 
             },
             {
                 name: 'delete',
                 data: { id: 1 },
-                request: ['DELETE', '/1', { }] 
+                request: ['DELETE', '/1', { }, null] 
             },
             {
                 name: 'remove-all',
                 data: { },
-                request: ['DELETE', '/all', { }] 
+                request: ['DELETE', '/all', { }, null] 
             },
             {
                 name: 'disconnect-users',
                 data: { type: 'all' },
-                request: ['POST', COMMAND_ENDPOINT, { type: 'all' }] 
+                request: ['POST', COMMAND_ENDPOINT, { type: 'all' }, null] 
             }
         ] as const) {
             
@@ -98,32 +98,33 @@ describe('createNameFromReq', () => {
             { 
                 name: 'get-user',
                 data: { },
-                request: [ HttpMethod.Get, '/user', { }]
+                request: [ HttpMethod.Get, '/user', { }, null],
             },
             { 
                 name: 'find',
                 data: { },
-                request: [ HttpMethod.Get, '/', { } ]
+                request: [ HttpMethod.Get, '/', { }, null ],
+                headers: null
             },
             { 
                 name: 'create',
                 data: { id: '1' },
-                request: [ HttpMethod.Post, '/1', { } ]
+                request: [ HttpMethod.Post, '/1', { }, null ],
             },
             { 
                 name: 'post-bail',
                 data: { amount: 1000 },
-                request: [ HttpMethod.Post, '/bail', { amount: 1000 } ]
+                request: [ HttpMethod.Post, '/bail', { amount: 1000 }, null ],
             },
             { 
                 name: 'put-cat',
                 data: null,
-                request: [ HttpMethod.Post, '/feline/1', { } ]
+                request: [ HttpMethod.Post, '/feline/1', { }, null ],
             },
             { 
                 name: 'disconnect-users',
                 data: { type: 'all' },
-                request: [ HttpMethod.Post, COMMAND_ENDPOINT, { type: 'all' } ]
+                request: [ HttpMethod.Post, COMMAND_ENDPOINT, { type: 'all' }, null ],
             },
         ] as const) {
 
@@ -145,12 +146,13 @@ it('custom toReq', () => {
         [
             HttpMethod.Patch, 
             `/foo/${foo}/${bar}`, 
-            { money }
+            { money },
+            null
         ]
 
     const req = toReq({ foo: 'hello', bar: 'world', money: 1000 })
 
-    expect(req).toEqual([HttpMethod.Patch, '/foo/hello/world', { money: 1000 }])
+    expect(req).toEqual([HttpMethod.Patch, '/foo/hello/world', { money: 1000 }, null])
 
 })
 
@@ -174,11 +176,11 @@ it('custom fromReq', () => {
         }
 
     expect(
-        reqToAceData([ HttpMethod.Get, '/ace/100', { base: 100 } ])
+        reqToAceData([ HttpMethod.Get, '/ace/100', { base: 100 }, null ])
     ).toEqual({ ace: '100', base: 100 })
 
     expect(
-        reqToAceData([ HttpMethod.Delete, '/monkey', { count: 'all' }])
+        reqToAceData([ HttpMethod.Delete, '/monkey', { count: 'all' }, null ])
     ).toEqual(null)
 
 })

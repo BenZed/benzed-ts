@@ -68,6 +68,18 @@ it('with explicit input type', () => {
     expect(answer).toEqual('No')
 })
 
+it('enums handle default cases', () => {
+
+    const [yes, what] = match<string[]>('yes', 'what')
+        .case('yes', Answer.Yes)
+        .case('no', Answer.No)
+        .case('maybe', Answer.Maybe)
+        .default(null)
+
+    expect(yes).toEqual(Answer.Yes)
+    expect(what).toEqual(null)
+})
+
 it('with generic input type', () => {
 
     const unfinishedExp = match(100 as number)

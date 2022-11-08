@@ -8,6 +8,10 @@ export * from './common'
 export * from './dispatch-all'
 export * from './iterate'
 
+export * from './base-64'
+
+export * from './constants'
+
 export * from './this-shift'
 export * from './reduce-to-void'
 export * from './promisify'

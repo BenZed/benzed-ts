@@ -1,6 +1,10 @@
 import $ from '@benzed/schema'
 import { io } from '@benzed/util'
 
+import { App } from '../../app'
+import { Database } from '../database'
+import { MongoDb } from '../database/mongodb'
+
 import { Auth } from './auth'
 
 it('is sealed', () => {
@@ -57,4 +61,47 @@ it('optional verfication validator', async () => {
     const token2Error = await auth.verifyAccessToken(token2, payloadSchema.assert).catch(io)
 
     expect(token2Error).toHaveProperty('name', 'ValidationError')
+})
+
+describe('Authentication', () => {
+
+    const app = App
+        .create()
+        .useModule(
+            MongoDb.create({ 
+                database: 'test-1' 
+            })
+        )
+        .useModule(
+            Auth.create()
+        )
+
+    const CREDS = {
+        email: 'user@email.com',
+        password: 'password'
+    }
+
+    beforeAll(() => app.start())
+
+    beforeAll(async () => {
+        const database = app.getModule(Database, true)
+        const users = database.getCollection('users')
+
+        await users.create(CREDS)
+    })
+
+    afterAll(() => app.stop())
+
+    it('authenticate with email/pass', async () => {
+
+        const auth = app.getModule(Auth, true)
+
+        const result = await auth.execute(CREDS)
+
+        const { accessToken } = result ?? {}
+
+        expect(typeof accessToken).toBe('string')
+
+    })
+
 })
