@@ -1,6 +1,6 @@
 import { $$copy } from '@benzed/immutable'
+
 import type Node from './node'
-import { $$setNode } from './symbols'
 
 /*** Types ***/
 
@@ -16,10 +16,12 @@ class Module {
     }
 
     /**
-     * Should only be called by the node class after the node
-     * has been copied and added to the node's list of modules.
+     * Set parent of this module
+     * @internal
+     * @param node Parent 
+     * @returns 
      */
-    [$$setNode](node: Node): this {
+    _setNode(node: Node): this {
         this._node = node
         return this
     }
@@ -29,8 +31,12 @@ class Module {
     }
     
     [$$copy](): this {
-        const ThisModule = this.constructor as (new () => this)
-        return new ThisModule()
+        const ThisModule = this.constructor as (new (...params: unknown[]) => this)
+        return new ThisModule(...this._copyParams)
+    }
+
+    protected get _copyParams(): unknown[] {
+        return []
     }
 
 }

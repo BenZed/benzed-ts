@@ -1,7 +1,6 @@
 import Module, { Modules } from "./module"
 import { copy, $$copy } from '@benzed/immutable'
-import { $$setNode } from "./symbols"
-import { StringKeys } from "@benzed/util/lib"
+import { StringKeys } from "@benzed/util"
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -31,7 +30,7 @@ class Node<M extends Modules = any, C extends Nodes = any> {
         readonly _children: C
     ) { 
         for (const module of modules)
-            module[$$setNode](this)
+            module._setNode(this)
     }
 
     addModule<Mx extends Module>(
