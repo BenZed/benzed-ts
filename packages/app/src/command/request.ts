@@ -1,10 +1,10 @@
-import { equals } from '@benzed/immutable'
 import match from '@benzed/match'
 import { omit } from '@benzed/util'
+import { equals } from '@benzed/immutable'
 
-import { COMMAND_ENDPOINT } from '../constants'
-import { HttpMethod } from '../modules/connection/server/http-methods'
 import { Path } from '../types'
+import { HttpMethod } from '../modules'
+import { COMMAND_ENDPOINT } from '../constants'
 
 //// Eslint ////
 
@@ -25,7 +25,7 @@ type StringFields<T extends object> = keyof {
  * Where T is command data, and P is a list of keys of that data
  * that will be serialized into the url
  */
-type Request<T extends object, P extends StringFields<T> = never> = readonly [
+type Request<T extends object, P extends StringFields<T> = any> = readonly [
     method: HttpMethod,
     url: Path,
     data: Omit<T, P>,
@@ -34,7 +34,7 @@ type Request<T extends object, P extends StringFields<T> = never> = readonly [
 /**
  * Method that converts command data to Request data
  */
-type ToRequest<T extends object, P extends StringFields<T>> = (data: T) => Request<T, P>
+type ToRequest<T extends object, P extends StringFields<T> = any> = (data: T) => Request<T, P>
 
 /**
  * Method that checks a request to see if it has the correct method, url and 
@@ -42,12 +42,7 @@ type ToRequest<T extends object, P extends StringFields<T>> = (data: T) => Reque
  * 
  * If it does, returns the data for that command. If not, returns null.
  */
-type FromRequest<T extends object, P extends StringFields<T>> = (request: readonly [
-    method: HttpMethod,
-    url: string,
-    data: object,
-    headers: Headers | null
-]) => Omit<T,P> | null
+type FromRequest<T extends object, P extends StringFields<T>> = (request: Request<object>) => Omit<T,P> | null
 
 //// Helper ////
 

@@ -8,11 +8,9 @@ import CommandModule from './command-module'
 
 import { Path } from '../types'
 
-import { HttpMethod, toDatabase, ToDatabaseOutput } from '../modules'
+import { HttpMethod, Auth, toDatabase, ToDatabaseOutput } from '../modules'
 
-import { createFromReq, createToReq, Request, StringFields } from './request'
-import { milliseconds } from '@benzed/async/lib'
-import { Auth } from '../modules/auth'
+import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFields, } from './request'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -49,7 +47,6 @@ type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
 //// Command ////
-
 class Command<N extends string, I extends object, O extends object> extends CommandModule<N, I, O> {
 
     //// Static Interface ////
@@ -95,7 +92,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             ? args
             : ['create', ...args]) as [string | undefined, HttpMethod | undefined, Path | undefined]
 
-        return new Command(name, validate, method, path)
+        return new Command(name, validate, { method, path })
     }
 
     /**
@@ -175,35 +172,54 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     private constructor(
         name: N,
         hookOrValidate: CommandHook<I, O>,
-        readonly _method: HttpMethod,
-        readonly _path: Path
+        http: {
+            method: HttpMethod
+            path: Path
+            to?: ToRequest<I, StringFields<I>>
+            from?: FromRequest<I, StringFields<I>>
+        }
     ) {
-        void $dashCase.assert(_path)
 
         super(name)
+
+        const { method, path, to, from } = http
+
+        void $dashCase.assert(path)
+
+        this.method = method
+        this.path = path
+        this.toRequest = to ?? createToReq(method, `${this.pathFromRoot}/${this.path}`)
+        this.fromRequest = from ?? createFromReq(method, `${this.pathFromRoot}/${this.path}`)
+
         this._execute = chain(hookOrValidate)
     }
 
     protected readonly _execute: Chain<I,O> 
 
     protected override get _copyParams(): unknown[] {
+
+        const { method, path, toRequest, fromRequest } = this
+
         return [
             this.name,
             this._execute,
-            this.http.method,
-            this.http.path
+            {
+                method,
+                path,
+                toRequest,
+                fromRequest
+            }
         ]
     }
 
     //// State ////
     
-    get http(): { method: HttpMethod, path: Path } {
-        const { _method: method, _path: path } = this
-        return { method, path }
-    }
+    readonly method: HttpMethod
+
+    readonly path: Path 
 
     override get methods(): [HttpMethod] {
-        return [this.http.method]
+        return [this.method]
     }
 
     //// Valiation Interface ////
@@ -229,31 +245,9 @@ class Command<N extends string, I extends object, O extends object> extends Comm
  
     //// Request Interface ////
     
-    toRequest(input: I): Request<I, StringFields<I>> {
+    readonly toRequest: ToRequest<I, any>
 
-        const { pathFromRoot } = this
-        const { method, path } = this.http
-
-        return createToReq<I, StringFields<I>>(
-            method, 
-            `${pathFromRoot}${path}`
-        )(input)
-    }
-
-    fromRequest(method: HttpMethod, url: string, data: object, headers: Headers): I | null {
-
-        const { http, pathFromRoot } = this
-
-        return createFromReq(
-            http.method, 
-            `${pathFromRoot}${http.path}`   
-        )([
-            method, 
-            url, 
-            data,
-            headers
-        ]) as I | null
-    }
+    readonly fromRequest: FromRequest<I, any>
 
     //// Instance Build Interface ////
 
@@ -272,13 +266,17 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      */
     useHook<Ox extends object>(hook: CommandHook<O, Ox>): Command<N, I, Ox> {
 
-        const { name, http } = this
+        const { name, method, path, toRequest, fromRequest } = this
 
         return new Command(
             name,
             this._execute.link(hook),
-            http.method,
-            http.path
+            {
+                method,
+                path,
+                to: toRequest,
+                from: fromRequest
+            }
         )
     }
 
@@ -293,39 +291,97 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
         return this.useHook(
             toDatabase<I,O>(
-                this.http.method, 
+                this.method, 
                 collection
             )
         )
     }
 
-    useAuth(): Command<N, I & { accessToken: string }, Promise<O & { user: object }>> {
+    useRequest(options: {
+        from: FromRequest<I, any>
+        to: ToRequest<I, any>
+        method?: HttpMethod
+        path?: Path
+    }) {
 
-        const { name, http } = this
-
-        const _execute = this._execute.bind(this)
-
-        const hook: CommandHook<I & { accessToken: string }, Promise<O & { user: object }>> = 
-        
-        async function (input: I & { accessToken: string }): Promise<O & { user: object }> {
-
-            const { accessToken } = input
-
-            const auth = this.getModule(Auth, true, 'parents')
-            const user = await auth.verifyAccessToken(accessToken)
-            const output = _execute(input)
-
-            return {
-                ...output,
-                user
-            }
-        }
+        const { name, _execute: execute, method, path } = this
 
         return new Command(
             name,
-            hook,
-            http.method,
-            http.path
+            execute,
+            {
+                ...options,
+                method,
+                path
+            }
+        )
+    }
+
+    useAuth(): Command<N, I & { accessToken?: string }, Promise<O & { user: object }>> {
+
+        const { name, method, path, toRequest, fromRequest } = this
+
+        type AuthCommand = Command<N, I & { accessToken?: string }, Promise<O & { user: object }>> 
+
+        return new Command(
+            
+            name,
+
+            async function (
+                this: AuthCommand, 
+                input: I & { accessToken?: string }
+            ): Promise<O & { user: object }> {
+    
+                const { accessToken = '' } = input
+    
+                const auth = this.getModule(Auth, true, 'parents')
+                const user = await auth.verifyAccessToken(accessToken)
+                const output = await (this._execute(input) as O | Promise<O>)
+    
+                return {
+                    ...output,
+                    user
+                }
+            },
+
+            {
+
+                method,
+
+                path,
+
+                to: chain(toRequest).link(function(
+                    this: AuthCommand, 
+                    [method, url, data, headers],
+                ): Request<I> {
+
+                    const { accessToken = '' } = this.getModule(Auth, true, 'parents')
+                    if (accessToken) {
+                        headers = headers ?? new Headers()
+                        headers.set('authorization', `Bearer ${accessToken}`)
+                    }
+
+                    return [
+                        method, url, data, headers
+                    ]
+                }),
+
+                from: function(
+                    this: AuthCommand, 
+                    [method, url, data, headers]: Request<object, never>
+                ): I & { accessToken: string } | null {
+
+                    const output = fromRequest([method, url, data, headers]) as I | null
+                    if (!output)
+                        return null
+
+                    const accessToken = headers
+                        ?.get('authorization')
+                        ?.replace('Bearer ', '') ?? ''
+
+                    return { ...output, accessToken }
+                }
+            }
         )
     }
 }

@@ -23,7 +23,7 @@ abstract class CommandModule<
 
     protected abstract _execute(input: I) : O | Promise<O>
 
-    execute(input: I /* context <- user/etc */): O | Promise<O> {
+    execute(input: I): O | Promise<O> {
 
         // Redirect this command to the client
         const client = this.parent?.root.client ?? null
@@ -58,12 +58,7 @@ abstract class CommandModule<
 
     abstract toRequest(input: I): Request<I, StringFields<I>>
 
-    abstract fromRequest(
-        method: HttpMethod,
-        url: string,
-        data: object,
-        headers: Headers
-    ): I | null
+    abstract fromRequest(req: Request<object>): Omit<I, StringFields<I>> | null
 
     constructor(
         readonly _name: N
