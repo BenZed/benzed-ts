@@ -59,22 +59,17 @@ export type RequirePartial<T, K extends keyof T> =
     ]>
 
 /**
- * Make specific values of a type optional.
+ * Make specific keys of a type optional.
  */
-export type Optional<T, V> =
+export type Optional<T, K extends keyof T> =
     Merge<[
         {
-            [K in keyof T as V extends T[K] ? never : K]-?: T[K]
+            [Tk in keyof T as Tk extends K ? never : Tk]: T[Tk]
         },
         {
-            [K in keyof T as V extends T[K] ? K : never]?: T[K]
+            [Tk in keyof T as Tk extends K ? Tk : never]?: T[Tk]
         }
     ]>
-
-/**
- * Make undefined values of a type optional.
- */
-export type UndefinedToOptional<T> = Optional<T, undefined>
 
 /**
  * Get a compiled contract of a type.
