@@ -11,6 +11,8 @@ import { Path } from '../types'
 import { HttpMethod, toDatabase, ToDatabaseOutput } from '../modules'
 
 import { createFromReq, createToReq, Request, StringFields } from './request'
+import { milliseconds } from '@benzed/async/lib'
+import { Auth } from '../modules/auth'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -48,7 +50,7 @@ type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
 //// Command ////
 
-class Command<N extends string, I extends object, O extends object> extends CommandModule<N,I,O> {
+class Command<N extends string, I extends object, O extends object> extends CommandModule<N, I, O> {
 
     //// Static Interface ////
 
@@ -294,6 +296,36 @@ class Command<N extends string, I extends object, O extends object> extends Comm
                 this.http.method, 
                 collection
             )
+        )
+    }
+
+    useAuth(): Command<N, I & { accessToken: string }, Promise<O & { user: object }>> {
+
+        const { name, http } = this
+
+        const _execute = this._execute.bind(this)
+
+        const hook: CommandHook<I & { accessToken: string }, Promise<O & { user: object }>> = 
+        
+        async function (input: I & { accessToken: string }): Promise<O & { user: object }> {
+
+            const { accessToken } = input
+
+            const auth = this.getModule(Auth, true, 'parents')
+            const user = await auth.verifyAccessToken(accessToken)
+            const output = _execute(input)
+
+            return {
+                ...output,
+                user
+            }
+        }
+
+        return new Command(
+            name,
+            hook,
+            http.method,
+            http.path
         )
     }
 }

@@ -110,7 +110,7 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
     override async execute(input: { email: string, password: string }): Promise<{ accessToken: string }> {
         const { accessToken } = await super.execute(input)
 
-        if (this.parent?.root.getModule(Client))
+        if (this.parent?.root.client)
             this._accessToken = accessToken
 
         return { accessToken }
