@@ -75,6 +75,15 @@ it('predicates', () => {
     expect(m(-1)).toEqual('-')
 })
 
+it('all cases handled', () => {
+
+    const m = match<1 | 2>()
+        .case(1, 'One')
+
+    // @ts-expect-error Not all cases
+    expect(m(1)).toEqual('One')
+})
+
 it('objects', () => {
 
     const m = match<{ foo: string }>() 
