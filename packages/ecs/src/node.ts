@@ -1,42 +1,64 @@
-import { $$copy } from '@benzed/immutable'
+import { copy } from '@benzed/immutable'
 
 import _Module, { ModuleConstructor, ModuleParams, Modules } from './module'
 
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
+
+//// Module Implementations for Extended Classes ////
+
+function useModule<Mx extends _Module, M extends _Node<Modules>>(this: M, module: Mx): M {
+    return _Module._create(
+        this.constructor as ModuleConstructor,
+        [...this.modules, module]
+    ) as M
+}
+
+type UseModuleType<T extends ModuleConstructor, M extends _Node<Modules>> = (...params: ModuleParams<T>) => M
+const useModuleType = <T extends ModuleConstructor, M extends _Node<Modules>> (type: T): UseModuleType<T, M> => 
+    function (this: M, ...params: ModuleParams<T>) {
+        return this.useModule(
+            _Module._create(type, params)
+        ) as unknown as M
+    }
+
+type UseModuleInit<T extends ModuleConstructor, M extends _Node<Modules>> = <I extends (i: InstanceType<T>) => InstanceType<T>>(init: I) => M
+const useModuleInit = <T extends ModuleConstructor, M extends _Node<Modules>> (type: T, ...params: ModuleParams<T>): UseModuleInit<T, M> => 
+    function (this: M, init: any) { 
+        return this.useModule(
+            init(
+                _Module._create(type, params)
+            ) 
+        ) as unknown as M
+    } 
+
 //// Main ////
 
-abstract class _Node<C extends Modules> extends _Module {
+abstract class _Node<M extends Modules> extends _Module {
 
-    private _modules: C | null = null
-    get modules(): C {
-        if (!this._modules)
-            this._modules = this._build.map(({ type, params }) => _Module._create(type, this, params)) as unknown as C
+    readonly modules: M
 
-        return this._modules
-    }
+    constructor (...modules: M) {
 
-    constructor(
-        parent: _Module | null,
-        protected readonly _build: { type: ModuleConstructor, params: ModuleParams<ModuleConstructor> }[]
-    ) {
-        super(parent)
+        modules = copy(modules)
+
+        super(...modules)
+        this.modules = modules
+        this.modules.forEach(m => {
+            m.parent = this
+        })
     }
 
     /**
-     * @internal
+     * Parent a module instance to this node.
      */
-    abstract _use<T extends ModuleConstructor>(type: T): (...params: ModuleParams<T>) => _Node<[...C, InstanceType<T>]>
+    abstract useModule: <Mx extends _Module>(module: Mx) => _Node<[...M, Mx]>
 
-    /**
-     * @internal
-     */
-    abstract _push<T extends ModuleConstructor>(type: T, ...params: ModuleParams<T>): _Node<[...C, InstanceType<T>]>
+    abstract _useModuleType<T extends ModuleConstructor>(type: T): UseModuleType<T, _Node<[...M, InstanceType<T>]>>
 
-    /**
-     * @internal
-     */
-    [$$copy](): this {
-        return new (this.constructor as ModuleConstructor)(this.parent, this._build) as this
-    }
+    abstract _useModuleInit<T extends ModuleConstructor>(type: T, ...params: ModuleParams<T>): UseModuleInit<T, _Node<[...M, InstanceType<T>]>>
+
 }
 
 //// Exports ////
@@ -44,5 +66,13 @@ abstract class _Node<C extends Modules> extends _Module {
 export default _Node
 
 export {
-    _Node
+    _Node,
+    
+    useModule,
+
+    UseModuleInit,
+    useModuleInit,
+
+    UseModuleType,
+    useModuleType,
 }

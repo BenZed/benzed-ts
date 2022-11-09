@@ -1,51 +1,49 @@
+import { copy } from "@benzed/immutable"
 import _Module, { ModuleConstructor, ModuleParams, Modules } from "./module"
-import { _Node } from './node'
-
-/* eslint-disable 
-    @typescript-eslint/explicit-function-return-type
-*/
+import { _Node, UseModuleInit, UseModuleType, useModule, useModuleInit, useModuleType } from './node'
 
 //// Setup ////
 
-class Module extends _Module {
+class Test extends _Module {
 
     constructor(
-        parent: _Module | null,
         readonly count: number
     ) {
-        super(parent)
+        super(count)
     }
 
 }
 
-class Node<C extends Modules> extends _Node<C> {
+class Node<M extends Modules> extends _Node<M> {
 
+    //// Sealed ////
+    
     static create(): Node<[]> {
-        return new Node(null, [])
+        return new Node()
     }
 
     private constructor(
-        ...args: ConstructorParameters<typeof _Node<C>>
+        ...modules: M
     ) {
-        super(...args)
+        super(...modules)
     }
 
-    _use<T extends ModuleConstructor>(type: T) {
-        return (...params: ModuleParams<T>) => this._push(type, ...params)
-    }
+    //// Build Interface Implementation ////
+    
+    useModule: <Mx extends _Module>(module: Mx) => Node<[...M, Mx]> = 
+        useModule
 
-    _push<T extends ModuleConstructor>(type: T, ...params: ModuleParams<T>): Node<[...C, InstanceType<T>]> {
-        return new Node(
-            this.parent, 
-            [
-                ...this._build, 
-                { type, params }
-            ]
-        )
-    }
+    _useModuleType: <T extends ModuleConstructor>(type: T) => UseModuleType<T, Node<[...M, InstanceType<T>]>> = 
+        useModuleType
 
-    readonly useModule = this._use(Module)
+    _useModuleInit: <T extends ModuleConstructor> (type: T, ...params: ModuleParams<T>) => UseModuleInit<T, Node<[...M, InstanceType<T>]>> = 
+        useModuleInit
 
+    //// Build Interface ////
+
+    readonly useTest = this._useModuleType(Test)
+
+    readonly useTestInit = this._useModuleInit(Test, 0)
 }
 
 //// Tests ////
@@ -56,6 +54,11 @@ it(`is abstract`, () => {
 })
 
 it(`works`, () => {
-    const node = Node.create().useModule(0).useModule(1)
+    const node = Node
+        .create()
+        .useTest(10)
+        .useTestInit(copy)
+
+    console.log(node)
 
 })
