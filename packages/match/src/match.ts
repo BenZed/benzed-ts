@@ -27,6 +27,8 @@ import {
     MatchOutput,
     MatchOutputType,
     MatchInputType,
+    MatchBoundedBuilderEmpty,
+    MatchGuard,
 
 } from './types'
 
@@ -101,19 +103,32 @@ function * iterateValues(this: MatchExpression): Generator<unknown> {
 //// Interface ////
 
 /**
+ * Create a bounded match with a type guard
+ * @param guard 
+ */
+function match<I extends MatchInput = undefined>(guard?: MatchGuard<I>): MatchBoundedBuilderEmpty<I>
+ 
+/**
  * Create an iterable match with a single value
  * @param value 
  */
 function match<I extends MatchInput>(value: I): MatchExpressionBuilderEmpty<MatchInputType<I>>
 
-function match<I extends MatchInput = undefined>(): MatchBuilder<I, never>
 /**
  * Create an iterable match with a set of values
  * @param values
  */
 function match<A extends readonly MatchInput[]>(...values: A): MatchExpressionBuilderEmpty<MatchInputType<A[number]>>
 
-function match(this: MatchExpressionState, input: unknown, output: unknown): MatchBuilder
+/**
+ * Add an addional case to an existing match
+ */
+function match(this: MatchState, input: unknown, output: unknown): MatchBuilder
+
+/**
+ * Add a default case to an existing match
+ */
+function match(this: MatchState, output: unknown): Match
 
 /**
  * Handle all create-match signatures
@@ -124,6 +139,8 @@ function match(this: unknown, ...args: unknown[]): unknown {
         cases: [] as readonly Case[],
         values: args as readonly unknown[]
     }
+
+    // TODO handle bounded expressions
 
     // Immutable case increment
     const prevState = this as MatchExpressionState | void
@@ -162,7 +179,7 @@ function match(this: unknown, ...args: unknown[]): unknown {
 }
 
 /**
- * Create a non-iterable match
+ * Create a match
  */
 match.case = match.bind({ 
     cases: [], 

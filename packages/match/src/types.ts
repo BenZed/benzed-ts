@@ -24,7 +24,7 @@ type _BroadMatchInput<I> = I extends string
 //// Matchable ////
 
 type Primitives = 
-    string 
+    | string 
     | number 
     | boolean 
     | bigint 
@@ -37,8 +37,8 @@ type Object =
         [key: string | number | symbol]: unknown 
     }
 
-type MatchPredicate<I, O> = ((input: I) => O)
-type MatchGuard<T> = ((input: unknown) => input is T)
+export type MatchPredicate<I, O> = ((input: I) => O)
+export type MatchGuard<T> = ((input: unknown) => input is T)
 
 //// Match ////
 
@@ -47,6 +47,8 @@ export type MatchInput =
     | MatchPredicate<unknown, unknown>
     | Primitives 
     | Object
+
+export type MatchBoundedInput<T> = T | MatchPredicate<T, unknown>
 
 export type MatchExpressionInput<T> =
     | Primitives
@@ -116,6 +118,25 @@ export interface MatchBuilder<I = unknown, O = unknown> extends Match<I, O> {
     ): MatchBuilder<I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
 
     default<Ox extends MatchDefaultOutput>(output: Ox): Match<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
+
+}
+
+//// Match Bounded ////
+
+export interface MatchBoundedBuilderEmpty<T> {
+
+    case<Ix extends MatchBoundedInput<T>, O extends MatchOutput<T>>(
+        input: Ix, 
+        output: O
+    ): MatchBoundedBuilder<T, MatchOutputType<O>>
+
+}
+
+export interface MatchBoundedBuilder<T, O> extends Match<T, O> {
+
+    case<Ix extends MatchBoundedInput<T>, Ox extends MatchOutput<T>>(input: Ix, output: Ox): MatchBoundedBuilder<T, O | MatchOutputType<Ox>>
+
+    default<Ox extends MatchDefaultOutput>(output: Ox): Match<T, O | MatchOutputType<Ox>>
 
 }
 
