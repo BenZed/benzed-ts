@@ -1,23 +1,29 @@
-import Component, { Components } from './component'
+import Component, { ComponentConstructor, ComponentParams, Components } from './component'
 
 //// Main ////
 
-class Entity<C extends Components> extends Component {
+abstract class Entity<C extends Components> extends Component {
 
-    static create(): Entity<[]> {
-        return new Entity(null, [])
-    }
-
-    private constructor(
+    constructor(
         parent: Component | null,
         readonly components: C
     ) {
         super(parent)
     }
 
+    /**
+     * @internal
+     */
+    abstract _use<T extends ComponentConstructor>(type: T): (...params: ComponentParams<T>) => Entity<[...C, InstanceType<T>]>
+
+    /**
+     * @internal
+     */
+    abstract _push<T extends ComponentConstructor>(type: T, params: ComponentParams<T>): Entity<[...C, InstanceType<T>]>
+
 }
 
-/*** Export ***/
+//// Exports ////
 
 export default Entity
 
