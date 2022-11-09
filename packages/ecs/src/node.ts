@@ -1,4 +1,3 @@
-import { copy } from '@benzed/immutable'
 
 import _Module, { ModuleConstructor, ModuleParams, Modules } from './module'
 
@@ -41,12 +40,10 @@ abstract class _Node<M extends Modules> extends _Module {
 
     constructor (...modules: M) {
 
-        modules = copy(modules)
-
         super(...modules)
         this.modules = modules
         this.modules.forEach(m => {
-            m.parent = this
+            m._setParent(this)
         })
     }
 

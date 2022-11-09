@@ -30,8 +30,9 @@ class _Module {
     /**
      * @internal
      */
-    set parent(parent: _Node<Modules> | null) {
+    _setParent(parent: _Node<Modules> | null): this {
         this._parent = parent
+        return this
     }
 
     //// Set It And Forget It Immutability ////
