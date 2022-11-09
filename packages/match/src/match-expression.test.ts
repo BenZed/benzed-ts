@@ -1,10 +1,11 @@
 import { isNumber } from '@benzed/is'
 
-import { MatchExpressionValueRequiredError, UnmatchedValueError } from './error'
-import { expectTypeOf } from 'expect-type'
+import { UnmatchedValueError } from './error'
 
 import { match } from './match'
 import { MatchExpression, MatchExpressionBuilder } from './types'
+
+import { expectTypeOf } from 'expect-type'
 
 //// Setup ////
 
@@ -136,10 +137,7 @@ it('with functions', () => {
     /**/ 'Even' | 'Odd' | 'Ace' | 'Number'>
     
     >()
-
 })
-
-it.todo('with typeguard input')
 
 it('with function output', () => {
 
@@ -154,7 +152,4 @@ it('with function output', () => {
 
 })
 
-it('match() should throw an error', () => {
-    expect(match)
-        .toThrow(MatchExpressionValueRequiredError)
-}) 
+it.todo('with typeguard input')

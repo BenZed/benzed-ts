@@ -23,8 +23,19 @@ type _BroadMatchInput<I> = I extends string
                     
 //// Matchable ////
 
-type Primitives = string | number | boolean | bigint | symbol | null | undefined
-type Object = { [key: string | number | symbol]: unknown }
+type Primitives = 
+    string 
+    | number 
+    | boolean 
+    | bigint 
+    | symbol 
+    | null
+    | undefined
+
+type Object = 
+    { 
+        [key: string | number | symbol]: unknown 
+    }
 
 type MatchPredicate<I, O> = ((input: I) => O)
 type MatchGuard<T> = ((input: unknown) => input is T)

@@ -2,15 +2,14 @@ import { equals } from '@benzed/immutable'
 import is from '@benzed/is'
 
 import { 
-    MatchExpressionValueRequiredError, 
+
     UnmatchedValueError, 
     NoMultipleDefaultCasesError,
-    NotMatchExpressionError 
+    NotMatchExpressionError
+
 } from './error'
 
 import {
-
-    Case,
 
     MatchExpression, 
     MatchExpressionState, 
@@ -20,12 +19,14 @@ import {
     MatchBuilder,
     MatchInput,
 
-    MatchInputType,
+    Case,
     CaseInput,
     CaseOutput,
+
+    Match,
     MatchOutput,
     MatchOutputType,
-    Match
+    MatchInputType,
 
 } from './types'
 
@@ -105,6 +106,7 @@ function * iterateValues(this: MatchExpression): Generator<unknown> {
  */
 function match<I extends MatchInput>(value: I): MatchExpressionBuilderEmpty<MatchInputType<I>>
 
+function match<I extends MatchInput = undefined>(): MatchBuilder<I, never>
 /**
  * Create an iterable match with a set of values
  * @param values
@@ -145,10 +147,7 @@ function match(this: unknown, ...args: unknown[]): unknown {
         
         nextState.cases = newCase ? [ ...prevState.cases, newCase ] : prevState.cases
         nextState.values = prevState.values
-    
-    // match() is an illegal call
-    } else if (args.length === 0)
-        throw new MatchExpressionValueRequiredError()
+    } 
 
     return Object.assign(
         value.bind(nextState), 
@@ -160,7 +159,6 @@ function match(this: unknown, ...args: unknown[]): unknown {
             [Symbol.iterator]: iterateValues
         }
     )
-
 }
 
 /**

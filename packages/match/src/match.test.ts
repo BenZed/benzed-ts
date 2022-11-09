@@ -114,6 +114,16 @@ it('.default()', () => {
 
 })
 
+it('.default() handles undefined', () => {
+
+    const m1 = match()
+        .case(is.boolean, i => `Num(${i ? 1 : 0})` as const)
+        .case(is.number, i => `Num(${i})` as const)
+        .default(`Num(${0})` as const)
+
+    expect(m1(undefined)).toEqual('Num(0)')
+})
+
 it('.default() multiple times throws', () => {
 
     // @ts-expect-error .default() twice not supported by types anyway
