@@ -12,7 +12,6 @@ import {
 import {
 
     MatchExpression, 
-    MatchExpressionState, 
     MatchExpressionBuilderEmpty,
 
     MatchState,
@@ -27,8 +26,9 @@ import {
     MatchOutput,
     MatchOutputType,
     MatchInputType,
-    MatchBoundedBuilderEmpty,
-    MatchGuard,
+    MatchBuilderEmpty,
+    Matchable,
+    MatchExpressionState,
 
 } from './types'
 
@@ -103,27 +103,26 @@ function * iterateValues(this: MatchExpression): Generator<unknown> {
 //// Interface ////
 
 /**
- * Create a bounded match with a type guard
- * @param guard 
+ * Create an empty optionally typed (bounded) match expression
  */
-function match<I extends MatchInput = undefined>(guard?: MatchGuard<I>): MatchBoundedBuilderEmpty<I>
- 
+function match<T>(): MatchBuilderEmpty<T>
+
 /**
  * Create an iterable match with a single value
  * @param value 
  */
-function match<I extends MatchInput>(value: I): MatchExpressionBuilderEmpty<MatchInputType<I>>
+function match<I extends Matchable>(value: I): MatchExpressionBuilderEmpty<MatchInputType<I>>
 
 /**
  * Create an iterable match with a set of values
  * @param values
  */
-function match<A extends readonly MatchInput[]>(...values: A): MatchExpressionBuilderEmpty<MatchInputType<A[number]>>
+function match<A extends readonly Matchable[]>(...values: A): MatchExpressionBuilderEmpty<MatchInputType<A[number]>>
 
 /**
  * Add an addional case to an existing match
  */
-function match(this: MatchState, input: unknown, output: unknown): MatchBuilder
+function match(this: MatchState, input: unknown, output: unknown): MatchBuilder<unknown>
 
 /**
  * Add a default case to an existing match
@@ -135,6 +134,8 @@ function match(this: MatchState, output: unknown): Match
  */
 function match(this: unknown, ...args: unknown[]): unknown {
 
+    const prevState = this as MatchExpressionState | void
+
     const nextState = {
         cases: [] as readonly Case[],
         values: args as readonly unknown[]
@@ -143,7 +144,6 @@ function match(this: unknown, ...args: unknown[]): unknown {
     // TODO handle bounded expressions
 
     // Immutable case increment
-    const prevState = this as MatchExpressionState | void
     if (prevState) {
 
         // .case() signature
@@ -184,10 +184,10 @@ function match(this: unknown, ...args: unknown[]): unknown {
 match.case = match.bind({ 
     cases: [], 
     values: [] 
-}) as <I extends MatchInput, O extends MatchOutput<I>>(
+}) as <I extends MatchInput<unknown>, O extends MatchOutput<I>>(
     input: I, 
     output: O
-) => MatchBuilder<MatchInputType<I>, MatchOutputType<O>>
+) => MatchBuilder<unknown, MatchInputType<I>, MatchOutputType<O>>
 
 //// Exports ////
 

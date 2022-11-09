@@ -7,7 +7,7 @@
     
 type _UnusedInput<I, Ix> = Ix extends MatchGuard<infer Ixx> 
     ? Exclude<I, Ixx>
-    : Exclude<I, Ix>
+    : Exclude<I, MatchInputType<Ix>>
 
 type _BroadMatchInput<I> = I extends string 
     ? string 
@@ -42,13 +42,16 @@ export type MatchGuard<T> = ((input: unknown) => input is T)
 
 //// Match ////
 
-export type MatchInput = 
-    | MatchGuard<unknown>
-    | MatchPredicate<unknown, unknown>
-    | Primitives 
-    | Object
+export type Matchable = Primitives | Object
 
-export type MatchBoundedInput<T> = T | MatchPredicate<T, unknown>
+export type MatchInput<T> = unknown extends T 
+    ? 
+    | MatchPredicate<unknown, unknown>  
+    | Primitives
+    | Object
+    
+    : MatchPredicate<T, unknown> 
+    | T
 
 export type MatchExpressionInput<T> =
     | Primitives
@@ -72,8 +75,8 @@ export type MatchInputType<I> =
             ? Ix 
             : I extends Object 
                 ? I
-                : I extends (i: unknown) => any 
-                    ? unknown
+                : I extends MatchPredicate<infer Ix, any>
+                    ? Ix
                     : never 
 
 export type MatchOutputType<O> = 
@@ -110,33 +113,38 @@ export interface Match<I = unknown, O = unknown> extends MatchState {
 
 }
 
-export interface MatchBuilder<I = unknown, O = unknown> extends Match<I, O> {
+export interface MatchBuilderEmpty<T> {
 
-    case<Ix extends MatchInput, Ox extends MatchOutput<Ix>>(
+    case<Ix extends MatchInput<T>, O extends MatchOutput<Ix>>(
+        input: Ix, 
+        output: O
+    ): _UnusedInput<T, Ix> extends never 
+        ? MatchBuilder<T, MatchInputType<Ix>, MatchOutputType<O>>
+        : MatchBuilderIncomplete<T, MatchInputType<Ix>, MatchOutputType<O>>
+
+}
+
+export interface MatchBuilderIncomplete<T, I = unknown, O = unknown> {
+
+    case<Ix extends MatchInput<T>, Ox extends MatchOutput<Ix>>(
         input: Ix, 
         output: Ox
-    ): MatchBuilder<I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
+    ): _UnusedInput<T, Ix> extends T 
+        ? MatchBuilder<T, I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
+        : MatchBuilderIncomplete<T, I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
 
     default<Ox extends MatchDefaultOutput>(output: Ox): Match<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
 
 }
 
-//// Match Bounded ////
+export interface MatchBuilder<T, I = unknown, O = unknown> extends Match<I, O> {
 
-export interface MatchBoundedBuilderEmpty<T> {
-
-    case<Ix extends MatchBoundedInput<T>, O extends MatchOutput<T>>(
+    case<Ix extends MatchInput<T>, Ox extends MatchOutput<Ix>>(
         input: Ix, 
-        output: O
-    ): MatchBoundedBuilder<T, MatchOutputType<O>>
+        output: Ox
+    ): MatchBuilder<T, I | MatchInputType<Ix>, O | MatchOutputType<Ox>>
 
-}
-
-export interface MatchBoundedBuilder<T, O> extends Match<T, O> {
-
-    case<Ix extends MatchBoundedInput<T>, Ox extends MatchOutput<T>>(input: Ix, output: Ox): MatchBoundedBuilder<T, O | MatchOutputType<Ox>>
-
-    default<Ox extends MatchDefaultOutput>(output: Ox): Match<T, O | MatchOutputType<Ox>>
+    default<Ox extends MatchDefaultOutput>(output: Ox): Match<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
 
 }
 
