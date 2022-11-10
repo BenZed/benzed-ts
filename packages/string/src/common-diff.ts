@@ -5,7 +5,7 @@ import match from '@benzed/match'
 
 //// Constants ////
 
-const COMMON_DIFF_DEFAULT_OPTIONS: CommonDiffOptions = { offset: 0, fromEnd: false }
+const DEFAULTS: CommonDiffOptions = { offset: 0, fromEnd: false }
 
 //// Types ////
 
@@ -86,7 +86,7 @@ function* createDiffs(
 
 //// Match Options ////
 
-const matchCommonDiffOptions = match()
+const matchOptions = match()
     .case(isBoolean, fromEnd => ({ fromEnd }))
     .case(isNumber, offset => ({ offset }))
     .case(isObject<Partial<CommonDiffOptions>>, options => options)
@@ -107,7 +107,7 @@ function commonDiff(
     options: number | boolean | Partial<CommonDiffOptions> = {}
 ): CommonDiff {
 
-    const { offset, fromEnd } = { ...COMMON_DIFF_DEFAULT_OPTIONS, ...matchCommonDiffOptions(options) }
+    const { offset, fromEnd } = { ...DEFAULTS, ...matchOptions(options) }
 
     const common = createCommon(input, offset, fromEnd)
 

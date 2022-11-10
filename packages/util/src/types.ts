@@ -148,3 +148,12 @@ export type StringToNumber<T> = T extends `${infer N extends number}` ? N : neve
 export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
     [K in keyof A as StringToNumber<K>]: never
 }
+
+//// Exports ////
+
+const InvalidTypeError = Symbol('invalid-type-error')
+const Type = Symbol('required-target-type')
+
+export type Invalid<msg extends string = 'This is an invalid type.', T = never> = T extends never 
+    ? { [InvalidTypeError]: msg }
+    : { [InvalidTypeError]: msg, [Type]: T }
