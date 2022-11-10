@@ -42,7 +42,6 @@ it('is sealed', () => {
 
 it('is a module', () => {
     const getTodo = Command.create('getTodo', $todoId)
-
     expect(getTodo).toBeInstanceOf(Module)
 })
 
@@ -74,23 +73,23 @@ describe('static builder pattern', () => {
                 '/orphans'
             )
 
-            expect(generic.http.method).toBe(HttpMethod.Put)
-            expect(generic.http.path).toBe('/orphans')
+            expect(generic.method).toBe(HttpMethod.Put)
+            expect(generic.path).toBe('/orphans')
             expect(generic.name).toBe('killOrphans')
         })
 
         it('generic signature: name, execute, method', () => {
             const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
             expect(makeRed.name).toEqual('makeRed')
-            expect(makeRed.http.method).toEqual(HttpMethod.Options)
-            expect(makeRed.http.path).toEqual('/make-red')
+            expect(makeRed.method).toEqual(HttpMethod.Options)
+            expect(makeRed.path).toEqual('/make-red')
         })
 
         it('generic signature: name, execute', () => {
             const create = Command.create('create', $todo)
             expect(create.name).toEqual('create')
-            expect(create.http.method).toEqual(HttpMethod.Post)
-            expect(create.http.path).toEqual('/')
+            expect(create.method).toEqual(HttpMethod.Post)
+            expect(create.path).toEqual('/')
         })
 
     })
@@ -116,13 +115,12 @@ describe('static builder pattern', () => {
             })
 
             it(`method == ${method}`, () => {
-                expect(cmd.http.method).toEqual(method)
+                expect(cmd.method).toEqual(method)
             })
 
             it('path == "/"', () => {
-                expect(cmd.http.path).toEqual('/')
+                expect(cmd.path).toEqual('/')
             })
-
         })
     }
 })
@@ -164,7 +162,7 @@ describe('instance builder pattern', () => {
 
                     expectTypeOf<typeof this>().toMatchTypeOf<RuntimeCommand<TodoId>>()
 
-                    expect(this?.http.method).toEqual(HttpMethod.Get)
+                    expect(this?.method).toEqual(HttpMethod.Get)
                     expect(this?.name).toEqual('get')
                     return todo
                 })
