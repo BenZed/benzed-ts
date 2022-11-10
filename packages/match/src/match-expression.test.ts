@@ -3,7 +3,7 @@ import { isNumber } from '@benzed/is'
 import { UnmatchedValueError } from './error'
 
 import { match } from './match'
-import { MatchExpression, MatchExpressionBuilder } from './types'
+import { MatchExpression, MatchExpressionBuilderIncomplete } from './types'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -87,7 +87,7 @@ it('with generic input type', () => {
         .case(10, 'Ten')
         .case(1, 'One')
 
-    expectTypeOf(unfinishedExp).toEqualTypeOf<MatchExpressionBuilder<number, number, 'Ten' | 'One'>>()
+    expectTypeOf(unfinishedExp).toEqualTypeOf<MatchExpressionBuilderIncomplete<number, number, 'Ten' | 'One'>>()
 
     expect(() => {
         // @ts-expect-error No default case

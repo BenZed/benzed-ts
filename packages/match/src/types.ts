@@ -162,15 +162,15 @@ export interface MatchExpressionBuilderEmpty<I = unknown> extends MatchExpressio
 
     case<Ix extends MatchExpressionInput<I>, O extends MatchOutput<Ix>>(input: Ix, output: O): _UnusedExpressionInput<I, Ix> extends never 
         ? MatchExpression<I, MatchOutputType<O>>
-        : MatchExpressionBuilder<_UnusedExpressionInput<I, Ix>, I, MatchOutputType<O>>
+        : MatchExpressionBuilderIncomplete<_UnusedExpressionInput<I, Ix>, I, MatchOutputType<O>>
 
 }
 
-export interface MatchExpressionBuilder<U extends I, I = unknown, O = unknown> extends MatchExpressionState<I> {
+export interface MatchExpressionBuilderIncomplete<U extends I, I = unknown, O = unknown> extends MatchExpressionState<I> {
 
     case<Ux extends MatchExpressionInput<I>, Ox extends MatchOutput<Ux>>(input: Ux, output: Ox): _UnusedExpressionInput<U, Ux> extends never 
         ? MatchExpression<I, O | MatchOutputType<Ox>>
-        : MatchExpressionBuilder<_UnusedExpressionInput<U, Ux>, I, O | MatchOutputType<Ox>>
+        : MatchExpressionBuilderIncomplete<_UnusedExpressionInput<U, Ux>, I, O | MatchOutputType<Ox>>
 
     default<Ox extends MatchOutput<I>>(output: Ox): MatchExpression<_BroadMatchInput<I>, O | MatchOutputType<Ox>>
 
