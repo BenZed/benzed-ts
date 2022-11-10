@@ -1,4 +1,4 @@
-import is from '@benzed/is'
+import is, { isNumber } from '@benzed/is'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -25,12 +25,14 @@ it('.match<type>().case()', () => {
         .case(10, 'Ten')
         .case(1, 'One')
 
-    expectTypeOf(m).toEqualTypeOf<MatchBuilder<number, 10 | 1, 'Ten' | 'One'>>()
+    expectTypeOf(m).toEqualTypeOf<MatchBuilderIncomplete<number, 10 | 1, 'Ten' | 'One'>>()
 
-    expect(m(10)).toEqual('Ten')
-    expect(m(1)).toEqual('One')
-    // @ts-expect-error No match for 0
-    expect(() => m(0)).toThrow(UnmatchedValueError)
+    const mc = m.case(isNumber, i => `${i}`)
+
+    expect(mc(10)).toEqual('Ten')
+    expect(mc(1)).toEqual('One')
+    // @ts-expect-error No match for '0'
+    expect(() => m('0')).toThrow(UnmatchedValueError)
 })
 
 it('input types must match bounded type', () => {
@@ -94,19 +96,35 @@ it('type guards', () => {
 
 it('all cases must be handled', () => {
 
-    const m = match<1 | 2>()
+    const m = match<1 | 2 | 3>()
         .case(1, 'One')
 
     // @ts-expect-error Not all cases have been handled
     expect(m(1)).toEqual('One')
 
-    const mc = m.case(2, 'Two')
+    const mc = m.case(2, 'Two').case(3, 'Three')
 
     expect(mc(1)).toEqual('One')
     expect(mc(2)).toEqual('Two')
 
-    // @ts-expect-error no case for 3
-    expect(() => mc(3)).toThrow(UnmatchedValueError)
+    // @ts-expect-error no case for 4
+    expect(() => mc(4)).toThrow(UnmatchedValueError)
+})
+
+it('all broad cases must be handled', () => {
+
+    const m = match<string | number>()
+        .case(1, 'One')
+        .case('Ace', 'A')
+
+    expectTypeOf(m).toMatchTypeOf<MatchBuilderIncomplete<string | number, 1 | 'Ace', 'One' | 'string'>>()
+
+    const m2 = m.case(is.string, 'Cool')
+    expectTypeOf(m2).toMatchTypeOf<MatchBuilderIncomplete<string | number, 1 | string, 'One' | 'A' | 'Cool'>>()
+
+    const mc = m2.case(is.number, 'Done')
+    expectTypeOf(mc).toMatchTypeOf<MatchBuilder<string | number, string | number, 'One' | 'A' | 'Cool' | 'Done'>>()
+
 })
 
 it('objects', () => {

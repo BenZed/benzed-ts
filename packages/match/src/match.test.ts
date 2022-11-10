@@ -23,8 +23,8 @@ it('match.case() to create a match', () => {
     const m1 = match.case(0, 'zero')
     const m2 = m1.case(1, 'one')
 
-    expectTypeOf(m1).toEqualTypeOf<MatchBuilder<0, 'zero'>>()
-    expectTypeOf(m2).toEqualTypeOf<MatchBuilder<0 | 1, 'zero' | 'one'>>()
+    expectTypeOf(m1).toEqualTypeOf<MatchBuilder<unknown, 0, 'zero'>>()
+    expectTypeOf(m2).toEqualTypeOf<MatchBuilder<unknown, 0 | 1, 'zero' | 'one'>>()
 
     // @ts-expect-error Match match 2, not a possible input
     expect(() => m2.value(2))
@@ -56,7 +56,7 @@ it('explicit I/O types', () => {
         .case('Goodbye', false)
 
     expectTypeOf(m1)
-        .toEqualTypeOf<MatchBuilder<string, boolean>>()
+        .toEqualTypeOf<MatchBuilder<unknown, string, boolean>>()
 })
 
 it('explicit Match type', () => {
@@ -68,7 +68,7 @@ it('explicit Match type', () => {
         .case(1, 'One')
 
     expectTypeOf(b1)
-        .toEqualTypeOf<MatchBuilder<0 | 1, 'Zero' | 'One'>>()
+        .toEqualTypeOf<MatchBuilder<unknown, 0 | 1, 'Zero' | 'One'>>()
 
     // @ts-expect-error Bad Type
     const b2: BinaryMatch = match
@@ -93,7 +93,7 @@ it('.case() with enums', () => {
         .case(FuzzyBool.Maybe, 'Maybe')
 
     expectTypeOf(m1)
-        .toEqualTypeOf<MatchBuilder<FuzzyBool, 'Yes' | 'No' | 'Maybe'>>()
+        .toEqualTypeOf<MatchBuilder<unknown, FuzzyBool, 'Yes' | 'No' | 'Maybe'>>()
 
     // @ts-expect-error Match incomplete
     const m2: Match<FuzzyBool, 0 | 1 | 2> = match
@@ -110,7 +110,7 @@ it('.default()', () => {
         .default('non-binary')
 
     expectTypeOf(m1)
-        .toEqualTypeOf<MatchBuilder<number, 'zero' | 'one' | 'non-binary'>>()
+        .toEqualTypeOf<MatchBuilder<unknown, number, 'zero' | 'one' | 'non-binary'>>()
 
 })
 
@@ -149,7 +149,7 @@ describe('method input', () => {
             .case(isNumber(i => i > 0 && i < 100), 'liquid')
             .case(isNumber(i => i >= 100), 'steam')
     
-        expectTypeOf(water).toMatchTypeOf<MatchBuilder<number, 'ice' | 'liquid' | 'steam'>>()
+        expectTypeOf(water).toMatchTypeOf<MatchBuilder<unknown, number, 'ice' | 'liquid' | 'steam'>>()
         expect(water(0)).toBe('ice')
         expect(water(5)).toBe('liquid')
         expect(water(100)).toBe('steam')
@@ -228,7 +228,7 @@ describe('objects', () => {
             .default('Unknown')
 
         expectTypeOf(m1)
-            .toEqualTypeOf<MatchBuilder<number | { ten: number}, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
+            .toEqualTypeOf<MatchBuilder<unknown, number | { ten: number}, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
     })
 
 })
@@ -241,7 +241,7 @@ describe('method output', () => {
             .case(100, n => ({ hundy: n }))
             .case(20, n => ({ twenty: n }))
 
-        expectTypeOf(m1).toEqualTypeOf<MatchBuilder<20 | 100, { hundy: 100 } | { twenty: 20 }>>()
+        expectTypeOf(m1).toEqualTypeOf<MatchBuilder<unknown, 20 | 100, { hundy: 100 } | { twenty: 20 }>>()
 
     })
     
@@ -280,7 +280,7 @@ describe('nested match expressions', () => {
         expect(m1(true)).toBe('+')
         expect(m1(false)).toBe('-')
 
-        // expectTypeOf(m1).toEqualTypeOf<Match<number | boolean, string | number>>()
+        expectTypeOf(m1).toEqualTypeOf<Match<number | boolean, 0 | '+' | '-'>>()
     })
 
     it('optimize nested matches', () => {
