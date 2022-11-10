@@ -8,7 +8,8 @@ import CommandModule from './command-module'
 
 import { Path } from '../util/types'
 
-import { HttpMethod, /* Auth,*/ toDatabase, ToDatabaseOutput } from '../modules'
+import { /* Auth,*/ toDatabase, ToDatabaseOutput } from '../modules'
+import { HttpMethod } from '../util'
 
 import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFields, } from './request'
 

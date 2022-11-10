@@ -1,9 +1,12 @@
 
 import { App } from './app'
+
 import { Client } from './modules'
-import { Module, SettingsModule } from './module'
-import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
+
+import { Module, SettingsModule } from './module'
+
+import { expectTypeOf } from 'expect-type'
 
 //// Tests ////
 

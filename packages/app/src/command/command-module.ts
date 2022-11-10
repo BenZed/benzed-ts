@@ -2,7 +2,7 @@
 import { capitalize, toCamelCase } from '@benzed/string'
 
 import { Module } from '../module'
-import type { HttpMethod } from '../modules'
+import type { HttpMethod } from '../util'
 import type { Request, StringFields } from './request'
 
 //// Validation ////

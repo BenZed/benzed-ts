@@ -7,7 +7,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import type { RecordCollection } from '../database'
 import { CommandModule } from '../../command'
 import type { Request } from '../../command/request'
-import type { HttpMethod } from '../connection/http-methods'
+import type { HttpMethod } from '../../util'
 
 //// Helper ////
 

@@ -2,10 +2,10 @@ import { isObject, isString, isTruthy } from '@benzed/is'
 import match from '@benzed/match'
 import { Empty } from '@benzed/util'
 
-import { HttpMethod } from '../../../modules'
+import { HttpMethod } from '../../../util'
 
 import type { CommandHook, RuntimeCommand } from '../../../command'
-import type { Database, Paginated, Record } from '../database'
+import type { Paginated, Record } from '../database'
 
 //// Types ////
 

@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 
 import { Module } from '../module'
-import { HttpMethod } from '../modules'
+import { HttpMethod } from '../util'
 import { Command, RuntimeCommand } from './command'
 
 import { omit } from '@benzed/util'

@@ -3,7 +3,7 @@ import { omit } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 
 import { Path } from '../util/types'
-import { HttpMethod } from '../modules'
+import { HttpMethod } from '../util'
 import { COMMAND_ENDPOINT } from '../constants'
 
 //// Eslint ////

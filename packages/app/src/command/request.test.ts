@@ -1,6 +1,6 @@
 import is from '@benzed/is'
 
-import { HttpMethod } from '../modules'
+import { HttpMethod } from '../util'
 
 import { COMMAND_ENDPOINT } from '../constants'
 import { createNameToReq, createNameFromReq, ToRequest, FromRequest } from './request'

@@ -1,13 +1,16 @@
+import $ from '@benzed/schema'
+
+import toDatabase from './to-database'
+
 import { MongoDb } from '../mongodb'
 
 import { App } from '../../../app'
 import { Service } from '../../../service'
 import { Command } from '../../../command'
 
-import $ from '@benzed/schema'
 import type { RecordCollection } from '../database'
-import toDatabase from './to-database'
-import { HttpMethod } from '../../connection'
+
+import { HttpMethod } from '../../../util'
 
 //// Setup ////
 
