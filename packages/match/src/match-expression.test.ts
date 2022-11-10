@@ -3,7 +3,7 @@ import { isNumber } from '@benzed/is'
 import { UnmatchedValueError } from './error'
 
 import { match } from './match'
-import { MatchExpression, MatchExpressionBuilderIncomplete } from './types'
+import { MatchExpression, MatchExpressionIncomplete } from './types'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -83,11 +83,11 @@ it('enums handle default cases', () => {
 
 it('with generic input type', () => {
 
-    const unfinishedExp = match(100 as number)
+    const unfinishedExp = match<number>(100)
         .case(10, 'Ten')
         .case(1, 'One')
 
-    expectTypeOf(unfinishedExp).toEqualTypeOf<MatchExpressionBuilderIncomplete<number, number, 'Ten' | 'One'>>()
+    expectTypeOf(unfinishedExp).toEqualTypeOf<MatchExpressionIncomplete<number, 10 | 1, 'Ten' | 'One'>>()
 
     expect(() => {
         // @ts-expect-error No default case
@@ -103,7 +103,7 @@ it('with objects', () => {
 
     const exp = match({ foo: 'bar' } as const, { foo: 'baz' } as const)
         .case({ foo: 'bar' } as const, 'BAR')
-        .case({ foo: 'baz' }, 'BAZ')
+        .case({ foo: 'baz' } as const, 'BAZ')
    
     const [ bar, baz ] = exp    
 

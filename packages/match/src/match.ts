@@ -12,23 +12,19 @@ import {
 import {
 
     MatchExpression, 
-    MatchExpressionBuilderEmpty,
-
+    MatchExpressionEmpty,
     MatchState,
-    MatchBuilder,
-    MatchInput,
 
     Case,
     CaseInput,
     CaseOutput,
 
     Match,
-    MatchOutput,
-    MatchOutputType,
     MatchInputType,
-    MatchBuilderEmpty,
+    MatchEmpty,
     Matchable,
     MatchExpressionState,
+    MatchIncomplete,
 
 } from './types'
 
@@ -105,24 +101,24 @@ function * iterateValues(this: MatchExpression): Generator<unknown> {
 /**
  * Create an empty optionally typed (bounded) match expression
  */
-function match<T>(): MatchBuilderEmpty<T>
+function match<T>(): MatchEmpty<T>
 
 /**
  * Create an iterable match with a single value
  * @param value 
  */
-function match<I extends Matchable>(value: I): MatchExpressionBuilderEmpty<MatchInputType<I>>
+function match<I extends Matchable>(value: I): MatchExpressionEmpty<MatchInputType<I>>
 
 /**
  * Create an iterable match with a set of values
  * @param values
  */
-function match<A extends readonly Matchable[]>(...values: A): MatchExpressionBuilderEmpty<MatchInputType<A[number]>>
+function match<A extends readonly Matchable[]>(...values: A): MatchExpressionEmpty<MatchInputType<A[number]>>
 
 /**
  * Add an addional case to an existing match
  */
-function match(this: MatchState, input: unknown, output: unknown): MatchBuilder<unknown>
+function match(this: MatchState, input: unknown, output: unknown): MatchIncomplete<unknown, unknown, unknown>
 
 /**
  * Add a default case to an existing match
@@ -177,17 +173,6 @@ function match(this: unknown, ...args: unknown[]): unknown {
         }
     )
 }
-
-/**
- * Create a match
- */
-match.case = match.bind({ 
-    cases: [], 
-    values: [] 
-}) as <I extends MatchInput<unknown>, O extends MatchOutput<I>>(
-    input: I, 
-    output: O
-) => MatchBuilder<unknown, MatchInputType<I>, MatchOutputType<O>>
 
 //// Exports ////
 

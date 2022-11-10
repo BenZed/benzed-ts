@@ -2,21 +2,21 @@ import is, { isNumber } from '@benzed/is'
 
 import { expectTypeOf } from 'expect-type'
 
-import { Match, MatchBuilder, MatchBuilderEmpty, MatchBuilderIncomplete } from './types'
+import { Match, Matcher, MatchEmpty, MatchIncomplete } from './types'
 import { UnmatchedValueError } from './error'
 import { match } from './match'
 
 it('.match<type>() to created a bounded match', () => {
 
     const m = match<number>()
-    expectTypeOf(m).toEqualTypeOf<MatchBuilderEmpty<number>>()
+    expectTypeOf(m).toEqualTypeOf<MatchEmpty<number>>()
 })
 
 it('.match() to create an undefined bounded match', () => {
 
     const m = match()
 
-    expectTypeOf(m).toEqualTypeOf<MatchBuilderEmpty<unknown>>()
+    expectTypeOf(m).toEqualTypeOf<MatchEmpty<unknown>>()
 })
 
 it('.match<type>().case()', () => {
@@ -25,7 +25,7 @@ it('.match<type>().case()', () => {
         .case(10, 'Ten')
         .case(1, 'One')
 
-    expectTypeOf(m).toEqualTypeOf<MatchBuilderIncomplete<number, 10 | 1, 'Ten' | 'One'>>()
+    expectTypeOf(m).toEqualTypeOf<MatchIncomplete<number, 10 | 1, 'Ten' | 'One'>>()
 
     const mc = m.case(isNumber, i => `${i}`)
 
@@ -42,6 +42,30 @@ it('input types must match bounded type', () => {
         // @ts-expect-error 100 is not a string
         .case(100, 'Not-Ok')
 
+})
+
+it('bounded enums', () => {
+    
+    enum Answer {
+        Yes,
+        No,
+        Maybe
+    }
+    
+    const mi = match<Answer>()
+        .case(Answer.Yes, 'Yes')
+    
+    expectTypeOf(mi).toEqualTypeOf<MatchIncomplete<Answer, Answer.Yes, 'Yes'>>()
+        
+    const m = mi
+        .case(Answer.No, 'No')
+        .case(Answer.Maybe, 'Maybe')
+
+    expectTypeOf(m).toEqualTypeOf<Matcher<Answer, Answer, 'Yes' | 'No' | 'Maybe'>>()
+
+    expect(m(Answer.Yes)).toEqual('Yes')
+    expect(m(Answer.No)).toEqual('No')
+    expect(m(Answer.Maybe)).toEqual('Maybe')
 })
 
 it('.match<type>().default()', () => {
@@ -62,7 +86,7 @@ it('predicates', () => {
         .case(i => i > 0, '+')
         .case(i => i < 0, '-')
 
-    expectTypeOf(m).toEqualTypeOf<MatchBuilder<number, number, '+' | '-'>>()
+    expectTypeOf(m).toEqualTypeOf<Matcher<number, number, '+' | '-'>>()
 
     const mc = m.default('~')
 
@@ -81,7 +105,7 @@ it('type guards', () => {
             return `${i}!` as const
         })
 
-    expectTypeOf(m1).toMatchTypeOf<MatchBuilderIncomplete<number | string, string, `${string}!`>>()
+    expectTypeOf(m1).toMatchTypeOf<MatchIncomplete<number | string, string, `${string}!`>>()
 
     const m2 = m1.case(is.number, i => {
         expectTypeOf(i).toMatchTypeOf<number>()
@@ -117,13 +141,13 @@ it('all broad cases must be handled', () => {
         .case(1, 'One')
         .case('Ace', 'A')
 
-    expectTypeOf(m).toMatchTypeOf<MatchBuilderIncomplete<string | number, 1 | 'Ace', 'One' | 'string'>>()
+    expectTypeOf(m).toMatchTypeOf<MatchIncomplete<string | number, 1 | 'Ace', 'One' | 'string'>>()
 
     const m2 = m.case(is.string, 'Cool')
-    expectTypeOf(m2).toMatchTypeOf<MatchBuilderIncomplete<string | number, 1 | string, 'One' | 'A' | 'Cool'>>()
+    expectTypeOf(m2).toMatchTypeOf<MatchIncomplete<string | number, 1 | string, 'One' | 'A' | 'Cool'>>()
 
     const mc = m2.case(is.number, 'Done')
-    expectTypeOf(mc).toMatchTypeOf<MatchBuilder<string | number, string | number, 'One' | 'A' | 'Cool' | 'Done'>>()
+    expectTypeOf(mc).toMatchTypeOf<Matcher<string | number, string | number, 'One' | 'A' | 'Cool' | 'Done'>>()
 
 })
 

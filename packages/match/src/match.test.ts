@@ -1,5 +1,5 @@
 import match from './match'
-import { Match, MatchBuilder } from './types'
+import { Match, Matcher } from './types'
 
 import is, { isBoolean, isNumber, isString } from '@benzed/is'
 
@@ -18,23 +18,23 @@ import { expectTypeOf } from 'expect-type'
 
 //// Tests ////
 
-it('match.case() to create a match', () => {
+it('match() to create a match', () => {
     
-    const m1 = match.case(0, 'zero')
+    const m1 = match().case(0, 'zero')
     const m2 = m1.case(1, 'one')
 
-    expectTypeOf(m1).toEqualTypeOf<MatchBuilder<unknown, 0, 'zero'>>()
-    expectTypeOf(m2).toEqualTypeOf<MatchBuilder<unknown, 0 | 1, 'zero' | 'one'>>()
+    expectTypeOf(m1).toEqualTypeOf<Matcher<unknown, 0, 'zero'>>()
+    expectTypeOf(m2).toEqualTypeOf<Matcher<unknown, 0 | 1, 'zero' | 'one'>>()
 
-    // @ts-expect-error Match match 2, not a possible input
+    // @ts-expect-error Match match 2, znot a possible input
     expect(() => m2.value(2))
         .toThrow(UnmatchedValueError)
 
 })
 
-it('match.case() is non iterable', () => {
+it('mnon iterable', () => {
 
-    const match1to3 = match
+    const match1to3 = match()
         .case(1, 'one')
         .case(2, 'two')
         .case(3, 'three')
@@ -51,27 +51,27 @@ it('match.case() is non iterable', () => {
 
 it('explicit I/O types', () => {
 
-    const m1 = match
+    const m1 = match()
         .case<string, boolean>('Hello', true)
         .case('Goodbye', false)
 
     expectTypeOf(m1)
-        .toEqualTypeOf<MatchBuilder<unknown, string, boolean>>()
+        .toEqualTypeOf<Matcher<unknown, string, boolean>>()
 })
 
 it('explicit Match type', () => {
 
     type BinaryMatch = Match<0 | 1, 'Zero' | 'One'>
 
-    const b1: BinaryMatch = match
+    const b1: BinaryMatch = match()
         .case(0, 'Zero')
         .case(1, 'One')
 
     expectTypeOf(b1)
-        .toEqualTypeOf<MatchBuilder<unknown, 0 | 1, 'Zero' | 'One'>>()
+        .toEqualTypeOf<Matcher<unknown, 0 | 1, 'Zero' | 'One'>>()
 
     // @ts-expect-error Bad Type
-    const b2: BinaryMatch = match
+    const b2: BinaryMatch = match()
         .case(0, 'Zero')
         .case(1, 'One')
         .case(2, 'Two') // <- no good
@@ -87,16 +87,16 @@ it('.case() with enums', () => {
         Maybe
     }
 
-    const m1 = match
+    const m1 = match()
         .case(FuzzyBool.Yes, 'Yes')
         .case(FuzzyBool.No, 'No')
         .case(FuzzyBool.Maybe, 'Maybe')
 
     expectTypeOf(m1)
-        .toEqualTypeOf<MatchBuilder<unknown, FuzzyBool, 'Yes' | 'No' | 'Maybe'>>()
+        .toEqualTypeOf<Matcher<unknown, FuzzyBool, 'Yes' | 'No' | 'Maybe'>>()
 
     // @ts-expect-error Match incomplete
-    const m2: Match<FuzzyBool, 0 | 1 | 2> = match
+    const m2: Match<FuzzyBool, 0 | 1 | 2> = match()
         .case(FuzzyBool.Yes, 0)
         .case(FuzzyBool.No, 1)
     void m2
@@ -104,20 +104,20 @@ it('.case() with enums', () => {
 
 it('.default()', () => {
 
-    const m1 = match
+    const m1 = match()
         .case(0, 'zero')
         .case(1, 'one')
         .default('non-binary')
 
     expectTypeOf(m1)
-        .toEqualTypeOf<MatchBuilder<unknown, number, 'zero' | 'one' | 'non-binary'>>()
+        .toEqualTypeOf<Matcher<unknown, number, 'zero' | 'one' | 'non-binary'>>()
 
 })
 
 it('.default() multiple times throws', () => {
 
     // @ts-expect-error .default() twice not supported by types anyway
-    expect(() => match.case(0, 'Zero').default('One').default('Two'))
+    expect(() => match().case(0, 'Zero').default('One').default('Two'))
         .toThrow(NoMultipleDefaultCasesError)
 
 })
@@ -128,7 +128,7 @@ describe('method input', () => {
 
         const isFoo = (i: unknown): i is { foo: 'bar' } => is.object<{foo: string}>(i) && i.foo === 'bar'
 
-        const sort = match
+        const sort = match()
             .case(is.number, 'Number')
             .case(is.string, 'String')
             .case(isFoo, 'FooBar')
@@ -144,12 +144,12 @@ describe('method input', () => {
         const isNumber = (f: (x: number) => boolean) => 
             (i: unknown): i is number => typeof i === 'number' && f(i)
 
-        const water = match
+        const water = match()
             .case(isNumber(i => i <= 0), 'ice')    
             .case(isNumber(i => i > 0 && i < 100), 'liquid')
             .case(isNumber(i => i >= 100), 'steam')
     
-        expectTypeOf(water).toMatchTypeOf<MatchBuilder<unknown, number, 'ice' | 'liquid' | 'steam'>>()
+        expectTypeOf(water).toMatchTypeOf<Matcher<unknown, number, 'ice' | 'liquid' | 'steam'>>()
         expect(water(0)).toBe('ice')
         expect(water(5)).toBe('liquid')
         expect(water(100)).toBe('steam')
@@ -157,7 +157,7 @@ describe('method input', () => {
 
     it('mixed guards/values', () => {
 
-        const m1 = match
+        const m1 = match()
             .case(100, 'One Hundred')
             .case(true, 'One')
             .case(is.number, 'Number')
@@ -171,18 +171,18 @@ describe('method input', () => {
     })
 
     it('regular methods must be of unknown type', () => {
-        const m1 = match.case(i => i, 'Truthy').default('Falsy')
+        const m1 = match().case(i => i, 'Truthy').default('Falsy')
 
         expect(m1(0)).toBe('Falsy')
         expect(m1(1)).toBe('Truthy')
 
-        // @ts-expect-error No typed methods
-        match.case((i: boolean) => !i, 'Ace')
+        // @ts-expect-error bad method
+        match().case((i: boolean) => !i, 'Ace')
     })
 
     it('default method', () => {
 
-        const m1 = match
+        const m1 = match()
             .case('One', 1)
             .case('Two', 2)
             .default(i => `${i}!`)
@@ -197,7 +197,7 @@ describe('objects', () => {
 
     it('objects are checked for deep equality', () => {
 
-        const m1 = match 
+        const m1 = match()
             .case({ foo: 'bar' }, 'FooBar')
             .case({ bar: 'foo' }, 'BarFoo')
 
@@ -208,7 +208,7 @@ describe('objects', () => {
 
     it('objects and primitives', () => {
     
-        const m1 = match    
+        const m1 = match()
             .case({ ace: [0,1,2,3] } as const, 'Wheel')
             .case('Base', 'Base')
 
@@ -221,14 +221,14 @@ describe('objects', () => {
 
     it('objects with default', () => {
 
-        const m1 = match    
+        const m1 = match()
             .case(0, 'Zero')
             .case(1, 'One')
             .case({ ten: 10 } as const, 'Ten')
             .default('Unknown')
 
         expectTypeOf(m1)
-            .toEqualTypeOf<MatchBuilder<unknown, number | { ten: number}, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
+            .toEqualTypeOf<Matcher<unknown, number | { ten: number}, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
     })
 
 })
@@ -237,17 +237,17 @@ describe('method output', () => {
 
     it('outputs strongly typed', () => {
 
-        const m1 = match
+        const m1 = match()
             .case(100, n => ({ hundy: n }))
             .case(20, n => ({ twenty: n }))
 
-        expectTypeOf(m1).toEqualTypeOf<MatchBuilder<unknown, 20 | 100, { hundy: 100 } | { twenty: 20 }>>()
+        expectTypeOf(m1).toEqualTypeOf<Matcher<unknown, 20 | 100, { hundy: 100 } | { twenty: 20 }>>()
 
     })
     
     it('union method output', () => {
 
-        const m1 = match
+        const m1 = match()
             .case(isNumber, i => i > 50 ? 'Big' : 'Small')
             .case(isString, i => `${i}!` as const)
 
@@ -262,7 +262,7 @@ describe('nested match expressions', () => {
 
     it('can handle nested expressions', () => {
 
-        const m1 = match
+        const m1 = match()
         
             .case(isNumber, i => match(i)
                 .case(i => i > 0, '+')
@@ -287,7 +287,7 @@ describe('nested match expressions', () => {
 
         let buildMatchCalls = 0
 
-        const m1 = match.case(isString, i => {
+        const m1 = match().case(isString, i => {
             buildMatchCalls++
             return match(i).case('Hi!', 'Hello?').default('Fuck Off.')
         })
