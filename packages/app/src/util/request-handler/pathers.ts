@@ -13,14 +13,14 @@ import { Path, UrlParamKeys } from '../types'
  * 
  * If no object is returned, then no data was used.
  */
-export type Pather<T> = (data: T) => [Path, Partial<T>] | [Path]
+export type Pather<T> = (data: T) => [ Path, Partial<T> | undefined ]
 
 //// Canned Pathers ////
  
 /**
   * Creates a pather that simply returns the given path
   */
-export const createStaticPather = memoize((path: Path): Pather<unknown> => () => [path])
+export const createStaticPather = memoize((path: Path): Pather<unknown> => () => [ path, undefined ])
  
 /**
   * Create a pather from a template string that's interpolated by a

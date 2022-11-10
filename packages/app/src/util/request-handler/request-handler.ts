@@ -1,6 +1,6 @@
 
 import is from '@benzed/is'
-import { omit } from '@benzed/util'
+import { nil, omit } from '@benzed/util'
 
 import { 
     createStaticPather, 
@@ -25,7 +25,7 @@ abstract class _RequestHandler<T> {
 
     abstract toRequest(data: T): Request
 
-    abstract matchRequest(input: Request): T | null
+    abstract matchRequest(input: Request): T | nil
 
 }
 
@@ -65,8 +65,8 @@ class RequestHandler<T> extends _RequestHandler<T> {
 
     }
 
-    matchRequest(input: Request): T | null {
-        return null
+    matchRequest(input: Request): T | nil {
+        return nil
     }
 
     //// Builder Methods ////
@@ -111,23 +111,21 @@ class RequestHandler<T> extends _RequestHandler<T> {
     
     private _createPath(data: T): ReturnType<Pather<T>> {
 
-        const [urlWithoutQueryParams, dataWithoutUrlParams = data ] = this._pather(data)
+        const [url, dataWithoutUrlParams ] = this._pather(data)
 
         const queryParams = this.method === HttpMethod.Get 
             ? dataWithoutUrlParams
-            : null
+            : nil
 
-        const urlWithQueryParams = queryParams
-            ? urlWithoutQueryParams + toQueryString(queryParams) as Path
-            : urlWithoutQueryParams
+        const urlWithQueryParams = queryParams && url + toQueryString(queryParams) as Path
 
-        const dataWithoutQueryParams = queryParams 
-            ? omit(dataWithoutUrlParams, ...Object.keys(queryParams) as [])
-            : dataWithoutUrlParams 
+        const dataWithoutQueryParams = 
+            queryParams && 
+            dataWithoutUrlParams && 
+            omit(dataWithoutUrlParams, ...Object.keys(queryParams) as [])
 
-        return (dataWithoutUrlParams 
-            ? [urlWithQueryParams, dataWithoutQueryParams] 
-            : [dataWithoutQueryParams]) as ReturnType<Pather<T>>
+        return [ urlWithQueryParams ?? url, dataWithoutQueryParams ?? dataWithoutUrlParams ] 
+            
     }
 
 }

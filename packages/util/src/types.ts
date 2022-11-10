@@ -8,6 +8,11 @@ export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
 
+/**
+ * Falsy values
+ */
+export type Falsy = '' | 0 | null | undefined | false
+
 export type Json =
     null | string | number | boolean |
     Json[] |

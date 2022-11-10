@@ -18,6 +18,8 @@ export * from './promisify'
 
 export * from './sort'
 
+export * from './nil'
+
 export * from './types'
 
 export {
