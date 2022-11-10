@@ -1,7 +1,6 @@
-import { Flatten } from 'mongodb'
 import { Module, Modules } from './module'
 
-import { ServiceModule, Service, FlattenModules, ToService } from './service'
+import { ServiceModule, FlattenModules, ToService } from './service'
 
 import { Path } from './types'
 

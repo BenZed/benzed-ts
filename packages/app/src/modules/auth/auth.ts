@@ -3,13 +3,15 @@ import $, { Infer } from '@benzed/schema'
 import { Empty, fromBase64, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import { CommandModule } from '../../command'
-import { Request } from '../../command/request'
-import { Client, HttpMethod } from '../connection'
 
-import { Database, RecordCollection } from '../database'
+import type { RecordCollection } from '../database'
+import { CommandModule } from '../../command'
+import type { Request } from '../../command/request'
+import type { HttpMethod } from '../connection/http-methods'
 
 //// Helper ////
+
+const Put = 1 as unknown as HttpMethod.Put
 
 // Generates a new secret every day.
 const randomSecret = (() => {
@@ -83,10 +85,11 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
 
         const { settings } = this
 
-        const database = this.getModule(Database, true)
+        throw new Error('Not yet implemented')
+        // const database = this.getModule(Database, true)
 
-        const collection = database.getCollection<{ password: string }>(settings.collection)
-        return collection
+        // const collection = database.getCollection<{ password: string }>(settings.collection)
+        // return collection
     }
     
     //// Command Module Implementation ////
@@ -116,14 +119,14 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         return { accessToken }
     }
 
-    fromRequest(method: HttpMethod, url: string, _data: object, headers: Headers): { email: string, password: string } | null {
-        if (method !== HttpMethod.Put)
+    fromRequest([method, url, _, headers]: Request<object>): { email: string, password: string } | null {
+        if (method !== Put)
             return null
 
         if (url !== `/${this.name}`)
             return null
 
-        const auth = headers.get('authorization')
+        const auth = headers?.get('authorization')
         if (!auth)
             return null 
 
@@ -145,7 +148,7 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         headers.set('authorization', `Basic ${credentials}`)
 
         return [
-            HttpMethod.Put,
+            Put,
             `/${this.name}`,
             {},
             headers
@@ -153,7 +156,7 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
     }
 
     get methods(): HttpMethod[] {
-        return [HttpMethod.Put]
+        return [Put]
     }
 
     //// Token Interface ////

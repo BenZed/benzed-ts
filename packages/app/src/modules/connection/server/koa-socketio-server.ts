@@ -12,8 +12,9 @@ import { Server as IOServer } from 'socket.io'
 import Server, { $serverSettings, ServerSettings } from './server'
 import { WEBSOCKET_PATH } from '../../../constants'
 
-import { HttpCode } from './http-codes'
-import { HttpMethod } from './http-methods'
+import { HttpCode } from '../http-codes'
+import { HttpMethod } from '../http-methods'
+import { Path } from '../../../types'
 
 //// Helper ////
 
@@ -115,11 +116,11 @@ export class KoaSocketIOServer extends Server {
 
         for (const name in this.root.commands) {
 
-            const urlWithoutQueryString = ctx.url.split('?')[0]
+            const urlWithoutQueryString = ctx.url.split('?')[0] as Path
 
             const commandData = this.root
                 .getCommand(name)
-                .fromRequest(ctx.method as HttpMethod, urlWithoutQueryString, ctxData)
+                .fromRequest([ctx.method as HttpMethod, urlWithoutQueryString, ctxData, null])
 
             if (commandData) 
                 return this.execute(name, commandData)

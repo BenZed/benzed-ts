@@ -8,7 +8,7 @@ import CommandModule from './command-module'
 
 import { Path } from '../types'
 
-import { HttpMethod, Auth, toDatabase, ToDatabaseOutput } from '../modules'
+import { HttpMethod, /* Auth,*/ toDatabase, ToDatabaseOutput } from '../modules'
 
 import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFields, } from './request'
 
@@ -327,21 +327,21 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             
             name,
 
-            async function (
+            function (
                 this: AuthCommand, 
                 input: I & { accessToken?: string }
             ): Promise<O & { user: object }> {
     
                 const { accessToken = '' } = input
     
-                const auth = this.getModule(Auth, true, 'parents')
-                const user = await auth.verifyAccessToken(accessToken)
-                const output = await (this._execute(input) as O | Promise<O>)
+                // const auth = this.getModule(Auth, true, 'parents')
+                // const user = await auth.verifyAccessToken(accessToken)
+                // const output = await (this._execute(input) as O | Promise<O>)
     
                 return {
-                    ...output,
-                    user
-                }
+                    // ...output,
+                    // user
+                } as any
             },
 
             {
@@ -355,11 +355,11 @@ class Command<N extends string, I extends object, O extends object> extends Comm
                     [method, url, data, headers],
                 ): Request<I> {
 
-                    const { accessToken = '' } = this.getModule(Auth, true, 'parents')
-                    if (accessToken) {
-                        headers = headers ?? new Headers()
-                        headers.set('authorization', `Bearer ${accessToken}`)
-                    }
+                    // const { accessToken = '' } = this.getModule(Auth, true, 'parents')
+                    // if (accessToken) {
+                    //     headers = headers ?? new Headers()
+                    //     headers.set('authorization', `Bearer ${accessToken}`)
+                    // }
 
                     return [
                         method, url, data, headers

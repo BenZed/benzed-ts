@@ -1,13 +1,13 @@
-import is from '@benzed/is'
 
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
 
-import { HttpMethod } from '../server'
+import { HttpMethod } from '../http-methods'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
 import { WEBSOCKET_PATH } from '../../../constants'
+import toQueryString from '../to-query-string'
 
 //// Eslint ////
 
@@ -16,31 +16,6 @@ import { WEBSOCKET_PATH } from '../../../constants'
 */
 
 //// Helper ////
-
-function toQueryString(data: object, prefix = ''): string {
-
-    const queryStrings: string[] = []
- 
-    for (const key in data) {
-
-        if (data.hasOwnProperty(key)) {
-
-            const value = (data as any)[key]
-
-            const keyWithPrefix = prefix ? `${prefix}[${key}]` : key
-
-            const queryString = is.object(value)
-                ? toQueryString(value, keyWithPrefix) 
-                : encodeURIComponent(keyWithPrefix) + '=' + encodeURIComponent(value)
-
-            queryStrings.push(queryString)
-        }
-
-    }
-
-    const queryString = queryStrings.join('&')
-    return queryString && !prefix ? `?${queryString}` : queryString
-}
 
 //// FetchSocketIoClient ////
 

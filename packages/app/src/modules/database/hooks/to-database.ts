@@ -4,8 +4,8 @@ import { Empty } from '@benzed/util'
 
 import { HttpMethod } from '../../../modules'
 
-import { CommandHook, RuntimeCommand } from '../../../command'
-import { Database, Paginated, Record } from '../database'
+import type { CommandHook, RuntimeCommand } from '../../../command'
+import type { Database, Paginated, Record } from '../database'
 
 //// Types ////
 
@@ -25,8 +25,8 @@ const toDatabase = <I extends object, O extends object>(method: HttpMethod, coll
 
         collectionName = (collectionName ?? '') || this.pathFromRoot.split('/').filter(isTruthy).join('-')
 
-        const database = this.getModule(Database, true, 'parents')
-        const collection = database.getCollection<O>(collectionName)
+        const database = null as any //this.getModule(Database, true, 'parents')
+        const collection = database//.getCollection<O>(collectionName)
 
         const resultMatch = match(method)
             .case(HttpMethod.Post, () => collection.create(input))

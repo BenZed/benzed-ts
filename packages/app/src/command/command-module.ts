@@ -1,13 +1,20 @@
-import $ from '@benzed/schema'
+// import $ from '@benzed/schema'
 import { capitalize, toCamelCase } from '@benzed/string'
 
 import { Module } from '../module'
-import { HttpMethod } from '../modules'
-import { Request, StringFields } from './request'
+import type { HttpMethod } from '../modules'
+import type { Request, StringFields } from './request'
 
 //// Validation ////
 
-const $camelCase = $.string.validates(toCamelCase, n => `"${n}" must be camelCased`)
+const { assert: assertCamelCase } = 
+// $.string.validates(toCamelCase, i => `${i} must be in camelCase.`)
+{
+    assert: (i: string): asserts i is string => {
+        if (i !== toCamelCase(i))
+            throw new Error(`${i} must be in camelCase.`)
+    }  
+} 
 
 //// Command Module ////
 
@@ -63,7 +70,7 @@ abstract class CommandModule<
     constructor(
         readonly _name: N
     ) {
-        void $camelCase.assert(_name)
+        void assertCamelCase(_name)
         super()
     }
 

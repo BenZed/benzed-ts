@@ -5,7 +5,7 @@ import { Service } from '../../../service'
 import { Command } from '../../../command'
 
 import $ from '@benzed/schema'
-import { RecordCollection } from '..'
+import type { RecordCollection } from '../database'
 import toDatabase from './to-database'
 import { HttpMethod } from '../../connection'
 

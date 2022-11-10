@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import $, { Flags } from '@benzed/schema'
+import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { Compile, StringKeys } from '@benzed/util'
 import { capitalize, toCamelCase } from '@benzed/string'
