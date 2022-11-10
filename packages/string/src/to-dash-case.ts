@@ -11,10 +11,10 @@
  */
 function toDashCase(
     input: string,
-    dash = `-`
+    dash = '-'
 ): string {
 
-    let output = ``
+    let output = ''
     let prevCharIsCaseable = false
     let prevCharIsDigit = false
     for (let i = 0; i < input.length; i++) {
@@ -22,7 +22,7 @@ function toDashCase(
         const char = input.charAt(i)
         const charUp = char.toUpperCase()
         const charLo = char.toLowerCase()
-        const isDigit = char >= `0` && char <= `9`
+        const isDigit = char >= '0' && char <= '9'
         const isCaseable = charUp !== charLo
 
         const isUpper = isCaseable && char === charUp
