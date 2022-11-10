@@ -1,6 +1,10 @@
 import { HttpMethod } from './http-methods'
 import { Path } from '../../types'
-import { returns } from '@benzed/util'
+
+import is from '@benzed/is'
+import { omit, returns } from '@benzed/util'
+
+import toQueryString from './to-query-string'
 
 //// Type ////
 
@@ -57,19 +61,39 @@ class RequestHandler<T> extends _RequestHandler<T> {
 
     private _createPath(data: T): ReturnType<Pather<T>> {
 
-        const [urlWithoutQueryParams, dataWithoutUrlParams] = this._pather(data)
-        return ['/']
+        const [urlWithoutQueryParams, dataWithoutUrlParams = data ] = this._pather(data)
+
+        const queryParams = this.method === HttpMethod.Get 
+            ? dataWithoutUrlParams
+            : null
+
+        const urlWithQueryParams = queryParams
+            ? urlWithoutQueryParams.replace(/\/$/, '') || '/' + toQueryString(queryParams) as Path
+            //                                                                       ^ just in case removing the last dash results in an empty string
+            : urlWithoutQueryParams
+
+        const dataWithoutQueryParams = queryParams 
+            ? omit(dataWithoutUrlParams, ...Object.keys(queryParams) as [])
+            : dataWithoutUrlParams 
+
+        return (dataWithoutUrlParams 
+            ? [urlWithQueryParams, dataWithoutQueryParams] 
+            : [dataWithoutQueryParams]) as ReturnType<Pather<T>>
     }
 
     toRequest(data: T): Request {
     
         const { method } = this
 
-        const [ url, dataWithoutParams ] = this._createPath(data)
+        const [ url, dataWithoutParams ] = this._createPath({...data})
+
+        console.log({data, dataWithoutParams, url})
+
+        const body = method === HttpMethod.Get ? undefined : dataWithoutParams
 
         return {
             method,
-            body: undefined,
+            body,
             url,
             headers: undefined
         }
@@ -85,10 +109,9 @@ class RequestHandler<T> extends _RequestHandler<T> {
     
     url(pathOrArray: TemplateStringsArray | Path, ...props: UrlParamFields<T>[]): RequestHandler<T> {
 
-        //
-
         return new RequestHandler(
-            this.method
+            this.method,
+            () => [ is.string(pathOrArray) ? pathOrArray : pathOrArray.join('') as Path ]
         )
     }
 

@@ -25,7 +25,8 @@ for (const [name, method] of Object.entries(HttpMethod)) {
 
 describe('RequestHandler.create()', () => {
     it('path in req.create()', () => {
-        expect(Req.create(HttpMethod.Get).toRequest({})).toHaveProperty('url', '/')
+        const request = Req.create(HttpMethod.Get).toRequest({})
+        expect(request).toHaveProperty('url', '/')
     })
 
 })
@@ -68,6 +69,8 @@ describe('RequestHandler.url()', () => {
             const req = Req
                 .create<{ id: string }>(HttpMethod.Get)
                 .url`/target/${'id'}`
+
+            console.log(req.toRequest({ id: 'hello' }))
         })
     })
 
