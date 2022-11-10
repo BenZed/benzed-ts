@@ -1,10 +1,11 @@
 import { HttpMethod } from './http-methods'
 import { Path } from '../../types'
 
-import is from '@benzed/is'
+import is, { isNumber } from '@benzed/is'
 import { omit, returns } from '@benzed/util'
 
 import toQueryString from './to-query-string'
+import path from 'path'
 
 //// Type ////
 
@@ -68,7 +69,7 @@ class RequestHandler<T> extends _RequestHandler<T> {
             : null
 
         const urlWithQueryParams = queryParams
-            ? urlWithoutQueryParams.replace(/\/$/, '') || '/' + toQueryString(queryParams) as Path
+            ? (urlWithoutQueryParams.replace(/\/$/, '') || '/') + toQueryString(queryParams) as Path
             //                                                                       ^ just in case removing the last dash results in an empty string
             : urlWithoutQueryParams
 
@@ -81,13 +82,13 @@ class RequestHandler<T> extends _RequestHandler<T> {
             : [dataWithoutQueryParams]) as ReturnType<Pather<T>>
     }
 
-    toRequest(data: T): Request {
+    toRequest(data: T, urlPrefix?: Path): Request {
     
         const { method } = this
 
-        const [ url, dataWithoutParams ] = this._createPath({...data})
+        const [ urlWithoutPrefix, dataWithoutParams ] = this._createPath({...data})
 
-        console.log({data, dataWithoutParams, url})
+        const url = `${urlPrefix ?? ''}${urlWithoutPrefix}` as Path
 
         const body = method === HttpMethod.Get ? undefined : dataWithoutParams
 
@@ -109,9 +110,28 @@ class RequestHandler<T> extends _RequestHandler<T> {
     
     url(pathOrArray: TemplateStringsArray | Path, ...props: UrlParamFields<T>[]): RequestHandler<T> {
 
+        let pather: Pather<T>
+        if (props.length > 0) {
+            pather = (data) => {
+                const dataWithoutUrlParams = {...data}
+                let url = '/'
+                for (let i = 0; i < props.length; i++) {
+                    const key = props[i] as keyof T
+                    const value = data[key] as string | number | undefined
+                    delete dataWithoutUrlParams[key]
+
+                    url = pathOrArray[i] + (isNumber(value) || value ? `${url}/${value}` : url) 
+                }
+                const urlWithoutMultiSlashes = url.replace(/\/+/gi, '/') as Path
+
+                return [urlWithoutMultiSlashes, dataWithoutUrlParams]
+            }
+        } else 
+            pather = () => [[...pathOrArray].join('') as Path]
+
         return new RequestHandler(
             this.method,
-            () => [ is.string(pathOrArray) ? pathOrArray : pathOrArray.join('') as Path ]
+            pather
         )
     }
 
