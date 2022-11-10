@@ -2,7 +2,7 @@ import { $$copy, unique } from '@benzed/immutable'
 import { wrap } from '@benzed/array'
 
 import type { Service, ServiceModule } from './service'
-import { Path } from './types'
+import { Path } from './util/types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -130,6 +130,9 @@ export class Module {
         return root
     }
 
+    /**
+     * 
+     */
     get pathFromRoot(): Path {
 
         const path: string[] = []

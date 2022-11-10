@@ -6,7 +6,7 @@ import { Chain, chain, Link } from '@benzed/util'
 
 import CommandModule from './command-module'
 
-import { Path } from '../types'
+import { Path } from '../util/types'
 
 import { HttpMethod, /* Auth,*/ toDatabase, ToDatabaseOutput } from '../modules'
 

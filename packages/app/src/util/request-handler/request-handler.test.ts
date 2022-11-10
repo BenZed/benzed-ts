@@ -1,4 +1,4 @@
-import { HttpMethod } from './http-methods'
+import { HttpMethod } from '..'
 import { RequestHandler as Req } from './request-handler'
 
 it('is sealed', () => {
@@ -18,7 +18,6 @@ for (const [name, method] of Object.entries(HttpMethod)) {
         it(`method ${name} in req.create() `, () => {
             expect(req.toRequest({})).toHaveProperty('method', method)
         })
-    
     })
 
 }
@@ -79,7 +78,7 @@ describe('RequestHandler.url()', () => {
 
         const req = Req
             .create<{ id: string, name?: string, age?: number }>(HttpMethod.Get)
-            .url`/clothing-by-age${'age'}${'id'}`
+            .url`/clothing-by-age/${'age'}${'id'}`
 
         it('2 url param', () => {
             expect(
@@ -87,7 +86,7 @@ describe('RequestHandler.url()', () => {
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
-                url: '/clothing-by-age/34/shirts'
+                url: '/clothing-by-age/34shirts'
             })
         })
 
@@ -108,7 +107,7 @@ describe('RequestHandler.url()', () => {
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
-                url: '/clothing-by-age/30/shirts?name=acer'
+                url: '/clothing-by-age/30shirts?name=acer'
             })
         })
 

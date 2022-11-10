@@ -28,7 +28,7 @@ export function random(min = 0, max = 1, seed?: number): number {
     let value
 
     // handle seed
-    if (typeof seed === `number`) {
+    if (typeof seed === 'number') {
         value = sin(seed) * SIN_PSUEDO_RANDOM_MULTIPLIER
         value -= _floor(value)
 

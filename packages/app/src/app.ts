@@ -2,7 +2,7 @@ import { Module, Modules } from './module'
 
 import { ServiceModule, FlattenModules, ToService } from './service'
 
-import { Path } from './types'
+import { Path } from './util/types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

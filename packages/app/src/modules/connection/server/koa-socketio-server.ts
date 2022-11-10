@@ -1,5 +1,5 @@
-import match from '@benzed/match'
 import { isObject, isString } from '@benzed/is'
+import match from '@benzed/match'
 
 import { createServer, Server as HttpServer } from 'http'
 
@@ -10,11 +10,9 @@ import cors from '@koa/cors'
 import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
-import { WEBSOCKET_PATH } from '../../../constants'
 
-import { HttpCode } from '../http-codes'
-import { HttpMethod } from '../http-methods'
-import { Path } from '../../../types'
+import { Path, HttpCode, HttpMethod } from '../../../util'
+import { WEBSOCKET_PATH } from '../../../constants'
 
 //// Helper ////
 

@@ -43,8 +43,9 @@ module.exports = {
         '@typescript-eslint/no-implied-eval': 'error',
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/no-empty-interface': 'off',
-        '@typescript-eslint/unified-signatures': 'error',
+        '@typescript-eslint/unified-signatures': 'off',
         '@typescript-eslint/no-duplicate-imports': 'error',
+        '@typescript-eslint/return-await': 'error',
         '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
         '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
         '@typescript-eslint/member-delimiter-style': ['error', {

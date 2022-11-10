@@ -1,6 +1,5 @@
 export * from './connection'
 export * from './server'
 export * from './client'
-export * from './http-codes'
-export * from './http-methods'
+
 export * from './request-handler'

@@ -2,20 +2,16 @@
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
 
-import { HttpMethod } from '../http-methods'
-
 import Client, { $clientSettings, ClientSettings } from './client'
 
+import { HttpMethod, toQueryString } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
-import toQueryString from '../to-query-string'
 
 //// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Helper ////
 
 //// FetchSocketIoClient ////
 

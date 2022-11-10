@@ -2,6 +2,12 @@ import is from '@benzed/is'
 
 //// toQueryString ////
 
+/**
+ * Convert an object to a query string
+ * @param data 
+ * @param prefix
+ * @returns stringified query
+ */
 function toQueryString(data: object, prefix = ''): string {
 
     const queryStrings: string[] = []
@@ -20,7 +26,6 @@ function toQueryString(data: object, prefix = ''): string {
 
             queryStrings.push(queryString)
         }
-
     }
 
     const queryString = queryStrings.join('&')

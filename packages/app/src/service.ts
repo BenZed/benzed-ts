@@ -5,7 +5,7 @@ import { Compile, StringKeys } from '@benzed/util'
 import { capitalize, toCamelCase } from '@benzed/string'
 
 import { Command, CommandInput, CommandModule, CommandOutput } from './command'
-import { CamelCombine, Path } from './types'
+import { CamelCombine, Path } from './util/types'
 import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 

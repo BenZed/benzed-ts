@@ -81,7 +81,7 @@ class V2 {
         let x, y
 
         if (isString(args[0]))
-            args = args[0].split(`,`).map(parseFloat) as [number, number]
+            args = args[0].split(',').map(parseFloat) as [number, number]
 
         else if (isArray(args[0]))
             args = args[0]

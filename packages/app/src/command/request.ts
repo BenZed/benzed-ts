@@ -2,7 +2,7 @@ import match from '@benzed/match'
 import { omit } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 
-import { Path } from '../types'
+import { Path } from '../util/types'
 import { HttpMethod } from '../modules'
 import { COMMAND_ENDPOINT } from '../constants'
 
