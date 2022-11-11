@@ -58,10 +58,6 @@ function isDelimitedCasing(casing: Casing): casing is 'dash' | 'camel' | 'pascal
     return casing === 'dash' || casing === 'camel' || casing === 'pascal'
 }
 
-//// Constants ////
-
-const SPACE_DASH_UNDERSCORE = / |-|_/
-
 //// Helper ////
 
 function toCaseValidatorSettings<C extends Casing>(
@@ -133,17 +129,17 @@ class CaseValidator<C extends Casing>
 
             case 'camel': {
 
-                const { delimiter = SPACE_DASH_UNDERSCORE } = settings
+                const { delimiter } = settings
 
-                return toCamelCase(input, delimiter)
+                return toCamelCase(input, delimiter as RegExp)
             }
 
             case 'pascal': {
 
-                const { delimiter = SPACE_DASH_UNDERSCORE } = settings
+                const { delimiter } = settings
 
                 return capitalize(
-                    toCamelCase(input, delimiter)
+                    toCamelCase(input, delimiter as RegExp)
                 )
             }
 
