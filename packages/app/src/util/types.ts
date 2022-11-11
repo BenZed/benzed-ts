@@ -12,8 +12,22 @@ export type Path = `/${string}`
  * Schema for path
  */
 export const $path = $.string
-    .validates(s => s.startsWith('/') ? s : '/' + s, 'Must start with a "/"')
-    .validates(s => s.replace(/\/\/+/gi, '/'), 'Must not have multiple consecutive "/"s') as Schema<Path, Path>
+    .validates(
+        s => s.startsWith('/') ? s : `/${s}`, 
+    
+        'Must start with a "/"'
+    )
+    .validates(
+        s => s.replace(/\/+/g, '/'), 
+    
+        'Must not have multiple consecutive "/"s'
+    ) 
+    .validates(
+        s => s.replace(/\/$/, '') || '/',
+        //                                                      ^ in case we just removed the last slash
+        
+        'Must not end with a "/"'
+    ) as Schema<Path, Path>
 
 /**
  * usable url param values

@@ -77,8 +77,8 @@ describe('RequestHandler.url()', () => {
         })
 
         const req = Req
-            .create<{ id: string, name?: string, age?: number }>(HttpMethod.Get)
-            .url`/clothing-by-age/${'age'}${'id'}`
+            .create<{ id?: string, name?: string, size?: string, age?: number }>(HttpMethod.Get)
+            .url`/clothing-by-age/${'age'}/${'id'}`
 
         it('2 url param', () => {
             expect(
@@ -86,7 +86,7 @@ describe('RequestHandler.url()', () => {
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
-                url: '/clothing-by-age/34shirts'
+                url: '/clothing-by-age/34/shirts'
             })
         })
 
@@ -101,15 +101,24 @@ describe('RequestHandler.url()', () => {
             })
         })
 
-        it('2 url and query param', () => {
+        it('2 url and 2 query param', () => {
             expect(
-                req.toRequest({ id: 'shirts', name: 'acer', age: 30 })
+                req.toRequest({ id: 'shirts', name: 'acer', size: 'large', age: 30 })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
-                url: '/clothing-by-age/30shirts?name=acer'
+                url: '/clothing-by-age/30/shirts?name=acer&size=large'
             })
         })
 
+        it('2 query param', () => {
+            expect(
+                req.toRequest({ name: 'hey', size: 'large' })
+            ).toEqual({
+                method: HttpMethod.Get,
+                body: undefined,
+                url: '/clothing-by-age?name=hey&size=large'
+            })
+        })
     })
 })

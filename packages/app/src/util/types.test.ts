@@ -8,12 +8,16 @@ describe('$path', () => {
     })
 
     it('paths cannot contain multiple consecutive /', () => {
-        expect($path.validate('//ace//')).toEqual('/ace/')
+        expect($path.validate('//ace')).toEqual('/ace')
         expect(() => $path.assert('//ace//')).toThrow('Must not have multiple consecutive')
     })
 
-    it('only slashes', () => {
+    it('handles only slashes', () => {
         expect($path.validate('///')).toEqual('/')
     })
-
+    
+    it('removes trailing slash', () => {
+        expect($path.validate('/ace/')).toEqual('/ace')
+        expect(() => $path.assert('/ace/')).toThrow('Must not end with a "/"')
+    })
 })

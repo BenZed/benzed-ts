@@ -31,9 +31,9 @@ abstract class _RequestHandler<T> {
 
 //// Main ////
 
-class RequestHandler<T> extends _RequestHandler<T> {
+class RequestHandler<T extends object> extends _RequestHandler<T> {
 
-    static create<Tx>(method: HttpMethod): RequestHandler<Tx> {
+    static create<Tx extends object>(method: HttpMethod): RequestHandler<Tx> {
         return new RequestHandler<Tx>(method)
     }
 
@@ -96,7 +96,7 @@ class RequestHandler<T> extends _RequestHandler<T> {
     url(fParam: TemplateStringsArray | Path | Pather<T>, ...rParams: UrlParamKeys<T>[]): RequestHandler<T> {
 
         const pather = is.string(fParam)
-            ? createStaticPather(fParam)
+            ? createStaticPather<T>(fParam)
             : is.function(fParam) 
                 ? fParam
                 : createUrlParamPather(fParam, ...rParams)
@@ -111,20 +111,19 @@ class RequestHandler<T> extends _RequestHandler<T> {
     
     private _createPath(data: T): ReturnType<Pather<T>> {
 
-        const [url, dataWithoutUrlParams ] = this._pather(data)
+        const [url, dataOmitUrlParams ] = this._pather(data)
 
         const queryParams = this.method === HttpMethod.Get 
-            ? dataWithoutUrlParams
+            ? dataOmitUrlParams
             : nil
 
-        const urlWithQueryParams = queryParams && url + toQueryString(queryParams) as Path
+        const urlWithQuery = queryParams && url + toQueryString(queryParams) as Path
 
-        const dataWithoutQueryParams = 
+        const dataOmitUrlAndQueryParams = dataOmitUrlParams && 
             queryParams && 
-            dataWithoutUrlParams && 
-            omit(dataWithoutUrlParams, ...Object.keys(queryParams) as [])
+            omit(dataOmitUrlParams, ...Object.keys(queryParams) as []) as Partial<T>
 
-        return [ urlWithQueryParams ?? url, dataWithoutQueryParams ?? dataWithoutUrlParams ] 
+        return [ urlWithQuery ?? url, dataOmitUrlAndQueryParams ?? dataOmitUrlParams ] 
             
     }
 
