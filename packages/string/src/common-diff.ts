@@ -1,8 +1,6 @@
 import { isBoolean, isNumber, isObject } from '@benzed/is'
 import match from '@benzed/match'
 
-/* eslint-disable @typescript-eslint/unified-signatures */
-
 //// Constants ////
 
 const DEFAULTS: CommonDiffOptions = { offset: 0, fromEnd: false }

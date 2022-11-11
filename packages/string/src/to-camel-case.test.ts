@@ -1,5 +1,7 @@
 import toCamelCase from './to-camel-case'
 
+import { expectTypeOf } from 'expect-type'
+
 describe('camelCases a string', () => {
     const tests = [
         { in: 'whatever', out: 'whatever' },
@@ -47,6 +49,26 @@ describe('limiter argument', () => {
                 expect(toCamelCase(test.in, /@|-|\./)).toBe(test.out)
             })
         }
+    })
+
+})
+
+describe('type safety', () => {
+
+    it('returns strongly typed string representation inputs', () => {
+
+        expectTypeOf(toCamelCase('super man was here'))
+            .toEqualTypeOf<'superManWasHere'>()
+    })
+
+    it('string delimiters work', () => {
+        expectTypeOf(toCamelCase('how@are@you', '@'))
+            .toEqualTypeOf<'howAreYou'>()
+    })
+
+    it('regexp delimeters do not', () => {
+        expectTypeOf(toCamelCase('what$cash', /$/))
+            .toEqualTypeOf<string>()
     })
 
 })

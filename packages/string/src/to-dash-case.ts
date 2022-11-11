@@ -1,3 +1,18 @@
+import { Join, Split } from './types'
+
+/**
+* `spaced out values` => `spaced-out-values`
+* `underscore_values` => `underscore-values`
+* ['You', 'Get','The','Idea] => `you-get-the-idea`
+*/
+type ToDashCase<S extends string | string[] | readonly string[], D extends string = '_' | ' '> = 
+ string extends S ? string : // ignore untyped string
+     S extends string[] | readonly string[]
+         ? Lowercase<Join<S, '-'>>
+         : S extends string 
+             ? ToDashCase<Split<S, D | '-'>>
+             : never
+
 /**
  * Converts a string from camel case to dash case.
  * 
@@ -12,7 +27,7 @@
 function toDashCase(
     input: string,
     dash = '-'
-): string {
+): string { // TODO use ToDashCase type, once it handles casing
 
     let output = ''
     let prevCharIsCaseable = false
@@ -54,5 +69,6 @@ function toDashCase(
 export default toDashCase
 
 export {
-    toDashCase
+    toDashCase,
+    ToDashCase
 }
