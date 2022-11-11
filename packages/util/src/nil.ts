@@ -1,4 +1,4 @@
-import { returns } from './common'
+import { returns } from './returns'
 import { Falsy } from './types'
 
 /* eslint-disable 

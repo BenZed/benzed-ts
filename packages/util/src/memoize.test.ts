@@ -1,4 +1,4 @@
-import { memoize, returns } from './common'
+import { memoize } from './memoize'
 
 it('memoize()', () => {
 
@@ -18,13 +18,4 @@ it('memoize()', () => {
     expect(memoAdd(10,10)).toEqual(20)
     expect(memoAdd(10,10)).toEqual(20)
     expect(calls).toEqual(2)
-})
-
-it('returns()', () => {
-
-    const toFoo = returns('foo')
-
-    expect(toFoo()).toEqual('foo')
-    expect(returns('foo')).toEqual(toFoo)
-
 })

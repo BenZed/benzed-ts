@@ -13,6 +13,8 @@ export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts inpu
  */
 export type Falsy = '' | 0 | null | undefined | false
 
+export type Keys<T = object> = (keyof T)[]
+
 /**
  * 
  */

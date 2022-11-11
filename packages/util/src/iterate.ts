@@ -1,4 +1,6 @@
 
+import { keysOf } from './keys-of'
+
 //// Helper ////
 
 function isIterable<T>(input: unknown): input is Iterable<T> {
@@ -40,8 +42,7 @@ function* iterate<T>(
 
     } else {
 
-        // Record<string | number, T>
-        for (const key in input)
+        for (const key of keysOf(input))
             yield input[key]
 
     }
