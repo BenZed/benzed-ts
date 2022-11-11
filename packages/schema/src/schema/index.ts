@@ -55,7 +55,6 @@ import {
 } from '@benzed/is'
 
 import { 
-    Compile, 
     TypeGuard 
 } from '@benzed/util'
 
@@ -68,16 +67,18 @@ import {
 import DateSchema from './date'
 
 import GenericSchema from './generic'
+import { Flags } from './flags'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 //// Types ////
 
-type SchemaFor<T> = Compile<{ 
-    validate: Schema<any,T,any>['validate']
-    assert: Schema<any,T,any>['assert']
-    is: Schema<any,T,any>['is']
-}>
+/**
+ * A schematic is just the is/assert/validation methods of a schema.
+ */
+type Schematic<T> = Pick<Schema<any,T,any>, 'validate' | 'assert' | 'is'>
+
+type SchemaFor<O, F extends Flags[] = []> = Schema<unknown, O, F>
 
 type SchemaInterfaceShortcutSignature =
     [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput | [Constructor<unknown>]
@@ -261,8 +262,11 @@ export default $
 
 export {
     $,
+    
     Schema,
     SchemaFor,
+    Schematic,
+
     SchemaOutput,
     SchemaOutput as Infer,
 
