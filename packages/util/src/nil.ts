@@ -11,7 +11,6 @@ import { Falsy } from './types'
  * Why undefined?
  * 
  * It's not typed as object, and it can be implicitly auto assignable in all cases.
- * 
  */
 export type nil = undefined 
 
@@ -23,7 +22,7 @@ export const nil: nil = undefined
 /**
  * Given a value, return the value if it is truthy, otherwise return nil
  */
-export const asNil = <T>(input: T) => (input || nil) as T extends Falsy ? nil : T 
+export const tryNil = <T>(input: T) => (input || nil) as T extends Falsy ? nil : T 
 
 /**
  * Returns true if a value is nil

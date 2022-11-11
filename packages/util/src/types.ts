@@ -13,6 +13,11 @@ export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts inpu
  */
 export type Falsy = '' | 0 | null | undefined | false
 
+/**
+ * 
+ */
+export type Primitive = string | number | boolean | bigint | null | undefined
+
 export type Json =
     null | string | number | boolean |
     Json[] |
@@ -51,22 +56,22 @@ export type Merge<T> =
     }
 
 /**
- * Remove the optional signature on specific keys of a type.
+ * Make specific keys of a type required
  */
-export type RequirePartial<T, K extends keyof T> =
+export type PartialRequire<T, K extends keyof T> =
     Merge<[
         {
-            [TK in keyof T as TK extends K ? TK : never]-?: T[TK]
+            [Tk in keyof T as Tk extends K ? Tk : never]-?: T[Tk]
         },
         {
-            [TK in keyof T as TK extends K ? never : TK]: T[TK]
+            [Tk in keyof T as Tk extends K ? never : Tk]: T[Tk]
         }
     ]>
 
 /**
  * Make specific keys of a type optional.
  */
-export type Optional<T, K extends keyof T> =
+export type PartialOptional<T, K extends keyof T> =
     Merge<[
         {
             [Tk in keyof T as Tk extends K ? never : Tk]: T[Tk]
@@ -130,31 +135,24 @@ export type StringKeys<T> = Extract<keyof T, string>
  */
 export type Empty = { [key: string]: never }
 
-export type Split<S extends string, D extends string> =
-    string extends S ? string[] :
-        S extends '' ? [] :
-            S extends `${infer T}${D}${infer U}` ? [T, ...Split<U, D>] :
-                [S]
-
-type _SplitOnWordSeparator<T extends string> = Split<T, '-'|'_'|' '>
-type _UndefinedToEmptyString<T extends string> = T extends undefined ? '' : T
-type _CamelCaseStringArray<K extends string[]> = `${K[0]}${Capitalize<_UndefinedToEmptyString<K[1]>>}`
-
-export type CamelCase<K> = K extends string ? _CamelCaseStringArray<_SplitOnWordSeparator<K>> : K
-
 /**
- * Convert a static string type to a static number type
+ * Convert a type to a numeric
  */
-export type StringToNumber<T> = T extends `${infer N extends number}` ? N : never
+export type ToNumber<N, Vf extends number = 0 /* (V)alue to use if conversion (f)ails*/> = 
+ N extends number ? N 
+     : N extends `${infer N extends number}` ? N
+         : N extends bigint ? ToNumber<`${N}`, Vf>
+             : N extends boolean ? N extends true ? 1 : 0
+                 : Vf
 
-/**
+/*
  * Get a union of indexes of a tuple type
  */
 export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
-    [K in keyof A as StringToNumber<K>]: never
+    [K in keyof A as ToNumber<K>]: never
 }
 
-//// Exports ////
+//// Invalid Type Error ////
 
 const InvalidTypeError = Symbol('invalid-type-error')
 const Type = Symbol('required-target-type')
