@@ -9,6 +9,10 @@ import {
     toLengthValidatorSettings,
 } from '../validator/length'
 
+import { 
+    DefaultValidatorSettings 
+} from '../validator/default'
+
 import {
     AddFlag,
     Flags,
@@ -26,8 +30,8 @@ import {
 
 import { push } from '@benzed/immutable'
 import { isArray, isString } from '@benzed/is'
+
 import { safeJsonParse } from '../util'
-import { DefaultValidatorSettings } from '../validator/default'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
