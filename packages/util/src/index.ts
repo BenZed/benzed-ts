@@ -31,7 +31,7 @@ export {
 
 export * from './memoize'
 
-export * from './nil'
+export * from './void'
 
 export * from './omit'
 export * from './pick'
@@ -45,3 +45,4 @@ export * from './this-shift'
 
 export * from './types'
 
+export * from './merge'

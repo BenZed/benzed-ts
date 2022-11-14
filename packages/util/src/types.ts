@@ -1,3 +1,5 @@
+import { Merge } from './merge'
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any 
 */
@@ -16,14 +18,14 @@ export type Falsy = '' | 0 | null | undefined | false
 export type Keys<T = object> = (keyof T)[]
 
 /**
- * 
+ * Primitives
  */
 export type Primitive = string | number | boolean | bigint | null | undefined
 
 export type Json =
     null | string | number | boolean |
     Json[] |
-    { [prop: string]: Json }
+    { [k: string]: Json }
 
 /**
  * Reduce two types to only their matching key values.
@@ -40,21 +42,6 @@ export type Collapse<L, R> =
             /**/ : never
 
         ]: L[K]
-    }
-
-/**
- * Create an interesection out of an arbitrary number of types
- */
-export type Intersect<T> = T extends [infer F, ...infer R]
-    ? F & Intersect<R>
-    : unknown
-
-/**
- * Merge an arbitrary number of types into one. 
- */
-export type Merge<T> =
-    {
-        [K in keyof Intersect<T>]: Intersect<T>[K]
     }
 
 /**

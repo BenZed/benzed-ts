@@ -25,7 +25,6 @@ export const toTrue = returns(true)
  */
 export const fail = returns(false)
 export const toFalse = returns(false)
-export const toVoid = returns(undefined) as () => void
 
 /**
  * Does nothing, returns undefined
