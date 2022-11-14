@@ -26,7 +26,7 @@ it('match() to create a match', () => {
     expectTypeOf(m1).toEqualTypeOf<Matcher<unknown, 0, 'zero'>>()
     expectTypeOf(m2).toEqualTypeOf<Matcher<unknown, 0 | 1, 'zero' | 'one'>>()
 
-    // @ts-expect-error Match match 2, znot a possible input
+    // @ts-expect-error Match match 2, not a possible input
     expect(() => m2.value(2))
         .toThrow(UnmatchedValueError)
 
@@ -170,14 +170,11 @@ describe('method input', () => {
 
     })
 
-    it('regular methods must be of unknown type', () => {
+    it('regular methods of unknown type', () => {
         const m1 = match().case(i => i, 'Truthy').default('Falsy')
 
         expect(m1(0)).toBe('Falsy')
         expect(m1(1)).toBe('Truthy')
-
-        // @ts-expect-error bad method
-        match().case((i: boolean) => !i, 'Ace')
     })
 
     it('default method', () => {

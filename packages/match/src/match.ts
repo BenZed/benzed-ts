@@ -1,4 +1,5 @@
 import { equals } from '@benzed/immutable'
+import { merge } from '@benzed/util'
 import is from '@benzed/is'
 
 import { 
@@ -162,7 +163,7 @@ function match(this: unknown, ...args: unknown[]): unknown {
         nextState.values = prevState.values
     } 
 
-    return Object.assign(
+    return merge(
         value.bind(nextState), 
         {
             ...nextState,

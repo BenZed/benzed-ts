@@ -1,3 +1,6 @@
+
+import { Primitive } from '@benzed/util'
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
@@ -21,70 +24,53 @@ type _BroadMatchInput<I> = I extends string
             ? boolean 
             : I extends bigint 
                 ? bigint 
-                : I extends Object 
-                    ? { -readonly [K in keyof I]: _BroadMatchInput<I[K]> } 
-                    : I
+                : I 
                     
 //// Matchable ////
 
-type Primitives = 
-    | string 
-    | number 
-    | boolean 
-    | bigint 
-    | symbol 
-    | null
-    | undefined
-
-type Object = 
-    { 
-        [key: string | number | symbol]: unknown 
-    }
-
 export type MatchPredicate<I, O> = ((input: I) => O)
+
 export type MatchGuard<T> = ((input: unknown) => input is T)
 
 //// Match ////
 
-export type Matchable = Primitives | Object
+export type Matchable = Primitive | object
 
 export type MatchInput<T> = unknown extends T 
     ? 
     | MatchPredicate<unknown, unknown>  
-    | Primitives
-    | Object
+    | Primitive
+    | object
     
     : MatchPredicate<T, unknown> 
     | T
 
 export type MatchExpressionInput<T> =
-    | Primitives
-    | Object
+    | Primitive
+    | object
     | MatchPredicate<T, unknown>
     
 export type MatchOutput<I> = 
-    | Object 
-    | Primitives 
+    | object 
+    | Primitive 
     | MatchPredicate<MatchInputType<I>, unknown>
 
 type MatchDefaultOutput = 
-    | Object 
-    | Primitives 
+    | object 
+    | Primitive 
     | MatchPredicate<unknown, any>
 
 export type MatchInputType<I> = 
-    I extends Primitives 
+    I extends Primitive 
         ? I 
         : I extends MatchGuard<infer Ix>
             ? Ix 
-            : I extends Object 
-                ? I
-                : I extends MatchPredicate<infer Ix, any>
-                    ? Ix
-                    : never 
+            : I extends MatchPredicate<infer Ix, any>
+                ? Ix
+                : I 
 
 export type MatchOutputType<O> = 
-    O extends Primitives 
+    O extends Primitive 
         ? O 
         : O extends MatchPredicate<any, infer Ox>
             ? Ox extends MatchExpression<any, infer Oxx> | MatchExpressionIncomplete<any, any, infer Oxx> 
