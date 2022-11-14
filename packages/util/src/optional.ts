@@ -1,5 +1,7 @@
 import { merge } from './merge'
+
 import { IO } from './structures'
+
 import { asVoid, isVoid, voided } from './void'
 
 //// Types ////

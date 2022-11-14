@@ -1,11 +1,10 @@
-import is from '@benzed/is'
 import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { Compile, StringKeys } from '@benzed/util'
-import { capitalize, toCamelCase } from '@benzed/string'
+import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { Command, CommandInput, CommandModule, CommandOutput } from './command'
-import { CamelCombine, Path } from './util/types'
+import { $path, Path } from './util/types'
 import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 
@@ -18,8 +17,6 @@ import { Client, Server } from './modules'
 
 const isModule = $(Module).is
 
-const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith('/')
-
 //// Helper Types ////
 
 type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
@@ -28,9 +25,9 @@ type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
 
 type _CommandsOfModule<M extends Module, P extends string> = 
     M extends Service<infer Px, infer Mx> 
-        ? _CommandsOfModules<Mx, CamelCombine<P, _Unslash<Px>>>
+        ? _CommandsOfModules<Mx, ToCamelCase<[P, _Unslash<Px>]>>
         : M extends CommandModule<infer N, any, any> 
-            ? { [K in N as CamelCombine<P, N>]: M }
+            ? { [K in N as ToCamelCase<[P, N]>]: M }
             : {}
 
 type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
@@ -188,8 +185,8 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         ...args: [path: Path, module: Module] | [module: Module] | Modules
     ): Modules {
 
-        const path = pluck(args, isPath).at(0)
-        const inputModules = pluck(args, isModule)
+        const path = pluck(args, $path.is).at(0)
+        const inputModules = args
         if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)
 

@@ -1,8 +1,6 @@
 
 import { SettingsModule } from '../../module'
 
-import { Empty } from '@benzed/util'
-
 //// Eslint ////
 
 /* eslint-disable 
@@ -12,18 +10,21 @@ import { Empty } from '@benzed/util'
 //// Base ////
 
 type Id = string
+
 type WithId = { _id: Id }
+
 type Record<T extends object> = T & WithId
+
 type Paginated<T extends object> = {
     total: number
     records: Record<T>[]
-    // skip: number 
+    // skip: number
     // limit: number
 }
 
 type CreateData<T extends object> = T
 type UpdateData<T extends object> = Partial<T>
-type FindQuery<T extends object> = Empty // { [K in keyof T]: ...etc }
+type FindQuery<T extends object> = object 
 
 /**
  * Just in case I intend to add support for more databases later,
@@ -77,8 +78,10 @@ export {
 
     Paginated,
     Record,
+
     Id,
     WithId,
+
     FindQuery,
     CreateData,
     UpdateData
