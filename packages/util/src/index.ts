@@ -32,6 +32,7 @@ export {
 export * from './memoize'
 
 export * from './void'
+export * from './optional'
 
 export * from './omit'
 export * from './pick'

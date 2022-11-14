@@ -1,20 +1,17 @@
 import { merge } from './merge'
+import { IO } from './structures'
 import { asVoid, isVoid, voided } from './void'
 
 //// Types ////
 
-type Real<T> = Exclude<T, null | undefined | void>
+type AsValue<T> = Exclude<T, null | undefined | void>
 
-type WithValue<T = unknown> = (input: T) => unknown
-
-interface Use<T = unknown> {
-
-    <F extends WithValue<T>>(f: F, defaultValue: T | void): Optional<ReturnType<F>>
-
+interface UseValue<T = unknown> {
+    <F extends IO<T>>(f: F, defaultValue: T | void): Optional<ReturnType<F>>
 }
 
-interface None { 
-    hasValue: false 
+interface Void { 
+    hasValue: false
 }
 
 interface Value<T = unknown> extends Iterable<T> {
@@ -22,20 +19,20 @@ interface Value<T = unknown> extends Iterable<T> {
     value: T
 }
 
-type Optional<T = unknown> = Value<T> | None
+type Optional<T = unknown> = Value<T> | Void
 
-type UseOptional<T = unknown> = Use<T> & (None | Value<T>)
+type UseOptional<T = unknown> = UseValue<T> & (Void | Value<T>)
 
 //// Helper ////
 
-function use(this: Optional, f: WithValue, defaultValue: unknown | void): UseOptional {
+function useValue(this: Optional, io: IO, defaultValue: unknown | void): UseOptional {
 
     if (this.hasValue)
-        return optional(f(this.value))
+        return optional(io(this.value))
 
     const def = optional(defaultValue)
     if (def.hasValue)
-        return optional(f(def.value))
+        return optional(io(def.value))
 
     return optional(voided as unknown)
 }
@@ -47,19 +44,26 @@ function* get<T>(this: Value<T>): Generator<T> {
 //// Main ////
 
 function isOptional<T = unknown>(input: unknown): input is Optional<T> {
-    return (typeof input === 'function' || typeof input === 'object' && input !== null) && 
-        typeof (input as { hasValue: boolean | void }) === 'boolean'
+    return (
+
+        typeof input === 'function' || typeof input === 'object' && 
+
+        input !== null
+
+    ) && typeof (
+        input as { hasValue: boolean | void }
+    ).hasValue === 'boolean'
 }
 
-function optional<T>(input: T | Optional<T>): UseOptional<Real<T>> {
+function optional<T>(input: T | Optional<T>): UseOptional<AsValue<T>> {
 
     const value = isOptional(input) ? input.hasValue ? input.value : voided : input
 
     const state = isVoid(asVoid(value))
-        ? { hasValue: false } as None
+        ? { hasValue: false } as Void
         : { hasValue: true, [Symbol.iterator]: get, value }
 
-    return merge(use.bind(state), state) as UseOptional<Real<T>>
+    return merge(useValue.bind(state), state) as UseOptional<AsValue<T>>
 }
 
 //// Extend ////
@@ -71,9 +75,13 @@ optional.is = isOptional
 export default optional 
 
 export {
+
     optional,
     isOptional,
+
     Optional,
-    None,
+    UseOptional,
+
+    Void,
     Value
 }

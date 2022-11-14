@@ -91,7 +91,8 @@ function chain(...links: Link[]): Chain {
 export default chain
 
 export {
-    Link, 
+    Link,
+    Link as IO,
 
     chain,
     Chain,
