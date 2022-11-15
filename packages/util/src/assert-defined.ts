@@ -12,17 +12,17 @@ import { Func } from './types'
  * returning a nullable value
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function assertDefined<A extends any[], T>(
-    input: Func<A, T | undefined | null>,
+function assertDefined<F extends Func>(
+    input: F,
     err = 'Value null or undefined.'
-): Func<A, T> {
-    return (...args: A) => {
+): (...args: Parameters<F>) => Exclude<ReturnType<F>, null | undefined> {
+    return (...args: Parameters<F>) => {
 
         const output = input(...args)
         if (output == null)
             throw new Error(err)
 
-        return output
+        return output as Exclude<ReturnType<F>, null | undefined> 
     }
 }
 

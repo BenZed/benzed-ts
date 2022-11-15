@@ -43,7 +43,7 @@ type EventListener<T extends object, K extends StringKeys<T>> =
  * event. Extend the class and it's addListener / removeListener methods 
  * to gain equivalent functionality. 
  */
-class EventEmitter<T extends object = any> {
+class EventEmitter<T extends object> {
 
     protected readonly _subscriptions: {
         [K in StringKeys<T>]?: Array<EventSubscription<T, K>>
