@@ -13,8 +13,8 @@ export function expectValidationError(func: () => unknown): ReturnType<typeof ex
         error = e
     }
 
-    expect(error).toHaveProperty(`name`, ValidationError.name)
-    expect(error).toHaveProperty(`path`)
+    expect(error).toHaveProperty('name', ValidationError.name)
+    expect(error).toHaveProperty('path')
 
     return expect(error)
 }

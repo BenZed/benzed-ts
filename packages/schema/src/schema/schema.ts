@@ -50,7 +50,6 @@ import {
     toCustomValidatorSettings 
 } from '../validator/custom'
 
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 //// Types ////

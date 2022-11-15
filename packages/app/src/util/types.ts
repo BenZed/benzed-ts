@@ -1,5 +1,4 @@
 import $, { Schema } from '@benzed/schema'
-import { nil } from '@benzed/util'
 
 import { HttpMethod } from './http-methods'
 
@@ -32,7 +31,7 @@ export const $path = $.string
 /**
  * usable url param values
  */
-export type UrlParam = string | number | nil
+export type UrlParam = string | number | undefined
  
 /**
  * Subset object containing only values that are applicable url params

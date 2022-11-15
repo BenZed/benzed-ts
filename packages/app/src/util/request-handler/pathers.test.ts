@@ -1,7 +1,5 @@
 import { createStaticPather, createUrlParamPather } from './pathers'
 
-import { nil } from '@benzed/util'
-
 //// Test ////
 
 describe('createStaticPather', () => {

@@ -13,6 +13,10 @@ type ToDashCase<S extends string | string[] | readonly string[], D extends strin
              ? ToDashCase<Split<S, D | '-'>>
              : never
 
+// TODO FIXME the type behaviour and the method behaviour are not the same. 
+// One simply replaces a delimiter with a dash, the other converts from camel case. 
+// Rethink this.
+
 /**
  * Converts a string from camel case to dash case.
  * 
