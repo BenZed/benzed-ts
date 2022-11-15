@@ -33,17 +33,24 @@ interface MongoDbSettings extends Infer<typeof $mongoDbSettings>{}
 
 const $mongoDbSettings = $.shape({
 
-    uri: $.string
+    uri: $
+        .string
         .optional
         .default('mongodb://127.0.0.1:<port>/<database>'),
+
     database: $.string,
 
     port: $port
         .optional
         .default(DEFAULT_MONGODB_PORT),
 
-    user: $.string.optional,
-    password: $.string.optional,
+    user: $
+        .string
+        .optional,
+    
+    password: $
+        .string
+        .optional,
 
     logIcon: $logIcon.default('🗄️')
 

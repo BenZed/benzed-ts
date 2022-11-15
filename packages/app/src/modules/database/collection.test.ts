@@ -20,7 +20,7 @@ const $user = $.shape({
 
     password: $
         .string
-        .length('>', 8)
+        .length('>=', 8)
         .name('password')
 
 })
@@ -50,7 +50,7 @@ it('takes a collection name and a schema', () => {
 
 it('requires a database when running', () => {
     expect(() => users.database)
-        .toThrow('Collection is missing module MongoDb')
+        .toThrow('Collection is missing module')
 })
 
 describe('operations', () => {
@@ -76,10 +76,13 @@ describe('operations', () => {
 
     describe('create', () => {
 
-        it('validates data added to a collection', () => {
-            const newUser = collection.create()
+        it('validates data added to a collection', async () => {
+            const newUser = await collection.create({
+                email: 'person@email.com',
+                name: 'Human Person',
+                password: 'password'
+            })
+            
         })
-
     })
-    
 })

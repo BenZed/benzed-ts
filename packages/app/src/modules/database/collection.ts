@@ -1,9 +1,8 @@
 import $, { Schema, SchemaFor } from '@benzed/schema'
 
-import { RecordCollection } from './database'
+import { Database, Record, RecordCollection } from './database'
 
 import { SettingsModule } from '../../module'
-import { Database } from '.'
 
 //// Settings ////
 
@@ -28,8 +27,7 @@ const $collectionName = $.string
     .format('alphanumeric')
     .name('collection')
 
-const $schema = $.unknown
-    .asserts(i => i instanceof Schema)
+const $schema = $.unknown.asserts(i => i instanceof Schema)
 
 //// Main ////
 
@@ -41,12 +39,20 @@ class Collection<R extends object>
         return this.getModule(Database, true, 'parents')
     }
 
+    get records(): RecordCollection<R> {
+        return this.database.getCollection(this.settings.name)
+    }
+
     // static create with schema validation
 
     static create<Rx extends object>(settings: CollectionSettings<Rx>): Collection<Rx> {
         return new Collection({
-            name: $collectionName.validate(settings.name),
-            schema: $schema.validate(settings.schema) as SchemaFor<Rx>
+
+            name: $collectionName
+                .validate(settings.name),
+            
+            schema: $schema
+                .validate(settings.schema) as SchemaFor<Rx>
         })
     }
     
@@ -54,6 +60,19 @@ class Collection<R extends object>
         settings: CollectionSettings<R>
     ) {
         super(settings)
+    }
+
+    async create(data: R): Promise<Record<R>> {
+       
+        const { schema: $create } = this.settings
+        
+        const record = await this
+            .records
+            .create(
+                $create.validate(data)
+            )
+
+        return record
     }
 
 }
