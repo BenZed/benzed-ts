@@ -1,26 +1,30 @@
-import is from '@benzed/is'
-import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { Merge, StringKeys } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
-import { Command, CommandInput, CommandModule, CommandOutput } from './command'
-import { Path, UnPath } from './util/types'
-import { Module, Modules } from './module'
-import { Client, Server } from './modules'
+import { $path, Path, UnPath } from './util/types'
+
+import { 
+    Module, 
+    Modules 
+} from './module'
+
+import { 
+    Client, 
+    Server 
+} from './modules'
+
+import { 
+    Command, 
+    CommandInput, 
+    CommandModule, 
+    CommandOutput
+} from './command'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
-
-//// Helper ////
-
-const isModule = $(Module).is
-
-const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith('/')
-
-//// Helper Types ////
 
 //// Commands Type ////
 
@@ -40,28 +44,15 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
     : {}
 
 type ModuleCommands<M extends Modules | Module> = 
-    Merge<
-    M extends ServiceModule<infer Mx> 
-        ? _CommandsOfModules<Mx>
-        : M extends Modules 
-            ? _CommandsOfModules<M>
-            : M extends Module 
-                ? _CommandsOfModule<M, ''> 
-                : never
-    >
-
-//// Service Paths ////
-
-// type CombinePath<P1 extends string, P2 extends Path> = P1 extends '/' ? P2 : `${P1}${P2}`
-
-// type ServicePaths<M extends Modules, P extends Path> = 
-//     M extends [infer Mx, ...infer Mr]
-//         ? Mx extends Service<infer Px, infer Mxr>
-//             ? Mr extends Modules 
-//                 ? [CombinePath<P,Px>, ...ServicePaths<Mxr, CombinePath<P,Px>>, ...ServicePaths<Mr, P>]
-//                 : [CombinePath<P,Px>, ...ServicePaths<Mxr, CombinePath<P,Px>>]
-//             : Mr extends Modules ? ServicePaths<Mr, P> : []
-//         : []
+    Merge<[
+        M extends ServiceModule<infer Mx> 
+            ? _CommandsOfModules<Mx>
+            : M extends Modules 
+                ? _CommandsOfModules<M>
+                : M extends Module 
+                    ? _CommandsOfModule<M, ''> 
+                    : never
+    ]>
 
 //// Command Module ////
 
@@ -184,8 +175,8 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         ...args: [path: Path, module: Module] | [module: Module] | Modules
     ): Modules {
 
-        const path = pluck(args, isPath).at(0)
-        const inputModules = pluck(args, isModule)
+        const path = pluck(args, $path.is).at(0)
+        const inputModules = args
         if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)
 

@@ -1,9 +1,8 @@
 import { isNumber } from '@benzed/is'
 
 import { UnmatchedValueError } from './error'
-
-import { match } from './match'
 import { MatchExpression, MatchExpressionIncomplete } from './types'
+import { match } from './match'
 
 import { expectTypeOf } from 'expect-type'
 

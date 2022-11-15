@@ -15,6 +15,7 @@ import {
     HasMutable,
     HasOptional
 } from './flags'
+
 import Schema from './schema'
 
 //// Helper ////

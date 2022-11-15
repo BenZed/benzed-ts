@@ -1,13 +1,12 @@
+import is from '@benzed/is'
+
 import match from './match'
 import { Match, Matcher } from './types'
-
-import is, { isBoolean, isNumber, isString } from '@benzed/is'
 
 import {
     NoMultipleDefaultCasesError,
     NotMatchExpressionError, 
     UnmatchedValueError
-
 } from './error'
 
 import { expectTypeOf } from 'expect-type'
@@ -19,20 +18,25 @@ import { expectTypeOf } from 'expect-type'
 //// Tests ////
 
 it('match() to create a match', () => {
+
+    const m1 = match()
+        .case(0, 'zero')
+
+    const m2 = m1
+        .case(1, 'one')
+
+    expectTypeOf(m1)
+        .toEqualTypeOf<Matcher<unknown, 0, 'zero'>>()
     
-    const m1 = match().case(0, 'zero')
-    const m2 = m1.case(1, 'one')
+    expectTypeOf(m2)
+        .toEqualTypeOf<Matcher<unknown, 0 | 1, 'zero' | 'one'>>()
 
-    expectTypeOf(m1).toEqualTypeOf<Matcher<unknown, 0, 'zero'>>()
-    expectTypeOf(m2).toEqualTypeOf<Matcher<unknown, 0 | 1, 'zero' | 'one'>>()
-
-    // @ts-expect-error Match match 2, not a possible input
+    // @ts-expect-error Match match 2 not a possible input
     expect(() => m2.value(2))
         .toThrow(UnmatchedValueError)
-
 })
 
-it('mnon iterable', () => {
+it('non iterable', () => {
 
     const match1to3 = match()
         .case(1, 'one')
@@ -221,11 +225,11 @@ describe('objects', () => {
         const m1 = match()
             .case(0, 'Zero')
             .case(1, 'One')
-            .case({ ten: 10 } as const, 'Ten')
+            .case({ ten: 10 }, 'Ten')
             .default('Unknown')
 
         expectTypeOf(m1)
-            .toEqualTypeOf<Matcher<unknown, number | { ten: number}, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
+            .toEqualTypeOf<Match<number | { ten: number }, 'Zero' | 'One' | 'Ten' | 'Unknown'>>()     
     })
 
 })
@@ -245,12 +249,22 @@ describe('method output', () => {
     it('union method output', () => {
 
         const m1 = match()
-            .case(isNumber, i => i > 50 ? 'Big' : 'Small')
-            .case(isString, i => `${i}!` as const)
+            .case(is.number, i => i > 50 ? 'Big' : 'Small')
+            .case(is.string, i => `${i}!` as const)
 
         expect(m1(0)).toEqual('Small')
         expect(m1(100)).toEqual('Big')
         expect(m1('Hey')).toEqual('Hey!')
+    })
+
+    it('object inputs', () => {
+
+        const m1 = match()
+            .case({ foo: 'bar' } as const, i => i.foo)
+            .case({ cake: 'town' } as const, i => i.cake)
+            .case({ run: 'down' }, i => i.run)
+
+        expect(m1({ foo: 'bar' })).toEqual('bar')
     })
 
 })
@@ -261,12 +275,12 @@ describe('nested match expressions', () => {
 
         const m1 = match()
         
-            .case(isNumber, i => match(i)
+            .case(is.number, i => match(i)
                 .case(i => i > 0, '+')
                 .case(i => i < 0, '-')
                 .default(0)
 
-            ).case(isBoolean, i => match(i) 
+            ).case(is.boolean, i => match(i) 
                 .case(true, '+')
                 .case(false, '-')
             )
@@ -284,7 +298,7 @@ describe('nested match expressions', () => {
 
         let buildMatchCalls = 0
 
-        const m1 = match().case(isString, i => {
+        const m1 = match().case(is.string, i => {
             buildMatchCalls++
             return match(i).case('Hi!', 'Hello?').default('Fuck Off.')
         })

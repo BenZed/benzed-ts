@@ -41,18 +41,20 @@ type Casing =
     'pascal'
 
 type CaseValidatorSettingsShortcut<C extends Casing> = Delimiter<C> extends never
+    
     ? [
         error: ErrorDefault<CaseValidatorSettings<C>>
     ] | [
         Omit<CaseValidatorSettings<C>, 'case'>
-    ]
+    ] | []
+
     : [
         delimiter: Delimiter<C>
     ] | [
         delimiter: Delimiter<C>, error: ErrorDefault<CaseValidatorSettings<C>>
     ] | [
         Omit<CaseValidatorSettings<C>, 'case'>
-    ]
+    ] | []
 
 function isDelimitedCasing(casing: Casing): casing is 'dash' | 'camel' | 'pascal' {
     return casing === 'dash' || casing === 'camel' || casing === 'pascal'

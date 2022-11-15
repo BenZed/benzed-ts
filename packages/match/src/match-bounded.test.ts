@@ -3,6 +3,7 @@ import is, { isNumber } from '@benzed/is'
 import { expectTypeOf } from 'expect-type'
 
 import { Match, Matcher, MatchEmpty, MatchIncomplete } from './types'
+
 import { UnmatchedValueError } from './error'
 import { match } from './match'
 
