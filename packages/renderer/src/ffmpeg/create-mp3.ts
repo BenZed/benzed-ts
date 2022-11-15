@@ -21,8 +21,8 @@ type CreateMP3Options =
 
 //// Constants ////
 
-const AUDIO_CODEC = `libmp3lame`
-const OUTPUT_FORMAT = `mp3`
+const AUDIO_CODEC = 'libmp3lame'
+const OUTPUT_FORMAT = 'mp3'
 
 //// Main ////
 
@@ -49,7 +49,7 @@ function createMP3(
 
     const start = Date.now()
 
-    throw new Error(`Not yet implemented.`)
+    throw new Error('Not yet implemented.')
     void output
     const renderTime = Date.now() - start
     return Promise.resolve({ renderTime })

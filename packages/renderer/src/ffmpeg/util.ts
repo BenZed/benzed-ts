@@ -23,17 +23,17 @@ export function getFfmpegSizeOptionString(
     ScaleString |
     undefined {
 
-    if (`dimensions` in input && isNumber(input.dimensions))
+    if ('dimensions' in input && isNumber(input.dimensions))
         return `${input.dimensions}x${input.dimensions}`
 
-    if (`scale` in input && isNumber(input.scale))
+    if ('scale' in input && isNumber(input.scale))
         return `${input.scale * 100}%`
 
-    const width = `width` in input ? input.width ?? `?` : `?`
-    const height = `height` in input ? input.height ?? `?` : `?`
+    const width = 'width' in input ? input.width ?? '?' : '?'
+    const height = 'height' in input ? input.height ?? '?' : '?'
 
     const size: AxisString = `${width}x${height}`
-    return size === `?x?` ? undefined : size
+    return size === '?x?' ? undefined : size
 }
 
 export function createOutputStreams(
@@ -58,7 +58,7 @@ export function createOutputStreams(
     outputWriter.write = overrideWrite
 
     // cap read stream when the writer is finished
-    outputWriter.on(`close`, () => metaReader.push(null))
+    outputWriter.on('close', () => metaReader.push(null))
 
     return [outputWriter, metaReader]
 }

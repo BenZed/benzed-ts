@@ -14,14 +14,14 @@ const describeValidator = <T extends Validator>(options: {
 
     const description =
         options.describe ??
-        `creates a ${options.factory.name ?? ``}`.trim() + ` validator`
+        `creates a ${options.factory.name ?? ''}`.trim() + ' validator'
 
     describe(description, () => {
 
         const validator = options.factory(...options.input)
 
         for (const [value, result] of options.data) {
-            it(`${JSON.stringify(value)} ${result ? `pass` : `fail`}`, () => {
+            it(`${JSON.stringify(value)} ${result ? 'pass' : 'fail'}`, () => {
                 expect(validator(value)).toBe(result)
             })
         }
