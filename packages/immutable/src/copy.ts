@@ -5,23 +5,25 @@
 */
 import { isFunction } from '@benzed/is'
 
-import { getKeys, isPrototypal, isReferable, Prototypal } from './util'
+import { isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
+import { keysOf } from '@benzed/util/lib'
 
 //// Types ////
 
 type Refs = any[]
-interface Copyable<T> {
-    [$$copy]: (this: Readonly<T>, refs?: Refs) => T
+
+interface Copyable {
+    [$$copy]: (refs?: Refs) => this
 }
 
-function isCopyable<T>(input: unknown): input is Copyable<T> {
-    return isFunction((input as Copyable<T>)[$$copy])
+function isCopyable(input: unknown): input is Copyable {
+    return isFunction((input as Copyable)[$$copy])
 }
 
 //// Helper ////
 
-function hasCircularRef<T>(value: T, refs: Refs): boolean {
+function hasCircularRef(value: unknown, refs: Refs): boolean {
     const hasCircularReference = isReferable(value) && refs.includes(value)
     return hasCircularReference
 }
@@ -29,7 +31,7 @@ function hasCircularRef<T>(value: T, refs: Refs): boolean {
 function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
 
     if (hasCircularRef(value, refs))
-        throw new Error(`Cannot copy, circular reference deteced.`)
+        throw new Error('Cannot copy, circular reference deteced.')
 
     if (isReferable(value) && !refs.includes(value))
         refs = [...refs, value]
@@ -37,11 +39,11 @@ function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
     return copyWithImplementation(value, refs)
 }
 
-function copyObjectWithoutCircularRefs<T>(value: T, refs: Refs = [value]): T {
+function copyObjectWithoutCircularRefs<T extends object>(value: T, refs: Refs = [value]): T {
 
     const clone = {} as any
 
-    for (const key of getKeys(value)) {
+    for (const key of keysOf(value)) {
 
         if (!hasCircularRef(value[key], refs))
             clone[key] = copyWithoutCircularRef(value[key], refs)
@@ -67,14 +69,14 @@ function copyWithImplementation<T>(value: T, refs?: Refs): T {
     if (value == null)
         return value
 
-    if (isCopyable<T>(value))
+    if (isCopyable(value))
         return value[$$copy](refs)
 
     if (!isPrototypal(value))
         return copyObjectWithoutCircularRefs(value, refs)
 
     throw new Error(
-        `${value.constructor?.name || `value`} does not implement Copyable<T>`
+        `${value.constructor?.name || 'value'} does not implement CopyableF`
     )
 }
 
@@ -119,9 +121,9 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
 //// Add Standard Implementations ////
 {
 
-    const addToPrototype = <T>(
-        { prototype }: Readonly<Prototypal>,
-        implementation: Copyable<T>[typeof $$copy]
+    const addToPrototype = (
+        { prototype }: Prototypal,
+        implementation: (refs?: Refs) => unknown 
     ): void => {
 
         Object.defineProperty(prototype, $$copy, {
@@ -138,13 +140,13 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
     // ^ obviously they're not immutable, but the a weak collection can't be
     // copied as it's contents can't be iterated
 
-    addToPrototype<Set<any>>(Set, copySet)
-    addToPrototype<Map<any, any>>(Map, copyMap)
+    addToPrototype(Set, copySet)
+    addToPrototype(Map, copyMap)
     addToPrototype(Object, copyObject)
     addToPrototype(Date, copyDate)
 
-    if (typeof Buffer !== `undefined`) {
-        addToPrototype(Buffer, function (this: Readonly<Buffer>): Buffer {
+    if (typeof Buffer !== 'undefined') {
+        addToPrototype(Buffer, function (this: Buffer): Buffer {
             return Buffer.from(this)
         })
     }
@@ -166,7 +168,7 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
         Float32Array,
         Float64Array
     ])
-        addToPrototype<any[]>(ArrayType, copyArray)
+        addToPrototype(ArrayType, copyArray)
 
 }
 

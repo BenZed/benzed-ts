@@ -17,7 +17,7 @@ export function isReferable<T>(value: unknown): value is Referable<T> {
         return false
 
     const type = typeof value
-    return type === `object` || type === `function`
+    return type === 'object' || type === 'function'
 }
 
 //// Mutable ////
@@ -43,10 +43,3 @@ export type Immutable<T> =
     T extends ImmutablePrimitive ? T :
     T extends Map<infer K, infer V> ? ImmutableMap<K, V> :
     T extends Set<infer M> ? ImmutableSet<M> : ImmutableObject<T>
-
-//// Helper ////
-
-export function getKeys<T>(value: T): (keyof T)[] {
-    return Object.getOwnPropertyNames(value) as (keyof T)[]
-}
-

@@ -14,7 +14,7 @@ import { ValueMap as _ValueMap } from '@benzed/util'
 
 //// Main ////
 
-class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K, V>> {
+class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable {
 
     protected _keysEqual(l: K, r: K): boolean {
         return equals(l,r)
@@ -22,17 +22,17 @@ class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable<ValueMap<K
 
     //  CopyComparable Implementation
 
-    [$$copy](): ValueMap<K, V> {
+    [$$copy](): this {
         const Type = this.constructor
 
         const args = []
         for (const keyValue of this)
             args.push(copy(keyValue))
 
-        return new (Type as any)(args) as ValueMap<K, V>
+        return new (Type as any)(args)
     }
 
-    [$$equals](right: unknown): right is ValueMap<K, V> {
+    [$$equals](right: unknown): right is this {
         const left = this
 
         if (!(right instanceof ValueMap))

@@ -145,11 +145,11 @@ describe('equals()', () => {
         it('works on class instance functions', () => {
 
             class Foo {
-                public funcProp = (): void => { /**/ }
-                public funcLoose(): void { /**/ }
-                public funcBound(): void { /**/ }
+                funcProp = (): void => { /**/ }
+                funcLoose(): void { /**/ }
+                funcBound(): void { /**/ }
 
-                public constructor () {
+                constructor () {
                     this.funcBound = this.funcBound.bind(this)
                 }
             }
@@ -183,13 +183,13 @@ describe('equals()', () => {
 
             class Foo {
 
-                public bar: string
+                bar: string
 
-                public constructor (bar: any) {
+                constructor (bar: any) {
                     this.bar = bar
                 }
 
-                public [$$equals](b: any): boolean {
+                [$$equals](b: any): boolean {
                     calls++
                     return b instanceof Foo && b.bar === this.bar
                 }
@@ -228,7 +228,7 @@ describe('equals()', () => {
         let count = 0
 
         class EqualSpy {
-            public [$$equals](b: unknown): boolean {
+            [$$equals](b: unknown): boolean {
                 count++
                 return this === b
             }
@@ -278,19 +278,19 @@ describe('equals()', () => {
 
             class Account {
 
-                public amount: number
+                amount: number
 
-                public constructor (amount: any) {
+                constructor (amount: any) {
                     if (amount instanceof Account)
                         amount = amount.amount
                     this.amount = amount
                 }
 
-                public toString(): string {
+                toString(): string {
                     return `$${this.amount}`
                 }
 
-                public [$$equals](right: unknown): boolean {
+                [$$equals](right: unknown): boolean {
                     const left = this.amount
                     right = right instanceof Account
                         ? right.amount

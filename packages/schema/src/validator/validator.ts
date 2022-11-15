@@ -39,7 +39,7 @@ abstract class Validator<
     I,
     O extends I = I,
     S extends object = object,
-/**/> implements CopyComparable<Validator<I, O, S>> {
+/**/> implements CopyComparable {
 
     //// State ////
 
