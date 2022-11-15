@@ -1,11 +1,11 @@
 import is from '@benzed/is'
 import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
-import { Compile, StringKeys } from '@benzed/util'
-import { capitalize, toCamelCase } from '@benzed/string'
+import { Merge, StringKeys } from '@benzed/util'
+import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { Command, CommandInput, CommandModule, CommandOutput } from './command'
-import { CamelCombine, Path } from './util/types'
+import { Path, UnPath } from './util/types'
 import { Module, Modules } from './module'
 import { Client, Server } from './modules'
 
@@ -22,15 +22,13 @@ const isPath = (input: unknown): input is Path => is.string(input) && input.star
 
 //// Helper Types ////
 
-type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
-
 //// Commands Type ////
 
 type _CommandsOfModule<M extends Module, P extends string> = 
     M extends Service<infer Px, infer Mx> 
-        ? _CommandsOfModules<Mx, CamelCombine<P, _Unslash<Px>>>
+        ? _CommandsOfModules<Mx, ToCamelCase<[P, UnPath<Px>], '-'>>
         : M extends CommandModule<infer N, any, any> 
-            ? { [K in N as CamelCombine<P, N>]: M }
+            ? { [K in N as ToCamelCase<[P, N], '-'>]: M }
             : {}
 
 type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
@@ -42,16 +40,14 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
     : {}
 
 type ModuleCommands<M extends Modules | Module> = 
-    Compile<
+    Merge<
     M extends ServiceModule<infer Mx> 
         ? _CommandsOfModules<Mx>
         : M extends Modules 
             ? _CommandsOfModules<M>
             : M extends Module 
                 ? _CommandsOfModule<M, ''> 
-                : never,
-    Function,
-    false
+                : never
     >
 
 //// Service Paths ////

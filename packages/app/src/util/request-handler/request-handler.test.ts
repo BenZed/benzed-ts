@@ -7,10 +7,10 @@ it('is sealed', () => {
 })
 
 for (const [name, method] of Object.entries(HttpMethod)) {
+
     const req = Req.create(method)
 
     describe(`RequestHandler.create(${name})`, () => {
-
         it(`created with ${name}`, () => {
             expect(req.method).toEqual(method)
         })
@@ -24,19 +24,21 @@ for (const [name, method] of Object.entries(HttpMethod)) {
 
 describe('RequestHandler.create()', () => {
     it('path in req.create()', () => {
-        const request = Req.create(HttpMethod.Get).toRequest({})
+        const request = Req
+            .create(HttpMethod.Get)
+            .toRequest({})
+        
         expect(request).toHaveProperty('url', '/')
     })
-
 })
 
-describe('RequestHandler.url()', () => {
+describe('req.setUrl()', () => {
 
     const req = Req
         .create(HttpMethod.Get)
-        .url('/target')
+        .setUrl('/target')
 
-    it('path in req.create()', () => {
+    it('url with string', () => {
         expect(req.toRequest({})).toEqual({
             method: HttpMethod.Get,
             url: '/target',
@@ -50,24 +52,24 @@ describe('RequestHandler.url()', () => {
         it('params are typesafe', () => {
 
             Req.create<{ ace: string }>(HttpMethod.Delete)
-                .url`/orphans/${'ace'}`
+                .setUrl`/orphans/${'ace'}`
 
             Req.create<{ foo: string }>(HttpMethod.Delete)
             // @ts-expect-error 'bar' not in object
-                .url`/orphans/${'bar'}`
+                .setUrl`/orphans/${'bar'}`
 
             Req.create<{ base: boolean }>(HttpMethod.Post)
             // @ts-expect-error string/number's no objects or bools
-                .url`/orphans/${'base'}`
+                .setUrl`/orphans/${'base'}`
 
             Req.create<{ case?: number}>(HttpMethod.Get)
-                .url`/orphans/${'case'}` // optional properties are also ok
+                .setUrl`/orphans/${'case'}` // optional properties are also ok
         })
 
         it('url param', () => {
             const req = Req
                 .create<{ id: string }>(HttpMethod.Get)
-                .url`/target/${'id'}`
+                .setUrl`/target/${'id'}`
 
             const { url, body, method } = req.toRequest({ id: 'hello' })
 
@@ -78,7 +80,7 @@ describe('RequestHandler.url()', () => {
 
         const req = Req
             .create<{ id?: string, name?: string, size?: string, age?: number }>(HttpMethod.Get)
-            .url`/clothing-by-age/${'age'}/${'id'}`
+            .setUrl`/clothing-by-age/${'age'}/${'id'}`
 
         it('2 url param', () => {
             expect(
@@ -120,5 +122,60 @@ describe('RequestHandler.url()', () => {
                 url: '/clothing-by-age?name=hey&size=large'
             })
         })
+
+        it('method is preserved', () => {
+            expect(Req
+                .create(HttpMethod.Options)
+                .setUrl`/cake`
+                .method
+            ).toBe(HttpMethod.Options)
+        })
     })
+
+    describe('url with pather function', () => {
+
+        it('allows custom pathing', () => {
+
+            const req = Req
+                .create<{ id: string, [key:string]: number | boolean | string }>(HttpMethod.Get)
+                .setUrl(data => {
+                    const { id, ...rest } = data
+                    return [
+                        id === 'admin'
+                            ? '/admin-portal'
+                            : `/users/${id}`, rest 
+                    ]
+                })
+
+            expect(req.toRequest({ id: 'monkey '})).toEqual({
+                method: HttpMethod.Get,
+                url: '/users/monkey'
+            })
+
+            expect(req.toRequest({ id: 'admin', cake: 1, tare: true, soke: 'cimm' })).toEqual({
+                method: HttpMethod.Get,
+                url: '/admin-portal?cake=1&tare=true&soke=cimm'
+            })
+        })
+    })
+})
+
+describe('req.setMethod()', () => {
+
+    it('returns a new request handler with a different method', () => {
+        const req = Req.create(HttpMethod.Get)
+
+        expect(req.method).toEqual(HttpMethod.Get)
+        expect(req.setMethod(HttpMethod.Options).method).toEqual(HttpMethod.Options)
+    })
+
+    it('pather is preserved', () => {
+        const req = Req.create(HttpMethod.Get)
+            .setUrl('/cake')
+            .setMethod(HttpMethod.Patch)
+            .toRequest({})
+
+        expect(req.url).toEqual('/cake')
+    })
+
 })

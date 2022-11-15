@@ -29,9 +29,9 @@ export const createUrlParamPather = <T extends object>(
     urlSegments: readonly string[], 
     ...urlParamKeys: UrlParamKeys<T>[]
 ): Pather<T> => (data: T) => {
- 
+    
     let url = ''
-    for (let i = 0; i < urlParamKeys.length; i++) {
+    for (let i = 0; i < urlSegments.length; i++) {
 
         url += urlSegments[i]
 

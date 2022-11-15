@@ -9,9 +9,15 @@ import { HttpMethod } from './http-methods'
 export type Path = `/${string}`
 
 /**
+ * Remove the starting slash from a string, unpathing it.
+ */
+export type UnPath<S extends string> = S extends `/${infer Sx}` ? Sx : S
+
+/**
  * Schema for path
  */
-export const $path = $.string
+export const $path = Object.assign($.string
+    .trim()
     .validates(
         s => s.startsWith('/') ? s : `/${s}`, 
     
@@ -25,9 +31,10 @@ export const $path = $.string
     .validates(
         s => s.replace(/\/$/, '') || '/',
         //                                                      ^ in case we just removed the last slash
-        
         'Must not end with a "/"'
-    ) as Schema<Path, Path>
+    ) as Schema<Path, Path>, {
+    
+})
 
 /**
  * usable url param values

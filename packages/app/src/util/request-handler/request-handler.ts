@@ -1,6 +1,4 @@
-
 import is from '@benzed/is'
-import { nil, omit } from '@benzed/util'
 
 import { 
     createStaticPather, 
@@ -9,29 +7,34 @@ import {
 } from './pathers'
 
 import { 
+
     Request,
+
     Path,
+    $path, 
+
     HttpMethod, 
     UrlParamKeys, 
-     
-    toQueryString 
+
+    toQueryString
+
 } from '../../util'
+
+import { Module } from '../../module'
 
 //// Base ////
 
-abstract class _RequestHandler<T> {
+interface RequestHandler<T> {
 
-    // abstract get methods(): HttpMethod[]
+    toRequest(data: T): Request
 
-    abstract toRequest(data: T): Request
-
-    abstract matchRequest(input: Request): T | nil
+    matchRequest(input: Request): T | void
 
 }
 
 //// Main ////
 
-class RequestHandler<T extends object> extends _RequestHandler<T> {
+class RequestHandler<T extends object> extends Module implements RequestHandler<T> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Tx> {
         return new RequestHandler<Tx>(method)
@@ -40,8 +43,8 @@ class RequestHandler<T extends object> extends _RequestHandler<T> {
     private constructor(
         readonly method: HttpMethod,
         private readonly _pather: Pather<T> = createStaticPather('/')
-    ) {
-        super()   
+    ) { 
+        super()
     }
 
     //// Handler Implementation ////
@@ -50,9 +53,7 @@ class RequestHandler<T extends object> extends _RequestHandler<T> {
     
         const { method } = this
 
-        const [ urlWithoutPrefix, dataWithoutParams ] = this._createPath({...data})
-
-        const url = `${urlPrefix ?? ''}${urlWithoutPrefix}` as Path
+        const [ url, dataWithoutParams ] = this._createPath(data, urlPrefix)
 
         const body = method === HttpMethod.Get ? undefined : dataWithoutParams
 
@@ -62,11 +63,10 @@ class RequestHandler<T extends object> extends _RequestHandler<T> {
             url,
             headers: undefined
         }
-
     }
 
-    matchRequest(input: Request): T | nil {
-        return nil
+    matchRequest(input: Request): T | void {
+        //
     }
 
     //// Builder Methods ////
@@ -74,12 +74,12 @@ class RequestHandler<T extends object> extends _RequestHandler<T> {
     /**
      * Provide a url as a tempate string, where interpolated object keys will fill in url parameters
      */
-    url(str: TemplateStringsArray, ...properties: UrlParamKeys<T>[]): RequestHandler<T> 
+    setUrl(str: TemplateStringsArray, ...properties: UrlParamKeys<T>[]): RequestHandler<T> 
     
     /**
      * Provide a simple static path
      */
-    url(path: Path): RequestHandler<T> 
+    setUrl(path: Path): RequestHandler<T> 
 
     /**
      * Provide a pather function to create urls.
@@ -88,12 +88,10 @@ class RequestHandler<T extends object> extends _RequestHandler<T> {
      * data containing fields that were not used
      * in the query or url parameters when constructing the
      * path. 
-     * 
-     * If no object is returned, then no data was used.
      */
-    url(pather: Pather<T>): RequestHandler<T> 
+    setUrl(pather: Pather<T>): RequestHandler<T> 
     
-    url(fParam: TemplateStringsArray | Path | Pather<T>, ...rParams: UrlParamKeys<T>[]): RequestHandler<T> {
+    setUrl(fParam: TemplateStringsArray | Path | Pather<T>, ...rParams: UrlParamKeys<T>[]): RequestHandler<T> {
 
         const pather = is.string(fParam)
             ? createStaticPather<T>(fParam)
@@ -107,26 +105,26 @@ class RequestHandler<T extends object> extends _RequestHandler<T> {
         )
     }
 
-    //// Helper ////
-    
-    private _createPath(data: T): ReturnType<Pather<T>> {
-
-        const [url, dataOmitUrlParams ] = this._pather(data)
-
-        const queryParams = this.method === HttpMethod.Get 
-            ? dataOmitUrlParams
-            : nil
-
-        const urlWithQuery = queryParams && url + toQueryString(queryParams) as Path
-
-        const dataOmitUrlAndQueryParams = dataOmitUrlParams && 
-            queryParams && 
-            omit(dataOmitUrlParams, ...Object.keys(queryParams) as []) as Partial<T>
-
-        return [ urlWithQuery ?? url, dataOmitUrlAndQueryParams ?? dataOmitUrlParams ] 
-            
+    /**
+     * Changes the method of this request handler
+     */
+    setMethod(method: HttpMethod): RequestHandler<T> {
+        return new RequestHandler<T>(method, this._pather)
     }
 
+    //// Helper ////
+    
+    private _createPath(data: T, urlPrefix?: Path): ReturnType<Pather<T>> {
+
+        const [ urlWithoutPrefix, dataWithoutUrlParams ] = this._pather(data)
+
+        const url = $path.validate(urlPrefix ?? '' + urlWithoutPrefix)
+
+        const isGetMethod = this.method === HttpMethod.Get 
+        return isGetMethod 
+            ? [ url + toQueryString(dataWithoutUrlParams) as Path, {} ]
+            : [ url, dataWithoutUrlParams ]
+    }
 }
 
 //// Exports ////

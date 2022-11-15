@@ -1,7 +1,5 @@
 import { createStaticPather, createUrlParamPather } from './pathers'
 
-import { nil } from '@benzed/util'
-
 //// Test ////
 
 describe('createStaticPather', () => {
@@ -39,6 +37,11 @@ describe('createUrlParamPather', () => {
         expect(multiParamPather({ id: undefined, collection: 'files' })).toEqual(['/files', {}])
         expect(multiParamPather({ id: undefined, collection: undefined })).toEqual(['/', {}])
         expect(multiParamPather({ id: 'ace', collection: undefined })).toEqual(['/ace', {}])
+    })
+
+    it('end url segments are preserved', () => {
+        const endSegmentPather = createUrlParamPather<{hello: string}>`/greeting/${'hello'}/there`
+        expect(endSegmentPather({ hello: 'sup' })).toEqual(['/greeting/sup/there', {}])
     })
 
 })
