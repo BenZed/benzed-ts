@@ -1,6 +1,4 @@
 
-import { keysOf } from './keys-of'
-
 //// Helper ////
 
 function isIterable<T>(input: unknown): input is Iterable<T> {
@@ -11,11 +9,28 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
 
         (
             type === 'function' || 
-            type === 'object' && input !== null
+            type === 'object' && 
+            input !== null
         ) && 
 
         typeof (input as Iterable<T>)[Symbol.iterator] === 'function'
 
+}
+
+/**
+ * Typesafe iteration of the keys of given object.
+ */
+function * keysOf<T extends object> (object: T): Generator<keyof T> {
+    for (const key in object)
+        yield key
+}
+
+/**
+ * Typesafe iteration of the indexes of a given array-like
+ */
+function * indexesOf<T extends ArrayLike<unknown>>(arrayLike: T): Generator<number> {
+    for (let i = 0; i < arrayLike.length; i++)
+        yield i
 }
 
 //// Main ////
@@ -24,31 +39,32 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
  * Iterate through generic collections
  */
 function* iterate<T>(
-    input:
-    /**/ ArrayLike<T> |
-    /**/ Iterable<T> |
-    /**/ Record<string | number, T>
+    object:
+    ArrayLike<T> |
+    Iterable<T> |
+    Record<string | number, T> |
+    object
 
 ): Generator<T> {
 
-    if (typeof input === 'string' || 'length' in input) {
+    if (typeof object === 'string' || 'length' in object) {
 
         // ArrayLike<T>
-        for (let i = 0; i < input.length; i++)
-            yield input[i]
+        for (const index of indexesOf(object as { length: number }))
+            yield object[index]
 
-    } else if (isIterable(input)) {
+    } else if (isIterable(object)) {
 
         // Iterable<T>
-        for (const value of input as Iterable<T>)
+        for (const value of object as Iterable<T>)
             yield value
 
     } else {
 
-        for (const key of keysOf(input))
-            yield input[key]
-
+        for (const key of keysOf(object))
+            yield object[key]
     }
+
 }
 
 //// Exports ////
@@ -57,5 +73,7 @@ export default iterate
 
 export {
     iterate,
-    isIterable
+    isIterable,
+    keysOf,
+    indexesOf
 }
