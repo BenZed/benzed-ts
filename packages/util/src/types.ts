@@ -1,10 +1,11 @@
 import { Merge } from './merge'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
-export type Func<A extends any[] = any, V = any, T = void> = (this: T, ...args: A) => V
+export type Func = (...args: unknown[]) => unknown 
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
@@ -92,7 +93,7 @@ export type Compile<T, E = void, R extends boolean = true> =
 
                     : T extends object 
 
-                        ? T extends Date | RegExp | Func<any,any,any> | Error
+                        ? T extends Date | RegExp | Function | Error
 
                             ? T
 

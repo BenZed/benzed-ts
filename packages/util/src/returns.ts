@@ -1,6 +1,8 @@
 
 //// Implementation ////
 
+import { Link } from './structures'
+
 /**
  * get a memoized method that returns this given input
  */

@@ -1,11 +1,12 @@
-import { Func } from './types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/unified-signatures
 */
 
-type BenchmarkHandler<T> = Func<[time: number, result: Sync<T>], void | string>
+import { Func } from './types'
+
+type BenchmarkHandler<T> = (time: number, result: Sync<T>) => void | string
 
 type Sync<T> = T extends PromiseLike<infer U> ? U : T
 
@@ -49,27 +50,27 @@ function onBenchmarkComplete(
  * Return a function that logs the provided message when it
  * (a)syncronously resolves.
  */
-function benchmark<A extends any[], R, T = void>(
-    func: Func<A, R, T>,
+function benchmark<F extends Func>(
+    func: F,
     msg: string
-): Func<A, R, T>
+): F
 
 /**
  * Return a function that executes a callback when it
  * (a)syncronously resolves. If that callback returns a
  * string, that string will be logged.
  */
-function benchmark<A extends any[], R, T = void>(
-    func: Func<A, R, T>,
-    onComplete: BenchmarkHandler<R>,
-): Func<A, R, T>
+function benchmark<F extends Func>(
+    func: F,
+    onComplete: BenchmarkHandler<ReturnType<F>>,
+): F
 
-function benchmark<A extends any[], R, T = void>(
-    func: Func<A, R, T>,
-    handler?: string | BenchmarkHandler<R>,
-): Func<A, R, T> {
+function benchmark<F extends Func>(
+    func: F,
+    handler?: string | BenchmarkHandler<ReturnType<F>>,
+): F {
 
-    return function (this: T, ...args: A) {
+    return function (this: unknown, ...args: Parameters<F>) {
 
         const onComplete = onBenchmarkComplete.bind({
             start: Date.now(),
@@ -82,10 +83,10 @@ function benchmark<A extends any[], R, T = void>(
         if (result instanceof Promise)
             result.then(onComplete)
         else
-            onComplete(result as Sync<R>, false)
+            onComplete(result as Sync<ReturnType<F>>, false)
 
         return result
-    }
+    } as F
 
 }
 

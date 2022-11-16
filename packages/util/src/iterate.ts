@@ -9,8 +9,11 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
 
     return type === 'string' ||
 
-        type === 'object' &&
-        input !== null &&
+        (
+            type === 'function' || 
+            type === 'object' && input !== null
+        ) && 
+
         typeof (input as Iterable<T>)[Symbol.iterator] === 'function'
 
 }

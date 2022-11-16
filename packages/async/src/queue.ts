@@ -8,7 +8,7 @@ import {
     isArray
 } from '@benzed/is'
 
-import { EventEmitter, Merge, LinkedList } from '@benzed/util'
+import { EventEmitter, LinkedList } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
@@ -44,7 +44,6 @@ function isQueuePayload<V, T extends object | void>(
     return isObject<{ [key: string]: unknown }>(input) &&
         isDate(input.time) &&
         isInstanceOf(input.queue, Queue)
-
 }
 
 /**
@@ -113,7 +112,7 @@ interface QueueState<V, T extends object | void> {
     data: T
 }
 
-type QueueItem<V, T extends object | void> = Merge<[
+type QueueItem<V, T extends object | void> =
     (T extends void ? { /**/ } : T) &
     {
         readonly [
@@ -128,7 +127,6 @@ type QueueItem<V, T extends object | void> = Merge<[
         get isComplete(): boolean
         complete(): Promise<V>
     }
-]>
 
 type QueueAddInput<V, T extends object | void> =
     T extends void ? QueueTask<V, T> : ({ task: QueueTask<V, T> } & T)
@@ -136,10 +134,8 @@ type QueueAddInput<V, T extends object | void> =
 //// Queue ////
 
 class Queue<
-
     V = void,
     T extends object | void = void
-
 > extends EventEmitter<QueueEvents<V, T>> {
 
     private readonly _queued: LinkedList<{ item: QueueItem<V, T>, state: QueueState<V, T> }> =

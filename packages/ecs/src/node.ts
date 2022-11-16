@@ -70,7 +70,7 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
     
         if (!component) {
             throw new Error(
-                `Could not find component ` + (
+                'Could not find component ' + (
                     is.number(input) 
                         ? `at index ${input}` 
                         : `of type ${(input as any).name}`
@@ -96,7 +96,7 @@ export abstract class Node<I, O, C extends Components> extends Component<I,O> {
 
     protected _assertAtLeastOneComponent(): void {
         if (this.components.length === 0)
-            throw new Error(`Node must be created with at least one component`)
+            throw new Error('Node must be created with at least one component')
     }
 
     protected _assertConflicting<A extends boolean>(...types: ComponentConstructor<C, A>[]): void {

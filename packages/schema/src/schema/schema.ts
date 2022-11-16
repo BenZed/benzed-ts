@@ -39,6 +39,8 @@ import {
     ascending
 } from '@benzed/array'
 
+import { pass } from '@benzed/util'
+
 import {
     CustomAssert,
     CustomTransform,
@@ -47,7 +49,6 @@ import {
     CustomValidatorSettingsShortcut,
     toCustomValidatorSettings 
 } from '../validator/custom'
-import { pass } from '@benzed/util'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -79,7 +80,7 @@ type DefaultSetting<O, K extends keyof DefaultValidatorSettings<O>> =
 
 //// Schema Class ////
 
-abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Schema<I, O, F>> {
+abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
 
     protected readonly _flags: F
     protected readonly _input: I

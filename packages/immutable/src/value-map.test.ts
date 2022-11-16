@@ -15,9 +15,9 @@ import { $$copy, $$equals } from './symbols'
 
 class CustomId {
 
-    public id = 0
+    id = 0
 
-    public constructor (input = Math.random()) {
+    constructor (input = Math.random()) {
 
         this.id = input
         while (this.toString().length < 10)
@@ -27,14 +27,14 @@ class CustomId {
             this.id *= 0.1
     }
 
-    public [$$equals](b: unknown): boolean {
+    [$$equals](b: unknown): boolean {
         return typeof b === 'object' &&
             b !== null &&
             'id' in b &&
             (b as CustomId).id === this.id
     }
 
-    public toString(): string {
+    toString(): string {
         return this.id.toString().replace('0.', '#')
     }
 
