@@ -1,12 +1,6 @@
+import { Map as Link } from '../types'
 
 //// Types ////
-
-/**
- * Pure function that computes a single output from an input
- */
-interface Link<I = unknown, O = unknown> {
-    (input: I): O
-}
 
 interface Chain<I = unknown, O = unknown> extends Link<I,O> {
 
@@ -74,11 +68,8 @@ function chain(...links: Link[]): Chain {
             return x
         },
         {
-
             link,
-
             links,
-
             [Symbol.iterator]: iterateLinks
         }
 
@@ -92,7 +83,6 @@ export default chain
 
 export {
     Link,
-    Link as IO,
 
     chain,
     Chain,

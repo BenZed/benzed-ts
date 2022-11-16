@@ -7,7 +7,7 @@ export type Intersect<T extends readonly object[]> = T extends [infer F, ...infe
         ? F & Intersect<R>
         : F
     : unknown
- 
+
 /**
  * Combine a number of objects.
  */
