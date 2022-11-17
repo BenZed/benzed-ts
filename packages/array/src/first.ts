@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { assertDefined } from '@benzed/util'
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Type ////
 
-type First<T> = T extends readonly [infer U, ...any]
-    ? U
-    : T extends Array<infer U>
-    /**/ ? U | undefined
-    /**/ : T extends Readonly<Array<infer U>>
-        /**/ ? U
+type First<T> = T extends readonly [infer F, ...any]
+    ? F
+    : T extends Array<infer Ti>
+    /**/ ? Ti | undefined
         /**/ : T extends string
             /**/ ? string
-            /**/ : T extends ArrayLike<infer U>
-                /**/ ? U | undefined
+            /**/ : T extends ArrayLike<infer Ti>
+                /**/ ? Ti | undefined
                 /**/ : T
 
 //// Main ////
@@ -22,14 +21,12 @@ type First<T> = T extends readonly [infer U, ...any]
  * Returns the first element of an ArrayLike.
  * @param arrayLike 
  */
-function first<T extends ArrayLike<any>>(
+function first<T extends ArrayLike<unknown>>(
     arrayLike: T
 ): First<T> {
     return arrayLike[0] as First<T>
 }
 
 //// Exports ////
-
-first.assert = assertDefined(first)
 
 export default first

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { isArray } from '@benzed/is'
-import { assertDefined } from '@benzed/util'
 import first from './first'
 
 //// Types ////
@@ -28,7 +27,5 @@ function unwrap<T>(array: T): Unwrap<T> {
 }
 
 //// Exports ////
-
-unwrap.assert = assertDefined(unwrap)
 
 export default unwrap

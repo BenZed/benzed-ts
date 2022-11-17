@@ -8,8 +8,6 @@ export {
 
 } from './ansi'
 
-export * from './assert-defined'
-
 export * from './base-64'
 export * from './benchmark'
 

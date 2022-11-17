@@ -174,7 +174,7 @@ abstract class AssertValidator<O, S extends ErrorSettings>
 
 /**
  * An assert-valid-transform is a convenience abstraction that transforms
- * data to the expected output type. If transforms are now allowed for validation,
+ * data to the expected output type. If transforms are not allowed for validation,
  * it throws if the input is not the same was what the transformation would be.
  * 
  * Most validators will be this.

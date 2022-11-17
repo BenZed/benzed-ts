@@ -4,8 +4,8 @@
     "main": "./lib",
     "version": "3.1.4",
     "scripts": {
-        "test": "jest --maxWorkers=1 -o",
-        "test:dev": "npm run test -- --verbose --watch",
+        "test": "jest --runInBand --all",
+        "test:dev": "jest --runInBand -o --verbose --watch",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
         "build:dev": "npm run tsc -- -w",

@@ -72,10 +72,6 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
 /**
  * Wait until a given condition passes. 
  * 
- * @param condition If this function returns true, this condition is considered to pass.
- * @param timeout? = Infinity Maximum milliseconds to wait for condition to pass. 
- * @param interval? = Frequency to check condition, every given milliseconds
- * @param timeoutMsg? Error message to throw if the condition does not pass before the timeout.
  * @returns Total number of milliseconds waited.
  */
 async function until(

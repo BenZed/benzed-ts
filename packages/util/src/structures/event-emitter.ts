@@ -164,7 +164,6 @@ class EventEmitter<T extends object = AnyEvent> {
      * 
      * @param event Event name
      * @param listener Event listener
-     * @param all Removes every listener for the given event.
      */
     removeListener<K extends StringKeys<T>>(
         event: K,
@@ -199,7 +198,6 @@ class EventEmitter<T extends object = AnyEvent> {
      * 
      * @param event Event name
      * @param listener Event listener
-     * @param all Removes every listener for the given event.
      */
     off<K extends StringKeys<T>>(
         event: K,
