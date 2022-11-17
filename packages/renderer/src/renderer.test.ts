@@ -202,7 +202,8 @@ describe('items', () => {
                 target: path.join(RENDER_FOLDER, 'item-test-1.mp4')
             })
         }
-        expect(renderer.items.length).toBeGreaterThan(0)
+
+        expect(renderer.items().length).toBeGreaterThan(0)
     })
 })
 

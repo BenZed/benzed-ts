@@ -6,7 +6,7 @@ import { isNumber } from '@benzed/is'
 import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import createPNG from './create-png'
-import getMetadata, { isMetadata } from './get-metadata'
+import getMetadata, { $metaData } from './get-metadata'
 
 import { SizeSetting, TimeSetting } from './settings'
 
@@ -50,7 +50,7 @@ const toTargetDimension = (axis: number, scale: number): number => {
 for (const type of types) {
     for (const { options, label, stream } of [...testInput, ...testInputWithStreams]) {
 
-        it.skip(`extracts a frame from ${type} input ${label}`, async () => {
+        it(`extracts a frame from ${type} input ${label}`, async () => {
 
             const input = TEST_ASSETS[type]
             const outputUrl = path.join(RENDER_FOLDER, `test-${type}-${label}.png`)
@@ -105,5 +105,5 @@ it('gets metadata from render', async () => {
         seconds: 0.25
     })
 
-    expect(isMetadata(meta)).toBe(true)
+    expect($metaData.is(meta)).toBe(true)
 })
