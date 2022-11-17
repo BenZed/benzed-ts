@@ -5,10 +5,7 @@ import {
     ErrorSettings
 } from './validator'
 
-import {
-    isPlainObject,
-    isString
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     capitalize,
@@ -72,7 +69,7 @@ function toCaseValidatorSettings<C extends Casing>(
 
     const [arg1, arg2] = input
 
-    const settings: Settings = isPlainObject<Settings>(arg1)
+    const settings: Settings = is.record<Settings>(arg1)
         ? arg1
         : isDelimitedCasing(casing)
             ? { error: arg2, delimiter: arg1 as Delimiter<C> }
@@ -122,11 +119,11 @@ class CaseValidator<C extends Casing>
 
             case 'dash': {
 
-                const delimiter = isString(settings.delimiter)
+                const delimiter =is.string(settings.delimiter)
                     ? settings.delimiter
-                    : undefined
+                    : '-'
 
-                return toDashCase(input, delimiter)
+                return toDashCase(input).replaceAll('-', delimiter)
             }
 
             case 'camel': {

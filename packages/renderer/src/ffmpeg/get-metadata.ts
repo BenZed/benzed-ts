@@ -7,7 +7,7 @@ import {
     Input
 } from './settings'
 
-import { isNaN, isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
 import $ from '@benzed/schema'
@@ -41,11 +41,11 @@ function parseOutputDuration(
     stream: FfprobeStream,
 ): number | undefined {
 
-    const duration = isString(stream.duration)
+    const duration =is.string(stream.duration)
         ? parseFloat(stream.duration)
         : stream.duration
 
-    return isNaN(duration) ? undefined : duration
+    return is.nan(duration) ? undefined : duration
 }
 
 function parseOutputFrameRate(
@@ -65,7 +65,7 @@ function parseOutputFrameRate(
     const [numerator, denominator] = frameRateFraction.split('/').map(parseFloat)
 
     const frameRate = numerator / denominator
-    return isNaN(frameRate) ? undefined : round(frameRate, 0.001)
+    return is.nan(frameRate) ? undefined : round(frameRate, 0.001)
 
 }
 

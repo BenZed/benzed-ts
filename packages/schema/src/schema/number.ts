@@ -1,5 +1,5 @@
 
-import { isNumber, isNaN, isString } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     Flags,
@@ -30,9 +30,9 @@ import { PrimitiveSchema } from './schema'
 //// Helper ////
 
 function tryCastToNumber(value: unknown): unknown {
-    if (isString(value)) {
+    if (is.string(value)) {
         const parsed = parseFloat(value)
-        if (!isNaN(parsed))
+        if (!is.nan(parsed))
             return parsed
     }
 
@@ -54,7 +54,7 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
     protected _typeValidator = new TypeValidator({
         name: 'number',
         article: 'a',
-        is: isNumber,
+        is: is.number,
         cast: tryCastToNumber
     })
 

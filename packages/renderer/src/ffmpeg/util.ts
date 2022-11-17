@@ -1,5 +1,5 @@
 
-import { isString, isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 import fs from '@benzed/fs'
 
 import { Output, SizeSetting } from './settings'
@@ -23,10 +23,10 @@ export function getFfmpegSizeOptionString(
     ScaleString |
     undefined {
 
-    if ('dimensions' in input && isNumber(input.dimensions))
+    if ('dimensions' in input && is.number(input.dimensions))
         return `${input.dimensions}x${input.dimensions}`
 
-    if ('scale' in input && isNumber(input.scale))
+    if ('scale' in input && is.number(input.scale))
         return `${input.scale * 100}%`
 
     const width = 'width' in input ? input.width ?? '?' : '?'
@@ -44,7 +44,7 @@ export function createOutputStreams(
         read() { /**/ }
     })
 
-    const outputWriter = isString(output)
+    const outputWriter =is.string(output)
         ? fs.createWriteStream(output)
         : output
 

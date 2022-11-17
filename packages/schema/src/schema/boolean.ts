@@ -4,7 +4,7 @@ import { PrimitiveSchema } from './schema'
 
 import { TypeValidator } from '../validator/type'
 
-import { isBoolean } from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// Helper ////
 
@@ -26,7 +26,7 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
     protected _typeValidator = new TypeValidator({
         name: 'boolean',
         article: 'a',
-        is: isBoolean,
+        is: is.boolean,
         cast: tryCastToBoolean
     })
 

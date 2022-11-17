@@ -1,5 +1,5 @@
 
-import { isArray, isNumber, isString } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     FormatValidator,
@@ -43,10 +43,10 @@ import {
 
 function tryCastToString(value: unknown): unknown {
 
-    if (isNumber(value))
+    if (is.number(value))
         return value.toString()
 
-    if (isArray(value))
+    if (is.array(value))
         return value.join()
 
     return value
@@ -59,7 +59,7 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
     protected _typeValidator = new TypeValidator({
         name: 'string',
         article: 'a',
-        is: isString,
+        is:is.string,
         cast: tryCastToString
     })
 

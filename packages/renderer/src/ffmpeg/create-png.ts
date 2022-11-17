@@ -19,7 +19,7 @@ import {
 
 import { clamp } from '@benzed/math'
 
-import { isDefined, isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// Types ////
 
@@ -40,13 +40,13 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     const { input } = options
     const { duration, frameRate } = await getMetadata({ input })
 
-    if (!isDefined(duration) || !isDefined(frameRate))
+    if (!is.defined(duration) || !is.defined(frameRate))
         return 0
 
     const frameDuration = 1 / frameRate
     const maxFrameDuration = duration - frameDuration
 
-    if ('seconds' in options && isNumber(options.seconds)) {
+    if ('seconds' in options && is.number(options.seconds)) {
 
         const { seconds } = options
 
@@ -83,7 +83,7 @@ async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
         .outputFormat('image2pipe')
 
     const size = getFfmpegSizeOptionString(options)
-    if (isDefined(size))
+    if (is.defined(size))
         cmd.setSize(size)
 
     const [outputStream, metaStream] = createOutputStreams(output)

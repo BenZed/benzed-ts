@@ -1,4 +1,4 @@
-import { isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import pluck from './pluck'
 
 import { expectTypeOf } from 'expect-type'
@@ -58,7 +58,7 @@ it('optionally allows type guards', () => {
 
     const arr = [0, 1, 2, 3, 'four', 'five', 'six']
 
-    const strings = pluck(arr, isString)
+    const strings = pluck(arr, is.string)
 
     expectTypeOf(strings).toEqualTypeOf<string[]>()
 

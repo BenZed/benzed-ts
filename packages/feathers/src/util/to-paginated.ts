@@ -1,4 +1,4 @@
-import { isArray } from '@benzed/is'
+import { is } from '@benzed/is'
 import { Paginated } from '@feathersjs/feathers'
 
 //// Main ////
@@ -9,7 +9,7 @@ import { Paginated } from '@feathersjs/feathers'
  * @returns output, paginated
  */
 function toPaginated<R>(input: R[] | Paginated<R>): Paginated<R> {
-    return isArray(input)
+    return is.array(input)
         ? { data: input, total: input.length, skip: 0, limit: input.length }
         : input
 }

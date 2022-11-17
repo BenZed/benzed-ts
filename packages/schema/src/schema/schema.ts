@@ -30,9 +30,7 @@ import {
 } from '@benzed/immutable'
 
 import {
-    isInstanceOf,
-    isNumber,
-    isString
+    is
 } from '@benzed/is'
 
 import {
@@ -155,7 +153,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
         option: TypeSetting<O, 'name'> | Partial<Pick<TypeValidatorSettings<O>, 'name' | 'article'>>
     ): this {
 
-        const { name, article } = isString(option) ? { name: option, article: undefined } : option
+        const { name, article } =is.string(option) ? { name: option, article: undefined } : option
 
         return this._copyWithTypeValidatorSettings({ name, article })
     }
@@ -321,7 +319,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
     ): void {
 
         const highestExistingNumericalId = [...this._postTypeValidators.keys()]
-            .filter(isNumber)
+            .filter(is.number)
             .sort(ascending)
             .at(-1) ?? -1
 
@@ -385,7 +383,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
     [$$equals](other: unknown): other is this {
         return (
             // is this schema
-            isInstanceOf(other, this.constructor) &&
+            is.type(other, this.constructor) &&
             // flags match
             equals(other._flags, this._flags) &&
             // type settings match

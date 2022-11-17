@@ -1,4 +1,4 @@
-import { isFunction } from '@benzed/is'
+import { is } from '@benzed/is'
 import { copy } from '@benzed/immutable'
 
 import { TransformValidator } from './validator'
@@ -33,7 +33,7 @@ class DefaultValidator<O> extends TransformValidator<
         const { default: _default } = this.settings
 
         const output = input === undefined
-            ? isFunction(_default)
+            ? is.function(_default)
                 ? _default()
                 : copy(_default)
             : input

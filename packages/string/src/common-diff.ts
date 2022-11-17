@@ -1,4 +1,4 @@
-import { isBoolean, isNumber, isObject } from '@benzed/is'
+import { is } from '@benzed/is'
 import match from '@benzed/match'
 
 //// Constants ////
@@ -85,9 +85,9 @@ function* createDiffs(
 //// Match Options ////
 
 const matchOptions = match()
-    .case(isBoolean, fromEnd => ({ fromEnd }))
-    .case(isNumber, offset => ({ offset }))
-    .case(isObject<Partial<CommonDiffOptions>>, options => options)
+    .case(is.boolean, fromEnd => ({ fromEnd }))
+    .case(is.number, offset => ({ offset }))
+    .case(is.object, options => options)
 
 //// Main ////
 

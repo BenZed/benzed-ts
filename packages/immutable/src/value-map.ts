@@ -1,3 +1,5 @@
+import { ValueMap as _ValueMap } from '@benzed/util'
+
 import equals from './equals'
 import copy from './copy'
 
@@ -5,7 +7,6 @@ import { CopyComparable } from './index'
 
 import { $$copy, $$equals } from './symbols'
 
-import { ValueMap as _ValueMap } from '@benzed/util'
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
     @typescript-eslint/no-explicit-any,

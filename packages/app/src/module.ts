@@ -1,5 +1,5 @@
-import { $$copy, unique } from '@benzed/immutable'
 import { wrap } from '@benzed/array'
+import { $$copy, unique } from '@benzed/immutable'
 
 import type { Service, ServiceModule } from './service'
 import { Path } from './util/types'

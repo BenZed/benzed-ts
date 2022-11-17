@@ -1,4 +1,4 @@
-import { isFunction, isNumber, isObject, isString } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import milliseconds from './milliseconds'
 
@@ -43,22 +43,22 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
     let timeoutMsg = DEFAULT_TIMEOUT_MSG
 
     // Find timeoutMsg
-    if (isFunction(a1) || isString(a1))
+    if (is.function(a1) || is.string(a1))
         timeoutMsg = a1
-    else if (isFunction(a2) || isString(a2))
+    else if (is.function(a2) || is.string(a2))
         timeoutMsg = a2
-    else if (isFunction(a3) || isFunction(a3))
+    else if (is.function(a3) || is.function(a3))
         timeoutMsg = a3
 
     // Find interval & timeout
-    if (isNumber(a1)) {
+    if (is.number(a1)) {
         timeout = a1
 
-        if (isNumber(a2))
+        if (is.number(a2))
             interval = a2
 
         // Find configuration object
-    } else if (isObject<UntilOptions>(a1)) {
+    } else if (is.object<UntilOptions>(a1)) {
         timeout = a1.timeout ?? timeout
         interval = a1.interval ?? interval
         timeoutMsg = a1.timeoutMsg ?? timeoutMsg
@@ -93,7 +93,7 @@ async function until(
 
         elapsed = Date.now() - start
         if (elapsed >= timeout) {
-            const message = isFunction(timeoutMsg) ? timeoutMsg(timeout) : timeoutMsg
+            const message = is.function(timeoutMsg) ? timeoutMsg(timeout) : timeoutMsg
             throw new Error(message)
         }
     }

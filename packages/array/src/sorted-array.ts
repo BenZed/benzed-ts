@@ -1,4 +1,4 @@
-import { Sortable, isSortedArray } from '@benzed/is'
+import { Sortable, is } from '@benzed/is'
 
 //// Types ////
 
@@ -69,7 +69,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * Returns true if the array is currently sorted.
      */
     get isSorted(): boolean {
-        return isSortedArray(this)
+        return is.array.sorted(this)
     }
 
     /**

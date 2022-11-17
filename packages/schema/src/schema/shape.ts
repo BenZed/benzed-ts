@@ -19,7 +19,7 @@ import {
     PrimitiveSchema,
 } from './schema'
 
-import { isObject, isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import { Compile } from '@benzed/util'
 import { push } from '@benzed/immutable'
 import { DefaultValidatorSettings } from '../validator/default'
@@ -66,9 +66,9 @@ class ShapeSchema<
     protected _typeValidator = new TypeValidator({
         name: 'object',
         article: 'an',
-        is: isObject as (input: unknown) => input is O,
-        cast: (input: unknown) => isString(input)
-            ? safeJsonParse(input, isObject) ?? input
+        is: is.object as (input: unknown) => input is O,
+        cast: (input: unknown) => is.string(input)
+            ? safeJsonParse(input, is.object) ?? input
             : input,
     })
 

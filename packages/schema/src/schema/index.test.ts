@@ -1,3 +1,5 @@
+import { is } from '@benzed/is'
+
 import { $, Infer } from './index'
 
 import IntersectionSchema from './intersection'
@@ -11,7 +13,6 @@ import UnionSchema from './union'
 import TupleSchema from './tuple'
 
 import { expectTypeOf } from 'expect-type'
-import { isSymbol } from '@benzed/is'
 
 /* eslint-disable 
         @typescript-eslint/no-explicit-any
@@ -236,7 +237,7 @@ describe('compositing', () => {
 describe('$.typeOf', () => {
 
     it('allows typeguards', () => {
-        const $foo = $.typeOf(isSymbol)
+        const $foo = $.typeOf(is.symbol)
        
         const symbol = Symbol()
     

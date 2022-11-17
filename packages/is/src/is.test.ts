@@ -1,4 +1,4 @@
-import is from './is'
+import is, { Is } from './is'
 
 import { inspect } from 'util'
 
@@ -18,7 +18,7 @@ interface TestEachValueConfig {
 
 class Foo { }
 
-const SHORTCUTS = [
+const SHORTCUTS: (keyof Is)[] = [
     'string',
     'number',
     'boolean',
@@ -29,11 +29,11 @@ const SHORTCUTS = [
     'date',
     'promise',
     'nan',
-    'plainObject',
+    'record',
     'defined',
     'truthy',
     'falsy'
-]
+] 
 
 const TYPES = {
     string: String,
@@ -119,17 +119,17 @@ describe('is() shortcuts give same output as counterparts', () => {
         })
 
         testEachValue({
-            title: `is.arrayOf.${key}`,
-            test: is.arrayOf[key],
+            title: `is.array.of.${key}`,
+            test: is.array.of[key],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            result: value => is.arrayOf(value, TYPES[key] as any)
+            result: value => is.array.of(value, TYPES[key] as any)
         })
 
         testEachValue({
-            title: `is.arrayOf(value, ${TYPES[key]})`,
+            title: `is.array.of(value, ${TYPES[key]})`,
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            test: value => is.arrayOf(value, TYPES[key] as any),
+            test: value => is.array.of(value, TYPES[key] as any),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             result: value => isArrayOf(value, TYPES[key] as any)
         })
@@ -145,8 +145,8 @@ describe('exotic shortcuts', () => {
     })
 
     testEachValue({
-        title: 'is.plainObject',
-        test: is.plainObject,
+        title: 'is.record',
+        test: is.record,
         result: isPlainObject
     })
 
@@ -169,10 +169,10 @@ describe('exotic shortcuts', () => {
     })
 
     for (const property of SHORTCUTS) {
-        const shortcut = property as keyof (typeof is | typeof is.arrayOf)
+        const shortcut = property as keyof (typeof is | typeof is.array.of)
         testEachValue({
-            title: `is.arrayOf.${shortcut}`,
-            test: is.arrayOf[shortcut],
+            title: `is.array.of.${shortcut}`,
+            test: is.array.of[shortcut],
             result: value => is.array(value) && value.length > 0 && value.every(is[shortcut])
         })
     }

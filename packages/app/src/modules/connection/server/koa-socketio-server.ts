@@ -1,4 +1,4 @@
-import { isObject, isString } from '@benzed/is'
+import is from '@benzed/is'
 import match from '@benzed/match'
 
 import { createServer, Server as HttpServer } from 'http'
@@ -18,10 +18,10 @@ import { WEBSOCKET_PATH } from '../../../constants'
 
 function ctxBodyToObject(ctx: Context): Record<string, unknown> {
 
-    if (isObject<Record<string, unknown>>(ctx.request.body))   
+    if (is.object<Record<string, unknown>>(ctx.request.body))   
         return ctx.request.body
 
-    if (isString(ctx.request.body))
+    if (is.string(ctx.request.body))
         return JSON.parse(ctx.request.body)
 
     return {}

@@ -7,10 +7,7 @@ import {
 
 } from '@benzed/immutable'
 
-import {
-    isFunction,
-    isInstanceOf
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// Linting ////
 
@@ -76,7 +73,7 @@ abstract class Validator<
     //// CopyComparable Implementation ////
 
     [$$equals](other: unknown): other is this {
-        return isInstanceOf(other, this.constructor) &&
+        return is.type(other, this.constructor) &&
             equals(other.settings, this.settings)
     }
 
@@ -149,7 +146,7 @@ abstract class AssertTransformValidator<
         const error = this.settings.error ?? errorDefault
 
         throw new Error(
-            isFunction<ErrorMethod<ErrorArgs<S>>>(error)
+            is.function<ErrorMethod<ErrorArgs<S>>>(error)
                 ? error(...args)
                 : error
         )

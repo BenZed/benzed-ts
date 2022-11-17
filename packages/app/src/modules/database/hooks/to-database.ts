@@ -1,4 +1,4 @@
-import { isObject, isString, isTruthy } from '@benzed/is'
+import is from '@benzed/is'
 import match from '@benzed/match'
 import { Empty } from '@benzed/util'
 
@@ -23,7 +23,7 @@ type ToDatabase<I extends object, O extends object> = CommandHook<O, ToDatabaseO
 const toDatabase = <I extends object, O extends object>(method: HttpMethod, collectionName?: string): ToDatabase<I,O> => 
     function (this: RuntimeCommand<I>, input: O) {
 
-        collectionName = (collectionName ?? '') || this.pathFromRoot.split('/').filter(isTruthy).join('-')
+        collectionName = (collectionName ?? '') || this.pathFromRoot.split('/').filter(is.truthy).join('-')
 
         const database = null as any //this.getModule(Database, true, 'parents')
         const collection = database//.getCollection<O>(collectionName)
@@ -36,7 +36,7 @@ const toDatabase = <I extends object, O extends object>(method: HttpMethod, coll
             .case(HttpMethod.Get, () => {
                 const idOrQuery = splitIdQueryFromData(input)
 
-                return isString(idOrQuery)
+                return is.string(idOrQuery)
                     ? collection.get(idOrQuery)
                     : collection.find(idOrQuery as Empty) // TODO support queries
             })
@@ -53,10 +53,10 @@ const toDatabase = <I extends object, O extends object>(method: HttpMethod, coll
 function splitIdQueryFromData(input: object): string | object {
     const { _id, query } = input as { _id?: string, query?: object }
 
-    if (isString(_id))
+    if (is.string(_id))
         return _id
 
-    if (isObject(query))
+    if (is.object(query))
         return query
 
     throw new Error('No \'_id\' or \'query\' property in input')
@@ -65,7 +65,7 @@ function splitIdQueryFromData(input: object): string | object {
 function splitIdFromData(input: object): [string, object] {
 
     const { _id, ...rest } = input as { _id?: string }
-    if (!isString(_id))
+    if (!is.string(_id))
         throw new Error('No \'_id\' property in input')
 
     return [ _id, rest ]

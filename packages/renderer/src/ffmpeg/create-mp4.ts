@@ -1,4 +1,5 @@
 import ffmpeg from 'fluent-ffmpeg'
+import { is } from '@benzed/is'
 
 import {
     AudioSetting,
@@ -12,8 +13,6 @@ import {
 import getMetadata, { RenderMetadata } from './get-metadata'
 
 import { getFfmpegSizeOptionString, createOutputStreams } from './util'
-
-import { isDefined } from '@benzed/is'
 
 //// Types ////
 
@@ -56,7 +55,7 @@ async function createMP4(
 
     // Optionally set bit rate
     cmd.videoBitrate(vbr)
-    if (isDefined(fps) && fps > 0)
+    if (is.defined(fps) && fps > 0)
         cmd.outputFPS(fps)
 
     if (abr <= 0)

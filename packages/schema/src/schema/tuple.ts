@@ -1,6 +1,6 @@
 
+import { is } from '@benzed/is'
 import { push } from '@benzed/immutable'
-import { isArray } from '@benzed/is'
 
 import {
     TypeValidator
@@ -51,7 +51,7 @@ class TupleSchema<
     protected _typeValidator = new TypeValidator({
         name: 'tuple',
         article: 'a',
-        is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>
+        is: is.array as unknown as (input: unknown) => input is ApplyMutable<F, O>
     })
 
     constructor (input: I, ...flags: F) {

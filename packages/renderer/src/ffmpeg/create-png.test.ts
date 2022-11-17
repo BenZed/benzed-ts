@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 
-import { isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
@@ -70,7 +70,7 @@ for (const type of types) {
 
             expect(fs.existsSync(outputUrl)).toEqual(true)
 
-            if ('scale' in options && isNumber(options.scale)) {
+            if ('scale' in options && is.number(options.scale)) {
 
                 expect(outputMetadata.width)
                     .toEqual(
@@ -83,13 +83,13 @@ for (const type of types) {
                     )
             }
 
-            if ('width' in options && isNumber(options.width))
+            if ('width' in options && is.number(options.width))
                 expect(outputMetadata.width).toEqual(options.width)
 
-            if ('height' in options && isNumber(options.height))
+            if ('height' in options && is.number(options.height))
                 expect(outputMetadata.height).toEqual(options.height)
 
-            if ('dimensions' in options && isNumber(options.dimensions)) {
+            if ('dimensions' in options && is.number(options.dimensions)) {
                 expect(outputMetadata.width).toEqual(options.dimensions)
                 expect(outputMetadata.height).toEqual(options.dimensions)
             }
