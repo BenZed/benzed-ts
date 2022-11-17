@@ -13,10 +13,6 @@ import { Client, Server } from './modules'
     @typescript-eslint/ban-types
 */
 
-//// Helper ////
-
-const isModule = $(Module).is
-
 //// Helper Types ////
 
 type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
@@ -50,19 +46,6 @@ type ModuleCommands<M extends Modules | Module> =
     Function,
     false
     >
-
-//// Service Paths ////
-
-// type CombinePath<P1 extends string, P2 extends Path> = P1 extends '/' ? P2 : `${P1}${P2}`
-
-// type ServicePaths<M extends Modules, P extends Path> = 
-//     M extends [infer Mx, ...infer Mr]
-//         ? Mx extends Service<infer Px, infer Mxr>
-//             ? Mr extends Modules 
-//                 ? [CombinePath<P,Px>, ...ServicePaths<Mxr, CombinePath<P,Px>>, ...ServicePaths<Mr, P>]
-//                 : [CombinePath<P,Px>, ...ServicePaths<Mxr, CombinePath<P,Px>>]
-//             : Mr extends Modules ? ServicePaths<Mr, P> : []
-//         : []
 
 //// Command Module ////
 
@@ -186,7 +169,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     ): Modules {
 
         const path = pluck(args, $path.is).at(0)
-        const inputModules = args
+        const inputModules = args as Module[]
         if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)
 
