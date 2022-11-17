@@ -3,7 +3,7 @@ import { Split, ToString } from './types'
 //// Types ////
 
 /**
-* `any_delimited-string type` -> `anyDelimiteStringType`
+* `any-delimited-string type` -> `anyDelimitedStringType`
 * ['or','a','string','type','array] -> `orAStringTypeArray`
 */
 type ToCamelCase<S extends string | string[] | readonly string[], D extends string = '-'> = 

@@ -1,4 +1,3 @@
-import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { Compile, StringKeys } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'

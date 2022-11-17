@@ -1,4 +1,7 @@
 import toDashCase from './to-dash-case'
+import { expectTypeOf } from 'expect-type'
+
+//// Setup ////
 
 for (const strings of [
     {
@@ -75,19 +78,10 @@ for (const strings of [
     })
 }
 
-describe('additional argument for custom dash', () => {
-    test('"HotPocket" -> "hot@pocket"', () => {
-        expect(toDashCase('HotPocket', '@')).toBe('hot@pocket')
-    })
+it('is type safe', () => {
+    const out = toDashCase('fooBar')
+    expectTypeOf(out).toEqualTypeOf<'foo-bar'>()
+
+    const generic = toDashCase('unsureWhatThisIs' as string)
+    expectTypeOf(generic).toEqualTypeOf<string>()
 })
-
-describe('additional argument can be of any length', () => {
-    test('"DoubleDash" -> "double--dash"', () => {
-        expect(toDashCase('DoubleDash', '--')).toBe('double--dash')
-    })
-
-    test('"WA_TF" -> "w****a****t****f"', () => {
-        expect(toDashCase('WA_TF', '****')).toBe('w****a****t****f')
-    })
-})
-
