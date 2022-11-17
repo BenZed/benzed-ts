@@ -1,18 +1,18 @@
+import { asNil, isNil, nil } from './nil'
+
 import { merge } from './merge'
 
-import { IO } from './structures'
-
-import { asVoid, isVoid, voided } from './void'
+import { Map } from './types'
 
 //// Types ////
 
 type AsValue<T> = Exclude<T, null | undefined | void>
 
 interface UseValue<T = unknown> {
-    <F extends IO<T>>(f: F, defaultValue: T | void): Optional<ReturnType<F>>
+    <F extends Map<T>>(f: F, defaultValue?: T): Optional<ReturnType<F>>
 }
 
-interface Void { 
+interface None { 
     hasValue: false
 }
 
@@ -21,22 +21,22 @@ interface Value<T = unknown> extends Iterable<T> {
     value: T
 }
 
-type Optional<T = unknown> = Value<T> | Void
+type Optional<T = unknown> = Value<T> | None
 
-type UseOptional<T = unknown> = UseValue<T> & (Void | Value<T>)
+type UseOptional<T = unknown> = UseValue<T> & (None | Value<T>)
 
 //// Helper ////
 
-function useValue(this: Optional, io: IO, defaultValue: unknown | void): UseOptional {
+function useValue(this: Optional, map: Map, defaultValue?: unknown): UseOptional {
 
     if (this.hasValue)
-        return optional(io(this.value))
+        return optional(map(this.value))
 
     const def = optional(defaultValue)
     if (def.hasValue)
-        return optional(io(def.value))
+        return optional(map(def.value))
 
-    return optional(voided as unknown)
+    return optional(nil as unknown)
 }
 
 function* get<T>(this: Value<T>): Generator<T> {
@@ -59,10 +59,10 @@ function isOptional<T = unknown>(input: unknown): input is Optional<T> {
 
 function optional<T>(input: T | Optional<T>): UseOptional<AsValue<T>> {
 
-    const value = isOptional(input) ? input.hasValue ? input.value : voided : input
+    const value = isOptional(input) ? input.hasValue ? input.value : nil : input
 
-    const state = isVoid(asVoid(value))
-        ? { hasValue: false } as Void
+    const state = isNil(asNil(value))
+        ? { hasValue: false } as None
         : { hasValue: true, [Symbol.iterator]: get, value }
 
     return merge(useValue.bind(state), state) as UseOptional<AsValue<T>>
@@ -84,6 +84,6 @@ export {
     Optional,
     UseOptional,
 
-    Void,
+    None,
     Value
 }

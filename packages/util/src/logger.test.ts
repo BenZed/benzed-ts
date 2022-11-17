@@ -3,8 +3,8 @@ import {
     createLogger,
     Logger,
     LoggerOptions,
-    WARN_SYMBOL,
-    ERR_SYMBOl
+    WARN_ICON,
+    ERR_ICON
 } from './logger'
 
 describe('Logger', () => {
@@ -80,20 +80,20 @@ describe('Logger', () => {
         expect(logs.join('')).toContain(ANSI_UTIL_TAGS.dim)
     })
 
-    it(`log.warn prefixes ${WARN_SYMBOL} `, () => {
+    it(`log.warn prefixes ${WARN_ICON} `, () => {
         const { log, logs } = createTestLogger({})
 
         void log.warn`Uh Oh`
 
-        expect(logs).toContain(WARN_SYMBOL)
+        expect(logs).toContain(WARN_ICON)
     })
 
-    it(`log.error prefixes ${ERR_SYMBOl}`, () => {
+    it(`log.error prefixes ${ERR_ICON}`, () => {
         const { log, logs } = createTestLogger({})
 
         void log.error`Oh ${ansi('No', { italic: true })}`
 
-        expect(logs).toContain(ERR_SYMBOl)
+        expect(logs).toContain(ERR_ICON)
     })
 
     it('no color on directly interpolated strings', () => {

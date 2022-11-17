@@ -2,10 +2,9 @@ import { Merge } from './merge'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
 */
 
-export type Func = (...args: unknown[]) => unknown 
+export type Func = (...args: any[]) => any 
 
 /**
  * Function that takes a single input, returns a single output.
@@ -103,7 +102,7 @@ export type Compile<T, E = void, R extends boolean = true> =
 
                     : T extends object 
 
-                        ? T extends Date | RegExp | Function | Error
+                        ? T extends Date | RegExp | Func | Error
 
                             ? T
 

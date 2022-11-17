@@ -52,9 +52,9 @@ type LogHandler = (...items: unknown[]) => void
 
 //// Constants ////
 
-const WARN_SYMBOL = '⚠️'
+const WARN_ICON = '⚠️'
 
-const ERR_SYMBOl = '‼️'
+const ERR_ICON = '‼️'
 
 const INPECT_DEPTH = 3
 
@@ -76,12 +76,12 @@ function createTimeStamp(date: Date): string {
 function colorTimeStamp(
     timeStamp: string,
     lastTimeStamp: string,
-    status: typeof WARN_SYMBOL | typeof ERR_SYMBOl | void
+    status: typeof WARN_ICON | typeof ERR_ICON | void
 ): string {
 
     if (status) {
 
-        const isErr = status === ERR_SYMBOl
+        const isErr = status === ERR_ICON
         const color = isErr ? 'red' : 'yellow'
 
         return ansi(timeStamp, { color, inverted: true })
@@ -116,7 +116,7 @@ const createLogger =
         let lastTimeStamp = ''
 
         const log: Logger = function (
-            this: typeof WARN_SYMBOL | typeof ERR_SYMBOl | void,
+            this: typeof WARN_ICON | typeof ERR_ICON | void,
             strings,
             ...inputs
         ): void {
@@ -164,8 +164,8 @@ const createLogger =
         }
 
         log.info = log
-        log.error = log.bind(ERR_SYMBOl)
-        log.warn = log.bind(WARN_SYMBOL)
+        log.error = log.bind(ERR_ICON)
+        log.warn = log.bind(WARN_ICON)
 
         return log
     }
@@ -184,6 +184,6 @@ export {
 
     LogHandler,
 
-    WARN_SYMBOL,
-    ERR_SYMBOl
+    WARN_ICON,
+    ERR_ICON
 }
