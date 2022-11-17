@@ -5,12 +5,14 @@
 type Last<T> = T extends readonly [...any, infer Ti]
     ? Ti
     : T extends Array<infer Ti>
+
     /**/ ? Ti | undefined
         /**/ : T extends string
             /**/ ? string
-            /**/ : T extends ArrayLike<infer Ti>
-                /**/ ? Ti | undefined
-                /**/ : T
+
+        /**/ : T extends ArrayLike<infer Ti>
+            /**/ ? Ti | undefined
+            /**/ : T
 
 //// Main ////
 
