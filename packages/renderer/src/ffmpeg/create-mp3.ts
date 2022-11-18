@@ -1,6 +1,6 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import { isDefined } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     Metadata
@@ -44,7 +44,7 @@ function createMP3(
         .audioCodec(AUDIO_CODEC)
         .format(OUTPUT_FORMAT)
 
-    if (isDefined(abr))
+    if (is.defined(abr))
         cmd.audioBitrate(abr)
 
     const start = Date.now()

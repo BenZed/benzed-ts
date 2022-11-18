@@ -1,7 +1,7 @@
 import { copy, equals } from '@benzed/immutable'
 
 import {
-    AssertTransformEqualValidator,
+    AssertValidTransformValidator,
     AssertTransformValidator,
     AssertValidator,
     ErrorSettings,
@@ -90,7 +90,6 @@ describe(AssertValidator.name, () => {
                 )
             }
         }
-
     }
 
     it(`extends ${Validator.name}`, () => {
@@ -161,10 +160,10 @@ describe(AssertTransformValidator.name, () => {
 
 })
 
-describe(AssertTransformEqualValidator.name, () => {
+describe(AssertValidTransformValidator.name, () => {
 
     class MultipleOfValidator extends
-        AssertTransformEqualValidator<
+        AssertValidTransformValidator<
         /**/ number,
         /**/ { modulo: number } & ErrorSettings<[modulo: number]>
         > {
@@ -186,9 +185,9 @@ describe(AssertTransformEqualValidator.name, () => {
 
     const isEven = new MultipleOfValidator({ modulo: 2, error: 'must be even' })
 
-    it(`extends ${AssertTransformEqualValidator.name}`, () => {
+    it(`extends ${AssertValidTransformValidator.name}`, () => {
         expect(isEven)
-            .toBeInstanceOf(AssertTransformEqualValidator)
+            .toBeInstanceOf(AssertValidTransformValidator)
     })
 
     it('transforms', () => {

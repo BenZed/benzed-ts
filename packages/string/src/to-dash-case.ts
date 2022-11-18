@@ -1,37 +1,40 @@
-import { Join, Split } from './types'
+import { Join, Split, Trim } from './types'
+
+//// Types ////
+
+type _ToChars<S extends string> = Split<S, ''>
+
+type _CharsToDashCase<C extends string[]> = C extends [infer Sx, ...infer Sr]
+    ? Sx extends string 
+        ? Sr extends string[]
+            ? Sx extends Capitalize<Sx> 
+                ? `-${Lowercase<Sx>}${_CharsToDashCase<Sr>}`
+                : `${Sx}${_CharsToDashCase<Sr>}`
+            : Sx
+        : ''
+    : ''
+
+type _TrimCharsToDashCase<C extends string[]> = Trim<_CharsToDashCase<C>, '-'> 
 
 /**
-* `spaced out values` => `spaced-out-values`
-* `underscore_values` => `underscore-values`
-* ['You', 'Get','The','Idea] => `you-get-the-idea`
-*/
-type ToDashCase<S extends string | string[] | readonly string[], D extends string = '_' | ' '> = 
- string extends S ? string : // ignore untyped string
-     S extends string[] | readonly string[]
-         ? Lowercase<Join<S, '-'>>
-         : S extends string 
-             ? ToDashCase<Split<S, D | '-'>>
-             : never
-
-// TODO FIXME the type behaviour and the method behaviour are not the same. 
-// One simply replaces a delimiter with a dash, the other converts from camel case. 
-// Rethink this.
-
-/**
- * Converts a string from camel case to dash case.
- * 
- * ```typescript
- * toDashCase('fooBar') // 'foo-bar'
- * ```
- * 
- * @param input String to convert to dash case
- * @param dash character(s) to use as dash
- * @return dash cased string
+ * 'fromCamelCase' -> 'from-camel-case'
+ * ['from', 'array'] -> 'from-array'
  */
-function toDashCase(
+type ToDashCase<S extends string | string[]> = 
+    string extends S 
+        ? string 
+        : S extends string 
+            ? _TrimCharsToDashCase<_ToChars<S>>
+            : S extends string[]
+                ? Trim<Join<S, '-'>, '-'>
+                : string
+
+//// Helper ////
+
+function fromCamelCase(
     input: string,
     dash = '-'
-): string { // TODO use ToDashCase type, once it handles casing
+): string {
 
     let output = ''
     let prevCharIsCaseable = false
@@ -66,6 +69,24 @@ function toDashCase(
     }
 
     return output
+}
+
+//// Main ////
+
+/**
+ * Converts a string from camel case to dash case.
+ * 
+ * ```typescript
+ * toDashCase('fooBar') // 'foo-bar'
+ * ```
+ * 
+ * @param input String to convert to dash case
+ * @return dash cased string
+ */
+function toDashCase<S extends string>(
+    input: S,
+): ToDashCase<S> {
+    return fromCamelCase(input, '-') as ToDashCase<S>
 }
 
 //// Exports ////

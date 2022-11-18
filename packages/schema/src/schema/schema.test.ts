@@ -1,4 +1,4 @@
-import { isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import { log } from '@benzed/math'
 
 import { TypeValidator } from '../validator/type'
@@ -61,7 +61,7 @@ class FooSchema<F extends Flags[]> extends Schema<void, 'foo', F> {
     protected override _typeValidator = new TypeValidator({
         name: 'foo',
         is: (input): input is 'foo' => input === 'foo',
-        cast: input => isString(input) ? 'foo' : input
+        cast: input =>is.string(input) ? 'foo' : input
     })
 
     override readonly optional!: HasOptional<

@@ -1,6 +1,6 @@
+import { is } from '@benzed/is'
 import { equals } from '@benzed/immutable'
 import { merge } from '@benzed/util'
-import is from '@benzed/is'
 
 import { 
 

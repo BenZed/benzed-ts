@@ -1,4 +1,5 @@
 import { Func } from '@benzed/util'
+
 import { ValueMap } from './value-map'
 
 //// Helper ////

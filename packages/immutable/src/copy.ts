@@ -3,11 +3,11 @@
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/prefer-readonly-parameter-types
 */
-import { isFunction } from '@benzed/is'
+import { is } from '@benzed/is'
+import { keysOf } from '@benzed/util'
 
 import { isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
-import { keysOf } from '@benzed/util/lib'
 
 //// Types ////
 
@@ -18,7 +18,7 @@ interface Copyable {
 }
 
 function isCopyable(input: unknown): input is Copyable {
-    return isFunction((input as Copyable)[$$copy])
+    return is.function((input as Copyable)[$$copy])
 }
 
 //// Helper ////

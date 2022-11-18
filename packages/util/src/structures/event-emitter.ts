@@ -10,7 +10,14 @@ import { StringKeys } from '../types'
 
 const DEFAULT_MAX_LISTENERS = 10
 
+type AnyEvent = { [key: string]: unknown[] }
+
+type AsArray<T> = T extends unknown[] ? T : never
+
 //// Types ////
+
+type EventListener<T extends object, K extends StringKeys<T>> = 
+    (...args: AsArray<T[K]>) => void | Promise<void>
 
 type EventSubscription<T extends object = any, K extends StringKeys<T> = StringKeys<T>> = {
 
@@ -25,12 +32,8 @@ type EventSubscription<T extends object = any, K extends StringKeys<T> = StringK
     internal: boolean
 
     listener: EventListener<T, K>
+
 }
-
-type AsArray<T> = T extends unknown[] ? T : never
-
-type EventListener<T extends object, K extends StringKeys<T>> =
-    (...args: AsArray<T[K]>) => void | Promise<void>
 
 /**
  * A type-safe event emitter.
@@ -43,7 +46,7 @@ type EventListener<T extends object, K extends StringKeys<T>> =
  * event. Extend the class and it's addListener / removeListener methods 
  * to gain equivalent functionality. 
  */
-class EventEmitter<T extends object> {
+class EventEmitter<T extends object = AnyEvent> {
 
     protected readonly _subscriptions: {
         [K in StringKeys<T>]?: Array<EventSubscription<T, K>>
@@ -161,7 +164,6 @@ class EventEmitter<T extends object> {
      * 
      * @param event Event name
      * @param listener Event listener
-     * @param all Removes every listener for the given event.
      */
     removeListener<K extends StringKeys<T>>(
         event: K,
@@ -196,7 +198,6 @@ class EventEmitter<T extends object> {
      * 
      * @param event Event name
      * @param listener Event listener
-     * @param all Removes every listener for the given event.
      */
     off<K extends StringKeys<T>>(
         event: K,
@@ -277,9 +278,7 @@ class EventEmitter<T extends object> {
             )
                 eventNames.push(eventName)
         }
-
         return eventNames
-
     }
 
     /**

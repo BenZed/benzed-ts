@@ -1,7 +1,7 @@
 import path from 'path'
 
 import { MongoDBApplication } from '@benzed/feathers'
-import { isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import match from '@benzed/match'
 
 import { FeathersService } from '@feathersjs/feathers'
@@ -60,7 +60,7 @@ async function getCtxPayload(
 
     const uploadToken = ctx.query[UPLOAD_QUERY_PARAM]
 
-    const payload = isString(uploadToken)
+    const payload = is.string(uploadToken)
         ? await verify(uploadToken)
         : null
 
@@ -79,7 +79,7 @@ function getFsFilePath(
 }
 
 export function throwInvalidPayload(): never {
-    throw new BadRequest(`Invalid file upload payload.`)
+    throw new BadRequest('Invalid file upload payload.')
 }
 
 export async function validatePayload(
@@ -92,7 +92,7 @@ export async function validatePayload(
         throwInvalidPayload()
 
     if (file.uploaded)
-        throw new BadRequest(`File upload is already completed.`)
+        throw new BadRequest('File upload is already completed.')
 
     return file
 }
@@ -109,9 +109,9 @@ function createFileRoutingMiddleware(
         const middleware = create(settings)
 
         const [method] = match(settings.method)
-        (`get`, `GET`)
-        (`update`, `PUT`)
-        (`create`, `POST`)
+        ('get', 'GET')
+        ('update', 'PUT')
+        ('create', 'POST')
         (undefined)
 
         return async (ctx, toServiceRoutes) => {

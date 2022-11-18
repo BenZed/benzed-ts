@@ -176,7 +176,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     ): Modules {
 
         const path = pluck(args, $path.is).at(0)
-        const inputModules = args
+        const inputModules = args as Module[]
         if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)
 

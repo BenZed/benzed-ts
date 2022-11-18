@@ -2,10 +2,19 @@ import { Merge } from './merge'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
 */
 
-export type Func = (...args: unknown[]) => unknown 
+export type Func = (...args: any[]) => any 
+
+/**
+ * Function that takes a single input, returns a single output.
+ */
+export type Map<I = unknown, O = unknown> = (input: I) => O
+
+/**
+ * Input to output
+ */
+export type IO<I, O> = Map<I,O>
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
@@ -93,7 +102,7 @@ export type Compile<T, E = void, R extends boolean = true> =
 
                     : T extends object 
 
-                        ? T extends Date | RegExp | Function | Error
+                        ? T extends Date | RegExp | Func | Error
 
                             ? T
 

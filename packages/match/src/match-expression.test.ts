@@ -1,4 +1,4 @@
-import { isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import { UnmatchedValueError } from './error'
 import { MatchExpression, MatchExpressionIncomplete } from './types'
@@ -123,8 +123,8 @@ it('with objects', () => {
 it('with functions', () => {
 
     const exp = match(1, 2, 'ace')
-        .case(i => isNumber(i) && i % 2 === 0, 'Even')
-        .case(i => isNumber(i) && i % 2 === 1, 'Odd')
+        .case(i => is.number(i) && i % 2 === 0, 'Even')
+        .case(i => is.number(i) && i % 2 === 1, 'Odd')
         .case('ace', 'Ace')
         .default('Number')
 

@@ -5,8 +5,8 @@
     "private": true,
     "version": "0.9.0",
     "scripts": {
-        "test": "NODE_ENV=test jest --maxWorkers=1 -o",
-        "test:dev": "npm run test -- --verbose --watch",
+        "test": "jest --runInBand --all",
+        "test:dev": "jest --runInBand -o --verbose --watch",
         "build": "npm run lint && npm run tsc",
         "build:dev": "npm run tsc -- -w",
         "lint": "eslint src/**/*.ts --fix",

@@ -23,7 +23,7 @@ it('return type for arrays is typeof array or undefined', () => {
 })
 
 it('return type for readonly arrays is array type', () => {
-    const readonlyArr: readonly string[] = ['a']
+    const readonlyArr = ['a'] as readonly [string]
     const result = unwrap(readonlyArr)
     expectTypeOf(result).toEqualTypeOf<string>()
 })

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
-import { isIterable, isArrayLike, isFunction, isObject, isInstanceOf } from '@benzed/is'
+import { is } from '@benzed/is'
+import { keysOf } from '@benzed/util'
 
-import { isReferable, Prototypal } from './util'
 import { $$equals } from './symbols'
-import { keysOf } from '@benzed/util/lib'
+import { isReferable, Prototypal } from './util'
 
 //// Types ////
 
@@ -13,7 +13,7 @@ interface Comparable {
 }
 
 function isComparable(input: unknown): input is Comparable {
-    return isFunction((input as Comparable)[$$equals])
+    return is.function((input as Comparable)[$$equals])
 }
 
 //// Helper ////
@@ -62,7 +62,7 @@ function equalIs<T>(this: T, right: unknown): right is T {
 function equalIterable<T extends Iterable<U>, U>(this: T, right: unknown): right is T {
     const left = this
 
-    if (!isIterable(right))
+    if (!is.iterable(right))
         return false
 
     return compareArrayLikes(
@@ -74,7 +74,7 @@ function equalIterable<T extends Iterable<U>, U>(this: T, right: unknown): right
 function equalArrayLike<T extends ArrayLike<any>>(this: T, right: unknown): right is T {
     const left = this
 
-    if (!isArrayLike(right))
+    if (!is.array.like(right))
         return false
 
     return compareArrayLikes(left, right)
@@ -82,7 +82,7 @@ function equalArrayLike<T extends ArrayLike<any>>(this: T, right: unknown): righ
 
 function equalObject<T extends object>(this: T, right: unknown): right is T {
 
-    if (!isObject(right))
+    if (!is.object(right))
         return false
 
     const left = this
@@ -105,14 +105,14 @@ function equalDate(this: Date, right: unknown): right is Date {
     const left = this
 
     return isReferable(right) &&
-        isFunction(right.getTime) &&
+        is.function(right.getTime) &&
         left.getTime() === right.getTime()
 }
 
 function equalRegExp(this: RegExp, right: unknown): right is RegExp {
     const left = this
 
-    return isInstanceOf(right, RegExp) && left.toString() === right.toString()
+    return is.type(right, RegExp) && left.toString() === right.toString()
 }
 
 //// Add Standard Implementations ////

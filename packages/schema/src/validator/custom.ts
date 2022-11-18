@@ -1,4 +1,4 @@
-import { isFunction } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import { 
     AssertValidTransformValidator,
@@ -73,7 +73,7 @@ const toCustomValidatorSettings = <I, O extends I = I>(
             const [ transformOrSettings ] = input 
             return {
                 error: CUSTOM_VALIDATOR_DEFAULT_ERROR,
-                ...isFunction(transformOrSettings) 
+                ...is.function(transformOrSettings) 
                     ? { transform: transformOrSettings } 
                     : transformOrSettings
             }

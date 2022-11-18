@@ -1,8 +1,6 @@
 
 //// Implementation ////
 
-import { Link } from './structures'
-
 /**
  * get a memoized method that returns this given input
  */
@@ -32,7 +30,9 @@ export const toFalse = returns(false)
  * Does nothing, returns undefined
  */
 export const noop = returns(undefined) as () => void
+export const toVoid = returns(undefined) as () => void
 export const toUndefined = returns(undefined)
+
 export const toNull = returns(null)
 
 /**

@@ -1,11 +1,12 @@
-import { isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import $, { Infer } from '@benzed/schema'
 import { Empty, fromBase64, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
-import type { RecordCollection } from '../database'
 import { CommandModule } from '../../command'
+
+import type { RecordCollection } from '../database'
 import type { Request } from '../../command/request'
 import type { HttpMethod } from '../../util'
 
@@ -83,8 +84,6 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
 
     get collection(): RecordCollection<{ password: string }> {
 
-        const { settings } = this
-
         throw new Error('Not yet implemented')
         // const database = this.getModule(Database, true)
 
@@ -131,7 +130,7 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
             return null 
 
         const [email, password] = fromBase64(auth).split(':') 
-        if (!isString(email) || !isString(password))
+        if (!is.string(email) || !is.string(password))
             return null
             
         return { email, password }

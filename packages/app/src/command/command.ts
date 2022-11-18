@@ -1,15 +1,14 @@
+import is from '@benzed/is'
 import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
 import { toDashCase } from '@benzed/string'
-import { isObject, isString } from '@benzed/is'
 import { Chain, chain, Link } from '@benzed/util'
 
 import CommandModule from './command-module'
 
-import { Path } from '../util/types'
+import { HttpMethod, Path } from '../util'
 
 import { /* Auth,*/ toDatabase, ToDatabaseOutput } from '../modules'
-import { HttpMethod } from '../util'
 
 import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFields, } from './request'
 
@@ -21,7 +20,7 @@ import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFiel
 ////  ////
 
 const $dashCase = $.string.validates(
-    i => '/' + toDashCase(i.replace('/', '')),
+    x => '/' + toDashCase(x.replace('/', '')),
     p => `path "${p}" must be in dash-case`
 )
 
@@ -78,11 +77,11 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     static create(...args: unknown[]) {
 
-        const isNamed = isString(args[0])
+        const isNamed = is.string(args[0])
 
         const [
             { validate }
-        ] = pluck(args, isObject<CommandValidate<object>>)
+        ] = pluck(args, (i): i is CommandValidate<object> => is.object(i))
 
         const [
             name = 'create', 

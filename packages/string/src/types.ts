@@ -30,3 +30,8 @@ export type Join<S extends string[] | readonly string[], D extends string = '-'>
          : Sx
      : ToString<S>
 
+export type TrimStart<S extends string, D extends string = ' '> = S extends `${D}${infer Sx}` ? Sx : S
+
+export type TrimEnd<S extends string, D extends string = ' '> = S extends `${infer Sx}${D}` ? Sx : S
+
+export type Trim<S extends string, D extends string = ' '> = TrimStart<TrimEnd<S, D>, D>

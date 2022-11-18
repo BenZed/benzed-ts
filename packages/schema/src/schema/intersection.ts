@@ -1,10 +1,10 @@
 
+import { is } from '@benzed/is'
+import { copy } from '@benzed/immutable'
+import { Intersect } from '@benzed/util'
+
 import { ParentSchema, Schema, SchemaOutput, SchemaValidationContext } from './schema'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-
-import { copy } from '@benzed/immutable'
-import { isObject } from '@benzed/is'
-import { Intersect } from '@benzed/util'
 
 import { TypeValidator } from '../validator/type'
 
@@ -32,7 +32,7 @@ class IntersectionSchema<
     protected _typeValidator = new TypeValidator<O>({
         name: 'object',
         article: 'an',
-        is: isObject as (input: unknown) => input is O
+        is: is.object as (input: unknown) => input is O
     })
 
     //// ParentSchema Implementation ////

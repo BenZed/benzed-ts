@@ -6,8 +6,13 @@ const { splice } = Array.prototype
 
 //// Types ////
 
-type TypeGuard<I, O extends I = I> = (item: I, index: number, input: ArrayLike<I>) => item is O
-type Predicate<T> = ((item: T, index: number, input: ArrayLike<T>) => boolean) 
+type TypeGuard<I, O extends I = I> = 
+    (item: I, index: number, input: ArrayLike<I>) => 
+        item is O
+
+type Predicate<T> = (
+    (item: T, index: number, input: ArrayLike<T>) => boolean
+)
 
 //// Main ////
 
@@ -17,9 +22,7 @@ type Predicate<T> = ((item: T, index: number, input: ArrayLike<T>) => boolean)
  * ```typescript
  * const even = pluck([1, 2, 3, 4], v => v % 2 === 0) // [2,4], [1,3]
  * ```
- *
  */
-
 function pluck<I, O extends I>(
     input: ArrayLike<I>,
     typeguard: TypeGuard<I, O>,
@@ -46,11 +49,14 @@ function pluck(
         count = -count
 
     for (
+
         let i = reverse ? input.length - 1 : 0;
 
-        results.length < count && (reverse
-            ? i >= 0
-            : i < input.length);
+        results.length < count && (
+            reverse
+                ? i >= 0
+                : i < input.length
+        );
 
         i += reverse ? -1 : 1
     ) {

@@ -1,6 +1,4 @@
-import {
-    isInteger
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     RangeValidator,
@@ -65,11 +63,11 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
         if ('value' in settings) {
             validatesLengthsBelowZero = settings.value < 0
-            nonIntegerConfiguration = isInteger(settings.value) ? null : 'value'
+            nonIntegerConfiguration = is.integer(settings.value) ? null : 'value'
         } else {
             validatesLengthsBelowZero = settings.min < 0
-            nonIntegerConfiguration = isInteger(settings.min)
-                ? isInteger(settings.max)
+            nonIntegerConfiguration = is.integer(settings.min)
+                ? is.integer(settings.max)
                     ? null
                     : 'max'
                 : 'min'

@@ -1,4 +1,7 @@
 
+import { push } from '@benzed/immutable'
+import { is } from '@benzed/is'
+
 import {
     TypeValidator
 } from '../validator/type'
@@ -28,9 +31,6 @@ import {
     ApplyMutable
 } from './schema'
 
-import { push } from '@benzed/immutable'
-import { isArray, isString } from '@benzed/is'
-
 import { safeJsonParse } from '../util'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -43,8 +43,8 @@ type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>[]
 //// Helper ////
 
 function tryCastToArray(input: unknown): unknown {
-    return isString(input)
-        ? safeJsonParse(input, isArray) ?? input
+    return is.string(input)
+        ? safeJsonParse(input, is.array) ?? input
         : input
 }
 
@@ -65,7 +65,7 @@ class ArraySchema<
     protected _typeValidator = new TypeValidator({
         name: 'array',
         article: 'an',
-        is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,
+        is: is.array as unknown as (input: unknown) => input is ApplyMutable<F, O>,
         cast: tryCastToArray
     })
 

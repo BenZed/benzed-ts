@@ -7,10 +7,7 @@ import {
 
 } from '@benzed/immutable'
 
-import {
-    isFunction,
-    isInstanceOf
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// Linting ////
 
@@ -76,7 +73,7 @@ abstract class Validator<
     //// CopyComparable Implementation ////
 
     [$$equals](other: unknown): other is this {
-        return isInstanceOf(other, this.constructor) &&
+        return is.type(other, this.constructor) &&
             equals(other.settings, this.settings)
     }
 
@@ -149,7 +146,7 @@ abstract class AssertTransformValidator<
         const error = this.settings.error ?? errorDefault
 
         throw new Error(
-            isFunction<ErrorMethod<ErrorArgs<S>>>(error)
+            is.function<ErrorMethod<ErrorArgs<S>>>(error)
                 ? error(...args)
                 : error
         )
@@ -174,7 +171,7 @@ abstract class AssertValidator<O, S extends ErrorSettings>
 
 /**
  * An assert-valid-transform is a convenience abstraction that transforms
- * data to the expected output type. If transforms are now allowed for validation,
+ * data to the expected output type. If transforms are not allowed for validation,
  * it throws if the input is not the same was what the transformation would be.
  * 
  * Most validators will be this.

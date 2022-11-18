@@ -1,7 +1,7 @@
 
 import { Optional, optional } from './optional'
 import { expectTypeOf } from 'expect-type'
-import { voided } from './void'
+import { nil } from './nil'
 
 it('creates optional objects with values', () => {
 
@@ -38,6 +38,6 @@ it('callable optional chain signature', () => {
 
 it('callable optional chain siganture with default value', () => {
 
-    const o2 = optional<string | void>(voided)(v => `${v}?`, 'Eh')
+    const o2 = optional<string | nil>(nil)(v => `${v}?`, 'Eh')
     expect(o2).toHaveProperty('value', 'Eh?')
 })

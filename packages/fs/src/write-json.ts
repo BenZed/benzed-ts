@@ -1,4 +1,5 @@
 import type { Json } from '@benzed/util'
+
 import { writeFile } from './export'
 import { PathLike } from './types'
 

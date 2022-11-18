@@ -1,4 +1,4 @@
-import { isFinite, isNaN, isInteger } from '@benzed/is'
+import { is } from '@benzed/is'
 import { round } from '@benzed/math'
 
 //// Types ////
@@ -78,10 +78,10 @@ function parseOptions(
         truncateWhole: hasWholeOptions ? input.truncateWhole : undefined
     }
 
-    if (output.decimalPlaces !== undefined && !isInteger(output.decimalPlaces))
+    if (output.decimalPlaces !== undefined && !is.integer(output.decimalPlaces))
         throw new Error('options.decimalPlaces must be an integer.')
 
-    if (output.wholePlaces !== undefined && !isInteger(output.wholePlaces))
+    if (output.wholePlaces !== undefined && !is.integer(output.wholePlaces))
         throw new Error('options.wholePlaces must be an integer.')
 
     return output
@@ -103,10 +103,10 @@ function digitize(
     } = parseOptions(options)
 
     // Process input
-    if (!isFinite(num) || isNaN(num))
+    if (!is.bigint(num) && (!isFinite(num) || is.nan(num)))
         num = 0
 
-    if (decimalPlaces !== undefined) {
+    if (!is.bigint(num) && decimalPlaces !== undefined) {
         const precision = 1 / 10 ** decimalPlaces
         num = round(num, precision)
     }

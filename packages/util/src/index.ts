@@ -8,8 +8,6 @@ export {
 
 } from './ansi'
 
-export * from './assert-defined'
-
 export * from './base-64'
 export * from './benchmark'
 
@@ -17,7 +15,6 @@ export * from './constants'
 
 export * from './iterate'
 
-export * from './keys-of'
 export {
     createLogger,
 
@@ -30,7 +27,7 @@ export {
 
 export * from './memoize'
 
-export * from './void'
+export * from './nil'
 export * from './optional'
 
 export * from './omit'

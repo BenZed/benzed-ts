@@ -1,4 +1,5 @@
-import { isDate, isNaN, isNumber, isString } from '@benzed/is'
+import { is } from '@benzed/is'
+
 import { 
     RangeValidator, 
     RangeValidatorSettingsShortcut, 
@@ -21,13 +22,13 @@ import Schema from './schema'
 //// Helper ////
 
 function isValidDate(date: unknown): date is Date {
-    return isDate(date) && 
-        !isNaN(date.getMilliseconds()) 
+    return is.date(date) && 
+        !is.nan(date.getMilliseconds()) 
 }
 
 function tryCastToDate(value: unknown): unknown {
 
-    if (isString(value) || isNumber(value) && isValidDate(new Date(value)))
+    if (is.string(value) || is.number(value) && isValidDate(new Date(value)))
         return new Date(value)
 
     return value

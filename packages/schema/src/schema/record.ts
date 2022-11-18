@@ -1,6 +1,6 @@
 
+import { is } from '@benzed/is'
 import { push } from '@benzed/immutable'
-import { isObject } from '@benzed/is'
 
 import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
@@ -55,7 +55,7 @@ class RecordSchema<
     protected _typeValidator = new TypeValidator({
         name: 'object',
         article: 'an',
-        is: (input): input is O => isObject(input),
+        is: (input): input is O => is.object(input),
     })
 
     protected override _validateChildren(input: O, inputContext: SchemaValidationContext): O {

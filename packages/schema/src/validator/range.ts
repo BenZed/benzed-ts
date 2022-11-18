@@ -1,15 +1,5 @@
-import {
-    pluck
-} from '@benzed/array'
-
-import {
-    isObject,
-    isSortable,
-
-    isString,
-
-    Sortable
-} from '@benzed/is'
+import { pluck } from '@benzed/array'
+import { is, Sortable } from '@benzed/is'
 
 import { AssertValidator, ErrorSettings } from './validator'
 
@@ -52,7 +42,7 @@ type RangeValidatorSettingsShortcut<O extends Sortable> =
 //// Type Guards ////
 
 const isNumericSortable = (input: unknown): input is Sortable => 
-    !isString(input) && isSortable(input)
+    !is.string(input) && is.sortable(input)
     
 function isBinaryComparator(input: unknown): input is BinaryComparator {
     return BINARY_COMPARATORS.includes(input as BinaryComparator)
@@ -66,7 +56,7 @@ function isRangeValidatorSettings<O extends Sortable>(
     input: unknown
 ): input is RangeValidatorSettings<O> {
 
-    if (!isObject(input))
+    if (!is.object(input))
         return false
 
     const option = input as RangeValidatorSettings<O>

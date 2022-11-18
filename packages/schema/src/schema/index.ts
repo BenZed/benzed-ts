@@ -45,13 +45,7 @@ import BooleanSchema from './boolean'
 
 import {
     Constructor,
-    isBoolean,
-    isFunction,
-    isInstanceOf,
-    isNumber,
-    isPlainObject,
-    isString,
-    isSymbol
+    is
 } from '@benzed/is'
 
 import { 
@@ -166,27 +160,27 @@ interface SchemaInterface {
 
 function isEnumSchemaInput(args: SchemaInterfaceShortcutSignature): args is EnumSchemaInput {
     return [...args].every(arg =>
-        isString(arg) ||
-        isNumber(arg) ||
-        isBoolean(arg) || 
+        is.string(arg) ||
+        is.number(arg) ||
+        is.boolean(arg) || 
         arg == null
     )
 }
 
 function isTupleSchemaInput(args: SchemaInterfaceShortcutSignature): args is TupleSchemaInput {
     return [...args].every(arg =>
-        isInstanceOf(arg, Schema)
+        is.type(arg, Schema)
     )
 }
 
 function isShapeSchemaInput(args: SchemaInterfaceShortcutSignature): args is [ShapeSchemaInput] {
-    return args.length === 1 && isPlainObject(args[0])
+    return args.length === 1 && is.record(args[0])
 }
 
 function isConstructorInput(
     args: SchemaInterfaceShortcutSignature
 ): args is [Constructor<unknown>] {
-    return args.length === 1 && isFunction(args[0])
+    return args.length === 1 && is.function(args[0])
 }
 
 function createSchemaInterface(): SchemaInterface {
@@ -232,7 +226,7 @@ function createSchemaInterface(): SchemaInterface {
     $.null = $.enum(null)
 
     $.typeOf = guard => new GenericSchema(guard)
-    $.symbol = $.typeOf(isSymbol).name({ name: 'symbol', article: 'a' })
+    $.symbol = $.typeOf(is.symbol).name({ name: 'symbol', article: 'a' })
     $.unknown = $.typeOf((_): _ is unknown => true)
 
     $.object = $.record($.unknown)

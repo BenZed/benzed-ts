@@ -1,12 +1,8 @@
 import Schema from './schema'
 
-import {
-    toOptionsString
-} from '../util'
+import { toOptionsString } from '../util'
 
-import {
-    TypeValidator
-} from '../validator/type'
+import { TypeValidator } from '../validator/type'
 
 import {
     Flags,

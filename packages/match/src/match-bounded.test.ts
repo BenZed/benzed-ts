@@ -1,4 +1,4 @@
-import is, { isNumber } from '@benzed/is'
+import is from '@benzed/is'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -28,7 +28,7 @@ it('.match<type>().case()', () => {
 
     expectTypeOf(m).toEqualTypeOf<MatchIncomplete<number, 10 | 1, 'Ten' | 'One'>>()
 
-    const mc = m.case(isNumber, i => `${i}`)
+    const mc = m.case(is.number, i => `${i}`)
 
     expect(mc(10)).toEqual('Ten')
     expect(mc(1)).toEqual('One')

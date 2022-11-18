@@ -4,8 +4,8 @@
     "main": "./lib",
     "version": "3.1.3",
     "scripts": {
-        "test": "jest --maxWorkers=1 -o",
-        "test:dev": "npm run test -- --verbose --watch",
+        "test": "jest --runInBand --all",
+        "test:dev": "jest --runInBand -o --verbose --watch",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
         "build:dev": "npm run tsc -- -w",
@@ -20,5 +20,8 @@
     "bugs": {
         "url": "https://github.com/BenZed/benzed-ts/issues"
     },
-    "homepage": "https://github.com/BenZed/benzed-ts#readme"
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "@benzed/util": "^3.9.1"
+    }
 }

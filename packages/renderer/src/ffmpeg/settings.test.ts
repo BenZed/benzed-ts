@@ -1,4 +1,4 @@
-import { isSizeSetting, isTimeSetting } from './settings'
+import { $sizeSetting, $timeSetting } from './settings'
 
 describe('isTimeSetting method', () => {
 
@@ -12,7 +12,7 @@ describe('isTimeSetting method', () => {
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {
-            expect(isTimeSetting(obj)).toBe(result)
+            expect($timeSetting.is(obj)).toBe(result)
         })
     }
 })
@@ -34,7 +34,7 @@ describe('isSizeSetting method', () => {
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {
-            expect(isSizeSetting(obj)).toBe(result)
+            expect($sizeSetting.is(obj)).toBe(result)
         })
     }
 })

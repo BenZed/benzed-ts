@@ -3,10 +3,10 @@ import { Split, ToString } from './types'
 //// Types ////
 
 /**
-* `any_delimited-string type` -> `anyDelimiteStringType`
+* `any-delimited-string type` -> `anyDelimitedStringType`
 * ['or','a','string','type','array] -> `orAStringTypeArray`
 */
-type ToCamelCase<S extends string | string[] | readonly string[], D extends string> = 
+type ToCamelCase<S extends string | string[] | readonly string[], D extends string = '-'> = 
     string extends S ? string : // ignore untyped strings
         S extends string ? ToCamelCase<Split<S, D>, D> : 
             S extends [infer Sx, ...infer Sr]

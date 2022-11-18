@@ -20,5 +20,6 @@ export function memoize<T extends Func>(func: T): T {
         return value as ReturnType<T>
     }) as T
 }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 memoize.cache = new ValuesMap<any,any>()

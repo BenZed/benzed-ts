@@ -1,5 +1,6 @@
-import { wrap } from '@benzed/array'
+
 import { equals, copy, $$equals, $$copy } from '@benzed/immutable'
+import { wrap } from '@benzed/array'
 import { max } from '@benzed/math'
 
 import {
