@@ -60,7 +60,7 @@ export const createUrlParamPathMatcher = <T extends object>(
                 : remainingUrl.length
 
             const urlParamValue = splitRemainingUrl(urlValueEndIndex)
-            if (urlParamKey)
+            if (urlParamKey && urlParamValue)
                 output[urlParamKey] = urlParamValue as T[UrlParamKeys<T>]
         }
 

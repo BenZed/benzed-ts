@@ -30,10 +30,10 @@ describe(`${createUrlParamPathMatcher.name}()`, () => {
     })
 
     it('handles missing url params', () => {
-        expect(targetAce('/target', {})).toEqual({ ace: '' })
+        expect(targetAce('/target', {})).toEqual({ ace: undefined })
 
         const targetBase = createUrlParamPathMatcher<{ ace: string, base: string }>`/break/${'ace'}/${'base'}`
-        expect(targetBase('/break/1', {})).toEqual({ ace: '1', base: '' })
+        expect(targetBase('/break/1', {})).toEqual({ ace: '1', base: undefined })
 
     })
 
@@ -44,7 +44,7 @@ describe(`${createUrlParamPathMatcher.name}()`, () => {
 
     it('handles sectional matching', () => {
         const targetRace = createUrlParamPathMatcher<{ race: string, place: string }>`/po/co/${'race'}/${'place'}`
-        expect(targetRace('/po/co/1', {})).toEqual({ race: '1', place: '' })
+        expect(targetRace('/po/co/1', {})).toEqual({ race: '1', place: undefined })
         expect(targetRace('/po/co/1/2', {})).toEqual({ race: '1', place: '2' })
         expect(targetRace('/po/co/1/2/3', {})).toEqual(undefined)
         expect(targetRace('/po/co/1/2-3', {})).toEqual({ race: '1', place: '2-3' })
@@ -53,7 +53,7 @@ describe(`${createUrlParamPathMatcher.name}()`, () => {
     it('handles static seperators', () => {
         const targetFace = createUrlParamPathMatcher<{ face: string, case: string }>`/far/${'face'}-${'case'}`
         expect(targetFace('/far/ace-fold', {})).toEqual({ face: 'ace', case: 'fold' })
-        expect(targetFace('/far/ace-', {})).toEqual({ face: 'ace', case: '' })
+        expect(targetFace('/far/ace-', {})).toEqual({ face: 'ace', case: undefined })
         expect(targetFace('/far/ace', {})).toEqual(undefined)
     })
 
