@@ -1,3 +1,4 @@
+import { nil } from '@benzed/util'
 import { HttpMethod } from '../../util'
 import { RequestHandler as Req } from './request-handler'
 
@@ -14,12 +15,10 @@ for (const [name, method] of Object.entries(HttpMethod)) {
         it(`created with ${name}`, () => {
             expect(req.method).toEqual(method)
         })
-    
         it(`method ${name} in req.create() `, () => {
             expect(req.toRequest({})).toHaveProperty('method', method)
         })
     })
-
 }
 
 describe('RequestHandler.create()', () => {
@@ -54,12 +53,12 @@ describe('req.setUrl()', () => {
             Req.create<{ ace: string }>(HttpMethod.Delete)
                 .setUrl`/orphans/${'ace'}`
 
+            // @ts-expect-error 'bar' not in object
             Req.create<{ foo: string }>(HttpMethod.Delete)
-                // @ts-expect-error 'bar' not in object
                 .setUrl`/orphans/${'bar'}`
 
+            // @ts-expect-error string/number's no objects or bools
             Req.create<{ base: boolean }>(HttpMethod.Post)
-                // @ts-expect-error string/number's no objects or bools
                 .setUrl`/orphans/${'base'}`
 
             Req.create<{ case?: number }>(HttpMethod.Get)
@@ -93,7 +92,6 @@ describe('req.setUrl()', () => {
         })
 
         it('1 url & query param', () => {
-
             expect(
                 req.toRequest({ id: 'shirts', name: 'joe' })
             ).toEqual({
@@ -133,23 +131,35 @@ describe('req.setUrl()', () => {
     })
 
     describe('url with pather function', () => {
-
         it('allows custom pathing', () => {
-
             const req = Req
                 .create<{ id: string, [key:string]: number | boolean | string }>(HttpMethod.Get)
-                .setUrl(data => {
-                    const { id, ...rest } = data
-                    return [
-                        id === 'admin'
-                            ? '/admin-portal'
-                            : `/users/${id}`, rest 
-                    ]
-                })
+                .setUrl(
+                    data => {
+                        const { id, ...rest } = data
+
+                        return [
+                            id === 'admin'
+                                ? '/admin-portal'
+                                : `/users/${id}`, rest 
+                        ]
+                    }, 
+                    (url, data) => {
+                        if (url === '/admin-portal')
+                            return { ...data, id: 'admin' }
+                        else if (url.startsWith('/users/'))
+                            return { ...data, id: url.replace('/users/', '')}
+                        return nil
+                    })
 
             expect(req.toRequest({ id: 'monkey '})).toEqual({
                 method: HttpMethod.Get,
                 url: '/users/monkey'
+            })
+
+            expect(req.toRequest({ id: 'cheese', front: 'bottoms', price: 100 })).toEqual({
+                method: HttpMethod.Get,
+                url: '/users/cheese?front=bottoms&price=100'
             })
 
             expect(req.toRequest({ id: 'admin', cake: 1, tare: true, soke: 'cimm' })).toEqual({
@@ -181,7 +191,5 @@ describe('req.setMethod()', () => {
 })
 
 describe('req.addHeaders()', () => {
-
     it.todo('adds headers to created request')
-
 })

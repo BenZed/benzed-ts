@@ -6,6 +6,11 @@ import {
     createUrlParamPather, 
     Pather 
 } from './pathers'
+import { 
+    createStaticUnpather, 
+    createUrlParamUnpather, 
+    Unpather 
+} from './un-pathers'
 
 import { 
 
@@ -43,7 +48,8 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
 
     private constructor(
         readonly method: HttpMethod,
-        private readonly _pather: Pather<T> = createStaticPather('/')
+        private readonly _pather: Pather<T> = createStaticPather('/'),
+        private readonly _unpather: Unpather<T> = createStaticUnpather('/')
     ) { 
         super()
     }
@@ -56,7 +62,11 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
 
         const [ url, dataWithoutParams ] = this._createPath(data, urlPrefix)
 
-        const body = method === HttpMethod.Get ? undefined : dataWithoutParams
+        const isGet = method === HttpMethod.Get
+
+        const body = isGet ? undefined : dataWithoutParams
+        if (!isGet && Object.keys(dataWithoutParams).length > 0)
+            throw new Error(`Unhandled data: ${dataWithoutParams}`)
 
         return {
             method,
@@ -67,7 +77,17 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
     }
 
     matchRequest(req: Request): T | nil {
-        //
+
+        const { method } = this
+        const isGet = method === HttpMethod.Get
+
+        const [url, queryOrBody] = [req.url, isGet ? /* remove query from body */ {} : req.body ?? {}]
+
+        const pathedData = this._unpather(url, queryOrBody) as T | nil
+
+        // const headedData = this._unheader(req.headers, pathedData)
+
+        return pathedData
     }
 
     //// Builder Methods ////
@@ -75,7 +95,7 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
     /**
      * Provide a url as a tempate string, where interpolated object keys will fill in url parameters
      */
-    setUrl(str: TemplateStringsArray, ...properties: UrlParamKeys<T>[]): RequestHandler<T> 
+    setUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<T>[]): RequestHandler<T> 
     
     /**
      * Provide a simple static path
@@ -83,26 +103,32 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
     setUrl(path: Path): RequestHandler<T> 
 
     /**
-     * Provide a pather function to create urls.
-     * 
-     * Given data, a pather will return a path and subset
-     * data containing fields that were not used
-     * in the query or url parameters when constructing the
-     * path. 
+     * Provider pather functions for creating/parsing paths
      */
-    setUrl(pather: Pather<T>): RequestHandler<T> 
+    setUrl(pather: Pather<T>, unpather: Unpather<T>): RequestHandler<T> 
     
-    setUrl(fParam: TemplateStringsArray | Path | Pather<T>, ...rParams: UrlParamKeys<T>[]): RequestHandler<T> {
+    setUrl(...args: [Path] | [Pather<T>, Unpather<T>] | [TemplateStringsArray, ...UrlParamKeys<T>[]]): RequestHandler<T> {
 
-        const pather = is.string(fParam)
-            ? createStaticPather<T>(fParam)
-            : is.function(fParam) 
-                ? fParam
-                : createUrlParamPather(fParam, ...rParams)
+        let pather: Pather<T> 
+        let unpather: Unpather<T>
+        if (is.function(args[0]) && is.function(args[1])) {
+            pather = args[0]
+            unpather = args[1]
+
+        } else if (is.string(args[0])) {
+            pather = createStaticPather(args[0])
+            unpather = createStaticUnpather(args[0])
+
+        } else {
+            const [ segments, ...paramKeys ] = args as [ TemplateStringsArray, ...UrlParamKeys<T>[] ]
+            pather = createUrlParamPather(segments, ...paramKeys)
+            unpather = createUrlParamUnpather(segments, ...paramKeys)
+        }
 
         return new RequestHandler(
             this.method,
-            pather
+            pather,
+            unpather
         )
     }
 
@@ -110,7 +136,7 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
      * Changes the method of this request handler
      */
     setMethod(method: HttpMethod): RequestHandler<T> {
-        return new RequestHandler<T>(method, this._pather)
+        return new RequestHandler<T>(method, this._pather, this._unpather)
     }
 
     //// Helper ////

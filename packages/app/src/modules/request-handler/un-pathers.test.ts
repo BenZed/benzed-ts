@@ -1,5 +1,5 @@
 import { nil } from '@benzed/util'
-import { createStaticUnpather, createUrlParamUnpather } from './un-pather'
+import { createStaticUnpather, createUrlParamUnpather } from './un-pathers'
 
 describe('createStaticUnpather', () => {
 

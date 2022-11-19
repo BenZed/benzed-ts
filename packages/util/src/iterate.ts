@@ -33,6 +33,12 @@ function * indexesOf<T extends ArrayLike<unknown>>(arrayLike: T): Generator<numb
         yield i
 }
 
+function numKeys(object: object): number {
+    return [
+        ...keysOf(object)
+    ].length
+}
+
 //// Main ////
 
 /**
@@ -74,6 +80,9 @@ export default iterate
 export {
     iterate,
     isIterable,
+
     keysOf,
+    numKeys,
+
     indexesOf
 }
