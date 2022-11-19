@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import { nil } from '@benzed/util'
+import { Merge, nil } from '@benzed/util'
 
 import { 
     createStaticPather, 
@@ -34,6 +34,12 @@ interface RequestConverter<T> {
 
     matchRequest(input: Request): T | nil
 
+}
+
+//// Helper ////
+
+function hasQuery<T extends object>(input: T): input is T & { query: object } {
+    return is.object<{ query?: object }>(input) && is.object(input.query)
 }
 
 //// Main ////
@@ -150,10 +156,15 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
         const url = $path.validate(urlPrefix ?? '' + urlWithoutPrefix)
 
-        const isGetMethod = this.method === HttpMethod.Get 
-        return isGetMethod 
-            ? [ url + toQueryString(dataWithoutUrlParams) as Path, {} ]
-            : [ url, dataWithoutUrlParams ]
+        if (hasQuery(dataWithoutUrlParams)) {
+            const { query, ...dataWithoutUrlParamsOrQuery } = dataWithoutUrlParams
+            return [
+                url + toQueryString(query) as Path,
+                dataWithoutUrlParamsOrQuery as Partial<T>
+            ]
+        }
+
+        return [ url, dataWithoutUrlParams ]
     }
 }
 

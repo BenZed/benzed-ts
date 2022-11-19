@@ -12,15 +12,12 @@ for (const [name, method] of Object.entries(HttpMethod)) {
     const req = Req.create(method)
 
     describe(`RequestHandler.create(${name})`, () => {
-
         it(`created with ${name}`, () => {
             expect(req.method).toEqual(method)
         })
-
         it(`method ${name} in req.create() `, () => {
             expect(req.toRequest({})).toHaveProperty('method', method)
         })
-
     })
 }
 
@@ -81,7 +78,7 @@ describe('req.setUrl()', () => {
         })
 
         const req = Req
-            .create<{ id?: string, name?: string, size?: string, age?: number }>(HttpMethod.Get)
+            .create<{ id?: string, age?: number, query?: { name?: string, size?: string } }>(HttpMethod.Get)
             .setUrl`/clothing-by-age/${'age'}/${'id'}`
 
         it('2 url param', () => {
@@ -96,7 +93,7 @@ describe('req.setUrl()', () => {
 
         it('1 url & query param', () => {
             expect(
-                req.toRequest({ id: 'shirts', name: 'joe' })
+                req.toRequest({ id: 'shirts', query: { name: 'joe' } })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -106,7 +103,7 @@ describe('req.setUrl()', () => {
 
         it('2 url and 2 query param', () => {
             expect(
-                req.toRequest({ id: 'shirts', name: 'acer', size: 'large', age: 30 })
+                req.toRequest({ id: 'shirts', query: { name: 'acer', size: 'large' }, age: 30 })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -116,7 +113,7 @@ describe('req.setUrl()', () => {
 
         it('2 query param', () => {
             expect(
-                req.toRequest({ name: 'hey', size: 'large' })
+                req.toRequest({ query: { name: 'hey', size: 'large' } })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -136,7 +133,7 @@ describe('req.setUrl()', () => {
     describe('url with pather function', () => {
         it('allows custom pathing', () => {
             const req = Req
-                .create<{ id: string, [key:string]: number | boolean | string }>(HttpMethod.Get)
+                .create<{ id: string, query?: object }>(HttpMethod.Get)
                 .setUrl(
                     data => {
                         const { id, ...rest } = data
@@ -160,13 +157,20 @@ describe('req.setUrl()', () => {
                 url: '/users/monkey'
             })
 
-            expect(req.toRequest({ id: 'cheese', front: 'bottoms', price: 100 })).toEqual({
+            expect(req.toRequest({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
                 method: HttpMethod.Get,
+                url: '/users/1293?hello=darkness&my=old&friend=true'
+            })
+
+            expect(req.setMethod(HttpMethod.Delete).toRequest({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
+                method: HttpMethod.Delete,
+                body: {},
                 url: '/users/cheese?front=bottoms&price=100'
             })
 
-            expect(req.toRequest({ id: 'admin', cake: 1, tare: true, soke: 'cimm' })).toEqual({
-                method: HttpMethod.Get,
+            expect(req.setMethod(HttpMethod.Post).toRequest({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
+                method: HttpMethod.Post,
+                body: {},
                 url: '/admin-portal?cake=1&tare=true&soke=cimm'
             })
         })
