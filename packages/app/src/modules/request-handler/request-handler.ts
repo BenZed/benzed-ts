@@ -1,4 +1,5 @@
 import is from '@benzed/is'
+import { nil } from '@benzed/util'
 
 import { 
     createStaticPather, 
@@ -28,7 +29,7 @@ interface RequestConverter<T> {
 
     toRequest(data: T): Request
 
-    matchRequest(input: Request): T | void
+    matchRequest(input: Request): T | nil
 
 }
 
@@ -65,7 +66,7 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
         }
     }
 
-    matchRequest(input: Request): T | void {
+    matchRequest(req: Request): T | nil {
         //
     }
 

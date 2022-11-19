@@ -8,19 +8,17 @@ import CommandModule from './command-module'
 
 import { HttpMethod, Path } from '../util'
 
-import { /* Auth,*/ toDatabase, ToDatabaseOutput } from '../modules'
-
-import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFields, } from './request'
+import { createFromReq, createToReq, Request, FromRequest, ToRequest, StringFields } from './request'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/explicit-function-return-type
 */
 
-////  ////
+//// Schema ////
 
 const $dashCase = $.string.validates(
-    x => '/' + toDashCase(x.replace('/', '')),
+    x => '/' + toDashCase( x.replace('/', '') ),
     p => `path "${p}" must be in dash-case`
 )
 
@@ -44,6 +42,7 @@ export type CommandHook<I extends object, O extends object> =
 type CommandValidate<I extends object> = { validate: Link<I, I> }
 
 type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
+
 type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
 //// Command ////
@@ -277,23 +276,6 @@ class Command<N extends string, I extends object, O extends object> extends Comm
                 to: toRequest,
                 from: fromRequest
             }
-        )
-    }
-
-    /**
-     * Sends the current output to the database. Operation is
-     * inferred from http.method.
-     * 
-     * Collection name can be provied, or it default to constructing
-     * a collection name from the service path.
-     */
-    useDatabase(collection?: string): Command<N, I, ToDatabaseOutput<I, O>> {
-
-        return this.useHook(
-            toDatabase<I,O>(
-                this.method, 
-                collection
-            )
         )
     }
 

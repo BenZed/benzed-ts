@@ -24,9 +24,8 @@ module.exports = {
         'no-multi-spaces': 'warn',
         'no-multiple-empty-lines': ['warn', { max: 1 }],
         'max-len': ['error', 150],
-        'no-return-assign': 'error',
         'nonblock-statement-body-position': ['warn', 'below'],
-
+        'no-return-assign': 'error',
         '@typescript-eslint/brace-style': ['error'],
         '@typescript-eslint/prefer-optional-chain': ['warn'],
         '@typescript-eslint/prefer-nullish-coalescing': ['warn'],

@@ -55,14 +55,14 @@ describe('req.setUrl()', () => {
                 .setUrl`/orphans/${'ace'}`
 
             Req.create<{ foo: string }>(HttpMethod.Delete)
-            // @ts-expect-error 'bar' not in object
+                // @ts-expect-error 'bar' not in object
                 .setUrl`/orphans/${'bar'}`
 
             Req.create<{ base: boolean }>(HttpMethod.Post)
-            // @ts-expect-error string/number's no objects or bools
+                // @ts-expect-error string/number's no objects or bools
                 .setUrl`/orphans/${'base'}`
 
-            Req.create<{ case?: number}>(HttpMethod.Get)
+            Req.create<{ case?: number }>(HttpMethod.Get)
                 .setUrl`/orphans/${'case'}` // optional properties are also ok
         })
 
@@ -177,5 +177,11 @@ describe('req.setMethod()', () => {
 
         expect(req.url).toEqual('/cake')
     })
+
+})
+
+describe('req.addHeaders()', () => {
+
+    it.todo('adds headers to created request')
 
 })

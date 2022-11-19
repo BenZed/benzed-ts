@@ -13,14 +13,14 @@ import { Path, $path, UrlParamKeys } from '../../util/types'
  * If no data was used, data object will be returned without changes.
  */
 export type Pather<T extends object> = 
-    (data: T) => [ url: Path, dataWithoutUrlParams: T | Partial<T>]
+    (data: T) => [ url: Path, dataWithoutUrlParams: T | Partial<T> ]
 
 /**
   * Creates a pather that simply returns the given path
   */
 export const createStaticPather: <T extends object>(path: Path) => Pather<T> = 
     memoize(path => data => [ path, data ])
- 
+
 /**
   * Create a pather from a template string that's interpolated by object keys.
   * The pather will return a url with params that are matched to given key values.
