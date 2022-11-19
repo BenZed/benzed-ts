@@ -94,6 +94,7 @@ class MongoDbCollection<T extends object> {
             total,
             records
         }
+
     }
 
     /**
