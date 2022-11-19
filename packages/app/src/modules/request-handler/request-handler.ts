@@ -27,6 +27,7 @@ import {
 } from '../../util'
 
 import { Module } from '../../module'
+import { SchemaFor } from '@benzed/schema/lib'
 
 //// Base ////
 
@@ -43,13 +44,17 @@ interface RequestConverter<T> {
 class RequestHandler<T extends object> extends Module implements RequestConverter<T> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Tx> {
-        return new RequestHandler<Tx>(method)
+        return new RequestHandler<Tx>(
+            method, 
+            createStaticPather('/'), 
+            createStaticUnpather('/')
+        )
     }
 
     private constructor(
         readonly method: HttpMethod,
-        private readonly _pather: Pather<T> = createStaticPather('/'),
-        private readonly _unpather: Unpather<T> = createStaticUnpather('/')
+        private readonly _pather: Pather<T>,
+        private readonly _unpather: Unpather<T>
     ) { 
         super()
     }
@@ -79,6 +84,9 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
     matchRequest(req: Request): T | nil {
 
         const { method } = this
+        if (method !== req.method)
+            return nil
+
         const isGet = method === HttpMethod.Get
 
         const [url, queryOrBody] = [req.url, isGet ? /* remove query from body */ {} : req.body ?? {}]

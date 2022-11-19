@@ -12,12 +12,15 @@ for (const [name, method] of Object.entries(HttpMethod)) {
     const req = Req.create(method)
 
     describe(`RequestHandler.create(${name})`, () => {
+
         it(`created with ${name}`, () => {
             expect(req.method).toEqual(method)
         })
+
         it(`method ${name} in req.create() `, () => {
             expect(req.toRequest({})).toHaveProperty('method', method)
         })
+
     })
 }
 
@@ -192,4 +195,34 @@ describe('req.setMethod()', () => {
 
 describe('req.addHeaders()', () => {
     it.todo('adds headers to created request')
+})
+
+describe('req.matchRequest()', () => {
+
+    const getTodo = Req.create<{ id: string }>(HttpMethod.Get)
+        .setUrl`/todos/${'id'}`
+
+    it('returns data in positive matches', () => {
+
+        expect(
+            getTodo.matchRequest({
+                method: HttpMethod.Get,
+                url: '/todos/1',
+            })
+        ).toEqual({ id: '1' })
+
+        expect(
+            getTodo.matchRequest({
+                method: HttpMethod.Get,
+                url: '/todos',
+            })
+        ).toEqual({ id: '' })
+    })
+
+    it('returns nil on negative matches', () => {
+        expect(getTodo.matchRequest({ method: HttpMethod.Post, url: '/todos/100' })).toEqual(nil)
+        expect(getTodo.matchRequest({ method: HttpMethod.Get, url: '/users/100' })).toEqual(nil)
+        expect(getTodo.matchRequest({ method: HttpMethod.Get, url: '/todo' })).toEqual(nil)
+    })
+
 })

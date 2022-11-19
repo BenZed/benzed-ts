@@ -30,9 +30,14 @@ describe('createUrlParamUnpather', () => {
     it('handles missing url params', () => {
         expect(targetAce('/target', {})).toEqual({ ace: '' })
 
-        const targetBase = createUrlParamUnpather<{ ace: string, base: string }>`/break/${'ace'}${'base'}`
+        const targetBase = createUrlParamUnpather<{ ace: string, base: string }>`/break/${'ace'}/${'base'}`
         expect(targetBase('/break/1', {})).toEqual({ ace: '1', base: '' })
 
+    })
+
+    it('throws on 0 length seperators', () => {
+        expect(() => createUrlParamUnpather<{ one: number, two: number }>`/${'one'}${'two'}`)
+            .toThrow('Params must be seperated by at least one character')
     })
 
     it('handles sectional matching', () => {
