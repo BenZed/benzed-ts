@@ -27,7 +27,7 @@ export const recordMustExist = <
     if (id) {
         await app
             .service(serviceName)
-            .get(id ?? ``)
+            .get(id ?? '')
     } else 
         throw new BadRequest(`id for ${serviceName} service required`)
 

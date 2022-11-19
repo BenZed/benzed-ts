@@ -21,10 +21,10 @@ function validationErrorToBadRequest(err: ValidationError): BadRequest {
     const { path, message } = err 
 
     return new BadRequest(
-        `Validation failed: ${path.join(`.`)} ${message}`,
+        `Validation failed: ${path.join('.')} ${message}`,
         {
             data: {
-                [path.join(`.`)]: message
+                [path.join('.')]: message
             }
         }
     )
@@ -121,7 +121,7 @@ export class Resolver<T, C> {
     ): Promise<T> {
         const { properties: resolvers, schema, validate } = this.options
         const payload = await this.convert(_data, context, status)
-        const data = schema && validate === `before` ? validateSchema(schema, payload) : payload
+        const data = schema && validate === 'before' ? validateSchema(schema, payload) : payload
         const propertyList = (
             Array.isArray(status?.properties)
                 ? status?.properties
@@ -147,7 +147,7 @@ export class Resolver<T, C> {
             
                     } catch (error: any) {
                         // TODO add error stacks
-                        const convertedError = typeof error.toJSON === `function` 
+                        const convertedError = typeof error.toJSON === 'function' 
                             ? error.toJSON() 
                             : { message: error.message || error }
 
@@ -161,15 +161,15 @@ export class Resolver<T, C> {
         )
 
         if (hasErrors) {
-            const propertyName = status?.properties ? ` ${status.properties.join(`.`)}` : ``
+            const propertyName = status?.properties ? ` ${status.properties.join('.')}` : ''
 
             throw new BadRequest(
-                `Error resolving data` + 
-                (propertyName ? ` ${propertyName}` : ``), errors
+                'Error resolving data' + 
+                (propertyName ? ` ${propertyName}` : ''), errors
             )
         }
 
-        return schema && validate === `after` ? validateSchema(schema, payload) : result
+        return schema && validate === 'after' ? validateSchema(schema, payload) : result
     }
 }
 

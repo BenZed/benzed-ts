@@ -24,7 +24,7 @@ import { Module } from '../../module'
 
 //// Base ////
 
-interface RequestHandler<T> {
+interface RequestConverter<T> {
 
     toRequest(data: T): Request
 
@@ -34,7 +34,7 @@ interface RequestHandler<T> {
 
 //// Main ////
 
-class RequestHandler<T extends object> extends Module implements RequestHandler<T> {
+class RequestHandler<T extends object> extends Module implements RequestConverter<T> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Tx> {
         return new RequestHandler<Tx>(method)

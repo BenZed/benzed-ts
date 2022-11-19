@@ -46,13 +46,13 @@ export default function setupMongoDB<S, C extends MongoDBApplicationConfig>(
     app: MongoDBApplication<S, C>
 ): void {
 
-    const config = app.get(`db`)
+    const config = app.get('db')
 
     const uri = config.uri
-        .replaceAll(`<port>`, config.port.toString())
-        .replaceAll(`<user>`, config.user ?? ``)
-        .replaceAll(`<password>`, config.password ?? ``)
-        .replaceAll(`<database>`, config.database)
+        .replaceAll('<port>', config.port.toString())
+        .replaceAll('<user>', config.user ?? '')
+        .replaceAll('<password>', config.password ?? '')
+        .replaceAll('<database>', config.database)
 
     app.log`mongodb initialized ${{ uri }}`
 

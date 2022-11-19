@@ -1,4 +1,4 @@
-import { HttpMethod } from '..'
+import { HttpMethod } from '../../util'
 import { RequestHandler as Req } from './request-handler'
 
 it('is sealed', () => {
