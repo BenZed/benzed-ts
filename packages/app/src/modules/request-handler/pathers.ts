@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 import { memoize, omit } from '@benzed/util'
 
-import { Path, $path, UrlParamKeys } from '../types'
+import { Path, $path, UrlParamKeys } from '../../util/types'
 
 //// Types ////
 
