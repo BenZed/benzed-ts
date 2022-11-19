@@ -21,6 +21,8 @@ import {
     CommandOutput
 } from './command'
 
+//// Eslint ////
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types

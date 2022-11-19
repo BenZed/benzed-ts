@@ -47,6 +47,9 @@ abstract class RecordCollection<T extends object> {
      */
     abstract get(id: Id): Promise<Record<T> | null> 
 
+    /**
+     * 
+     */
     abstract find(query: FindQuery<T>): Promise<Paginated<T>> 
 
     /**

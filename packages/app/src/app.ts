@@ -1,17 +1,9 @@
-import { 
-    Module, 
-    Modules 
-} from './module'
 
-import { 
-    ServiceModule, 
-    FlattenModules, 
-    ToService 
-} from './service'
+import { ServiceModule, FlattenModules, ToService } from './service'
+import { Module, Modules } from './module'
+import { Path } from './util/types'
 
-import { 
-    Path 
-} from './util/types'
+//// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -21,7 +13,6 @@ import {
 
 /**
  * An app is essentially just a Service without a path. 
- * The root 
  */
 class App<M extends Modules = Modules> extends ServiceModule<M> {
 

@@ -174,6 +174,7 @@ export class Module {
                 `${this.name} has not been started`
             )
         }
+
         this._active = false
     }
 
@@ -244,8 +245,6 @@ export class Module {
             }
         }
     }
-
-    // Helper 
 
     /**
      * Copies a module, sets the parent of that module to the given parent
