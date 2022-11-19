@@ -5,12 +5,12 @@ import {
     createStaticPather, 
     createUrlParamPather, 
     Pather 
-} from './pathers'
+} from './pather'
 import { 
-    createStaticUnpather, 
-    createUrlParamUnpather, 
-    Unpather 
-} from './un-pathers'
+    createStaticPathMatcher, 
+    createUrlParamPathMatcher, 
+    PathMatcher 
+} from './path-matcher'
 
 import { 
 
@@ -24,10 +24,7 @@ import {
 
     toQueryString
 
-} from '../../util'
-
-import { Module } from '../../module'
-import { SchemaFor } from '@benzed/schema/lib'
+} from '..'
 
 //// Base ////
 
@@ -41,23 +38,25 @@ interface RequestConverter<T> {
 
 //// Main ////
 
-class RequestHandler<T extends object> extends Module implements RequestConverter<T> {
+class RequestHandler<T extends object> implements RequestConverter<T> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Tx> {
         return new RequestHandler<Tx>(
             method, 
-            createStaticPather('/'), 
-            createStaticUnpather('/')
+            {
+                to: createStaticPather('/'),
+                match: createStaticPathMatcher('/')
+            }
         )
     }
 
     private constructor(
         readonly method: HttpMethod,
-        private readonly _pather: Pather<T>,
-        private readonly _unpather: Unpather<T>
-    ) { 
-        super()
-    }
+        private readonly _path: {
+            to: Pather<T>
+            match: PathMatcher<T>
+        }
+    ) { }
 
     //// Handler Implementation ////
 
@@ -91,7 +90,7 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
 
         const [url, queryOrBody] = [req.url, isGet ? /* remove query from body */ {} : req.body ?? {}]
 
-        const pathedData = this._unpather(url, queryOrBody) as T | nil
+        const pathedData = this._path.match(url, queryOrBody) as T | nil
 
         // const headedData = this._unheader(req.headers, pathedData)
 
@@ -113,45 +112,41 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
     /**
      * Provider pather functions for creating/parsing paths
      */
-    setUrl(pather: Pather<T>, unpather: Unpather<T>): RequestHandler<T> 
+    setUrl(pather: Pather<T>, pathMatcher: PathMatcher<T>): RequestHandler<T> 
     
-    setUrl(...args: [Path] | [Pather<T>, Unpather<T>] | [TemplateStringsArray, ...UrlParamKeys<T>[]]): RequestHandler<T> {
+    setUrl(...args: [Path] | [Pather<T>, PathMatcher<T>] | [TemplateStringsArray, ...UrlParamKeys<T>[]]): RequestHandler<T> {
 
-        let pather: Pather<T> 
-        let unpather: Unpather<T>
+        let to: Pather<T> 
+        let match: PathMatcher<T>
         if (is.function(args[0]) && is.function(args[1])) {
-            pather = args[0]
-            unpather = args[1]
+            to = args[0]
+            match = args[1]
 
         } else if (is.string(args[0])) {
-            pather = createStaticPather(args[0])
-            unpather = createStaticUnpather(args[0])
+            to = createStaticPather(args[0])
+            match = createStaticPathMatcher(args[0])
 
         } else {
             const [ segments, ...paramKeys ] = args as [ TemplateStringsArray, ...UrlParamKeys<T>[] ]
-            pather = createUrlParamPather(segments, ...paramKeys)
-            unpather = createUrlParamUnpather(segments, ...paramKeys)
+            to = createUrlParamPather(segments, ...paramKeys)
+            match = createUrlParamPathMatcher(segments, ...paramKeys)
         }
 
-        return new RequestHandler(
-            this.method,
-            pather,
-            unpather
-        )
+        return new RequestHandler(this.method, { to, match })
     }
 
     /**
      * Changes the method of this request handler
      */
     setMethod(method: HttpMethod): RequestHandler<T> {
-        return new RequestHandler<T>(method, this._pather, this._unpather)
+        return new RequestHandler<T>(method, this._path)
     }
 
     //// Helper ////
     
     private _createPath(data: T, urlPrefix?: Path): ReturnType<Pather<T>> {
 
-        const [ urlWithoutPrefix, dataWithoutUrlParams ] = this._pather(data)
+        const [ urlWithoutPrefix, dataWithoutUrlParams ] = this._path.to(data)
 
         const url = $path.validate(urlPrefix ?? '' + urlWithoutPrefix)
 
@@ -167,5 +162,6 @@ class RequestHandler<T extends object> extends Module implements RequestConverte
 export default RequestHandler
 
 export {
-    RequestHandler
+    RequestHandler,
+    RequestConverter
 }

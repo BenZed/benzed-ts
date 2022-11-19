@@ -1,8 +1,8 @@
-import { createStaticPather, createUrlParamPather } from './pathers'
+import { createStaticPather, createUrlParamPather } from './pather'
 
 //// Test ////
 
-describe('createStaticPather', () => {
+describe(`${createStaticPather.name}()`, () => {
 
     const defaultPather = createStaticPather('/')
 
@@ -20,7 +20,7 @@ describe('createStaticPather', () => {
     })
 })
 
-describe('createUrlParamPather', () => {
+describe(`${createUrlParamPather.name}()`, () => {
 
     it('string tag template to url', ()=> {
 

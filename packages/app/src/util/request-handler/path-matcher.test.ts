@@ -1,9 +1,11 @@
 import { nil } from '@benzed/util'
-import { createStaticUnpather, createUrlParamUnpather } from './un-pathers'
+import { createStaticPathMatcher, createUrlParamPathMatcher } from './path-matcher'
 
-describe('createStaticUnpather', () => {
+import { describe, it, expect } from '@jest/globals'
 
-    const target = createStaticUnpather('/target')
+describe(`${createStaticPathMatcher.name}()`, () => {
+
+    const target = createStaticPathMatcher('/target')
 
     it('returns input data if match', () => {
         expect(target('/target', { foo: 'bar' })).toEqual({ foo: 'bar' })
@@ -15,9 +17,9 @@ describe('createStaticUnpather', () => {
 
 })
 
-describe('createUrlParamUnpather', () => {
+describe(`${createUrlParamPathMatcher.name}()`, () => {
 
-    const targetAce = createUrlParamUnpather<{ ace: string }>`/target/${'ace'}`
+    const targetAce = createUrlParamPathMatcher<{ ace: string }>`/target/${'ace'}`
 
     it('converts urls into data', () => {
         expect(targetAce('/target/123', {})).toEqual({ ace: '123' })
@@ -30,18 +32,18 @@ describe('createUrlParamUnpather', () => {
     it('handles missing url params', () => {
         expect(targetAce('/target', {})).toEqual({ ace: '' })
 
-        const targetBase = createUrlParamUnpather<{ ace: string, base: string }>`/break/${'ace'}/${'base'}`
+        const targetBase = createUrlParamPathMatcher<{ ace: string, base: string }>`/break/${'ace'}/${'base'}`
         expect(targetBase('/break/1', {})).toEqual({ ace: '1', base: '' })
 
     })
 
     it('throws on 0 length seperators', () => {
-        expect(() => createUrlParamUnpather<{ one: number, two: number }>`/${'one'}${'two'}`)
+        expect(() => createUrlParamPathMatcher<{ one: number, two: number }>`/${'one'}${'two'}`)
             .toThrow('Params must be seperated by at least one character')
     })
 
     it('handles sectional matching', () => {
-        const targetRace = createUrlParamUnpather<{ race: string, place: string }>`/po/co/${'race'}/${'place'}`
+        const targetRace = createUrlParamPathMatcher<{ race: string, place: string }>`/po/co/${'race'}/${'place'}`
         expect(targetRace('/po/co/1', {})).toEqual({ race: '1', place: '' })
         expect(targetRace('/po/co/1/2', {})).toEqual({ race: '1', place: '2' })
         expect(targetRace('/po/co/1/2/3', {})).toEqual(undefined)
@@ -49,7 +51,7 @@ describe('createUrlParamUnpather', () => {
     })
 
     it('handles static seperators', () => {
-        const targetFace = createUrlParamUnpather<{ face: string, case: string }>`/far/${'face'}-${'case'}`
+        const targetFace = createUrlParamPathMatcher<{ face: string, case: string }>`/far/${'face'}-${'case'}`
         expect(targetFace('/far/ace-fold', {})).toEqual({ face: 'ace', case: 'fold' })
         expect(targetFace('/far/ace-', {})).toEqual({ face: 'ace', case: '' })
         expect(targetFace('/far/ace', {})).toEqual(undefined)

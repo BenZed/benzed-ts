@@ -1,5 +1,5 @@
 import { nil } from '@benzed/util'
-import { HttpMethod } from '../../util'
+import { HttpMethod } from '..'
 import { RequestHandler as Req } from './request-handler'
 
 it('is sealed', () => {

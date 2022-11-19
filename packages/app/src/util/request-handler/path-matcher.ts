@@ -1,6 +1,6 @@
 import { memoize, nil } from '@benzed/util'
 
-import { $path, Path, UrlParamKeys } from '../../util/types'
+import { $path, Path, UrlParamKeys } from '../types'
 
 //// Types ////
 
@@ -11,24 +11,24 @@ import { $path, Path, UrlParamKeys } from '../../util/types'
  * @param url Incoming url without query
  * @param data Data constructed from the request so far.
  */
-export type Unpather<T extends object> = (url: Path, data: Partial<T>) => T | Partial<T> | nil
+export type PathMatcher<T extends object> = (url: Path, data: Partial<T>) => T | Partial<T> | nil
 
 //// Main ////
 
 /**
  * Creates a pather that matches an exact url
  */
-export const createStaticUnpather: <T extends object>(path: Path) => Unpather<T> = 
-    memoize(path => (url, data) => path === $path.validate(url) ? data : nil)
+export const createStaticPathMatcher: <T extends object>(path: Path) => PathMatcher<T> = 
+    memoize(path => (url, data) => path === $path.validate(url) ? data : nil, 'createStaticPathMatcher')
 
 /**
  * Create a pather from a template string that's interpolated by object keys.
  * The unpather will 
  */
-export const createUrlParamUnpather = <T extends object>(
+export const createUrlParamPathMatcher = <T extends object>(
     urlSegments: readonly string[], 
     ...urlParamKeys: UrlParamKeys<T>[]
-): Unpather<T> => {
+): PathMatcher<T> => {
 
     // no 0 length segments unless it's the final segment, otherwise it wont
     // be possible to differentiate params from one another.

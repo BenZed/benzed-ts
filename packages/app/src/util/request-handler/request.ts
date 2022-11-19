@@ -1,6 +1,6 @@
 
 import { HttpMethod } from 'koa-body'
-import { Path } from '../../util/types'
+import { Path } from '../types'
 
 //// Type ////
 

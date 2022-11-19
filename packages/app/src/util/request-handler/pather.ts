@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 import { memoize, omit } from '@benzed/util'
 
-import { Path, $path, UrlParamKeys } from '../../util/types'
+import { Path, $path, UrlParamKeys } from '../types'
 
 //// Types ////
 
@@ -19,7 +19,7 @@ export type Pather<T extends object> =
   * Creates a pather that simply returns the given path
   */
 export const createStaticPather: <T extends object>(path: Path) => Pather<T> = 
-    memoize(path => data => [ path, data ])
+    memoize(path => data => [ path, data ], 'createStaticPather')
 
 /**
   * Create a pather from a template string that's interpolated by object keys.

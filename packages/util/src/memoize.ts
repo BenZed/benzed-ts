@@ -1,11 +1,12 @@
+import { defineName } from './property'
 import { ValuesMap } from './structures'
 
 /**
  * get a method that caches it's output based in the identicality of it's arguments
  */
-export function memoize<A extends unknown[], R>(func: (...args: A) => R): (...args: A) => R {
+export function memoize<A extends unknown[], R>(func: (...args: A) => R, name = func.name): (...args: A) => R {
 
-    return (...args: A ): R => {
+    const memoized = (...args: A ): R => {
 
         if (memoize.cache.has(args)) 
             return memoize.cache.get(args) as R
@@ -18,6 +19,8 @@ export function memoize<A extends unknown[], R>(func: (...args: A) => R): (...ar
 
         return value as R
     }
+
+    return defineName(memoized, name)
 }
 
 memoize.cache = new ValuesMap<unknown[],unknown>()
