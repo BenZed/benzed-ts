@@ -5,6 +5,8 @@ import { ValidateContext } from './context'
 
 export class ValidationError extends Error {
 
+    override name = 'ValidationError'
+
     constructor(
         msg: string, 
         readonly ctx: ValidateContext
@@ -16,5 +18,5 @@ export class ValidationError extends Error {
 
 export type ErrorMessage<V = unknown> = ((value: Readonly<V>) => string)
 
-export const toErrorMessage = (i: string | ErrorMessage = 'Validation failed.'): ErrorMessage => 
+export const toErrorMessage = (i: string | ErrorMessage): ErrorMessage => 
     typeof i === 'string' ? returns(i) : i
