@@ -1,6 +1,6 @@
 import is from '@benzed/is'
-import { Map, nil, numKeys } from '@benzed/util'
-import { SchemaFor } from '@benzed/schema'
+import { nil, numKeys } from '@benzed/util'
+import { Schematic } from '@benzed/schema'
 
 import { 
     createStaticPather, 
@@ -50,9 +50,9 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Partial<Tx>>
 
-    static create<Tx extends object>(method: HttpMethod, schema: SchemaFor<Tx>): RequestHandler<Tx>
+    static create<Tx extends object>(method: HttpMethod, schema: Schematic<Tx>): RequestHandler<Tx>
 
-    static create(method: HttpMethod, schema?: SchemaFor<object>): RequestHandler<object> {
+    static create(method: HttpMethod, schema?: Schematic<object>): RequestHandler<object> {
         return new RequestHandler<object>(
             method, 
             {
@@ -68,16 +68,21 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
     }
 
     private constructor(
+
         readonly method: HttpMethod,
+
         private readonly _path: {
             to: Pather<T>
             match: PathMatcher<T>
         },
+
         private readonly _headers: {
             to: Headerer<T>[]
             match: HeaderMatch<T>[]
         },
-        private readonly _schema?: SchemaFor<T>,
+
+        readonly schema?: Schematic<T>
+
     ) { }
 
     //// Handler Implementation ////
@@ -86,7 +91,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
     
         const { method } = this
 
-        const [ url, dataWithoutParams ] = this._createPath(this._schema?.validate(data) ?? data, urlPrefix)
+        const [ url, dataWithoutParams ] = this._createPath(this.schema?.validate(data) ?? data, urlPrefix)
 
         const [headers, dataWithoutHeaders] = this._addHeaders(dataWithoutParams)
 
@@ -121,7 +126,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
             return nil
     
         try {
-            return this._schema?.validate(headedData) ?? headedData as T
+            return this.schema?.validate(headedData) ?? headedData as T
         } catch {
             return nil
         }
@@ -164,20 +169,20 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
             match = createUrlParamPathMatcher(segments, ...paramKeys)
         }
 
-        return new RequestHandler(this.method, { to, match }, this._headers, this._schema)
+        return new RequestHandler(this.method, { to, match }, this._headers, this.schema)
     }
 
     /**
      * Changes the method of this request handler
      */
     setMethod(method: HttpMethod): RequestHandler<T> {
-        return new RequestHandler<T>(method, this._path, this._headers, this._schema)
+        return new RequestHandler<T>(method, this._path, this._headers, this.schema)
     }
 
     /** 
      * Sets the schema for this request handler
      */
-    setSchema(schema: SchemaFor<T>): RequestHandler<T> {
+    setSchema(schema: Schematic<T>): RequestHandler<T> {
         return new RequestHandler(this.method, this._path, this._headers, schema)
     }
 
@@ -195,7 +200,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
                 to: [...headers.to, to],
                 match: [...headers.match, match]
             }, 
-            this._schema
+            this.schema
         )
     }
 
@@ -211,7 +216,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
                 to: [to],
                 match: [match]
             }, 
-            this._schema
+            this.schema
         )
     }
 

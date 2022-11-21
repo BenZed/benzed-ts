@@ -1,20 +1,13 @@
-// import $ from '@benzed/schema'
+import $ from '@benzed/schema'
+import { nil } from '@benzed/util'
 import { capitalize, toCamelCase } from '@benzed/string'
 
 import { Module } from '../module'
-import type { HttpMethod } from '../util'
-import type { Request, StringFields } from './request'
+import { HttpMethod, Request, RequestConverter } from '../util'
 
 //// Validation ////
 
-const { assert: assertCamelCase } = 
-// $.string.validates(toCamelCase, i => `${i} must be in camelCase.`)
-{
-    assert: (i: string): asserts i is string => {
-        if (i !== toCamelCase(i))
-            throw new Error(`${i} must be in camelCase.`)
-    }  
-} 
+const { assert: assertCamelCase } = $.string.validates(toCamelCase, 'must be in camelCase')
 
 //// Command Module ////
 
@@ -22,7 +15,7 @@ abstract class CommandModule<
     N extends string, 
     I extends object, 
     O extends object
-> extends Module {
+> extends Module implements RequestConverter<I> {
 
     override get name(): N {
         return this._name
@@ -63,9 +56,9 @@ abstract class CommandModule<
      */
     abstract get methods(): HttpMethod[]
 
-    abstract toRequest(input: I): Request<I, StringFields<I>>
+    abstract toRequest(input: I): Request
 
-    abstract fromRequest(req: Request<object>): Omit<I, StringFields<I>> | null
+    abstract matchRequest(req: Request): I | nil
 
     constructor(
         readonly _name: N

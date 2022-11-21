@@ -23,16 +23,20 @@ for (const [name, method] of Object.entries(HttpMethod)) {
                 .toHaveProperty('method', method)
         })
     })
+
 }
 
 describe('RequestHandler.create()', () => {
+
     it('path in req.create()', () => {
         const request = Req
             .create(HttpMethod.Get)
             .toRequest({})
-        
-        expect(request).toHaveProperty('url', '/')
+
+        expect(request)
+            .toHaveProperty('url', '/')
     })
+
 })
 
 describe('req.setUrl()', () => {
@@ -42,13 +46,14 @@ describe('req.setUrl()', () => {
         .setUrl('/target') 
 
     it('url with string', () => {
-        expect(req.toRequest({}))
-            .toEqual({
-                method: HttpMethod.Get,
-                url: '/target',
-                headers: undefined,
-                body: undefined
-            })
+
+        expect(req.toRequest({})).toEqual({
+            method: HttpMethod.Get,
+            url: '/target',
+            headers: undefined,
+            body: undefined
+        })
+
     })
 
     describe('url`/with/${"params"}`', () => {
@@ -127,10 +132,12 @@ describe('req.setUrl()', () => {
         })
 
         it('method is preserved', () => {
-            expect(Req
-                .create(HttpMethod.Options)
-                .setUrl`/cake`
-                .method
+            expect(
+
+                Req.create(HttpMethod.Options)
+                    .setUrl`/cake`
+                    .method
+
             ).toBe(HttpMethod.Options)
         })
     })
@@ -338,6 +345,7 @@ describe('req.matchRequest()', () => {
 
         it('allows requests with missing url parameters to be non-matched', () => {
             expect(
+
                 updateEmployee.matchRequest({
                     method: HttpMethod.Put,
                     url: '/user/admin',
@@ -347,9 +355,11 @@ describe('req.matchRequest()', () => {
                         email: 'ace@admin.com'
                     }
                 })
+
             ).toEqual(nil)
 
             expect(
+
                 updateEmployee.matchRequest({
                     method: HttpMethod.Put,
                     url: '/user/admin/ace',
@@ -359,15 +369,19 @@ describe('req.matchRequest()', () => {
                         email: 'ace@admin.com'
                     }
                 })
+
             ).toEqual({
+
                 id: 'ace',
                 age: 21,
                 name: 'Ace Man',
                 email: 'ace@admin.com',
                 department: 'admin'
+
             })
 
             expect(
+
                 createEmployee.matchRequest({
                     method: HttpMethod.Post,
                     url: '/user',
@@ -377,11 +391,13 @@ describe('req.matchRequest()', () => {
                         email: 'ace@admin.com'
                     }
                 })
+
             ).toEqual(nil)
         })
 
         it('does not throw validation errors, rather a nil non match', () => {
             expect(
+
                 createEmployee.matchRequest({
                     method: HttpMethod.Post,
                     url: '/user/film',
@@ -391,6 +407,7 @@ describe('req.matchRequest()', () => {
                         name: 'Carey Carey'
                     }
                 })
+
             ).toEqual(nil)
         })
     })

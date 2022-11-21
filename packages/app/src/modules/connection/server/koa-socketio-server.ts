@@ -118,7 +118,7 @@ export class KoaSocketIOServer extends Server {
 
             const commandData = this.root
                 .getCommand(name)
-                .fromRequest([ctx.method as HttpMethod, urlWithoutQueryString, ctxData, null])
+                .matchRequest([ctx.method as HttpMethod, urlWithoutQueryString, ctxData, null])
 
             if (commandData) 
                 return this.execute(name, commandData)

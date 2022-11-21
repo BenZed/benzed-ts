@@ -118,7 +118,7 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         return { accessToken }
     }
 
-    fromRequest([method, url, _, headers]: Request<object>): { email: string, password: string } | null {
+    matchRequest([method, url, _, headers]: Request<object>): { email: string, password: string } | null {
         if (method !== Put)
             return null
 
