@@ -24,8 +24,8 @@ interface Schema<T = unknown> extends Validate<T> {
     readonly validators: readonly Validator<T>[]
     readonly validate: Validate<T>
 
-    is(i: unknown): i is T
-    assert(i: unknown): asserts i is T
+    is(input: unknown): input is T
+    assert(input: unknown): asserts input is T
 
     asserts(
         assert: Assert<T>,
@@ -48,7 +48,7 @@ function is(
 ): input is Readonly<unknown> {
 
     try {
-        void this(input)
+        void this(input, { transform: false })
         return true
     } catch {
         return false
@@ -63,39 +63,63 @@ function assert(
 }
 
 function asserts(
-    this: { validators: readonly Validator[] }, 
+    this: Schema, 
     assert: Assert, 
     msg: string | ErrorMessage = 'Assertion failed.'
 ): Schema {
     return schema(
-        ...this.validators,
+        this, 
         { assert, msg: toErrorMessage(msg) }
     )
 }
 
 function transforms(
-    this: { validators: readonly Validator[] }, 
+    this: Schema, 
     transform: Transform,
     msg: string | ErrorMessage = 'Transformation failed.',
     equals: (a: unknown, b: unknown) => boolean = deepEquals
 ): Schema {
     return schema(
-        ...this.validators,
+        this, 
         { transform, msg: toErrorMessage(msg), equals }
     )
 }
 
 //// Interface Helpers ////
 
+function isSchema<T>(input: unknown): input is Schema<T> {
+
+    if (typeof input !== 'function')
+        return false 
+
+    const schema = input as Partial<Schema<T>>
+
+    return Array.isArray(schema.validators) && 
+        typeof schema.assert === 'function' && 
+        typeof schema.is === 'function'
+}
+
 type TypeSchemaSignature<T> = [is: (i: unknown) => i is T, msg?: string | ErrorMessage<T>]
 function isTypedSchemaSignature(
-    input: unknown[]
+    input: AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
 ): input is TypeSchemaSignature<unknown> {
     return typeof input[0] === 'function' && input.length <= 2
 }
 
+type AppendSchemaSignature<T> = [Schema<T>, Validator<T>]
+function isAppendSchemaSignature(
+    input:AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
+): input is AppendSchemaSignature<unknown> {
+    return isSchema(input[0])
+}
+
 //// Main ////
 
+/**
+ * Create a schema for an unknown value.
+ */
+function schema(): Schema<unknown>
+ 
 /**
  * Create a schema for a specific type
  * @param is Type guard to validate type against
@@ -104,29 +128,41 @@ function isTypedSchemaSignature(
 function schema<T>(is: TypeSchemaSignature<T>[0], msg?: TypeSchemaSignature<T>[1]): Schema<T>
 
 /**
- * Comebine a series of validators or schema's into one
+ * Immutably append a validator to an existing schema
+ * @internal
+ * @param schema
+ * @param validator 
  */
-function schema<T>(...validators: (Validator<T>)[]): Schema<T> 
+function schema<T>(schema: AppendSchemaSignature<T>[0], validator: AppendSchemaSignature<T>[1]): Schema<T>
 
 function schema(
-    ...input: TypeSchemaSignature<unknown> | Validator[]
+    ...input: AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
 ): Schema<unknown> {
 
-    const instance = { 
-        is,
-        assert,
-        validate,
-        validators: isTypedSchemaSignature(input)
-            ? [{ assert: input[0], msg: toErrorMessage(input[1] ?? 'Invalid type.') }]
-            : input,
+    const _schema = isAppendSchemaSignature(input)
+        ? { 
+            ...input[0],
+            validators: [
+                ...input[0].validators,
+                input[1]
+            ]
+        }
+        : { 
+            is,
+            assert,
+            validate,
+    
+            asserts,
+            transforms,
 
-        asserts,
-        transforms,
-    }
+            validators: isTypedSchemaSignature(input)
+                ? [{ assert: input[0], msg: toErrorMessage(input[1] ?? 'Invalid type.') }]
+                : [],
+        }
 
     return merge(
-        validate.bind(instance),
-        instance
+        validate.bind(_schema),
+        _schema
     )
 }
 
@@ -137,4 +173,6 @@ export default schema
 export {
     schema,
     Schema,
+
+    isSchema
 }

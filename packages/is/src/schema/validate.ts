@@ -66,7 +66,9 @@ function validate(
     for (const validator of this.validators) {
         
         const isTransform = 'transform' in validator 
-        const output = isTransform ? validator.transform(input, ctx) : validator.assert(input, ctx)
+        const output = isTransform 
+            ? validator.transform(input, ctx) 
+            : validator.assert(input, ctx)
 
         if (
             // assertion failed

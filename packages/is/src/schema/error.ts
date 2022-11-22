@@ -16,7 +16,8 @@ export class ValidationError extends Error {
 
 }
 
-export type ErrorMessage<V = unknown> = ((value: Readonly<V>) => string)
+export type ErrorMessage<V = unknown> = 
+    (value: Readonly<V>) => string
 
 export const toErrorMessage = (i: string | ErrorMessage): ErrorMessage => 
     typeof i === 'string' ? returns(i) : i
