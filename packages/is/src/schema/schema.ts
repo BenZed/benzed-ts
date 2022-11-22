@@ -5,8 +5,7 @@ import {
     validate,
     Validate,
     Validator,
-
-    Assert,
+    IsValid,
     Transform
 } from './validate'
 
@@ -16,6 +15,10 @@ import {
     toErrorMessage
 
 } from './error'
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Types ////
 
@@ -28,7 +31,7 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
     assert(input: unknown): asserts input is T
 
     asserts(
-        assert: Assert<T>,
+        assert: IsValid<T>,
         msg?: string | ErrorMessage<T>
     ): this
 
@@ -40,15 +43,19 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
 
 }
 
+type Infer<S extends Schema<any>> = S extends Schema<infer T> ? T : unknown
+
+type Assert<T> = T extends Schema<infer Tx> ? Assert<Tx> : (input: unknown) => asserts input is T
+
 //// Interface ////
 
 function is(
-    this: Schema, 
+    this: { validate: Validate }, 
     input: Readonly<unknown>
 ): input is Readonly<unknown> {
 
     try {
-        void this(input, { transform: false })
+        void this.validate(input, { transform: false })
         return true
     } catch {
         return false
@@ -56,15 +63,15 @@ function is(
 }
 
 function assert(
-    this: Schema, 
+    this: { validate: Validate }, 
     input: Readonly<unknown>
 ): asserts input is Readonly<unknown> {
-    void this(input, { transform: false })
+    void this.validate(input, { transform: false })
 }
 
 function asserts(
     this: Schema, 
-    assert: Assert, 
+    assert: IsValid, 
     msg: string | ErrorMessage = 'Assertion failed.'
 ): Schema {
     return schema(
@@ -139,7 +146,7 @@ function schema(
     ...input: AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
 ): Schema<unknown> {
 
-    const _schema = isAppendSchemaSignature(input)
+    const schema = isAppendSchemaSignature(input)
         ? { 
             ...input[0],
             validators: [
@@ -147,7 +154,8 @@ function schema(
                 input[1]
             ]
         }
-        : { 
+        : {
+
             is,
             assert,
             validate,
@@ -163,9 +171,14 @@ function schema(
                 : [],
         }
 
+    // bind main methods
+    schema.is = is.bind(schema) as typeof is
+    schema.assert = assert.bind(schema)
+    schema.validate = validate.bind(schema)
+
     return merge(
-        validate.bind(_schema),
-        _schema
+        validate.bind(schema),
+        schema
     )
 }
 
@@ -176,6 +189,9 @@ export default schema
 export {
     schema,
     Schema,
+
+    Infer,
+    Assert,
 
     isSchema
 }

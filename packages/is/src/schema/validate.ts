@@ -9,7 +9,7 @@ import { ErrorMessage, ValidationError } from './error'
 
 //// Types ////
 
-type Assert<T = unknown> = (i: Readonly<T>, ctx: ValidateContext) => boolean
+type IsValid<T = unknown> = (i: Readonly<T>, ctx: ValidateContext) => boolean
 
 type Transform<I = unknown, O extends I = I> = (i: Readonly<I>, ctx: ValidateContext) => O
 
@@ -45,7 +45,7 @@ type Validator<I = unknown, O extends I = I> = {
      * 
      * A validation error will be thrown if this method returns false.
      */
-    readonly assert: Assert<I> 
+    readonly assert: IsValid<I> 
 
 })
 
@@ -95,8 +95,8 @@ export {
     validate,
     Validate,
 
-    Assert,
+    IsValid,
     Transform,
 
-    Validator
+    Validator,
 }

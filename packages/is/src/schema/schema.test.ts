@@ -1,4 +1,4 @@
-import { schema } from './schema'
+import { Assert, schema } from './schema'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -6,7 +6,7 @@ import { expectTypeOf } from 'expect-type'
 
 const isString = (i: unknown): i is string => typeof i === 'string'
 
-const $string = schema(isString, 'Must be a string')
+const $string = schema(isString, 'must be a string')
 
 const $lowerCaseString = $string.transforms(
     i => i.toLowerCase(), 
@@ -14,19 +14,32 @@ const $lowerCaseString = $string.transforms(
 )
 
 const $password = $string
-    .asserts(i => i.length >= 8, 'Must have 8 characters or more')
-    .asserts(i => i.match(/[A-Z]/) !== null, 'Must have a capital character.')
+    .asserts(i => i.length >= 8, 'must have 8 characters or more')
+    .asserts(i => !!i.match(/[A-Z]/), 'must have a capital character.')
 
 //// Tests ////
     
-it('schema() type signature', () => {
+describe('schema()', () => {
 
-    expect($string('ace'))
-        .toEqual('ace')
+    it('schema() type signature', () => {
+        expect($string('ace'))
+            .toEqual('ace')
+    
+        expect(() => $string(100))
+            .toThrow('must be a string')
+    })
 
-    expect(() => $string(100))
-        .toThrow('Must be a string')
+    it('context.transform', () => {
+        const $shout = $string
+            .transforms(s => `${s}!`.replace(/!+$/, '!'))
 
+        expect(() => $shout('Ace', { transform: false })).toThrow('Transformation failed')
+    })
+
+    it('context.path', () => {
+        expect(() => $string(100, { path: ['ace']}))
+            .toThrow('ace must be a string')
+    })
 })
 
 describe('transforms()', () => {
@@ -51,20 +64,30 @@ describe('transforms()', () => {
 
         expect(() => $path('ace-of-base', { transform: false }))
             .toThrow('ace-of-base requires a slash')
-
     })
-
 })
 
 describe('asserts()', () => {
 
     it('appends assert validators', () => {
-        expect(() => $password('a')).toThrow('Must have 8 characters or more')
-        expect(() => $password('abcdefgh')).toThrow('Must have a capital character.')
+        expect(() => $password('a')).toThrow('must have 8 characters or more')
+        expect(() => $password('abcdefgh')).toThrow('must have a capital character.')
     })
 
     it('is immutable', () => {
         expect($password).not.toBe($string)
+    })
+
+})
+
+describe('assert()', () => {
+
+    it('is a type assertion', () => {
+        const value: unknown = 'Ace'
+        const assertString: Assert<typeof $string> = $string.assert.bind($string)
+
+        assertString(value)
+        expectTypeOf(value).toEqualTypeOf<string>()
     })
 
 })
@@ -83,6 +106,11 @@ describe('is()', () => {
         const value: unknown = 'Ace'
         if ($string.is(value))
             expectTypeOf(value).toEqualTypeOf<string>()
+    })
+
+    it('is bound', () => {
+        const isString = $string.is
+        expect(isString('string')).toBe(true)
     })
 
 })
