@@ -11,21 +11,21 @@ import { ErrorMessage, ValidationError } from './error'
 
 type Assert<T = unknown> = (i: Readonly<T>, ctx: ValidateContext) => boolean
 
-type Transform<T = unknown> = (i: Readonly<T>, ctx: ValidateContext) => T
+type Transform<I = unknown, O extends I = I> = (i: Readonly<I>, ctx: ValidateContext) => O
 
-type Validator<T = unknown> = {
+type Validator<I = unknown, O extends I = I> = {
     
     /**
      * Error message to be used if validation fails.
      */
-    readonly msg: ErrorMessage<T> 
+    readonly msg: ErrorMessage<I> 
     
 } & ({ 
 
     /**
      * Method to transform a value, if transformations are enabled.
      */
-    readonly transform: Transform<T>
+    readonly transform: Transform<I,O>
     
     /**
      * Method to check if a transformed value is
@@ -45,12 +45,12 @@ type Validator<T = unknown> = {
      * 
      * A validation error will be thrown if this method returns false.
      */
-    readonly assert: Assert<T> 
+    readonly assert: Assert<I> 
 
 })
 
-interface Validate<T> {
-    (input: Readonly<unknown>, ctx?: Partial<ValidateOptions>): T
+interface Validate<I = unknown, O extends I = I> {
+    (input: Readonly<I>, ctx?: Partial<ValidateOptions>): O
 }
 
 //// Validator ////

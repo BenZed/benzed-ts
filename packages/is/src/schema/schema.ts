@@ -19,10 +19,10 @@ import {
 
 //// Types ////
 
-interface Schema<T = unknown> extends Validate<T> {
+interface Schema<T = unknown> extends Validate<unknown, T> {
 
     readonly validators: readonly Validator<T>[]
-    readonly validate: Validate<T>
+    readonly validate: Validate<unknown, T>
 
     is(input: unknown): input is T
     assert(input: unknown): asserts input is T
@@ -156,7 +156,10 @@ function schema(
             transforms,
 
             validators: isTypedSchemaSignature(input)
-                ? [{ assert: input[0], msg: toErrorMessage(input[1] ?? 'Invalid type.') }]
+                ? [{ 
+                    assert: input[0], 
+                    msg: toErrorMessage(input[1] ?? 'Invalid type.') 
+                }]
                 : [],
         }
 
