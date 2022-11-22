@@ -1,5 +1,4 @@
 import { merge } from '@benzed/util'
-import { equals as deepEquals } from '@benzed/immutable'
 
 import { 
     validate,
@@ -10,11 +9,12 @@ import {
 } from './validate'
 
 import { 
-
-    ErrorMessage, 
-    toErrorMessage
-
+    ErrorMessage 
 } from './error'
+
+import { 
+    ValidateContext 
+} from './context'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -72,23 +72,23 @@ function assert(
 function asserts(
     this: Schema, 
     assert: IsValid, 
-    msg: string | ErrorMessage = 'Assertion failed.'
+    msg?: string | ErrorMessage
 ): Schema {
     return schema(
         this, 
-        { assert, msg: toErrorMessage(msg) }
+        { assert, msg }
     )
 }
 
 function transforms(
     this: Schema, 
     transform: Transform,
-    msg: string | ErrorMessage = 'Transformation failed.',
-    equals: (a: unknown, b: unknown) => boolean = deepEquals
+    msg?: string | ErrorMessage,
+    equals?: (a: unknown, b: unknown) => boolean
 ): Schema {
     return schema(
         this, 
-        { transform, msg: toErrorMessage(msg), equals }
+        { transform, msg, equals }
     )
 }
 
@@ -106,16 +106,28 @@ function isSchema<T>(input: unknown): input is Schema<T> {
         typeof schema.is === 'function'
 }
 
-type TypeSchemaSignature<T> = [is: (i: unknown) => i is T, msg?: string | ErrorMessage<T>]
+type TypeSchemaSignature<T> = [
+    is: (this: Schema<T>, i: unknown, ctx: ValidateContext) => i is T, 
+    msg?: string | ErrorMessage<T>
+]
+
 function isTypedSchemaSignature(
-    input: AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
+    input: 
+    AppendSchemaSignature<unknown> | 
+    TypeSchemaSignature<unknown> | 
+    Validator[]
+
 ): input is TypeSchemaSignature<unknown> {
     return typeof input[0] === 'function' && input.length <= 2
 }
 
 type AppendSchemaSignature<T> = [Schema<T>, Validator<T>]
 function isAppendSchemaSignature(
-    input:AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
+    input: 
+    AppendSchemaSignature<unknown> | 
+    TypeSchemaSignature<unknown> | 
+    Validator[]
+
 ): input is AppendSchemaSignature<unknown> {
     return isSchema(input[0])
 }
@@ -126,13 +138,21 @@ function isAppendSchemaSignature(
  * Create a schema for an unknown value.
  */
 function schema(): Schema<unknown>
+
+/**
+ * Create a schema from a list of validators
+ */
+function schema<T>(...validators: Validator<T>[]): Schema<T>
  
 /**
  * Create a schema for a specific type
  * @param is Type guard to validate type against
  * @param msg Error string
  */
-function schema<T>(is: TypeSchemaSignature<T>[0], msg?: TypeSchemaSignature<T>[1]): Schema<T>
+function schema<T>(
+    is: TypeSchemaSignature<T>[0], 
+    msg?: TypeSchemaSignature<T>[1]
+): Schema<T>
 
 /**
  * Immutably append a validator to an existing schema
@@ -140,10 +160,16 @@ function schema<T>(is: TypeSchemaSignature<T>[0], msg?: TypeSchemaSignature<T>[1
  * @param schema
  * @param validator 
  */
-function schema<T>(schema: AppendSchemaSignature<T>[0], validator: AppendSchemaSignature<T>[1]): Schema<T>
+function schema<T>(
+    schema: AppendSchemaSignature<T>[0], 
+    validator: AppendSchemaSignature<T>[1]
+): Schema<T>
 
 function schema(
-    ...input: AppendSchemaSignature<unknown> | TypeSchemaSignature<unknown>
+    ...input: 
+    AppendSchemaSignature<unknown> | 
+    TypeSchemaSignature<unknown> | 
+    Validator[]
 ): Schema<unknown> {
 
     const schema = isAppendSchemaSignature(input)
@@ -166,9 +192,9 @@ function schema(
             validators: isTypedSchemaSignature(input)
                 ? [{ 
                     assert: input[0], 
-                    msg: toErrorMessage(input[1] ?? 'Invalid type.') 
+                    msg: input[1]
                 }]
-                : [],
+                : input,
         }
 
     // bind main methods
@@ -181,6 +207,10 @@ function schema(
         schema
     )
 }
+
+//// Extend ////
+
+schema.is = isSchema
 
 //// Exports ////
 

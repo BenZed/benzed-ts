@@ -7,7 +7,7 @@ import { TypeMethod, IsMethod, AssertMethod, ValidateMethod } from './type-metho
     @typescript-eslint/indent 
 */
 
-/*** Schema Types ***/
+//// Schema Types ////
 
 type Schema<T = any, F extends Flags = DefaultFlags> = TypeMethod<T, F[0]> & {
     get is(): IsMethod<T>
@@ -15,7 +15,7 @@ type Schema<T = any, F extends Flags = DefaultFlags> = TypeMethod<T, F[0]> & {
     get validate(): ValidateMethod<T>
 }
 
-/*** MOVE ME ***/
+//// Move Me ////
 
 type ValueSchema<T, F extends Flags> = Schema<T, F> & {
 
@@ -44,7 +44,7 @@ type NumberSchema<F extends Flags> = ValueSchema<number, F> & {
 
 type ArraySchema<T, F extends Flags> = ValueSchema<T[], F>
 
-/*** Exports ***/
+//// Exports ////
 
 export {
 

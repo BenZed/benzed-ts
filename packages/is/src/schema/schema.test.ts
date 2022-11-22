@@ -33,7 +33,8 @@ describe('schema()', () => {
         const $shout = $string
             .transforms(s => `${s}!`.replace(/!+$/, '!'))
 
-        expect(() => $shout('Ace', { transform: false })).toThrow('Transformation failed')
+        expect(() => $shout('Ace', { transform: false }))
+            .toThrow('Validation failed')
     })
 
     it('context.path', () => {

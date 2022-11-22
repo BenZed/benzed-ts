@@ -1,3 +1,4 @@
+import { equals } from '@benzed/immutable'
 
 import { 
     context,
@@ -18,7 +19,7 @@ type Validator<I = unknown, O extends I = I> = {
     /**
      * Error message to be used if validation fails.
      */
-    readonly msg: ErrorMessage<I> 
+    readonly msg?: string | ErrorMessage<I> 
     
 } & ({ 
 
@@ -36,7 +37,7 @@ type Validator<I = unknown, O extends I = I> = {
      * 
      * Defaults to deep equality.
      */
-    readonly equals: (a: unknown, b: unknown) => boolean
+    readonly equals?: (a: unknown, b: unknown) => boolean
 
 } | { 
 
@@ -65,7 +66,7 @@ function validate(
     
     for (const validator of this.validators) {
         
-        const isTransform = 'transform' in validator 
+        const isTransform = 'transform' in validator
         const output = isTransform 
             ? validator.transform(input, ctx) 
             : validator.assert(input, ctx)
@@ -75,9 +76,9 @@ function validate(
             !isTransform && !output ||
             
             // transform failed
-            isTransform && !ctx.transform && !validator.equals(output, input)
+            isTransform && !ctx.transform && !(validator.equals ?? equals)(output, input)
         )
-            throw new ValidationError(validator.msg(input), ctx)
+            throw new ValidationError(input, ctx, validator.msg)
 
         // apply transform
         else if (isTransform && ctx.transform)

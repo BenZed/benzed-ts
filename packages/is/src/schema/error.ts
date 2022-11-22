@@ -1,23 +1,24 @@
-import { returns } from '@benzed/util'
 import { ValidateContext } from './context'
 
 //// Types ////
 
-export class ValidationError extends Error {
+export class ValidationError<V = unknown> extends Error {
 
     override name = 'ValidationError'
 
     constructor(
-        msg: string, 
-        readonly ctx: ValidateContext
+        readonly value: V,
+        readonly ctx: ValidateContext,
+        msg: string | ErrorMessage<V> = 'Validation failed.'  
     ) {
-        super(`${ctx.path} ${msg}`.trim())
+
+        const error = typeof msg === 'function' ? msg(value, ctx) : msg
+
+        super(`${ctx.path.join('\/')} ${error}`.trim())
     }
 
 }
 
 export type ErrorMessage<V = unknown> = 
-    (value: Readonly<V>) => string
+    (value: Readonly<V>, ctx: ValidateContext) => string
 
-export const toErrorMessage = (i: string | ErrorMessage): ErrorMessage => 
-    typeof i === 'string' ? returns(i) : i
