@@ -1,5 +1,5 @@
 
-import { extendable } from './callable'
+import { extendable } from './extendable'
 
 it('creates an extendable function', () => {
     
