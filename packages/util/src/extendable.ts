@@ -63,7 +63,9 @@ function extendable<F extends Func, O extends object>(method: F, instance: O, bi
             extendable[key] = value.bind(extendable)
     }
 
-    return merge(method.bind(extendable), extendable) as Extendable<F,O>
+    return merge(
+        method.bind(extendable), 
+        extendable) as Extendable<F,O>
 }
 
 //// Exports ////

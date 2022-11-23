@@ -1,3 +1,4 @@
+import { merge } from '../merge'
 import { Map as Link } from '../types'
 
 //// Types ////
@@ -60,8 +61,8 @@ function chain(...links: Link[]): Chain {
 
     links = flattenLinks(links)
 
-    return Object.assign(
-        function pipe(this: unknown, x: unknown) {
+    return merge(
+        function (this: unknown, x: unknown) {
             for (const link of links) 
                 x = this === undefined ? link(x) : link.call(this, x)
 
@@ -72,7 +73,6 @@ function chain(...links: Link[]): Chain {
             links,
             [Symbol.iterator]: iterateLinks
         }
-
     ) as Chain
 
 }
