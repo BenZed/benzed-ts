@@ -20,5 +20,5 @@ export class ValidationError<V = unknown> extends Error {
 }
 
 export type ErrorMessage<V = unknown> = 
-    (value: Readonly<V>, ctx: ValidateContext) => string
+    (value: V, ctx: ValidateContext) => string
 

@@ -1,3 +1,5 @@
+import { copy } from '@benzed/immutable'
+
 import { Assert, schema } from './schema'
 
 import { expectTypeOf } from 'expect-type'
@@ -112,6 +114,15 @@ describe('is()', () => {
     it('is bound', () => {
         const isString = $string.is
         expect(isString('string')).toBe(true)
+    })
+
+})
+
+describe('Copyable', () => {
+
+    it('can be immutably copied', () => {
+        const $stringCopy = copy($string)
+        expect($stringCopy).not.toEqual($string)
     })
 
 })

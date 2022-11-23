@@ -1,19 +1,19 @@
-import { asNil, isNil, merge, nil, pass } from '@benzed/util'
+import { nil, returns } from '@benzed/util'
 
-import { schema, Schema, ValidateContext, Validator } from '../schema'
+import { schema, Schema, ValidateContext } from '../schema'
 
 //// Symbols ////
 
-const $$type = Symbol('type-schema-state')
+const $$type = Symbol('type-settings')
 
 //// Types ////
 
 interface TypeSchemaSettings<T> {
 
     /**
-     * 
+     * Is test
      */
-    is(input: unknown, ctx: ValidateContext): input is T
+    isType(input: unknown, ctx: ValidateContext): input is T
 
     /**
      * Name of the type
@@ -29,7 +29,7 @@ interface TypeSchemaSettings<T> {
      * Method for setting this type's default value
      */
     default?: Default<T>
-     
+
 }
 
 /**
@@ -42,11 +42,8 @@ type Cast<T> = (i: unknown, ctx: ValidateContext) => T | unknown
  */
 type Default<T> = (ctx: ValidateContext) => T
 
-interface TypeSchema<T> extends Schema<T> {
+interface TypeSchemaProperties<T> {
 
-    /**
-     * @internal
-     */
     [$$type]: TypeSchemaSettings<T>
 
     /**
@@ -57,52 +54,75 @@ interface TypeSchema<T> extends Schema<T> {
      */
     cast(cast: Cast<T> | nil): this
 
+    /**
+     * Provide a default value for this schema, in
+     * the event it is
+     *
+     * @param value 
+     */
+    default(value: Default<T> | T | nil): this
+
 }
+
+interface TypeSchema<T> extends Schema<T>, TypeSchemaProperties<T> {}
 
 //// Helper ////
 
 function cast<T>(this: TypeSchema<T>, cast: Cast<T> | nil): TypeSchema<T> {
-    return type({
-        ...this[$$type],
-        cast
+    return this.extend({ 
+        [$$type]: {
+            ...this[$$type], 
+            cast 
+        }
     })
+}
+
+function _default<T>(this: TypeSchema<T>, _default: T | Default<T> | nil): TypeSchema<T> {
+
+    const _defaultType = typeof _default
+
+    return this.extend({ 
+        [$$type]: {
+            ...this[$$type], 
+            default: _defaultType === 'function' || _defaultType === 'undefined'
+                ? _default
+                : returns(_default)
+        }
+    })
+
+}
+
+function typeTransform<T>(this: TypeSchema<T>, input: unknown, ctx: ValidateContext): T {
+
+    const settings = this[$$type]
+
+    if (input === nil && settings.default)
+        input = settings.default(ctx)
+
+    if (!settings.isType(input, ctx) && settings.cast)
+        input = settings.cast(input, ctx)
+
+    return input as T
+}
+
+function typeAssert<T>(this: TypeSchema<T>, input: unknown, ctx: ValidateContext): input is T {
+    const settings = this[$$type]
+    return settings.isType(input, ctx) 
 }
 
 //// Schema ////
 
-function type<T>(settings: TypeSchemaSettings<T>, ...validators: Validator<T>[]): TypeSchema<T> {
-
-    const transform = (input: unknown, ctx: ValidateContext): T => {
-
-        // if (isNil(asNil(input)) && settings.default)
-        //     input = settings.default(ctx)
-
-        if (!settings.is(input, ctx) && settings.cast)
-            input = settings.cast(input, ctx)
-
-        return input as T
-    }
-
-    return merge(
-
-        schema<T>(
-            {
-                transform,
-                equals: pass // will be caught by the subsequent assert method
-            },
-            {
-                assert: settings.is,
-                msg: () => `must be a ${settings.name}`
-            }, 
-            ...validators
-        ),
-
-        { 
-            [$$type]: settings,
-            cast,
-        }
-
-    )
+function type<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
+    
+    return schema<T>({
+        transform: typeTransform,
+        assert: typeAssert,
+        msg: `must be a ${settings.name}`
+    }).extend<TypeSchemaProperties<T>>({
+        [$$type]: settings,
+        cast,
+        default: _default
+    })
 
 }
 

@@ -10,9 +10,9 @@ import { ErrorMessage, ValidationError } from './error'
 
 //// Types ////
 
-type IsValid<T = unknown> = (i: Readonly<T>, ctx: ValidateContext) => boolean
+type IsValid<T = unknown> = (i: T, ctx: ValidateContext) => boolean
 
-type Transform<I = unknown, O extends I = I> = (i: Readonly<I>, ctx: ValidateContext) => O
+type Transform<I = unknown, O extends I = I> = (i: I, ctx: ValidateContext) => O
 
 type Validator<I = unknown, O extends I = I> = {
     
@@ -20,69 +20,46 @@ type Validator<I = unknown, O extends I = I> = {
      * Error message to be used if validation fails.
      */
     readonly msg?: string | ErrorMessage<I> 
-    
-} & ({ 
 
     /**
      * Method to transform a value, if transformations are enabled.
      */
-    readonly transform: Transform<I,O>
+    readonly transform?: Transform<I,O>
     
-    /**
-     * Method to check if a transformed value is
-     * equal to it's input value. 
-     * 
-     * If transformations are disallowed for a validation, a
-     * validation error will be thrown if this method returns false.
-     * 
-     * Defaults to deep equality.
-     */
-    readonly equals?: (a: unknown, b: unknown) => boolean
-
-} | { 
-
     /**
      * Assert that a given value is valid.
      * 
      * A validation error will be thrown if this method returns false.
      */
-    readonly assert: IsValid<I> 
+    readonly assert?: IsValid<I> 
 
-})
+}
 
 interface Validate<I = unknown, O extends I = I> {
-    (input: Readonly<I>, ctx?: Partial<ValidateOptions>): O
+    (input: I, ctx?: Partial<ValidateOptions>): O
 }
 
 //// Validator ////
 
 function validate(
     this: { validators: readonly Validator[] }, 
-    input: Readonly<unknown>, 
+    input: unknown, 
     options?: Partial<ValidateOptions>
 ): unknown {
 
     const ctx = context({ input, ...options })
     
-    for (const validator of this.validators) {
+    for (const { transform, assert, msg } of this.validators) {
         
-        const isTransform = 'transform' in validator
-        const output = isTransform 
-            ? validator.transform(input, ctx) 
-            : validator.assert(input, ctx)
+        const transformed = transform ? transform.call(this, input, ctx) : input
 
-        if (
-            // assertion failed
-            !isTransform && !output ||
-            
-            // transform failed
-            isTransform && !ctx.transform && !(validator.equals ?? equals)(output, input)
-        )
-            throw new ValidationError(input, ctx, validator.msg)
+        const output = ctx.transform ? transformed : input
 
-        // apply transform
-        else if (isTransform && ctx.transform)
-            input = output as Readonly<unknown>
+        const isValid = assert ? assert.call(this, output, ctx) : equals(output, transformed)
+        if (!isValid)
+            throw new ValidationError(input, ctx, msg)
+
+        input = output
     }
 
     return input

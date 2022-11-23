@@ -1,4 +1,4 @@
-import { merge } from '@benzed/util'
+import { nil, asNil, keysOf, merge } from '@benzed/util'
 
 import { 
     validate,
@@ -16,8 +16,12 @@ import {
     ValidateContext 
 } from './context'
 
+import { $$copy } from '@benzed/immutable'
+
+//// Type ////
+
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Types ////
@@ -30,6 +34,8 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
     is(input: unknown): input is T
     assert(input: unknown): asserts input is T
 
+    extend<E extends object>(extension: E): this & E
+
     asserts(
         assert: IsValid<T>,
         msg?: string | ErrorMessage<T>
@@ -37,8 +43,7 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
 
     transforms(
         transform: Transform<T>, 
-        msg?: string | ErrorMessage<T>, 
-        equals?: (a: unknown, b: unknown) => boolean
+        msg?: string | ErrorMessage<T>
     ): this
 
 }
@@ -51,8 +56,8 @@ type Assert<T> = T extends Schema<infer Tx> ? Assert<Tx> : (input: unknown) => a
 
 function is(
     this: { validate: Validate }, 
-    input: Readonly<unknown>
-): input is Readonly<unknown> {
+    input: unknown
+): input is unknown {
 
     try {
         void this.validate(input, { transform: false })
@@ -64,8 +69,8 @@ function is(
 
 function assert(
     this: { validate: Validate }, 
-    input: Readonly<unknown>
-): asserts input is Readonly<unknown> {
+    input: unknown
+): asserts input is unknown {
     void this.validate(input, { transform: false })
 }
 
@@ -76,60 +81,92 @@ function asserts(
 ): Schema {
     return schema(
         this, 
-        { assert, msg }
+        [{ assert, msg }]
     )
 }
 
 function transforms(
     this: Schema, 
     transform: Transform,
-    msg?: string | ErrorMessage,
-    equals?: (a: unknown, b: unknown) => boolean
+    msg?: string | ErrorMessage
 ): Schema {
     return schema(
         this, 
-        { transform, msg, equals }
+        [{ transform, msg }]
     )
+}
+
+function copy(
+    this: Schema,
+): Schema {
+    return this.extend({})
+}
+
+function extend<E extends object>(
+    this: Schema,
+    extension: E
+): Schema & E {
+
+    const extended = {
+        ...this,
+        ...extension,
+    }
+
+    // in case the extension overwrites any schema properties
+    if (!isSchema(extended)) {
+        throw new Error(
+            `Schema cannot be extended with keys: ${[...keysOf(extension)]}`
+        )
+    }
+
+    return schema(extended, []) as Schema & E
 }
 
 //// Interface Helpers ////
 
 function isSchema<T>(input: unknown): input is Schema<T> {
 
-    if (typeof input !== 'function')
+    if (asNil(input) === nil)
+        return false
+
+    if (typeof input !== 'function' && typeof input !== 'object')
         return false 
 
     const schema = input as Partial<Schema<T>>
 
     return Array.isArray(schema.validators) && 
         typeof schema.assert === 'function' && 
-        typeof schema.is === 'function'
+        typeof schema.is === 'function' && 
+        typeof schema.validate === 'function' && 
+        typeof schema.asserts === 'function' && 
+        typeof schema.transforms === 'function'
 }
 
-type TypeSchemaSignature<T> = [
+type TypeGuardSchemaSignature<T> = [
     is: (this: Schema<T>, i: unknown, ctx: ValidateContext) => i is T, 
     msg?: string | ErrorMessage<T>
 ]
 
-function isTypedSchemaSignature(
+function isTypeGuardSchemaSignature(
     input: 
     AppendSchemaSignature<unknown> | 
-    TypeSchemaSignature<unknown> | 
+    TypeGuardSchemaSignature<unknown> | 
     Validator[]
 
-): input is TypeSchemaSignature<unknown> {
+): input is TypeGuardSchemaSignature<unknown> {
     return typeof input[0] === 'function' && input.length <= 2
 }
 
-type AppendSchemaSignature<T> = [Schema<T>, Validator<T>]
+type AppendSchemaSignature<T> = [Schema<T>, Validator<T>[]]
 function isAppendSchemaSignature(
+
     input: 
     AppendSchemaSignature<unknown> | 
-    TypeSchemaSignature<unknown> | 
+    TypeGuardSchemaSignature<unknown> |
     Validator[]
 
 ): input is AppendSchemaSignature<unknown> {
-    return isSchema(input[0])
+    return isSchema(input[0]) && Array.isArray(input[1])
 }
 
 //// Main ////
@@ -140,7 +177,7 @@ function isAppendSchemaSignature(
 function schema(): Schema<unknown>
 
 /**
- * Create a schema from a list of validators
+ * Create a schema for an unknown value.
  */
 function schema<T>(...validators: Validator<T>[]): Schema<T>
  
@@ -150,34 +187,34 @@ function schema<T>(...validators: Validator<T>[]): Schema<T>
  * @param msg Error string
  */
 function schema<T>(
-    is: TypeSchemaSignature<T>[0], 
-    msg?: TypeSchemaSignature<T>[1]
+    is: TypeGuardSchemaSignature<T>[0], 
+    msg?: TypeGuardSchemaSignature<T>[1]
 ): Schema<T>
 
 /**
  * Immutably append a validator to an existing schema
  * @internal
  * @param schema
- * @param validator 
+ * @param validators
  */
 function schema<T>(
     schema: AppendSchemaSignature<T>[0], 
-    validator: AppendSchemaSignature<T>[1]
+    validators: AppendSchemaSignature<T>[1]
 ): Schema<T>
 
 function schema(
     ...input: 
     AppendSchemaSignature<unknown> | 
-    TypeSchemaSignature<unknown> | 
+    TypeGuardSchemaSignature<unknown> |
     Validator[]
 ): Schema<unknown> {
 
-    const schema = isAppendSchemaSignature(input)
+    const _schema = isAppendSchemaSignature(input)
         ? { 
             ...input[0],
             validators: [
                 ...input[0].validators,
-                input[1]
+                ...input[1]
             ]
         }
         : {
@@ -185,11 +222,15 @@ function schema(
             is,
             assert,
             validate,
-    
+
+            extend,
+
             asserts,
             transforms,
 
-            validators: isTypedSchemaSignature(input)
+            [$$copy]: copy,
+
+            validators: isTypeGuardSchemaSignature(input)
                 ? [{ 
                     assert: input[0], 
                     msg: input[1]
@@ -198,18 +239,23 @@ function schema(
         }
 
     // bind main methods
-    schema.is = is.bind(schema) as typeof is
-    schema.assert = assert.bind(schema)
-    schema.validate = validate.bind(schema)
+    _schema.is = is.bind(_schema) as typeof is
+    _schema.assert = assert.bind(_schema)
+    _schema.validate = validate.bind(_schema)
 
     return merge(
-        validate.bind(schema),
-        schema
+        validate.bind(_schema),
+        _schema
     )
 }
 
 //// Extend ////
 
+/**
+ * Is the given object a schema?
+ * @param input 
+ * @returns true if the input is a schema, false otherwise
+ */
 schema.is = isSchema
 
 //// Exports ////
@@ -221,7 +267,5 @@ export {
     Schema,
 
     Infer,
-    Assert,
-
-    isSchema
+    Assert
 }
