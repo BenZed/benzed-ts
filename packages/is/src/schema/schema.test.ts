@@ -8,7 +8,7 @@ import { expectTypeOf } from 'expect-type'
 
 const isString = (i: unknown): i is string => typeof i === 'string'
 
-const $string = schema(isString, 'must be a string')
+const $string = schema({ assert: isString, msg: 'must be type string' })
 
 const $lowerCaseString = $string.transforms(
     i => i.toLowerCase(), 
@@ -28,7 +28,7 @@ describe('schema()', () => {
             .toEqual('ace')
     
         expect(() => $string(100))
-            .toThrow('must be a string')
+            .toThrow('must be type string')
     })
 
     it('context.transform', () => {
@@ -41,7 +41,7 @@ describe('schema()', () => {
 
     it('context.path', () => {
         expect(() => $string(100, { path: ['ace']}))
-            .toThrow('ace must be a string')
+            .toThrow('ace must be type string')
     })
 })
 

@@ -1,5 +1,5 @@
-import { equals, isFunction, isObject } from '@benzed/immutable'
 import { nil } from '@benzed/util'
+import { equals, isFunction, isObject } from '@benzed/immutable'
 
 import { 
 
@@ -13,7 +13,7 @@ import { ErrorMessage, ValidationError } from './error'
 
 //// Types ////
 
-type IsValid<T = unknown> = (i: T, ctx: ValidateContext) => boolean
+type IsValid<T = unknown> = ((i: T, ctx: ValidateContext) => boolean)
 
 type Transform<I = unknown, O extends I = I> = (i: I, ctx: ValidateContext) => O
 
@@ -34,7 +34,7 @@ type Validator<I = unknown, O extends I = I> = {
      * 
      * A validation error will be thrown if this method returns false.
      */
-    readonly assert?: IsValid<I> 
+    readonly assert?: IsValid<I> | ((i: unknown, ctx: ValidateContext) => i is I)
 
 }
 

@@ -17,7 +17,7 @@ it('creates schema for a specific type', () => {
 })
 
 it('throws with type name', () => {
-    expect(() => $number('sup')).toThrow('must be a number')
+    expect(() => $number('sup')).toThrow('must be type number')
 })
 
 describe('cast' , () => {
@@ -63,7 +63,7 @@ describe('default', () => {
 
     it('can be removed', () => {
         const $number = $zero.default(nil)
-        expect(() => $number(nil)).toThrow('must be a number')
+        expect(() => $number(nil)).toThrow('must be type number')
     })
 
 })

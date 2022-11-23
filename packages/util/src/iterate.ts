@@ -21,8 +21,14 @@ function isIterable<T>(input: unknown): input is Iterable<T> {
  * Typesafe iteration of the keys of given object.
  */
 function * keysOf<T extends object> (object: T): Generator<keyof T> {
-    for (const key in object)
-        yield key
+
+    const { keys, getOwnPropertySymbols } = Object
+
+    for (const key of [
+        ...keys(object),
+        ...getOwnPropertySymbols(object)
+    ])
+        yield key as keyof T
 }
 
 /**

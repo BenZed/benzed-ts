@@ -62,33 +62,38 @@ interface TypeSchemaProperties<T> {
      */
     default(value: Default<T> | T | nil): this
 
+    /**
+     * @internal
+     * @param settings 
+     */
+    _type(settings: Partial<TypeSchemaSettings<T>>): this
+
 }
 
 interface TypeSchema<T> extends Schema<T>, TypeSchemaProperties<T> {}
 
 //// Helper ////
 
-function cast<T>(this: TypeSchema<T>, cast: Cast<T> | nil): TypeSchema<T> {
+function _type<T>(this: TypeSchema<T>, settings: Partial<TypeSchemaSettings<T>>): TypeSchema<T> {
     return this.extend({ 
         [$$type]: {
             ...this[$$type], 
-            cast 
+            ...settings
         }
     })
 }
 
+function cast<T>(this: TypeSchema<T>, cast: Cast<T> | nil): TypeSchema<T> {
+    return this._type({ cast })
+}
+
 function _default<T>(this: TypeSchema<T>, _default: T | Default<T> | nil): TypeSchema<T> {
 
-    const _defaultType = typeof _default
+    const _defaultMethod = _default === nil || typeof _default === 'function'
+        ? _default as nil | Default<T>
+        : returns(_default)
 
-    return this.extend({ 
-        [$$type]: {
-            ...this[$$type], 
-            default: _defaultType === 'function' || _defaultType === 'undefined'
-                ? _default
-                : returns(_default)
-        }
-    })
+    return this._type({ default: _defaultMethod })
 
 }
 
@@ -117,11 +122,12 @@ function type<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
     return schema<T>({
         transform: typeTransform,
         assert: typeAssert,
-        msg: `must be a ${settings.name}`
+        msg: `must be type ${settings.name}`
     }).extend<TypeSchemaProperties<T>>({
         [$$type]: settings,
         cast,
-        default: _default
+        default: _default,
+        _type,
     })
 
 }
