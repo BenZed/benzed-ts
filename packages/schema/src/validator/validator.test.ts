@@ -1,7 +1,7 @@
 import { copy, equals } from '@benzed/immutable'
 
 import {
-    AssertTransformEqualValidator,
+    AssertValidTransformValidator,
     AssertTransformValidator,
     AssertValidator,
     ErrorSettings,
@@ -14,14 +14,14 @@ describe(Validator.name, () => {
     class IdValidator extends Validator<unknown, string, { id: string }> {
         validate(input: unknown): string {
             if (input !== this.settings.id)
-                throw new Error(`incorrectd id`)
+                throw new Error('incorrectd id')
 
             return input
         }
     }
 
-    it(`implements CopyComparable`, () => {
-        const isAdmin = new IdValidator({ id: `admin` })
+    it('implements CopyComparable', () => {
+        const isAdmin = new IdValidator({ id: 'admin' })
 
         const isAdminCopy = copy(isAdmin)
 
@@ -30,24 +30,24 @@ describe(Validator.name, () => {
         expect(isAdmin.settings).toEqual(isAdminCopy.settings)
     })
 
-    describe(`settings getter`, () => {
-        it(`gets settings`, () => {
-            const settings = { id: `cake` }
+    describe('settings getter', () => {
+        it('gets settings', () => {
+            const settings = { id: 'cake' }
             const isCake = new IdValidator(settings)
             expect(isCake.settings).toEqual(settings)
         })
     })
 
-    describe(`applySettings()`, () => {
-        const isJoe = new IdValidator({ id: `joe` })
-        const billSettings = { id: `bill` }
+    describe('applySettings()', () => {
+        const isJoe = new IdValidator({ id: 'joe' })
+        const billSettings = { id: 'bill' }
         isJoe.applySettings(billSettings)
 
-        it(`applies settings`, () => {
+        it('applies settings', () => {
             expect(isJoe.settings).toEqual(billSettings)
         })
 
-        it(`immutably`, () => {
+        it('immutably', () => {
             expect(isJoe.settings).not.toBe(billSettings)
         })
 
@@ -65,12 +65,12 @@ describe(TransformValidator.name, () => {
 
     const byTwo = new MultiplyValidator({ by: 2 })
 
-    it(`applies transformations with true allowTransform arg`, () => {
+    it('applies transformations with true allowTransform arg', () => {
         expect(byTwo.validate(1, true))
             .toEqual(2)
     })
 
-    it(`does not apply transformations with false allowTransform arg`, () => {
+    it('does not apply transformations with false allowTransform arg', () => {
         expect(byTwo.validate(1, false))
             .toEqual(1)
     })
@@ -85,12 +85,11 @@ describe(AssertValidator.name, () => {
         protected _assert(input: T): void {
             if (input.length === 0) {
                 this._throwWithErrorSetting(
-                    `must not be empty`,
+                    'must not be empty',
                     input
                 )
             }
         }
-
     }
 
     it(`extends ${Validator.name}`, () => {
@@ -98,31 +97,31 @@ describe(AssertValidator.name, () => {
             .toBeInstanceOf(Validator)
     })
 
-    describe(`_throwWithErrorSetting()`, () => {
+    describe('_throwWithErrorSetting()', () => {
 
-        it(`throws with configured setting`, () => {
+        it('throws with configured setting', () => {
             const effortEmpty = new NonEmptyValidator<ArrayLike<unknown>>({
-                error: `put some effort into it`
+                error: 'put some effort into it'
             })
 
             expect(() => effortEmpty.validate([]))
-                .toThrow(`put some effort into it`)
+                .toThrow('put some effort into it')
         })
 
-        it(`error method gets args`, () => {
+        it('error method gets args', () => {
             const profaneEmpty = new NonEmptyValidator<string>({
                 error: (value) => `"${value}" is an empty string you fucking fuck`
             })
 
-            expect(() => profaneEmpty.validate(``))
-                .toThrow(`"" is an empty string you fucking fuck`)
+            expect(() => profaneEmpty.validate(''))
+                .toThrow('"" is an empty string you fucking fuck')
         })
 
-        it(`throws with default error if none configured`, () => {
+        it('throws with default error if none configured', () => {
             const isntEmpty = new NonEmptyValidator<unknown[]>({})
 
             expect(() => isntEmpty.validate([]))
-                .toThrow(`must not be empty`)
+                .toThrow('must not be empty')
         })
     })
 })
@@ -132,17 +131,17 @@ describe(AssertTransformValidator.name, () => {
     class DigitValidator extends AssertTransformValidator<string | number, number> {
 
         protected _transform(input: string | number): number {
-            return typeof input === `number`
+            return typeof input === 'number'
                 ? input
                 : parseInt(input)
         }
 
         protected _assert(input: string | number): asserts input is number {
-            if (typeof input === `number` && !Number.isNaN(input) && isFinite(input))
+            if (typeof input === 'number' && !Number.isNaN(input) && isFinite(input))
                 return
 
             this._throwWithErrorSetting(
-                `must be a digit string or a finite number`
+                'must be a digit string or a finite number'
             )
         }
     }
@@ -152,19 +151,19 @@ describe(AssertTransformValidator.name, () => {
             .toBeInstanceOf(TransformValidator)
     })
 
-    it(`throws errors with given setting`, () => {
+    it('throws errors with given setting', () => {
         expect(() =>
-            new DigitValidator({ error: `NaN is not allowed` })
+            new DigitValidator({ error: 'NaN is not allowed' })
                 .validate(NaN, true)
-        ).toThrow(`NaN is not allowed`)
+        ).toThrow('NaN is not allowed')
     })
 
 })
 
-describe(AssertTransformEqualValidator.name, () => {
+describe(AssertValidTransformValidator.name, () => {
 
     class MultipleOfValidator extends
-        AssertTransformEqualValidator<
+        AssertValidTransformValidator<
         /**/ number,
         /**/ { modulo: number } & ErrorSettings<[modulo: number]>
         > {
@@ -184,24 +183,24 @@ describe(AssertTransformEqualValidator.name, () => {
 
     }
 
-    const isEven = new MultipleOfValidator({ modulo: 2, error: `must be even` })
+    const isEven = new MultipleOfValidator({ modulo: 2, error: 'must be even' })
 
-    it(`extends ${AssertTransformEqualValidator.name}`, () => {
+    it(`extends ${AssertValidTransformValidator.name}`, () => {
         expect(isEven)
-            .toBeInstanceOf(AssertTransformEqualValidator)
+            .toBeInstanceOf(AssertValidTransformValidator)
     })
 
-    it(`transforms`, () => {
+    it('transforms', () => {
         expect(isEven.validate(5, true))
             .toEqual(4)
     })
 
-    it(`throws if input is not equal to the transform of that input`, () => {
+    it('throws if input is not equal to the transform of that input', () => {
         expect(() => isEven.validate(10, false))
             .not
             .toThrow()
 
         expect(() => isEven.validate(5, false))
-            .toThrow(`must be even`)
+            .toThrow('must be even')
     })
 })

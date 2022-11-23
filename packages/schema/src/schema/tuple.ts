@@ -1,6 +1,6 @@
 
+import { is } from '@benzed/is'
 import { push } from '@benzed/immutable'
-import { isArray } from '@benzed/is'
 
 import {
     TypeValidator
@@ -49,9 +49,9 @@ class TupleSchema<
 /**/> extends ParentSchema<I, ApplyMutable<F, O>, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `tuple`,
-        article: `a`,
-        is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>
+        name: 'tuple',
+        article: 'a',
+        is: is.array as unknown as (input: unknown) => input is ApplyMutable<F, O>
     })
 
     constructor (input: I, ...flags: F) {
@@ -59,9 +59,9 @@ class TupleSchema<
 
         // Set length validator
         this._setPostTypeValidator(
-            `tuple-length`,
+            'tuple-length',
             new LengthValidator({
-                comparator: `==`,
+                comparator: '==',
                 value: input.length,
                 error: `must have exactly ${input.length} items`
             })
@@ -76,18 +76,18 @@ class TupleSchema<
 
     //// Chain Interface ////
 
-    default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
+    override default(defaultValue?: DefaultValidatorSettings<ApplyMutable<F, O>>['default']): this {
 
         defaultValue ??= (): ApplyMutable<F, O> => {
             const output = [] as unknown[]
             for (const schema of this._input) {
 
                 // first used default validator output
-                let value = schema[`_defaultValidator`].transform(undefined)
+                let value = schema['_defaultValidator'].transform(undefined)
 
                 // use identify if primitive
                 if (value === undefined && schema instanceof PrimitiveSchema)
-                    value = schema[`_input`]
+                    value = schema['_input']
 
                 output.push(value)
             }
@@ -120,7 +120,7 @@ class TupleSchema<
 
             const schema = this._input[i]
 
-            output[i] = schema[`_validate`](output[i], {
+            output[i] = schema['_validate'](output[i], {
                 ...context,
                 path: push(context.path, i)
             })

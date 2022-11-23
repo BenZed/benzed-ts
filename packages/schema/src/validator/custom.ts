@@ -108,7 +108,7 @@ const toCustomValidatorSettings = <I, O extends I = I>(
 class CustomValidator<I, O extends I = I> 
     extends AssertValidTransformValidator<I, CustomValidatorSettings<I,O>> {
 
-    protected _onApplySettings(): void {
+    protected override _onApplySettings(): void {
 
         const { settings } = this
 

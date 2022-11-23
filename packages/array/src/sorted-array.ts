@@ -1,4 +1,4 @@
-import { Sortable, isSortedArray } from '@benzed/is'
+import { Sortable, is } from '@benzed/is'
 
 //// Types ////
 
@@ -10,9 +10,9 @@ type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
  * Sorter method that places the items in an array in ascending order.
  */
 function ascending<T>(a: T, b: T): number {
-    //             ^ purposefully not extending Sortable so this
-    //               method can be exported to be used on regular
-    //               arrays.
+    //             ^ purposefully not extending Sortable
+    //               method can be exported to be used 
+    //               on regular arrays.
 
     return (a as unknown as number) - (b as unknown as number)
 }
@@ -69,7 +69,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * Returns true if the array is currently sorted.
      */
     get isSorted(): boolean {
-        return isSortedArray(this)
+        return is.array.sorted(this)
     }
 
     /**

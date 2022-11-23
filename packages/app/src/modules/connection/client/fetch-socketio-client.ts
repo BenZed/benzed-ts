@@ -1,47 +1,17 @@
-import is from '@benzed/is'
 
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
 
-import { HttpMethod } from '../server'
-
 import Client, { $clientSettings, ClientSettings } from './client'
 
+import { HttpMethod, toQueryString } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
-import { createNameToReq } from '../../../command/request'
 
 //// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Helper ////
-
-function toQueryString(data: object, prefix = ''): string {
-
-    const queryStrings: string[] = []
- 
-    for (const key in data) {
-
-        if (data.hasOwnProperty(key)) {
-
-            const value = (data as any)[key]
-
-            const keyWithPrefix = prefix ? `${prefix}[${key}]` : key
-
-            const queryString = is.object(value)
-                ? toQueryString(value, keyWithPrefix) 
-                : encodeURIComponent(keyWithPrefix) + '=' + encodeURIComponent(value)
-
-            queryStrings.push(queryString)
-        }
-
-    }
-
-    const queryString = queryStrings.join('&')
-    return queryString && !prefix ? `?${queryString}` : queryString
-}
 
 //// FetchSocketIoClient ////
 
@@ -129,11 +99,11 @@ export class FetchSocketIOClient extends Client {
         this.log`disconnected from server`
     }
 
-    private _executeSocketIOCommand(name: string, data: object): Promise<object> {
+    private _executeSocketIOCommand(rootName: string, data: object): Promise<object> {
         const io = this._io as Socket 
 
         return new Promise<object>((resolve, reject) => {
-            io.emit('command', name, data, (err: null, result: object) => {
+            io.emit('command', rootName, data, (err: null, result: object) => {
                 if (err)
                     reject(err)
                 else 
@@ -142,19 +112,22 @@ export class FetchSocketIOClient extends Client {
         })
     }
 
-    private async _executeFetchCommand(name: string, cmdData: object): Promise<object> {
+    private async _executeFetchCommand(rootName: string, cmdData: object): Promise<object> {
         const { host } = this.settings
 
-        const toReq = this.root.getCommand(name).toReq ?? createNameToReq(name)
-        const [ method, url, reqData ] = toReq(cmdData)
+        const command = this.root.getCommand(rootName)
+
+        const [ method, cmdEndPoint, reqData, headers ] = command.toRequest(cmdData)
 
         const fetchData = {
             method,
             body: method === HttpMethod.Get ? null : JSON.stringify(reqData),
-            url: method === HttpMethod.Get ? `${url}${toQueryString(reqData)}` : url
+            headers: headers ?? undefined
         }
 
-        const response = await fetch(host, fetchData)
+        const fetchEndPoint = method === HttpMethod.Get ? `${cmdEndPoint}${toQueryString(reqData)}` : cmdEndPoint
+
+        const response = await fetch(`${host}${fetchEndPoint}`, fetchData)
         return response.json()
     }
 

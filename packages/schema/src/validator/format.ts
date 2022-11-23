@@ -4,12 +4,7 @@ import {
     ErrorSettings
 } from './validator'
 
-import {
-    isFunction,
-    isInstanceOf,
-    isObject,
-    isString
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// DATA ////
 
@@ -71,7 +66,7 @@ function isFormatShortcut(input: unknown): input is FormatShortcut {
 function asRegExp(
     str: TemplateStringsArray
 ): RegExp {
-    return new RegExp(str.raw[0].replace(/\s/gm, ``), ``)
+    return new RegExp(str.raw[0].replace(/\s/gm, ''), '')
 }
 
 function toRegExpDetail(format: Format): [regexp: RegExp, formatTransgressionDetail: string] {
@@ -84,16 +79,16 @@ function toRegExpDetail(format: Format): [regexp: RegExp, formatTransgressionDet
 
 function isFormat(input: unknown): input is Format {
     return isFormatShortcut(input) ||
-        isInstanceOf(input, RegExp)
+        is.type(input, RegExp)
 }
 
 function isFormatValidatorSettings(input: unknown): input is FormatValidatorSettings {
-    return isObject<Partial<FormatValidatorSettings>>(input) &&
+    return is.object<Partial<FormatValidatorSettings>>(input) &&
         isFormat(input.format) &&
         (
             input.error === undefined ||
-            isString(input.error) ||
-            isFunction(input.error)
+           is.string(input.error) ||
+            is.function(input.error)
         )
 }
 

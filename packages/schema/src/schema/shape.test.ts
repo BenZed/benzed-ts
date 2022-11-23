@@ -26,44 +26,44 @@ const $todo = new ShapeSchema({
 
 // TODO move me
 
-describe(`validate()`, () => {
+describe('validate()', () => {
 
-    it(`validates shapes`, () => {
+    it('validates shapes', () => {
         expect($vector2.validate({ x: 0, y: 0 }))
             .toEqual({ x: 0, y: 0 })
 
         expect(() => $vector2.validate(false))
-            .toThrow(`must be an object`)
+            .toThrow('must be an object')
     })
 
-    it(`validates children`, () => {
-        const expectError = expectValidationError(() => $vector2.validate({ x: 0, y: `One` }))
-        expectError.toHaveProperty(`path`, [`y`])
-        expectError.toHaveProperty(`message`, `must be a number`)
+    it('validates children', () => {
+        const expectError = expectValidationError(() => $vector2.validate({ x: 0, y: 'One' }))
+        expectError.toHaveProperty('path', ['y'])
+        expectError.toHaveProperty('message', 'must be a number')
     })
 
-    it(`validates nested children`, () => {
+    it('validates nested children', () => {
         expectValidationError(
             () => $todo.validate({
                 completed: true,
                 description: {
-                    content: `Complete this schema validation library`,
-                    deadline: `never lol`
+                    content: 'Complete this schema validation library',
+                    deadline: 'never lol'
                 }
             })
-        ).toHaveProperty(`path`, [`description`, `deadline`])
+        ).toHaveProperty('path', ['description', 'deadline'])
     })
 
-    it(`omits unspecified properties`, () => {
+    it('omits unspecified properties', () => {
         expect($vector2.validate({ x: 10, y: 20, z: 100 }))
             .toEqual({ x: 10, y: 20 })
     })
 
 })
 
-describe(`default()`, () => {
+describe('default()', () => {
 
-    it(`defaults to constructed object`, () => {
+    it('defaults to constructed object', () => {
 
         const $hash = new ShapeSchema({
             secret: new StringSchema(),
@@ -75,10 +75,10 @@ describe(`default()`, () => {
             $hash
                 .default()
                 .validate(undefined)
-        ).toEqual({ secret: ``, count: 0, flag: false })
+        ).toEqual({ secret: '', count: 0, flag: false })
     })
 
-    it(`default constructed object respects nested default values`, () => {
+    it('default constructed object respects nested default values', () => {
 
         const $count = new ShapeSchema({
             value: new NumberSchema().default(10)
@@ -91,7 +91,7 @@ describe(`default()`, () => {
         ).toEqual({ value: 10 })
     })
 
-    it(`respects default setting, if valid`, () => {
+    it('respects default setting, if valid', () => {
         expect(
             $vector2
                 .default({ x: 10, y: 10 })
@@ -101,7 +101,7 @@ describe(`default()`, () => {
 
 })
 
-it(`properties can be spread into new schemas`, () => {
+it('properties can be spread into new schemas', () => {
 
     const $vector3 = new ShapeSchema({
         ...$vector2.properties,

@@ -1,4 +1,4 @@
-import { isArrayLike } from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// Shortcuts ////
 
@@ -16,7 +16,7 @@ function flatten<T>(input: ArrayLike<T>): T[] {
 
     for (let i = 0; i < input.length; i++) {
         const item = input[i]
-        if (isArrayLike(item))
+        if (is.array.like(item))
             push.apply(output, flatten(item))
         else
             output.push(item)

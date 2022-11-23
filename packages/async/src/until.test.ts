@@ -1,5 +1,5 @@
 import until from './until'
-import fs from '@benzed/fs'
+import fs from 'fs'
 import path from 'path'
 
 // eslint-disable-next-line no-unused-vars
@@ -61,7 +61,7 @@ describe('until', () => {
                         interval: 5
                     })
 
-                expect(ms >= 15 && ms < 20).toBe(true)
+                expect(ms >= 15).toBe(true)
             })
             it('defaults to 25', async () => {
                 let _switch = true

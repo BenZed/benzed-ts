@@ -1,3 +1,5 @@
+import { is } from '@benzed/is'
+
 import { $, Infer } from './index'
 
 import IntersectionSchema from './intersection'
@@ -11,24 +13,23 @@ import UnionSchema from './union'
 import TupleSchema from './tuple'
 
 import { expectTypeOf } from 'expect-type'
-import { isSymbol } from '@benzed/is'
 
 /* eslint-disable 
         @typescript-eslint/no-explicit-any
     */
 
 for (const [key, SchemaType, ...args] of [
-    [`shape`, ShapeSchema, { property: new BooleanSchema() }],
-    [`record`, RecordSchema, new NumberSchema()],
-    [`array`, ArraySchema, new StringSchema()],
-    [`tuple`, TupleSchema, new NumberSchema(), new NumberSchema()],
+    ['shape', ShapeSchema, { property: new BooleanSchema() }],
+    ['record', RecordSchema, new NumberSchema()],
+    ['array', ArraySchema, new StringSchema()],
+    ['tuple', TupleSchema, new NumberSchema(), new NumberSchema()],
     [
-        `and`,
+        'and',
         IntersectionSchema,
         new ShapeSchema({ x: new NumberSchema() }),
         new ShapeSchema({ y: new NumberSchema() })
     ],
-    [`or`, UnionSchema, new NumberSchema(), new StringSchema()]
+    ['or', UnionSchema, new NumberSchema(), new StringSchema()]
 
 ] as const) {
 
@@ -39,9 +40,9 @@ for (const [key, SchemaType, ...args] of [
 
 }
 
-describe(`$() shortcut`, () => {
+describe('$() shortcut', () => {
 
-    it(`allows shapes`, () => {
+    it('allows shapes', () => {
         const $vector = $({
             x: $.number,
             y: $.number
@@ -50,14 +51,14 @@ describe(`$() shortcut`, () => {
         expect($vector).toBeInstanceOf(ShapeSchema)
     })
 
-    it(`allows tuples`, () => {
+    it('allows tuples', () => {
         const $range = $($.number, $.number)
         expect($range).toBeInstanceOf(TupleSchema)
     })
 
-    it.todo(`allows enums`)
+    it.todo('allows enums')
 
-    it(`allows constructors`, () => {
+    it('allows constructors', () => {
         class Foo {}
         class Bar {}
 
@@ -69,20 +70,20 @@ describe(`$() shortcut`, () => {
             .toEqual(foo)
         
         expect(() => $foo.validate(new Bar()))
-            .toThrow(`must be Foo`)
+            .toThrow('must be Foo')
         
     })
 
-    it(`does not allow Symbol`, () => {
+    it('does not allow Symbol', () => {
         // @ts-expect-error Symbol is not a constructor
         $(Symbol)
     })
 
 })
 
-describe(`shortcut type tests`, () => {
+describe('shortcut type tests', () => {
 
-    it(`primitives`, () => {
+    it('primitives', () => {
 
         const $null = $.null
         expectTypeOf<Infer<typeof $null>>().toEqualTypeOf<null>()
@@ -100,7 +101,7 @@ describe(`shortcut type tests`, () => {
         expectTypeOf<Infer<typeof $string>>().toEqualTypeOf<string | undefined>()
     })
 
-    it(`shapes`, () => {
+    it('shapes', () => {
 
         const $vector = $({
             x: $.number.mutable,
@@ -116,7 +117,7 @@ describe(`shortcut type tests`, () => {
 
     })
 
-    it(`nested shapes`, () => {
+    it('nested shapes', () => {
 
         const $todo = $({
             completed: $.boolean.mutable,
@@ -137,7 +138,7 @@ describe(`shortcut type tests`, () => {
 
     })
 
-    it(`arrays`, () => {
+    it('arrays', () => {
 
         const $optionalStringArr = $.array($.string).mutable.optional
         expectTypeOf<Infer<typeof $optionalStringArr>>()
@@ -157,7 +158,7 @@ describe(`shortcut type tests`, () => {
             .toEqualTypeOf<readonly { complete: boolean, readonly description: string }[]>()
     })
 
-    it(`records`, () => {
+    it('records', () => {
 
         const $switches = $.record($.boolean)
         expectTypeOf<Infer<typeof $switches>>()
@@ -168,30 +169,30 @@ describe(`shortcut type tests`, () => {
             .toEqualTypeOf<Record<string, number>>()
     })
 
-    it(`enums`, () => {
-        const $trafficLight = $(`red`, `green`, `yellow`)
+    it('enums', () => {
+        const $trafficLight = $('red', 'green', 'yellow')
         expectTypeOf<Infer<typeof $trafficLight>>()
             .toEqualTypeOf<'red' | 'green' | 'yellow'>()
     })
 
-    it(`tuples`, () => {
+    it('tuples', () => {
         const $range = $.tuple($.number, $.number)
         expectTypeOf<Infer<typeof $range>>()
             .toEqualTypeOf<readonly [number, number]>()
 
-        const $between = $.tuple($.number, $.or($(`<`), $(`>`)), $.number).mutable
+        const $between = $.tuple($.number, $.or($('<'), $('>')), $.number).mutable
         expectTypeOf<Infer<typeof $between>>()
             .toEqualTypeOf<[number, '<' | '>', number]>()
     })
 
-    it(`unions`, () => {
+    it('unions', () => {
 
         const $id = $.or($.string, $.number)
         expectTypeOf<Infer<typeof $id>>()
             .toEqualTypeOf<string | number>()
     })
 
-    it(`intersections`, () => {
+    it('intersections', () => {
 
         const $quaternion = $.and(
             $({
@@ -208,9 +209,9 @@ describe(`shortcut type tests`, () => {
 
 })
 
-describe(`compositing`, () => {
+describe('compositing', () => {
 
-    it(`shape composite type safety`, () => {
+    it('shape composite type safety', () => {
 
         const $v2 = $({ x: $.number.mutable, y: $.number.mutable })
 
@@ -221,10 +222,10 @@ describe(`compositing`, () => {
 
     })
 
-    it(`tuple composite type safety`, () => {
+    it('tuple composite type safety', () => {
 
         const $range = $($.number, $.number)
-        const $op = $(`>`, `==`, `<`)
+        const $op = $('>', '==', '<')
         const $rangeWithOp = $.tuple(...$range.$, $op)
 
         expectTypeOf<Infer<typeof $rangeWithOp>>()
@@ -233,24 +234,16 @@ describe(`compositing`, () => {
 
 })
 
-it(`wtf`, () => {
+describe('$.typeOf', () => {
 
-    const $error = $({
-        message: $.string,
-        name: $.string
-    })
-
-})
-describe(`$.typeOf`, () => {
-
-    it(`allows typeguards`, () => {
-        const $foo = $.typeOf(isSymbol)
+    it('allows typeguards', () => {
+        const $foo = $.typeOf(is.symbol)
        
         const symbol = Symbol()
     
         expect($foo.validate(symbol)).toEqual(symbol)
-        expect(() => $foo.validate(`not a symbol`))
-            .toThrow(`must be Symbol`)
+        expect(() => $foo.validate('not a symbol'))
+            .toThrow('must be Symbol')
     })
 
 })

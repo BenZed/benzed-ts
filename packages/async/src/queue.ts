@@ -1,14 +1,8 @@
 import {
-    isDate,
-    isInstanceOf,
-    isInteger,
-    isFinite,
-    isObject,
-    isNaN,
-    isArray
+    is
 } from '@benzed/is'
 
-import { EventEmitter, Merge, LinkedList } from '@benzed/util'
+import { EventEmitter, LinkedList } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
@@ -41,10 +35,9 @@ function isQueuePayload<V, T extends object | void>(
     input: unknown
 ): input is QueuePayload<V, T> {
 
-    return isObject<{ [key: string]: unknown }>(input) &&
-        isDate(input.time) &&
-        isInstanceOf(input.queue, Queue)
-
+    return is.object<{ [key: string]: unknown }>(input) &&
+        is.date(input.time) &&
+        is.type(input.queue, Queue)
 }
 
 /**
@@ -113,7 +106,7 @@ interface QueueState<V, T extends object | void> {
     data: T
 }
 
-type QueueItem<V, T extends object | void> = Merge<[
+type QueueItem<V, T extends object | void> =
     (T extends void ? { /**/ } : T) &
     {
         readonly [
@@ -128,7 +121,6 @@ type QueueItem<V, T extends object | void> = Merge<[
         get isComplete(): boolean
         complete(): Promise<V>
     }
-]>
 
 type QueueAddInput<V, T extends object | void> =
     T extends void ? QueueTask<V, T> : ({ task: QueueTask<V, T> } & T)
@@ -136,10 +128,8 @@ type QueueAddInput<V, T extends object | void> =
 //// Queue ////
 
 class Queue<
-
     V = void,
     T extends object | void = void
-
 > extends EventEmitter<QueueEvents<V, T>> {
 
     private readonly _queued: LinkedList<{ item: QueueItem<V, T>, state: QueueState<V, T> }> =
@@ -209,15 +199,15 @@ class Queue<
         this._isPaused = options?.initiallyPaused ?? false
 
         for (const maxOption of ['maxConcurrent', 'maxTotalItems'] as const) {
-            if (this[maxOption] < 1 || isNaN(this[maxOption]))
+            if (this[maxOption] < 1 || is.nan(this[maxOption]))
                 throw new Error(`options.${maxOption} must be 1 or higher.`)
         }
 
-        if (!isInteger(this.maxConcurrent))
+        if (!is.integer(this.maxConcurrent))
             throw new Error('options.maxConcurrent must be an integer.')
 
         if (
-            !isInteger(this.maxTotalItems) &&
+            !is.integer(this.maxTotalItems) &&
             isFinite(this.maxTotalItems)
         ) {
             throw new Error(
@@ -250,7 +240,7 @@ class Queue<
         input: QueueAddInput<V, T> | QueueAddInput<V, T>[]
     ): unknown {
 
-        const inputWasArray = isArray(input)
+        const inputWasArray = is.array(input)
 
         const tasks = wrap(input) as QueueAddInput<V, T>[]
 

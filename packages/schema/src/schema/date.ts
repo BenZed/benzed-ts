@@ -1,4 +1,5 @@
-import { isDate, isNaN, isNumber, isString } from '@benzed/is'
+import { is } from '@benzed/is'
+
 import { 
     RangeValidator, 
     RangeValidatorSettingsShortcut, 
@@ -15,18 +16,19 @@ import {
     HasMutable,
     HasOptional
 } from './flags'
+
 import Schema from './schema'
 
 //// Helper ////
 
 function isValidDate(date: unknown): date is Date {
-    return isDate(date) && 
-        !isNaN(date.getMilliseconds()) 
+    return is.date(date) && 
+        !is.nan(date.getMilliseconds()) 
 }
 
 function tryCastToDate(value: unknown): unknown {
 
-    if (isString(value) || isNumber(value) && isValidDate(new Date(value)))
+    if (is.string(value) || is.number(value) && isValidDate(new Date(value)))
         return new Date(value)
 
     return value
@@ -37,8 +39,8 @@ function tryCastToDate(value: unknown): unknown {
 class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `date`,
-        article: `a`,
+        name: 'date',
+        article: 'a',
         is: isValidDate,
         cast: tryCastToDate
     })
@@ -51,7 +53,7 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     range(...input: RangeValidatorSettingsShortcut<Date>): this {
         return this._copyWithPostTypeValidator(
-            `range`,
+            'range',
             new RangeValidator(
                 toRangeValidatorSettings(input)
             )

@@ -7,7 +7,7 @@ import {
     Input
 } from './settings'
 
-import { isNaN, isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
 import $ from '@benzed/schema'
@@ -29,7 +29,7 @@ const $metaData = $.shape({
     height:$.number.optional,
     duration: $.number.optional,
     format: $.string.optional,
-    size: $.or($.number, $(`N/A`)).optional,
+    size: $.or($.number, $('N/A')).optional,
     frameRate: $.number.optional
 })
 
@@ -41,11 +41,11 @@ function parseOutputDuration(
     stream: FfprobeStream,
 ): number | undefined {
 
-    const duration = isString(stream.duration)
+    const duration =is.string(stream.duration)
         ? parseFloat(stream.duration)
         : stream.duration
 
-    return isNaN(duration) ? undefined : duration
+    return is.nan(duration) ? undefined : duration
 }
 
 function parseOutputFrameRate(
@@ -62,10 +62,10 @@ function parseOutputFrameRate(
     if (!frameRateFraction)
         return undefined
 
-    const [numerator, denominator] = frameRateFraction.split(`/`).map(parseFloat)
+    const [numerator, denominator] = frameRateFraction.split('/').map(parseFloat)
 
     const frameRate = numerator / denominator
-    return isNaN(frameRate) ? undefined : round(frameRate, 0.001)
+    return is.nan(frameRate) ? undefined : round(frameRate, 0.001)
 
 }
 
@@ -88,12 +88,12 @@ async function getMetadata(
     // Get stream
     const stream = priorityFind(
         probed.streams,
-        stream => stream.codec_type === `video`,
-        stream => stream.codec_type === `audio`
+        stream => stream.codec_type === 'video',
+        stream => stream.codec_type === 'audio'
     )
     if (!stream) {
         throw new Error(
-            `Could not get relevent streams from source.`
+            'Could not get relevent streams from source.'
         )
     }
 

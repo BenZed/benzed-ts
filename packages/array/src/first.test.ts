@@ -39,7 +39,7 @@ it('return type for array likes', () => {
 
 it('return type for readonly arrays is array type', () => {
     expectTypeOf(
-        first(['a'] as readonly string[])
+        first(['a'] as readonly [string])
     ).toEqualTypeOf<string>()
 })
 

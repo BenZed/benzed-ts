@@ -1,4 +1,7 @@
 
+import { push } from '@benzed/immutable'
+import { is } from '@benzed/is'
+
 import {
     TypeValidator
 } from '../validator/type'
@@ -8,6 +11,10 @@ import {
     LengthValidatorSettingsShortcut,
     toLengthValidatorSettings,
 } from '../validator/length'
+
+import { 
+    DefaultValidatorSettings 
+} from '../validator/default'
 
 import {
     AddFlag,
@@ -24,10 +31,7 @@ import {
     ApplyMutable
 } from './schema'
 
-import { push } from '@benzed/immutable'
-import { isArray, isString } from '@benzed/is'
 import { safeJsonParse } from '../util'
-import { DefaultValidatorSettings } from '../validator/default'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
@@ -39,8 +43,8 @@ type ArraySchemaOutput<T extends ArraySchemaInput> = SchemaOutput<T>[]
 //// Helper ////
 
 function tryCastToArray(input: unknown): unknown {
-    return isString(input)
-        ? safeJsonParse(input, isArray) ?? input
+    return is.string(input)
+        ? safeJsonParse(input, is.array) ?? input
         : input
 }
 
@@ -59,9 +63,9 @@ class ArraySchema<
     }
 
     protected _typeValidator = new TypeValidator({
-        name: `array`,
-        article: `an`,
-        is: isArray as unknown as (input: unknown) => input is ApplyMutable<F, O>,
+        name: 'array',
+        article: 'an',
+        is: is.array as unknown as (input: unknown) => input is ApplyMutable<F, O>,
         cast: tryCastToArray
     })
 
@@ -81,7 +85,7 @@ class ArraySchema<
         const output = [...input]
 
         for (let i = 0; i < output.length; i++) {
-            output[i] = childSchema[`_validate`](
+            output[i] = childSchema['_validate'](
                 output[i],
                 {
                     ...context,
@@ -102,7 +106,7 @@ class ArraySchema<
     length(...input: LengthValidatorSettingsShortcut): this {
         const settings = toLengthValidatorSettings(input)
 
-        return this._copyWithPostTypeValidator(`length`, new LengthValidator(settings))
+        return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
     }
 
     override readonly optional!: HasOptional<

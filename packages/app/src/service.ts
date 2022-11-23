@@ -1,41 +1,41 @@
-import is from '@benzed/is'
-import $ from '@benzed/schema'
 import { pluck } from '@benzed/array'
-import { capitalize } from '@benzed/string'
+import { Merge, StringKeys } from '@benzed/util'
+import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
+
+import { $path, Path, UnPath } from './util/types'
 
 import { 
-    command,
-    Command,  
-    CommandsOf, 
+    Module, 
+    Modules 
+} from './module'
+
+import { 
+    Client, 
+    Server 
+} from './modules'
+
+import { 
+    Command, 
+    CommandInput, 
+    CommandModule, 
+    CommandOutput
 } from './command'
 
-import { Module, Modules } from './module'
-import { Client, Server } from './modules'
-
-import { CamelCombine, Path } from './types'
-import { Compile } from '@benzed/util/lib'
+//// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
 
-//// Helper ////
-
-const isModule = $(Module).is
-
-const isPath = (input: unknown): input is Path => is.string(input) && input.startsWith('/')
-
-//// Helper Types ////
-
-type _Unslash<S extends string> = S extends `/${infer Sx}` ? Sx : S
-
 //// Commands Type ////
 
 type _CommandsOfModule<M extends Module, P extends string> = 
     M extends Service<infer Px, infer Mx> 
-        ? _CommandsOfModules<Mx, CamelCombine<P, _Unslash<Px>>>
-        : CommandsOf<M, P> 
+        ? _CommandsOfModules<Mx, ToCamelCase<[P, UnPath<Px>], '-'>>
+        : M extends CommandModule<infer N, any, any> 
+            ? { [K in N as ToCamelCase<[P, N], '-'>]: M }
+            : {}
 
 type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends Module 
@@ -46,28 +46,44 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
     : {}
 
 type ModuleCommands<M extends Modules | Module> = 
-    Compile<
-    M extends CommandModule<infer Mx> 
-        ? _CommandsOfModules<Mx>
-        : M extends Modules 
-            ? _CommandsOfModules<M>
-            : CommandsOf<M>, 
-
-    Command, 
-    false
-    >
+    Merge<[
+        M extends ServiceModule<infer Mx> 
+            ? _CommandsOfModules<Mx>
+            : M extends Modules 
+                ? _CommandsOfModules<M>
+                : M extends Module 
+                    ? _CommandsOfModule<M, ''> 
+                    : never
+    ]>
 
 //// Command Module ////
+
+export type FlattenModules<M extends Modules> = 
+    M extends [infer Mx, ...infer Mr]
+        ? Mx extends Module
+            ? Mr extends Modules 
+                ? Mx extends ServiceModule<infer Mrx> 
+                    ? FlattenModules<[...Mrx, ...Mr]>
+                    : [Mx, ...FlattenModules<Mr>]
+                : Mx extends ServiceModule<infer Mrx> 
+                    ? FlattenModules<Mrx>
+                    : [Mx]
+            : []
+        : [] 
+
+export type ToService<P extends Path, S extends ServiceModule> = S extends ServiceModule<infer M>
+    ? Service<P, M>
+    : never
 
 /**
  * Get the Module types of a Command Module
  */
-export type ModulesOf<S extends CommandModule<any>> = S extends CommandModule<infer M> ? M : never
+export type ModulesOf<S extends ServiceModule<any>> = S extends ServiceModule<infer M> ? M : never
 
 /**
  * Contains other modules, provides an interface for grouping and executing their commands.
  */
-export abstract class CommandModule<M extends Modules = any> extends Module {
+export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     private readonly _modules: M
     override get modules(): M {
@@ -101,13 +117,17 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 
     //// Command Module Implementation ////
 
-    abstract useModule<Mx extends CommandModule<any>>(
-        path: Path,
+    abstract useService<P extends Path, Mx extends ServiceModule<any>>(
+        path: P,
         module: Mx
     ): unknown
 
     abstract useModule<Mx extends Module>(
         module: Mx
+    ): unknown
+
+    abstract useModules<Mx extends Modules>(
+        ...modules: Mx
     ): unknown
 
     //// Command Implementation ////
@@ -117,11 +137,19 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
         return this._commands ?? this._createCommands() as any
     }
 
+    execute<K extends StringKeys<ModuleCommands<M>>>(
+        name: K,
+        input: CommandInput<ModuleCommands<M>[K]>
+    ): CommandOutput<ModuleCommands<M>[K]> {
+        return this.getCommand(name).execute(input as object) as CommandOutput<ModuleCommands<M>[K]>
+    }
+
     //// Convenience Getters ////
 
-    getCommand(name: string): Command {
-        const commands = this.root.commands as { [key: string]: Command | undefined } 
-        const command = commands[name]
+    getCommand(name: string): Command<string, object, object>
+
+    getCommand<K extends StringKeys<ModuleCommands<M>>>(name: K): ModuleCommands<M>[K] {
+        const command = this.commands[name]
         if (!command)
             throw new Error(`Command ${name} could not be found.`)
     
@@ -146,21 +174,30 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     //// Helper ////
 
     protected _pushModule(
-        ...args: [path: Path, module: Module] | [module: Module] 
+        ...args: [path: Path, module: Module] | [module: Module] | Modules
     ): Modules {
 
-        const path = pluck(args, isPath).at(0)
-        let module = pluck(args, isModule).at(0)
-        if (!module)
+        const path = pluck(args, $path.is).at(0)
+        const inputModules = args as Module[]
+        if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)
 
-        if (path && module instanceof CommandModule<any>)
-            module = Service._create(path, module._modules)
+        const newModules: Module[] = []
+        for (const module of inputModules) {
+            const isService = module instanceof ServiceModule<any>
 
-        else if (path)
-            throw new Error(`${module.name} is not a service, and cannot be used at path: ${path}`)
+            newModules.push(...isService && path
+                ? [Service._create(path, module._modules)]
+                : isService 
+                    ? module.modules 
+                    : [module]
+            )
 
-        return [ ...this.modules, module ]
+            if (path && !isService)
+                throw new Error(`${module.name} is not a service, and cannot be used at path: ${path}`)
+        }
+
+        return [ ...this.modules, ...newModules ]
     }
 
     private _assertNoCommandNameCollisions(): void {
@@ -169,29 +206,37 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
     }
 
     private _createCommands(): _CommandsOfModules<M> {
-        const commands: { [key: string]: Command } = {}
+
+        const commands: { [key: string]: CommandModule<string, object, object> } = {}
+
+        const setCommand = (name: string, command: CommandModule<string, object, object>): void => {
+            if (name in commands)
+                throw new Error(`Command name collision: "${name}" is used multiple times`)
+
+            commands[name] = command
+        }
 
         for (const module of this.modules) {
 
-            const moduleCommands = module instanceof CommandModule 
-                ? module.commands
-                : command.of(module)
+            if (module instanceof ServiceModule) {
+                for (const key in module.commands) {
+    
+                    const name: string = module instanceof Service
+                        ? `${module.path.replaceAll('/', '')}${capitalize(key)}`
+                        : key
 
-            for (const key in moduleCommands) {
-
-                const name: string = module instanceof Service
-                    ? `${module.path.replaceAll('/', '')}${capitalize(key)}`
-                    : key
-
-                if (name in commands)
-                    throw new Error(`Command name collision: "${name}" is used multiple times`)
+                    setCommand(name, module.commands[key as keyof typeof module.commands])
+                }
+            } else if (module instanceof CommandModule) {
                 
-                commands[name] = moduleCommands[key as keyof typeof moduleCommands]
+                const name = toCamelCase(module.name)
+                setCommand(name, module)
             }
+
         }
 
         this._commands = commands as _CommandsOfModules<M>
-        return this._commands 
+        return this._commands
     }
 
 }
@@ -201,7 +246,7 @@ export abstract class CommandModule<M extends Modules = any> extends Module {
 /**
  * Service 
  */
-export class Service<P extends Path, M extends Modules = any> extends CommandModule<M> {
+export class Service<P extends Path, M extends Modules = any> extends ServiceModule<M> {
 
     //// Sealed ////
 
@@ -234,22 +279,32 @@ export class Service<P extends Path, M extends Modules = any> extends CommandMod
         return this._path as P
     }
 
-    override useModule<Px extends Path, S extends CommandModule<any>>(
+    override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): Service<P, [...M, S extends CommandModule<infer Mx> ? Service<Px, Mx> : never]>
+    ): Service<P, [...M, ToService<Px ,S>]> {
+        return Service._create(
+            this._path,
+            this._pushModule(path, module)
+        ) as Service<P, [...M, ToService<Px ,S>]> 
+    }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, [...M, Mx]>
-
-    override useModule(
-        ...args: [path: Path, module: Module] | [module: Module] 
-    ): Service<Path, Modules> {
+    ): Service<P, [...M, ...FlattenModules<[Mx]>]> {
         return Service._create(
             this._path,
-            this._pushModule(...args)
-        )
+            this._pushModule(module)
+        ) as Service<P, [...M, ...FlattenModules<[Mx]>]> 
+    }
+
+    override useModules<Mx extends Modules>(
+        ...modules: Mx
+    ): Service<P, [...M, ...FlattenModules<Mx>]> {
+        return Service._create(
+            this._path,
+            this._pushModule(...modules)
+        ) as Service<P, [...M, ...FlattenModules<Mx>]> 
     }
 
     //// Module Implementation ////

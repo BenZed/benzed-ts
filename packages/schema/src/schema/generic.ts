@@ -30,12 +30,12 @@ class GenericSchema<
 
     protected _typeValidator = new TypeValidator<O>({
 
-        name: this._input.name.replace(/^is/, ``) || `unknown`,
+        name: this._input.name.replace(/^is/, '') || 'unknown',
         //    ^ isType -> Type
 
-        error: (value, typeName, article) => typeName === `unknown` 
+        error: (value, typeName, article) => typeName === 'unknown' 
             ? `${value} is invalid` 
-            : `must be ${article ? article + ` ` + typeName : typeName}`,
+            : `must be ${article ? article + ' ' + typeName : typeName}`,
 
         is: this._input
     })

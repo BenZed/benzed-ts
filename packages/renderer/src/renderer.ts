@@ -18,16 +18,16 @@ import {
 import { Input, Output } from './ffmpeg/settings'
 
 import fs from '@benzed/fs'
-import { isString } from '@benzed/is'
-import { Queue, QueueItem } from '@benzed/async'
+import { is } from '@benzed/is'
 import { pass } from '@benzed/util'
+import { Queue, QueueItem } from '@benzed/async'
 
 //// Constants ////
 
 const EXT = {
-    audio: `.mp3`,
-    video: `.mp4`,
-    image: `.png`,
+    audio: '.mp3',
+    video: '.mp4',
+    image: '.png',
     //
 } as const
 
@@ -84,13 +84,13 @@ function getOutput(
 
     const { source, target } = options
 
-    const fileName = isString(source)
+    const fileName = is.string(source)
         ? path.basename(source, path.extname(source))
         : Date.now().toString()
 
     const ext = EXT[type]
 
-    const output = isString(target)
+    const output = is.string(target)
         ? path.join(target, `${fileName}_${setting}${ext}`)
         : target({ fileName, ext, setting })
 
@@ -125,7 +125,7 @@ class Renderer {
             .length
 
         if (numOptions === 0)
-            throw new Error(`requires at least one RenderSetting`)
+            throw new Error('requires at least one RenderSetting')
 
         const numCpus = cpus().length
 
@@ -133,8 +133,8 @@ class Renderer {
 
         if (maxConcurrent > numCpus) {
             throw new Error(
-                `config.maxConcurrent cannot be higher ` +
-                `than the number of processors on this system ` +
+                'config.maxConcurrent cannot be higher ' +
+                'than the number of processors on this system ' +
                 `(${numCpus})`
             )
         }
@@ -233,7 +233,7 @@ class Renderer {
 
         switch (type) {
 
-            case `image`: {
+            case 'image': {
 
                 const { time, size } = renderSetting
 
@@ -245,7 +245,7 @@ class Renderer {
                 })
             }
 
-            case `video`: {
+            case 'video': {
 
                 const { size } = renderSetting
 
@@ -257,7 +257,7 @@ class Renderer {
                 })
             }
 
-            case `audio`:
+            case 'audio':
                 return () => createMP3({
                     ...renderSetting,
                     input,

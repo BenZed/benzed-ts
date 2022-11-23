@@ -1,3 +1,4 @@
+import is from '@benzed/is'
 import match from '@benzed/match'
 
 import { createServer, Server as HttpServer } from 'http'
@@ -9,11 +10,22 @@ import cors from '@koa/cors'
 import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
-import { createNameFromReq } from '../../../command/request'
+
+import { Path, HttpCode, HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
 
-import { HttpCode } from './http-codes'
-import { HttpMethod } from './http-methods'
+//// Helper ////
+
+function ctxBodyToObject(ctx: Context): Record<string, unknown> {
+
+    if (is.object<Record<string, unknown>>(ctx.request.body))   
+        return ctx.request.body
+
+    if (is.string(ctx.request.body))
+        return JSON.parse(ctx.request.body)
+
+    return {}
+}
 
 //// KoaServer ////
 
@@ -46,7 +58,9 @@ export class KoaSocketIOServer extends Server {
     // Connection Implementation
 
     execute(name: string, data: object): Promise<object> {
-        return this.root.getCommand(name)(data)
+        return Promise.resolve(
+            this.root.getCommand(name).execute(data)
+        )
     }
 
     // Module Implementation
@@ -84,11 +98,12 @@ export class KoaSocketIOServer extends Server {
 
     private _getCtxCommandData(ctx: Context): object {
         const [ ctxData ] = match(ctx.method)
-        (HttpMethod.Get, ctx.query)
-        (HttpMethod.Post, ctx.body ?? {})
-        (HttpMethod.Put, ctx.body ?? {})
-        (HttpMethod.Patch, ctx.body ?? {})
-        ({})
+            .case(HttpMethod.Get, {...ctx.query})
+            .case(HttpMethod.Delete, {...ctx.query})
+            .case(HttpMethod.Post, ctxBodyToObject(ctx))
+            .case(HttpMethod.Put, ctxBodyToObject(ctx))
+            .case(HttpMethod.Patch, ctxBodyToObject(ctx))
+            .default({})
 
         return ctxData
     }
@@ -99,11 +114,14 @@ export class KoaSocketIOServer extends Server {
 
         for (const name in this.root.commands) {
 
-            const fromReq = this.root.getCommand(name).fromReq ?? createNameFromReq(name)
+            const urlWithoutQueryString = ctx.url.split('?')[0] as Path
 
-            const cmdData = fromReq([ ctx.method as HttpMethod, ctx.url, ctxData ])
-            if (cmdData)
-                return this.execute(name, cmdData)
+            const commandData = this.root
+                .getCommand(name)
+                .matchRequest([ctx.method as HttpMethod, urlWithoutQueryString, ctxData, null])
+
+            if (commandData) 
+                return this.execute(name, commandData)
         }
 
         return ctx.throw(

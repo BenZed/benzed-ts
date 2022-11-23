@@ -1,4 +1,5 @@
 import { Func } from '@benzed/util'
+
 import { ValueMap } from './value-map'
 
 //// Helper ////
@@ -8,8 +9,8 @@ function trimCacheToSize(
     size: number
 ): void {
 
-    const keys = cache[`_keys`]
-    const values = cache[`_values`]
+    const keys = cache['_keys']
+    const values = cache['_values']
 
     if (cache.size > size) {
         const deleteCount = cache.size - size

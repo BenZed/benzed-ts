@@ -1,19 +1,21 @@
+import $, { Infer } from '@benzed/schema'
+
 import { App } from './app'
-import { command } from './command'
 import { Module } from './module'
 
 import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
 import { Path } from './types'
 
+import { Command } from './command'
+
 //// Tests ////
 
-describe('.useModule(path)', () => {
-    const service = Service.create()
+describe('.useService(path)', () => {
 
-    const app = App.create().useModule(service)
+    const app = App.create().useModule(new Module())
 
-    const todoApp = app.useModule('/todos', service)
+    const todoApp = app.useService('/todos', Service.create())
 
     it('places one as a module of the other', () => {
         expect(app.modules[0].parent)
@@ -28,74 +30,111 @@ describe('.useModule(path)', () => {
 
 describe('.commands', () => {
 
+    interface OrderId extends Infer<typeof $orderId> {}
+    const $orderId = $({
+        id: $.string
+    })
+
+    interface OrderData extends Infer<typeof $orderData> {}
+    const $orderData = $({
+        type: $.string
+    })
+
+    interface Order extends Infer<typeof $order> {}
+    const $order = $({
+        ...$orderId.$,
+        ...$orderData.$
+    })
+
     class Orders extends Module {
 
-        private _id = 0
-        private readonly _orders: { type: string, id: string }[] = []
+        private readonly _orders: Order[] = []
+        get orders(): readonly Order[] {
+            return this._orders
+        }
 
-        create = command((data: { type: string }) => {
+        find(id: string): Order | null {
+            return this.orders.find(order => order.id === id) ?? null
+        }
 
-            const order = {
-                type: data.type,
-                id: `${this._id++}`
-            }
-
-            return Promise.resolve(order)
-        })
-
-        get = command((data: { id: string }) => {
-
-            const order = this._orders.find(o => o.id === data.id) ?? null
-
-            return Promise.resolve({ order })
-        })
+        create(data: OrderData): Order {
+            const order = { ...data, id: Date.now().toString() }
+            this._orders.push(order)
+            return order
+        }
 
     }
 
+    // function hook(hookF: (this: RuntimeCommand<OrderId>)
+
+    const getOrder = Command
+        .get<OrderId>($orderId)
+        .useHook(function ({ id }) {
+            const orders = this.getModule(Orders, true)
+            const order = orders.find(id)
+            return { order }
+        })
+
+    const createOrder = Command
+        .create<OrderData>($orderData)
+        .useHook(function ({ type }) {
+
+            const orders = this.getModule(Orders, true)
+
+            return {
+                order: orders.create({ type })
+            }
+        })
+
     it('gets all commands attached to modules', () => {
 
-        const italian = new Orders()
-        const restaurant = App.create().useModule(italian)
+        const restaurant = App.create()
+            .useModule(new Orders())
+            .useModule(getOrder)
+            .useModule(createOrder)
+
         const { commands } = restaurant
 
-        for (const key in commands)
-            expect(italian).toHaveProperty(key, italian[key as keyof typeof italian])
-
-        expectTypeOf<typeof commands>()
-            .toEqualTypeOf<{
-                create: typeof italian.create
-                get: typeof italian.get
-            }>
+        expectTypeOf(commands).toEqualTypeOf<{
+            get: Command<'get',OrderId, { order: Order | null }>
+            create: Command<'create',OrderData, { order: Order }>
+        }>()
 
     })
 
     it('handles nesting', () => {
 
-        const bikes = Service.create().useModule(new Orders())
+        const orders = Service
+            .create()
+            .useModule(new Orders)
+            .useModule(createOrder)
+            .useModule(getOrder)
+
+        const bikes = Service.create().useModule(orders)
 
         const cars = Service.create()
-            .useModule(new Orders())
-            .useModule(
+            .useModule(orders)
+            .useService(
                 '/part',
-                Service.create().useModule(new Orders())
+                orders
             )
 
         const travel = App.create()
-            .useModule(new Orders())
-            .useModule('/car', cars)
-            .useModule('/bike', bikes)
+            .useModule(orders)
+            .useService('/car', cars)
+            .useService('/bike', bikes)
 
         const { commands } = travel
 
         expectTypeOf(commands).toEqualTypeOf<{
-            create: Orders['create']
-            get: Orders['get']
-            carCreate: Orders['create']
-            carGet: Orders['get']
-            carPartCreate: Orders['create']
-            carPartGet: Orders['get']
-            bikeCreate: Orders['create']
-            bikeGet: Orders['get']
+            create: Command<'create', OrderData, { order: Order }>
+            get: Command<'get', OrderId, { order: Order | null }>
+            carCreate: Command<'create', OrderData, { order: Order }>
+            carGet: Command<'get', OrderId, { order: Order | null }>
+            carPartCreate: Command<'create', OrderData, { order: Order }>
+            carPartGet: Command<'get', OrderId, { order: Order | null }>
+            bikeCreate: Command<'create', OrderData, { order: Order }>
+            bikeGet: Command<'get', OrderId, { order: Order | null }>
         }>()
 
     })
@@ -104,7 +143,7 @@ describe('.commands', () => {
 
         const app = App.create()
 
-        const service = Service.create().useModule('/todos', app)
+        const service = Service.create().useService('/todos', app)
         const wasApp = service.modules[0]
 
         expectTypeOf(wasApp).toEqualTypeOf<Service<'/todos', []>>()
@@ -114,10 +153,11 @@ describe('.commands', () => {
 
         for (const path of ['', '/ace'] as Path[]) {
             for (const service of [App.create(), Service.create()]) {
-                expect(() => (service as Service<Path>)
-                    .useModule(path, Service.create().useModule(new Orders()))
-                    .useModule(path, Service.create().useModule(new Orders()))
-                ).toThrow('Command name collision')
+                expect(() => {
+                    (service as Service<Path>)
+                        .useService(path, Service.create().useModule(createOrder))
+                        .useService(path, Service.create().useModule(createOrder))
+                }).toThrow('Command name collision')
             }
         }
     })

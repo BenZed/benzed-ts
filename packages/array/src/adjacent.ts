@@ -1,5 +1,4 @@
 import resolveIndex from './resolve-index'
-import { assertDefined } from '@benzed/util'
 
 //// Shortcuts ////
 
@@ -31,8 +30,6 @@ function adjacent<T>(
         ? haystack[indexResolved]
         : undefined
 }
-
-adjacent.assert = assertDefined(adjacent)
 
 //// Exports ////
 

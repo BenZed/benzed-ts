@@ -19,8 +19,8 @@ import {
     PrimitiveSchema,
 } from './schema'
 
-import { isObject, isString } from '@benzed/is'
-import { Compile, Merge } from '@benzed/util'
+import { is } from '@benzed/is'
+import { Compile } from '@benzed/util'
 import { push } from '@benzed/immutable'
 import { DefaultValidatorSettings } from '../validator/default'
 
@@ -64,11 +64,11 @@ class ShapeSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `object`,
-        article: `an`,
-        is: isObject as (input: unknown) => input is O,
-        cast: (input: unknown) => isString(input)
-            ? safeJsonParse(input, isObject) ?? input
+        name: 'object',
+        article: 'an',
+        is: is.object as (input: unknown) => input is O,
+        cast: (input: unknown) => is.string(input)
+            ? safeJsonParse(input, is.object) ?? input
             : input,
     })
 
@@ -90,13 +90,16 @@ class ShapeSchema<
         for (const key in propertySchemas) {
             const propertySchema = propertySchemas[key]
 
-            output[key] = propertySchema[`_validate`](
+            const value = propertySchema['_validate'](
                 input[key],
                 {
                     ...context,
                     path: push(context.path, key)
                 }
             )
+
+            if (value !== undefined || !propertySchema.isOptional)
+                output[key] = value
         }
 
         return output as O
@@ -116,7 +119,7 @@ class ShapeSchema<
         return this._input
     }
 
-    default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
+    override default(defaultValue?: DefaultValidatorSettings<O>['default']): this {
 
         defaultValue ??= (): O => {
             let output: undefined | O = undefined
@@ -124,11 +127,11 @@ class ShapeSchema<
                 const schema = this._input[key]
 
                 // first used default validator output
-                let value = schema[`_defaultValidator`].transform(undefined)
+                let value = schema['_defaultValidator'].transform(undefined)
 
                 // use identify if primitive
                 if (value === undefined && schema instanceof PrimitiveSchema)
-                    value = schema[`_input`]
+                    value = schema['_input']
 
                 // assign if value 
                 if (value !== undefined)

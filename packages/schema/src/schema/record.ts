@@ -1,6 +1,6 @@
 
+import { is } from '@benzed/is'
 import { push } from '@benzed/immutable'
-import { isObject } from '@benzed/is'
 
 import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
@@ -53,9 +53,9 @@ class RecordSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `object`,
-        article: `an`,
-        is: (input): input is O => isObject(input),
+        name: 'object',
+        article: 'an',
+        is: (input): input is O => is.object(input),
     })
 
     protected override _validateChildren(input: O, inputContext: SchemaValidationContext): O {
@@ -80,10 +80,10 @@ class RecordSchema<
             }
 
             const validKey = keySchema
-                ? keySchema[`_validate`](key, keyContext) as typeof key
+                ? keySchema['_validate'](key, keyContext) as typeof key
                 : key
 
-            output[validKey] = valueSchema[`_validate`](value, keyContext)
+            output[validKey] = valueSchema['_validate'](value, keyContext)
         }
 
         return output

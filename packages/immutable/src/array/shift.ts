@@ -10,7 +10,7 @@ const { shift: _shift } = Array.prototype
 /**
  * Immutably shift an ArrayLike.
  * 
- * @returns A clone of the input Arraylike not including the final, popped off item.
+ * @returns A clone of the input Arraylike with the shifted item
  */
 export default function shift<T extends ArrayLike<unknown>>(input: T): typeof input {
     const output = copy(input)

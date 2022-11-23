@@ -5,14 +5,19 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import { createMP4 } from './create-mp4'
 
-import { isMetadata } from './get-metadata'
+import { $metaData } from './get-metadata'
+
+//// Setup ////
 
 const input = TEST_ASSETS.mp4
 
-it(`converts video`, async () => {
+//// Tests ////
 
-    const output = path.join(RENDER_FOLDER, `test-render.mp4`)
+it('converts video', async () => {
 
+    const output = path.join(RENDER_FOLDER, 'test-render.mp4')
+
+    //
     await createMP4({
         input,
         output,
@@ -22,14 +27,14 @@ it(`converts video`, async () => {
     expect(fs.existsSync(output)).toEqual(true)
 })
 
-it(`receives metadata from render`, async () => {
+it('receives metadata from render', async () => {
 
     const output = fs.createWriteStream(
-        path.join(RENDER_FOLDER, `test-render-for-meta.mp4`)
+        path.join(RENDER_FOLDER, 'test-render-for-meta.mp4')
     )
 
     const meta = await createMP4({ input, output })
 
-    expect(isMetadata(meta)).toBe(true)
+    expect($metaData.is(meta)).toBe(true)
 
 })

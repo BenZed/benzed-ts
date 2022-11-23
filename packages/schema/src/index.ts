@@ -3,7 +3,9 @@ import { Schema } from './schema'
 //// Helper ////
 
 // eslint-disable-next-line
-type Asserts<S extends Schema<any,any,any>> = S['assert']
+type Asserts<T> = T extends Schema<any,any,any> 
+    ? T['assert']
+    : (input: unknown) => asserts input is T
 
 //// Export ////
 

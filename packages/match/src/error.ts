@@ -24,14 +24,6 @@ export class NotMatchExpressionError extends MatchError {
 
 }
 
-export class MatchExpressionValueRequiredError extends MatchError {
-
-    constructor() {
-        super('Match expression requires at least one value')
-    }
-
-}
-
 export class NoMultipleDefaultCasesError extends MatchError {
 
     constructor() {

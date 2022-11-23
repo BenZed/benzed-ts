@@ -23,13 +23,13 @@ function disallow(
         const thisProviderDisallowed = allProvidersDisallowed ||
             providers.some(p =>
                 p === provider ||
-                p === `server` && !provider ||
-                p === `external` && !!provider
+                p === 'server' && !provider ||
+                p === 'external' && !!provider
             )
 
         if (thisProviderDisallowed) {
             throw new MethodNotAllowed(
-                `Provider '${provider ?? `server`}' can not call '${method}'.`
+                `Provider '${provider ?? 'server'}' can not call '${method}'.`
             )
         }
 
@@ -49,7 +49,7 @@ export const disallowAll = disallow()
 /**
  * Disallow client providers from being used.
  */
-export const disallowClient = disallow(`external`)
+export const disallowClient = disallow('external')
 
 export {
     disallow

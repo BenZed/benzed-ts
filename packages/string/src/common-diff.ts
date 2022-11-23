@@ -1,7 +1,9 @@
-import is from '@benzed/is'
+import { is } from '@benzed/is'
 import match from '@benzed/match'
 
-/* eslint-disable @typescript-eslint/unified-signatures */
+//// Constants ////
+
+const DEFAULTS: CommonDiffOptions = { offset: 0, fromEnd: false }
 
 //// Types ////
 
@@ -37,10 +39,10 @@ function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): stri
 
         const input = inputs[i]
         if (input.at(index) !== char)
-            return ``
+            return ''
     }
 
-    return char ?? ``
+    return char ?? ''
 
 }
 
@@ -50,7 +52,7 @@ function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): stri
  */
 function createCommon(input: string[], offset: number, fromEnd: boolean): string {
 
-    let common = ``
+    let common = ''
     while (input.length > 0) {
 
         const currentOffset = offset + common.length
@@ -80,23 +82,12 @@ function* createDiffs(
 
 }
 
-//// Helper ////
+//// Match Options ////
 
-const matchCommonDiffOptions =
-    match.for<
-    /**/ undefined | number | boolean | Partial<CommonDiffOptions>, 
-    /**/ CommonDiffOptions
-    >(cases => cases
-        .fall(is.number, offset => ({ offset }))
-        .fall(is.boolean, fromEnd => ({ fromEnd }))
-        .default(i => 
-            ({ 
-                offset: 0,
-                fromEnd: false, 
-                ...i 
-            })
-        )
-    )
+const matchOptions = match()
+    .case(is.boolean, fromEnd => ({ fromEnd }))
+    .case(is.number, offset => ({ offset }))
+    .case(is.object, options => options)
 
 //// Main ////
 
@@ -111,16 +102,16 @@ function commonDiff(input: string[], fromEnd?: boolean): CommonDiff
 function commonDiff(input: string[], offset?: number): CommonDiff
 function commonDiff(
     input: string[],
-    options?: number | boolean | Partial<CommonDiffOptions>
+    options: number | boolean | Partial<CommonDiffOptions> = {}
 ): CommonDiff {
 
-    const { offset, fromEnd } = matchCommonDiffOptions(options)
+    const { offset, fromEnd } = { ...DEFAULTS, ...matchOptions(options) }
 
     const common = createCommon(input, offset, fromEnd)
 
     return [
         common,
-        ...createDiffs(input, offset + common.length, fromEnd)
+        ...createDiffs(input, common.length + offset, fromEnd)
     ]
 }
 

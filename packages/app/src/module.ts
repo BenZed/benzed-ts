@@ -1,5 +1,8 @@
-import { $$copy } from '@benzed/immutable'
-import type { CommandModule } from './service'
+import { wrap } from '@benzed/array'
+import { $$copy, unique } from '@benzed/immutable'
+
+import type { Service, ServiceModule } from './service'
+import { Path } from './util/types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -12,7 +15,14 @@ export type Modules = readonly Module[]
 
 export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
-     (abstract new (...args: any[]) => M)
+     (abstract new (...args: any[]) => M) | 
+     { name: string, prototype: M }
+
+type GetScope = 'siblings' | 'parents' | 'children' | 'root' | readonly ('siblings' | 'parents' | 'children' | 'root')[]
+
+type GetPredicate = (input: Module) => boolean
+
+type GetGuard<M extends Module> = (input: Module) => input is M 
 
 // TODO make this and SettingsModule abstract
 export class Module {
@@ -30,15 +40,64 @@ export class Module {
     }
 
     getModule<M extends Module, R extends boolean = false>(
-        type: ModuleConstructor<M>, 
-        required: R = false as R
+        type: ModuleConstructor<M> | GetPredicate | GetGuard<M>, 
+        required?: R,
+        scope?: GetScope
     ): R extends true ? M : M | null {
+        return this
+            .getModules(type, required, scope)
+            .at(0) ?? null as R extends true ? M : M | null
+    }
 
-        const module = this.modules.find(t => t instanceof type) ?? null
-        if (!module && required)
-            throw new Error(`${this.name} is missing module ${type.name}`)
+    getModules<M extends Module, R extends boolean = false>(
+        type: ModuleConstructor<M> | GetPredicate | GetGuard<M>, 
+        required?: R,
+        scope?: GetScope
+    ): M[] {
 
-        return module as M
+        const modules: M[] = []
+
+        const guard: GetGuard<M> = 'prototype' in type 
+            ? (i): i is M => i instanceof (type as any) 
+            : type
+        
+        this.forEachModule(m => {
+            for (const m1 of m.modules) {
+                if (guard(m1) && !modules.includes(m1)) 
+                    modules.push(m1)
+            }
+        }, scope)
+
+        if (modules.length === 0 && required)
+            throw new Error(`${this.name} is missing module ${type.name} ${scope ? `in scope ${scope}` : ''}`.trim())
+
+        return modules
+    }
+
+    forEachModule(f: (input: Module) => void, scope: GetScope = 'siblings'): void {
+        const scopes = unique(wrap(scope)) as unknown as Exclude<GetScope, string>
+
+        for (const scope of scopes) {
+            switch (scope) {
+                case 'siblings': {
+                    this.modules.forEach(f)
+                    break
+                }
+                case 'parents': {
+                    this._forEachAscendent(f)
+                    break
+
+                }
+                case 'children': {
+                    this._forEachDesendent(f)
+                    break
+                }
+                case 'root': {
+                    this.root.modules.forEach(f)
+                    break
+                }
+            }
+        }
     }
 
     hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
@@ -49,8 +108,8 @@ export class Module {
         return this._parent?.modules ?? []
     }
 
-    private _parent: CommandModule | null = null
-    get parent(): CommandModule | null {
+    private _parent: ServiceModule | null = null
+    get parent(): ServiceModule | null {
         return this._parent
     }
 
@@ -58,13 +117,13 @@ export class Module {
      * Gets the root module of the app heirarchy.
      * Throws an error on modules that are not parented to anything.
      */
-    get root(): CommandModule {
+    get root(): ServiceModule {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let root: CommandModule | Module = this
+        let root: ServiceModule | Module = this
         while (root._parent)
             root = root._parent
 
-        const useModule: keyof CommandModule = 'useModule'
+        const useModule: keyof ServiceModule = 'useModule'
         if (!(useModule in root))
             throw new Error(`${this.name} is not in a command heirarchy.`)
     
@@ -72,36 +131,32 @@ export class Module {
     }
 
     /**
-     * Copies a module, sets the parent of that module to the given parent
-     * @internal
+     * 
      */
-    _copyWithParent(parent: CommandModule): this {
-        const _this = this[$$copy]()
-        _this._parent = parent
+    get pathFromRoot(): Path {
 
-        return _this
-    }
+        const path: string[] = []
 
-    //// Immutable Implementation ////
-    
-    [$$copy](): this {
-        const ThisModule = this.constructor as new (...params: unknown[]) => this
-        return new ThisModule(...this._copyParams)
-    }
+        this._forEachAscendent(m => {
+            if ('path' in m)
+                path.push((m as Service<any,any>).path)
+        })
 
-    protected get _copyParams(): unknown[] {
-        return []
+        if ('path' in this)
+            path.push((this as Service<any,any>).path)
+
+        return path.reverse().join('') as Path
     }
 
     //// Lifecycle Hooks ////
 
-    private _active = false
     /**
      * True if this module has been started, false otherwise.
      */
     get active() : boolean {
         return this._active
     }
+    private _active = false
 
     start(): void | Promise<void> {
         if (this.active) {
@@ -119,6 +174,7 @@ export class Module {
                 `${this.name} has not been started`
             )
         }
+
         this._active = false
     }
 
@@ -134,10 +190,10 @@ export class Module {
     /**
      * Must be the only module of it's type in a parent.
      */
-    protected _assertSingle(): void { 
-        const clone = this.getModule(this.constructor as ModuleConstructor)
+    protected _assertSingle(scope?: GetScope): void { 
+        const clone = this.getModule(this.constructor as ModuleConstructor, false, scope)
         if (clone && clone !== this)
-            throw new Error(`${this.name} may only be used once`)
+            throw new Error(`${this.name} may only be used once in scope ${scope}`)
     }
 
     /**
@@ -151,42 +207,67 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(...types: readonly ModuleConstructor[]): void {
-        const missing = types.filter(t => !this.hasModule(t))
-        if (missing.length > 0) {
+    protected _assertRequired(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetScope): void {
+        if (!this.getModule(type, false, scope)) {
             throw new Error(
-                `${this.name} is missing required module${missing.length > 1 ? 's' : '' }: ${missing.map(t => t.name)}`
+                `${this.name} is missing required module ${type.name} in scope ${scope}`
             )
-        }
-    }
-
-    /**
-     * Root module must have components
-     */
-    protected _assertRootRequired(...types: readonly ModuleConstructor[]): void {
-        try {
-            this.root._assertRequired(...types)
-        } catch (e: any) {
-            if (e.message.includes('missing required')) {
-                throw new Error(
-                    `${this.name} requires ${e.message.replace('is missing required', 'to have')}`
-                )
-            }
-
         }
     }
 
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(...types: readonly ModuleConstructor[]): void { 
-        const found = types.filter(t => this.hasModule(t))
-        if (found.length > 0) {
+    protected _assertConflicting(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetScope): void { 
+        if (this.getModule(type, false, scope)) {
             throw new Error(
-                `${this.name} may not be used with conflicting components: ${found.map(t => t.name)}`
+                `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`
             )
         }
     }
+
+    // Helper 
+
+    private _forEachAscendent(f: (input: Module) => void): void {
+        let ref = this._parent
+
+        while (ref) {
+            f(ref)
+            ref = ref.parent
+        }
+    }
+
+    private _forEachDesendent(f: (input: Module) => void): void {
+        for (const m of this.modules) {
+            if (m.modules !== this.modules) {
+                f(m)
+                m._forEachDesendent(f)
+            }
+        }
+    }
+
+    /**
+     * Copies a module, sets the parent of that module to the given parent
+     * @internal
+     */
+    _copyWithParent(parent: ServiceModule): this {
+        const _this = this[$$copy]()
+        _this._parent = parent
+    
+        return _this
+    }
+    
+    //// Immutable Implementation ////
+        
+    [$$copy](): this {
+        const ThisModule = this.constructor as new (...params: unknown[]) => this
+        return new ThisModule(...this._copyParams)
+    }
+    
+    protected get _copyParams(): unknown[] {
+        return []
+    }
+
 }
 
 //// Module With Settings ////

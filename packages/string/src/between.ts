@@ -18,17 +18,17 @@ function between(
 ): string {
 
     if (!open || !close)
-        throw new Error(`delimeters must not be empty`)
+        throw new Error('delimeters must not be empty')
 
     const openStartIndex = str.indexOf(open)
     if (openStartIndex === -1)
-        return ``
+        return ''
 
     const openEndIndex = openStartIndex + open.length
 
     const closeLength = str.substring(openEndIndex).indexOf(close)
     if (closeLength === -1)
-        return ``
+        return ''
 
     return str.substring(openEndIndex, openEndIndex + closeLength)
 }

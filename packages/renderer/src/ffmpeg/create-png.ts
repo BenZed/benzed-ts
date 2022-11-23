@@ -19,7 +19,7 @@ import {
 
 import { clamp } from '@benzed/math'
 
-import { isDefined, isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 
 //// Types ////
 
@@ -31,7 +31,7 @@ type CreatePNGOptions =
 
 //// Constants ////
 
-const IMAGE_FORMAT = `png`
+const IMAGE_FORMAT = 'png'
 
 //// Helper ////
 
@@ -40,13 +40,13 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     const { input } = options
     const { duration, frameRate } = await getMetadata({ input })
 
-    if (!isDefined(duration) || !isDefined(frameRate))
+    if (!is.defined(duration) || !is.defined(frameRate))
         return 0
 
     const frameDuration = 1 / frameRate
     const maxFrameDuration = duration - frameDuration
 
-    if (`seconds` in options && isNumber(options.seconds)) {
+    if ('seconds' in options && is.number(options.seconds)) {
 
         const { seconds } = options
 
@@ -60,7 +60,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
 
     } else {
 
-        const progress = `progress` in options ? options.progress ?? 0 : 0
+        const progress = 'progress' in options ? options.progress ?? 0 : 0
 
         const timeStamp = clamp(progress * maxFrameDuration, 0, maxFrameDuration)
         return timeStamp
@@ -80,10 +80,10 @@ async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
     cmd.videoCodec(IMAGE_FORMAT)
         .seek(timeStamp)
         .frames(1)
-        .outputFormat(`image2pipe`)
+        .outputFormat('image2pipe')
 
     const size = getFfmpegSizeOptionString(options)
-    if (isDefined(size))
+    if (is.defined(size))
         cmd.setSize(size)
 
     const [outputStream, metaStream] = createOutputStreams(output)
@@ -91,8 +91,8 @@ async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
     const renderStart = Date.now()
 
     const render = new Promise((resolve, reject) => cmd
-        .on(`end`, resolve)
-        .on(`error`, reject)
+        .on('end', resolve)
+        .on('error', reject)
         .output(outputStream, { end: true })
         .run()
     )

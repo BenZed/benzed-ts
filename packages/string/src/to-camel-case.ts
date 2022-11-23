@@ -1,3 +1,35 @@
+import { Split, ToString } from './types'
+
+//// Types ////
+
+/**
+* `any-delimited-string type` -> `anyDelimitedStringType`
+* ['or','a','string','type','array] -> `orAStringTypeArray`
+*/
+type ToCamelCase<S extends string | string[] | readonly string[], D extends string = '-'> = 
+    string extends S ? string : // ignore untyped strings
+        S extends string ? ToCamelCase<Split<S, D>, D> : 
+            S extends [infer Sx, ...infer Sr]
+                ? Sr extends string[] | readonly string[]
+
+                    // ensure ['', 'up'] does not result in 'Up'
+                    ? ToString<Sx> extends '' 
+                        ? ToCamelCase<Sr, D>
+                        : `${ToString<Sx>}${Capitalize<ToCamelCase<Sr, D>>}`
+
+                    : ToString<Sx>
+                : ToString<S>
+
+//// Type Safe Signatures ////
+
+function toCamelCase(input: string, delimeter: RegExp): string
+
+function toCamelCase<S extends string>(input: S): ToCamelCase<S, ' ' | '-' | '_'>
+
+function toCamelCase<S extends string, D extends string>(input: S, delimeter: D): ToCamelCase<S, D>
+
+//// Implementation ////
+
 /**
  * Converts a string to camelCase.
  * 
@@ -5,21 +37,24 @@
  * toCamelCase('whats-up-man') // whatsUpMan
  * ```
  *
- * @param  str Input.
+ * @param  input Input.
  * @param  delimiter=/-/ Delimiter.
  * @return camelCased string.
  */
-function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
+function toCamelCase(
+    input: string, 
+    delimiter: string | RegExp = / |-|_/
+): string {
 
-    let camelCased = ``
+    let camelCased = ''
     let capitalizeNext = false
 
-    if (typeof delimiter === `string`)
+    if (typeof delimiter === 'string')
         delimiter = new RegExp(delimiter)
 
-    for (let i = 0; i < str.length; i++) {
+    for (let i = 0; i < input.length; i++) {
 
-        const char = str.charAt(i)
+        const char = input.charAt(i)
 
         if (delimiter.test(char))
             capitalizeNext = true
@@ -30,7 +65,6 @@ function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
 
         } else
             camelCased += char
-
     }
 
     return camelCased
@@ -41,5 +75,6 @@ function toCamelCase(str: string, delimiter: string | RegExp = /-/): string {
 export default toCamelCase
 
 export {
-    toCamelCase
+    toCamelCase,
+    ToCamelCase
 }

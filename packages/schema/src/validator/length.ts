@@ -1,6 +1,4 @@
-import {
-    isInteger
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     RangeValidator,
@@ -63,20 +61,20 @@ class LengthValidator<O extends ArrayLike<unknown>>
         let validatesLengthsBelowZero: boolean
         let nonIntegerConfiguration: string | null
 
-        if (`value` in settings) {
+        if ('value' in settings) {
             validatesLengthsBelowZero = settings.value < 0
-            nonIntegerConfiguration = isInteger(settings.value) ? null : `value`
+            nonIntegerConfiguration = is.integer(settings.value) ? null : 'value'
         } else {
             validatesLengthsBelowZero = settings.min < 0
-            nonIntegerConfiguration = isInteger(settings.min)
-                ? isInteger(settings.max)
+            nonIntegerConfiguration = is.integer(settings.min)
+                ? is.integer(settings.max)
                     ? null
-                    : `max`
-                : `min`
+                    : 'max'
+                : 'min'
         }
 
         if (validatesLengthsBelowZero)
-            throw new Error(`cannot validate length below 0`)
+            throw new Error('cannot validate length below 0')
 
         if (nonIntegerConfiguration)
             throw new Error(`${nonIntegerConfiguration} must be an integer.`)

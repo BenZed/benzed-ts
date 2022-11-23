@@ -1,9 +1,8 @@
+import { is } from '@benzed/is'
 
 import { expectTypeOf } from 'expect-type'
 import { Component, OutputOf } from '../component'
 import { Switch } from './switch'
-
-import { isSortedArray } from '@benzed/is'
 
 //// Test Components ////
 
@@ -55,7 +54,7 @@ it('random option', () => {
 
     for (let i = 0; i < 100; i++) {
         const results = [1,1,1].map(rMultiplier.compute)
-        if (!isSortedArray(results))
+        if (!is.array.sorted(results))
             return 
     }
 

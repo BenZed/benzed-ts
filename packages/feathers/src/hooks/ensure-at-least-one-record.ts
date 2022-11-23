@@ -30,9 +30,9 @@ function ensureAtLeastOneRecord<R>(
 
     return async function ({ service, method }, next) {
 
-        if (method !== `remove`) {
+        if (method !== 'remove') {
             throw new Error(
-                `ensureAtLeastOneRecord hook should only be called by the 'remove' method`
+                'ensureAtLeastOneRecord hook should only be called by the \'remove\' method'
             )
         }
 

@@ -30,14 +30,14 @@ import {
 } from '@benzed/immutable'
 
 import {
-    isInstanceOf,
-    isNumber,
-    isString
+    is
 } from '@benzed/is'
 
 import {
     ascending
 } from '@benzed/array'
+
+import { pass } from '@benzed/util'
 
 import {
     CustomAssert,
@@ -47,7 +47,6 @@ import {
     CustomValidatorSettingsShortcut,
     toCustomValidatorSettings 
 } from '../validator/custom'
-import { pass } from '@benzed/util'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -79,7 +78,7 @@ type DefaultSetting<O, K extends keyof DefaultValidatorSettings<O>> =
 
 //// Schema Class ////
 
-abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Schema<I, O, F>> {
+abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
 
     protected readonly _flags: F
     protected readonly _input: I
@@ -154,7 +153,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         option: TypeSetting<O, 'name'> | Partial<Pick<TypeValidatorSettings<O>, 'name' | 'article'>>
     ): this {
 
-        const { name, article } = isString(option) ? { name: option, article: undefined } : option
+        const { name, article } =is.string(option) ? { name: option, article: undefined } : option
 
         return this._copyWithTypeValidatorSettings({ name, article })
     }
@@ -202,7 +201,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
         return this.validates({
             transform,
             isValid: pass,
-            error: `` // validator will never throw.
+            error: '' // validator will never throw.
         })
     }
 
@@ -276,7 +275,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
                 if (isUndefinedPostDefaultValidation && isOptional)
                     return output as ApplyOptional<F, O>
                 else if (isUndefinedPostDefaultValidation && !isOptional)
-                    throw new Error(`is required`)
+                    throw new Error('is required')
 
             } catch ({ message }) {
                 throw new ValidationError(
@@ -320,7 +319,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     ): void {
 
         const highestExistingNumericalId = [...this._postTypeValidators.keys()]
-            .filter(isNumber)
+            .filter(is.number)
             .sort(ascending)
             .at(-1) ?? -1
 
@@ -384,7 +383,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable<Sc
     [$$equals](other: unknown): other is this {
         return (
             // is this schema
-            isInstanceOf(other, this.constructor) &&
+            is.type(other, this.constructor) &&
             // flags match
             equals(other._flags, this._flags) &&
             // type settings match

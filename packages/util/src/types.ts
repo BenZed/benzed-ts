@@ -1,17 +1,41 @@
+import { Merge } from './merge'
+
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any 
+    @typescript-eslint/no-explicit-any,
 */
 
-export type Func<A extends any[] = any, V = any, T = void> = (this: T, ...args: A) => V
+export type Func = (...args: any[]) => any 
+
+/**
+ * Function that takes a single input, returns a single output.
+ */
+export type Map<I = unknown, O = unknown> = (input: I) => O
+
+/**
+ * Input to output
+ */
+export type IO<I, O> = Map<I,O>
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
 
+/**
+ * Falsy values
+ */
+export type Falsy = '' | 0 | null | undefined | false
+
+export type Keys<T = object> = (keyof T)[]
+
+/**
+ * Primitives
+ */
+export type Primitive = string | number | boolean | bigint | null | undefined
+
 export type Json =
     null | string | number | boolean |
     Json[] |
-    { [prop: string]: Json }
+    { [k: string]: Json }
 
 /*** Utility Types ***/
 
@@ -33,50 +57,30 @@ export type Collapse<L, R> =
     }
 
 /**
- * Create an interesection out of an arbitrary number of types
+ * Make specific keys of a type required
  */
-export type Intersect<T> = T extends [infer F, ...infer R]
-    ? F & Intersect<R>
-    : unknown
-
-/**
- * Merge an arbitrary number of types into one. 
- */
-export type Merge<T> =
-    {
-        [K in keyof Intersect<T>]: Intersect<T>[K]
-    }
-
-/**
- * Remove the optional signature on specific keys of a type.
- */
-export type RequirePartial<T, K extends keyof T> =
+export type PartialRequire<T, K extends keyof T> =
     Merge<[
         {
-            [TK in keyof T as TK extends K ? TK : never]-?: T[TK]
+            [Tk in keyof T as Tk extends K ? Tk : never]-?: T[Tk]
         },
         {
-            [TK in keyof T as TK extends K ? never : TK]: T[TK]
+            [Tk in keyof T as Tk extends K ? never : Tk]: T[Tk]
         }
     ]>
 
 /**
- * Make specific values of a type optional.
+ * Make specific keys of a type optional.
  */
-export type Optional<T, V> =
+export type PartialOptional<T, K extends keyof T> =
     Merge<[
         {
-            [K in keyof T as V extends T[K] ? never : K]-?: T[K]
+            [Tk in keyof T as Tk extends K ? never : Tk]: T[Tk]
         },
         {
-            [K in keyof T as V extends T[K] ? K : never]?: T[K]
+            [Tk in keyof T as Tk extends K ? Tk : never]?: T[Tk]
         }
     ]>
-
-/**
- * Make undefined values of a type optional.
- */
-export type UndefinedToOptional<T> = Optional<T, undefined>
 
 /**
  * Get a compiled contract of a type.
@@ -100,7 +104,7 @@ export type Compile<T, E = void, R extends boolean = true> =
 
                     : T extends object 
 
-                        ? T extends Date | RegExp | Func<any,any,any> | Error
+                        ? T extends Date | RegExp | Func | Error
 
                             ? T
 
@@ -132,26 +136,28 @@ export type StringKeys<T> = Extract<keyof T, string>
  */
 export type Empty = { [key: string]: never }
 
-export type Split<S extends string, D extends string> =
-    string extends S ? string[] :
-        S extends '' ? [] :
-            S extends `${infer T}${D}${infer U}` ? [T, ...Split<U, D>] :
-                [S]
-
-type _SplitOnWordSeparator<T extends string> = Split<T, '-'|'_'|' '>
-type _UndefinedToEmptyString<T extends string> = T extends undefined ? '' : T
-type _CamelCaseStringArray<K extends string[]> = `${K[0]}${Capitalize<_UndefinedToEmptyString<K[1]>>}`
-
-export type CamelCase<K> = K extends string ? _CamelCaseStringArray<_SplitOnWordSeparator<K>> : K
-
 /**
- * Convert a static string type to a static number type
+ * Convert a type to a numeric
  */
-export type StringToNumber<T> = T extends `${infer N extends number}` ? N : never
+export type ToNumber<N, Vf extends number = 0 /* (V)alue to use if conversion (f)ails*/> = 
+ N extends number ? N 
+     : N extends `${infer N extends number}` ? N
+         : N extends bigint ? ToNumber<`${N}`, Vf>
+             : N extends boolean ? N extends true ? 1 : 0
+                 : Vf
 
-/**
+/*
  * Get a union of indexes of a tuple type
  */
 export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
-    [K in keyof A as StringToNumber<K>]: never
+    [K in keyof A as ToNumber<K>]: never
 }
+
+//// Invalid Type Error ////
+
+const InvalidTypeError = Symbol('invalid-type-error')
+const Type = Symbol('required-target-type')
+
+export type Invalid<msg extends string = 'This is an invalid type.', T = never> = T extends never 
+    ? { [InvalidTypeError]: msg }
+    : { [InvalidTypeError]: msg, [Type]: T }
