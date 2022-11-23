@@ -1,8 +1,9 @@
 import { Typeable, TypeOf } from './types'
 import { Flags, F, SetFlag, IsFlag } from './flags'
 
-import { Compile, Intersect } from '@benzed/util'
 import { Schema } from './schema'
+
+import { Compile, Intersect } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

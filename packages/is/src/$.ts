@@ -1,8 +1,6 @@
 import type { Assert, Is, Validate } from './$-types'
 import { Flags, F, Flag } from './flags'
 
-import { chain } from '@benzed/util'
-
 /* eslint-disable 
     @typescript-eslint/ban-types,
     @typescript-eslint/no-explicit-any

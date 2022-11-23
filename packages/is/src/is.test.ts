@@ -1,6 +1,6 @@
 import { is } from './$'
 import { expectTypeOf } from 'expect-type'
-import { TypeGuard, TypeOf } from './types'
+import { TypeGuard } from './types'
 
 /*** Tests ***/
 

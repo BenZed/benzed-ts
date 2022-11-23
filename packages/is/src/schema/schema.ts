@@ -1,4 +1,5 @@
 import { nil, asNil, keysOf, merge } from '@benzed/util'
+import { $$copy } from '@benzed/immutable'
 
 import { 
     validate,
@@ -15,8 +16,6 @@ import {
 import { 
     ValidateContext 
 } from './context'
-
-import { $$copy } from '@benzed/immutable'
 
 //// Type ////
 
@@ -50,7 +49,9 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
 
 type Infer<S extends Schema<any>> = S extends Schema<infer T> ? T : unknown
 
-type Assert<T> = T extends Schema<infer Tx> ? Assert<Tx> : (input: unknown) => asserts input is T
+type Assert<T> = T extends Schema<infer Tx> 
+    ? Assert<Tx> 
+    : (input: unknown) => asserts input is T
 
 //// Interface ////
 

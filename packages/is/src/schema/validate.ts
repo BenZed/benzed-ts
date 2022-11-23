@@ -1,9 +1,12 @@
-import { equals } from '@benzed/immutable'
+import { equals, isFunction, isObject } from '@benzed/immutable'
+import { nil } from '@benzed/util'
 
 import { 
+
     context,
     ValidateContext, 
-    ValidateOptions 
+    ValidateOptions
+
 } from './context'
 
 import { ErrorMessage, ValidationError } from './error'
@@ -39,6 +42,15 @@ interface Validate<I = unknown, O extends I = I> {
     (input: I, ctx?: Partial<ValidateOptions>): O
 }
 
+//// Helper ////
+
+function isOptional<T extends object>(input: T): input is T & { optional: true } {
+    return (isObject(input) || isFunction(input)) && (input as { optional: boolean }).optional === true 
+}
+
+function isMutable<T extends object>(input: T): input is T & { mutable: true } {
+    return (isObject(input) || isFunction(input)) && (input as { mutable: boolean }).mutable === true 
+}
 //// Validator ////
 
 function validate(
@@ -48,16 +60,19 @@ function validate(
 ): unknown {
 
     const ctx = context({ input, ...options })
-    
+
     for (const { transform, assert, msg } of this.validators) {
         
-        const transformed = transform ? transform.call(this, input, ctx) : input
+        const transformed = (ctx.transform || !assert) && transform ? transform.call(this, input, ctx) : input
 
         const output = ctx.transform ? transformed : input
 
         const isValid = assert ? assert.call(this, output, ctx) : equals(output, transformed)
+        if (!isValid && output === nil && isOptional(this))
+            return nil
+        
         if (!isValid)
-            throw new ValidationError(input, ctx, msg)
+            throw new ValidationError(output, ctx, msg)
 
         input = output
     }
@@ -77,4 +92,7 @@ export {
     Transform,
 
     Validator,
+
+    isOptional,
+    isMutable
 }

@@ -1,5 +1,6 @@
 
-import { nil, returns } from '@benzed/util/lib'
+import { nil, returns } from '@benzed/util'
+
 import { type } from './type'
 
 //// Setup ////
