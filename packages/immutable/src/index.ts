@@ -10,6 +10,7 @@ export type CopyComparable = Copyable & Comparable
 export * from './array'
 export * from './memoize'
 export * from './value-map'
+export * from './extendable'
 
 export { Immutable, Mutable, isObject, isArrayLike, isFunction } from './util'
 
