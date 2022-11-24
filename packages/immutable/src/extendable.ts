@@ -149,5 +149,7 @@ export default extendable
 
 export {
     extendable,
-    Extendable
+    Extendable,
+    ExtendableMethod,
+    ExtendableObject
 }
