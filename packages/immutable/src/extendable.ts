@@ -1,9 +1,9 @@
 
 import { 
 
+    Empty,
     Func, 
     keysOf, 
-    Merge, 
     nil, 
     Primitive
 
@@ -13,22 +13,38 @@ import { $$copy } from './symbols'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-this-alias
 */
 
 //// Symbol ////
 
 const $$extendable = Symbol('extendable')
 
-//// Types ////
+//// Helper Types ////
 
 type Descriptors = {
     [x: string | symbol | number]: PropertyDescriptor
 }
 
-type Extension<T extends Func | object> = 
+type _ExtendObject<E, O> = {
+    [K in keyof O | keyof E as K extends 'extend' ? never : K]: K extends keyof E 
+        ? E[K] 
+        : K extends keyof O 
+            ? O[K] 
+            : never
+} extends infer T ? Empty extends T ? never : T : never
+
+type _ExtendFunc<T> = T extends (...args: infer A) => infer R 
+    ? (...args: A) => R
+    : never
+
+//// Extend Types ////
+
+type Extension<T> = 
+
     // an extension can be a method
     | ((this: Extendable<T>, ...args: any[]) => any) 
-        
+
     // or an object containing methods
     | {
         [key: string | number | symbol]: (
@@ -38,19 +54,21 @@ type Extension<T extends Func | object> =
             ) => any
         ) | Primitive | object
     }
+    
+type Extend<E, O = void> = _ExtendFunc<E> extends never
+    ? _ExtendFunc<O> extends never
+        ? _ExtendObject<E, O> 
+        : _ExtendObject<E, O> extends never
+            ? _ExtendFunc<O>
+            : _ExtendFunc<O> & _ExtendObject<E, O> 
 
-type ExtendableMethod<T extends Func> = ((...args: Parameters<T>) => ReturnType<T>) & ExtendableObject<T>
+    : _ExtendObject<E, O> extends never
+        ? _ExtendFunc<E>
+        : _ExtendFunc<E> & _ExtendObject<E, O> 
 
-type ExtendableObject<T extends object> = {
-
-    [K in keyof T | 'extend']: K extends 'extend' 
-        ? <Tx extends Extension<T>>(extension: Tx) => Extendable<Merge<[T, Tx]>> 
-        : K extends keyof T ? T[K] : K
+type Extendable<O> = O & { 
+    extend: <E extends Extension<O>>(extension: E) => Extendable<Extend<E, O>> 
 }
-
-type Extendable<T extends Func | object> = T extends Func 
-    ? ExtendableMethod<T>
-    : ExtendableObject<T>
 
 //// Helper ////
 
@@ -102,33 +120,49 @@ const applyDescriptors = (
     return object
 }
 
+const getMethod = (
+    original: nil | object, 
+    extension: nil | object
+): Func | nil => {
+    if (typeof extension === 'function')
+        return extension as Func
+
+    if (typeof original === 'object' && original !== null)
+        return (original as { [$$extendable]: Func | nil })[$$extendable]
+
+    return nil
+}
+
 //// Extend ////
 
-function extend (this: void | Func | object, extension?: Func | object): unknown {
+function extend <O extends object, E extends object>(this: O | void, extension: E): Extendable<Extend<O,E>> {
 
     // Disallow arrays. 
     if (Array.isArray(extension))
         throw new Error('Cannot extend Arrays')
 
+    const original = this ?? nil
+
     // Determine if this extendable has a method
-    const method = typeof extension === 'function' 
-        ? extension as Func
-        : (this as void | { [$$extendable]: Func | nil })?.[$$extendable]
+    const method = getMethod(original, extension)
 
     // Create descriptors
-    const original = this ?? {}
     const descriptors = getDescriptors(method, original, extension)
 
     // Extend
     const extended = applyDescriptors(
         
         method 
+            // wrap method to keep <this> context up to date with changes
+            // to extended object
             ? (...args: unknown[]): unknown => method.apply(extended, args)
+            
             : {}, 
         
         descriptors
     )
-    return extended
+
+    return extended as Extendable<Extend<O, E>>
 }
 
 //// Interface ////
@@ -137,8 +171,8 @@ function extend (this: void | Func | object, extension?: Func | object): unknown
  * Give any object an '.extend' method, allowing typesafe immutable application of
  * properties, methods or callable signatures.
  */
-function extendable<T extends Func | object>(object: T): Extendable<T> {
-    return extend(object) as Extendable<T>
+function extendable<T extends object>(object: T): Extendable<Extend<T>> {
+    return extend(object) as Extendable<Extend<T>>
 }
 
 //// Export ////
@@ -147,5 +181,5 @@ export default extendable
 
 export {
     extendable,
-    Extendable
+    Extendable,
 }

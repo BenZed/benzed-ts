@@ -197,7 +197,7 @@ let is: Is
                 }
             )
         }
-    )
+    ) as Is['array']
 }
 
 //// Exports ////

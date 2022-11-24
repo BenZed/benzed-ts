@@ -1,5 +1,9 @@
-import { extendable } from './extendable'
+import { extendable, Extendable } from './extendable'
 import { copy } from './copy'
+
+import { expectTypeOf } from 'expect-type'
+
+//// Tests ////
 
 it('adds an extend method to functions or objects', () => {
     const vector = extendable({ x: 5 }).extend({ y: 5 })
@@ -11,12 +15,8 @@ it('is immutable', () => {
     const original = { foo: 'bar' }
 
     const improved = extendable(original).extend({ cake: 'town' })
-    expect(improved)
-        .toEqual({ foo: 'bar', cake: 'town' })
-
-    expect(improved)
-        .not
-        .toBe(original)
+    expect(improved).toEqual({ foo: 'bar', cake: 'town' })
+    expect(original).not.toBe(improved)
 
 })
 
@@ -36,7 +36,7 @@ it('methods can be extended', () => {
 
 it('extending multiple methods', () => {
 
-    const m1 = extendable(() => 'hi').extend(() => 'bye')
+    const m1 = extendable(() => 'hi' as const).extend(() => 'bye' as const)
 
     // second method takes precendence
     expect(m1()).toEqual('bye')
@@ -78,7 +78,7 @@ it('implements immutable copy', () => {
     expect(m2).not.toEqual(m1)
 })
 
-it('function this context kept in sync', () => {
+it('function <this> context kept in sync', () => {
 
     const mult = extendable({ by: 2 })
         .extend(
@@ -96,7 +96,7 @@ it('function this context kept in sync', () => {
 
 })
 
-it('getters/setters', () => {
+it('preserves getters/setters', () => {
 
     const ace = extendable({
 
@@ -123,4 +123,43 @@ it('getters/setters', () => {
     expect(ace.progress).toEqual(0.5)
 
     expect(ace()).toEqual(50)
+})
+
+it('handles conflicting extensions', () => {
+
+    const flag1 = extendable({
+        required: true as const
+    })
+    expectTypeOf(flag1).toEqualTypeOf<Extendable<{ required: true }>>()
+
+    const flag2 = flag1.extend({ required: false })
+    expectTypeOf(flag2).toEqualTypeOf<Extendable<{ required: false }>>()
+
+})
+
+it('handles conflicting "extend" definitions', () => {
+
+    const smartass1 = extendable({
+        foo: 'bar',
+        extend(input: object) {
+            return !!input
+        }
+    })
+
+    // does not keep extend(object):true signature
+    const smartass2 = smartass1.extend({})
+
+    expectTypeOf(smartass2)
+        .not
+        .toMatchTypeOf<true>()
+
+    expectTypeOf(smartass1)
+        .not
+        .toMatchTypeOf<Extendable<{ foo: string, extend(input: object): true }>>()
+
+    const smartass3 = smartass1.extend({ bar: 'foo', extend: false })
+    expectTypeOf(smartass3)
+        .not
+        .toMatchTypeOf<true>()
+
 })
