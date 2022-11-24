@@ -1,5 +1,5 @@
-import { nil, asNil, extendable } from '@benzed/util'
-import { $$copy, push } from '@benzed/immutable'
+import { nil, asNil } from '@benzed/util'
+import { extendable, push } from '@benzed/immutable'
 
 import { 
     validate,
@@ -77,17 +77,17 @@ function assert(
 function asserts(
     this: Schema, 
     assert: IsValid, 
-    msg?: string | ErrorMessage
+    err?: string | ErrorMessage
 ): Schema {
-    return this.validates({ assert, msg })
+    return this.validates({ assert, err })
 }
 
 function transforms(
     this: Schema, 
     transform: Transform,
-    msg?: string | ErrorMessage
+    err?: string | ErrorMessage
 ): Schema {
-    return this.validates({ transform, msg })
+    return this.validates({ transform, err })
 }
 
 function validates(
@@ -97,14 +97,6 @@ function validates(
     return this.extend({
         validators: push(this.validators, validator)
     })
-}
-
-//// Immutable ////
-
-function copy(
-    this: Schema,
-): Schema {
-    return this.extend({})
 }
 
 //// Interface Helpers ////
@@ -134,9 +126,8 @@ function schema<T>(
     ...validators: Validator<T>[]
 ): Schema<T> {
 
-    return extendable(
-        validate,
-        {
+    return extendable(validate)
+        .extend({
             is,
             assert,
 
@@ -146,11 +137,7 @@ function schema<T>(
 
             asserts,
             transforms,
-            
-            [$$copy]: copy,
-        },
-        true
-    ) as Schema<T> 
+        }) as Schema<T> 
 }
 
 //// Extend ////

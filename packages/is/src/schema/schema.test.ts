@@ -8,7 +8,7 @@ import { expectTypeOf } from 'expect-type'
 
 const isString = (i: unknown): i is string => typeof i === 'string'
 
-const $string = schema({ assert: isString, msg: 'must be type string' })
+const $string = schema({ assert: isString, err: 'must be type string' })
 
 const $lowerCaseString = $string.transforms(
     i => i.toLowerCase(), 

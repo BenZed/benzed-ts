@@ -39,6 +39,8 @@ type Extension<T extends Func | object> =
         ) | Primitive | object
     }
 
+    | object
+
 type ExtendableMethod<T extends Func> = ((...args: Parameters<T>) => ReturnType<T>) & ExtendableObject<T>
 
 type ExtendableObject<T extends object> = {

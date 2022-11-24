@@ -22,7 +22,7 @@ type Validator<I = unknown, O extends I = I> = {
     /**
      * Error message to be used if validation fails.
      */
-    readonly msg?: string | ErrorMessage<I> 
+    readonly err?: string | ErrorMessage<I> 
 
     /**
      * Method to transform a value, if transformations are enabled.
@@ -61,7 +61,7 @@ function validate(
 
     const ctx = context({ input, ...options })
 
-    for (const { transform, assert, msg } of this.validators) {
+    for (const { transform, assert, err } of this.validators) {
         
         const transformed = (ctx.transform || !assert) && transform ? transform.call(this, input, ctx) : input
 
@@ -71,8 +71,13 @@ function validate(
         if (!isValid && output === nil && isOptional(this))
             return nil
         
-        if (!isValid)
+        if (!isValid) {
+            const msg = typeof err === 'function' 
+                ? err.call(this, input, ctx) 
+                : err ?? 'Validation failed.'
+
             throw new ValidationError(output, ctx, msg)
+        }
 
         input = output
     }

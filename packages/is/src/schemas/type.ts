@@ -114,6 +114,11 @@ function typeAssert<T>(this: TypeSchema<T>, input: unknown, ctx: ValidateContext
     return settings.isType(input, ctx) 
 }
 
+function typeError<T>(this: TypeSchema<T>): string {
+    const settings = this[$$type]
+    return `must be type ${settings.name}`
+}
+
 //// Schema ////
 
 function typeSchema<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
@@ -121,7 +126,7 @@ function typeSchema<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
     return schema<T>({
         transform: typeTransform,
         assert: typeAssert,
-        msg: `must be type ${settings.name}`
+        err: typeError
     }).extend<TypeSchemaProperties<T>>({
         [$$type]: settings,
         cast,

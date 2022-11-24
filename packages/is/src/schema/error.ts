@@ -10,16 +10,13 @@ export class ValidationError<V = unknown> extends Error {
     constructor(
         readonly value: V,
         readonly ctx: ValidateContext,
-        msg: string | ErrorMessage<V> = 'Validation failed.'  
+        msg: string
     ) {
 
-        const error = typeof msg === 'function' ? msg(value, ctx) : msg
-
-        super(`${ctx.path.join('\/')} ${error}`.trim())
+        super(`${ctx.path.join('\/')} ${msg}`.trim())
     }
 
 }
 
-export type ErrorMessage<V = unknown> = 
-    (value: V, ctx: ValidateContext) => string
+export type ErrorMessage<V = unknown> = (value: V, ctx: ValidateContext) => string
 
