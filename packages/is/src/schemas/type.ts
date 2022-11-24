@@ -8,6 +8,16 @@ const $$type = Symbol('type-settings')
 
 //// Types ////
 
+/**
+ * Method that potentially converts a value to the target type.
+ */
+ type Cast<T> = (i: unknown, ctx: ValidateContext) => T | unknown
+
+ /**
+  * Method that provides a default value, if the input was undefined or null
+  */
+ type Default<T> = (ctx: ValidateContext) => T
+
 interface TypeSchemaSettings<T> {
 
     /**
@@ -32,16 +42,6 @@ interface TypeSchemaSettings<T> {
 
 }
 
-/**
- * Method that potentially converts a value to the target type.
- */
-type Cast<T> = (i: unknown, ctx: ValidateContext) => T | unknown
-
-/**
- * Method that provides a default value, if the input was undefined or null
- */
-type Default<T> = (ctx: ValidateContext) => T
-
 interface TypeSchemaProperties<T> {
 
     [$$type]: TypeSchemaSettings<T>
@@ -62,29 +62,28 @@ interface TypeSchemaProperties<T> {
      */
     default(value: Default<T> | T | nil): this
 
-    /**
-     * @internal
-     * @param settings 
-     */
-    _type(settings: Partial<TypeSchemaSettings<T>>): this
-
 }
 
 interface TypeSchema<T> extends Schema<T>, TypeSchemaProperties<T> {}
 
 //// Helper ////
 
-function _type<T>(this: TypeSchema<T>, settings: Partial<TypeSchemaSettings<T>>): TypeSchema<T> {
-    return this.extend({ 
+function updateTypeSchemaSettings<T>(
+    typeSchema: TypeSchema<T>, 
+    settings: Partial<TypeSchemaSettings<T>>
+): TypeSchema<T> {
+    return typeSchema.extend({ 
         [$$type]: {
-            ...this[$$type], 
+            ...typeSchema[$$type], 
             ...settings
         }
     })
 }
 
+//// Instance Methods ////
+
 function cast<T>(this: TypeSchema<T>, cast: Cast<T> | nil): TypeSchema<T> {
-    return this._type({ cast })
+    return updateTypeSchemaSettings(this, { cast })
 }
 
 function _default<T>(this: TypeSchema<T>, _default: T | Default<T> | nil): TypeSchema<T> {
@@ -93,7 +92,7 @@ function _default<T>(this: TypeSchema<T>, _default: T | Default<T> | nil): TypeS
         ? _default as nil | Default<T>
         : returns(_default)
 
-    return this._type({ default: _defaultMethod })
+    return updateTypeSchemaSettings(this, { default: _defaultMethod })
 
 }
 
@@ -117,7 +116,7 @@ function typeAssert<T>(this: TypeSchema<T>, input: unknown, ctx: ValidateContext
 
 //// Schema ////
 
-function type<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
+function typeSchema<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
     
     return schema<T>({
         transform: typeTransform,
@@ -127,15 +126,15 @@ function type<T>(settings: TypeSchemaSettings<T>): TypeSchema<T> {
         [$$type]: settings,
         cast,
         default: _default,
-        _type,
     })
 
 }
 
 //// Exports ////
 
-export default type 
+export default typeSchema 
 
 export {
-    type
+    typeSchema,
+    TypeSchema
 }

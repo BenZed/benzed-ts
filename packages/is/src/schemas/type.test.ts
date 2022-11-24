@@ -1,11 +1,11 @@
 
 import { nil, returns } from '@benzed/util'
 
-import { type } from './type'
+import { typeSchema } from './type'
 
 //// Setup ////
 
-const $number = type({
+const $number = typeSchema({
     isType: (i): i is number => typeof i === 'number',
     name: 'number'
 })

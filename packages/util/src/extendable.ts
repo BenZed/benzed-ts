@@ -12,9 +12,9 @@ const $$extendable = Symbol('extendable')
 
 //// Types ////
 
-type _ExtendableData = {        
-    method: Func, 
-    instance: object, 
+type _Extended = {        
+    method: Func
+    instance: object
     bind?: boolean
 }
 
@@ -28,10 +28,9 @@ type Extendable<T extends Func, E extends object> =
 
 //// Helper ////
 
-
 function extend <C extends Func, E extends object>(this: C, extension: E, bind?: boolean): Extendable<C, E> {
 
-    const data = this as unknown as (_ExtendableData & { [$$extendable]?: _ExtendableData })
+    const data = this as unknown as (_Extended & { [$$extendable]?: _Extended })
 
     const { method, instance, bind: bound } = data[$$extendable] ?? data
 
@@ -57,15 +56,18 @@ function extendable<F extends Func, O extends object>(method: F, instance: O, bi
         [$$extendable]: { method, instance, bind },
     }
 
-    if (bind) for (const key of keysOf(extendable)) {
-        const value = extendable[key]
-        if (typeof value === 'function')
-            extendable[key] = value.bind(extendable)
+    if (bind) {
+        for (const key of keysOf(extendable)) {
+            const value = extendable[key]
+            if (typeof value === 'function')
+                extendable[key] = value.bind(extendable)
+        }
     }
 
     return merge(
         method.bind(extendable), 
-        extendable) as Extendable<F,O>
+        extendable
+    ) as Extendable<F,O>
 }
 
 //// Exports ////

@@ -23,6 +23,7 @@
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "devDependencies": {
         "@benzed/util": "^3.9.1",
+        "@benzed/math": "^3.1.4",
         "@benzed/immutable": "^3.1.3"
     }
 }
