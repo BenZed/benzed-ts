@@ -64,9 +64,16 @@ it('extending multiple methods and properties', () => {
     expect(m2()).toEqual(30)
 })
 
-it('cannot do arrays', () => {
+it('resolves arrays nicely', () => {
 
-    expect(() => extendable([])).toThrow('Cannot extend Arrays')
+    expectTypeOf(
+        extendable([1,2,3]).extend({ ace: 10 })
+    ).toEqualTypeOf<Extendable<number[] & { ace: number }>>()
+
+    expectTypeOf(
+        extendable([1,2,3] as readonly number[]).extend({ ace: 10 })
+    ).toEqualTypeOf<Extendable<readonly number[] & { ace: number }>>()
+
 })
 
 it('implements immutable copy', () => {
@@ -221,4 +228,17 @@ it('extended object get inferred this context', () => {
     )
 
     expect(acer2()).toEqual(2)
+})
+
+it('extends arrays', () => {
+
+    const arr = extendable(
+        function even(this: number[]): number[] {
+            return this.filter(i => i % 2 === 0)
+        })
+        .extend([ 1, 2, 3 ])
+        .extend({ ace: 5 })
+
+    expect(arr()).toEqual([2])
+    expect(arr.ace).toEqual(5)
 })

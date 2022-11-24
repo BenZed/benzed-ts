@@ -23,7 +23,7 @@ import {
 //// Helper Types ////
 
 type Descriptors = {
-    [x: string | symbol | number]: PropertyDescriptor
+    [key: string | number | symbol]: PropertyDescriptor
 }
 
 /**
@@ -39,12 +39,23 @@ type _ResolveObject<E, O> = {
         : K extends keyof O 
             ? O[K] 
             : never
+
 } extends infer T 
     ? Empty extends T 
         ? never 
-        : T 
+        : _ResolveArray<T>
     : never
-// ^ pretty print
+
+// TODO resolve tuples
+type _ResolveArray<T> = T extends Array<infer I>
+    ? I[] & _ExcludeArrayProps<T>
+    : T extends Readonly<Array<infer I>>
+        ? readonly I[] & _ExcludeArrayProps<T>
+        : T
+
+type _ExcludeArrayProps<A> = {
+    [K in keyof A as K extends keyof Array<any> ? never : K]: A[K]
+} extends infer Tx ? Tx : never
 
 type _ResolveCallable<T> = T extends (...args: infer A) => infer R 
     ? (...args: A) => R
@@ -69,7 +80,9 @@ type Extension<T> =
                 ...args: any[]
             ) => any
         ) | object | Primitive
-    }
+    } 
+
+    | unknown[]
 
 /**
  * Given an extension and optional original object,
@@ -99,12 +112,26 @@ type Extendable<O> = O & {
 const createDescriptors = (
     callable: Func | nil,
     original: object | nil,
-    extension: object | nil
+    extension: object | nil,
+    isArray: boolean
 ): Descriptors => ({
 
+    ...callable && {
+        [$$callable]: {
+            value: callable,
+            enumerable: false,
+            configurable: false,
+            writable: false
+        },
+        // only add array properties if this extendable is going to be 
+        // callable, as the calling method won't have them.
+        ...isArray && Object.getOwnPropertyDescriptors(Array.prototype)
+    } as Descriptors,
+
     ...original && Object.getOwnPropertyDescriptors(original),
+
     ...extension && Object.getOwnPropertyDescriptors(extension),
-            
+
     extend: {
         value: extend,
         enumerable: false,
@@ -119,22 +146,12 @@ const createDescriptors = (
         writable: false
     },
 
-    ...callable && {
-        [$$callable]: {
-            value: callable,
-            enumerable: true,
-            configurable: false,
-            writable: false
-        }
-    }
 })
 
 const applyDescriptors = (
 
     object: object, 
-    descriptors: { 
-        [x: string | symbol | number]: PropertyDescriptor 
-    }
+    descriptors: Descriptors
 
 ): object => {
 
@@ -179,17 +196,16 @@ function extend<T extends object>(object: T): Extendable<Extend<T>>
  */
 function extend(this: object | void, extension: object): object {
 
-    // Disallow arrays. 
-    if (Array.isArray(extension))
-        throw new Error('Cannot extend Arrays')
-
     const original = this ?? nil
 
     // Get call signature for this extendable, if there is one
     const callable = getCallable(extension) ?? (original && getCallable(original))
 
+    // Handle array extensions
+    const isArray = Array.isArray(extension) || Array.isArray(original)
+
     // Create descriptors
-    const descriptors = createDescriptors(callable, original, extension)
+    const descriptors = createDescriptors(callable, original, extension, isArray)
 
     // Extend
     const extended = applyDescriptors(
@@ -199,9 +215,9 @@ function extend(this: object | void, extension: object): object {
             // to the extended object
             ? (...args: unknown[]): unknown => callable.apply(extended, args)
             
-            : {}, 
+            : isArray ? [] : {}, 
         
-        descriptors
+        descriptors,
     )
 
     return extended
