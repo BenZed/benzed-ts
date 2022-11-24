@@ -12,7 +12,6 @@ export * from './base-64'
 export * from './benchmark'
 
 export * from './constants'
-export * from './extendable'
 
 export * from './iterate'
 
