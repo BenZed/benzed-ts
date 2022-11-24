@@ -2,6 +2,7 @@ import { extendable, Extendable } from './extendable'
 import { copy } from './copy'
 
 import { expectTypeOf } from 'expect-type'
+import { $$callable } from './symbols'
 
 //// Tests ////
 
@@ -64,6 +65,7 @@ it('extending multiple methods and properties', () => {
 })
 
 it('cannot do arrays', () => {
+
     expect(() => extendable([])).toThrow('Cannot extend Arrays')
 })
 
@@ -127,12 +129,14 @@ it('preserves getters/setters', () => {
 
 it('handles conflicting extensions', () => {
 
+    void extendable
+
     const flag1 = extendable({
         required: true as const
     })
     expectTypeOf(flag1).toEqualTypeOf<Extendable<{ required: true }>>()
 
-    const flag2 = flag1.extend({ required: false })
+    const flag2 = flag1.extend({ required: false as const })
     expectTypeOf(flag2).toEqualTypeOf<Extendable<{ required: false }>>()
 
 })
@@ -145,6 +149,8 @@ it('handles conflicting "extend" definitions', () => {
             return !!input
         }
     })
+
+    void extendable
 
     // does not keep extend(object):true signature
     const smartass2 = smartass1.extend({})
@@ -162,4 +168,57 @@ it('handles conflicting "extend" definitions', () => {
         .not
         .toMatchTypeOf<true>()
 
+})
+
+it('no $$callable property on non-callable extensions', () => {
+
+    const ace = extendable({ ace: 10 })
+
+    expect($$callable in ace).toBe(false)
+})
+
+it('combining extendables', () => {
+
+    const foo = extendable({ foo: 'foo' })
+        .extend(function foo(){
+            return this.foo
+        })
+
+    const bar = extendable({ bar: 'bar' })
+        .extend(function bar(){
+            return this.bar
+        })
+
+    const foobar = foo
+        .extend(bar)
+        .extend({ bar: 'ace' })
+
+    expect(foobar()).toEqual('ace')
+})
+
+it('extended object get inferred this context', () => {
+
+    const acer = extendable({ ace: 1 })
+        .extend({
+            getAce() {
+                expectTypeOf(this).toEqualTypeOf<Extendable<{ ace: number }>>()
+                return this.ace
+            }
+        })
+
+    const ace = acer.getAce()
+    expectTypeOf(ace).toMatchTypeOf<number>()
+
+    const acer2 = acer.extend(
+        function x2() {
+            expectTypeOf(this).toMatchTypeOf<Extendable<{ 
+                ace: number 
+                getAce(): number
+            }>>()
+
+            return this.ace * 2
+        }
+    )
+
+    expect(acer2()).toEqual(2)
 })

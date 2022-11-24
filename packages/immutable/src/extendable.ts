@@ -4,21 +4,21 @@ import {
     Empty,
     Func, 
     keysOf, 
-    nil, 
+
+    nil,
     Primitive
 
 } from '@benzed/util'
 
-import { $$copy } from './symbols'
+import { 
+    $$copy, 
+    $$callable 
+} from './symbols'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/no-this-alias
 */
-
-//// Symbol ////
-
-const $$extendable = Symbol('extendable')
 
 //// Helper Types ////
 
@@ -26,20 +26,36 @@ type Descriptors = {
     [x: string | symbol | number]: PropertyDescriptor
 }
 
-type _ExtendObject<E, O> = {
+/**
+ * Compile two objects into non-conflicting single object, 
+ * favouring properties from the extension over the original.
+ * 
+ * Remove the existing 'extend' property, as it will be added
+ * by the Extendable type.
+ */
+type _ResolveObject<E, O> = {
     [K in keyof O | keyof E as K extends 'extend' ? never : K]: K extends keyof E 
         ? E[K] 
         : K extends keyof O 
             ? O[K] 
             : never
-} extends infer T ? Empty extends T ? never : T : never
+} extends infer T 
+    ? Empty extends T 
+        ? never 
+        : T 
+    : never
+// ^ pretty print
 
-type _ExtendFunc<T> = T extends (...args: infer A) => infer R 
+type _ResolveCallable<T> = T extends (...args: infer A) => infer R 
     ? (...args: A) => R
     : never
 
 //// Extend Types ////
 
+/**
+ * Provide inferred <this> context to properties/methods
+ * being extended.
+ */
 type Extension<T> = 
 
     // an extension can be a method
@@ -52,28 +68,36 @@ type Extension<T> =
                 this: Extendable<T>, 
                 ...args: any[]
             ) => any
-        ) | Primitive | object
+        ) | object | Primitive
     }
-    
-type Extend<E, O = void> = _ExtendFunc<E> extends never
-    ? _ExtendFunc<O> extends never
-        ? _ExtendObject<E, O> 
-        : _ExtendObject<E, O> extends never
-            ? _ExtendFunc<O>
-            : _ExtendFunc<O> & _ExtendObject<E, O> 
 
-    : _ExtendObject<E, O> extends never
-        ? _ExtendFunc<E>
-        : _ExtendFunc<E> & _ExtendObject<E, O> 
+/**
+ * Given an extension and optional original object,
+ * resolve an object without conflicting properties
+ * and a maximum of one call signature. 
+ */
+type Extend<E, O = void> = _ResolveCallable<E> extends never
+    ? _ResolveCallable<O> extends never
+        ? _ResolveObject<E, O> 
+        : _ResolveObject<E, O> extends never
+            ? _ResolveCallable<O>
+            : _ResolveCallable<O> & _ResolveObject<E, O> 
 
+    : _ResolveObject<E, O> extends never
+        ? _ResolveCallable<E>
+        : _ResolveCallable<E> & _ResolveObject<E, O> 
+
+/**
+ * Add an extend method to a given type.
+ */
 type Extendable<O> = O & { 
     extend: <E extends Extension<O>>(extension: E) => Extendable<Extend<E, O>> 
 }
 
 //// Helper ////
 
-const getDescriptors = (
-    method: Func | nil,
+const createDescriptors = (
+    callable: Func | nil,
     original: object | nil,
     extension: object | nil
 ): Descriptors => ({
@@ -95,19 +119,22 @@ const getDescriptors = (
         writable: false
     },
 
-    [$$extendable]: {
-        value: method,
-        enumerable: false,
-        configurable: false,
-        writable: false
+    ...callable && {
+        [$$callable]: {
+            value: callable,
+            enumerable: true,
+            configurable: false,
+            writable: false
+        }
     }
-
 })
 
 const applyDescriptors = (
 
     object: object, 
-    descriptors: { [x: string | symbol | number]: PropertyDescriptor }
+    descriptors: { 
+        [x: string | symbol | number]: PropertyDescriptor 
+    }
 
 ): object => {
 
@@ -120,22 +147,37 @@ const applyDescriptors = (
     return object
 }
 
-const getMethod = (
-    original: nil | object, 
-    extension: nil | object
-): Func | nil => {
-    if (typeof extension === 'function')
-        return extension as Func
+const isFunc = (i: unknown): i is Func => 
+    typeof i === 'function'
 
-    if (typeof original === 'object' && original !== null)
-        return (original as { [$$extendable]: Func | nil })[$$extendable]
+const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } =>
+    !!i && $$callable in i
 
-    return nil
-}
+const getCallable = (
+    object: object, 
+): Func | nil => 
+    isExtendedCallSignature(object) 
+        ? object[$$callable] 
+        : isFunc(object)
+            ? object 
+            : nil
 
 //// Extend ////
 
-function extend <O extends object, E extends object>(this: O | void, extension: E): Extendable<Extend<O,E>> {
+/**
+ * Add an 'extend' method to any object, allowing
+ * immutable typesafe addition or overwrite of arbitrary 
+ * properties and call signatures.
+ * 
+ * @param object object or function add extend method to.
+ */
+function extend<T extends object>(object: T): Extendable<Extend<T>> 
+
+/**
+ * Implementation signature. 
+ * @internal
+ */
+function extend(this: object | void, extension: object): object {
 
     // Disallow arrays. 
     if (Array.isArray(extension))
@@ -143,43 +185,31 @@ function extend <O extends object, E extends object>(this: O | void, extension: 
 
     const original = this ?? nil
 
-    // Determine if this extendable has a method
-    const method = getMethod(original, extension)
+    // Get call signature for this extendable, if there is one
+    const callable = getCallable(extension) ?? (original && getCallable(original))
 
     // Create descriptors
-    const descriptors = getDescriptors(method, original, extension)
+    const descriptors = createDescriptors(callable, original, extension)
 
     // Extend
     const extended = applyDescriptors(
         
-        method 
-            // wrap method to keep <this> context up to date with changes
-            // to extended object
-            ? (...args: unknown[]): unknown => method.apply(extended, args)
+        callable 
+            // wrap callable to keep <this> context up to date with changes
+            // to the extended object
+            ? (...args: unknown[]): unknown => callable.apply(extended, args)
             
             : {}, 
         
         descriptors
     )
 
-    return extended as Extendable<Extend<O, E>>
-}
-
-//// Interface ////
-
-/**
- * Give any object an '.extend' method, allowing typesafe immutable application of
- * properties, methods or callable signatures.
- */
-function extendable<T extends object>(object: T): Extendable<Extend<T>> {
-    return extend(object) as Extendable<Extend<T>>
+    return extended
 }
 
 //// Export ////
 
-export default extendable
-
 export {
-    extendable,
-    Extendable,
+    extend as extendable,
+    Extendable
 }
