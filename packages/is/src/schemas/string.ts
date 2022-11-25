@@ -1,7 +1,22 @@
 import { toCamelCase, capitalize, toDashCase } from '@benzed/string'
+import { chain } from '@benzed/util/lib'
 
 import { ErrorMessage } from '../validator'
 import { typeSchema, TypeSchema } from './type'
+
+//// Symbols ////
+
+const $$trim = Symbol('trim-validator')
+const $$case = Symbol('case-validator')
+const $$start = Symbol('start-with-validator')
+const $$end = Symbol('end-with-validator')
+
+//// Helper ////
+
+const toPascalCase = chain(toCamelCase).link(capitalize)
+const toUpperCase = (i: string):string => i.toUpperCase()
+const toLowerCase = (i: string):string => i.toLowerCase()
+const trim = (i: string):string => i.trim()
 
 //// Type ////
 
@@ -21,6 +36,12 @@ interface StringSchema<S extends string> extends TypeSchema<S> {
 
     capitalize(error?: string | ErrorMessage<string>): this
 
+    startsWith(value: string, error?: string | ErrorMessage<string>): this
+
+    endsWith(value: string, error?: string | ErrorMessage<string>): this
+
+    contains(value: string, error?: string | ErrorMessage<string>): this
+
 }
 
 //// Boolean ////
@@ -34,6 +55,13 @@ const string: StringSchema<string> = typeSchema({
     },
 
     cast(value: unknown): unknown {
+
+        if (typeof value === 'number')
+            return value.toString()
+
+        if (Array.isArray(value))
+            return value.join()
+                
         return value
     }
 
@@ -41,50 +69,81 @@ const string: StringSchema<string> = typeSchema({
 
     trim(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            i => i.trim(),
-            error ?? 'must not have whitespace at beginning or end'
+            trim,
+            error ?? 'must not have whitespace at beginning or end',
+            $$trim
         )
     },
 
     upperCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            i => i.toUpperCase(),
-            error ?? 'must be UPPERCASE'
+            toUpperCase,
+            error ?? 'must be UPPERCASE',
+            $$case
         )
     },
 
     lowerCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            i => i.toLowerCase(),
-            error ?? 'must be lowercase'
+            toLowerCase,
+            error ?? 'must be lowercase',
+            $$case
         )
     },
 
     dashCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
             toDashCase,
-            error ?? 'must be dash-case'
+            error ?? 'must be dash-case',
+            $$case
         )
     },
 
     camelCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
             toCamelCase,
-            error ?? 'must be camelCase'
+            error ?? 'must be camelCase',
+            $$case
         )
     },
 
     pascalCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            i => capitalize(toCamelCase(i)),
-            error ?? 'must be PascalCase'
+            toPascalCase,
+            error ?? 'must be PascalCase',
+            $$case
         )
     },
 
     capitalize(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
         return this.transforms(
             capitalize,
-            error ?? 'must be Capitalized'
+            error ?? 'must be Capitalized',
+            $$case
+        )
+    },
+
+    startsWith(this: StringSchema<string>, start: string, error?: string | ErrorMessage<string>) {
+        return this.transforms(
+            i => i.startsWith(start) ? i : start + i,
+            error ?? `must start with "${start}"`,
+            $$start
+        )
+    },
+
+    endsWith(this: StringSchema<string>, end: string, error?: string | ErrorMessage<string>) {
+        return this.transforms(
+            i => i.endsWith(end) ? i : i + end,
+            error ?? `must end with "${end}"`,
+            $$end
+        )
+    },
+
+    contains(this: StringSchema<string>, value: string, error?: string | ErrorMessage<string>) {
+        return this.asserts(
+            i => i.includes(value),
+            error ?? `must contain value "${value}"`,
+            `contains-${value}`
         )
     }
 

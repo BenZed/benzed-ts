@@ -1,4 +1,5 @@
-import { extendable, push } from '@benzed/immutable'
+import { extendable } from '@benzed/immutable'
+import { nil } from '@benzed/util'
 
 import { 
     ErrorMessage, 
@@ -18,6 +19,10 @@ import {
     @typescript-eslint/no-explicit-any
 */
 
+//// Symbol ////
+
+const $$id = Symbol('validator-identifier')
+
 //// Types ////
 
 type Infer<S extends Schema<any>> = S extends Schema<infer T> ? T : unknown
@@ -36,16 +41,19 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
 
     asserts(
         assert: (i: T, ctx: ValidateContext<T>) => boolean,
-        msg?: string | ErrorMessage<T>
+        msg?: string | ErrorMessage<T>,
+        id?: string | number | symbol
     ): this
 
     transforms(
         transform: (i: T, ctx: ValidateContext<T>) => T,
-        msg?: string | ErrorMessage<T>
+        msg?: string | ErrorMessage<T>,
+        id?: string | number | symbol
     ): this
 
     validates(
-        settings: ValidatorSettings<T, T>
+        settings: ValidatorSettings<T, T>,
+        id?: string | number | symbol
     ): this
 
     readonly validators: Validator<T,T>[]
@@ -53,24 +61,6 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
     extend<E extends object>(
         extension: E
     ): this & E 
-
-    /**
-     * Update a validator with a given type guard
-     * @param settings 
-     */
-    update<V extends ValidatorSettings<any,any>>(
-        settings: V, 
-        typeGuard: (validator: unknown, index: number) => validator is V
-    ): this
-         
-    /**
-     * Update a validator with the given settings.
-     * @param settings 
-     */
-    update(
-        settings: ValidatorSettings<T,T>, 
-        predicate: (validator: Validator<T,T>, index: number) => boolean
-    ): this
 
 }
 
@@ -86,10 +76,7 @@ function validate(this: Schema, input: unknown, ctx?: ValidateOptions): unknown 
 
 const schematic = extendable(validate).extend({
 
-    is(
-        this: { validate: Validate<unknown,unknown> }, 
-        input: unknown
-    ): input is unknown {
+    is(this: Schema, input: unknown): input is unknown {
         try {
             void this.validate(input, { transform: false })
             return true
@@ -98,10 +85,7 @@ const schematic = extendable(validate).extend({
         }
     },
 
-    assert(
-        this: { validate: Validate<unknown, unknown> }, 
-        input: unknown
-    ): asserts input is unknown {
+    assert(this: Schema, input: unknown ): asserts input is unknown {
         void this.validate(input, { transform: false })
     },
 
@@ -111,37 +95,56 @@ const schematic = extendable(validate).extend({
 
     validates(
         this: Schema, 
-        settings: ValidatorSettings<unknown, unknown>
+        settings: ValidatorSettings<unknown, unknown>,
+        id?: number | string | symbol
     ): Schema {
+
+        const index = id === nil 
+            ? -1 
+            : this.validators.findIndex(v => $$id in v && (v as any)[$$id] === id)
+
+        const previous = this.validators[index]
+
+        const validate = validator({ ...previous, ...settings, [$$id]: id })
+
+        const validators = [ ...this.validators ]
+        if (index in validators)
+            validators.splice(index, 1, validate)
+        else 
+            validators.push(validate)
+
         return this.extend({
-            validators: push(this.validators, validator(settings))
+            validators
         })
     },
 
     asserts(
         this: Schema, 
         assert: (i: unknown, ctx: ValidateContext<unknown>) => boolean, 
-        error?: string | ErrorMessage
+        error?: string | ErrorMessage,
+        id?: number | string | symbol
     ): Schema {
-        return this.validates({ assert, error })
+        return this.validates({ assert, error }, id)
     },
 
     transforms(
         this: Schema, 
         transform: (i: unknown, ctx: ValidateContext<unknown>) => unknown,
-        error?: string | ErrorMessage
+        error?: string | ErrorMessage,
+        id?: number | string | symbol
     ): Schema {
-        return this.validates({ transform, error })
+        return this.validates({ transform, error }, id)
     },
 
-})
+}) as Schema
 
 //// Interface ////
 
 function schema<T>(
-    typeValidator: ValidatorSettings<unknown, T>
+    typeValidator: ValidatorSettings<unknown, T>,
+    id?: string | number | symbol
 ): Schema<T> {
-    return (schematic as Schema<unknown>).validates(typeValidator) as Schema<T>
+    return schematic.validates(typeValidator, id) as Schema<T>
 }
 
 //// Exports ////
@@ -153,5 +156,7 @@ export {
     Schema,
 
     Infer,
-    Assert
+    Assert,
+
+    $$id
 }

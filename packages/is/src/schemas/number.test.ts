@@ -1,12 +1,9 @@
 import number from './number'
 
-import { expectValidationError } from './util.test'
-
-import * as Math from '@benzed/math'
-
 describe('validate()', () => {
 
     it('validates number values', () => {
+
         expect(number.validate(100))
             .toEqual(100)
 

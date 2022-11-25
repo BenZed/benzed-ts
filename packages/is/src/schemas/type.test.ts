@@ -26,8 +26,7 @@ describe('cast' , () => {
 
     it('allows for data to be casted', () => {
 
-        const $serializedNumber = $number
-            .cast(fromString)
+        const $serializedNumber = $number.cast(fromString)
 
         expect($serializedNumber('100'))
             .toEqual(100)

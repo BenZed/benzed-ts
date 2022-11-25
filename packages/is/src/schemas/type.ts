@@ -61,7 +61,7 @@ interface TypeSchema<T> extends Schema<T> {
     /**
      * Change the name of the type when the error is thrown
      */
-    name(name: string): this
+    typeName(name: string): this
 
     /**
      * Change the thrown error
@@ -97,13 +97,11 @@ const typeValidator: TypeValidator<unknown> = validator({
 
     default: undefined as Default<unknown> | nil,
 
-    cast: undefined as Cast<unknown> | nil,
-
-    [$$type]: true
+    cast: undefined as Cast<unknown> | nil
 
 })
 
-const typeSchematic: TypeSchema<unknown> = schema(typeValidator).extend({ 
+const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend({ 
     
     //// Instance Methods ////
 
@@ -119,7 +117,7 @@ const typeSchematic: TypeSchema<unknown> = schema(typeValidator).extend({
         }, this)
     },
 
-    name(this: TypeSchema<unknown>, name: string): TypeSchema<unknown> {
+    typeName(this: TypeSchema<unknown>, name: string): TypeSchema<unknown> {
         return typeSchema({ name }, this)
     },
 
@@ -146,14 +144,9 @@ function typeSchema<T>(settings: Partial<TypeValidatorSettings<T>>, schemaToUpda
  */
 function typeSchema<T>(settings?: Partial<TypeValidatorSettings<T>>, schemaToUpdate = typeSchematic): TypeSchema<T> {
 
-    const { validators } = schemaToUpdate
-
-    return schemaToUpdate.extend({ 
-        validators: validators.map(v => $$type in v 
-            ? validator({ ...v, ...settings } as TypeValidatorSettings<T>)
-            : v
-        )
-    }) as TypeSchema<T>
+    return schemaToUpdate.validates({
+        ...settings
+    }, $$type) as TypeSchema<T>
     
 }
 
