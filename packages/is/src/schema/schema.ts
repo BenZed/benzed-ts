@@ -1,4 +1,4 @@
-import { extendable } from '@benzed/immutable'
+import { extendable, push } from '@benzed/immutable'
 
 import { ErrorMessage, Validate, ValidateContext, ValidatorSettings, Validator, validator, ValidateOptions } from '../validator'
 
@@ -81,7 +81,7 @@ const schematic = extendable(validate).extend({
         settings: ValidatorSettings<unknown, unknown>
     ): Schema {
         return (this as any).extend({
-            validators: [...this.validators, validator(settings)]
+            validators: push(this.validators, validator(settings))
         })
     },
 

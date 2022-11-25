@@ -1,5 +1,5 @@
 import { nil } from '@benzed/util/lib'
-import { Validator, validator } from './validator'
+import { validator } from './validator'
 
 const $string = validator({
     error: 'must be a string',

@@ -150,7 +150,7 @@ it('dangling this bug', () => {
     expect(one()).toEqual('0! 1!')
     expect(one.shout()).toEqual('0! 1!')
 
-    const two = (extendable(one) as any).increment()
+    const two = (extendable(one) as typeof zero).increment()
     expect(two.shout()).toEqual('0! 1! 2!')
     expect(two()).toEqual('0! 1! 2!')
 
