@@ -1,5 +1,10 @@
-import { extendable } from './extendable'
+import { extendable, Extendable } from './extendable'
 import { copy } from './copy'
+
+import { expectTypeOf } from 'expect-type'
+import { $$callable } from './symbols'
+
+//// Tests ////
 
 it('adds an extend method to functions or objects', () => {
     const vector = extendable({ x: 5 }).extend({ y: 5 })
@@ -11,12 +16,8 @@ it('is immutable', () => {
     const original = { foo: 'bar' }
 
     const improved = extendable(original).extend({ cake: 'town' })
-    expect(improved)
-        .toEqual({ foo: 'bar', cake: 'town' })
-
-    expect(improved)
-        .not
-        .toBe(original)
+    expect(improved).toEqual({ foo: 'bar', cake: 'town' })
+    expect(original).not.toBe(improved)
 
 })
 
@@ -36,7 +37,7 @@ it('methods can be extended', () => {
 
 it('extending multiple methods', () => {
 
-    const m1 = extendable(() => 'hi').extend(() => 'bye')
+    const m1 = extendable(() => 'hi' as const).extend(() => 'bye' as const)
 
     // second method takes precendence
     expect(m1()).toEqual('bye')
@@ -64,6 +65,7 @@ it('extending multiple methods and properties', () => {
 })
 
 it('cannot do arrays', () => {
+
     expect(() => extendable([])).toThrow('Cannot extend Arrays')
 })
 
@@ -78,7 +80,7 @@ it('implements immutable copy', () => {
     expect(m2).not.toEqual(m1)
 })
 
-it('function this context kept in sync', () => {
+it('function <this> context kept in sync', () => {
 
     const mult = extendable({ by: 2 })
         .extend(
@@ -96,7 +98,7 @@ it('function this context kept in sync', () => {
 
 })
 
-it('getters/setters', () => {
+it('preserves getters/setters', () => {
 
     const ace = extendable({
 
@@ -151,4 +153,101 @@ it('dangling this bug', () => {
     const two = (extendable(one) as any).increment()
     expect(two.shout()).toEqual('0! 1! 2!')
     expect(two()).toEqual('0! 1! 2!')
+
+})
+
+it('handles conflicting extensions', () => {
+
+    void extendable
+
+    const flag1 = extendable({
+        required: true as const
+    })
+    expectTypeOf(flag1).toEqualTypeOf<Extendable<{ required: true }>>()
+
+    const flag2 = flag1.extend({ required: false as const })
+    expectTypeOf(flag2).toEqualTypeOf<Extendable<{ required: false }>>()
+
+})
+
+it('handles conflicting "extend" definitions', () => {
+
+    const smartass1 = extendable({
+        foo: 'bar',
+        extend(input: object) {
+            return !!input
+        }
+    })
+
+    void extendable
+
+    // does not keep extend(object):true signature
+    const smartass2 = smartass1.extend({})
+
+    expectTypeOf(smartass2)
+        .not
+        .toMatchTypeOf<true>()
+
+    expectTypeOf(smartass1)
+        .not
+        .toMatchTypeOf<Extendable<{ foo: string, extend(input: object): true }>>()
+
+    const smartass3 = smartass1.extend({ bar: 'foo', extend: false })
+    expectTypeOf(smartass3)
+        .not
+        .toMatchTypeOf<true>()
+
+})
+
+it('no $$callable property on non-callable extensions', () => {
+
+    const ace = extendable({ ace: 10 })
+
+    expect($$callable in ace).toBe(false)
+})
+
+it('combining extendables', () => {
+
+    const foo = extendable({ foo: 'foo' })
+        .extend(function foo(){
+            return this.foo
+        })
+
+    const bar = extendable({ bar: 'bar' })
+        .extend(function bar(){
+            return this.bar
+        })
+
+    const foobar = foo
+        .extend(bar)
+        .extend({ bar: 'ace' })
+
+    expect(foobar()).toEqual('ace')
+})
+
+it('extended object get inferred this context', () => {
+
+    const acer = extendable({ ace: 1 })
+        .extend({
+            getAce() {
+                expectTypeOf(this).toEqualTypeOf<Extendable<{ ace: number }>>()
+                return this.ace
+            }
+        })
+
+    const ace = acer.getAce()
+    expectTypeOf(ace).toMatchTypeOf<number>()
+
+    const acer2 = acer.extend(
+        function x2() {
+            expectTypeOf(this).toMatchTypeOf<Extendable<{ 
+                ace: number 
+                getAce(): number
+            }>>()
+
+            return this.ace * 2
+        }
+    )
+
+    expect(acer2()).toEqual(2)
 })
