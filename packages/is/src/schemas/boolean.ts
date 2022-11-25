@@ -10,7 +10,7 @@ const boolean: BooleanSchema = typeSchema({
 
     name: 'boolean',
 
-    isType(input: unknown): input is boolean {
+    assert(input: unknown): input is boolean {
         return typeof input === 'boolean'
     },
 

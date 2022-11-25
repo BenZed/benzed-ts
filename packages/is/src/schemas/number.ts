@@ -10,7 +10,7 @@ const number: NumberSchema = typeSchema({
 
     name: 'number',
 
-    isType(input: unknown): input is number {
+    assert(input: unknown): input is number {
         return typeof input === 'number' && 
             !Number.isNaN(input) && 
             Number.isFinite(input)

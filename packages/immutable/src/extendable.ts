@@ -143,7 +143,7 @@ const createDescriptors = (
     },
 
     [$$copy]: {
-        value: extend,
+        value: copy,
         enumerable: false,
         configurable: false,
         writable: false
@@ -167,20 +167,27 @@ const applyDescriptors = (
     return object
 }
 
-const isFunc = (i: unknown): i is Func => 
-    typeof i === 'function'
+const isFunc = (i: unknown): i is Func => typeof i === 'function'
 
-const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } =>
-    !!i && $$callable in i
+const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } => !!i && $$callable in i
 
-const getCallable = (
-    object: object, 
-): Func | nil => 
+const getCallable = (object: object): Func | nil => 
     isExtendedCallSignature(object) 
+    
         ? object[$$callable] 
         : isFunc(object)
+    
             ? object 
             : nil
+
+/**
+ * 
+ * @param this 
+ * @returns 
+ */
+function copy(this: Extendable<object> ): Extendable<object> {
+    return extend(this)
+}
 
 //// Extend ////
 

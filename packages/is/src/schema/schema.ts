@@ -1,6 +1,16 @@
 import { extendable, push } from '@benzed/immutable'
 
-import { ErrorMessage, Validate, ValidateContext, ValidatorSettings, Validator, validator, ValidateOptions } from '../validator'
+import { 
+    ErrorMessage, 
+    
+    Validate, 
+    ValidateContext, 
+    ValidatorSettings, 
+    
+    Validator, 
+    validator, 
+    ValidateOptions 
+} from '../validator'
 
 //// Type ////
 
@@ -21,6 +31,7 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
     readonly validate: Validate<unknown, T>
 
     is(input: unknown): input is T
+
     assert(input: unknown): asserts input is T
 
     asserts(
@@ -38,6 +49,28 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
     ): this
 
     readonly validators: Validator<T,T>[]
+
+    extend<E extends object>(
+        extension: E
+    ): this & E 
+
+    /**
+     * Update a validator with a given type guard
+     * @param settings 
+     */
+    update<V extends ValidatorSettings<any,any>>(
+        settings: V, 
+        typeGuard: (validator: unknown, index: number) => validator is V
+    ): this
+         
+    /**
+     * Update a validator with the given settings.
+     * @param settings 
+     */
+    update(
+        settings: ValidatorSettings<T,T>, 
+        predicate: (validator: Validator<T,T>, index: number) => boolean
+    ): this
 
 }
 
@@ -80,7 +113,7 @@ const schematic = extendable(validate).extend({
         this: Schema, 
         settings: ValidatorSettings<unknown, unknown>
     ): Schema {
-        return (this as any).extend({
+        return this.extend({
             validators: push(this.validators, validator(settings))
         })
     },
@@ -99,7 +132,7 @@ const schematic = extendable(validate).extend({
         error?: string | ErrorMessage
     ): Schema {
         return this.validates({ transform, error })
-    }
+    },
 
 })
 

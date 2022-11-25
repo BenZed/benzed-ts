@@ -27,8 +27,6 @@ describe('schema()', () => {
         expect($string('ace'))
             .toEqual('ace')
 
-        console.log({ otuput: $string(100) }, $string.toString())
-
         expect(() => $string(100))
             .toThrow('must be type string')
     })

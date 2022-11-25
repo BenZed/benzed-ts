@@ -6,7 +6,7 @@ import { typeSchema } from './type'
 //// Setup ////
 
 const $number = typeSchema({
-    isType: (i): i is number => typeof i === 'number',
+    assert: (i): i is number => typeof i === 'number',
     name: 'number'
 })
 

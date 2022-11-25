@@ -87,9 +87,10 @@ const validate = extendable(function validate(
 //// Main ////
 
 function validator<V extends ValidatorSettings<unknown, any>>(settings: V): ValidatorExtended<V>
+function validator<I, O extends I = I>(settings: ValidatorSettings<I, O>): Validator<I, O> 
 
-function validator<I, O extends I>(settings: ValidatorSettings<I, O>): Validator<I, O> {
-    return validate.extend(settings) as Validator<I, O>
+function validator(settings: ValidatorSettings<unknown, unknown>): Validator<unknown, unknown> {
+    return validate.extend(settings)
 }
 
 //// Exports ////
