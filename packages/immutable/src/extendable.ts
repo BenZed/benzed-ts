@@ -27,8 +27,8 @@ type Descriptors = {
 }
 
 /**
- * Compile two objects into non-conflicting single object, 
- * favouring properties from the extension over the original.
+ * Compile two objects into one favouring properties from the 
+ * extension over the original.
  * 
  * Remove the existing 'extend' property, as it will be added
  * by the Extendable type.
@@ -48,12 +48,12 @@ type _ResolveObject<E, O> = {
 
 // TODO resolve tuples
 type _ResolveArray<T> = T extends Array<infer I>
-    ? I[] & _ExcludeArrayProps<T>
+    ? I[] & _ExcludeArrayKeys<T>
     : T extends Readonly<Array<infer I>>
-        ? readonly I[] & _ExcludeArrayProps<T>
+        ? readonly I[] & _ExcludeArrayKeys<T>
         : T
 
-type _ExcludeArrayProps<A> = {
+type _ExcludeArrayKeys<A> = {
     [K in keyof A as K extends keyof Array<any> ? never : K]: A[K]
 } extends infer Tx ? Tx : never
 
@@ -72,17 +72,20 @@ type Extension<T> =
     // an extension can be a method
     | ((this: Extendable<T>, ...args: any[]) => any) 
 
-    // or an object containing methods
+    // or an object that may contain methods
     | {
         [key: string | number | symbol]: (
             (
                 this: Extendable<T>, 
                 ...args: any[]
             ) => any
+            // or other values
         ) | object | Primitive
     } 
 
-    | unknown[]
+    // or whatever, say some asshole wants to extend
+    // a regexp or something
+    | object
 
 /**
  * Given an extension and optional original object,
@@ -201,7 +204,7 @@ function extend(this: object | void, extension: object): object {
     // Get call signature for this extendable, if there is one
     const callable = getCallable(extension) ?? (original && getCallable(original))
 
-    // Handle array extensions
+    // Handle extending arrays
     const isArray = Array.isArray(extension) || Array.isArray(original)
 
     // Create descriptors
@@ -209,14 +212,11 @@ function extend(this: object | void, extension: object): object {
 
     // Extend
     const extended = applyDescriptors(
-        
         callable 
             // wrap callable to keep <this> context up to date with changes
             // to the extended object
             ? (...args: unknown[]): unknown => callable.apply(extended, args)
-            
             : isArray ? [] : {}, 
-        
         descriptors,
     )
 
