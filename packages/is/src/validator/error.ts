@@ -9,7 +9,7 @@ export class ValidationError<V = unknown> extends Error {
 
     constructor(
         readonly value: V,
-        readonly ctx: ValidateContext,
+        readonly ctx: ValidateContext<V>,
         msg: string
     ) {
 
@@ -18,5 +18,5 @@ export class ValidationError<V = unknown> extends Error {
 
 }
 
-export type ErrorMessage<V = unknown> = (value: V, ctx: ValidateContext) => string
+export type ErrorMessage<V = unknown> = (value: V, ctx: ValidateContext<V>) => string
 

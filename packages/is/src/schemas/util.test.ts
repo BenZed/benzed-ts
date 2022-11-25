@@ -1,4 +1,4 @@
-import { ValidationError } from '../schema/error'
+import { ValidationError } from '../validator/error'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

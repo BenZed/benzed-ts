@@ -124,3 +124,31 @@ it('getters/setters', () => {
 
     expect(ace()).toEqual(50)
 })
+
+it('dangling this bug', () => {
+
+    function shout(this: { scores: number[] }): string {
+        return `${this.scores.join('! ')}!`
+    }
+
+    const zero = extendable(shout).extend({
+        shout,
+        scores: [0]
+    }).extend({
+        increment() {
+            return this.extend({ scores: [...this.scores, this.scores.length] })
+        },
+    })
+
+    expect(zero()).toEqual('0!')
+    expect(zero.shout()).toEqual('0!')
+
+    const one = zero.increment()
+
+    expect(one()).toEqual('0! 1!')
+    expect(one.shout()).toEqual('0! 1!')
+
+    const two = (extendable(one) as any).increment()
+    expect(two.shout()).toEqual('0! 1! 2!')
+    expect(two()).toEqual('0! 1! 2!')
+})

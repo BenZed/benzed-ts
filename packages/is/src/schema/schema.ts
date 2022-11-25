@@ -1,17 +1,6 @@
-import { nil, asNil } from '@benzed/util'
-import { extendable, push } from '@benzed/immutable'
+import { extendable } from '@benzed/immutable'
 
-import { 
-    validate,
-    Validate,
-    Validator,
-    IsValid,
-    Transform
-} from './validate'
-
-import { 
-    ErrorMessage 
-} from './error'
+import { ErrorMessage, Validate, ValidateContext, ValidatorSettings, Validator, validator, ValidateOptions } from '../validator'
 
 //// Type ////
 
@@ -21,133 +10,106 @@ import {
 
 //// Types ////
 
-interface Schema<T = unknown> extends Validate<unknown, T> {
-
-    readonly validators: readonly Validator<T>[]
-    readonly validate: Validate<unknown, T>
-
-    is(input: unknown): input is T
-    assert(input: unknown): asserts input is T
-
-    extend<E extends object>(extension: E): this & E
-
-    asserts(
-        assert: IsValid<T>,
-        msg?: string | ErrorMessage<T>
-    ): this
-
-    transforms(
-        transform: Transform<T>, 
-        msg?: string | ErrorMessage<T>
-    ): this
-
-    validates(
-        validator: Validator<T>
-    ): this
-
-}
-
 type Infer<S extends Schema<any>> = S extends Schema<infer T> ? T : unknown
 
 type Assert<T> = T extends Schema<infer Tx> 
     ? Assert<Tx> 
     : (input: unknown) => asserts input is T
 
-//// Interface ////
+interface Schema<T = unknown> extends Validate<unknown, T> {
 
-function is(
-    this: { validate: Validate }, 
-    input: unknown
-): input is unknown {
-    try {
-        void this.validate(input, { transform: false })
-        return true
-    } catch {
-        return false
-    }
-}
+    readonly validate: Validate<unknown, T>
 
-function assert(
-    this: { validate: Validate }, 
-    input: unknown
-): asserts input is unknown {
-    void this.validate(input, { transform: false })
-}
+    is(input: unknown): input is T
+    assert(input: unknown): asserts input is T
 
-function asserts(
-    this: Schema, 
-    assert: IsValid, 
-    err?: string | ErrorMessage
-): Schema {
-    return this.validates({ assert, err })
-}
+    asserts(
+        assert: (i: T, ctx: ValidateContext<T>) => boolean,
+        msg?: string | ErrorMessage<T>
+    ): this
 
-function transforms(
-    this: Schema, 
-    transform: Transform,
-    err?: string | ErrorMessage
-): Schema {
-    return this.validates({ transform, err })
-}
+    transforms(
+        transform: (i: T, ctx: ValidateContext<T>) => T,
+        msg?: string | ErrorMessage<T>
+    ): this
 
-function validates(
-    this: Schema, 
-    validator: Validator
-): Schema {
-    return this.extend({
-        validators: push(this.validators, validator)
-    })
-}
+    validates(
+        settings: ValidatorSettings<T, T>
+    ): this
 
-//// Interface Helpers ////
+    readonly validators: Validator<T,T>[]
 
-function isSchema<T>(input: unknown): input is Schema<T> {
-
-    if (asNil(input) === nil)
-        return false
-
-    if (typeof input !== 'function' && typeof input !== 'object')
-        return false 
-
-    const schema = input as Partial<Schema<T>>
-
-    return Array.isArray(schema.validators) && 
-        typeof schema.extend === 'function' && 
-        typeof schema.is === 'function' && 
-        typeof schema.asserts === 'function' && 
-        typeof schema.validate === 'function' &&
-        typeof schema.transforms === 'function' &&
-        typeof schema.validates === 'function'
 }
 
 //// Main ////
 
-function schema<T>(
-    ...validators: Validator<T>[]
-): Schema<T> {
+function validate(this: Schema, input: unknown, ctx?: ValidateOptions): unknown {
 
-    return extendable(validate)
-        .extend({
-            is,
-            assert,
-
-            validate,
-            validates,
-            validators,
-
-            asserts,
-            transforms,
-        }) as Schema<T> 
+    for (const validator of this.validators) 
+        input = validator(input, ctx)
+    
+    return input
 }
 
-//// Extend ////
+const schematic = extendable(validate).extend({
 
-/**
- * Is the given object a schema?
- * @param input 
- * @returns true if the input is a schema, false otherwise
- */
-schema.is = isSchema
+    is(
+        this: { validate: Validate<unknown,unknown> }, 
+        input: unknown
+    ): input is unknown {
+        try {
+            void this.validate(input, { transform: false })
+            return true
+        } catch {
+            return false
+        }
+    },
+
+    assert(
+        this: { validate: Validate<unknown, unknown> }, 
+        input: unknown
+    ): asserts input is unknown {
+        void this.validate(input, { transform: false })
+    },
+
+    validators: [] as Validator<unknown,unknown>[],
+
+    validate,
+
+    validates(
+        this: Schema, 
+        settings: ValidatorSettings<unknown, unknown>
+    ): Schema {
+        return (this as any).extend({
+            validators: [...this.validators, validator(settings)]
+        })
+    },
+
+    asserts(
+        this: Schema, 
+        assert: (i: unknown, ctx: ValidateContext<unknown>) => boolean, 
+        error?: string | ErrorMessage
+    ): Schema {
+        return this.validates({ assert, error })
+    },
+
+    transforms(
+        this: Schema, 
+        transform: (i: unknown, ctx: ValidateContext<unknown>) => unknown,
+        error?: string | ErrorMessage
+    ): Schema {
+        return this.validates({ transform, error })
+    }
+
+})
+
+//// Interface ////
+
+function schema<T>(
+    typeValidator: ValidatorSettings<unknown, T>
+): Schema<T> {
+    return (schematic as Schema<unknown>).validates(typeValidator) as Schema<T>
+}
 
 //// Exports ////
 
@@ -156,7 +118,6 @@ export default schema
 export {
     schema,
     Schema,
-    isSchema,
 
     Infer,
     Assert
