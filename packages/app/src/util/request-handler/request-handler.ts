@@ -23,10 +23,12 @@ import {
     HttpMethod, 
     UrlParamKeys, 
 
-    toQueryString,
-    fromQueryString
-
 } from '..'
+
+import { 
+    parse as fromQueryString,
+    stringify as toQueryString
+} from 'query-string'
 
 //// Types ////
 
@@ -119,7 +121,9 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
         const [ url, queryString ] = urlWithQuery.split('?') as [ Path, string | nil ]
 
-        const data: object = { query: fromQueryString(queryString), ...body }
+        const query = queryString ? fromQueryString(queryString) : nil
+
+        const data: object = { query, ...body }
         const pathedData = this._path.match(url, data) 
         if (!pathedData)
             return nil
@@ -234,7 +238,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
         if (hasQuery(dataWithoutUrlParams)) {
             const { query, ...dataWithoutUrlParamsOrQuery } = dataWithoutUrlParams
             return [
-                url + toQueryString(query) as Path,
+                url + '?' + toQueryString(query) as Path,
                 dataWithoutUrlParamsOrQuery as Partial<T>
             ]
         }

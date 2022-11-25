@@ -171,7 +171,7 @@ describe('req.setUrl()', () => {
 
             expect(req.toRequest({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
                 method: HttpMethod.Get,
-                url: '/users/1293?hello=darkness&my=old&friend=true'
+                url: '/users/1293?friend=true&hello=darkness&my=old'
             })
 
             expect(req.setMethod(HttpMethod.Delete).toRequest({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
@@ -183,7 +183,7 @@ describe('req.setUrl()', () => {
             expect(req.setMethod(HttpMethod.Post).toRequest({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
                 method: HttpMethod.Post,
                 body: {},
-                url: '/admin-portal?cake=1&tare=true&soke=cimm'
+                url: '/admin-portal?cake=1&soke=cimm&tare=true'
             })
         })
     })
