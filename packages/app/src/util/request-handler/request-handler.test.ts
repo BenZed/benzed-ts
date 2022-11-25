@@ -411,4 +411,28 @@ describe('req.matchRequest()', () => {
             ).toEqual(nil)
         })
     })
+
+    it('handles queries', () => {
+
+        const findGangster = Req.create(
+            HttpMethod.Get, 
+            $({
+                gang: $.string,
+                query: $({
+                    name: $.string.optional,
+                    members: $.number.optional
+                }).optional
+            })
+        ).setUrl`/gang/${'gang'}`
+
+        const data = findGangster.matchRequest({
+            method: HttpMethod.Get,
+            url: '/gang/crips?name=joe&members=1'
+        })
+
+        expect(data).toEqual({
+            gang: 'crips',
+            query: { name: 'joe', members: 1 }
+        })
+    })
 })
