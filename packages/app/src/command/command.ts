@@ -1,8 +1,8 @@
 import is from '@benzed/is'
-import { Schema, Schematic } from '@benzed/schema'
 import { pluck } from '@benzed/array'
+import { Schematic } from '@benzed/schema'
 import { toDashCase } from '@benzed/string'
-import { Chain, chain, Link, nil } from '@benzed/util'
+import { Chain, chain, io, Link, nil } from '@benzed/util'
 
 import CommandModule from './command-module'
 
@@ -83,7 +83,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             .create(method)
             .setUrl(path)
 
-        return new Command(name, schema, req)
+        return new Command(name, schema, nil, req)
     }
 
     /**
@@ -162,21 +162,26 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     private constructor(
         name: N,
-        hook: CommandHook<I, O> | Schematic<I>,
+        schema: Schematic<I>,
+        hook: CommandHook<I, O> | nil,
         private readonly _reqHandler: Req<I>
     ) {
         super(name)
 
-        const isSchema = 'validate' in hook
-
-        const schema = isSchema ? hook : nil
-
-        const execute = schema ? schema.validate : hook
-
-        this._execute = chain(execute)
+        this._schema = schema
+        this._hooks = (hook ? chain(hook) : chain()) as Chain<I,O>
     }
 
-    protected readonly _execute: Chain<I,O> 
+    protected readonly _schema: Schematic<I>
+
+    protected readonly _hooks: Chain<I,O>
+
+    protected _execute(input: I): O | Promise<O> {
+
+        const validated = this._schema.validate(input)
+
+        return (this._hooks?.(validated) ?? validated) as O
+    }
 
     protected override get _copyParams(): unknown[] {
         return [
@@ -214,8 +219,33 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     useHook<Ox extends object>(hook: CommandHook<O, Ox>): Command<N, I, Ox> {
         return new Command(
             this.name,
-            this._execute.link(hook),
+            this._schema,
+            this._hooks.link(hook),
             this._reqHandler
+        )
+    }
+
+    /**
+     * Mutate the existing request handler for this command
+     */
+    useReq(update: (req: Req<I>) => Req<I>): Command<N, I, O>
+
+    /**
+     * Change the request handler for this command
+     */
+    useReq(reqHandler: Req<I>): Command<N, I, O> 
+    
+    useReq(input: Req<I> | ((req: Req<I>) => Req<I>)): Command<N,I,O> {
+
+        const req = is.function(input) 
+            ? input(this._reqHandler) 
+            : input
+
+        return new Command(
+            this.name,
+            this._schema,
+            this._hooks,
+            req
         )
     }
 
