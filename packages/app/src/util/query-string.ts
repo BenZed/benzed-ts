@@ -1,6 +1,7 @@
 import is from '@benzed/is'
+import { isEmpty, nil } from '@benzed/util/lib'
 
-//// toQueryString ////
+//// QueryString ////
 
 /**
  * Convert an object to a query string
@@ -32,10 +33,36 @@ function toQueryString(data: object, prefix = ''): string {
     return queryString && !prefix ? `?${queryString}` : queryString
 }
 
+function fromQueryString(queryString: string | nil): object | nil {
+
+    const query: Record<string, unknown> = {}
+
+    if (!queryString) 
+        return nil
+
+    const segments = queryString.split('&')
+    for (const segment of segments) {
+        
+        const [ key, value ] = segment.split('=')
+        if (key.length === 0) 
+            continue
+
+        if (!(key in query)) 
+            query[key] = value
+
+        else if (is.array(query[key])) 
+            (query[key] as unknown[]).push(value)
+
+        else 
+            query[key] = [query[key], value] 
+    }
+
+    return isEmpty(query) ? nil : query
+}
+
 //// Export ////
 
-export default toQueryString
-
 export {
-    toQueryString
+    toQueryString,
+    fromQueryString
 }

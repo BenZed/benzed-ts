@@ -1,3 +1,4 @@
+import { Empty } from './types'
 
 //// Helper ////
 
@@ -37,6 +38,10 @@ function numKeys(object: object): number {
     return [
         ...keysOf(object)
     ].length
+}
+
+function isEmpty(object: object): object is Empty {
+    return numKeys(object) === 0
 }
 
 //// Main ////
@@ -83,6 +88,7 @@ export {
 
     keysOf,
     numKeys,
+    isEmpty,
 
     indexesOf
 }
