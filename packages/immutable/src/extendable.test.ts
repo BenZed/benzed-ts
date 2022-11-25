@@ -64,9 +64,29 @@ it('extending multiple methods and properties', () => {
     expect(m2()).toEqual(30)
 })
 
-it('cannot do arrays', () => {
+it('extends arrays', () => {
 
-    expect(() => extendable([])).toThrow('Cannot extend Arrays')
+    const arr = extendable(
+        function even(this: number[]): number[] {
+            return this.filter(i => i % 2 === 0)
+        })
+        .extend([ 1, 2, 3 ])
+        .extend({ ace: 5 })
+
+    expect(arr()).toEqual([2])
+    expect(arr.ace).toEqual(5)
+})
+
+it('array types resolve nicely', () => {
+
+    expectTypeOf(
+        extendable([1,2,3]).extend({ ace: 10 })
+    ).toEqualTypeOf<Extendable<number[] & { ace: number }>>()
+
+    expectTypeOf(
+        extendable([1,2,3] as readonly number[]).extend({ ace: 10 })
+    ).toEqualTypeOf<Extendable<readonly number[] & { ace: number }>>()
+
 })
 
 it('implements immutable copy', () => {
@@ -179,8 +199,6 @@ it('handles conflicting "extend" definitions', () => {
         }
     })
 
-    void extendable
-
     // does not keep extend(object):true signature
     const smartass2 = smartass1.extend({})
 
@@ -240,6 +258,7 @@ it('extended object get inferred this context', () => {
 
     const acer2 = acer.extend(
         function x2() {
+
             expectTypeOf(this).toMatchTypeOf<Extendable<{ 
                 ace: number 
                 getAce(): number

@@ -4,7 +4,9 @@ import { io, Socket } from 'socket.io-client'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { HttpMethod, toQueryString } from '../../../util'
+import { stringify as toQueryString } from 'query-string'
+
+import { HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
 
 //// Eslint ////
@@ -117,7 +119,9 @@ export class FetchSocketIOClient extends Client {
 
         const command = this.root.getCommand(rootName)
 
-        const [ method, cmdEndPoint, reqData, headers ] = command.toRequest(cmdData)
+        const { method, url: cmdEndPoint, body, headers } = command.toRequest(cmdData)
+
+        const { query, ...reqData } = (body ?? {}) as { query?: object }
 
         const fetchData = {
             method,
@@ -125,7 +129,7 @@ export class FetchSocketIOClient extends Client {
             headers: headers ?? undefined
         }
 
-        const fetchEndPoint = method === HttpMethod.Get ? `${cmdEndPoint}${toQueryString(reqData)}` : cmdEndPoint
+        const fetchEndPoint = query ? `${cmdEndPoint}${toQueryString(query)}` : cmdEndPoint
 
         const response = await fetch(`${host}${fetchEndPoint}`, fetchData)
         return response.json()

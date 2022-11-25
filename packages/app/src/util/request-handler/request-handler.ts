@@ -23,9 +23,12 @@ import {
     HttpMethod, 
     UrlParamKeys, 
 
-    toQueryString
-
 } from '..'
+
+import { 
+    parse as fromQueryString,
+    stringify as toQueryString
+} from 'query-string'
 
 //// Types ////
 
@@ -93,7 +96,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
         const [ url, dataWithoutParams ] = this._createPath(this.schema?.validate(data) ?? data, urlPrefix)
 
-        const [headers, dataWithoutHeaders] = this._addHeaders(dataWithoutParams)
+        const [ headers, dataWithoutHeaders ] = this._addHeaders(dataWithoutParams)
 
         const isGet = method === HttpMethod.Get
         const body = isGet ? undefined : dataWithoutHeaders
@@ -111,13 +114,17 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
     matchRequest(req: Request): T | nil {
 
         const { method } = this
-
         if (method !== req.method)
             return nil
 
-        const { headers = new Headers(), url, body = {}} = req
+        const { headers = new Headers(), url: urlWithQuery, body = {}} = req
 
-        const pathedData = this._path.match(url, body ?? {}) 
+        const [ url, queryString ] = urlWithQuery.split('?') as [ Path, string | nil ]
+
+        const query = queryString ? fromQueryString(queryString) : nil
+
+        const data: object = { query, ...body }
+        const pathedData = this._path.match(url, data) 
         if (!pathedData)
             return nil
 
@@ -231,7 +238,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
         if (hasQuery(dataWithoutUrlParams)) {
             const { query, ...dataWithoutUrlParamsOrQuery } = dataWithoutUrlParams
             return [
-                url + toQueryString(query) as Path,
+                url + '?' + toQueryString(query) as Path,
                 dataWithoutUrlParamsOrQuery as Partial<T>
             ]
         }

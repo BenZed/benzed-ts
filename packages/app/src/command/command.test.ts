@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 
 import { Module } from '../module'
-import { HttpMethod } from '../util'
+import { HttpMethod, RequestHandler } from '../util'
 import { Command, RuntimeCommand } from './command'
 
 import { omit } from '@benzed/util'
@@ -64,6 +64,8 @@ it('is strongly typed', () => {
 describe('static builder pattern', () => {
 
     describe('.create()', () => {
+
+        const todo = { completed: true, id: 'string', description: 'Hey'}
         
         it('generic signature: name, execute, method, path', () => {
             const generic = Command.create(
@@ -73,23 +75,23 @@ describe('static builder pattern', () => {
                 '/orphans'
             )
 
-            expect(generic.method).toBe(HttpMethod.Put)
-            expect(generic.path).toBe('/orphans')
             expect(generic.name).toBe('killOrphans')
+            expect(generic.method).toBe(HttpMethod.Put)
+            expect(generic.toRequest(todo)).toHaveProperty('url', '/orphans')
         })
 
         it('generic signature: name, execute, method', () => {
             const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
             expect(makeRed.name).toEqual('makeRed')
             expect(makeRed.method).toEqual(HttpMethod.Options)
-            expect(makeRed.path).toEqual('/make-red')
+            expect(makeRed.toRequest(todo)).toHaveProperty('url', '/make-red')
         })
 
         it('generic signature: name, execute', () => {
             const create = Command.create('create', $todo)
             expect(create.name).toEqual('create')
             expect(create.method).toEqual(HttpMethod.Post)
-            expect(create.path).toEqual('/')
+            expect(create.toRequest(todo)).toHaveProperty('url', '/')
         })
 
     })
@@ -118,8 +120,8 @@ describe('static builder pattern', () => {
                 expect(cmd.method).toEqual(method)
             })
 
-            it('path == "/"', () => {
-                expect(cmd.path).toEqual('/')
+            it('url == "/"', () => {
+                expect(cmd.toRequest({})).toHaveProperty('url', '/')
             })
         })
     }
@@ -176,17 +178,57 @@ describe('instance builder pattern', () => {
         })
     })
 
-    describe('.dispatch()', () => {
-        it.todo('applies a supplied hook method if the output is being returned to a client')
-    })
+    describe('useReq', () => {
 
+        const updateTodo = Command
+            .patch($todo)
+
+        it('allows mutation of request handler', () => {
+
+            const updateTodoWithNewReq = updateTodo
+                .useReq(
+                    RequestHandler
+                        .create(HttpMethod.Put, $todo)
+                        .setUrl`/todos/${'id'}`
+                ) 
+
+            const req = updateTodoWithNewReq.toRequest({ 
+                id: 'first-todo-ever', 
+                completed: false, 
+                description: 'I will not complete this'
+            })
+
+            expect(req).toEqual({
+                method: HttpMethod.Put,
+                body: { completed: false, description: 'I will not complete this' },
+                url: '/todos/first-todo-ever'
+            })
+
+        })
+
+        it('mutate signature', () => {
+
+            const updateTodoWithNewReq = updateTodo
+                .useReq(req => req.setUrl`/todos/edit/${'id'}`)
+
+            expect(updateTodoWithNewReq.toRequest({
+                id: 'great-todo', 
+                completed: false, 
+                description: 'Do the thing'
+            })).toEqual({
+                method: HttpMethod.Patch,
+                body: { completed: false, description:'Do the thing' },
+                url: '/todos/edit/great-todo'
+            })
+        })
+    })
 })
 
 describe('name', () => {
 
     it('must be camelCased', () => {
         expect(() => Command.create('holy-mackarel', $todo))
-            .toThrow('must be camelCased')
+            .toThrow('must be in camelCase')
     })
 
     it('is typed', () => {

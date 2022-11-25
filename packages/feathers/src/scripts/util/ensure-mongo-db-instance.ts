@@ -14,7 +14,7 @@ const ROOT_DIR = process.cwd()
 const DEFAULT_MONGO_DB_PORT = 27017
 const PROTECTED_CLUSTERS = ['production'] // in case a local machine is used to run production
 const MONGO_CMD = os.platform() === 'win32'
-    ? 'C:\\Program Files\\MongoDB\\Server\\5.0\\bin\\mongod.exe'
+    ? 'C:\\Program Files\\MongoDB\\Server\\6.0\\bin\\mongod.exe'
     : 'mongod'
 
 const KILL_MONGO_CMD = os.platform() === 'win32'
