@@ -6,22 +6,25 @@ import {
     ChildProcessWithoutNullStreams
 } from 'child_process'
 
-import { createLogger, toVoid } from '@benzed/util'
+import { createLogger, toNil, toVoid } from '@benzed/util'
+import path from 'path'
 
 //// Constants ////
+
+const IS_WIN = os.platform() === 'win32'
 
 const ROOT_DIR = process.cwd()
 const DEFAULT_MONGO_DB_PORT = 27017
 const PROTECTED_CLUSTERS = ['production'] // in case a local machine is used to run production
-const MONGO_CMD = os.platform() === 'win32'
+const MONGO_CMD = IS_WIN
     ? 'C:\\Program Files\\MongoDB\\Server\\6.0\\bin\\mongod.exe'
     : 'mongod'
 
-const KILL_MONGO_CMD = os.platform() === 'win32'
+const KILL_MONGO_CMD = IS_WIN
     ? `taskkill /F /IM ${MONGO_CMD}`
     : `killall ${MONGO_CMD}`
 
-const CHECK_PORT_CMD = os.platform() === 'win32'
+const CHECK_PORT_CMD = IS_WIN
     ? `netstat -a -p udp | find ":${DEFAULT_MONGO_DB_PORT}"`
     : `netstat -a -p udp | grep ".${DEFAULT_MONGO_DB_PORT}"`
 
@@ -186,20 +189,20 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
 
     if (clean) {
         log`Removing existing "${cluster}" cluster data.`
-        await execute(`rm -rf ./storage/${cluster}`).catch(() => null)
+        await execute(`rm -rf ./storage/${cluster}`)
     }
 
-    await execute('shx mkdir ./storage').catch(() => null)
-    await execute(`shx mkdir ./storage/${cluster}`).catch(() => null)
-    await execute(`shx mkdir ./storage/${cluster}/db`).catch(() => null)
-    await execute(`shx mkdir ./storage/${cluster}/files`).catch(() => null)
+    await execute('shx mkdir ./storage').catch(toNil)
+    await execute(`shx mkdir ./storage/${cluster}`).catch(toNil)
+    await execute(`shx mkdir ./storage/${cluster}/db`).catch(toNil)
+    await execute(`shx mkdir ./storage/${cluster}/files`).catch(toNil)
 
     log`Starting mongodb "${cluster}" cluster on port ${port}`
 
     await new Promise<void>((resolve, reject) => {
 
         mongoProcess = spawn(MONGO_CMD, [
-            '--dbpath', `./storage/${cluster}/db`,
+            '--dbpath', `"${ROOT_DIR}/storage/${cluster}/db"`,
             '--port', port.toString()
         ])
 

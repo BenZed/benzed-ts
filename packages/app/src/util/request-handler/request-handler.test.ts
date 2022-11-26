@@ -89,6 +89,7 @@ describe('req.setUrl()', () => {
 
         const req = Req
             .create<{ id?: string, age?: number, query?: { name?: string, size?: string } }>(HttpMethod.Get)
+            .setQueryKey('query')
             .setUrl`/clothing-by-age/${'age'}/${'id'}`
 
         it('2 url param', () => {
@@ -146,6 +147,7 @@ describe('req.setUrl()', () => {
         it('allows custom pathing', () => {
             const req = Req
                 .create<{ id: string, query?: object }>(HttpMethod.Get)
+                .setQueryKey('query')
                 .setUrl(
                     data => {
                         const { id, ...rest } = data

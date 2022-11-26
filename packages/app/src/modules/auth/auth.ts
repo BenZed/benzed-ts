@@ -1,18 +1,15 @@
 import { is } from '@benzed/is'
 import $, { Infer } from '@benzed/schema'
-import { Empty, fromBase64, omit, toBase64 } from '@benzed/util'
+import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
 import { CommandModule } from '../../command'
+import { HttpMethod, Request } from '../../util'
 
-import type { RecordCollection } from '../database'
-import type { Request } from '../../command/request'
-import type { HttpMethod } from '../../util'
+import { MongoDb, MongoDbCollection } from '../mongo-db'
 
 //// Helper ////
-
-const Put = 1 as unknown as HttpMethod.Put
 
 // Generates a new secret every day.
 const randomSecret = (() => {
@@ -82,13 +79,12 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         this._assertSingle()
     }
 
-    get collection(): RecordCollection<{ password: string }> {
+    get collection(): MongoDbCollection<{ email: string, password: string }> {
 
-        throw new Error('Not yet implemented')
-        // const database = this.getModule(Database, true)
+        const database = this.getModule(MongoDb, true)
 
-        // const collection = database.getCollection<{ password: string }>(settings.collection)
-        // return collection
+        const collection = database.getCollection<{ email: string, password: string }>(this.settings.collection)
+        return collection
     }
     
     //// Command Module Implementation ////
@@ -118,25 +114,26 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         return { accessToken }
     }
 
-    matchRequest([method, url, _, headers]: Request<object>): { email: string, password: string } | null {
-        if (method !== Put)
-            return null
+    matchRequest({ method, headers, url }: Request): { email: string, password: string } | nil {
+        if (!this.methods.includes(method))
+            return nil
 
         if (url !== `/${this.name}`)
-            return null
+            return nil
 
         const auth = headers?.get('authorization')
         if (!auth)
-            return null 
+            return nil 
 
-        const [email, password] = fromBase64(auth).split(':') 
+        const [email, password] = fromBase64(auth.replace('Basic ', ''))
+            .split(':') 
         if (!is.string(email) || !is.string(password))
-            return null
+            return nil
             
         return { email, password }
     }
 
-    toRequest(input: { email: string, password: string }): Request<Empty> {
+    toRequest(input: { email: string, password: string }): Request {
 
         const headers = new Headers()
 
@@ -146,16 +143,16 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
 
         headers.set('authorization', `Basic ${credentials}`)
 
-        return [
-            Put,
-            `/${this.name}`,
-            {},
+        return {
+            method: this.methods[0],
+            url: `/${this.name}`,
+            body: {},
             headers
-        ]
+        }
     }
 
     get methods(): HttpMethod[] {
-        return [Put]
+        return [HttpMethod.Put]
     }
 
     //// Token Interface ////

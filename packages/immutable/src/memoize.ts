@@ -1,56 +1,36 @@
-import { Func } from '@benzed/util'
+import { Func, memoize as _memoize, MemoizeOptions, Memoized } from '@benzed/util'
 
 import { ValueMap } from './value-map'
 
-//// Helper ////
-
-function trimCacheToSize(
-    cache: ValueMap<unknown, unknown>,
-    size: number
-): void {
-
-    const keys = cache['_keys']
-    const values = cache['_values']
-
-    if (cache.size > size) {
-        const deleteCount = cache.size - size
-
-        keys.splice(0, deleteCount)
-        values.splice(0, deleteCount)
-    }
-}
-
 //// Main ////
 
-/**
- * Memoize a method by comparing it's arguments as value-equal.
- * @param method Method to memoize.
- * @param maxCacheSize Maximum number of argument variants to cache.
- * @returns Memoized method.
- */
-function memoize<T extends Func>(
-    method: T,
-    maxCacheSize = Infinity
-): T {
+function memoize<F extends Func>(f: F, name?: string): Memoized<F>
 
-    const cache = new ValueMap<Parameters<T>, ReturnType<T>>()
+function memoize<F extends Func>(f: F, maxCacheSize?: number): Memoized<F>
 
-    return ((...args: Parameters<T>): ReturnType<T> => {
+function memoize<F extends Func>(f: F, options?: { name?: string, maxCacheSize?: number }): Memoized<F>
 
-        let result: ReturnType<T>
-        if (cache.has(args))
-            result = cache.get(args) as ReturnType<T>
-        else {
-            result = method(...args as unknown[]) as ReturnType<T>
-            cache.set(args, result)
+function memoize<F extends Func>(
+    func: F,
+    options?: string | number | Omit<MemoizeOptions<F>, 'cache'>
+): Memoized<F> {
 
-            trimCacheToSize(cache, maxCacheSize)
-        }
+    const { name, maxCacheSize } = _memoize.options(func, options)
+ 
+    return _memoize(func, { 
+        name, 
+        maxCacheSize, 
 
-        return result
-    }) as T
+        // all we need to do to switch from parameter identical memoization
+        // to parameter deep-equal memoization is switch the cache type.
+        cache: new ValueMap<Parameters<F>, ReturnType<F>>()
+    })
 }
 
 //// Exports ////
 
 export default memoize
+
+export {
+    memoize
+}

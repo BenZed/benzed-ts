@@ -2,9 +2,7 @@ import $ from '@benzed/schema'
 import { io } from '@benzed/util'
 
 import { App } from '../../app'
-import { Database } from '../database'
-import { MongoDb } from '../database/mongodb'
-
+import { MongoDb } from '../mongo-db'
 import { Auth } from './auth'
 
 it('is sealed', () => {
@@ -65,12 +63,20 @@ it('optional verfication validator', async () => {
 
 describe('Authentication', () => {
 
+    const mongoDb = MongoDb.create({ 
+        database: 'test-1' 
+    }).addCollection(
+        'users', 
+        $({
+            email: $.string,
+            password: $.string
+        })
+    )
+
     const app = App
         .create()
         .useModule(
-            MongoDb.create({ 
-                database: 'test-1' 
-            })
+            mongoDb
         )
         .useModule(
             Auth.create()
@@ -84,7 +90,8 @@ describe('Authentication', () => {
     beforeAll(() => app.start())
 
     beforeAll(async () => {
-        const database = app.getModule(Database, true)
+
+        const database = app.getModule(MongoDb, true) as typeof mongoDb
         const users = database.getCollection('users')
 
         await users.create(CREDS)
@@ -95,9 +102,7 @@ describe('Authentication', () => {
     it('authenticate with email/pass', async () => {
 
         const auth = app.getModule(Auth, true)
-
         const result = await auth.execute(CREDS)
-
         const { accessToken } = result ?? {}
 
         expect(typeof accessToken).toBe('string')

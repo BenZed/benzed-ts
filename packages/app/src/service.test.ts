@@ -5,9 +5,9 @@ import { Module } from './module'
 
 import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
-import { Path } from './types'
 
 import { Command } from './command'
+import { Path } from './util'
 
 //// Tests ////
 
@@ -125,8 +125,9 @@ describe('.commands', () => {
             .useService('/bike', bikes)
 
         const { commands } = travel
-
+ 
         expectTypeOf(commands).toEqualTypeOf<{
+    
             create: Command<'create', OrderData, { order: Order }>
             get: Command<'get', OrderId, { order: Order | null }>
             carCreate: Command<'create', OrderData, { order: Order }>
@@ -135,6 +136,7 @@ describe('.commands', () => {
             carPartGet: Command<'get', OrderId, { order: Order | null }>
             bikeCreate: Command<'create', OrderData, { order: Order }>
             bikeGet: Command<'get', OrderId, { order: Order | null }>
+
         }>()
 
     })

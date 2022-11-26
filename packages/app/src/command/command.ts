@@ -2,7 +2,7 @@ import is from '@benzed/is'
 import { pluck } from '@benzed/array'
 import { Schematic } from '@benzed/schema'
 import { toDashCase } from '@benzed/string'
-import { Chain, chain, io, Link, nil } from '@benzed/util'
+import { Chain, chain, Link, nil } from '@benzed/util'
 
 import CommandModule from './command-module'
 
@@ -20,12 +20,6 @@ import { HttpMethod, Path, Request, RequestHandler as Req } from '../util'
  */
 export type RuntimeCommand<I extends object> = 
     Omit<Command<string, I, object>, 'useHook'>
-
-// type CommandHookTypeGuard<I extends object, O extends I, N extends string> = 
-//     ((this: RuntimeCommand<N, I>, input: I) => input is O) | TypeGuard<O, I>
-
-// export type CommandHookPredicate<I extends object, N extends string> = 
-//     ((this: RuntimeCommand<N,I>, input: I) => boolean) | Link<I, boolean>
 
 export type CommandHook<I extends object, O extends object> =
     ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O> 
@@ -186,7 +180,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     protected override get _copyParams(): unknown[] {
         return [
             this.name,
-            this._execute,
+            this._schema,
+            this._hooks,
             this._reqHandler
         ]
     }
@@ -237,7 +232,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     
     useReq(input: Req<I> | ((req: Req<I>) => Req<I>)): Command<N,I,O> {
 
-        const req = is.function(input) 
+        const reqHandler = is.function(input) 
             ? input(this._reqHandler) 
             : input
 
@@ -245,7 +240,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             this.name,
             this._schema,
             this._hooks,
-            req
+            reqHandler
         )
     }
 

@@ -1,7 +1,7 @@
 import $ from '@benzed/schema'
 import { Command } from '../src/command'
-import { HttpMethod } from '../src/modules'
 import { Service } from '../src/service'
+import { HttpMethod } from '../src/util'
 
 /* eslint-disable 
     @typescript-eslint/restrict-plus-operands
