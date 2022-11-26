@@ -1,5 +1,4 @@
 import is from '@benzed/is'
-import match from '@benzed/match'
 
 import { createServer, Server as HttpServer } from 'http'
 
@@ -11,7 +10,7 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 
-import { Path, HttpCode, HttpMethod } from '../../../util'
+import { Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
 
 //// Helper ////
@@ -25,6 +24,22 @@ function ctxBodyToObject(ctx: Context): Record<string, unknown> {
         return JSON.parse(ctx.request.body)
 
     return {}
+}
+
+function ctxToRequest(ctx: Context): Request {
+
+    const headers = new Headers()
+    for (const key in ctx.headers) {
+        if (ctx.headers[key])
+            headers.set(key, `${ctx.headers[key]}`)
+    }
+
+    return {
+        method: ctx.method as HttpMethod,
+        headers: headers,
+        url: ctx.originalUrl as Path,
+        body: ctxBodyToObject(ctx)
+    }
 }
 
 //// KoaServer ////
@@ -96,29 +111,15 @@ export class KoaSocketIOServer extends Server {
 
     // Koa Helpers
 
-    private _getCtxCommandData(ctx: Context): object {
-        const [ ctxData ] = match(ctx.method)
-            .case(HttpMethod.Get, {...ctx.query})
-            .case(HttpMethod.Delete, {...ctx.query})
-            .case(HttpMethod.Post, ctxBodyToObject(ctx))
-            .case(HttpMethod.Put, ctxBodyToObject(ctx))
-            .case(HttpMethod.Patch, ctxBodyToObject(ctx))
-            .default({})
-
-        return ctxData
-    }
-
     private _executeCtxCommand(ctx: Context): Promise<object> {
 
-        const ctxData = this._getCtxCommandData(ctx)
+        const request = ctxToRequest(ctx)
 
         for (const name in this.root.commands) {
 
-            const urlWithoutQueryString = ctx.url.split('?')[0] as Path
-
             const commandData = this.root
                 .getCommand(name)
-                .matchRequest([ctx.method as HttpMethod, urlWithoutQueryString, ctxData, null])
+                .matchRequest(request)
 
             if (commandData) 
                 return this.execute(name, commandData)

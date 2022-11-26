@@ -64,6 +64,7 @@ export class FetchSocketIOClient extends Client {
     execute(name: string, data: object): Promise<object> {
 
         const { webSocket } = this.settings
+
         return webSocket && this._io?.connected
             ? this._executeSocketIOCommand(name, data)
             : this._executeFetchCommand(name, data)

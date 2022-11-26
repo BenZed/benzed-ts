@@ -124,7 +124,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
         const query = queryString ? fromQueryString(queryString) : nil
 
         const data: object = { query, ...body }
-        const pathedData = this._path.match(url, data) 
+        const pathedData = this._path.match(url, data)
         if (!pathedData)
             return nil
 

@@ -1,6 +1,7 @@
 import $, { Schema } from '@benzed/schema'
 
 import { HttpMethod } from './http-methods'
+import { Headers } from 'cross-fetch'
 
 /**
  * String starting with a slash, as in a path.
@@ -60,4 +61,8 @@ export interface Request {
     url: Path
     body?: object
     headers?: Headers
+}
+
+export {
+    Headers
 }

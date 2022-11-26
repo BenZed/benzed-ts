@@ -59,6 +59,13 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         super(settings)
     }
 
+    protected override get _copyParams(): unknown[] {
+        return [
+            this.settings,
+            this._collections
+        ]
+    }
+
     // Module Implementation
 
     private _mongoClient: _MongoClient | null = null
@@ -103,6 +110,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         return this._collections
     }
 
+    getCollection<T extends object>(name: string): MongoDbCollection<T>
     getCollection<N extends StringKeys<C>>(name: N): C[N] {
 
         if (!this._db)

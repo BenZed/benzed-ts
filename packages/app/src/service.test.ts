@@ -5,9 +5,9 @@ import { Module } from './module'
 
 import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
-import { Path } from './types'
 
 import { Command } from './command'
+import { Path } from './util'
 
 //// Tests ////
 

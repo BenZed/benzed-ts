@@ -18,7 +18,9 @@ export type ModuleConstructor<M extends Module = Module> =
      (abstract new (...args: any[]) => M) | 
      { name: string, prototype: M }
 
-type GetScope = 'siblings' | 'parents' | 'children' | 'root' | readonly ('siblings' | 'parents' | 'children' | 'root')[]
+type GetScope = 
+    'siblings' | 'parents' | 'children' | 'root' |
+    readonly ('siblings' | 'parents' | 'children' | 'root')[]
 
 type GetPredicate = (input: Module) => boolean
 
@@ -131,7 +133,7 @@ export class Module {
     }
 
     /**
-     * 
+     * Path from the root of this app.
      */
     get pathFromRoot(): Path {
 
