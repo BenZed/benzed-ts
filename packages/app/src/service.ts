@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { Merge, StringKeys } from '@benzed/util'
+import { Merge, nil, StringKeys } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -20,6 +20,7 @@ import {
     CommandModule, 
     CommandOutput
 } from './command'
+import is from '@benzed/is/lib'
 
 //// Eslint ////
 
@@ -94,6 +95,9 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         modules: M,
     ) {
         super()
+
+        if (!modules.every(m => !!m._copyWithParent)) 
+            console.log(modules)
 
         this._modules = modules.map(m => m._copyWithParent(this)) as unknown as M
         this._validateModules()
@@ -177,7 +181,9 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         ...args: [path: Path, module: Module] | [module: Module] | Modules
     ): Modules {
 
-        const path = pluck(args, $path.is).at(0)
+        const string = pluck(args, is.string).at(0) as string | undefined
+        const path = string ? $path.validate(string) : nil
+
         const inputModules = args as Module[]
         if (inputModules.length === 0)
             throw new Error(`${Module.name} not provided.`)

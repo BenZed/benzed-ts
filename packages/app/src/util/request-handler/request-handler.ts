@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import { nil, numKeys } from '@benzed/util'
+import { isEmpty, nil, StringKeys } from '@benzed/util'
 import { Schematic } from '@benzed/schema'
 
 import { 
@@ -30,6 +30,12 @@ import {
     stringify as toQueryString
 } from 'query-string'
 
+//// Eslint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Types ////
 
 interface RequestConverter<T extends object> {
@@ -41,10 +47,11 @@ type Headerer<T extends object> = (headers: Headers, data: Partial<T>) => Partia
 
 type HeaderMatch<T extends object> = (headers: Headers, data: Partial<T>) => Partial<T> | nil
 
-//// Helper ////
-
-function hasQuery<T extends object>(input: T): input is T & { query: object } {
-    return is.object<{ query?: object }>(input) && is.object(input.query)
+/**
+ * Keys that can be used to store/retreive query object.
+ */
+type QueryKey<T extends object> = keyof {
+    [K in StringKeys<T> as T[K] extends object | nil ? K : never]: K
 }
 
 //// Main ////
@@ -55,7 +62,14 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
     static create<Tx extends object>(method: HttpMethod, schema: Schematic<Tx>): RequestHandler<Tx>
 
-    static create(method: HttpMethod, schema?: Schematic<object>): RequestHandler<object> {
+    static create(method: HttpMethod, schematic?: Schematic<object>): RequestHandler<object> {
+
+        //                       wtf? by default we're doing a hacky check to see
+        //                       if there is a query object schema on the given schema
+        const defaultQueryKey = '$' in ((schematic as any)?.$?.query ?? {})
+            ? 'query'
+            : nil
+  
         return new RequestHandler<object>(
             method, 
             {
@@ -66,7 +80,8 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
                 to: [],
                 match: []
             },
-            schema,
+            schematic,
+            defaultQueryKey as nil
         )
     }
 
@@ -84,7 +99,9 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
             match: HeaderMatch<T>[]
         },
 
-        readonly schema?: Schematic<T>
+        readonly schema?: Schematic<T>,
+
+        readonly queryKey?: QueryKey<T>
 
     ) { }
 
@@ -98,15 +115,12 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
         const [ headers, dataWithoutHeaders ] = this._addHeaders(dataWithoutParams)
 
-        const isGet = method === HttpMethod.Get
-        const body = isGet ? undefined : dataWithoutHeaders
-        if (isGet && numKeys(dataWithoutHeaders) > 0)
-            throw new Error(`Unhandled data: ${dataWithoutHeaders}`)
+        const [ query, dataWithoutQuery ] = this._resolveQuery(dataWithoutHeaders)
 
         return {
             method,
-            body,
-            url,
+            body: dataWithoutQuery,
+            url: isEmpty(query) ? url : url + '?' + toQueryString(query) as Path,
             headers
         }
     }
@@ -123,7 +137,10 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
         const query = queryString ? fromQueryString(queryString) : nil
 
-        const data: object = { query, ...body }
+        const data: object = this.queryKey 
+            ? { [this.queryKey]: query, ...body } 
+            : { ...query, ...body }
+
         const pathedData = this._path.match(url, data)
         if (!pathedData)
             return nil
@@ -176,21 +193,21 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
             match = createUrlParamPathMatcher(segments, ...paramKeys)
         }
 
-        return new RequestHandler(this.method, { to, match }, this._headers, this.schema)
+        return new RequestHandler(this.method, { to, match }, this._headers, this.schema, this.queryKey)
     }
 
     /**
      * Changes the method of this request handler
      */
     setMethod(method: HttpMethod): RequestHandler<T> {
-        return new RequestHandler<T>(method, this._path, this._headers, this.schema)
+        return new RequestHandler<T>(method, this._path, this._headers, this.schema, this.queryKey)
     }
 
     /** 
      * Sets the schema for this request handler
      */
     setSchema(schema: Schematic<T>): RequestHandler<T> {
-        return new RequestHandler(this.method, this._path, this._headers, schema)
+        return new RequestHandler(this.method, this._path, this._headers, schema, this.queryKey)
     }
 
     /**
@@ -207,7 +224,8 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
                 to: [...headers.to, to],
                 match: [...headers.match, match]
             }, 
-            this.schema
+            this.schema,
+            this.queryKey
         )
     }
 
@@ -223,7 +241,21 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
                 to: [to],
                 match: [match]
             }, 
-            this.schema
+            this.schema,
+            this.queryKey
+        )
+    }
+
+    /**
+     * Provide an object 
+     */
+    setQueryKey(queryKey: QueryKey<T> | nil): RequestHandler<T> {
+        return new RequestHandler(
+            this.method, 
+            this._path, 
+            this._headers, 
+            this.schema,
+            queryKey
         )
     }
 
@@ -234,15 +266,6 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
         const [ urlWithoutPrefix, dataWithoutUrlParams ] = this._path.to(data)
 
         const url = $path.validate(urlPrefix ?? '' + urlWithoutPrefix)
-
-        if (hasQuery(dataWithoutUrlParams)) {
-            const { query, ...dataWithoutUrlParamsOrQuery } = dataWithoutUrlParams
-            return [
-                url + '?' + toQueryString(query) as Path,
-                dataWithoutUrlParamsOrQuery as Partial<T>
-            ]
-        }
-
         return [ url, dataWithoutUrlParams ]
     }
 
@@ -257,6 +280,26 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
         const outputHeaders = num === 0 ? nil : headers
         
         return [ outputHeaders, outputData ]
+    }
+
+    private _resolveQuery(data: Partial<T>): [ query: object, dataWithoutQuery: Partial<T> | nil ] {
+
+        let query: Record<string, unknown> = {}
+        let dataWithoutQuery: Partial<T> | nil = {...data }
+
+        const queryKey = this.queryKey as keyof typeof dataWithoutQuery
+        if (queryKey && queryKey in dataWithoutQuery) {
+            query = dataWithoutQuery[queryKey] ?? {}
+            delete dataWithoutQuery[queryKey]
+        }
+
+        if (this.method === HttpMethod.Get) { 
+            query = { ...query, ...dataWithoutQuery }
+            dataWithoutQuery = nil
+        }
+
+        return [ query, dataWithoutQuery ]
+
     }
 }
 

@@ -36,7 +36,6 @@ for (const webSocketClient of [true, false]) {
                     const result = await command.execute(data)
                     expect(result).toEqual(output)
                 })
-
             }
         })
     }

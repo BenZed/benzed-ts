@@ -125,8 +125,9 @@ describe('.commands', () => {
             .useService('/bike', bikes)
 
         const { commands } = travel
-
+ 
         expectTypeOf(commands).toEqualTypeOf<{
+    
             create: Command<'create', OrderData, { order: Order }>
             get: Command<'get', OrderId, { order: Order | null }>
             carCreate: Command<'create', OrderData, { order: Order }>
@@ -135,6 +136,7 @@ describe('.commands', () => {
             carPartGet: Command<'get', OrderId, { order: Order | null }>
             bikeCreate: Command<'create', OrderData, { order: Order }>
             bikeGet: Command<'get', OrderId, { order: Order | null }>
+
         }>()
 
     })
