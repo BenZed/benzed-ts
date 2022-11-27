@@ -22,9 +22,42 @@ import {
 
 //// Helper Types ////
 
-type Descriptors = {
+interface Descriptors {
     [key: string | number | symbol]: PropertyDescriptor
 }
+
+// TODO resolve tuples
+type _ResolveArray<T> = T extends Array<infer I>
+
+    ? _ExtractProperties<I[], T> extends Empty
+        ? I[] 
+        : I[] & _ExtractProperties<I[], T>
+    : T extends Readonly<Array<infer I>>
+
+        ? _ExtractProperties<readonly I[], T> extends Empty
+            ? readonly I[] 
+            : I[] & _ExtractProperties<readonly I[], T>
+        : T
+
+type _FuncWithoutThis<T> = T extends (...args: infer A) => infer R 
+    ? (...args: A) => R
+    : never
+
+type _IsFunc<T> = T extends Func ? true : false
+
+type _HasUndefined<T> = keyof {
+    [K in keyof T as T[K] extends undefined ? K : never]: K
+} extends never ? false : true
+
+type _RemoveUndefined<T> = _HasUndefined<T> extends true 
+    ? { 
+        [K in keyof T as T[K] extends undefined 
+            ? never 
+            : K]: T[K] 
+
+    } extends infer O ? _FuncWithoutThis<T> extends never ? O : _FuncWithoutThis<T> & O : never 
+    
+    : T
 
 /**
  * Compile two objects into one favouring properties from the 
@@ -33,33 +66,86 @@ type Descriptors = {
  * Remove the existing 'extend' property, as it will be added
  * by the Extendable type.
  */
-type _ResolveObject<E, O> = {
-    [K in keyof O | keyof E as K extends 'extend' ? never : K]: K extends keyof E 
+type _MergeProperties<O, E> = {
+    [K in keyof E | keyof O]: K extends keyof E 
         ? E[K] 
-        : K extends keyof O 
-            ? O[K] 
+        : K extends keyof O ? O[K] 
             : never
 
 } extends infer T 
-    ? Empty extends T 
-        ? never 
-        : _ResolveArray<T>
+    ? _ResolveArray<T>
     : never
 
-// TODO resolve tuples
-type _ResolveArray<T> = T extends Array<infer I>
-    ? I[] & _ExcludeArrayKeys<T>
-    : T extends Readonly<Array<infer I>>
-        ? readonly I[] & _ExcludeArrayKeys<T>
-        : T
+type _ExtractProperties<O, E> = {
 
-type _ExcludeArrayKeys<A> = {
-    [K in keyof A as K extends keyof Array<any> ? never : K]: A[K]
-} extends infer Tx ? Tx : never
+    [K in keyof E as K extends keyof O 
+        ? E[K] extends O[K]
+            ? never 
+            : K
+        : K
+    ]: E[K]
 
-type _ResolveCallable<T> = T extends (...args: infer A) => infer R 
-    ? (...args: A) => R
-    : never
+} extends infer T ? _ResolveArray<T> : never
+
+type _MergeCallSignature<O, E> = _IsFunc<E> extends true 
+    ? _FuncWithoutThis<E> 
+    : _FuncWithoutThis<O>
+
+/**
+ * Given an original and an extension, merge two objects 
+ * together, favouring properties and call signatures from 
+ * the extension.
+ */
+type _Merge<O, E> = _MergeCallSignature<O, E> extends never     
+    ? _MergeProperties<O, E> 
+    : _MergeProperties<O, E> extends Empty 
+        ? _MergeCallSignature<O, E> 
+        : _MergeProperties<O, E> & _MergeCallSignature<O, E>
+
+/**
+ * Given an extension and an original object, extract
+ * call signatures and properties from the extension object
+ * that the original does not have.
+ */
+type _Extract<O, E> = _ExtractCallSignature<O, E> extends never 
+    ? _ExtractProperties<O, E>
+    : _ExtractProperties<O, E> extends Empty 
+        ? _ExtractCallSignature<O, E>
+        : _ExtractCallSignature<O, E> & _ExtractProperties<O, E>
+
+type _ExtractCallSignature<O, E> = _FuncWithoutThis<E> extends _FuncWithoutThis<O>
+    ? never 
+    : _FuncWithoutThis<E>
+
+type _HasExtractable<O, E> = _Extract<O, E> extends (never | Empty) ? false : true
+
+type _MergeIfNecessary<O, E> = 
+/**/ _HasExtractable<O, E> extends true 
+    ? _HasExtractable<E, O> extends true 
+        ? _Merge<O, E>
+        : E
+    : O
+
+type _ShouldMergeCallSignatures<O,E> = 
+    _IsFunc<E> extends true 
+        ? _IsFunc<O> extends true   
+            ? true
+            : false
+        : false 
+
+type _ShouldMergeProperties<O, E> = keyof {
+    [K in keyof _ExtractProperties<O,E> as K extends keyof E
+        ? K extends keyof O 
+            ? E[K] extends O[K]
+                ? never 
+                : K
+            : never
+        : K
+    ]: K
+} extends never ? false : true
+        
+type _ShouldMerge<O, E> = _ShouldMergeCallSignatures<O, E> extends true ? true 
+    : _ShouldMergeProperties<O, E>  
 
 //// Extend Types ////
 
@@ -68,15 +154,14 @@ type _ResolveCallable<T> = T extends (...args: infer A) => infer R
  * being extended.
  */
 type Extension<T> = 
-
     // an extension can be a method
-    | ((this: Extendable<T>, ...args: any[]) => any) 
+    | ((this: T, ...args: any[]) => any) 
 
     // or an object that may contain methods
     | {
         [key: string | number | symbol]: (
             (
-                this: Extendable<T>, 
+                this: T, 
                 ...args: any[]
             ) => any
             // or other values
@@ -88,26 +173,33 @@ type Extension<T> =
     | object
 
 /**
- * Given an extension and optional original object,
- * resolve an object without conflicting properties
- * and a maximum of one call signature. 
+ * Apply an extension to a given original type
  */
-type Extend<E, O = void> = _ResolveCallable<E> extends never
-    ? _ResolveCallable<O> extends never
-        ? _ResolveObject<E, O> 
-        : _ResolveObject<E, O> extends never
-            ? _ResolveCallable<O>
-            : _ResolveCallable<O> & _ResolveObject<E, O> 
+type Extend<O, E> = _ShouldMerge<O, E> extends true 
+    ? Extendable<_RemoveUndefined<_MergeIfNecessary<O, E>>>
+    : _RemoveUndefined<_Extract<O, E>> extends Empty 
+        ? Extendable<O> 
+        : Extended<O, _RemoveUndefined<_Extract<O, E>>>
 
-    : _ResolveObject<E, O> extends never
-        ? _ResolveCallable<E>
-        : _ResolveCallable<E> & _ResolveObject<E, O> 
+/**
+ * Remove the extend method property <this> context from types that are to be extended
+ */
+type ToExtendable<T> = T extends { extend: any }
+    ? _Extract<{ extend: any }, T> 
+    : T extends Func ? _FuncWithoutThis<T> : T
+
+/**
+ * An object that has been extended.
+ */
+type Extended<O, E> = O & E & { 
+    extend: <Ex extends Extension<O & E>>(extension: Ex) => Extend<O, _MergeIfNecessary<E, ToExtendable<Ex>>>
+}
 
 /**
  * Add an extend method to a given type.
  */
 type Extendable<O> = O & { 
-    extend: <E extends Extension<O>>(extension: E) => Extendable<Extend<E, O>> 
+    extend: <E extends Extension<O>>(extension: E) => Extend<O, ToExtendable<E>>
 }
 
 //// Helper ////
@@ -180,13 +272,8 @@ const getCallable = (object: object): Func | nil =>
             ? object 
             : nil
 
-/**
- * 
- * @param this 
- * @returns 
- */
-function copy(this: Extendable<object> ): Extendable<object> {
-    return extend(this)
+function copy(this: Extendable<object>): Extendable<object> {
+    return extend(this) as Extendable<object>
 }
 
 //// Extend ////
@@ -198,7 +285,7 @@ function copy(this: Extendable<object> ): Extendable<object> {
  * 
  * @param object object or function add extend method to.
  */
-function extend<T extends object>(object: T): Extendable<Extend<T>> 
+function extend<T extends Extension<object>>(object: T): Extendable<ToExtendable<T>> 
 
 /**
  * Implementation signature. 
@@ -234,5 +321,6 @@ function extend(this: object | void, extension: object): object {
 
 export {
     extend as extendable,
-    Extendable
+    Extendable,
+    Extended
 }
