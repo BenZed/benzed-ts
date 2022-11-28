@@ -1,3 +1,5 @@
+import { extend } from '@benzed/immutable/lib'
+import { defineName } from '@benzed/util/lib'
 import { schema, Schema } from '../schema'
 import { Validator, validator } from '../validator'
 
@@ -23,7 +25,7 @@ interface EnumValidator<T extends readonly Enumerable[]> extends Validator<unkno
 
 //// Setup ////
 
-const enumValidator = {
+const enumValidator = validator(defineName({
 
     options: [] as any[],
 
@@ -31,7 +33,7 @@ const enumValidator = {
         return this.options.includes(input)
     },
 
-    error() {
+    error(this: EnumSchema<any>) {
 
         const { options } = this
 
@@ -40,7 +42,7 @@ const enumValidator = {
             : `must be ${options.at(0)}`
     }
 
-}
+}, 'enum'))
 
 const enumSchematic: EnumSchema<any> = schema(enumValidator, $$enum).extend({
 
@@ -56,10 +58,7 @@ const enumSchematic: EnumSchema<any> = schema(enumValidator, $$enum).extend({
 
 export function enumSchema<T extends readonly Enumerable[]>(...options: T): EnumSchema<T[number]> {
 
-    const enumValidate = validator({
-        ...enumValidator,
-        options
-    })
+    const enumValidate = extend(enumValidator, { options })
 
     return enumSchematic.validates(enumValidate, $$enum)
 

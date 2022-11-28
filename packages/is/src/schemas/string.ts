@@ -1,5 +1,5 @@
 import { toCamelCase, capitalize, toDashCase } from '@benzed/string'
-import { chain } from '@benzed/util'
+import { chain, defineName } from '@benzed/util'
 
 import { ErrorMessage } from '../validator'
 import { typeSchema, TypeSchema } from './type'
@@ -13,7 +13,7 @@ const $$end = Symbol('end-with-validator')
 
 //// Helper ////
 
-const toPascalCase = chain(toCamelCase).link(capitalize)
+const toPascalCase = defineName(chain(toCamelCase).link(capitalize), 'toPascalCase')
 const toUpperCase = (i: string):string => i.toUpperCase()
 const toLowerCase = (i: string):string => i.toLowerCase()
 const trim = (i: string):string => i.trim()
@@ -48,7 +48,7 @@ interface StringSchema<S extends string> extends TypeSchema<S> {
 
 const string: StringSchema<string> = typeSchema({
 
-    name: 'string',
+    type: 'string',
 
     assert(this: StringSchema<string>, input: unknown): input is string {
         return typeof input === 'string'
@@ -125,7 +125,7 @@ const string: StringSchema<string> = typeSchema({
 
     startsWith(this: StringSchema<string>, start: string, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            i => i.startsWith(start) ? i : start + i,
+            defineName(i => i.startsWith(start) ? i : start + i, 'startsWith'),
             error ?? `must start with "${start}"`,
             $$start
         )
@@ -133,7 +133,7 @@ const string: StringSchema<string> = typeSchema({
 
     endsWith(this: StringSchema<string>, end: string, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            i => i.endsWith(end) ? i : i + end,
+            defineName(i => i.endsWith(end) ? i : i + end, 'endsWith'),
             error ?? `must end with "${end}"`,
             $$end
         )
@@ -141,7 +141,7 @@ const string: StringSchema<string> = typeSchema({
 
     contains(this: StringSchema<string>, value: string, error?: string | ErrorMessage<string>) {
         return this.asserts(
-            i => i.includes(value),
+            defineName(i => i.includes(value), 'contains'),
             error ?? `must contain value "${value}"`,
             `contains-${value}`
         )

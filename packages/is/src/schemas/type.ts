@@ -1,4 +1,4 @@
-import { isFunction, isNil, nil, returns } from '@benzed/util'
+import { defineName, isFunction, isNil, nil, returns } from '@benzed/util'
 
 import { 
     schema, 
@@ -35,7 +35,7 @@ interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, '
     /**
      * Name of the type
      */
-    name: string
+    type: string
 
     /**
      * Default cast method for this type
@@ -83,7 +83,7 @@ interface TypeSchema<T> extends Schema<T> {
 
 //// Schema ////
 
-const typeValidator: TypeValidator<unknown> = validator({
+const typeValidator: TypeValidator<unknown> = defineName(validator({
 
     transform(input: unknown, ctx: ValidateContext): unknown {
     
@@ -101,16 +101,16 @@ const typeValidator: TypeValidator<unknown> = validator({
     },
     
     error(): string {
-        return `must be type ${this.name}`
+        return `must be type ${this.type}`
     },
 
-    name: 'unknown', 
+    type: 'unknown', 
 
     default: undefined as Default<unknown> | nil,
 
     cast: undefined as Cast<unknown> | nil
 
-})
+}), 'type')
 
 const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend({ 
     
@@ -128,8 +128,8 @@ const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend(
         }, this)
     },
 
-    typeName(this: TypeSchema<unknown>, name: string): TypeSchema<unknown> {
-        return typeSchema({ name }, this)
+    typeName(this: TypeSchema<unknown>, type: string): TypeSchema<unknown> {
+        return typeSchema({ type }, this)
     },
 
     error(this: TypeSchema<unknown>, error: string | ErrorMessage<unknown>): TypeSchema<unknown> {
@@ -155,9 +155,7 @@ function typeSchema<T>(settings: Partial<TypeValidatorSettings<T>>, schemaToUpda
  */
 function typeSchema<T>(settings?: Partial<TypeValidatorSettings<T>>, schemaToUpdate = typeSchematic): TypeSchema<T> {
 
-    return schemaToUpdate.validates({
-        ...settings
-    }, $$type) as TypeSchema<T>
+    return schemaToUpdate.validates(settings as TypeValidatorSettings<T>, $$type) as TypeSchema<T>
     
 }
 

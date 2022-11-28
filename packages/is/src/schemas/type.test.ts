@@ -7,7 +7,7 @@ import { typeSchema } from './type'
 
 const $number = typeSchema({
     assert: (i): i is number => typeof i === 'number',
-    name: 'number'
+    type: 'number'
 })
 
 //// Tests ////

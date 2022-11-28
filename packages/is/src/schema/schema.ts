@@ -1,4 +1,4 @@
-import { extend } from '@benzed/immutable'
+import { extendable, extend } from '@benzed/immutable'
 import { nil } from '@benzed/util'
 
 import { 
@@ -38,6 +38,11 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
     assert(input: unknown): asserts input is T
 
     validate(input: unknown, ctx?: ValidateOptions): T
+
+    validates(
+        validate: Validate<T,T>,
+        id?: string | number | symbol
+    ): this
 
     validates(
         settings: ValidatorSettings<T, T>,
@@ -81,7 +86,7 @@ function assert(this: Schema, input: unknown ): asserts input is unknown {
     void this.validate(input, { transform: false })
 }
 
-function validate(this: Schema, input: unknown, ctx?: ValidateOptions): unknown {
+function validateAll(this: Schema, input: unknown, ctx?: ValidateOptions): unknown {
 
     for (const validator of this.validators) 
         input = validator(input, ctx)
@@ -91,7 +96,7 @@ function validate(this: Schema, input: unknown, ctx?: ValidateOptions): unknown 
 
 //// Extendable  ////
 
-const schematic = extend(validate, {
+const schematic = extend(validateAll, {
 
     get is() {
         const schema = this as Schema<unknown>
@@ -105,7 +110,7 @@ const schematic = extend(validate, {
 
     get validate() {
         const schema = this as Schema<unknown>
-        return validate.bind(schema)
+        return validateAll.bind(schema)
     },
 
     validates(
@@ -120,7 +125,7 @@ const schematic = extend(validate, {
 
         const previous = this.validators[index]
 
-        const validate = extend(validator(previous), settings)
+        const validate = extendable(validator(previous)).extend(settings).extend({ [$$id]: id })
 
         const validators = [ ...this.validators ]
         if (index in validators)

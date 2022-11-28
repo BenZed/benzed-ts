@@ -1,4 +1,4 @@
-import { equals, extendable } from '@benzed/immutable'
+import { equals, extend } from '@benzed/immutable'
 import { Empty, isFunction, Merge } from '@benzed/util'
 
 import { ValidationError } from './error'
@@ -84,6 +84,8 @@ function validate(
     return output
 }
 
+////  ////
+
 //// Main ////
 
 function validator<V extends Validate<unknown, any>>(validator: V): V
@@ -93,7 +95,7 @@ function validator<I, O extends I = I>(settings: ValidatorSettings<I, O>): Valid
 function validator(
     validatorOrSettings: Validate<unknown, unknown> | ValidatorSettings<unknown, unknown>
 ): Validator<unknown, unknown> {
-    return extendable(validate).extend(validatorOrSettings)
+    return extend(validate, validatorOrSettings)
 }
 
 //// Exports ////

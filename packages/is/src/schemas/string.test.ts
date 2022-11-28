@@ -4,7 +4,7 @@ it('validates strings', () => {
     expect(string('foo')).toEqual('foo')
 })
 
-it('trims', () => {
+it('trim()', () => {
 
     const $string = string
         .trim()
@@ -13,3 +13,15 @@ it('trims', () => {
     expect(() => $string.assert(' ace ')).toThrow('must not have whitespace')
 })
 
+it('upperCase()', () => {
+
+    const $string = string.trim()
+        .upperCase()
+        .startsWith('ace')
+        .endsWith('base')
+        .contains('cunt')
+        .contains('fart')
+
+    console.log($string)
+
+})

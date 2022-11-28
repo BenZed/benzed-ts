@@ -8,7 +8,7 @@ interface BooleanSchema extends TypeSchema<boolean> {}
 
 const boolean: BooleanSchema = typeSchema({
 
-    name: 'boolean',
+    type: 'boolean',
 
     assert(input: unknown): input is boolean {
         return typeof input === 'boolean'

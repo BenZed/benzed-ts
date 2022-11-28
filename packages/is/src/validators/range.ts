@@ -1,4 +1,4 @@
-import { isFunction, isObject } from '@benzed/util'
+import { defineName, isFunction, isObject, nil } from '@benzed/util'
 import { extend, Extended } from '@benzed/immutable'
 
 import { Validate, ValidateContext, ValidateOptions, ValidationError } from '../validator'
@@ -49,15 +49,27 @@ function toRangeSettings(signature: RangeSettingsSignature): RangeSettings {
     if (isBinaryComparator(a2))
         return { min: a1, max: a3 as number, comparator: a2 }
 
-    return { min: a1, max: a2 as number, comparator: '..' }
+    return a2 === nil 
+        ? { value: a1, comparator: '==' }
+        : { min: a1, max: a2 as number, comparator: '..' }
 }
  
 type RangeSettingsSignature = 
     [RangeSettings] | 
     [UnaryComparator, number] | 
-    [number, BinaryComparator, number] | [number, number]
+    [number, BinaryComparator, number] | 
+    [number, number] | 
+    [number]
 
 type RangeValidator = Validate<unknown, number> & RangeSettings
+
+interface Range<R> {
+    (settings: RangeSettings): R
+    (min: number, comparator: BinaryComparator, max: number): R
+    (comparator: UnaryComparator, value: number): R
+    (min: number, max: number): R
+    (equals: number): R
+}
 
 //// Operators ////
 
@@ -91,7 +103,7 @@ const binary = {
 
 //// Details ////
 
-function assertRange(this: RangeSettings, input: number, ctx?: ValidateOptions): number {
+const assertRange = defineName(function (this: RangeSettings, input: number, ctx?: ValidateOptions): number {
 
     const context: ValidateContext<number> = { path: [], transform: true, ...ctx, input }
 
@@ -117,21 +129,19 @@ function assertRange(this: RangeSettings, input: number, ctx?: ValidateOptions):
     }
 
     return input
-}
+}, 'range')
 
 //// Exports ////
 
-export function range(min: number, comparator: BinaryComparator, max: number): RangeValidator
-export function range(min: number, max: number): RangeValidator
-export function range(comparator: UnaryComparator, value: number): RangeValidator
-export function range(settings: RangeSettings): RangeValidator
-export function range(
-    ...args: RangeSettingsSignature
-): RangeValidator {
-    return extend(assertRange, toRangeSettings(args)) as Extended<Validate<unknown, number>, RangeSettings>
-}   
+const range: Range<RangeValidator> = (...args: RangeSettingsSignature) => 
+    extend(assertRange, toRangeSettings(args)) as Extended<Validate<unknown, number>, RangeSettings>
+
+export default range 
 
 export {
+    range,
+    Range,
+
     RangeValidator,
 
     toRangeSettings,
