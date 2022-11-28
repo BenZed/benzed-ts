@@ -1,7 +1,7 @@
-import { is } from '@benzed/is'
 import pluck from './pluck'
 
 import { expectTypeOf } from 'expect-type'
+import { isString } from '@benzed/util'
 
 const arr = [1, 2, 3, 4, 5, 6, 7, 8]
 let even: number[]
@@ -58,7 +58,7 @@ it('optionally allows type guards', () => {
 
     const arr = [0, 1, 2, 3, 'four', 'five', 'six']
 
-    const strings = pluck(arr, is.string)
+    const strings = pluck(arr, isString)
 
     expectTypeOf(strings).toEqualTypeOf<string[]>()
 

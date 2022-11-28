@@ -6,8 +6,8 @@ import {
     keysOf, 
 
     nil,
-    Primitive
-
+    Primitive,
+    isFunction
 } from '@benzed/util'
 
 import { 
@@ -259,15 +259,13 @@ const applyDescriptors = (
     return object
 }
 
-const isFunc = (i: unknown): i is Func => typeof i === 'function'
-
 const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } => !!i && $$callable in i
 
 const getCallable = (object: object): Func | nil => 
     isExtendedCallSignature(object) 
     
         ? object[$$callable] 
-        : isFunc(object)
+        : isFunction(object)
     
             ? object 
             : nil

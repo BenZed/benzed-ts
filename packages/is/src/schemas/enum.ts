@@ -1,6 +1,9 @@
-import { Primitive } from '@benzed/util/lib'
 import { schema, Schema } from '../schema'
-import { validator, Validator } from '../validator'
+import { Validator, validator } from '../validator'
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Symbols ////
 
@@ -8,30 +11,56 @@ const $$enum = Symbol('enum-validator')
 
 //// Types ////
 
-interface EnumSchema<T extends Primitive> extends Schema<T> {
-    options: T[]
+type Enumerable = string | number | boolean | null | bigint
+
+interface EnumSchema<T extends Enumerable> extends Schema<T> {
+    get options(): T[]
 }
 
-interface EnumValidator<T extends readonly Primitive[]> extends Validator<unknown, T[number]> {
+interface EnumValidator<T extends readonly Enumerable[]> extends Validator<unknown, T[number]> {
     options: T
 }
 
-const enumValidator = validator({
+//// Setup ////
 
-    options: [] as unknown[],
+const enumValidator = {
+
+    options: [] as any[],
 
     assert(input: unknown): boolean {
         return this.options.includes(input)
     },
 
-}, $$enum)
+    error() {
 
-const enumSchematic = schema(enumValidator)
+        const { options } = this
+
+        return options.length >= 1 
+            ? `must be one of ${options.slice(0, -1).join(', ')} or ${options.at(-1)}`
+            : `must be ${options.at(0)}`
+    }
+
+}
+
+const enumSchematic: EnumSchema<any> = schema(enumValidator, $$enum).extend({
+
+    get options() {
+        return this
+            .getValidator<EnumValidator<any>>($$enum)
+            ?.options ?? []
+    }
+
+} as EnumSchema<any>)
 
 //// Exports ////
 
-export function enumSchema<O extends readonly Primitive[]>(...options: O): EnumSchema<O[number]> {
+export function enumSchema<T extends readonly Enumerable[]>(...options: T): EnumSchema<T[number]> {
 
-    return enumSchematic.validates({ [$$enum]: true, options }) as EnumSchema<O[number]>
+    const enumValidate = validator({
+        ...enumValidator,
+        options
+    })
+
+    return enumSchematic.validates(enumValidate, $$enum)
 
 }

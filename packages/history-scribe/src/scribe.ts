@@ -12,6 +12,7 @@ import {
 } from './types'
 
 import HistoryInvalidError from './error'
+
 import {
     applyData,
     cleanPatchEntry,

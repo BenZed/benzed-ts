@@ -1,4 +1,5 @@
-import { is } from '@benzed/is'
+
+import { isNumber } from '@benzed/util'
 
 //// Main ////
 
@@ -7,7 +8,7 @@ function resolveIndex(
     index: number
 ): number {
 
-    const length = is.number(arrLikeOrLength)
+    const length = isNumber(arrLikeOrLength)
         ? arrLikeOrLength
         : arrLikeOrLength.length
 

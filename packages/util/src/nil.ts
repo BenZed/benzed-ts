@@ -29,4 +29,3 @@ export const isNil = (input: unknown): input is nil => input === nil
  * Returns nil
  */
 export const toNil = returns(nil)
-

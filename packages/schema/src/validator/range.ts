@@ -1,5 +1,4 @@
 import { pluck } from '@benzed/array'
-import { is, Sortable } from '@benzed/is'
 
 import { AssertValidator, ErrorSettings } from './validator'
 

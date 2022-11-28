@@ -34,6 +34,8 @@ export * from './omit'
 export * from './pick'
 export * from './returns'
 
+export * from './type-guards'
+
 export * from './sort'
 
 export * from './types'

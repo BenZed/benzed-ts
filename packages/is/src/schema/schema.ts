@@ -58,6 +58,8 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
 
     readonly validators: Validator<T,T>[]
 
+    getValidator<V extends Validator<T,T>>(id: string | number | symbol): V | nil
+
     extend<E extends object>(
         extension: E
     ): this & E 
@@ -93,6 +95,10 @@ const schematic = extendable(validate).extend({
 
     validate,
 
+    getValidator<V extends Validator<unknown,unknown>>(id: string | number | symbol): V | nil {
+        return this.validators.find(v => $$id in v && (v as V & { [$$id]: string | number | symbol })[$$id] === id) as V | nil
+    },
+
     validates(
         this: Schema, 
         settings: ValidatorSettings<unknown, unknown>,
@@ -101,7 +107,7 @@ const schematic = extendable(validate).extend({
 
         const index = id === nil 
             ? -1 
-            : this.validators.findIndex(v => $$id in v && (v as any)[$$id] === id)
+            : this.validators.findIndex(v => $$id in v && (v as Validator<unknown, unknown> & { [$$id]: string | number | symbol })[$$id] === id)
 
         const previous = this.validators[index]
 

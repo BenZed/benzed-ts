@@ -1,10 +1,32 @@
-import { Sortable, is } from '@benzed/is'
+import { Sortable, isArray } from '@benzed/util'
 
 //// Types ////
 
 type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
 
 //// Helper ////
+
+function isSortedArray <T extends Sortable = number>(arr: unknown): arr is T[] {
+    if (!isArray<T>(arr))
+        return false
+
+    if (arr.length <= 1)
+        return true
+
+    const ascending = arr[0] < arr[arr.length - 1]
+
+    let prev = arr[0]
+    for (let i = 1; i < arr.length; i++) {
+        const curr = arr[i]
+        const isSorted = ascending ? curr >= prev : curr <= prev
+        if (!isSorted)
+            return false
+
+        prev = curr
+    }
+
+    return true
+}
 
 /**
  * Sorter method that places the items in an array in ascending order.
@@ -69,7 +91,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * Returns true if the array is currently sorted.
      */
     get isSorted(): boolean {
-        return is.array.sorted(this)
+        return isSortedArray(this)
     }
 
     /**
@@ -173,7 +195,9 @@ export default SortedArray
 
 export {
     ascending,
-    descending
+    descending,
+
+    isSortedArray
 }
 
 export type {

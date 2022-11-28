@@ -1,4 +1,3 @@
-import { Func } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -21,17 +20,6 @@ export function isReferable<T>(value: unknown): value is Referable<T> {
     const type = typeof value
     return type === 'object' || type === 'function'
 }
-
-export const isFunction = <F extends Func = Func>(i: unknown): i is F => typeof i === 'function'
-
-export const isObject = <T extends object = object>(i: unknown): i is T => typeof i === 'object' && i !== null
-
-export const isArrayLike = <T = unknown>(i: unknown): i is ArrayLike<T> => 
-    typeof i === 'string' 
-    
-    || 
-    
-    isObject(i) && typeof (i as { length?: unknown }).length === 'number'
 
 //// Mutable ////
 

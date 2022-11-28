@@ -1,8 +1,5 @@
-import {
-    is
-} from '@benzed/is'
 
-import { EventEmitter, LinkedList } from '@benzed/util'
+import { EventEmitter, isObject, LinkedList, isInteger, isArray } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
@@ -35,9 +32,9 @@ function isQueuePayload<V, T extends object | void>(
     input: unknown
 ): input is QueuePayload<V, T> {
 
-    return is.object<{ [key: string]: unknown }>(input) &&
-        is.date(input.time) &&
-        is.type(input.queue, Queue)
+    return isObject<{ [key: string]: unknown }>(input) &&
+        input.time instanceof Date &&
+        input.queue instanceof Queue
 }
 
 /**
@@ -199,16 +196,16 @@ class Queue<
         this._isPaused = options?.initiallyPaused ?? false
 
         for (const maxOption of ['maxConcurrent', 'maxTotalItems'] as const) {
-            if (this[maxOption] < 1 || is.nan(this[maxOption]))
+            if (this[maxOption] < 1 || Number.isNaN(this[maxOption]))
                 throw new Error(`options.${maxOption} must be 1 or higher.`)
         }
 
-        if (!is.integer(this.maxConcurrent))
+        if (!isInteger(this.maxConcurrent))
             throw new Error('options.maxConcurrent must be an integer.')
 
         if (
-            !is.integer(this.maxTotalItems) &&
-            isFinite(this.maxTotalItems)
+            !isInteger(this.maxTotalItems) &&
+            Number.isFinite(this.maxTotalItems)
         ) {
             throw new Error(
                 'options.maxTotalItems must be infinite or an integer.'
@@ -240,7 +237,7 @@ class Queue<
         input: QueueAddInput<V, T> | QueueAddInput<V, T>[]
     ): unknown {
 
-        const inputWasArray = is.array(input)
+        const inputWasArray = isArray(input)
 
         const tasks = wrap(input) as QueueAddInput<V, T>[]
 

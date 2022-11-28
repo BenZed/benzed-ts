@@ -1,6 +1,5 @@
-import { is } from '@benzed/is'
 import { equals } from '@benzed/immutable'
-import { merge } from '@benzed/util'
+import { isArray, isFunction, merge } from '@benzed/util'
 
 import { 
 
@@ -32,20 +31,20 @@ import {
 //// Helper ////
 
 function toInput(value: unknown): CaseInput{
-    return is.function<CaseInput>(value) 
+    return isFunction<CaseInput>(value) 
         ? value 
         : (i: unknown) => equals(i, value)
 }
 
 function toOutput(value: unknown): CaseOutput{
-    return is.function<CaseOutput>(value) 
+    return isFunction<CaseOutput>(value) 
         ? value 
         : () => value
 }
 
 function isMatch(input: unknown): input is Match<unknown,unknown> {
-    return is.function<Match<unknown,unknown>>(input)
-        && is.array(input.cases) 
+    return isFunction<Match<unknown,unknown>>(input)
+        && isArray(input.cases) 
         && input.cases.length > 0
 }
 

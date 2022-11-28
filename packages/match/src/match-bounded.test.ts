@@ -1,4 +1,3 @@
-import is from '@benzed/is'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -6,6 +5,7 @@ import { Match, Matcher, MatchEmpty, MatchIncomplete } from './types'
 
 import { UnmatchedValueError } from './error'
 import { match } from './match'
+import { isNumber, isString } from '@benzed/util'
 
 it('.match<type>() to created a bounded match', () => {
 
@@ -28,7 +28,7 @@ it('.match<type>().case()', () => {
 
     expectTypeOf(m).toEqualTypeOf<MatchIncomplete<number, 10 | 1, 'Ten' | 'One'>>()
 
-    const mc = m.case(is.number, i => `${i}`)
+    const mc = m.case(isNumber, i => `${i}`)
 
     expect(mc(10)).toEqual('Ten')
     expect(mc(1)).toEqual('One')
@@ -101,14 +101,14 @@ it('predicates', () => {
 it('type guards', () => {
 
     const m1 = match<number | string>()
-        .case(is.string, i =>{ 
+        .case(isString, i =>{ 
             expectTypeOf(i).toMatchTypeOf<string>()
             return `${i}!` as const
         })
 
     expectTypeOf(m1).toMatchTypeOf<MatchIncomplete<number | string, string, `${string}!`>>()
 
-    const m2 = m1.case(is.number, i => {
+    const m2 = m1.case(isNumber, i => {
         expectTypeOf(i).toMatchTypeOf<number>()
         return `${i}#` as const
     })
@@ -144,10 +144,10 @@ it('all broad cases must be handled', () => {
 
     expectTypeOf(m).toMatchTypeOf<MatchIncomplete<string | number, 1 | 'Ace', 'One' | 'string'>>()
 
-    const m2 = m.case(is.string, 'Cool')
+    const m2 = m.case(isString, 'Cool')
     expectTypeOf(m2).toMatchTypeOf<MatchIncomplete<string | number, 1 | string, 'One' | 'A' | 'Cool'>>()
 
-    const mc = m2.case(is.number, 'Done')
+    const mc = m2.case(isNumber, 'Done')
     expectTypeOf(mc).toMatchTypeOf<Matcher<string | number, string | number, 'One' | 'A' | 'Cool' | 'Done'>>()
 
 })

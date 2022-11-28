@@ -12,6 +12,6 @@ export * from './memoize'
 export * from './value-map'
 export * from './extendable'
 
-export { Immutable, Mutable, isObject, isArrayLike, isFunction } from './util'
+export { Immutable, Mutable } from './util'
 
 export { $$copy, $$equals } from './symbols'

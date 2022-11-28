@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
-import { isIterable, keysOf } from '@benzed/util'
+import { isIterable, isObject, isArrayLike, isFunction, keysOf } from '@benzed/util'
 
 import { $$equals } from './symbols'
-import { isObject, isArrayLike, isFunction, isReferable, Prototypal } from './util'
+import { isReferable, Prototypal } from './util'
 
 //// Types ////
 

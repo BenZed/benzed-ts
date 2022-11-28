@@ -1,7 +1,18 @@
-import { nil, returns } from '@benzed/util'
+import { isFunction, isNil, nil, returns } from '@benzed/util'
 
-import { schema, Schema, ValidateContext } from '../schema'
-import { ErrorMessage, validator, Validator, ValidatorSettings } from '../validator'
+import { 
+    schema, 
+    Schema,
+    ValidateContext 
+} from '../schema'
+
+import { 
+    ErrorMessage, 
+    
+    validator,
+    Validator, 
+    ValidatorSettings 
+} from '../validator'
 
 //// Symbols ////
 
@@ -111,7 +122,7 @@ const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend(
 
     default(this: TypeSchema<unknown>, _default: unknown | Default<unknown> | nil): TypeSchema<unknown> {
         return typeSchema({ 
-            default: _default === nil || typeof _default === 'function'
+            default: isNil(_default) || isFunction(_default)
                 ? _default as nil | Default<unknown>
                 : returns(_default)
         }, this)

@@ -3,9 +3,9 @@
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/prefer-readonly-parameter-types
 */
-import { keysOf } from '@benzed/util'
+import { keysOf, isFunction } from '@benzed/util'
 
-import { isFunction, isPrototypal, isReferable, Prototypal } from './util'
+import { isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
 
 //// Types ////

@@ -43,3 +43,5 @@ export * from './adjacent'
 export * from './sorted-array'
 export * from './priority-find'
 export * from './types'
+
+export { isArray } from '@benzed/util'
