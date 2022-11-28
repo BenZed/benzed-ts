@@ -3,7 +3,8 @@ import { range } from './range'
 describe('unary comparators', () => {
 
     it('== creates an equal-to validator', () => {
-        const equalTo10 = range({ comparator: '==', value: 10 })
+        const equalTo10 = range('==', 10)
+
         expect(equalTo10(10)).toBe(10)
         expect(() => equalTo10(9)).toThrow('must be equal 10')
     })
@@ -39,13 +40,7 @@ describe('binary comparators', () => {
     it('.. creates a non-inclusive between validator', () => {
         const between5and10 = range({ comparator: '..', min: 5, max: 10 })
         expect(between5and10(7)).toBe(7)
-        expect(() => between5and10(10)).toThrow('must be from 5 to less than 10')
-    })
-
-    it('- creates a non-inclusive between validator', () => {
-        const between50and100 = range({ comparator: '-', min: 50, max: 100 })
-        expect(between50and100(75)).toBe(75)
-        expect(() => between50and100(100)).toThrow('must be from 50 to less than 100')
+        expect(() => between5and10(10)).toThrow('must be between 5 and 10')
     })
 
     it('... creates an inclusive between validator', () => {
@@ -53,6 +48,8 @@ describe('binary comparators', () => {
 
         expect(between1and10(3))
             .toBe(3)
+
+        expect(between1and10(10)).toEqual(10)
 
         expect(() => between1and10(11))
             .toThrow('must be from 1 to 10')

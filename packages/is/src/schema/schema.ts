@@ -1,4 +1,4 @@
-import { extendable } from '@benzed/immutable'
+import { extend } from '@benzed/immutable'
 import { nil } from '@benzed/util'
 
 import { 
@@ -33,11 +33,20 @@ type Assert<T> = T extends Schema<infer Tx>
 
 interface Schema<T = unknown> extends Validate<unknown, T> {
 
-    readonly validate: Validate<unknown, T>
-
     is(input: unknown): input is T
 
     assert(input: unknown): asserts input is T
+
+    validate(input: unknown, ctx?: ValidateOptions): T
+
+    validates(
+        settings: ValidatorSettings<T, T>,
+        id?: string | number | symbol
+    ): this
+
+    readonly validators: Validator<T,T>[]
+
+    getValidator<V extends Validator<T,T>>(id: string | number | symbol): V | nil
 
     asserts(
         assert: (i: T, ctx: ValidateContext<T>) => boolean,
@@ -51,22 +60,26 @@ interface Schema<T = unknown> extends Validate<unknown, T> {
         id?: string | number | symbol
     ): this
 
-    validates(
-        settings: ValidatorSettings<T, T>,
-        id?: string | number | symbol
-    ): this
-
-    readonly validators: Validator<T,T>[]
-
-    getValidator<V extends Validator<T,T>>(id: string | number | symbol): V | nil
-
     extend<E extends object>(
         extension: E
     ): this & E 
 
 }
 
-//// Main ////
+//// Hero Methods ////
+
+function is(this: Schema, input: unknown): input is unknown {
+    try {
+        void this.validate(input, { transform: false })
+        return true
+    } catch {
+        return false
+    }
+}
+
+function assert(this: Schema, input: unknown ): asserts input is unknown {
+    void this.validate(input, { transform: false })
+}
 
 function validate(this: Schema, input: unknown, ctx?: ValidateOptions): unknown {
 
@@ -76,27 +89,23 @@ function validate(this: Schema, input: unknown, ctx?: ValidateOptions): unknown 
     return input
 }
 
-const schematic = extendable(validate).extend({
+//// Extendable  ////
 
-    is(this: Schema, input: unknown): input is unknown {
-        try {
-            void this.validate(input, { transform: false })
-            return true
-        } catch {
-            return false
-        }
+const schematic = extend(validate, {
+
+    get is() {
+        const schema = this as Schema<unknown>
+        return is.bind(schema)
     },
 
-    assert(this: Schema, input: unknown ): asserts input is unknown {
-        void this.validate(input, { transform: false })
+    get assert() {
+        const schema = this as Schema<unknown>
+        return assert.bind(schema)
     },
 
-    validators: [] as Validator<unknown,unknown>[],
-
-    validate,
-
-    getValidator<V extends Validator<unknown,unknown>>(id: string | number | symbol): V | nil {
-        return this.validators.find(v => $$id in v && (v as V & { [$$id]: string | number | symbol })[$$id] === id) as V | nil
+    get validate() {
+        const schema = this as Schema<unknown>
+        return validate.bind(schema)
     },
 
     validates(
@@ -111,7 +120,7 @@ const schematic = extendable(validate).extend({
 
         const previous = this.validators[index]
 
-        const validate = validator({ ...previous, ...settings, [$$id]: id })
+        const validate = extend(validator(previous), settings)
 
         const validators = [ ...this.validators ]
         if (index in validators)
@@ -119,19 +128,19 @@ const schematic = extendable(validate).extend({
         else 
             validators.push(validate)
 
-        return this.extend({
-            validators
-        })
+        return this.extend({ validators })
     },
 
-    asserts(
-        this: Schema, 
-        assert: (i: unknown, ctx: ValidateContext<unknown>) => boolean, 
-        error?: string | ErrorMessage,
-        id?: number | string | symbol
-    ): Schema {
-        return this.validates({ assert, error }, id)
+    getValidator<V extends Validator<unknown,unknown>>(id: string | number | symbol): V | nil {
+        return this
+            .validators
+            .find(v => 
+                $$id in v && 
+                (v as V & { [$$id]: string | number | symbol })[$$id] === id
+            ) as V | nil
     },
+
+    validators: [] as Validator<unknown,unknown>[],
 
     transforms(
         this: Schema, 
@@ -140,6 +149,15 @@ const schematic = extendable(validate).extend({
         id?: number | string | symbol
     ): Schema {
         return this.validates({ transform, error }, id)
+    },
+    
+    asserts(
+        this: Schema, 
+        assert: (i: unknown, ctx: ValidateContext<unknown>) => boolean, 
+        error?: string | ErrorMessage,
+        id?: number | string | symbol
+    ): Schema {
+        return this.validates({ assert, error }, id)
     },
 
 }) as Schema

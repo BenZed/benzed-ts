@@ -228,7 +228,7 @@ const createDescriptors = (
     ...extension && Object.getOwnPropertyDescriptors(extension),
 
     extend: {
-        value: extend,
+        value: extendable,
         enumerable: false,
         configurable: false,
         writable: false
@@ -271,7 +271,7 @@ const getCallable = (object: object): Func | nil =>
             : nil
 
 function copy(this: Extendable<object>): Extendable<object> {
-    return extend(this) as Extendable<object>
+    return extendable(this) as Extendable<object>
 }
 
 //// Extend ////
@@ -283,13 +283,13 @@ function copy(this: Extendable<object>): Extendable<object> {
  * 
  * @param object object or function add extend method to.
  */
-function extend<T extends Extension<object>>(object: T): Extendable<ToExtendable<T>> 
+function extendable<T extends Extension<object>>(object: T): Extendable<ToExtendable<T>> 
 
 /**
- * Implementation signature. 
+ * Implementation signature
  * @internal
  */
-function extend(this: object | void, extension: object): object {
+function extendable(this: object | void, extension: object): object {
 
     const original = this ?? nil
 
@@ -315,10 +315,25 @@ function extend(this: object | void, extension: object): object {
     return extended
 }
 
+/**
+ * Make an object extendable, and extend it unto another
+ * @param source 
+ * @param target 
+ */
+function extend<A extends Extension<object>, B extends Extension<object>>(
+    source: A, 
+    target: B
+): Extend<ToExtendable<A>, ToExtendable<B>> {
+    return extendable(source).extend(target)
+}
+
 //// Export ////
 
 export {
-    extend as extendable,
+    extend,
+    extendable,
     Extendable,
-    Extended
+    Extended,
+    Extend,
+    ToExtendable
 }

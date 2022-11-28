@@ -1,102 +1,141 @@
-import { nil, Sortable } from '@benzed/util'
-import { assert } from 'console'
-import { validator, Validator } from '../validator'
+import { isFunction, isObject } from '@benzed/util'
+import { extend, Extended } from '@benzed/immutable'
 
-////  ////
+import { Validate, ValidateContext, ValidateOptions, ValidationError } from '../validator'
 
-const BINARY_COMPARATORS = ['-', '..', '...'] as const
+/* eslint-disable 
+    @typescript-eslint/no-this-alias
+*/
+
+//// Internal Types ////
+
+const BINARY_COMPARATORS = ['..', '...'] as const
+type BinaryComparator = typeof BINARY_COMPARATORS[number]
+const isBinaryComparator = (i: unknown): i is BinaryComparator => BINARY_COMPARATORS.includes(i as BinaryComparator)
+
 const UNARY_COMPARATORS = ['>=', '>', '==', '<', '<='] as const
+type UnaryComparator = typeof UNARY_COMPARATORS[number]
+const isUnaryComparator = (i: unknown): i is UnaryComparator => UNARY_COMPARATORS.includes(i as UnaryComparator)
 
-//// Types ////
+type RangeErrorMessage = (value: number, detail: string, ctx: ValidateContext<number>) => string
 
-interface RangeValidator<T extends Sortable> extends Validator<T, T> {
-    
+interface UnarySettings {
+    readonly comparator: UnaryComparator
+    readonly value: number
+
+    readonly error?: string | RangeErrorMessage
 }
 
-//// Types ////
+interface BinarySettings {
+    readonly comparator: BinaryComparator
+    readonly min: number
+    readonly max: number
 
-type BinaryComparator = typeof BINARY_COMPARATORS[number]
-type UnaryComparator = typeof UNARY_COMPARATORS[number]
+    readonly error?: string | RangeErrorMessage
+}
 
-type RangeSettings<T extends Sortable> = {
-    readonly min: T
-    readonly max: T
-    readonly comparator?: BinaryComparator
-} | {
-    readonly value: T
-    readonly comparator: UnaryComparator
+//// External Types ////
+
+type RangeSettings = UnarySettings | BinarySettings
+function toRangeSettings(signature: RangeSettingsSignature): RangeSettings {
+    const [ a1, a2, a3 ] = signature
+
+    if (isObject<RangeSettings>(a1) || isFunction<RangeValidator>(a1))
+        return a1
+    
+    if (isUnaryComparator(a1))
+        return { value: a2 as number, comparator: a1 }
+
+    if (isBinaryComparator(a2))
+        return { min: a1, max: a3 as number, comparator: a2 }
+
+    return { min: a1, max: a2 as number, comparator: '..' }
 }
  
-////  ////
+type RangeSettingsSignature = 
+    [RangeSettings] | 
+    [UnaryComparator, number] | 
+    [number, BinaryComparator, number] | [number, number]
 
-function createRangeTest<T extends Sortable>(
-    settings: RangeSettings<T>
-): (input: T) => string | nil {
+type RangeValidator = Validate<unknown, number> & RangeSettings
 
-    const PASS = nil
+//// Operators ////
 
-    switch (settings.comparator) {
-
-        case '<': {
-            const { value } = settings 
-            return input => input < value
-                ? PASS
-                : `below ${value}`
-        }
-
-        case '<=': {
-            const { value } = settings
-            return input => input <= value
-                ? PASS
-                : `equal or below ${value}`
-        }
-
-        case '==': {
-            const { value } = settings
-            return input => input === value
-                ? PASS
-                : `equal ${value}`
-        }
-
-        case '>': {
-            const { value } = settings
-            return input => input > value
-                ? PASS
-                : `above ${value}`
-        }
-
-        case '>=':
-            const { value } = settings
-            return input => input >= value
-                ? PASS
-                : `above or equal ${value}`
-
-        case '...': {
-            const { min, max } = settings
-            return input => input >= min && input <= max
-                ? PASS
-                : `from ${min} to ${max}`
-        }
-
-        default: {
-            const { min, max } = settings
-            return input => input >= min && input < max
-                ? PASS
-                : `from ${min} to less than ${max}`
-        }
+const unary = {
+    compare: {
+        '<': (a: number, b: number) => a < b,
+        '<=': (a: number, b: number) => a <= b,
+        '==': (a: number, b: number) => a === b,
+        '>': (a: number, b: number) => a > b,
+        '>=': (a: number, b: number) => a >= b,
+    },
+    detail: {
+        '<': (value: number) => `below ${value}`,
+        '<=': (value: number) => `equal or below ${value}`,
+        '==': (value: number) => `equal ${value}`,
+        '>': (value: number) => `above ${value}`,
+        '>=': (value: number) => `above or equal ${value}`,
     }
+}
+
+const binary = {
+    compare: {
+        '..': (v: number, min: number, max: number) => v >= min && v < max,
+        '...': (v: number, min: number, max: number) => v >= min && v <= max
+    },
+    detail: {
+        '..': (min: number, max: number) => `between ${min} and ${max}`,
+        '...': (min: number, max: number) => `from ${min} to ${max}`
+    }
+}
+
+//// Details ////
+
+function assertRange(this: RangeSettings, input: number, ctx?: ValidateOptions): number {
+
+    const context: ValidateContext<number> = { path: [], transform: true, ...ctx, input }
+
+    const settings = this
+    const isUnary = 'value' in settings
+    
+    const pass = isUnary
+        ? unary.compare[settings.comparator](input, settings.value)
+        : binary.compare[settings.comparator](input, settings.min, settings.max)
+
+    if (!pass) {
+        const detail = isUnary 
+            ? unary.detail[settings.comparator](settings.value)
+            : binary.detail[settings.comparator](settings.min, settings.max)
+
+        throw new ValidationError(
+            input, 
+            context, 
+            isFunction(this.error) 
+                ? this.error(input, detail, context) 
+                : this.error ?? `must be ${detail}`
+        )
+    }
+
+    return input
 }
 
 //// Exports ////
 
-export function range<T extends Sortable>(min: T, comparator: BinaryComparator, max: T): RangeValidator<T>
-export function range<T extends Sortable>(min: T, max: T): RangeValidator<T>
-export function range<T extends Sortable>(comparator: UnaryComparator, value: T): RangeValidator<T>
-export function range<T extends Sortable>(settings: RangeSettings<T>): RangeValidator<T>
+export function range(min: number, comparator: BinaryComparator, max: number): RangeValidator
+export function range(min: number, max: number): RangeValidator
+export function range(comparator: UnaryComparator, value: number): RangeValidator
+export function range(settings: RangeSettings): RangeValidator
+export function range(
+    ...args: RangeSettingsSignature
+): RangeValidator {
+    return extend(assertRange, toRangeSettings(args)) as Extended<Validate<unknown, number>, RangeSettings>
+}   
 
-export function range<T extends Sortable>(
-    ...args: [RangeSettings<T>]  | [T, UnaryComparator] | [T, BinaryComparator, T] | [T, T]
-): RangeValidator<T>
+export {
+    RangeValidator,
 
- 
+    toRangeSettings,
+    RangeSettings,
+
+    RangeSettingsSignature,
 }

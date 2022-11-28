@@ -46,7 +46,7 @@ type ValidatorExtended<V extends ValidatorSettings<any, any>> = Empty extends _S
     
 //// Validate ////
 
-const validate = extendable(function validate(
+function validate(
 
     this: ValidatorSettings<unknown, unknown>, 
     input: unknown, 
@@ -82,15 +82,18 @@ const validate = extendable(function validate(
     }
 
     return output
-})
+}
 
 //// Main ////
 
-function validator<V extends ValidatorSettings<unknown, any>>(settings: V): ValidatorExtended<V>
+function validator<V extends Validate<unknown, any>>(validator: V): V
+function validator<S extends ValidatorSettings<unknown, any>>(settings: S): ValidatorExtended<S>
 function validator<I, O extends I = I>(settings: ValidatorSettings<I, O>): Validator<I, O> 
 
-function validator(settings: ValidatorSettings<unknown, unknown>): Validator<unknown, unknown> {
-    return validate.extend(settings)
+function validator(
+    validatorOrSettings: Validate<unknown, unknown> | ValidatorSettings<unknown, unknown>
+): Validator<unknown, unknown> {
+    return extendable(validate).extend(validatorOrSettings)
 }
 
 //// Exports ////

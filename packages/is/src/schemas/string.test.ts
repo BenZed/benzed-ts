@@ -7,12 +7,9 @@ it('validates strings', () => {
 it('trims', () => {
 
     const $string = string
-        .dashCase()
         .trim()
-        .startsWith('/')
-        .contains('@')
-        .asserts(str => str.charAt(5) !== '&', '6th characters cannot be ampersand', 'no-5th-&')
 
-    console.log($string)
-
+    expect($string(' ace ')).toEqual('ace')
+    expect(() => $string.assert(' ace ')).toThrow('must not have whitespace')
 })
+

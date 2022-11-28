@@ -239,10 +239,9 @@ it('combining extendables', () => {
             return this.bar
         })
 
-    const foobar = foo
-        .extend(bar)
+    const foobar = foo.extend(bar)
 
-    expect(foobar()).toEqual('ace')
+    expect(foobar()).toEqual('bar')
 })
 
 it('extended object get inferred this context', () => {
