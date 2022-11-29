@@ -92,6 +92,14 @@ describe('.getCollection()', () => {
 
 })
 
+describe('createCommands()', () => {
+
+    it('creates a series of commands for each collection method of a collection', () => {
+        const [get, find, create, update, remove] = mongoDb.createRecordCommands('cake')
+    })
+
+})
+
 describe('module validation', () => {
 
     it('must be single', () => {
@@ -103,3 +111,4 @@ describe('module validation', () => {
     })
 
 })
+

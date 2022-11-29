@@ -157,17 +157,17 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
     }
 
     //// Builder Methods ////
-    
+
     /**
      * Provide a url as a tempate string, where interpolated object keys will fill in url parameters
      */
     setUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<T>[]): RequestHandler<T> 
-    
+        
     /**
      * Provide a simple static path
      */
     setUrl(path: Path): RequestHandler<T> 
-
+     
     /**
      * Provider pather functions for creating/parsing paths
      */
@@ -206,7 +206,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
     /** 
      * Sets the schema for this request handler
      */
-    setSchema(schema: Schematic<T>): RequestHandler<T> {
+    setSchema(schema: Schematic<T> | nil): RequestHandler<T> {
         return new RequestHandler(this.method, this._path, this._headers, schema, this.queryKey)
     }
 

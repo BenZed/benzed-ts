@@ -6,7 +6,7 @@ import { Chain, chain, Link, nil } from '@benzed/util'
 
 import CommandModule from './command-module'
 
-import { HttpMethod, Path, Request, RequestHandler as Req } from '../util'
+import { HttpMethod, Path, Request, RequestHandler as Req, UrlParamKeys } from '../util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -19,10 +19,10 @@ import { HttpMethod, Path, Request, RequestHandler as Req } from '../util'
  * Command without build interface
  */
 export type RuntimeCommand<I extends object> = 
-    Omit<Command<string, I, object>, 'useHook'>
+    Omit<Command<string, I, object>, 'useHook' | 'useName' | 'useReq' | 'useUrl' | 'useProvide'>
 
 export type CommandHook<I extends object, O extends object> =
-    ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O> 
+    ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O>
 
 type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 
@@ -71,13 +71,18 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             isNamed
                 ? args
                 : ['create', ...args]
-        ) as [string | undefined, HttpMethod | undefined, Path | undefined]
+        ) as [string | nil, HttpMethod | nil, Path | nil]
 
         const req = Req
             .create(method)
             .setUrl(path)
 
-        return new Command(name, schema, nil, req)
+        return new Command(
+            name, 
+            schema, 
+            schema.validate, 
+            req
+        )
     }
 
     /**
@@ -156,32 +161,21 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     private constructor(
         name: N,
-        schema: Schematic<I>,
-        hook: CommandHook<I, O> | nil,
-        private readonly _reqHandler: Req<I>
+        protected readonly _schema: Schematic<I> | nil,
+        hook: CommandHook<I, O>,
+        protected readonly _reqHandler: Req<I>
     ) {
         super(name)
-
-        this._schema = schema
-        this._hooks = (hook ? chain(hook) : chain()) as Chain<I,O>
+        this._execute = chain(hook)
     }
 
-    protected readonly _schema: Schematic<I>
-
-    protected readonly _hooks: Chain<I,O>
-
-    protected _execute(input: I): O | Promise<O> {
-
-        const validated = this._schema.validate(input)
-
-        return (this._hooks?.(validated) ?? validated) as O
-    }
+    protected readonly _execute: Chain<I,O> 
 
     protected override get _copyParams(): unknown[] {
         return [
             this.name,
             this._schema,
-            this._hooks,
+            this._execute,
             this._reqHandler
         ]
     }
@@ -211,25 +205,37 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Add a hook to this command
      */
-    useHook<Ox extends object>(hook: CommandHook<O, Ox>): Command<N, I, Ox> {
+    useHook<Ox extends object>(hook: CommandHook<O, Ox> | Command<string, O, Ox>): Command<N, I, Ox> {
+
+        const _hooks = '_execute' in hook 
+            ? hook._execute 
+            : hook
+
         return new Command(
             this.name,
             this._schema,
-            this._hooks.link(hook),
+            this._execute.link(_hooks),
             this._reqHandler
         )
     }
 
     /**
-     * Mutate the existing request handler for this command
+     * Change the name of this command
      */
-    useReq(update: (req: Req<I>) => Req<I>): Command<N, I, O>
+    useName<Nx extends string>(name: Nx): Command<Nx, I, O> {
+        return new Command(
+            name,
+            this._schema,
+            this._execute,
+            this._reqHandler
+        )
+    }
 
     /**
-     * Change the request handler for this command
+     * Update or change the existing request handler for this command
      */
+    useReq(update: (req: Req<I>) => Req<I>): Command<N, I, O>
     useReq(reqHandler: Req<I>): Command<N, I, O> 
-    
     useReq(input: Req<I> | ((req: Req<I>) => Req<I>)): Command<N,I,O> {
 
         const reqHandler = is.function(input) 
@@ -239,11 +245,19 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         return new Command(
             this.name,
             this._schema,
-            this._hooks,
-            reqHandler
+            this._execute,
+            reqHandler.setSchema(this._schema)
         )
     }
 
+    /**
+     * Shortcut to useReq(req => req.useUrl)
+     */
+    useUrl(url: Path): Command<N,I,O>
+    useUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<I>[]): Command<N,I,O>
+    useUrl(...args: unknown[]): unknown {
+        return this.useReq((r: any) => r.setUrl(...args))
+    }
 }
 
 //// Exports ////

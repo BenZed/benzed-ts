@@ -6,8 +6,8 @@ import Auth from '../auth'
 
 //// Hook ////
 
-const toUser = <I extends object, O extends { user: object }>(): CommandHook<I,O> => 
-    function (this: RuntimeCommand<I>, input: I) {
+const provideUser = <I extends object, U extends object>(): CommandHook<I, I & { user: U }> => 
+    function (input: I) {
 
         const auth = this.getModule(Auth, true, 'parents')
 
@@ -19,8 +19,8 @@ const toUser = <I extends object, O extends { user: object }>(): CommandHook<I,O
 
 //// Exports ////
 
-export default toUser
+export default provideUser
 
 export {
-    toUser
+    provideUser
 }
