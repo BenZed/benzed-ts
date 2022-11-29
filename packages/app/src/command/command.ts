@@ -207,14 +207,14 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      */
     useHook<Ox extends object>(hook: CommandHook<O, Ox> | Command<string, O, Ox>): Command<N, I, Ox> {
 
-        const _hooks = '_execute' in hook 
-            ? hook._execute 
+        const execute = '_execute' in hook
+            ? hook.useSchema(nil)._execute
             : hook
 
         return new Command(
             this.name,
             this._schema,
-            this._execute.link(_hooks),
+            this._execute.link(execute),
             this._reqHandler
         )
     }
@@ -266,13 +266,23 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     useSchema(schema: SchemaFor<I> | nil): Command<N, I, O> {
 
-        const newLinks = this._execute.links.filter(link => link !== this._schema?.validate)
-        const newExecute = chain(...newLinks) as Chain<I,O>
+        const executeWithoutOldSchemaValidate = chain(
+            ...this._execute
+                .links
+                .filter(link => link !== this._schema?.validate)
+        ) as Chain<I,O>
+
+        const executeWithNewSchemaValidate = schema 
+
+            ? chain(schema.validate)    
+                .link(executeWithoutOldSchemaValidate)
+
+            : executeWithoutOldSchemaValidate
 
         return new Command(
             this.name, 
             schema, 
-            newExecute, 
+            executeWithNewSchemaValidate, 
             this._reqHandler
         )
     }
