@@ -1,8 +1,8 @@
 import is from '@benzed/is'
 import { pluck } from '@benzed/array'
-import { Schematic } from '@benzed/schema'
-import { toDashCase } from '@benzed/string'
+import { SchemaFor, Schematic } from '@benzed/schema'
 import { Chain, chain, Link, nil } from '@benzed/util'
+import { toDashCase } from '@benzed/string'
 
 import CommandModule from './command-module'
 
@@ -161,15 +161,19 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     private constructor(
         name: N,
-        protected readonly _schema: Schematic<I> | nil,
-        hook: CommandHook<I, O>,
-        protected readonly _reqHandler: Req<I>
+        schema: Schematic<I> | nil,
+        execute: CommandHook<I, O>,
+        reqHandler: Req<I>
     ) {
         super(name)
-        this._execute = chain(hook)
+        this._execute = chain(execute)
+        this._schema = schema
+        this._reqHandler = reqHandler.setSchema(schema)
     }
 
+    protected readonly _schema: Schematic<I> | nil
     protected readonly _execute: Chain<I,O> 
+    protected readonly _reqHandler: Req<I>
 
     protected override get _copyParams(): unknown[] {
         return [
@@ -184,10 +188,6 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     
     get method(): HttpMethod {
         return this._reqHandler.method
-    }
-
-    override get methods(): [HttpMethod] {
-        return [this.method]
     }
 
     //// Request Interface ////
@@ -246,17 +246,35 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             this.name,
             this._schema,
             this._execute,
-            reqHandler.setSchema(this._schema)
+            reqHandler
         )
     }
 
     /**
-     * Shortcut to useReq(req => req.useUrl)
+     * Shortcut to useReq(req => req.setUrl)
      */
-    useUrl(url: Path): Command<N,I,O>
-    useUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<I>[]): Command<N,I,O>
-    useUrl(...args: unknown[]): unknown {
-        return this.useReq((r: any) => r.setUrl(...args))
+    useUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<I>[]): Command<N,I,O> {
+        return this.useReq(r => r.setUrl(urlSegments, ...urlParamKeys))
+    }
+
+    /**
+     * Shortcut to useReq(req => req.setMethod)
+     */
+    useMethod(method: HttpMethod): Command<N, I, O> {
+        return this.useReq(r => r.setMethod(method))
+    }
+
+    useSchema(schema: SchemaFor<I> | nil): Command<N, I, O> {
+
+        const newLinks = this._execute.links.filter(link => link !== this._schema?.validate)
+        const newExecute = chain(...newLinks) as Chain<I,O>
+
+        return new Command(
+            this.name, 
+            schema, 
+            newExecute, 
+            this._reqHandler
+        )
     }
 }
 

@@ -52,9 +52,9 @@ abstract class CommandModule<
     }
 
     /**
-     * Get a list of http methods this command may use for cors/options reasons 
+     * for cors options / reasons 
      */
-    abstract get methods(): HttpMethod[]
+    abstract get method(): HttpMethod
 
     abstract toRequest(input: I): Request
 
