@@ -12,7 +12,7 @@ export default (): boolean | Promise<void> => ensureMongoDbInstance({
     isRunning: true,
 
     clean: true,
-    log: true,
+    log: false,
 
     port: DEFAULT_MONGODB_PORT,
     cluster: 'test'

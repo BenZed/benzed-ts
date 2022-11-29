@@ -1,19 +1,35 @@
 import os from 'os'
 
+import path from 'path'
+
 import {
     spawn,
     exec,
     ChildProcessWithoutNullStreams
 } from 'child_process'
 
-import { createLogger, toNil, toVoid } from '@benzed/util'
-import path from 'path'
+import { createLogger, toVoid } from '@benzed/util'
+import fs from '@benzed/fs'
 
 //// Constants ////
 
 const IS_WIN = os.platform() === 'win32'
 
-const ROOT_DIR = process.cwd()
+const CWD = process.cwd()
+
+const ROOT_DIR_NAME = 'benzed-ts'
+
+const ROOT_DIR = __dirname.substring(0, __dirname.indexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
+if (!ROOT_DIR.includes(ROOT_DIR_NAME) || !fs.sync.exists(ROOT_DIR))
+    throw new Error(`Could not find ${ROOT_DIR_NAME} directory.`)
+
+const SHX = path.relative(
+    CWD,
+    path.resolve(ROOT_DIR, 'node_modules/.bin/shx')
+)
+if (!fs.sync.exists(SHX))
+    throw new Error(`${__filename} could not find shx command`)
+
 const DEFAULT_MONGO_DB_PORT = 27017
 const PROTECTED_CLUSTERS = ['production'] // in case a local machine is used to run production
 const MONGO_CMD = IS_WIN
@@ -21,7 +37,7 @@ const MONGO_CMD = IS_WIN
     : 'mongod'
 
 const KILL_MONGO_CMD = IS_WIN
-    ? `taskkill /F /IM ${MONGO_CMD}`
+    ? 'TASKKILL /F /IM mongod.exe'
     : `killall ${MONGO_CMD}`
 
 const CHECK_PORT_CMD = IS_WIN
@@ -51,6 +67,7 @@ type EnsureMongoDbInstanceOptions = ({
     isRunning: false
 
 }) & {
+
     log?: boolean | 'process'
 }
 
@@ -61,9 +78,8 @@ let mongoProcess: ChildProcessWithoutNullStreams | null = null
 //// Helper ////
 
 function execute(cmd: string): Promise<string> {
-
     return new Promise((resolve, reject) => {
-        exec(cmd, { cwd: ROOT_DIR }, (err, output) => {
+        exec(cmd, { cwd: CWD }, (err, output) => {
             if (err)
                 reject(err)
             else
@@ -113,15 +129,23 @@ function killMongoProcess(): Promise<void> {
 
     if (mongoProcess) {
         return new Promise(resolve => {
-            mongoProcess?.kill()
+            
+            mongoProcess?.stdout.destroy()
+            mongoProcess?.stdin.destroy()
+            mongoProcess?.kill('SIGTERM')
             mongoProcess?.once('close', resolve)
+            mongoProcess?.once('error', resolve)
+        
             mongoProcess = null
         })
 
         // ensure there is no mongodb process started elsewhere
     } else {
         return execute(KILL_MONGO_CMD)
-            .catch(toVoid)
+            .catch(e => {
+                if (e.message.includes('Access denied'))
+                    return Promise.reject(e)
+            })
             .then(toVoid)
     }
 }
@@ -151,7 +175,7 @@ async function untilPortFree(port: number): Promise<void> {
 //// Main ////
 
 async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promise<void> {
-
+    
     const options = defaultifyOptions(input)
 
     const log = createLogger({
@@ -162,8 +186,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     })
 
     log`Ensuring mongodb ${options.isRunning
-        ? `is running ${options.clean ? 'clean ' : ''}` +
-        `on port ${options.port} for cluster "${options.cluster}"`
+        ? `is running ${options.clean ? 'clean ' : ''}` + `on port ${options.port} for cluster "${options.cluster}"`
         : 'is not running'}`
 
     if (isMongoProcessInCorrectState(options))
@@ -189,20 +212,20 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
 
     if (clean) {
         log`Removing existing "${cluster}" cluster data.`
-        await execute(`rm -rf ./storage/${cluster}`)
+        await execute(`${SHX} rm -rf ./storage/${cluster}`).catch(toVoid)
     }
 
-    await execute('shx mkdir ./storage').catch(toNil)
-    await execute(`shx mkdir ./storage/${cluster}`).catch(toNil)
-    await execute(`shx mkdir ./storage/${cluster}/db`).catch(toNil)
-    await execute(`shx mkdir ./storage/${cluster}/files`).catch(toNil)
+    await execute(`${SHX} mkdir ./storage`).catch(toVoid)
+    await execute(`${SHX} mkdir ./storage/${cluster}`).catch(toVoid)
+    await execute(`${SHX} mkdir ./storage/${cluster}/db`).catch(toVoid)
+    await execute(`${SHX} mkdir ./storage/${cluster}/files`).catch(toVoid)
 
     log`Starting mongodb "${cluster}" cluster on port ${port}`
 
     await new Promise<void>((resolve, reject) => {
 
         mongoProcess = spawn(MONGO_CMD, [
-            '--dbpath', `"${ROOT_DIR}/storage/${cluster}/db"`,
+            '--dbpath', path.join(CWD, 'storage', cluster, 'db'),
             '--port', port.toString()
         ])
 
