@@ -1,5 +1,5 @@
 import { memoize } from './memoize'
-import { isPrime } from '../../math/src'
+import { isPrime } from '../../../math/src'
 
 it('memoize()', () => {
 

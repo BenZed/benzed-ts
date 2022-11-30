@@ -1,4 +1,4 @@
-import { isArrayLike, isIterable, Empty } from './types'
+import { isArrayLike, isIterable, Empty } from '../types'
 
 //// Helper ////
 

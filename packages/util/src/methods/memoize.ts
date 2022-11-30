@@ -20,6 +20,9 @@ function trimCacheToSize(
     }
 }
 
+/**
+ * Resolve memoize option arguments into a memoize options object
+ */
 function resolveOptions<F extends Func>(
     func: F, 
     options?: string | number | MemoizeOptions<F>

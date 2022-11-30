@@ -1,5 +1,4 @@
 import { LinkedItem, LinkedList } from './linked-list'
-import { Stack } from './stack'
 
 //// Tests ////
 
@@ -251,7 +250,7 @@ describe('LinkedList.from', () => {
     it('creates linked lists from arraylikes', () => {
 
         const linkedList = LinkedList.from(
-            new Stack(true, false)
+            { length: 2, 0: true, 1: false }
         )
 
         expect([...linkedList.values()])

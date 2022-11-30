@@ -1,5 +1,5 @@
-import { Keys } from './types'
-import { keysOf } from '../iterate'
+import { Keys, } from './types'
+import { keysOf } from '../methods'
 
 //// Helper ////
 

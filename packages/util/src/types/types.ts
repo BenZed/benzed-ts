@@ -159,3 +159,13 @@ const Type = Symbol('required-target-type')
 export type Invalid<msg extends string = 'This is an invalid type.', T = never> = T extends never 
     ? { [InvalidTypeError]: msg }
     : { [InvalidTypeError]: msg, [Type]: T }
+
+export interface Stack<T> extends Iterable<T> {
+
+    [index: number]: T
+
+    push: Array<T>['push']
+    
+    pop: Array<T>['pop']
+    
+}
