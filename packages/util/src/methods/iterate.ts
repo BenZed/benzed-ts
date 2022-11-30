@@ -1,22 +1,6 @@
-import { Empty } from './types'
+import { isArrayLike, isIterable, Empty } from './types'
 
 //// Helper ////
-
-function isIterable<T>(input: unknown): input is Iterable<T> {
-
-    const type = typeof input
-
-    return type === 'string' ||
-
-        (
-            type === 'function' || 
-            type === 'object' && 
-            input !== null
-        ) && 
-
-        typeof (input as Iterable<T>)[Symbol.iterator] === 'function'
-
-}
 
 /**
  * Typesafe iteration of the keys of given object.
@@ -35,9 +19,13 @@ function * indexesOf<T extends ArrayLike<unknown>>(arrayLike: T): Generator<numb
 }
 
 function numKeys(object: object): number {
-    return [
-        ...keysOf(object)
-    ].length
+    let count = 0
+
+    const keyIterator = keysOf(object)
+    while (!keyIterator.next().done)
+        count++ 
+
+    return count
 }
 
 function isEmpty(object: object): object is Empty {
@@ -58,7 +46,7 @@ function* iterate<T>(
 
 ): Generator<T> {
 
-    if (typeof object === 'string' || 'length' in object) {
+    if (isArrayLike<T>(object)) {
 
         // ArrayLike<T>
         for (const index of indexesOf(object as { length: number }))
@@ -84,7 +72,6 @@ export default iterate
 
 export {
     iterate,
-    isIterable,
 
     keysOf,
     numKeys,

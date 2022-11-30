@@ -1,5 +1,5 @@
 
-import { returns } from './returns'
+import { returns } from '../returns'
 
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type

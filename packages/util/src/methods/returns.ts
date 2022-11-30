@@ -2,7 +2,7 @@
 //// Implementation ////
 
 /**
- * get a memoized method that returns this given input
+ * get a memoized method that returns the given input
  */
 export function returns<T>(value: T): () => T {
     if (!returns.cache.has(value))
@@ -38,7 +38,7 @@ export const toNull = returns(null)
 /**
  * input to output
  */
-export const through = <T>(i:T): T => i
+export const through = <T>(i: T): T => i
 export {
     through as io,
     through as inputToOutput

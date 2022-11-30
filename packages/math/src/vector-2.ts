@@ -1,7 +1,7 @@
 import lerp from './lerp'
 
 import { $$copy, $$equals } from '@benzed/immutable'
-import { is } from '@benzed/is'
+import { isString, isArray, isObject, isNumber } from '@benzed/util'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'
@@ -80,18 +80,18 @@ class V2 {
 
         let x, y
 
-        if (is.string(args[0]))
+        if (isString(args[0]))
             args = args[0].split(',').map(parseFloat) as [number, number]
 
-        else if (is.array(args[0]))
+        else if (isArray(args[0]))
             args = args[0]
 
-        else if (is.object(args[0])) {
+        else if (isObject<{ x: number, y: number }>(args[0])) {
             x = args[0].x
             y = args[0].y
         }
 
-        if (is.array.of.number(args))
+        if (isArray(args, isNumber))
             [x, y] = args
 
         this.x = x ?? 0
@@ -245,39 +245,45 @@ interface V2Utility {
  * Different from V2.from, this method will always create a new V2 instnace, weather or
  * not it receives one as input.
  */
-const v2 = ((...args: V2ConstructorSignature): V2 => new V2(...args)) as V2Utility
 
-Object.defineProperties(v2, {
-    zero: {
-        get() {
-            return V2.ZERO
-        }, enumerable: true
-    },
-    up: {
-        get() {
-            return V2.UP
+const v2 = Object.defineProperties(
+    (...args: V2ConstructorSignature): V2 => new V2(...args), 
+    {
+
+        zero: {
+            get() {
+                return V2.ZERO
+            }, enumerable: true
         },
-        enumerable: true
-    },
-    right: {
-        get() {
-            return V2.RIGHT
+
+        up: {
+            get() {
+                return V2.UP
+            },
+            enumerable: true
         },
-        enumerable: true
-    },
-    down: {
-        get() {
-            return V2.DOWN
+
+        right: {
+            get() {
+                return V2.RIGHT
+            },
+            enumerable: true
         },
-        enumerable: true
-    },
-    left: {
-        get() {
-            return V2.LEFT
+
+        down: {
+            get() {
+                return V2.DOWN
+            },
+            enumerable: true
         },
-        enumerable: true
-    },
-})
+
+        left: {
+            get() {
+                return V2.LEFT
+            },
+            enumerable: true
+        },
+    }) as V2Utility
 
 //// Exports ////
 

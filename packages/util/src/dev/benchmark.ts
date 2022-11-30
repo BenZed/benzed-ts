@@ -1,10 +1,10 @@
 
+import { Func } from '../types'
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/unified-signatures
 */
-
-import { Func } from './types'
 
 type BenchmarkHandler<T> = (time: number, result: Sync<T>) => void | string
 

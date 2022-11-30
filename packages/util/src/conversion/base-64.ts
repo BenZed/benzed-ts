@@ -1,4 +1,4 @@
-import { IS_NODE } from './constants'
+import { IS_NODE } from '../constants'
 
 /**
  * Convert a base 64 string to a utf-8 string

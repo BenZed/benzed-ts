@@ -1,4 +1,4 @@
-import { Map as Link } from '../types'
+import { intersect, Map as Link } from './types'
 
 //// Types ////
 
@@ -60,7 +60,7 @@ function chain(...links: Link[]): Chain {
 
     links = flattenLinks(links)
 
-    return Object.assign(
+    return intersect(
         function pipe(this: unknown, x: unknown) {
             for (const link of links) 
                 x = this === undefined ? link(x) : link.call(this, x)

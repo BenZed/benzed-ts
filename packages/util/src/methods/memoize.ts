@@ -1,6 +1,6 @@
-import { defineName } from './property'
-import { ValueMap, ValuesMap } from './structures'
-import { Func } from './types'
+import { defineName } from './define-name'
+import { ValueMap, ValuesMap } from '../classes'
+import { Func } from '../types'
 
 // Helper 
 

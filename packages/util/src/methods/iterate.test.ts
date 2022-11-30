@@ -1,4 +1,5 @@
-import { iterate, isIterable } from './iterate'
+import { iterate } from './iterate'
+import { isIterable } from '../types'
 
 describe('isIterable()', () => {
 
