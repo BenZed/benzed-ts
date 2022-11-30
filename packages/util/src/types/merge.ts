@@ -2,10 +2,8 @@
 /**
  * Create an interesection out of an arbitrary number of types
  */
-export type Intersect<T extends readonly object[]> = T extends [infer F, ...infer R]
-    ? R extends readonly object[] 
-        ? F & Intersect<R>
-        : F
+export type Intersect<T extends unknown[] | readonly unknown[]> = T extends [infer F, ...infer R]
+    ? F & Intersect<R>
     : unknown
 
 /**

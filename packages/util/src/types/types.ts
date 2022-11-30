@@ -169,3 +169,5 @@ export interface Stack<T> extends Iterable<T> {
     pop: Array<T>['pop']
     
 }
+
+export type Infer<T> = T extends infer I ? I : never
