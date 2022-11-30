@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
-import { is } from '@benzed/is'
-import { keysOf } from '@benzed/util'
+import { keysOf, isFunction, isIterable, isArrayLike, isObject } from '@benzed/util'
 
 import { $$equals } from './symbols'
 import { isReferable, Prototypal } from './util'
@@ -13,7 +12,7 @@ interface Comparable {
 }
 
 function isComparable(input: unknown): input is Comparable {
-    return is.function((input as Comparable)[$$equals])
+    return isFunction((input as Comparable)[$$equals])
 }
 
 //// Helper ////
@@ -62,7 +61,7 @@ function equalIs<T>(this: T, right: unknown): right is T {
 function equalIterable<T extends Iterable<U>, U>(this: T, right: unknown): right is T {
     const left = this
 
-    if (!is.iterable(right))
+    if (!isIterable(right))
         return false
 
     return compareArrayLikes(
@@ -74,7 +73,7 @@ function equalIterable<T extends Iterable<U>, U>(this: T, right: unknown): right
 function equalArrayLike<T extends ArrayLike<any>>(this: T, right: unknown): right is T {
     const left = this
 
-    if (!is.array.like(right))
+    if (!isArrayLike(right))
         return false
 
     return compareArrayLikes(left, right)
@@ -82,7 +81,7 @@ function equalArrayLike<T extends ArrayLike<any>>(this: T, right: unknown): righ
 
 function equalObject<T extends object>(this: T, right: unknown): right is T {
 
-    if (!is.object(right))
+    if (!isObject(right))
         return false
 
     const left = this
@@ -105,14 +104,14 @@ function equalDate(this: Date, right: unknown): right is Date {
     const left = this
 
     return isReferable(right) &&
-        is.function(right.getTime) &&
+        isFunction(right.getTime) &&
         left.getTime() === right.getTime()
 }
 
 function equalRegExp(this: RegExp, right: unknown): right is RegExp {
     const left = this
 
-    return is.type(right, RegExp) && left.toString() === right.toString()
+    return right instanceof RegExp && left.toString() === right.toString()
 }
 
 //// Add Standard Implementations ////
