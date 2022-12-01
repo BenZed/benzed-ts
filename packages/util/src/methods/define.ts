@@ -14,9 +14,15 @@ interface Define {
      * Shortcut for Object.defineProperty(object, 'name', { value })
      */
     name<T>(object: T, name: string): T
-    descriptorsOf(object:object): PropertyDescriptorMap
+
+    descriptorsOf(object: object): PropertyDescriptorMap
+    descriptorsOf(...objects: object[]): PropertyDescriptorMap
+
     symbolsOf(object: object): symbol[]
+    symbolsOf(...objects: object[]): symbol[]
+
     namesOf(object: object): string[]
+    namesOf(...objects: object[]): string[]
 }
 
 //// Implementation ////
@@ -32,25 +38,30 @@ const define = intersect(
         const [object, definitions] = args.length === 3 
             ? [args[0], { [args[1]]: args[2] }] 
             : args
-    
+
         return Object.defineProperties(object, definitions)
-    }, 'name', { writable: true }),
+
+    }, 'name', { writable: true }), // so it can be over written with the name method
 
     {
         name(object: object, name: string) {
             return Object.defineProperty(object, 'name', { value: name })
         },
 
-        descriptorsOf(object: object) {
-            return Object.getOwnPropertyDescriptors(object)
+        descriptorsOf(...objects: object[]) {
+            return intersect(
+                ...objects.map(
+                    Object.getOwnPropertyDescriptors
+                )
+            )
         },
 
-        symbolsOf(object: object) {
-            return Object.getOwnPropertySymbols(object)
+        symbolsOf(...objects: object[]) {
+            return objects.map(Object.getOwnPropertySymbols).flat()
         },
 
-        namesOf(object: object) {
-            return Object.getOwnPropertyNames(object)
+        namesOf(...objects: object[]) {
+            return objects.map(Object.getOwnPropertyNames).flat()
         }
     }
 
