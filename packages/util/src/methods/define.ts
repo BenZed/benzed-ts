@@ -1,4 +1,6 @@
 
+import { link } from 'fs'
+import chain from '../chain'
 import { intersect } from '../types'
 
 //// Type ////
@@ -31,12 +33,18 @@ const define = intersect(
 
     Object.defineProperty((
         ...args: 
-        [object: object, property: string | number | symbol, definition: PropertyDescriptor] | 
-        [object: object, definitions: PropertyDescriptorMap]
+        [
+            object: object, 
+            property: string | number | symbol, 
+            definition: PropertyDescriptor
+        ] | [
+            object: object, 
+            definitions: PropertyDescriptorMap
+        ]
     ): object => {
 
-        const [object, definitions] = args.length === 3 
-            ? [args[0], { [args[1]]: args[2] }] 
+        const [ object, definitions ] = args.length === 3 
+            ? [ args[0], { [ args[1] ]: args[2] } ] 
             : args
 
         return Object.defineProperties(object, definitions)
@@ -44,6 +52,7 @@ const define = intersect(
     }, 'name', { writable: true }), // so it can be over written with the name method
 
     {
+
         name(object: object, name: string) {
             return Object.defineProperty(object, 'name', { value: name })
         },
@@ -57,12 +66,16 @@ const define = intersect(
         },
 
         symbolsOf(...objects: object[]) {
-            return objects.map(Object.getOwnPropertySymbols).flat()
+            return objects
+                .flatMap(Object.getOwnPropertySymbols)
         },
 
         namesOf(...objects: object[]) {
-            return objects.map(Object.getOwnPropertyNames).flat()
+            return objects
+                .flatMap(Object.getOwnPropertyNames)
+                .filter((x,i,a) => a.findIndex(y => Object.is(x, y)) === i) // unique
         }
+
     }
 
 ) as Define
