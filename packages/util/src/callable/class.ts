@@ -15,7 +15,7 @@ interface Class {
 }
 
 interface CallableSignature<C extends Class> {
-    (this: InstanceType<C>, ...args: any[]): any
+    (this: CallableInstance<C, this>, ...args: any[]): any
 }
 
 type CallableInstance<C extends Class, S extends CallableSignature<C>> = 
@@ -24,12 +24,15 @@ type CallableInstance<C extends Class, S extends CallableSignature<C>> =
 
 type CallableClass<C extends Class, S extends CallableSignature<C>> = 
     // class constructor signature with the callable instance return type
-    (new (...params: ConstructorParameters<C>) => CallableInstance<C, S>) & C
+    (new (...params: ConstructorParameters<C>) => CallableInstance<C,S>) & C
 
 const createCallableInstance = <C extends Class, S extends CallableSignature<C>>(
     signature: S, 
     constructor: C, 
-    instance: InstanceType<C>
+    instance: InstanceType<C>,
+    name: string = 
+    /*   */ constructor.name.charAt(0).toLowerCase() +
+    /*   */ constructor.name.slice(1)
 ): CallableInstance<C,S> => {
    
     const hasThisContext = 'prototype' in signature 
@@ -43,7 +46,7 @@ const createCallableInstance = <C extends Class, S extends CallableSignature<C>>
             // prevents the property assignment from mutating the original input
             : signature.bind(instance),
 
-        signature.name
+        signature.name || name
     ) as S
 
     const callableInstance = define(
@@ -86,7 +89,8 @@ const createCallableClass = <
             return createCallableInstance(
                 signature,
                 constructor,
-                this as InstanceType<C>
+                this as InstanceType<C>,
+                name
             )
         }
     }

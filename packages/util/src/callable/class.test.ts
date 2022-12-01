@@ -8,15 +8,12 @@ import { toNil } from '../types'
 */
 
 const Vector = createCallableClass(
-
     function magnitude () {
         return Math.sqrt(this.x ** 2 + this.y ** 2)
     },
-
     class Vector {
         constructor(public x: number, public y: number) {}
     }
-
 )
 
 it('extends a class to have a call signature', () => {
@@ -140,7 +137,6 @@ it('handles property definition conflicts', () => {
             return this.light
         },
         class {
-
             getLight() {
                 return this.light
             }
@@ -168,6 +164,46 @@ it('does not alter input method', () => {
     expect(foo2.name).toEqual(foo.name)
 
     expect(foo).not.toHaveProperty('bar')
+})
+
+it('can be extended', () => {
+
+    interface Repeater {
+        (times: number): string
+        value: string 
+    }
+
+    interface RepeaterConstructor {
+        create(value: string): Repeater
+        new (value: string): Repeater
+    }
+
+    const Repeater: RepeaterConstructor = createCallableClass(
+        function (times: number) {
+            return this.value.repeat(times)
+        },
+        class {
+            static create(value: string) {
+                return new Repeater(value)
+            }
+            constructor(readonly value: string) {}
+        }
+    )
+
+    const repeater = new Repeater('hey')
+    expect(repeater(2)).toEqual('hey'.repeat(2))
+    
+    expect(Repeater.create('fool')(3)).toEqual('fool'.repeat(3))
+
+    class X2Repeater extends Repeater {
+        constructor(value: string) {
+            super(value.repeat(2))
+        }
+    }
+
+    const x2Repeater = new X2Repeater('holy')
+    expect(x2Repeater(2)).toEqual('holy'.repeat(4))
+
 })
 
 describe('name option', () => {
@@ -202,4 +238,5 @@ describe('name option', () => {
         )
         expect(Bar.name).toBe('Callable')
     })
+
 })
