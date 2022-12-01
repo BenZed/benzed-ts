@@ -1,6 +1,4 @@
 
-import { link } from 'fs'
-import chain from '../chain'
 import { intersect } from '../types'
 
 //// Type ////
