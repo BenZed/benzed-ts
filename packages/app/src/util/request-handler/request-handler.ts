@@ -1,6 +1,6 @@
 import is from '@benzed/is'
 import { isEmpty, nil, StringKeys } from '@benzed/util'
-import { ValidateHook } from '@benzed/schema'
+import { Schematic } from '@benzed/schema'
 
 import { 
     createStaticPather, 
@@ -60,9 +60,9 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Partial<Tx>>
 
-    static create<Tx extends object>(method: HttpMethod, schema: ValidateHook<Tx>): RequestHandler<Tx>
+    static create<Tx extends object>(method: HttpMethod, schema: Schematic<Tx>): RequestHandler<Tx>
 
-    static create(method: HttpMethod, schematic?: ValidateHook<object>): RequestHandler<object> {
+    static create(method: HttpMethod, schematic?: Schematic<object>): RequestHandler<object> {
 
         //                       wtf? by default we're doing a hacky check to see
         //                       if there is a query object schema on the given schema
@@ -99,7 +99,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
             match: HeaderMatch<T>[]
         },
 
-        readonly schema?: ValidateHook<T>,
+        readonly schema?: Schematic<T>,
 
         readonly queryKey?: QueryKey<T>
 
@@ -206,7 +206,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
     /** 
      * Sets the schema for this request handler
      */
-    setSchema(schema: ValidateHook<T> | nil): RequestHandler<T> {
+    setSchema(schema: Schematic<T> | nil): RequestHandler<T> {
         return new RequestHandler(this.method, this._path, this._headers, schema, this.queryKey)
     }
 

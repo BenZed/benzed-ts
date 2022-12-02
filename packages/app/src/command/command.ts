@@ -165,7 +165,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     private constructor(
         name: N,
-        schema: ValidateHook<I> | nil,
+        schema: Schematic<I> | nil,
         execute: CommandHook<I, O>,
         reqHandler: Req<I>
     ) {
@@ -175,7 +175,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         this._reqHandler = reqHandler.setSchema(schema)
     }
 
-    protected readonly _schema: ValidateHook<I> | nil
+    protected readonly _schema: Schematic<I> | nil
     protected readonly _execute: Chain<I,O> 
     protected readonly _reqHandler: Req<I>
 
