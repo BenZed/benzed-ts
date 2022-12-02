@@ -4,9 +4,9 @@ import { Module } from '../module'
 import { HttpMethod, RequestHandler } from '../util'
 import { Command, RuntimeCommand } from './command'
 
-import { omit } from '@benzed/util'
-import match from '@benzed/match'
+import { io, omit } from '@benzed/util'
 import $, { Infer } from '@benzed/schema'
+import match from '@benzed/match'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -96,7 +96,7 @@ describe('static builder pattern', () => {
 
     })
 
-    for (const name of ['create', 'get', 'find', 'delete', 'remove', 'patch', 'edit', 'update', 'options'] as const) {
+    for (const name of ['create', 'get', 'find', 'delete', 'remove', 'patch', 'update', 'options'] as const) {
         describe(`.${name}()`, () => {
 
             const [method] = match(name)
@@ -106,11 +106,10 @@ describe('static builder pattern', () => {
                 .case('delete', HttpMethod.Delete)
                 .case ('remove', HttpMethod.Delete)
                 .case('patch', HttpMethod.Patch)
-                .case('edit', HttpMethod.Patch)
                 .case('update', HttpMethod.Put)
                 .case('options', HttpMethod.Options)
 
-            const cmd = (Command as any)[name]($todo)
+            const cmd = (Command as any)[name](io) as Command<typeof name, object, object>
 
             it(`name == ${name}`, () => {
                 expect(cmd.name).toEqual(name)
@@ -238,4 +237,38 @@ describe('name', () => {
         expectTypeOf<KillOrphansName>().toEqualTypeOf<'killOrphans'>()
     })
 
+})
+
+describe('hook instead of schema', () => {
+
+    it('allows non-validated commands to be created', () => {
+
+        const cmd = Command.get((i: { input: string }) => ({ ...i, foo: 'bar' }))
+
+        expect(cmd.execute({ input: 'hello' })).toEqual({ 
+            foo: 'bar', 
+            input: 'hello' 
+        })
+
+        expect(cmd.toRequest({ input: 'x' })).toEqual({ 
+            url: '/?input=x',
+            method: HttpMethod.Get,
+        })
+    })
+
+})
+
+describe('shape schema input', () => {
+
+    it('allows slightly nicer validation syntax', () => {
+
+        const cmd = Command.get({
+            x: $.number,
+            y: $.number
+        }).useHook(({ x,y }) => ({ magnitude:  Math.sqrt(x ** 2 + y ** 2)}))
+
+        expect(cmd.execute({ x: 0, y: 10 }))
+            .toEqual({ magnitude: 10 })
+
+    })
 })

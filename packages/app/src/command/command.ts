@@ -1,6 +1,6 @@
 import is from '@benzed/is'
 import { pluck } from '@benzed/array'
-import { SchemaFor, Schematic } from '@benzed/schema'
+import $, { SchemaFor, Schematic } from '@benzed/schema'
 import { Chain, chain, Link, nil } from '@benzed/util'
 import { toDashCase } from '@benzed/string'
 
@@ -15,11 +15,20 @@ import { HttpMethod, Path, Request, RequestHandler as Req, UrlParamKeys } from '
 
 //// Types ////
 
+type ShapeSchemaInput<T> = {
+    [K in keyof T]: SchemaFor<T[K]>
+}
+
+type ValidateHook<T extends object> = Schematic<T> | ShapeSchemaInput<T>
+
 /**
  * Command without build interface
  */
 export type RuntimeCommand<I extends object> = 
-    Omit<Command<string, I, object>, 'useHook' | 'useName' | 'useReq' | 'useUrl' | 'useProvide'>
+    Omit<
+    Command<string, I, object>,
+    'useHook' | 'useName' | 'useReq' | 'useUrl' | 'useProvide'
+    >
 
 export type CommandHook<I extends object, O extends object> =
     ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O>
@@ -28,41 +37,61 @@ type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 
 type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
+//// Types ////
+
+const isSchematic = <T extends object>(input: unknown): input is ValidateHook<T> => 
+    is.object<Partial<Schematic<T>>>(input) && 
+    is.function(input.validate) && 
+    is.function(input.assert) && 
+    is.function(input.is)
+
+const toSchematicAndValidate = <T extends object>(input: ValidateHook<T>): [Schematic<T>, Schematic<T>['validate']] => {
+    const schematic = (isSchematic(input) ? input : $(input)) as Schematic<T>
+    return [schematic, schematic.validate]
+}
+
 //// Command ////
 class Command<N extends string, I extends object, O extends object> extends CommandModule<N, I, O> {
 
     //// Static Interface ////
-
+    
     /**
      * Create a new generic command
-     * @param name - Name of the command, must be dash-cased.
-     * @param schema - Validate incoming idata
-     * @param method - Http method this command maps to
-     * @param path - url endpoint this command maps to
-     * @returns new Command
      */
+    static create<Nx extends string, Ix extends object, Ox extends object>(
+        name: Nx,
+        execute: CommandHook<Ix, Ox>,
+        method?: HttpMethod,
+        path?: Path
+    ): Command<Nx, Ix, Ox>
     static create<Nx extends string, Ix extends object>(
         name: Nx,
-        schema: Schematic<Ix>,
+        validate: ValidateHook<Ix>,
         method?: HttpMethod,
         path?: Path
     ): Command<Nx, Ix, Ix>
 
     /**
      * Convience method for defining a POST command named 'create'
-     * @param schema - Validate incoming idata
-     * @returns - new POST Command
      */
+    static create<Ix extends object, Ox extends object>(
+        execute: CommandHook<Ix, Ox>,
+    ): Command<'create', Ix, Ox>
     static create<Ix extends object>(
-        schema: Schematic<Ix>,
+        validate: ValidateHook<Ix>,
     ): Command<'create', Ix, Ix>
 
     static create(...args: unknown[]) {
 
         const isNamed = is.string(args[0])
+        const [ cmdOrValidate ] = pluck(args, (i: unknown): i is ValidateHook<object> | CommandHook<object,object> =>
+            is.function(i) || is.object(i)
+        )
 
-        const [ schema ] = pluck(args, is.object) as [ Schematic<object> ]
-
+        const [schema, execute] = is.object(cmdOrValidate)
+            ? toSchematicAndValidate(cmdOrValidate as ValidateHook<object>)
+            : [nil, cmdOrValidate]
+        
         const [
             name = 'create', 
             method = HttpMethod.Post, 
@@ -73,95 +102,70 @@ class Command<N extends string, I extends object, O extends object> extends Comm
                 : ['create', ...args]
         ) as [string | nil, HttpMethod | nil, Path | nil]
 
-        const req = Req
-            .create(method)
-            .setUrl(path)
-
         return new Command(
             name, 
             schema, 
-            schema.validate, 
-            req
+            execute, 
+            Req.create(method).setUrl(path)
         )
     }
 
     /**
-     * Convience interface for defining a GET command named 'get'
-     * @param schema - Validate incoming idata
-     * @returns new GET Command
+     * Create a new GET command named 'get'
      */
-    static get = <Ix extends object>(
-        schema: Schematic<Ix>,
-    ) => this.create('get', schema, HttpMethod.Get, '/')
+    static get<Ix extends object>(validate: ValidateHook<Ix>): Command<'get', Ix, Ix>
+    static get<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'get', Ix, Ox>
+    static get(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('get', input as ValidateHook<object>, HttpMethod.Get, '/') 
+    }
 
     /**
-     * Convience interface for defining a GET command named 'find'
-     * @param schema - Handle command input to output
-     * @returns new GET Command
+     * Create a new GET command named 'find'
      */
     static find = <Ix extends object>(
-        schema: Schematic<Ix>,
+        schema: ValidateHook<Ix>,
     ) => this.create('find', schema, HttpMethod.Get, '/')
 
     /**
-     * Convience interface for defining a DELETE command named 'delete'
-     * @param schema - Validate incoming idata
-     * @returns new DELETE Command
+     * Create a new DELETE command named 'delete'
      */
     static delete = <Ix extends object>(
-        schema: Schematic<Ix>,
+        schema: ValidateHook<Ix>,
     ) => this.create('delete', schema, HttpMethod.Delete, '/')
-        
+
     /**
-     * Convience interface for defining a DELETE command named 'remove'
-     * @param schema - validate incoming data
-     * @returns new DELETE Command
+     * Create a new DELETE command named 'remove'
      */
     static remove = <Ix extends object>(
-        schema: Schematic<Ix>,
+        schema: ValidateHook<Ix>,
     ) => this.create('remove', schema, HttpMethod.Delete, '/')
 
     /**
-     * Convience interface for defining a PATCH command named 'patch'
-     * @param schema - validate incoming data
-     * @returns new PATCH Command
+     * Create a new PATCH command named 'patch'
      */
     static patch = <Ix extends object>(
-        schema: Schematic<Ix>,
+        schema: ValidateHook<Ix>,
     ) => this.create('patch', schema, HttpMethod.Patch, '/')
 
     /**
-     * Convience interface for defining a PATCH command named 'edit'
-     * @param schema - validate incoming data
-     * @returns new PATCH Command
-     */
-    static edit = <Ix extends object>(
-        schema: Schematic<Ix>,
-    ) => this.create('edit', schema, HttpMethod.Patch, '/')
-
-    /**
-     * Convience interface for defining a PUT command named 'update'
-     * @param schema - validate incoming data
-     * @returns new PUT Command
+     * Create a new PUT command named 'update'
      */
     static update = <Ix extends object>(
-        schema: Schematic<Ix>,
+        schema: ValidateHook<Ix>,
     ) => this.create('update', schema, HttpMethod.Put, '/')
 
     /**
-     * Convience interface for defining a OPTIONS command named 'options'
-     * @param schema - validate incoming data
-     * @returns new OPTIONS Command
+     * Create a new OPTIONS command named 'options'
      */
     static options = <Ix extends object>(
-        schema: Schematic<Ix>,
+        schema: ValidateHook<Ix>,
     ) => this.create('options', schema, HttpMethod.Options, '/')
 
     //// Sealed ////
 
     private constructor(
         name: N,
-        schema: Schematic<I> | nil,
+        schema: ValidateHook<I> | nil,
         execute: CommandHook<I, O>,
         reqHandler: Req<I>
     ) {
@@ -171,7 +175,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         this._reqHandler = reqHandler.setSchema(schema)
     }
 
-    protected readonly _schema: Schematic<I> | nil
+    protected readonly _schema: ValidateHook<I> | nil
     protected readonly _execute: Chain<I,O> 
     protected readonly _reqHandler: Req<I>
 
@@ -208,7 +212,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     useHook<Ox extends object>(hook: CommandHook<O, Ox> | Command<string, O, Ox>): Command<N, I, Ox> {
 
         const execute = '_execute' in hook
-            ? hook.useSchema(nil)._execute
+            ? hook.useValidate(nil)._execute
             : hook
 
         return new Command(
@@ -264,7 +268,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         return this.useReq(r => r.setMethod(method))
     }
 
-    useSchema(schema: SchemaFor<I> | nil): Command<N, I, O> {
+    useValidate(validate: ValidateHook<I> | nil): Command<N, I, O> {
 
         const executeWithoutOldSchemaValidate = chain(
             ...this._execute
@@ -272,17 +276,16 @@ class Command<N extends string, I extends object, O extends object> extends Comm
                 .filter(link => link !== this._schema?.validate)
         ) as Chain<I,O>
 
-        const executeWithNewSchemaValidate = schema 
+        const [newSchematic] = validate ? toSchematicAndValidate(validate) : [nil]
 
-            ? chain(schema.validate)    
-                .link(executeWithoutOldSchemaValidate)
-
+        const newExecute = newSchematic 
+            ? chain(newSchematic.validate).link(executeWithoutOldSchemaValidate)
             : executeWithoutOldSchemaValidate
 
         return new Command(
             this.name, 
-            schema, 
-            executeWithNewSchemaValidate, 
+            newSchematic, 
+            newExecute, 
             this._reqHandler
         )
     }

@@ -10,13 +10,14 @@ import {
     SettingsModule 
 } from '../../module'
 
+import { Command, RuntimeCommand } from '../../command'
+
 import { 
     $mongoDbSettings,
     MongoDbSettings 
 } from './mongo-db-settings'
 
 import MongoDbCollection, { Paginated, Record, RecordOf } from './mongo-db-collection'
-import { Command, RuntimeCommand } from '../../command'
 
 //// Eslint ////
 
@@ -53,6 +54,17 @@ const $id = $({ id: $.string })
 const $query = $.object
 const $update = $.object as unknown as SchemaFor<{ id: string, data: Partial<object> }>
 
+//// Hooks ////
+
+const provideRecords = <I extends object>(collectionName: string) => 
+    function (this: RuntimeCommand<I>, input: I) {
+        const records = this
+            .getModule(MongoDb, true, 'parents')
+            .getCollection(collectionName) as MongoDbCollection<object>
+
+        return { ...input, records }
+    }
+
 //// Mongodb Database ////
 
 class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSettings>> {
@@ -63,7 +75,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     static createRecordCommands<T extends object>(name: string, collection: MongoDbCollection<T>): RecordCommands<T> 
     
-    static createRecordCommands(name: string, collection: MongoDbCollection<object> | SchemaFor<object>): RecordCommands<object> {
+    static createRecordCommands(collectionName: string, collection: MongoDbCollection<object> | SchemaFor<object>): RecordCommands<object> {
 
         // Setup
 
@@ -71,42 +83,34 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
         const assertRecord = (id: string) => (record: Record<object> | null): Record<object> => {
             if (!record)
-                throw new Error(`Collection ${name} record ${id} could not be found.`)
+                throw new Error(`Collection ${collectionName} record ${id} could not be found.`)
             return record
         }
- 
-        const provideRecords = <I extends object>() => 
-            function (this: RuntimeCommand<I>, input: I) {
-                const records = this
-                    .getModule(MongoDb, true, 'parents')
-                    .getCollection(name) as MongoDbCollection<object>
-
-                return { ...input, records }
-            }
 
         // Commmands 
 
         return [
 
             Command.get($id)
-                .useHook(provideRecords())
+                .useHook(provideRecords(collectionName))
                 .useHook(({ records, id }) => records.get(id).then(assertRecord(id))),
                 
             Command.find($query)
-                .useHook(provideRecords())
+                .useHook(provideRecords(collectionName))
                 .useHook(({ records, ...query }) => records.find(query)),
             
             Command.create($create)
-                .useHook(provideRecords())
+                .useHook(provideRecords(collectionName))
                 .useHook(({ records, ...data }) => records.create(data)),
 
             Command.update($update)
-                .useHook(provideRecords())
+                .useHook(provideRecords(collectionName))
                 .useHook(({ records, id, ...data }) => records.update(id, data).then(assertRecord(id))),
 
             Command.remove($id)
-                .useHook(provideRecords())
+                .useHook(provideRecords(collectionName))
                 .useHook(({ records, id }) => records.remove(id).then(assertRecord(id)))
+
         ]
     }
 
