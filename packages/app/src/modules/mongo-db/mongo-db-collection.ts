@@ -26,7 +26,9 @@ type Paginated<T extends object> = {
     // limit: number
 }
 
-type Query<T extends object> = object 
+type RecordQuery<T extends object> = {
+    [K in keyof T]: T[K]
+}
 
 type RecordOf<C extends MongoDbCollection<any>> = C extends MongoDbCollection<infer R> ? R : object
 
@@ -75,7 +77,7 @@ class MongoDbCollection<T extends object> {
     /**
      * Find records in the collection
      */
-    async find(query: Query<T>): Promise<Paginated<Record<T>>> {
+    async find(query: RecordQuery<T>): Promise<Paginated<Record<T>>> {
 
         const records: Record<T>[] = []
         const total = await this
@@ -173,6 +175,6 @@ export {
     RecordOf,
     Paginated,
 
-    Query
+    RecordQuery
 
 }

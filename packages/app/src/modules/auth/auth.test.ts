@@ -1,10 +1,11 @@
 import $ from '@benzed/schema'
 import { io } from '@benzed/util'
 
+import { Auth } from './auth'
 import { App } from '../../app'
 import { Service } from '../../service'
 import { MongoDb, Record } from '../mongo-db'
-import { Auth } from './auth'
+import { hashPassword } from './hooks'
 
 it('is sealed', () => {
 
@@ -86,8 +87,8 @@ describe('Authentication', () => {
         .useModules(
             get,
             find,
-            create,
-            update,
+            create.usePreHook(hashPassword()),
+            update.usePreHook(hashPassword()),
             remove
         )
 

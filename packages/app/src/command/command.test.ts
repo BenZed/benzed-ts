@@ -270,5 +270,7 @@ describe('shape schema input', () => {
         expect(cmd.execute({ x: 0, y: 10 }))
             .toEqual({ magnitude: 10 })
 
+        const cm1 = cmd.useHook((i: { x?: number, y?: number }) => ({ x: 0, y: 0, ...i }), true)
+
     })
 })

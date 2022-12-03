@@ -1,5 +1,5 @@
 import { StringKeys } from '@benzed/util'
-import $, { Infer, SchemaFor } from '@benzed/schema'
+import { SchemaFor } from '@benzed/schema'
 
 import { 
     MongoClient as _MongoClient, 
@@ -10,14 +10,15 @@ import {
     SettingsModule 
 } from '../../module'
 
-import { Command, RuntimeCommand } from '../../command'
+import { Command } from '../../command'
 
 import { 
     $mongoDbSettings,
     MongoDbSettings 
 } from './mongo-db-settings'
 
-import MongoDbCollection, { Paginated, Record, RecordOf } from './mongo-db-collection'
+import MongoDbCollection, { Paginated, RecordQuery, Record, RecordOf } from './mongo-db-collection'
+import { provideRecords } from './hooks'
 
 //// Eslint ////
 
@@ -43,27 +44,11 @@ type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCo
 
 type RecordCommands<T extends object> = [
     Command<'get', { id: string }, Promise<Record<T>>>,
-    Command<'find', Infer<typeof $query>, Promise<Paginated<Record<T>>>>,
+    Command<'find', RecordQuery<T>, Promise<Paginated<Record<T>>>>,
     Command<'create', T, Promise<Record<T>>>,
-    Command<'update', { id: string, data: Partial<object> }, Promise<Record<T>>>,
+    Command<'update', { id: string } & Partial<T>, Promise<Record<T>>>,
     Command<'remove', { id: string }, Promise<Record<T>>>
 ]
-
-// TODO temp: figure me out
-const $id = $({ id: $.string })
-const $query = $.object
-const $update = $.object as unknown as SchemaFor<{ id: string, data: Partial<object> }>
-
-//// Hooks ////
-
-const provideRecords = <I extends object>(collectionName: string) => 
-    function (this: RuntimeCommand<I>, input: I) {
-        const records = this
-            .getModule(MongoDb, true, 'parents')
-            .getCollection(collectionName) as MongoDbCollection<object>
-
-        return { ...input, records }
-    }
 
 //// Mongodb Database ////
 
@@ -71,15 +56,8 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     // Static Create with Schema Validation
 
-    static createRecordCommands<T extends object>(name: string, schema: SchemaFor<T>): RecordCommands<T>
-
-    static createRecordCommands<T extends object>(name: string, collection: MongoDbCollection<T>): RecordCommands<T> 
-    
-    static createRecordCommands(collectionName: string, collection: MongoDbCollection<object> | SchemaFor<object>): RecordCommands<object> {
-
-        // Setup
-
-        const $create = '_schema' in collection ? collection._schema : collection
+    static createRecordCommands<T extends object>(collectionName: string): RecordCommands<T>
+    static createRecordCommands(collectionName: string): RecordCommands<object> {
 
         const assertRecord = (id: string) => (record: Record<object> | null): Record<object> => {
             if (!record)
@@ -91,25 +69,21 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
         return [
 
-            Command.get($id)
-                .useHook(provideRecords(collectionName))
-                .useHook(({ records, id }) => records.get(id).then(assertRecord(id))),
+            Command.get(provideRecords<{ id: string }, object>(collectionName))
+                .useHook(([{ id }, records]) => records.get(id).then(assertRecord(id))),
                 
-            Command.find($query)
+            Command.find(query => ({ query }))
                 .useHook(provideRecords(collectionName))
-                .useHook(({ records, ...query }) => records.find(query)),
+                .useHook(([query, records]) => records.find(query)),
             
-            Command.create($create)
-                .useHook(provideRecords(collectionName))
-                .useHook(({ records, ...data }) => records.create(data)),
+            Command.create(provideRecords(collectionName))
+                .useHook(([data, records]) => records.create(data)),
 
-            Command.update($update)
-                .useHook(provideRecords(collectionName))
-                .useHook(({ records, id, ...data }) => records.update(id, data).then(assertRecord(id))),
+            Command.update(provideRecords<{ id: string } & Partial<object>, object>(collectionName))
+                .useHook(([{ id, ...data }, records]) => records.update(id, data).then(assertRecord(id))),
 
-            Command.remove($id)
-                .useHook(provideRecords(collectionName))
-                .useHook(({ records, id }) => records.remove(id).then(assertRecord(id)))
+            Command.remove(provideRecords<{ id: string }, object>(collectionName))
+                .useHook(([{id}, records]) => records.remove(id).then(assertRecord(id)))
 
         ]
     }
@@ -219,8 +193,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     createRecordCommands<N extends StringKeys<C>>(collectionName: N): RecordCommands<RecordOf<C[N]>> 
     createRecordCommands<T extends object>(collectionName: string): RecordCommands<T> {
-        const collection = this._getCollection(collectionName as StringKeys<C>)
-        return MongoDb.createRecordCommands(collectionName, collection)
+        return MongoDb.createRecordCommands<T>(collectionName)
     }
 
     private _getCollection<N extends StringKeys<C>>(name: N): C[N]

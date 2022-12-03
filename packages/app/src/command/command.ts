@@ -113,8 +113,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Create a new GET command named 'get'
      */
-    static get<Ix extends object>(validate: ValidateHook<Ix>): Command<'get', Ix, Ix>
     static get<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'get', Ix, Ox>
+    static get<Ix extends object>(validate: ValidateHook<Ix>): Command<'get', Ix, Ix>
     static get(input: ValidateHook<object> | CommandHook<object,object>) {
         return this.create('get', input as ValidateHook<object>, HttpMethod.Get, '/') 
     }
@@ -122,44 +122,56 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Create a new GET command named 'find'
      */
-    static find = <Ix extends object>(
-        schema: ValidateHook<Ix>,
-    ) => this.create('find', schema, HttpMethod.Get, '/')
+    static find<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'find', Ix, Ox>
+    static find<Ix extends object>(validate: ValidateHook<Ix>): Command<'find', Ix, Ix>
+    static find(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('find', input, HttpMethod.Get, '/')
+    }
 
     /**
      * Create a new DELETE command named 'delete'
      */
-    static delete = <Ix extends object>(
-        schema: ValidateHook<Ix>,
-    ) => this.create('delete', schema, HttpMethod.Delete, '/')
+    static delete<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'delete', Ix, Ox>
+    static delete<Ix extends object>(validate: ValidateHook<Ix>): Command<'delete', Ix, Ix>
+    static delete(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('delete', input, HttpMethod.Delete, '/')
+    }
 
     /**
      * Create a new DELETE command named 'remove'
      */
-    static remove = <Ix extends object>(
-        schema: ValidateHook<Ix>,
-    ) => this.create('remove', schema, HttpMethod.Delete, '/')
+    static remove<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'remove', Ix, Ox>
+    static remove<Ix extends object>(validate: ValidateHook<Ix>): Command<'remove', Ix, Ix>
+    static remove(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('remove', input, HttpMethod.Delete, '/')
+    }
 
     /**
      * Create a new PATCH command named 'patch'
      */
-    static patch = <Ix extends object>(
-        schema: ValidateHook<Ix>,
-    ) => this.create('patch', schema, HttpMethod.Patch, '/')
+    static patch<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'patch', Ix, Ox>
+    static patch<Ix extends object>(validate: ValidateHook<Ix>): Command<'patch', Ix, Ix>
+    static patch(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('patch', input, HttpMethod.Patch, '/')
+    }
 
     /**
      * Create a new PUT command named 'update'
      */
-    static update = <Ix extends object>(
-        schema: ValidateHook<Ix>,
-    ) => this.create('update', schema, HttpMethod.Put, '/')
+    static update<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'update', Ix, Ox>
+    static update<Ix extends object>(validate: ValidateHook<Ix>): Command<'update', Ix, Ix>
+    static update(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('update', input, HttpMethod.Put, '/')
+    }
 
     /**
      * Create a new OPTIONS command named 'options'
      */
-    static options = <Ix extends object>(
-        schema: ValidateHook<Ix>,
-    ) => this.create('options', schema, HttpMethod.Options, '/')
+    static options<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'options', Ix, Ox>
+    static options<Ix extends object>(validate: ValidateHook<Ix>): Command<'options', Ix, Ix>
+    static options(input: ValidateHook<object> | CommandHook<object,object>) {
+        return this.create('options', input, HttpMethod.Options, '/')
+    }
 
     //// Sealed ////
 
@@ -209,20 +221,17 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Add a hook to this command
      */
-    useHook<Ox extends object>(hook: CommandHook<O, Ox> | Command<string, O, Ox>): Command<N, I, Ox> {
-
-        const execute = '_execute' in hook
-            ? hook.useValidate(nil)._execute
-            : hook
-
-        return new Command(
-            this.name,
-            this._schema,
-            this._execute.link(execute),
-            this._reqHandler
-        )
+    useHook<Ox extends object = O>(hook: CommandHook<O, Ox> | Command<string, O, Ox>): Command<N, I, Ox> {
+        return this._useHook(hook, false)
     }
 
+    /**
+     * Prepend a hook to this command
+     */
+    usePreHook<Ix extends object = O>(hook: CommandHook<Ix, I> | Command<string, Ix, I>): Command<N, Ix, O> {
+        return this._useHook(hook, true)
+    }
+    
     /**
      * Change the name of this command
      */
@@ -286,6 +295,23 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             this.name, 
             newSchematic, 
             newExecute, 
+            this._reqHandler
+        )
+    }
+
+    //// Helper ////
+    
+    private _useHook(hook: CommandHook<any, any> | Command<string, any, any>, prepend: boolean): Command<N, any, any> {
+        const oldExecute = this._execute
+
+        const newExecute = '_execute' in hook
+            ? hook.useValidate(nil)._execute
+            : hook
+
+        return new Command(
+            this.name,
+            this._schema,
+            prepend ? chain(newExecute).link(oldExecute) : chain(oldExecute).link(newExecute),
             this._reqHandler
         )
     }
