@@ -1,19 +1,17 @@
-
-/* eslint-disable
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/explicit-function-return-type
- */
+import { Map } from './types'
 
 //// Types ////
 
 type Sortable = string | bigint | number | { valueOf(): string | bigint | number }
 
+type SortableValues<T> = {
+    [K in keyof T as T[K] extends Sortable ? K : never]: K
+}
+
 /**
  * Keys of a given object that have sortable values
  */
-type SortableKeys<T> = keyof {
-    [K in keyof T as T[K] extends Sortable ? K : never]: K
-}
+ type SortableKeys<T> = keyof SortableValues<T>
 
 /**
  * Sorting method
@@ -49,7 +47,7 @@ const byMany = <T>(...sorters: Sorter<T>[]): Sorter<T> => (a, b) => {
  * Multiple maps may be provided, and will be checked if 
  * the previous outputs were equivalent.
  */
-const byMap = <T>(...maps: ((input: T) => Sortable)[]): Sorter<T> =>
+const byMap = <T>(...maps: Map<T, Sortable>[]): Sorter<T> =>
     byMany(
         ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b)))
     )
@@ -65,15 +63,14 @@ const byProp = <T extends object, K extends SortableKeys<T>[]>(
     ...properties: K
 ): Sorter<T> =>
     byMany(
-        ...properties.map(property =>
-            byMap((t: any) => t[property])
+        ...properties.map((property) =>
+            byMap(object => (object as SortableValues<T>)[property] as Sortable)
         )
     )
 
 //// By Interface ////
 
-const by = <T>(...args: ((input: T) => Sortable)[]) => byMap(...args)
-
+const by = <T>(...args: ((input: T) => Sortable)[]): Sorter<T> => byMap(...args)
 by.value = byValue
 by.many = byMany
 by.map = byMap

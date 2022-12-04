@@ -5,7 +5,6 @@ describe('removes duplicate items from input array', () => {
 
     it('[0,0,1,1,2,2,3,3] >> [0,1,2,3]', () => {
         const arr = unique([0, 0, 1, 1, 2, 2, 3, 3])
-
         expect(arr.sort()).toEqual([0, 1, 2, 3])
     })
 
@@ -21,6 +20,7 @@ describe('removes duplicate items from input array', () => {
 
     it('mixed array', () => {
         const arr = [true, true, 'foo', 'foo', 'bar', 0, NaN, NaN]
+
         unique(arr)
         expect(arr).toEqual([true, 'foo', 'bar', 0, NaN])
     })
@@ -29,6 +29,31 @@ describe('removes duplicate items from input array', () => {
         const arr = 'the quick brown fox jumps over the lazy dog'.split('')
 
         expect(unique(arr.join(''))).toEqual('the quickbrownfxjmpsvlazydg')
+    })
+
+    it('optionally bindable', () => {
+
+        const obj = {
+            0: 'ace',
+            1: 'base',
+            2: 'case',
+            3: 'face',
+            4: 'ace',
+            length: 5,
+            unique
+        }
+
+        obj.unique()
+
+        expect(obj).toEqual({
+            0: 'ace',
+            1: 'base',
+            2: 'case',
+            3: 'face',
+            length: 4,
+            unique
+        })
+
     })
 
 })
