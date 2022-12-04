@@ -1,14 +1,9 @@
+import { Func } from './func'
 import { Merge } from './merge'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
-
-export type Func = (...args: any[]) => any 
-
-export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
-
-export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
 
 export type Json =
     null | string | number | boolean |

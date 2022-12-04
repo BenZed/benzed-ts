@@ -1,10 +1,8 @@
 import { indexesOf, keysOf } from '../methods'
 import { isNumber, isString } from './primitive'
-import { Func, TypeGuard } from './types'
+import { Func, isFunc, TypeGuard } from './func'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
-
-export const isFunc = <F extends Func = Func>(i: unknown): i is F => typeof i === 'function'
 
 export const isObject = <T extends object = object>(i: unknown): i is T => typeof i === 'object' && i !== null
 
