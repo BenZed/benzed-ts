@@ -1,4 +1,4 @@
-import { Map } from './types'
+import { Transform } from './classes/pipe'
 
 //// Types ////
 
@@ -47,7 +47,7 @@ const byMany = <T>(...sorters: Sorter<T>[]): Sorter<T> => (a, b) => {
  * Multiple maps may be provided, and will be checked if 
  * the previous outputs were equivalent.
  */
-const byMap = <T>(...maps: Map<T, Sortable>[]): Sorter<T> =>
+const byMap = <T>(...maps: Transform<T, Sortable>[]): Sorter<T> =>
     byMany(
         ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b)))
     )

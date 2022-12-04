@@ -1,7 +1,7 @@
-import { callable as createCallableClass } from './'
+import { createCallableClass } from './class'
+import { toNil } from '../types/nil'
 
 import { expectTypeOf } from 'expect-type'
-import { toNil } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type

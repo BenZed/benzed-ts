@@ -1,15 +1,15 @@
 
-import { chain } from '@benzed/util'
+import { Pipe } from '@benzed/util'
 
-import { CommandHook } from '../../../command'
+import { Provider } from '../../../command'
 
 import provideAuth from './provide-auth'
 
 //// Hook ////
 
-const provideUser = <I extends object, U extends object>(): CommandHook<I, I & { user: U }> => 
-    chain(provideAuth())
-        .link(({ auth, ...input }) => ({ ...input as I, user: {} as U }))
+const provideUser = <I extends object, U extends object>(): Provider<I,U> => 
+    Pipe.from(provideAuth<I>())
+        .to(([input, auth]) => [input, {} as unknown as U] as any) 
 
 //// Helpers ////
 

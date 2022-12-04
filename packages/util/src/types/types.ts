@@ -6,16 +6,6 @@ import { Merge } from './merge'
 
 export type Func = (...args: any[]) => any 
 
-/**
- * Function that takes a single input, returns a single output.
- */
-export type Map<I = unknown, O = unknown> = (input: I) => O
-
-/**
- * Input to output
- */
-export type IO<I, O> = Map<I,O>
-
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O

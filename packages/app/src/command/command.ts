@@ -1,7 +1,6 @@
-import is from '@benzed/is'
 import { pluck } from '@benzed/array'
 import $, { SchemaFor, Schematic } from '@benzed/schema'
-import { Chain, chain, Link, nil } from '@benzed/util'
+import { Pipe, Transform, isObject, isFunc, nil, isString } from '@benzed/util'
 import { toDashCase } from '@benzed/string'
 
 import CommandModule from './command-module'
@@ -31,7 +30,7 @@ export type RuntimeCommand<I extends object> =
     >
 
 export type CommandHook<I extends object, O extends object> =
-    ((this: RuntimeCommand<I>, input: I) => O) | Link<I, O>
+    ((this: RuntimeCommand<I>, input: I) => O) | Transform<I, O>
 
 type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 
@@ -40,10 +39,10 @@ type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 //// Types ////
 
 const isSchematic = <T extends object>(input: unknown): input is ValidateHook<T> => 
-    is.object<Partial<Schematic<T>>>(input) && 
-    is.function(input.validate) && 
-    is.function(input.assert) && 
-    is.function(input.is)
+    isObject<Partial<Schematic<T>>>(input) && 
+    isFunc(input.validate) && 
+    isFunc(input.assert) && 
+    isFunc(input.is)
 
 const toSchematicAndValidate = <T extends object>(input: ValidateHook<T>): [Schematic<T>, Schematic<T>['validate']] => {
     const schematic = (isSchematic(input) ? input : $(input)) as Schematic<T>
@@ -83,12 +82,12 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     static create(...args: unknown[]) {
 
-        const isNamed = is.string(args[0])
+        const isNamed = isString(args[0])
         const [ cmdOrValidate ] = pluck(args, (i: unknown): i is ValidateHook<object> | CommandHook<object,object> =>
-            is.function(i) || is.object(i)
+            isFunc(i) || isObject(i)
         )
 
-        const [schema, execute] = is.object(cmdOrValidate)
+        const [schema, execute] = isObject(cmdOrValidate)
             ? toSchematicAndValidate(cmdOrValidate as ValidateHook<object>)
             : [nil, cmdOrValidate]
         
@@ -182,13 +181,13 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         reqHandler: Req<I>
     ) {
         super(name)
-        this._execute = chain(execute)
+        this._execute = Pipe.from(execute)
         this._schema = schema
         this._reqHandler = reqHandler.setSchema(schema)
     }
 
     protected readonly _schema: Schematic<I> | nil
-    protected readonly _execute: Chain<I,O> 
+    protected readonly _execute: Pipe<I,O> 
     protected readonly _reqHandler: Req<I>
 
     protected override get _copyParams(): unknown[] {
@@ -251,7 +250,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     useReq(reqHandler: Req<I>): Command<N, I, O> 
     useReq(input: Req<I> | ((req: Req<I>) => Req<I>)): Command<N,I,O> {
 
-        const reqHandler = is.function(input) 
+        const reqHandler = isFunc(input) 
             ? input(this._reqHandler) 
             : input
 
@@ -279,16 +278,16 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     useValidate(validate: ValidateHook<I> | nil): Command<N, I, O> {
 
-        const executeWithoutOldSchemaValidate = chain(
+        const executeWithoutOldSchemaValidate = Pipe.from(
             ...this._execute
-                .links
+                .transforms
                 .filter(link => link !== this._schema?.validate)
-        ) as Chain<I,O>
+        ) as Transform<I,O>
 
         const [newSchematic] = validate ? toSchematicAndValidate(validate) : [nil]
 
         const newExecute = newSchematic 
-            ? chain(newSchematic.validate).link(executeWithoutOldSchemaValidate)
+            ? Pipe.from(newSchematic.validate).to(executeWithoutOldSchemaValidate)
             : executeWithoutOldSchemaValidate
 
         return new Command(
@@ -311,7 +310,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         return new Command(
             this.name,
             this._schema,
-            prepend ? chain(newExecute).link(oldExecute) : chain(oldExecute).link(newExecute),
+            prepend ? Pipe.from(newExecute).to(oldExecute) : Pipe.from(oldExecute).to(newExecute),
             this._reqHandler
         )
     }

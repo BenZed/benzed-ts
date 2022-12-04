@@ -1,4 +1,4 @@
-import { chain, memoize } from '@benzed/util'
+import { Pipe, memoize } from '@benzed/util'
 
 import provideAuth from './provide-auth'
 
@@ -7,10 +7,9 @@ import { CommandHook } from '../../../command'
 //// Main ////
 
 const hashPassword = memoize(<I extends { password?: string }>(): CommandHook<I, I> => 
-    chain(
-        provideAuth<I>()
-    )
-        .link(([input, auth]) => {
+    Pipe
+        .from(provideAuth<I>())
+        .to(([input, auth]) => {
 
             const { password } = input
 

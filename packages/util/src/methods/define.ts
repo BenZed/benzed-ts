@@ -1,5 +1,5 @@
 
-import { intersect } from '../types'
+import { intersect } from '../types/merge'
 
 //// Type ////
 
