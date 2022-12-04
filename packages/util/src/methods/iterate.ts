@@ -1,4 +1,4 @@
-import { isArrayLike, isIterable, Empty } from '../types'
+import { isArrayLike, isIterable } from '../types'
 
 //// Helper ////
 
@@ -28,10 +28,6 @@ function numKeys(...objects: object[]): number {
         count++ 
 
     return count
-}
-
-function isEmpty(object: object): object is Empty {
-    return numKeys(object) === 0
 }
 
 //// Main ////
@@ -79,7 +75,6 @@ export {
 
     keysOf,
     numKeys,
-    isEmpty,
 
     indexesOf
 }

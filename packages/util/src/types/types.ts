@@ -16,23 +16,6 @@ export type Json =
     { [k: string]: Json }
 
 /**
- * Reduce two types to only their matching key values.
- */
-export type Collapse<L, R> =
-    {
-        [K in keyof L as
-
-        // Only include key of left if right has the same key and value
-        /**/ K extends keyof R ?
-            /**/ R[K] extends L[K]
-                /**/ ? K
-                /**/ : never
-            /**/ : never
-
-        ]: L[K]
-    }
-
-/**
  * Make specific keys of a type required
  */
 export type PartialRequire<T, K extends keyof T> =
@@ -106,11 +89,6 @@ export type IfEquals<T1, T2, Y, N = never> =
  * Get the string keys of a type.
  */
 export type StringKeys<T> = Extract<keyof T, string>
-
-/**
- * Object with no properties
- */
-export type Empty = { [key: string]: never }
 
 /**
  * Convert a type to a numeric
