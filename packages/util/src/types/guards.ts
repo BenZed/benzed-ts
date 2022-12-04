@@ -1,3 +1,4 @@
+import { indexesOf, keysOf } from '../methods'
 import { Func, TypeGuard } from './types'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
@@ -26,15 +27,22 @@ export const isArrayLike = <T = unknown>(
 ): i is ArrayLike<T> => {
 
     if (isString(i))
-        return !ofType || ofType(i) // <- lol
+        return !ofType || i.split('').every(ofType) // <- lol
     
-    if (!isObject<{ length?: unknown }>(i))
+    if (!isObject<ArrayLike<unknown>>(i))
         return false 
 
     if (!isNumber(i.length))
         return false 
 
-    return !ofType || isRecord(i, ofType)
+    if (ofType) {
+        for (const index of indexesOf(i)) {
+            if (!ofType(i[index]))
+                return false
+        }
+    } 
+                
+    return true
 }
 
 export const isRecord = <K extends string | number | symbol, V = unknown>(
@@ -44,6 +52,13 @@ export const isRecord = <K extends string | number | symbol, V = unknown>(
 
     if (!isObject<Record<K,V>>(i))
         return false 
+
+    if (ofType) {
+        for (const key of keysOf(i)) {
+            if (!ofType(i[key]))
+                return false
+        }
+    }
 
     return true
 }
