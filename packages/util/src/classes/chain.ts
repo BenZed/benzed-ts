@@ -1,4 +1,4 @@
-import { intersect, Map as Link } from './types'
+import { intersect, Map as Link } from '../types'
 
 //// Types ////
 
