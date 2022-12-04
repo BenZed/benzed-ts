@@ -82,15 +82,45 @@ it('creating a callable of a callable', () => {
     const foo = createCallableObject(function () {
         return Object.keys(this)
     }, {
-        foo: 'bar'
+        foo: 1
     })
 
     const bar = createCallableObject(function () {
         return this.bar
     }, {
-        bar: 'foo'
+        bar: 2
     })
 
     const foobar = createCallableObject(foo, bar)
-    expect(foobar()).toEqual(['bar', 'foo'])
+
+    expect(foobar()).toEqual(['foo', 'bar'])
+})
+
+it('resolves function name & length conflicts', () => {
+
+    const f1 = createCallableObject(
+        function bar() {
+            return 'bar' 
+        }, { name: 'ace',length: 5 })
+
+    const f2 = createCallableObject(function foo (a) {
+        return a 
+    }, f1)
+
+    expect(f2).toHaveLength(5)
+    expect(f2).toHaveProperty('name', 'ace')
+
+    const f3 = createCallableObject(function ace() {
+        return 'ace'
+    }, {
+        length: 10,
+        name: 'base'
+    })
+    expect(f3.length).toEqual(10)
+    expect(f3).toHaveProperty('name', 'base')
+
+    const f4 = createCallableObject(f3, f2)
+    expect(f4.length).toEqual(5)
+    expect(f4).toHaveProperty('name', 'ace')
+
 })
