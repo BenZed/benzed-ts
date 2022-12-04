@@ -1,90 +1,180 @@
-import { intersect, Transform } from '../types'
+import callable from '../callable'
+import { Func } from '../types'
 
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 //// Types ////
 
-interface Pipe<I = unknown, O = unknown> extends Transform<I,O> {
+/**
+ * Function that takes a single input, returns a single output.
+ */
+interface Transform<I = unknown, O = unknown> {
+    (input: I): O
+}
+
+interface ContextTransform<I = unknown, O = unknown, C = unknown> {
+    (input: I, ctx: C): O
+}
+
+type Transformer<T extends Func> = Iterable<T> & {
+    readonly transforms: readonly Transform[]
+    
+} & T
+
+type InputOf<F extends Func> = F extends (input: infer I, ...args: any) => any ? I : unknown
+
+type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknown
+
+type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : unknown
+
+interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
 
     /**
-     * Add link(s) to the end of the chain
-     * @param transform 
+     * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: Transform<O, Ox>, ...transforms: Transform<Ox, Ox>[]): Pipe<I, Ox>
+    to<Ox>(transform: Transform<O, Ox>): Pipe<I, Ox>
+    to<Ox, C>(transform: ContextTransform<O, Ox, C>): ContextPipe<I, Ox, C>
 
-    transforms: readonly Transform[]
+    /**
+     * Prepend a transformation onto the beginning of this pipe.
+     */
+    from<Ix>(transform: Transform<Ix, I>): Pipe<Ix, O>
+    from<Ix, C>(transform: ContextTransform<Ix, I, C>): ContextPipe<Ix, O, C>
 
-    [Symbol.iterator](): Iterator<Transform>
+    bind<C>(ctx: C): BoundPipe<I, O, C>
 
 }
 
-//// Helper ////
+interface ContextPipe<I = unknown, O = unknown, C = unknown> extends Transformer<ContextTransform<I,O,C>> {
 
-function * iterateTransforms(this: Pipe): Generator<Transform> {
-    for (const transform of this.transforms)
-        yield transform
+    /**
+     * Append another transformation onto the end of this pipe.
+     */
+    to<Ox>(transform: ContextTransform<O, Ox, C>): ContextPipe<I, Ox, C>
+
+    /**
+     * Prepend a transformation onto the beginning of this pipe.
+     */
+    from<Ix>(transform: ContextTransform<Ix, I, C>): ContextPipe<Ix, O, C>
+
+    bind(ctx: C): BoundPipe<I, O, C>
+    call(ctx: C, input: I): O
+    apply(ctx: C, input: [I]): O
 }
 
-function flattenTransforms(input: readonly Transform[]): Transform[] {
-    const output: Transform[] = []
+interface BoundPipe<I = unknown, O = unknown, C = unknown> extends Transformer<Transform<I,O>> {
 
-    for (const transform of input) {
-        if (isPipe(transform))
-            output.push(...transform)
-        else 
-            output.push(transform)
-    }
+    /**
+     * Append another transformation onto the end of this pipe.
+     */
+    to<Ox>(transform: ContextTransform<O, Ox, C>): BoundPipe<I, Ox, C>
 
-    return output
+    /**
+     * Prepend a transformation onto the beginning of this pipe.
+     */
+    from<Ix>(transform: ContextTransform<Ix, I, C>): BoundPipe<Ix, O, C>
+
+    bind: never
+    call(ctx: C, input: I): O
+    apply(ctx: C, input: [I]): O
 }
 
-function to(this: Pipe, link: Transform, ...s: Transform[]): Pipe {
-    return pipe(...this.transforms, link, ...s)
+interface PipeConstructor {
+
+    /**
+     * Given a number of transforms, get a flattened array of just transforms 
+     * from any pipes that may have been in the input
+     */
+    flatten<I,O>(transforms: Transform<I,O>[]): Transform<I,O>[]
+
+    from<I,O,C>(transform: ContextTransform<I,O,C>): unknown extends C 
+        ? Pipe<I,O>
+        : ContextPipe<I,O,C>
+    from<I,O>(transform: Transform<I,O>): Pipe<I,O>
+
+    /** 
+     * Create a pipe from a multiple transform methods with the same type as input and output.
+     */
+    from<T>(...transforms: Transform<T,T>[]): Pipe<T,T>
+
+    /**
+     * Convert a function with a *this* context to a context pipe
+     */
+    convert<I,O,C>(func: (this: C, input: I) => O): ContextPipe<I,O,C>
+
 }
 
 //// Main ////
 
-function isPipe(input: (i: unknown) => unknown): input is Pipe {
-    return 'to' in input && typeof input['to' as keyof typeof input] === 'function'
-}
+const Pipe = callable(
+    function transform(x: unknown, ctx?: unknown): unknown {
 
-/**
- * Create a chain out of an initial link
- */
-function pipe<I,O>(transform: Transform<I,O>): Pipe<I,O>
- 
-/**
- * Create a chain out of many links with the same input/output type
- */
-function pipe<T>(...links: Transform<T,T>[]): Pipe<T,T>
+        const _ctx = callable.getContext(this as Pipe) ?? ctx
 
-function pipe(...transforms: Transform[]): Pipe {
+        for (const transform of this.transforms) 
+            x = (transform as ContextTransform).call(_ctx, x, _ctx)
 
-    transforms = flattenTransforms(transforms)
+        return x
+    }, class {
 
-    return intersect(
-        function pipe(this: unknown, x: unknown) {
-            for (const link of transforms) 
-                x = this === undefined ? link(x) : link.call(this, x)
-
-            return x
-        },
-        {
-            to,
-            transforms,
-            [Symbol.iterator]: iterateTransforms
+        static flatten(transforms: Transform[]): Transform[] {
+            return transforms.flatMap(transform => transform instanceof this 
+                ? transform.transforms 
+                : transform
+            )
         }
 
-    ) as Pipe
+        static from(...transform: (Transform | ContextTransform)[]): Pipe | ContextPipe {
+            return new this(...transform as Transform[]) as Pipe | ContextPipe
+        }
 
-}
+        static convert(transform: (this: unknown, input: unknown) => unknown): ContextPipe {
+            if ('prototype' in transform === false)
+                throw new Error('Must convert a function with a <this> context.')
+            return this.from(transform)
+        }
+
+        readonly transforms: readonly Transform[]
+
+        constructor(...transforms: Transform[]) {
+            this.transforms = Pipe.flatten(transforms)
+        }
+
+        to(this: Pipe, transform: Transform): Pipe {
+            return callable.transferContext(this, Pipe.from(this, transform)) as Pipe
+        }
+
+        from(this: Pipe, transform: Transform): Pipe {
+            return callable.transferContext(this, Pipe.from(transform, this)) as Pipe
+        }
+
+        bind(this: Pipe, ctx: unknown): Pipe {
+            const bound = callable.bindContext(Pipe.from(this), ctx) as Pipe
+            return bound
+        }
+
+        *[Symbol.iterator](this: Pipe): Iterator<Transform> {
+            yield* this.transforms
+        }
+    },
+    'Pipe'
+) as PipeConstructor
 
 //// Exports ////
 
-export default pipe
+export default Pipe
 
 export {
-    Transform,
 
-    pipe,
+    Transform,
+    ContextTransform, 
+
     Pipe,
-    isPipe
+    ContextPipe,
+    BoundPipe,
+
+    InputOf,
+    OutputOf,
+    ContextOf
 }

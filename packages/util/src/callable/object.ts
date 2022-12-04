@@ -13,7 +13,8 @@ const CONFLICTING_KEYS = ['name', 'prototype', 'length']
 
 //// Symbols ////
 
-const $$signature = Symbol('callable-input-signature-and-conflicts')
+const $$signature = Symbol('callable-signature')
+const $$context = Symbol('callable-outer-this-context')
 
 //// Types ////
 
@@ -22,8 +23,39 @@ interface CallableSignature<O extends object> {
 }
 
 type Callable<S extends CallableSignature<O>, O extends object> = 
-    // Callable signature without <this>
     ((...args: Parameters<S>) => ReturnType<S>) & O
+
+//// Context helpers ////
+
+const getContext = (callable: Callable<CallableSignature<object>, object>): unknown => 
+    (callable as unknown as { [$$context]: unknown })[$$context] 
+
+const bindContext = (callable: Callable<CallableSignature<object>, object>, ctx: unknown): unknown => 
+    define(callable, $$context, { value: ctx, writable: false, configurable: true, enumerable: false })
+
+const setContext = (callable: Callable<CallableSignature<object>, object>, ctx: unknown): unknown => {
+    return transferContext({ [$$context]: ctx } as unknown as Callable<CallableSignature<object>, object>, callable)
+}
+
+const transferContext = (
+    from: Callable<CallableSignature<object>, object>, 
+    to: Callable<CallableSignature<object>, object>
+): typeof to => {
+    
+    const transferContext = define.descriptorsOf(from)[$$context]
+    const targetContext = define.descriptorsOf(to)[$$context]
+
+    if (transferContext && (!targetContext || targetContext.writable)) {
+        define(to, $$context, { 
+            value: transferContext.value,
+            writable: transferContext.writable, 
+            configurable: true, 
+            enumerable: false 
+        })
+    }
+
+    return to
+}
 
 //// Helper ////
 
@@ -94,7 +126,10 @@ const createCallableObject = <S extends CallableSignature<O>, O extends object>(
     // resolve signature
     const rawSignature = resolveRawSignature<S,O>(signature)
 
-    const callable = (...args: Parameters<S>): ReturnType<S> => rawSignature.apply(callable as O, args)
+    const callable = function (this: unknown, ...args: Parameters<S>): ReturnType<S> {
+        setContext(callable, this)
+        return rawSignature.apply(callable as O, args)
+    }
 
     const callableDescriptors = resolveCallableDescriptors(signature, rawSignature, object)
 
@@ -115,5 +150,12 @@ export {
     createCallableObject,
     CallableSignature,
 
-    Callable
+    Callable,
+
+    $$signature,
+
+    getContext,
+    setContext,
+    bindContext,
+    transferContext
 }

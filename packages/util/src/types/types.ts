@@ -6,11 +6,6 @@ import { Merge } from './merge'
 
 export type Func = (...args: any[]) => any 
 
-/**
- * Function that takes a single input, returns a single output.
- */
-export type Transform<I = unknown, O = unknown> = (input: I) => O
-
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
@@ -82,10 +77,10 @@ export type Compile<T, E = void, R extends boolean = true> =
     T extends E 
         ? T
 
-        : T extends Transform<infer K, infer V>
+        : T extends Map<infer K, infer V>
             ? R extends true 
-                ? Transform<Compile<K, E, R>, Compile<V, E, R>>
-                : Transform<K,V>
+                ? Map<Compile<K, E, R>, Compile<V, E, R>>
+                : Map<K,V>
 
             : T extends Set<infer V> 
                 ? Set<V>

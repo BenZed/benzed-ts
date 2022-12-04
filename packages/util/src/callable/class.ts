@@ -1,5 +1,5 @@
-import { define } from '../methods'
-import { isFunc } from '../types'
+import { define } from '../methods/define'
+import { isFunc } from '../types/guards'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 
@@ -8,7 +8,7 @@ import createCallableObject, { CallableSignature, Callable } from './object'
 
 //// Symbols ////
 
-const $$instance = Symbol('constructor-instance')
+const $$instance = Symbol('callable-class-instance')
 
 //// Types ////
 
@@ -30,7 +30,7 @@ const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C 
 
         // PascalCase to camelCase
         constructor.name.charAt(0).toLowerCase() +
-        constructor.name.slice(1)
+        constructor.name.slice(1),
 ): Callable<S, InstanceType<C>> => {
 
     // Create callable
@@ -65,7 +65,7 @@ const createCallableClass = <
 >(
     signature: S,
     constructor: C,
-    name?: string
+    name?: string,
 ): CallableClass<S, C> => {
 
     if (!isClass(constructor))
@@ -85,7 +85,7 @@ const createCallableClass = <
                 signature,
                 constructor,
                 this as InstanceType<C>,
-                name
+                name,
             )
         }
     }
@@ -105,5 +105,6 @@ export {
     CallableClass,
 
     Class,
-    isClass
+    isClass,
+    $$instance
 }
