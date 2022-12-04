@@ -9,12 +9,7 @@ export type Func = (...args: any[]) => any
 /**
  * Function that takes a single input, returns a single output.
  */
-export type Map<I = unknown, O = unknown> = (input: I) => O
-
-/**
- * Input to output
- */
-export type IO<I, O> = Map<I,O>
+export type Transform<I = unknown, O = unknown> = (input: I) => O
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
@@ -87,10 +82,10 @@ export type Compile<T, E = void, R extends boolean = true> =
     T extends E 
         ? T
 
-        : T extends Map<infer K, infer V>
+        : T extends Transform<infer K, infer V>
             ? R extends true 
-                ? Map<Compile<K, E, R>, Compile<V, E, R>>
-                : Map<K,V>
+                ? Transform<Compile<K, E, R>, Compile<V, E, R>>
+                : Transform<K,V>
 
             : T extends Set<infer V> 
                 ? Set<V>
