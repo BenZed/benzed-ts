@@ -1,4 +1,4 @@
-import { createCallableClass } from './class'
+import { callable as createCallableClass } from './'
 
 import { expectTypeOf } from 'expect-type'
 import { toNil } from '../types'
@@ -55,10 +55,13 @@ it('retains static properties', () => {
             return this.mass
         },
         class _Planet {
+
             static shape = 'round'
+            
             static create(mass: number) {
                 return new Planet(mass)
             }
+            
             constructor(readonly mass: number) {}
         },
         'Planet'
@@ -137,6 +140,7 @@ it('handles property definition conflicts', () => {
             return this.light
         },
         class {
+
             getLight() {
                 return this.light
             }
@@ -160,6 +164,7 @@ it('does not alter input method', () => {
     })
 
     const foo2 = new Foo()
+
     expect(foo2).not.toEqual(foo)
     expect(foo2.name).toEqual(foo.name)
 

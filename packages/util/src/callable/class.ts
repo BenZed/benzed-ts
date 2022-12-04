@@ -1,4 +1,6 @@
 import { define } from '../methods'
+import { isFunc } from '../types'
+import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -14,69 +16,62 @@ interface Class {
     new (...args: any[]): any
 }
 
-interface CallableSignature<C extends Class> {
-    (this: CallableInstance<C, this>, ...args: any[]): any
-}
-
-type CallableInstance<C extends Class, S extends CallableSignature<C>> = 
-    // callable signature without the 'this' context
-    ((...params: Parameters<S>) => ReturnType<S>) & InstanceType<C>
-
-type CallableClass<C extends Class, S extends CallableSignature<C>> = 
+type CallableClass<S extends CallableSignature<InstanceType<C>>, C extends Class> = 
     // class constructor signature with the callable instance return type
-    (new (...params: ConstructorParameters<C>) => CallableInstance<C,S>) & C
+    (new (...params: ConstructorParameters<C>) => Callable<S, InstanceType<C>>) & C
 
-const createCallableInstance = <C extends Class, S extends CallableSignature<C>>(
+//// Helpers ////
+    
+const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C extends Class>(
     signature: S, 
     constructor: C, 
     instance: InstanceType<C>,
-    name: string = 
-    /*   */ constructor.name.charAt(0).toLowerCase() +
-    /*   */ constructor.name.slice(1)
-): CallableInstance<C,S> => {
-   
-    const hasThisContext = 'prototype' in signature 
-    const callableSignature = define.name(
-        hasThisContext
+    name: string = signature.name || 
 
-            // Keep function this context in sync with the state of the instance
-            ? (...params: Parameters<S>) => signature.apply(callableInstance, params)
-       
-            // the .bind call is not necessary for the 'this' context, but it
-            // prevents the property assignment from mutating the original input
-            : signature.bind(instance),
+        // PascalCase to camelCase
+        constructor.name.charAt(0).toLowerCase() +
+        constructor.name.slice(1)
+): Callable<S, InstanceType<C>> => {
 
-        signature.name || name
-    ) as S
-
-    const callableInstance = define(
-        callableSignature, 
-        {
-            ...define.descriptorsOf(
-                constructor.prototype, 
-                instance
-            ),
+    // Create callable
+    const callable = createCallableObject(
+        signature, 
+        instance, 
+        { 
+            name: { 
+                value: name,
+                configurable: true 
+            },
             [$$instance]: {
                 value: instance
-            }
+            },
+            ...define.descriptorsOf(constructor.prototype)
         }
-    ) as CallableInstance<C,S>
+    )
 
-    return callableInstance
+    return callable
 }
+
+const isClass = (input: unknown): input is Class => 
+    isFunc(input) 
+    && input.prototype
+    && Symbol.hasInstance in input
 
 //// Main ////
     
 const createCallableClass = <
-    S extends CallableSignature<C>,
+    S extends CallableSignature<InstanceType<C>>,
     C extends Class
 >(
     signature: S,
     constructor: C,
     name?: string
-): CallableClass<C,S> => {
+): CallableClass<S, C> => {
+
+    if (!isClass(constructor))
+        throw new Error('Input must be a class definition')
     
-    const callable = class extends constructor {
+    const Callable = class extends constructor {
 
         static [Symbol.hasInstance](value: any): boolean {
             return (value?.[$$instance] ?? value) instanceof constructor
@@ -96,14 +91,19 @@ const createCallableClass = <
     }
 
     return define.name(
-        callable, 
+        Callable, 
         name ?? `Callable${constructor.name}`
     )
 }
 
+//// Exports ////
+
+export default createCallableClass
+
 export {
     createCallableClass,
     CallableClass,
-    CallableInstance,
-    CallableSignature
+
+    Class,
+    isClass
 }

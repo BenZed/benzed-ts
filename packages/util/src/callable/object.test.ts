@@ -1,4 +1,4 @@
-import { createCallableObject } from './object'
+import { callable as createCallableObject } from './'
 import { expectTypeOf } from 'expect-type'
 
 ////  ////

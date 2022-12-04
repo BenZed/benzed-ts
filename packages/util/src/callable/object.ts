@@ -87,23 +87,24 @@ const resolveRawSignature = <S extends CallableSignature<O>, O extends object>(s
 
 const createCallableObject = <S extends CallableSignature<O>, O extends object>(
     signature: S, 
-    object: O
+    object: O,
+    injectDescriptors?: PropertyDescriptorMap
 ): Callable<S,O> => {
 
     // resolve signature
     const rawSignature = resolveRawSignature<S,O>(signature)
 
-    const callableSignature = (...args: Parameters<S>): ReturnType<S> => rawSignature.apply(callable, args)
+    const callable = (...args: Parameters<S>): ReturnType<S> => rawSignature.apply(callable as O, args)
 
     const callableDescriptors = resolveCallableDescriptors(signature, rawSignature, object)
 
-    // create callable
-    const callable = define(
-        callableSignature,
-        callableDescriptors
+    return define(
+        callable,
+        {
+            ...injectDescriptors,
+            ...callableDescriptors
+        }
     ) as Callable<S,O>
-
-    return callable 
 }
 
 //// Exports ////
@@ -111,5 +112,8 @@ const createCallableObject = <S extends CallableSignature<O>, O extends object>(
 export default createCallableObject
 
 export {
-    createCallableObject
+    createCallableObject,
+    CallableSignature,
+
+    Callable
 }

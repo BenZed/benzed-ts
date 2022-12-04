@@ -10,7 +10,7 @@ export const isBoolean = <B extends boolean = boolean>(i: unknown): i is B => ty
 
 export const isSymbol = <S extends symbol>(i: unknown): i is S => typeof i === 'symbol'
 
-export const isFunction = <F extends Func = Func>(i: unknown): i is F => typeof i === 'function'
+export const isFunc = <F extends Func = Func>(i: unknown): i is F => typeof i === 'function'
 
 export const isObject = <T extends object = object>(i: unknown): i is T => typeof i === 'object' && i !== null
 
@@ -56,10 +56,10 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
         (
             isObject<SymbolIterator>(input) || 
-            isFunction<Func & SymbolIterator>(input)
+            isFunc<Func & SymbolIterator>(input)
         ) && 
         
-        isFunction(input[Symbol.iterator])
+        isFunc(input[Symbol.iterator])
 }
 
 export const isInteger = (i: unknown): i is number =>
