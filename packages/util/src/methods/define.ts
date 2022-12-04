@@ -14,6 +14,7 @@ interface Define {
      * Shortcut for Object.defineProperty(object, 'name', { value })
      */
     name<T>(object: T, name: string): T
+    value<T>(object: T, key: string | symbol, value: unknown): T
 
     descriptorsOf(object: object): PropertyDescriptorMap
     descriptorsOf(...objects: object[]): PropertyDescriptorMap
@@ -52,7 +53,16 @@ const define = intersect(
     {
 
         name(object: object, name: string) {
-            return Object.defineProperty(object, 'name', { value: name })
+            return define.value(object, 'name', name)
+        },
+
+        value(object: object, key: string | symbol, value: unknown) {
+            return Object.defineProperty(object, key, { 
+                value, 
+                enumerable: false, 
+                writable: false, 
+                configurable: true 
+            })
         },
 
         descriptorsOf(...objects: object[]) {
