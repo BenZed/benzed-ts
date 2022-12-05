@@ -12,6 +12,9 @@ interface Property {
     <T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
     <T extends object>(object: T, definitions: PropertyDescriptorMap): T
 
+    define<T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
+    define<T extends object>(object: T, definitions: PropertyDescriptorMap): T
+
     /**
      * Shortcut for Object.defineProperty(object, 'name', { value })
      */
@@ -30,30 +33,32 @@ interface Property {
     keysOf(...objects: object[]): string[]
 }
 
+//// Helper ////
+
+const define = (
+    ...args: 
+    [
+        object: object, 
+        property: string | number | symbol, 
+        definition: PropertyDescriptor
+    ] | [
+        object: object, 
+        definitions: PropertyDescriptorMap
+    ]
+): object => {
+
+    const [ object, definitions ] = args.length === 3 
+        ? [ args[0], { [ args[1] ]: args[2] } ] 
+        : args
+
+    return Object.defineProperties(object, definitions)
+
+}
+
 //// Implementation ////
 
 const property = intersect(
-
-    Object.defineProperty((
-        ...args: 
-        [
-            object: object, 
-            property: string | number | symbol, 
-            definition: PropertyDescriptor
-        ] | [
-            object: object, 
-            definitions: PropertyDescriptorMap
-        ]
-    ): object => {
-
-        const [ object, definitions ] = args.length === 3 
-            ? [ args[0], { [ args[1] ]: args[2] } ] 
-            : args
-
-        return Object.defineProperties(object, definitions)
-
-    }, 'name', { writable: true }), // so it can be over written with the name method
-
+    Object.defineProperty(define, 'name', { writable: true }), // so the name() method can be assigned
     {
 
         name(object: object, name: string) {
@@ -68,6 +73,8 @@ const property = intersect(
                 configurable: true 
             })
         },
+
+        define,
 
         descriptorOf(object: object, key: string | symbol) {
             return Object.getOwnPropertyDescriptor(object, key)
