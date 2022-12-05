@@ -1,4 +1,4 @@
-import { indexesOf, isArrayLike, isIterable, keysOf } from '../types'
+import { indexesOf, isArrayLike, isIterable, keysOf, symbolsOf } from '../types'
 
 //// Main ////
 
@@ -15,17 +15,17 @@ function* iterate<T>(
 ): Generator<T> {
 
     for (const object of objects) {
-        if (isArrayLike<T>(object)) {
-
-            // ArrayLike<T>
-            for (const index of indexesOf(object as { length: number }))
-                yield object[index]
-
-        } else if (isIterable(object)) {
+        if (isIterable(object)) {
 
             // Iterable<T>
             for (const value of object as Iterable<T>)
                 yield value
+
+        } else if (isArrayLike<T>(object)) {
+
+            // ArrayLike<T>
+            for (const index of indexesOf(object as { length: number }))
+                yield object[index]
 
         } else {
 
@@ -33,8 +33,10 @@ function* iterate<T>(
                 yield object[key]
         }
     }
-
 }
+iterate.keys = keysOf
+iterate.symbols = symbolsOf
+iterate.indexes = indexesOf
 
 //// Exports ////
 
