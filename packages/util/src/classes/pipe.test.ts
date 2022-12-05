@@ -290,7 +290,7 @@ describe('promises', () => {
 
         expect(await toNextCtxPipe(10, { by: 100 })).toEqual(20000)
     })
-
+    
     it('async to bound', async () => {
         const toBound = async
             .bind({ foo: 'string' })
@@ -300,9 +300,11 @@ describe('promises', () => {
         expect(output).toEqual([20, 'string'])
     })
 
-    it('combine', async () => {
+    it('async outputs does not resolve to nested promises', async () => {
         const t1 = Pipe.from((i: number) => Promise.resolve(i * 2))
         const t2 = t1.to(t1)
+
+        expectTypeOf(t2).toEqualTypeOf<Pipe<number, Promise<number>>>()
         expect(await t2(2)).toEqual(8)
     })
 

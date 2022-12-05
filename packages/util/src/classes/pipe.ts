@@ -26,15 +26,19 @@ type InputOf<F extends Func> = F extends (input: infer I, ...args: any) => any ?
 type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknown
 type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : unknown
 
-type Async<I,O> = I extends Promise<any> ? Promise<O> : O
+type Output<I,O> = I extends Promise<any> 
+    ? O extends Promise<any> 
+        ? O 
+        : Promise<O> 
+    : O
 
 interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
 
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, Async<O, Ox>>
-    to<Ox, C>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Async<O, Ox>, C>
+    to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, Output<O, Ox>>
+    to<Ox, C>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Output<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -51,7 +55,7 @@ interface ContextPipe<I = unknown, O = unknown, C = unknown> extends Transformer
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Async<O, Ox>, C>
+    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Output<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -68,7 +72,7 @@ interface BoundPipe<I = unknown, O = unknown, C = unknown> extends Transformer<T
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): BoundPipe<I, Async<O, Ox>, C>
+    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): BoundPipe<I, Output<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
