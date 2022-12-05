@@ -1,7 +1,7 @@
 import { define } from './define'
 
-it('define.namesOf()', () => {
-    expect(define.namesOf(
+it('define.keysOf()', () => {
+    expect(define.keysOf(
         { foo: true }, 
         { bar: 'cake' }, 
         { [Symbol('ace')]: true, bar: 100 }, 

@@ -1,6 +1,6 @@
 import { define } from './define'
 import { ValueMap, ValuesMap } from '../classes/value-map'
-import { Func } from '../types/types'
+import { Func } from '../types/func'
 
 // Helper 
 

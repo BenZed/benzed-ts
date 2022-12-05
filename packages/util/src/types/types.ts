@@ -81,11 +81,6 @@ export type IfEquals<T1, T2, Y, N = never> =
     (<T>() => T extends T2 ? 1 : 2) ? Y : N
 
 /**
- * Get the string keys of a type.
- */
-export type StringKeys<T> = Extract<keyof T, string>
-
-/**
  * Convert a type to a numeric
  */
 export type ToNumber<N, Vf extends number = 0 /* (V)alue to use if conversion (f)ails*/> = 
@@ -94,13 +89,6 @@ export type ToNumber<N, Vf extends number = 0 /* (V)alue to use if conversion (f
          : N extends bigint ? ToNumber<`${N}`, Vf>
              : N extends boolean ? N extends true ? 1 : 0
                  : Vf
-
-/*
- * Get a union of indexes of a tuple type
- */
-export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
-    [K in keyof A as ToNumber<K>]: never
-}
 
 //// Invalid Type Error ////
 

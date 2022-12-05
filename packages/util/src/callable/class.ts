@@ -1,5 +1,5 @@
 import { define } from '../methods/define'
-import { isFunc } from '../types/guards'
+import { isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 

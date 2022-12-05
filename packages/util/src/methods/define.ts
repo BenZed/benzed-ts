@@ -1,4 +1,5 @@
 
+import { nil } from '../types'
 import { intersect } from '../types/merge'
 
 //// Type ////
@@ -7,6 +8,7 @@ import { intersect } from '../types/merge'
  * Shortcut for Object.defineProperty and Object.defineProperties
  */
 interface Define {
+
     <T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
     <T extends object>(object: T, definitions: PropertyDescriptorMap): T
 
@@ -16,14 +18,16 @@ interface Define {
     name<T>(object: T, name: string): T
     value<T>(object: T, key: string | symbol, value: unknown): T
 
+    descriptorOf(object: object, key: string | symbol): PropertyDescriptor | nil
+
     descriptorsOf(object: object): PropertyDescriptorMap
     descriptorsOf(...objects: object[]): PropertyDescriptorMap
 
     symbolsOf(object: object): symbol[]
     symbolsOf(...objects: object[]): symbol[]
 
-    namesOf(object: object): string[]
-    namesOf(...objects: object[]): string[]
+    keysOf(object: object): string[]
+    keysOf(...objects: object[]): string[]
 }
 
 //// Implementation ////
@@ -65,6 +69,10 @@ const define = intersect(
             })
         },
 
+        descriptorOf(object: object, key: string | symbol) {
+            return Object.getOwnPropertyDescriptor(object, key)
+        },
+
         descriptorsOf(...objects: object[]) {
             return intersect(
                 ...objects.map(
@@ -76,9 +84,10 @@ const define = intersect(
         symbolsOf(...objects: object[]) {
             return objects
                 .flatMap(Object.getOwnPropertySymbols)
+                .filter((x, i, a) => a.indexOf(x) === i) // unique
         },
 
-        namesOf(...objects: object[]) {
+        keysOf(...objects: object[]) {
             return objects
                 .flatMap(Object.getOwnPropertyNames)
                 .filter((x,i,a) => a.findIndex(y => Object.is(x, y)) === i) // unique
