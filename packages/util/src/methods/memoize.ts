@@ -1,4 +1,4 @@
-import { define } from './define'
+import { property } from '../property'
 import { ValueMap, ValuesMap } from '../classes/value-map'
 import { Func } from '../types/func'
 
@@ -91,7 +91,7 @@ export function memoize<F extends Func>(
         return value as ReturnType<F>
     }
 
-    return define.name(memoized, name) as Memoized<F>
+    return property.name(memoized, name) as Memoized<F>
 }
 
 //// Extend ////

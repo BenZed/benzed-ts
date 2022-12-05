@@ -1,4 +1,5 @@
-import { define, keysOf } from '../methods'
+import { keysOf } from '../methods'
+import { property } from '../property'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -31,7 +32,7 @@ const getContext = (callable: Callable<CallableSignature<object>, object>): unkn
     (callable as unknown as { [$$context]: unknown })[$$context] 
 
 const bindContext = (callable: Callable<CallableSignature<object>, object>, ctx: unknown): unknown => 
-    define(callable, $$context, { value: ctx, writable: false, configurable: true, enumerable: false })
+    property(callable, $$context, { value: ctx, writable: false, configurable: true, enumerable: false })
 
 const setContext = (callable: Callable<CallableSignature<object>, object>, ctx: unknown): unknown => {
     return transferContext({ [$$context]: ctx } as unknown as Callable<CallableSignature<object>, object>, callable)
@@ -42,11 +43,11 @@ const transferContext = (
     to: Callable<CallableSignature<object>, object>
 ): typeof to => {
     
-    const transferContext = define.descriptorsOf(from)[$$context]
-    const targetContext = define.descriptorsOf(to)[$$context]
+    const transferContext = property.descriptorsOf(from)[$$context]
+    const targetContext = property.descriptorsOf(to)[$$context]
 
     if (transferContext && (!targetContext || targetContext.writable)) {
-        define(to, $$context, { 
+        property(to, $$context, { 
             value: transferContext.value,
             writable: transferContext.writable, 
             configurable: true, 
@@ -80,8 +81,8 @@ const resolveCallableDescriptors = <S extends CallableSignature<O>, O extends ob
 
 ): PropertyDescriptorMap => {
 
-    const signatureDescriptors = define.descriptorsOf(signature)
-    const rawSignatureDescriptors = define.descriptorsOf(rawSignature)
+    const signatureDescriptors = property.descriptorsOf(signature)
+    const rawSignatureDescriptors = property.descriptorsOf(rawSignature)
 
     // if we're nesting callable objects, the signature might contain
     // additional properties that don't exist on a function by default,
@@ -91,7 +92,7 @@ const resolveCallableDescriptors = <S extends CallableSignature<O>, O extends ob
             delete signatureDescriptors[key]
     }
 
-    const objectDescriptors = define.descriptorsOf(object)
+    const objectDescriptors = property.descriptorsOf(object)
 
     return {
         ...signatureDescriptors,
@@ -133,7 +134,7 @@ const createCallableObject = <S extends CallableSignature<O>, O extends object>(
 
     const callableDescriptors = resolveCallableDescriptors(signature, rawSignature, object)
 
-    return define(
+    return property(
         callable,
         {
             ...injectDescriptors,

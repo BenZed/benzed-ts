@@ -1,4 +1,4 @@
-import { define } from '../methods/define'
+import { property } from '../property'
 import { isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
@@ -45,7 +45,7 @@ const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C 
             [$$instance]: {
                 value: instance
             },
-            ...define.descriptorsOf(constructor.prototype)
+            ...property.descriptorsOf(constructor.prototype)
         }
     )
 
@@ -90,7 +90,7 @@ const createCallableClass = <
         }
     }
 
-    return define.name(
+    return property.name(
         Callable, 
         name ?? `Callable${constructor.name}`
     )

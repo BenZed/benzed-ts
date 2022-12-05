@@ -13,19 +13,16 @@ export const isBigInt = <N extends bigint = bigint>(i: unknown): i is N => typeo
 //// Falsy ////
 
 export type Falsy = '' | 0 | null | undefined | false
-
 export const isFalsy = (input: unknown): input is Falsy => !input
 
 //// Truthy ////
 
 export type Truthy = string | number | object | true 
-
 export const isTruthy = (input: unknown): input is Truthy => !!input
 
 //// Primitive ////
 
 export type Primitive = string | number | boolean | bigint | null | undefined
-
 export const isPrimitive = (i: unknown): i is Primitive => 
     isString(i) || 
     isNumber(i) || 

@@ -1,13 +1,13 @@
 
-import { nil } from '../types'
-import { intersect } from '../types/merge'
+import { nil } from './types/nil'
+import { intersect } from './types/merge'
 
 //// Type ////
 
 /**
  * Shortcut for Object.defineProperty and Object.defineProperties
  */
-interface Define {
+interface Property {
 
     <T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
     <T extends object>(object: T, definitions: PropertyDescriptorMap): T
@@ -32,7 +32,7 @@ interface Define {
 
 //// Implementation ////
 
-const define = intersect(
+const property = intersect(
 
     Object.defineProperty((
         ...args: 
@@ -57,7 +57,7 @@ const define = intersect(
     {
 
         name(object: object, name: string) {
-            return define.value(object, 'name', name)
+            return property.value(object, 'name', name)
         },
 
         value(object: object, key: string | symbol, value: unknown) {
@@ -95,12 +95,13 @@ const define = intersect(
 
     }
 
-) as Define
+) as Property
 
 //// Exports ////
 
-export default define
+export default property
 
 export {
-    define
+    property,
+    Property
 }

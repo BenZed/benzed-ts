@@ -1,6 +1,6 @@
 import { IndexesOf, indexesOf, KeysOf, keysOf, symbolsOf } from './keys-of'
 import { expectTypeOf } from 'expect-type'
-import { define } from '../methods'
+import { property } from '../property'
 
 describe('keysOf', () => {
 
@@ -26,7 +26,7 @@ describe('keysOf', () => {
 
     it('skips non-enumerable string keys', () => {
         const record2 = { ...record }
-        define.value(record2, 'hidden', true)
+        property.value(record2, 'hidden', true)
 
         expect([...keysOf(record2)]).toEqual(['a', 'b' , 'c'])
     })
@@ -56,7 +56,7 @@ describe('symbolsOf', () => {
     })
 
     it('skips non-enumerable symbols', () => {
-        const fancy1 = define.value({...fancy}, Symbol('non-enumerable-symbol'), true)
+        const fancy1 = property.value({...fancy}, Symbol('non-enumerable-symbol'), true)
         expect([...symbolsOf(fancy1)]).toEqual([$$case])
     })
 
