@@ -184,8 +184,8 @@ it('can be extended', () => {
     }
 
     const Repeater: RepeaterConstructor = createCallableClass(
-        function (times: number) {
-            return this.value.repeat(times)
+        function (count: number) {
+            return this.value.repeat(count)
         },
         class {
             static create(value: string) {

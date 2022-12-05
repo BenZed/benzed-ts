@@ -71,11 +71,7 @@ const createCallableClass = <
     if (!isClass(constructor))
         throw new Error('Input must be a class definition')
     
-    const Callable = class extends constructor {
-
-        // static [Symbol.hasInstance](value: any): boolean {
-        //     return (value?.[$$instance] ?? value) instanceof constructor
-        // }
+    class Callable extends constructor {
 
         constructor(...args: any[]) {
             
@@ -89,6 +85,15 @@ const createCallableClass = <
             )
         }
     }
+
+    // Couldn't declare as a static property, other packages complained
+    // that assigning to [Symbol.iterator] failed because it was readonly
+    property(Callable, Symbol.hasInstance, {
+        value: (value: any) => (value?.[$$instance] ?? value) instanceof constructor,
+        configurable: true,
+        writable: true,
+        enumerable: false
+    })
 
     return property.name(
         Callable, 
