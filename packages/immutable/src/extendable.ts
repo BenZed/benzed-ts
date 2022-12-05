@@ -132,7 +132,6 @@ const createDescriptors = (
     } as Descriptors,
 
     ...original && Object.getOwnPropertyDescriptors(original),
-
     ...extension && Object.getOwnPropertyDescriptors(extension),
 
     extend: {
@@ -175,12 +174,11 @@ const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } =>
 
 const getCallable = (
     object: object, 
-): Func | nil => 
-    isExtendedCallSignature(object) 
-        ? object[$$callable] 
-        : isFunc(object)
-            ? object 
-            : nil
+): Func | nil => isExtendedCallSignature(object) 
+    ? object[$$callable] 
+    : isFunc(object)
+        ? object 
+        : nil
 
 //// Extend ////
 

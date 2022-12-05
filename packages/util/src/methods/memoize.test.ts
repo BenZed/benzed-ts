@@ -1,5 +1,10 @@
 import { memoize } from './memoize'
-import { isPrime } from '../../../math/src'
+
+//// Setup ////
+
+const isOdd = (i: number): boolean => i % 2 !== 0 
+
+//// Tests ////
 
 it('memoize()', () => {
 
@@ -22,8 +27,8 @@ it('memoize()', () => {
 })
 
 it('names method', () => {
-    const memoPrime = memoize(isPrime)
-    expect(memoPrime.name).toEqual(isPrime.name)
+    const memoPrime = memoize(isOdd)
+    expect(memoPrime.name).toEqual(isOdd.name)
 })
 
 it('optional method name', () => {
@@ -34,7 +39,7 @@ it('optional method name', () => {
 // I refused to answer why this test is necessary
 it('seperate cache for each method', () => {
 
-    const memoIsPrime = memoize(isPrime)
+    const memoIsPrime = memoize(isOdd)
     const memoIsEven = memoize((i: number) => i % 2 === 0, 'isEven')
     
     expect(memoIsPrime(10))

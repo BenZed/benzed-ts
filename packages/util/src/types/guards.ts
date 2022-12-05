@@ -1,17 +1,8 @@
-import { indexesOf, keysOf } from '../methods'
-import { Func, TypeGuard } from './types'
+import { indexesOf, keysOf } from '../types/keys-of'
+import { isNumber, isString } from './primitive'
+import { Func, isFunc, TypeGuard } from './func'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
-
-export const isString = <S extends string = string>(i: unknown): i is S => typeof i === 'string'
-
-export const isNumber = <N extends number = number>(i: unknown): i is N => typeof i === 'number' && !Number.isNaN(i)
-
-export const isBoolean = <B extends boolean = boolean>(i: unknown): i is B => typeof i === 'boolean'
-
-export const isSymbol = <S extends symbol>(i: unknown): i is S => typeof i === 'symbol'
-
-export const isFunc = <F extends Func = Func>(i: unknown): i is F => typeof i === 'function'
 
 export const isObject = <T extends object = object>(i: unknown): i is T => typeof i === 'object' && i !== null
 
@@ -77,5 +68,5 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
         isFunc(input[Symbol.iterator])
 }
 
-export const isInteger = (i: unknown): i is number =>
-    Number.isInteger(i)
+export const isPromise = <T>(input: unknown): input is Promise<T> => 
+    input instanceof Promise

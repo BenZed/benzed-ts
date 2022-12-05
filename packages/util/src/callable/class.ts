@@ -1,5 +1,5 @@
-import { define } from '../methods/define'
-import { isFunc } from '../types/guards'
+import { property } from '../property'
+import { isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 
@@ -45,7 +45,7 @@ const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C 
             [$$instance]: {
                 value: instance
             },
-            ...define.descriptorsOf(constructor.prototype)
+            ...property.descriptorsOf(constructor.prototype)
         }
     )
 
@@ -73,9 +73,9 @@ const createCallableClass = <
     
     const Callable = class extends constructor {
 
-        static [Symbol.hasInstance](value: any): boolean {
-            return (value?.[$$instance] ?? value) instanceof constructor
-        }
+        // static [Symbol.hasInstance](value: any): boolean {
+        //     return (value?.[$$instance] ?? value) instanceof constructor
+        // }
 
         constructor(...args: any[]) {
             
@@ -90,7 +90,7 @@ const createCallableClass = <
         }
     }
 
-    return define.name(
+    return property.name(
         Callable, 
         name ?? `Callable${constructor.name}`
     )

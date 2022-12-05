@@ -1,48 +1,14 @@
+import { Func } from './func'
 import { Merge } from './merge'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-export type Func = (...args: any[]) => any 
-
-export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
-
-export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
-
-/**
- * Falsy values
- */
-export type Falsy = '' | 0 | null | undefined | false
-
-export type Keys<T = object> = (keyof T)[]
-
-/**
- * Primitives
- */
-export type Primitive = string | number | boolean | bigint | null | undefined
-
 export type Json =
     null | string | number | boolean |
     Json[] |
     { [k: string]: Json }
-
-/**
- * Reduce two types to only their matching key values.
- */
-export type Collapse<L, R> =
-    {
-        [K in keyof L as
-
-        // Only include key of left if right has the same key and value
-        /**/ K extends keyof R ?
-            /**/ R[K] extends L[K]
-                /**/ ? K
-                /**/ : never
-            /**/ : never
-
-        ]: L[K]
-    }
 
 /**
  * Make specific keys of a type required
@@ -115,16 +81,6 @@ export type IfEquals<T1, T2, Y, N = never> =
     (<T>() => T extends T2 ? 1 : 2) ? Y : N
 
 /**
- * Get the string keys of a type.
- */
-export type StringKeys<T> = Extract<keyof T, string>
-
-/**
- * Object with no properties
- */
-export type Empty = { [key: string]: never }
-
-/**
  * Convert a type to a numeric
  */
 export type ToNumber<N, Vf extends number = 0 /* (V)alue to use if conversion (f)ails*/> = 
@@ -134,21 +90,7 @@ export type ToNumber<N, Vf extends number = 0 /* (V)alue to use if conversion (f
              : N extends boolean ? N extends true ? 1 : 0
                  : Vf
 
-/*
- * Get a union of indexes of a tuple type
- */
-export type IndexesOf<A extends unknown[] | readonly unknown[]> = keyof {
-    [K in keyof A as ToNumber<K>]: never
-}
-
 //// Invalid Type Error ////
-
-const InvalidTypeError = Symbol('invalid-type-error')
-const Type = Symbol('required-target-type')
-
-export type Invalid<msg extends string = 'This is an invalid type.', T = never> = T extends never 
-    ? { [InvalidTypeError]: msg }
-    : { [InvalidTypeError]: msg, [Type]: T }
 
 export interface Stack<T> extends Iterable<T> {
 

@@ -83,7 +83,5 @@ describe('memoize', () => {
         // max cache size is 1
         expect(expensiveOperationThatJustReturnsInput(1)).toEqual(1)
         expect(sideEffects).toEqual(3)
-
     })
-
 })

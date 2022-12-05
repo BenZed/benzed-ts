@@ -1,7 +1,7 @@
-import { define } from './define'
+import { property } from './property'
 
-it('define.namesOf()', () => {
-    expect(define.namesOf(
+it('property.keysOf()', () => {
+    expect(property.keysOf(
         { foo: true }, 
         { bar: 'cake' }, 
         { [Symbol('ace')]: true, bar: 100 }, 

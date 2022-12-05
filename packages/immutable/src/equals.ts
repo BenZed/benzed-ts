@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
-import { keysOf, isFunction, isIterable, isArrayLike, isObject } from '@benzed/util'
+import { keysOf, isFunc, isIterable, isArrayLike, isObject } from '@benzed/util'
 
 import { $$equals } from './symbols'
 import { isReferable, Prototypal } from './util'
@@ -12,7 +12,7 @@ interface Comparable {
 }
 
 function isComparable(input: unknown): input is Comparable {
-    return isFunction((input as Comparable)[$$equals])
+    return isFunc((input as Comparable)[$$equals])
 }
 
 //// Helper ////
@@ -104,7 +104,7 @@ function equalDate(this: Date, right: unknown): right is Date {
     const left = this
 
     return isReferable(right) &&
-        isFunction(right.getTime) &&
+        isFunc(right.getTime) &&
         left.getTime() === right.getTime()
 }
 

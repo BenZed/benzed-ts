@@ -1,5 +1,6 @@
-import { PI } from '@benzed/math'
 import digitize from './digitize'
+
+const PI = Math.PI
 
 describe('digitize', () => {
 
