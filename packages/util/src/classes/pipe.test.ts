@@ -12,11 +12,8 @@ const x2 = (i: number): number => i * 2
 //// Tests ////
 
 it('create a pipe with multiple transforms', () => {
-
     const x32 = Pipe.from(x2,x2,x2,x2,x2) 
-
     expect(x32(1)).toEqual(32)
-
 })
 
 it('create a pipe with primitive context', () => {
@@ -235,6 +232,78 @@ describe('from()', () => {
 
     it('immutable copy', () => {
         expect(parse).not.toBe(to)
+    })
+})
+
+describe('promises', () => {
+
+    const async = Pipe.from((i: number) => Promise.resolve(i * 2))
+
+    it('can\'t define input as promises', () => {
+        // @ts-expect-error Pipe.from pipe nput must be awaited
+        Pipe.from((p: Promise<number>) => p.then(n => n * 2))
+
+        // @ts-expect-error Pipe.from context pipe must be awaited
+        Pipe.from((i: Promise<number>, ctx: { foo: 'string '}) => [i, ctx.foo])
+
+        Pipe.from((i: number) => Promise.resolve(i + 1))
+        // @ts-expect-error Pipe.from.from pipe must be awaited
+            .from((i: Promise<number>) => i.then(p => p + 1))
+
+        // @ts-expect-error Pipe.from many pipes must be awaited
+        Pipe.from((i: Promise<number>) => i.then(r => r * 2), (i: Promise<number>) => i.then(r => r * 2))
+
+        Pipe.from((i: number, ctx: { invert: boolean }) => Promise.resolve(i * (ctx.invert ? -1 : 1)))
+        // @ts-expect-error context pipe from pipe must be awaited
+            .from((i: Promise<number>) => i.then(p = p + 1))
+
+        Pipe.from((i: number) => Promise.resolve(i / 2))
+            .bind({ by: 10 })
+        // @ts-expect-error context pipe from pipe must be awaited
+            .from((i: Promise<number>, ctx) => i.then(r => r * ctx.by))
+    })
+
+    it('async to Pipe', async () => {
+    
+        const toPipe = async.to(i => `${i}`)
+        expect(await toPipe(10)).toEqual('20')
+        expectTypeOf(toPipe).toEqualTypeOf<Pipe<number, Promise<string>>>()
+
+    })
+
+    it('async from Pipe', async () => {
+        const fromPipe = async.from((i: number) => i * 2)
+        expect(await fromPipe(10)).toEqual(40)
+
+    })
+
+    it('async to ContextPipe', async () => {
+        const toCtxPipe = async.to((i: number, ctx: { count: number }) => i + ctx.count)
+        expect(await toCtxPipe(10, { count: 5 })).toEqual(25)
+        expectTypeOf(toCtxPipe).toEqualTypeOf<ContextPipe<number, Promise<number>, { count: number }>>()
+    })
+
+    it('context pipe to context pipe', async () => {
+
+        const toCtxPipe = async.to((i: number, ctx: { by: number }) => i * ctx.by)
+        const toNextCtxPipe = toCtxPipe.to(i => i * 10)
+
+        expect(await toNextCtxPipe(10, { by: 100 })).toEqual(20000)
+    })
+
+    it('async to bound', async () => {
+        const toBound = async
+            .bind({ foo: 'string' })
+            .to((i, ctx) => [i, ctx.foo])
+
+        const output = await toBound(10)
+        expect(output).toEqual([20, 'string'])
+    })
+
+    it('combine', async () => {
+        const t1 = Pipe.from((i: number) => Promise.resolve(i * 2))
+        const t2 = t1.to(t1)
+        expect(await t2(2)).toEqual(8)
     })
 
 })

@@ -1,4 +1,4 @@
-import { keysOf } from '../methods'
+import { keysOf } from '../types'
 import { property } from '../property'
 
 /* eslint-disable 

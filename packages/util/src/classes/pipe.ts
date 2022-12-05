@@ -1,5 +1,5 @@
 import callable from '../callable'
-import { Func } from '../types'
+import { Func, indexesOf, isPromise } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -23,18 +23,18 @@ type Transformer<T extends Func> = Iterable<T> & {
 } & T
 
 type InputOf<F extends Func> = F extends (input: infer I, ...args: any) => any ? I : unknown
-
 type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknown
-
 type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : unknown
+
+type Async<I,O> = I extends Promise<any> ? Promise<O> : O
 
 interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
 
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: Transform<O, Ox>): Pipe<I, Ox>
-    to<Ox, C>(transform: ContextTransform<O, Ox, C>): ContextPipe<I, Ox, C>
+    to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, Async<O, Ox>>
+    to<Ox, C>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Async<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -51,7 +51,7 @@ interface ContextPipe<I = unknown, O = unknown, C = unknown> extends Transformer
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<O, Ox, C>): ContextPipe<I, Ox, C>
+    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Async<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -68,7 +68,7 @@ interface BoundPipe<I = unknown, O = unknown, C = unknown> extends Transformer<T
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<O, Ox, C>): BoundPipe<I, Ox, C>
+    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): BoundPipe<I, Async<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -86,36 +86,57 @@ interface PipeConstructor {
      * Given a number of transforms, get a flattened array of just transforms 
      * from any pipes that may have been in the input
      */
-    flatten<I,O>(transforms: Transform<I,O>[]): Transform<I,O>[]
+    flatten<T>(transforms: Transform<Awaited<T>,T>[]): Transform<T,T>[]
 
-    from<I,O,C>(transform: ContextTransform<I,O,C>): unknown extends C 
-        ? Pipe<I,O>
-        : ContextPipe<I,O,C>
-    from<I,O>(transform: Transform<I,O>): Pipe<I,O>
+    from<I, O, C>(transform: ContextTransform<Awaited<I>, O, C>): unknown extends C 
+        ? Pipe<I, O>
+        : ContextPipe<I, O, C>
+    from<I,O>(transform: Transform<Awaited<I>,O>): Pipe<I,O>
 
     /** 
      * Create a pipe from a multiple transform methods with the same type as input and output.
      */
-    from<T>(...transforms: Transform<T,T>[]): Pipe<T,T>
+    from<T>(...transforms: Transform<Awaited<T>,T>[]): Pipe<T,T>
 
     /**
      * Convert a function with a *this* context to a context pipe
      */
-    convert<I,O,C>(func: (this: C, input: I) => O): ContextPipe<I,O,C>
+    convert<I, O, C>(func: (this: C, input: Awaited<I>) => O): ContextPipe<I,O,C>
 
+}
+
+//// Transform ////
+
+function applyTransforms(
+    input: unknown, 
+    ctx: unknown, 
+    transforms: readonly ContextTransform[],
+    start: number
+): unknown {
+
+    for (const index of indexesOf(transforms, start)) {
+        const transform = transforms[index]
+
+        const output = transform.call(ctx, input, ctx)
+        if (isPromise(output)) 
+            return output.then(resolved => applyTransforms(resolved, ctx, transforms, index + 1))
+        else 
+            input = output
+    }
+
+    return input
 }
 
 //// Main ////
 
 const Pipe = callable(
     function transform(x: unknown, ctx?: unknown): unknown {
-
-        const _ctx = callable.getContext(this as Pipe) ?? ctx
-
-        for (const transform of this.transforms) 
-            x = (transform as ContextTransform).call(_ctx, x, _ctx)
-
-        return x
+        return applyTransforms(
+            x, 
+            callable.getContext(this as Pipe) ?? ctx, 
+            this.transforms,
+            0
+        )
     }, class {
 
         static flatten(transforms: Transform[]): Transform[] {
@@ -131,7 +152,7 @@ const Pipe = callable(
 
         static convert(transform: (this: unknown, input: unknown) => unknown): ContextPipe {
             if ('prototype' in transform === false)
-                throw new Error('Must convert a function with a <this> context.')
+                throw new Error('Must convert a prototypal function')
             return this.from(transform)
         }
 

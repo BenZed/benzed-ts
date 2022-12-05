@@ -1,4 +1,4 @@
-import { numKeys } from '../methods'
+import { keysOf } from '../types'
 import { isObject } from './guards'
 
 /**
@@ -6,4 +6,4 @@ import { isObject } from './guards'
  */
 export type Empty = { [key: string]: never }
 
-export const isEmpty = (input: unknown): input is Empty => isObject(input) && numKeys(input) === 0
+export const isEmpty = (input: unknown): input is Empty => isObject(input) && keysOf.count(input) === 0

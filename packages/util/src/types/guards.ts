@@ -1,4 +1,4 @@
-import { indexesOf, keysOf } from '../methods'
+import { indexesOf, keysOf } from '../types/keys-of'
 import { isNumber, isString } from './primitive'
 import { Func, isFunc, TypeGuard } from './func'
 
@@ -67,3 +67,6 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
         
         isFunc(input[Symbol.iterator])
 }
+
+export const isPromise = <T>(input: unknown): input is Promise<T> => 
+    input instanceof Promise
