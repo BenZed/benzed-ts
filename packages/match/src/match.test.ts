@@ -1,4 +1,4 @@
-import is from '@benzed/is'
+import { isBoolean, isNumber, isObject, isString } from '@benzed/util'
 
 import match from './match'
 import { Match, Matcher } from './types'
@@ -130,11 +130,11 @@ describe('method input', () => {
 
     it('all typeguards', () => {
 
-        const isFoo = (i: unknown): i is { foo: 'bar' } => is.object<{foo: string}>(i) && i.foo === 'bar'
+        const isFoo = (i: unknown): i is { foo: 'bar' } => isObject<{foo: string}>(i) && i.foo === 'bar'
 
         const sort = match()
-            .case(is.number, 'Number')
-            .case(is.string, 'String')
+            .case(isNumber, 'Number')
+            .case(isString, 'String')
             .case(isFoo, 'FooBar')
 
         expect(sort(100)).toEqual('Number')
@@ -164,7 +164,7 @@ describe('method input', () => {
         const m1 = match()
             .case(100, 'One Hundred')
             .case(true, 'One')
-            .case(is.number, 'Number')
+            .case(isNumber, 'Number')
             .default('Zero')
 
         expect(m1(100)).toEqual('One Hundred')
@@ -249,8 +249,8 @@ describe('method output', () => {
     it('union method output', () => {
 
         const m1 = match()
-            .case(is.number, i => i > 50 ? 'Big' : 'Small')
-            .case(is.string, i => `${i}!` as const)
+            .case(isNumber, i => i > 50 ? 'Big' : 'Small')
+            .case(isString, i => `${i}!` as const)
 
         expect(m1(0)).toEqual('Small')
         expect(m1(100)).toEqual('Big')
@@ -275,12 +275,12 @@ describe('nested match expressions', () => {
 
         const m1 = match()
         
-            .case(is.number, i => match(i)
+            .case(isNumber, i => match(i)
                 .case(i => i > 0, '+')
                 .case(i => i < 0, '-')
                 .default(0)
 
-            ).case(is.boolean, i => match(i) 
+            ).case(isBoolean, i => match(i) 
                 .case(true, '+')
                 .case(false, '-')
             )
@@ -298,7 +298,7 @@ describe('nested match expressions', () => {
 
         let buildMatchCalls = 0
 
-        const m1 = match().case(is.string, i => {
+        const m1 = match().case(isString, i => {
             buildMatchCalls++
             return match(i).case('Hi!', 'Hello?').default('Fuck Off.')
         })
