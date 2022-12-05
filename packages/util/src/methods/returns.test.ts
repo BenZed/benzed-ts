@@ -1,4 +1,4 @@
-import { returns } from '../../lib'
+import { returns } from './returns'
 
 it('returns()', () => {
 

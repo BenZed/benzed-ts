@@ -73,9 +73,9 @@ const createCallableClass = <
     
     const Callable = class extends constructor {
 
-        static [Symbol.hasInstance](value: any): boolean {
-            return (value?.[$$instance] ?? value) instanceof constructor
-        }
+        // static [Symbol.hasInstance](value: any): boolean {
+        //     return (value?.[$$instance] ?? value) instanceof constructor
+        // }
 
         constructor(...args: any[]) {
             
