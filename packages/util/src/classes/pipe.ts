@@ -27,9 +27,7 @@ type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknow
 type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : unknown
 
 type ResolveAsyncOutput<I,O> = I extends Promise<any> 
-    ? O extends Promise<any> 
-        ? O 
-        : Promise<O> 
+    ? Promise<Awaited<O>>
     : O
 
 interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {

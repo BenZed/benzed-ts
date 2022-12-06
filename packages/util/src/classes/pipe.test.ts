@@ -175,7 +175,6 @@ describe('binding', () => {
 
         expect(x10('10')).toEqual(100)
     })
-
 })
 
 it('creating a pipe out of multiple pipes flattens the transforms', () => {
