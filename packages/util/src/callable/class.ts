@@ -1,5 +1,4 @@
 import { property } from '../property'
-import { omit } from '../types'
 import { isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
@@ -63,8 +62,7 @@ const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C 
                     configurable: true,
                 },
 
-                [$$instance]: { value: instance, enumerable: true }
-
+                [$$instance]: { value: instance, enumerable: false }
             }
         )
     }

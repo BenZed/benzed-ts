@@ -42,15 +42,19 @@ class EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F ext
         return super.default(defaultValue)
     }
 
-    override readonly optional!: HasOptional<
+}
+
+interface EnumSchema<I extends EnumSchemaInput, O extends EnumSchemaOutput<I>, F extends Flags[] = []> {
+
+    readonly optional: HasOptional<
     /**/ F, never, () => EnumSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F, never, () => EnumSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => EnumSchema<I, O>
+    readonly clearFlags: () => EnumSchema<I, O>
 
 }
 

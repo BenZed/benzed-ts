@@ -2,7 +2,7 @@
     "name": "@benzed/array",
     "description": "Utility and Convenience methods for working with arrays.",
     "version": "3.2.3",
-    "main": "./lib",
+    "main": "./src",
     "scripts": {
         "test": "jest --runInBand --all",
         "test:dev": "jest --runInBand -o --verbose --watch",

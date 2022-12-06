@@ -72,7 +72,7 @@ describe('length()', () => {
         })
     ).length(3, '...', 4)
 
-    it('instances a new schema with a length validator', () => {
+    it.only('instances a new schema with a length validator', () => {
 
         const square = [
             { x: 0, y: 0 },

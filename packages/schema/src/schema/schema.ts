@@ -117,7 +117,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
                 get() {
                     return this._copyWithFlag(Flags.Optional) 
                 },
-                enumerable: true
+                enumerable: true,
             },
             mutable: {
                 get() {
@@ -363,6 +363,7 @@ abstract class Schema<I, O, F extends Flags[] = []> implements CopyComparable {
     ): this {
         const schema = this[$$copy]()
         schema._setPostTypeValidator(id, validator)
+
         return schema
     }
 

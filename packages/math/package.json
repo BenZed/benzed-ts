@@ -1,7 +1,7 @@
 {
     "name": "@benzed/math",
     "description": "My own personal Math module, extending Math with overridden or custom functionality.",
-    "main": "./lib",
+    "main": "./src",
     "version": "3.1.4",
     "scripts": {
         "test": "jest --runInBand --all",

@@ -97,19 +97,30 @@ class RecordSchema<
         return this._input[1]
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => RecordSchema<I, O>
-
     override default(defaultValue = {} as O): this {
         return super.default(defaultValue)
     }
+
+}
+
+interface RecordSchema<
+    /**/
+
+    I extends RecordSchemaInput,
+    O extends RecordSchemaOutput<I>,
+    F extends Flags[] = []
+
+    /**/> {
+        
+    readonly optional: HasOptional<
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
+    >
+
+    readonly mutable: HasMutable<
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
+    >
+
+    readonly clearFlags: () => RecordSchema<I, O>
 
 }
 

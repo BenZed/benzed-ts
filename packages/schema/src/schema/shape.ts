@@ -105,16 +105,6 @@ class ShapeSchema<
         return output as O
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => ShapeSchema<I, O>
-
     get properties(): Readonly<I> {
         return this._input
     }
@@ -144,6 +134,24 @@ class ShapeSchema<
     }
 
 }
+
+interface ShapeSchema<
+    I extends ShapeSchemaInput,
+    O extends ShapeSchemaOutput<I>,
+    F extends Flags[] = []
+    /**/> {
+        
+        readonly optional: HasOptional<
+        /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Optional, F>>
+        >
+    
+        readonly mutable: HasMutable<
+        /**/ F, never, ShapeSchema<I, O, AddFlag<Flags.Mutable, F>>
+        >
+    
+        readonly clearFlags: () => ShapeSchema<I, O>
+
+    }
 
 //// Exports ////
 

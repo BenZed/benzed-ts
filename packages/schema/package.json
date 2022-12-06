@@ -1,7 +1,7 @@
 {
     "name": "@benzed/schema",
     "description": "Typesafe Data validation",
-    "main": "./lib",
+    "main": "./src",
     "version": "0.3.0",
     "scripts": {
         "test": "jest --runInBand --all",

@@ -55,21 +55,31 @@ class IntersectionSchema<
         return output
     }
 
+}
+
+interface IntersectionSchema<
+
+    I extends IntersectionSchemaInput,
+    O extends IntersectionSchemaOutput<I>,
+    F extends Flags[] = []
+
+    /**/> extends ParentSchema<I, O, F> {
+
     //// Schema methods ////
 
-    override readonly optional!: HasOptional<
+    readonly optional: HasOptional<
     /**/ F,
     /**/ never,
     /**/ IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F,
     /**/ never,
     /**/ IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => IntersectionSchema<I, O>
+    readonly clearFlags: () => IntersectionSchema<I, O>
 
 }
 

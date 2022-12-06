@@ -109,15 +109,25 @@ class ArraySchema<
         return this._copyWithPostTypeValidator('length', new LengthValidator(settings))
     }
 
-    override readonly optional!: HasOptional<
+}
+
+interface ArraySchema<
+
+    I extends ArraySchemaInput,
+    O extends ArraySchemaOutput<I>,
+    F extends Flags[] = []
+
+    /**/> {
+        
+    readonly optional: HasOptional<
     /**/ F, never, ArraySchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F, never, ArraySchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => ArraySchema<I, O>
+    readonly clearFlags: () => ArraySchema<I, O>
 
 }
 

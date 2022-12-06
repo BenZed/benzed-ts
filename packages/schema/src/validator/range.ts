@@ -131,8 +131,6 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
 /**/ RangeValidatorSettings<O>
 > {
 
-    private _rangeTest!: (input: O) => string | null
-
     //// AssertValidator Implementation ////
 
     protected override _onApplySettings(): void {
@@ -211,6 +209,14 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
             }
         }
     }
+}
+
+interface RangeValidator<O extends Sortable = number> {
+    /**
+     * @internal
+     */
+    _rangeTest: (input: O) => string | null
+
 }
 
 //// Exports ////

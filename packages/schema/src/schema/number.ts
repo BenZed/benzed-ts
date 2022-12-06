@@ -81,16 +81,6 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
         return this._copyWithRounderValidator('ceil', input)
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F, never, NumberSchema<AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F, never, NumberSchema<AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => NumberSchema
-
     override default(defaultValue: number | (() => number) = 0): this {
         return super.default(defaultValue)
     }
@@ -111,6 +101,19 @@ class NumberSchema<F extends Flags[] = []> extends PrimitiveSchema<number, F> {
             )
         )
     }
+}
+
+interface NumberSchema<F extends Flags[] = []> {
+
+    readonly optional: HasOptional<
+    /**/ F, never, NumberSchema<AddFlag<Flags.Optional, F>>
+    >
+
+    readonly mutable: HasMutable<
+    /**/ F, never, NumberSchema<AddFlag<Flags.Mutable, F>>
+    >
+
+    readonly clearFlags: () => NumberSchema
 
 }
 

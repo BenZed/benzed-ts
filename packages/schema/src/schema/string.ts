@@ -112,20 +112,6 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
         return super.default(defaultValue)
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F,
-    /**/ never,
-    /**/ StringSchema<AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F,
-    /**/ never,
-    /**/ StringSchema<AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => StringSchema
-
     //// CopyComparable ////
 
     protected _copyWithCaseValidator<C extends Casing>(
@@ -139,6 +125,22 @@ class StringSchema<F extends Flags[] = []> extends PrimitiveSchema<string, F> {
         )
     }
 
+}
+
+interface StringSchema<F extends Flags[] = []> {
+    readonly optional: HasOptional<
+    /**/ F,
+    /**/ never,
+    /**/ StringSchema<AddFlag<Flags.Optional, F>>
+    >
+
+    readonly mutable: HasMutable<
+    /**/ F,
+    /**/ never,
+    /**/ StringSchema<AddFlag<Flags.Mutable, F>>
+    >
+
+    readonly clearFlags: () => StringSchema
 }
 
 //// Expors ////

@@ -1,7 +1,7 @@
 {
     "name": "@benzed/string",
     "description": "Utility and Convenience methods for working with strings.",
-    "main": "./lib",
+    "main": "./src",
     "version": "3.2.3",
     "scripts": {
         "test": "jest --runInBand --all",

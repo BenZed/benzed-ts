@@ -1,7 +1,7 @@
 {
     "name": "@benzed/fs",
     "description": "My own fs utilties.",
-    "main": "./lib",
+    "main": "./src",
     "version": "3.1.0",
     "scripts": {
         "test": "jest --runInBand --all",

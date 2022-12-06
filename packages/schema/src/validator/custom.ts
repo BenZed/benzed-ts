@@ -1,4 +1,5 @@
 import { is } from '@benzed/is'
+import { io } from '@benzed/util/src'
 
 import { 
     AssertValidTransformValidator,
@@ -113,10 +114,8 @@ class CustomValidator<I, O extends I = I>
 
         this._transform = 'transform' in settings 
             ? settings['transform']
-            : i => i
+            : io
     }
-        
-    protected _transform!: CustomTransform<I,O>['transform']
 
     protected _getErrorDefaultAndArgs(
         i: I
@@ -124,6 +123,13 @@ class CustomValidator<I, O extends I = I>
         return [this.settings.error, i]
     }
 
+}
+
+interface CustomValidator<I, O extends I = I> {
+    /**
+     * @internal
+     */
+    _transform: CustomTransform<I,O>['transform']
 }
 
 //// Exports ////

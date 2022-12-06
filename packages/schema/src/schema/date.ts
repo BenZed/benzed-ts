@@ -60,20 +60,23 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
         )
     }
 
-    override readonly optional!: HasOptional<
+}
+
+interface DateSchema<F extends Flags[] = []> {
+
+    readonly optional: HasOptional<
     /**/ F,
     /**/ never,
     /**/ DateSchema<AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F,
     /**/ never,
     /**/ DateSchema<AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => DateSchema
-
+    readonly clearFlags: () => DateSchema
 }
 
 //// Expors ////
