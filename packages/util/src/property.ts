@@ -1,5 +1,5 @@
 
-import { nil } from './types/nil'
+import { asNil, nil } from './types/nil'
 import { intersect } from './types/merge'
 
 //// Type ////
@@ -31,6 +31,8 @@ interface Property {
 
     keysOf(object: object): string[]
     keysOf(...objects: object[]): string[]
+
+    prototypes(object: object, blacklist?: object[]): object[]
 }
 
 //// Helper ////
@@ -98,8 +100,20 @@ const property = intersect(
             return objects
                 .flatMap(Object.getOwnPropertyNames)
                 .filter((x,i,a) => a.findIndex(y => Object.is(x, y)) === i) // unique
-        }
+        },
 
+        prototypes(object: object, blacklist = [Object.prototype]): object[] {
+            const prototypes: object[] = []
+
+            let prototype: object | nil = object
+            while (prototype) {
+                prototype = Object.getPrototypeOf(prototype)
+                if (prototype && !blacklist.includes(prototype))
+                    prototypes.push(prototype)
+            }
+
+            return prototypes.reverse()
+        }
     }
 
 ) as Property

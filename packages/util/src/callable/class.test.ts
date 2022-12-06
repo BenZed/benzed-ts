@@ -324,7 +324,7 @@ describe('name option', () => {
     it('uses "Callable" on anonymous classes', () => {
         const Bar = createCallableClass(
             () => 'bar',
-            class {}
+            class Bar {}
         )
         expect(Bar.name).toBe('Callable')
     })

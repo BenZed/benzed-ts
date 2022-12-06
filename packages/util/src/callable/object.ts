@@ -1,146 +1,122 @@
-import { keysOf } from '../types'
+import { Func, Infer, nil } from '../types'
 import { property } from '../property'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-//// Constants ////
-
-/**
- * Keys of properties that exist on a method that may conflict when nesting callable objects
- */
-const CONFLICTING_KEYS = ['name', 'prototype', 'length']
-
 //// Symbols ////
 
-const $$signature = Symbol('callable-signature')
-const $$context = Symbol('callable-outer-this-context')
+const $$this = Symbol('callable-this-context')
+interface $$This {
+    [$$this]: unknown
+}
+
+const $$callable = Symbol('callable-signature-object-descriptors')
+interface $$Callable {
+    [$$callable]: {
+        signature: Func
+        descriptors: PropertyDescriptorMap
+    }
+}
 
 //// Types ////
 
-interface CallableSignature<O extends object> {
+interface BoundSignature<O extends object> {
     (this: O, ...args: any): any
 }
 
-type Callable<S extends CallableSignature<O>, O extends object> = 
-    ((...args: Parameters<S>) => ReturnType<S>) & O
+type GetSignature<S extends BoundSignature<O>, O extends object> = 
+    Infer<((...args: Parameters<S>) => ReturnType<S>)>
 
-//// Context helpers ////
+type GetObject<T> = T extends Callable<any, infer O> ? O : never 
 
-const getContext = (callable: Callable<CallableSignature<object>, object>): unknown => 
-    (callable as unknown as { [$$context]: unknown })[$$context] 
+type GetObjects<A,B> = GetObject<A> extends never 
+    ? GetObject<B> 
+    : GetObject<B> extends never 
+        ? B 
+        : GetObject<A> & GetObject<B>
 
-const bindContext = (callable: Callable<CallableSignature<object>, object>, ctx: unknown): unknown => 
-    property(callable, $$context, { value: ctx, writable: false, configurable: true, enumerable: false })
+type Callable<S extends BoundSignature<O>, O extends object> = 
+    GetSignature<S, O> & O
 
-const setContext = (callable: Callable<CallableSignature<object>, object>, ctx: unknown): unknown => {
-    return transferContext({ [$$context]: ctx } as unknown as Callable<CallableSignature<object>, object>, callable)
+//// Context Helpers ////
+
+const get$$Callable = (object: Partial<$$Callable>): $$Callable[typeof $$callable] | nil => 
+    $$callable in object ? object[$$callable] : nil
+
+const get$$This = (object: Partial<$$This>): unknown => object?.[$$this] 
+
+const bind$$This = (object: Partial<$$This>, ctx: unknown): unknown => 
+    property(object, $$this, { value: ctx, writable: false, configurable: true, enumerable: false })
+
+const set$$This = (object: Partial<$$This>, ctx: unknown): unknown => {
+    return transfer$$This({ [$$this]: ctx }, object)
 }
 
-const transferContext = (
-    from: Callable<CallableSignature<object>, object>, 
-    to: Callable<CallableSignature<object>, object>
+const transfer$$This = (
+    from: Partial<$$This>, 
+    to: Partial<$$This>
 ): typeof to => {
     
-    const transferContext = property.descriptorsOf(from)[$$context]
-    const targetContext = property.descriptorsOf(to)[$$context]
+    const transferContext = property.descriptorOf(from, $$this)
+    const targetContext = property.descriptorOf(to, $$this)
 
     if (transferContext && (!targetContext || targetContext.writable)) {
-        property(to, $$context, { 
-            value: transferContext.value,
-            writable: transferContext.writable, 
-            configurable: true, 
-            enumerable: false 
-        })
+        //                                                 ^ writable is unbound
+        property(
+            to, 
+            $$this, { 
+                ...transferContext,
+                configurable: true, 
+                enumerable: false 
+            }
+        )
     }
 
     return to
 }
 
-//// Helper ////
-
-const hasRawSignature = <S extends CallableSignature<O>, O extends object>(
-    input: object
-): input is { [$$signature]: S } =>
-    $$signature in input
-
-const descriptorsEqual = (a: PropertyDescriptor, b: PropertyDescriptor): boolean => {
-    for (const key of keysOf(a)) {
-        if (a[key] !== b?.[key])
-            return false
-    } 
-
-    return true
-}
-
-const resolveCallableDescriptors = <S extends CallableSignature<O>, O extends object>(
-    signature:S ,
-    rawSignature: S,
-    object: O
-
-): PropertyDescriptorMap => {
-
-    const signatureDescriptors = property.descriptorsOf(signature)
-    const rawSignatureDescriptors = property.descriptorsOf(rawSignature)
-
-    // if we're nesting callable objects, the signature might contain
-    // additional properties that don't exist on a function by default,
-    // so we filter these out against the method descriptors here.
-    for (const key of CONFLICTING_KEYS) {
-        if (descriptorsEqual(rawSignatureDescriptors[key], signatureDescriptors[key]))
-            delete signatureDescriptors[key]
-    }
-
-    const objectDescriptors = property.descriptorsOf(object)
-
-    return {
-        ...signatureDescriptors,
-        ...objectDescriptors,
-        [$$signature]: { 
-            value: rawSignature, 
-            writable: false, 
-            enumerable: false,  
-            configurable: false 
-        }
-    }
-}
-
-/**
- * Given 
- * @param signature 
- * @returns 
- */
-const resolveRawSignature = <S extends CallableSignature<O>, O extends object>(signature: S): S => 
-    hasRawSignature<S,O>(signature)
-        ? signature[$$signature]
-        : signature
-
 //// Main ////
 
-const createCallableObject = <S extends CallableSignature<O>, O extends object>(
+const createCallableObject = <S extends BoundSignature<O>, O extends object>(
     signature: S, 
     object: O,
-    injectDescriptors?: PropertyDescriptorMap
-): Callable<S,O> => {
+): Callable<GetSignature<S,O>, GetObjects<S,O>> => {
 
-    // resolve signature
-    const rawSignature = resolveRawSignature<S,O>(signature)
+    // in case we're merging callables together
+    const target = get$$Callable(signature as Partial<$$Callable>) ?? { signature, descriptors: nil }
+    const source = get$$Callable(object)
 
+    // create calling function
     const callable = function (this: unknown, ...args: Parameters<S>): ReturnType<S> {
-        setContext(callable, this)
-        return rawSignature.apply(callable as O, args)
+        set$$This(callable as Partial<$$This>, this)
+        return target.signature.apply(callable as O, args)
     }
 
-    const callableDescriptors = resolveCallableDescriptors(signature, rawSignature, object)
+    // create descriptors
+    target.descriptors = {
+        ...target.descriptors,
+        ...source?.descriptors,
+        ...property.descriptorsOf(
+            ...property.prototypes(object, [Function.prototype, Object.prototype]),
+            object
+        ),
+    }
+    delete target.descriptors.prototype
 
-    return property(
+    return property.define(
         callable,
         {
-            ...injectDescriptors,
-            ...callableDescriptors
-        }
-    ) as Callable<S,O>
+            ...target.descriptors,
+            [$$callable]: {
+                value: { ...target },
+                writable: false,
+                enumerable: false,
+                configurable: false
+            }
+        }        
+    ) as any
 }
 
 //// Exports ////
@@ -149,14 +125,18 @@ export default createCallableObject
 
 export {
     createCallableObject,
-    CallableSignature,
+    BoundSignature,
+    GetSignature,
+    GetObjects,
 
     Callable,
 
-    $$signature,
+    $$callable,
+    $$Callable,
 
-    getContext,
-    setContext,
-    bindContext,
-    transferContext
+    $$This,
+    get$$This,
+    set$$This,
+    bind$$This,
+    transfer$$This
 }
