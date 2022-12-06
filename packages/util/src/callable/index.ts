@@ -1,17 +1,17 @@
-import createCallableObject, { bindContext, Callable, CallableSignature, getContext, transferContext } from './object'
+import createCallableObject, { bind$$This, Callable, BoundSignature, get$$This, transfer$$This } from './object'
 import createCallableClass, { isClass, Class, CallableClass } from './class'
 
 import type { Func} from '../types'
 
 //// Main ////
 
-function callable<S extends CallableSignature<InstanceType<C>>, C extends Class>(
+function callable<S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S,
     constructor: C,
     name?: string,
 ): CallableClass<S, C>
 
-function callable<S extends CallableSignature<O>, O extends object>(
+function callable<S extends BoundSignature<O>, O extends object>(
     signature: S,
     object: O,
     name?: string
@@ -47,17 +47,17 @@ function callable(
 /**
  * Retreive the outer *this* context of a callable object.
  */
-callable.getContext = getContext
+callable.getContext = get$$This
 
 /**
  * Bind the outer *this* context of a callable object
  */
-callable.bindContext = bindContext
+callable.bindContext = bind$$This
 
 /**
  * Transfer the outer *this* context to another callable 
  */
-callable.transferContext = transferContext
+callable.transferContext = transfer$$This
 
 //// Exports ////
 

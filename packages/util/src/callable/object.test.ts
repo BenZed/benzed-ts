@@ -1,5 +1,6 @@
 import { createCallableObject } from './object'
 import { expectTypeOf } from 'expect-type'
+import property from '../property'
 
 ////  ////
 
@@ -123,4 +124,34 @@ it('resolves function name & length conflicts', () => {
     expect(f4.length).toEqual(5)
     expect(f4).toHaveProperty('name', 'ace')
 
+})
+
+it('instances keep their prototype methods', () => {
+
+    const foo = createCallableObject(
+        function foo() {
+            return this.foo()
+        },
+        new class Foo {
+            foo(): number {
+                return 0
+            }
+        }
+    )
+
+    const bar = createCallableObject(
+        function bar() {
+            return this.bar()
+        },
+        new class Bar {
+            bar(): number {
+                return 1
+            }
+        }
+    )
+
+    const foobar = createCallableObject(bar, foo)
+
+    // expect(foobar.bar()).toEqual(1)
+    expect(foobar.foo()).toEqual(0)
 })

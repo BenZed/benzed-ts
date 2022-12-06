@@ -1,15 +1,11 @@
 import { property } from '../property'
 import { isFunc } from '../types/func'
-import createCallableObject, { CallableSignature, Callable } from './object'
+import createCallableObject, { BoundSignature, Callable } from './object'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/restrict-plus-operands
 */
-
-//// Symbols ////
-
-const $$instance = Symbol('callable-class-instance')
 
 //// Types ////
 
@@ -17,13 +13,13 @@ interface Class {
     new (...args: any[]): any
 }
 
-type CallableClass<S extends CallableSignature<InstanceType<C>>, C extends Class> = 
+type CallableClass<S extends BoundSignature<InstanceType<C>>, C extends Class> = 
     // class constructor signature with the callable instance return type
     (new (...params: ConstructorParameters<C>) => Callable<S, InstanceType<C>>) & C
 
 //// Helpers ////
     
-const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C extends Class>(
+const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S, 
     instance: InstanceType<C>,
     name: string = signature.name || 
@@ -32,41 +28,29 @@ const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C 
         instance.constructor.name.slice(1),
 ): Callable<S, InstanceType<C>> => {
 
-    // Crawl prototype chain
-    let descriptors: PropertyDescriptorMap = {}
-    let prototype = instance
-    while ((prototype = Object.getPrototypeOf(prototype)) !== Object.prototype) {
-        descriptors = {
-            ...descriptors,
-            ...property.descriptorsOf(prototype)
-        }
-    }
+    const callable = createCallableObject(
+        signature, 
+        instance
+    )
 
     // Create callable
-    {
-        return createCallableObject(
-            signature, 
-            instance, 
-            { 
-                name: { 
-                    value: name,
-                    configurable: true 
-                },
+    return property(
+        callable, 
+        { 
 
-                ...descriptors,
+            name: { 
+                value: name,
+                configurable: true 
+            },
 
-                constructor: {
-                    value: instance.constructor,
-                    writable: true,
-                    enumerable: false,
-                    configurable: true,
-                },
-
-                [$$instance]: { value: instance, enumerable: false }
+            constructor: {
+                value: instance.constructor,
+                writable: true,
+                enumerable: false,
+                configurable: true,
             }
-        )
-    }
-
+        }
+    )
 }
 
 const isClass = (input: unknown): input is Class => 
@@ -82,7 +66,7 @@ const isClass = (input: unknown): input is Class =>
  */
 
 function createCallableClass <
-    S extends CallableSignature<InstanceType<C>>,
+    S extends BoundSignature<InstanceType<C>>,
     C extends Class
 >(
     signature: S,
@@ -95,8 +79,8 @@ function createCallableClass <
 
     class Callable extends Class {
 
-        static [Symbol.hasInstance](value: any): boolean {
-            return super[Symbol.hasInstance](value?.[$$instance] ?? value)
+        static [Symbol.hasInstance](value: object): boolean {
+            return !!value?.constructor && property.prototypes(value.constructor).includes(Class)
         }
 
         constructor(...args: any[]) {
@@ -124,6 +108,5 @@ export {
     CallableClass,
 
     Class,
-    isClass,
-    $$instance
+    isClass
 }
