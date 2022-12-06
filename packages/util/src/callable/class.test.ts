@@ -192,7 +192,8 @@ it('can be extended', () => {
                 return new Repeater(value)
             }
             constructor(readonly value: string) {}
-        }
+        },
+        'Repeater'
     )
 
     const repeater = new Repeater('hey')
@@ -201,6 +202,7 @@ it('can be extended', () => {
     expect(Repeater.create('fool')(3)).toEqual('fool'.repeat(3))
 
     class X2Repeater extends Repeater {
+
         constructor(value: string) {
             super(value.repeat(2))
         }
@@ -208,6 +210,46 @@ it('can be extended', () => {
 
     const x2Repeater = new X2Repeater('holy')
     expect(x2Repeater(2)).toEqual('holy'.repeat(4))
+
+})
+
+it('extends with function argument', () => {
+
+    interface Speak {
+        (input: string): string
+        speak(input: string): string
+    }
+
+    interface SpeakConstructor {
+        new (speak: (input: string) => string): Speak
+    }
+
+    const Speak: SpeakConstructor = createCallableClass(function (input: string) {
+        return this.speak(input)
+    }, class {
+        constructor(
+            readonly speak: (input: string) => string
+        ) {}
+    })
+
+    const speak = new Speak(i => i.trim().replace(/\.$/, '') + '.')
+    expect(speak('Hi')).toEqual('Hi.')
+
+    class Shout extends Speak {
+        static from () {
+            return new Shout()
+        }
+        constructor() {
+            super(i => i + '!')
+        }
+    }
+
+    expect(Shout.from).toBeInstanceOf(Function)
+
+    const shout = new Shout()
+    expect(shout('Hey')).toEqual('Hey!')
+
+    expect(Shout.from).toBeInstanceOf(Function)
 
 })
 

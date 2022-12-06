@@ -1,5 +1,5 @@
 import { property } from '../property'
-import { isFunc } from '../types/func'
+import { Func, isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 
@@ -57,56 +57,94 @@ const isClass = (input: unknown): input is Class =>
     && input.prototype
     && Symbol.hasInstance in input
 
-//// Main ////
-    
-const createCallableClass = <
+////  ES5 Extend  ////
+
+function es5CreateCallableClass<
     S extends CallableSignature<InstanceType<C>>,
     C extends Class
 >(
     signature: S,
-    constructor: C,
+    Class: C,
     name?: string,
-): CallableClass<S, C> => {
-
-    if (!isClass(constructor))
-        throw new Error('Input must be a class definition')
+): CallableClass<S,C> {
     
-    class Callable extends constructor {
+    if (!isClass(Class))
+        throw new Error('Input must be a class definition')
 
+    // declare
+    function Callable (...args: any[]): InstanceType<C> {
+        return createCallableInstance(
+            signature,
+            Class,
+            new Class(...args),
+            name,
+        )
+    }
+    
+    // extend
+    Object.setPrototypeOf(Callable, Class)
+
+    // instanceof
+    property.value(Callable, Symbol.hasInstance, 
+        (value: any) => (value?.[$$instance] ?? value) instanceof Class
+    )
+
+    // name
+    return property.name(
+        Callable, 
+        name ?? `Callable${Class.name}`
+    ) as unknown as CallableClass<S,C>
+}
+
+//// Es6 Extend ////
+
+/**
+ * This syntax works in testing, but breaks after being transpiled in other packages.
+ * Unsure why.
+ */
+
+/*
+function es6CreateCallableClass <
+    S extends CallableSignature<InstanceType<C>>,
+    C extends Class
+>(
+    signature: S,
+    Class: C,
+    name?: string,
+): CallableClass<S, C> {
+
+    if (!isClass(Class))
+        throw new Error('Input must be a class definition')
+
+    class Callable extends Class {
+
+        static [Symbol.hasInstance](value: any): boolean {
+            return (value?.[$$instance] ?? value) instanceof Class
+        }
         constructor(...args: any[]) {
-            
             super(...args)
-
             return createCallableInstance(
                 signature,
-                constructor,
+                Class,
                 this as InstanceType<C>,
                 name,
             )
         }
     }
 
-    // Couldn't declare as a static property, other packages complained
-    // that assigning to [Symbol.iterator] failed because it was readonly
-    property(Callable, Symbol.hasInstance, {
-        value: (value: any) => (value?.[$$instance] ?? value) instanceof constructor,
-        configurable: true,
-        writable: true,
-        enumerable: false
-    })
-
     return property.name(
         Callable, 
-        name ?? `Callable${constructor.name}`
+        name ?? `Callable${Class.name}`
     )
 }
+*/ 
 
 //// Exports ////
 
-export default createCallableClass
+export default es5CreateCallableClass
 
 export {
-    createCallableClass,
+    es5CreateCallableClass as createCallableClass,
     CallableClass,
 
     Class,

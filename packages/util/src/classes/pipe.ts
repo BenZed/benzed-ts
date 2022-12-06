@@ -26,7 +26,7 @@ type InputOf<F extends Func> = F extends (input: infer I, ...args: any) => any ?
 type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknown
 type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : unknown
 
-type Output<I,O> = I extends Promise<any> 
+type ResolveAsyncOutput<I,O> = I extends Promise<any> 
     ? O extends Promise<any> 
         ? O 
         : Promise<O> 
@@ -37,8 +37,8 @@ interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, Output<O, Ox>>
-    to<Ox, C>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Output<O, Ox>, C>
+    to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, ResolveAsyncOutput<O, Ox>>
+    to<Ox, C>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, ResolveAsyncOutput<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -55,7 +55,7 @@ interface ContextPipe<I = unknown, O = unknown, C = unknown> extends Transformer
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, Output<O, Ox>, C>
+    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, ResolveAsyncOutput<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -72,7 +72,7 @@ interface BoundPipe<I = unknown, O = unknown, C = unknown> extends Transformer<T
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): BoundPipe<I, Output<O, Ox>, C>
+    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): BoundPipe<I, ResolveAsyncOutput<O, Ox>, C>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -105,7 +105,9 @@ interface PipeConstructor {
     /**
      * Convert a function with a *this* context to a context pipe
      */
-    convert<I, O, C>(func: (this: C, input: Awaited<I>) => O): ContextPipe<I,O,C>
+    convert<I, O, C>(
+        func: ((this: C, input: Awaited<I>) => O) 
+    ): ContextPipe<I,O,C>
 
 }
 
@@ -201,5 +203,7 @@ export {
 
     InputOf,
     OutputOf,
-    ContextOf
+    ContextOf,
+
+    ResolveAsyncOutput
 }
