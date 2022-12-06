@@ -10,12 +10,15 @@ import {
     SettingsModule 
 } from '../../module'
 
+import { Command } from '../../command'
+
 import { 
     $mongoDbSettings,
     MongoDbSettings 
 } from './mongo-db-settings'
 
-import MongoDbCollection from './mongo-db-collection'
+import MongoDbCollection, { Paginated, RecordQuery, Record, RecordOf } from './mongo-db-collection'
+import { provideRecords } from './hooks'
 
 //// Eslint ////
 
@@ -37,11 +40,53 @@ type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCo
             : never 
         : never
 
+//// Record Commands ////
+
+type RecordCommands<T extends object> = [
+    Command<'get', { id: string }, Promise<Record<T>>>,
+    Command<'find', RecordQuery<T>, Promise<Paginated<Record<T>>>>,
+    Command<'create', T, Promise<Record<T>>>,
+    Command<'update', { id: string } & Partial<T>, Promise<Record<T>>>,
+    Command<'remove', { id: string }, Promise<Record<T>>>
+]
+
 //// Mongodb Database ////
 
 class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSettings>> {
 
     // Static Create with Schema Validation
+
+    static createRecordCommands<T extends object>(collectionName: string): RecordCommands<T>
+    static createRecordCommands(collectionName: string): RecordCommands<object> {
+
+        const assertRecord = (id: string) => (record: Record<object> | null): Record<object> => {
+            if (!record)
+                throw new Error(`Collection ${collectionName} record ${id} could not be found.`)
+            return record
+        }
+
+        // Commmands 
+
+        return [
+
+            Command.get(provideRecords<{ id: string }, object>(collectionName))
+                .useHook(([{ id }, records]) => records.get(id).then(assertRecord(id))),
+                
+            Command.find(query => ({ query }))
+                .useHook(provideRecords(collectionName))
+                .useHook(([query, records]) => records.find(query)),
+            
+            Command.create(provideRecords(collectionName))
+                .useHook(([data, records]) => records.create(data)),
+
+            Command.update(provideRecords<{ id: string } & Partial<object>, object>(collectionName))
+                .useHook(([{ id, ...data }, records]) => records.update(id, data).then(assertRecord(id))),
+
+            Command.remove(provideRecords<{ id: string }, object>(collectionName))
+                .useHook(([{id}, records]) => records.remove(id).then(assertRecord(id)))
+
+        ]
+    }
 
     static create(settings: MongoDbSettings): MongoDb<{}> {
         return new MongoDb(
@@ -110,15 +155,13 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         return this._collections
     }
 
-    getCollection<T extends object>(name: string): MongoDbCollection<T>
-    getCollection<N extends StringKeys<C>>(name: N): C[N] {
+    getCollection<N extends StringKeys<C>>(name: N): C[N]
+    getCollection<T extends object>(name: string): MongoDbCollection<T> {
+
+        const collection = this._getCollection(name as StringKeys<C>)
 
         if (!this._db)
             throw new Error(`${this.name} is not connected.`)
-
-        const collection = this._collections[name] as C[N] | undefined
-        if (!collection)
-            throw new Error(`Collection '${name}' does not exist.`)
 
         if (!collection.connected)
             collection._connect(this._db.collection(name))
@@ -138,16 +181,28 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
             throw new Error(`Collection '${name}' already exists.`)
 
         const collections = {
-        
             ...this._collections,
             [name as N]: new MongoDbCollection<T>(schema)
-        
         } as unknown as AddCollection<C, N, MongoDbCollection<T>>
 
         return new MongoDb(
             this.settings,
             collections
         )
+    }
+
+    createRecordCommands<N extends StringKeys<C>>(collectionName: N): RecordCommands<RecordOf<C[N]>> 
+    createRecordCommands<T extends object>(collectionName: string): RecordCommands<T> {
+        return MongoDb.createRecordCommands<T>(collectionName)
+    }
+
+    private _getCollection<N extends StringKeys<C>>(name: N): C[N]
+    private _getCollection<T extends object>(name: string): MongoDbCollection<T> {
+        const collection = this._collections[name]
+        if (!collection)
+            throw new Error(`Collection '${name}' does not exist.`)
+
+        return collection
     }
 
 }

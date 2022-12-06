@@ -44,18 +44,24 @@ class UnionSchema<
         is: isUnion<O>(this._input)
     })
 
-    //// Schema Interface ////
+}
 
-    override readonly optional!: HasOptional<
+interface UnionSchema<
+
+    I extends UnionSchemaInput,
+    O extends UnionSchemaOutput<I>,
+    F extends Flags[] = []
+
+> {
+    readonly optional: HasOptional<
     /**/ F, never, UnionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F, never, UnionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => UnionSchema<I, O>
-
+    readonly clearFlags: () => UnionSchema<I, O>
 }
 
 //// Exports ////

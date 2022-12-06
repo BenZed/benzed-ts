@@ -27,8 +27,6 @@ class LengthValidator<O extends ArrayLike<unknown>>
 
     extends AssertValidator<O, LengthValidatorSettings> {
 
-    private _rangeValidator!: RangeValidator<number>
-
     constructor ({ error = defaultLengthError, ...settings }: LengthValidatorSettings) {
         super({
             error,
@@ -79,6 +77,13 @@ class LengthValidator<O extends ArrayLike<unknown>>
         if (nonIntegerConfiguration)
             throw new Error(`${nonIntegerConfiguration} must be an integer.`)
     }
+}
+
+interface LengthValidator<O extends ArrayLike<unknown>> {
+    /**
+     * @internal
+     */
+    _rangeValidator: RangeValidator<O['length']>
 }
 
 //// Exports ////

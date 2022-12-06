@@ -110,8 +110,6 @@ export abstract class Component<I = unknown, O = I> {
         // property in extended classes
         if (compute) 
             this.compute = compute.bind(this)
-
     }
-
 }
 

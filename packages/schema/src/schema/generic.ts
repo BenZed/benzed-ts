@@ -44,15 +44,23 @@ class GenericSchema<
         super(input, ...flags)
     }
 
-    override readonly optional!: HasOptional<
+}
+
+interface GenericSchema<
+    I extends GenericSchemaInput,
+    O extends GenericSchemaOutput<I>,
+    F extends Flags[] = []
+> {
+
+    readonly optional: HasOptional<
     /**/ F, never, GenericSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F, never, GenericSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => GenericSchema<I,O>
+    readonly clearFlags: () => GenericSchema<I,O>
 
 }
 

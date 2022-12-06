@@ -1,5 +1,6 @@
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
+import { nil } from '@benzed/util/lib'
 
 import type { Service, ServiceModule } from './service'
 import { Path } from './util/types'
@@ -11,6 +12,12 @@ import { Path } from './util/types'
 
 //// Types ////
 
+type GetPredicate = (input: Module) => boolean
+
+type GetGuard<M extends Module> = (input: Module) => input is M 
+
+//// Types ////
+
 export type Modules = readonly Module[]
 
 export type ModuleConstructor<M extends Module = Module> =
@@ -18,13 +25,11 @@ export type ModuleConstructor<M extends Module = Module> =
      (abstract new (...args: any[]) => M) | 
      { name: string, prototype: M }
 
-type GetScope = 
+export type GetModuleScope = 
     'siblings' | 'parents' | 'children' | 'root' |
     readonly ('siblings' | 'parents' | 'children' | 'root')[]
 
-type GetPredicate = (input: Module) => boolean
-
-type GetGuard<M extends Module> = (input: Module) => input is M 
+export type GetModuleInput<M extends Module> = ModuleConstructor<M> | GetPredicate | GetGuard<M>
 
 // TODO make this and SettingsModule abstract
 export class Module {
@@ -42,19 +47,19 @@ export class Module {
     }
 
     getModule<M extends Module, R extends boolean = false>(
-        type: ModuleConstructor<M> | GetPredicate | GetGuard<M>, 
+        type: GetModuleInput<M>, 
         required?: R,
-        scope?: GetScope
-    ): R extends true ? M : M | null {
+        scope?: GetModuleScope
+    ): R extends true ? M : M | nil {
         return this
             .getModules(type, required, scope)
-            .at(0) ?? null as R extends true ? M : M | null
+            .at(0) as R extends true ? M : M | nil
     }
 
     getModules<M extends Module, R extends boolean = false>(
-        type: ModuleConstructor<M> | GetPredicate | GetGuard<M>, 
+        type: GetModuleInput<M>, 
         required?: R,
-        scope?: GetScope
+        scope?: GetModuleScope
     ): M[] {
 
         const modules: M[] = []
@@ -76,8 +81,8 @@ export class Module {
         return modules
     }
 
-    forEachModule(f: (input: Module) => void, scope: GetScope = 'siblings'): void {
-        const scopes = unique(wrap(scope)) as unknown as Exclude<GetScope, string>
+    forEachModule(f: (input: Module) => void, scope: GetModuleScope = 'siblings'): void {
+        const scopes = unique(wrap(scope)) as unknown as Exclude<GetModuleScope, string>
 
         for (const scope of scopes) {
             switch (scope) {
@@ -192,7 +197,7 @@ export class Module {
     /**
      * Must be the only module of it's type in a parent.
      */
-    protected _assertSingle(scope?: GetScope): void { 
+    protected _assertSingle(scope?: GetModuleScope): void { 
         const clone = this.getModule(this.constructor as ModuleConstructor, false, scope)
         if (clone && clone !== this)
             throw new Error(`${this.name} may only be used once in scope ${scope}`)
@@ -209,7 +214,7 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetScope): void {
+    protected _assertRequired(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetModuleScope): void {
         if (!this.getModule(type, false, scope)) {
             throw new Error(
                 `${this.name} is missing required module ${type.name} in scope ${scope}`
@@ -220,7 +225,7 @@ export class Module {
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetScope): void { 
+    protected _assertConflicting(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetModuleScope): void { 
         if (this.getModule(type, false, scope)) {
             throw new Error(
                 `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`

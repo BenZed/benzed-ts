@@ -1,7 +1,7 @@
 {
     "name": "@benzed/feathers",
     "description": "Hooks, reducers, utilities, types and more for feathersjs",
-    "main": "./lib",
+    "main": "./src",
     "version": "1.0.0",
     "scripts": {
         "test": "jest --runInBand --all",

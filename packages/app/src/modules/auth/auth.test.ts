@@ -1,9 +1,11 @@
 import $ from '@benzed/schema'
 import { io } from '@benzed/util'
 
-import { App } from '../../app'
-import { MongoDb } from '../mongo-db'
 import { Auth } from './auth'
+import { App } from '../../app'
+import { Service } from '../../service'
+import { MongoDb, Record } from '../mongo-db'
+import { hashPassword } from './hooks'
 
 it('is sealed', () => {
 
@@ -63,9 +65,14 @@ it('optional verfication validator', async () => {
 
 describe('Authentication', () => {
 
+    interface User {
+        email: string
+        password: string
+    }
+
     const mongoDb = MongoDb.create({ 
         database: 'test-1' 
-    }).addCollection(
+    }).addCollection<'users', User>(
         'users', 
         $({
             email: $.string,
@@ -73,14 +80,23 @@ describe('Authentication', () => {
         })
     )
 
+    const [ get, find, create, update, remove ] = mongoDb.createRecordCommands('users')
+
+    const userService = Service
+        .create()
+        .useModules(
+            get,
+            find,
+            create.usePreHook(hashPassword()),
+            update.usePreHook(hashPassword()),
+            remove
+        )
+
     const app = App
         .create()
-        .useModule(
-            mongoDb
-        )
-        .useModule(
-            Auth.create()
-        )
+        .useModule(mongoDb)
+        .useModule(Auth.create())
+        .useService('/users', userService)
 
     const CREDS = {
         email: 'user@email.com',
@@ -89,12 +105,9 @@ describe('Authentication', () => {
 
     beforeAll(() => app.start())
 
+    let user: Record<User>
     beforeAll(async () => {
-
-        const database = app.getModule(MongoDb, true) as typeof mongoDb
-        const users = database.getCollection('users')
-
-        await users.create(CREDS)
+        user = await app.execute('usersCreate', CREDS)
     })
 
     afterAll(() => app.stop())
@@ -106,7 +119,11 @@ describe('Authentication', () => {
         const { accessToken } = result ?? {}
 
         expect(typeof accessToken).toBe('string')
+    })
 
+    it.only('hashes passwords', () => {
+        expect(user.password).not.toEqual(CREDS.password)
+        expect(user.password.length).toBeGreaterThan(CREDS.password.length)
     })
 
 })

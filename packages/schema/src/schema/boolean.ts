@@ -34,19 +34,23 @@ class BooleanSchema<F extends Flags[] = []> extends PrimitiveSchema<boolean, F> 
         super(false, ...flags)
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F, never, BooleanSchema<AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F, never, BooleanSchema<AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => BooleanSchema
-
     override default(defaultValue: boolean | (() => boolean) = false): this {
         return super.default(defaultValue)
     }
+}
+
+interface BooleanSchema<F extends Flags[] = []> {
+    
+    readonly optional: HasOptional<
+    /**/ F, never, BooleanSchema<AddFlag<Flags.Optional, F>>
+    >
+
+    readonly mutable: HasMutable<
+    /**/ F, never, BooleanSchema<AddFlag<Flags.Mutable, F>>
+    >
+
+    readonly clearFlags: () => BooleanSchema
+
 }
 
 //// Expors ////

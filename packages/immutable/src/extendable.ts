@@ -7,7 +7,7 @@ import {
 
     nil,
     Primitive,
-    isFunction
+    isFunc
 } from '@benzed/util'
 
 import { 
@@ -224,7 +224,6 @@ const createDescriptors = (
     } as Descriptors,
 
     ...original && Object.getOwnPropertyDescriptors(original),
-
     ...extension && Object.getOwnPropertyDescriptors(extension),
 
     extend: {
@@ -259,16 +258,16 @@ const applyDescriptors = (
     return object
 }
 
-const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } => !!i && $$callable in i
+const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } =>
+    !!i && $$callable in i
 
-const getCallable = (object: object): Func | nil => 
-    isExtendedCallSignature(object) 
-    
-        ? object[$$callable] 
-        : isFunction(object)
-    
-            ? object 
-            : nil
+const getCallable = (
+    object: object, 
+): Func | nil => isExtendedCallSignature(object) 
+    ? object[$$callable] 
+    : isFunc(object)
+        ? object 
+        : nil
 
 function copy(this: Extendable<object>): Extendable<object> {
     return extendable(this) as Extendable<object>

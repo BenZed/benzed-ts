@@ -97,16 +97,6 @@ class TupleSchema<
         return super.default(defaultValue)
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => TupleSchema<I, O>
-
     //// Implementation ////
 
     protected _validateChildren(
@@ -128,6 +118,24 @@ class TupleSchema<
 
         return output as unknown as ApplyMutable<F, O>
     }
+}
+
+interface TupleSchema<
+    I extends TupleSchemaInput,
+    O extends TupleSchemaOutput<I>,
+    F extends Flags[] = []
+/**/> {
+    
+    readonly optional: HasOptional<
+    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Optional, F>>
+    >
+
+    readonly mutable: HasMutable<
+    /**/ F, never, TupleSchema<I, O, AddFlag<Flags.Mutable, F>>
+    >
+
+    readonly clearFlags: () => TupleSchema<I, O>
+
 }
 
 //// Expors ////

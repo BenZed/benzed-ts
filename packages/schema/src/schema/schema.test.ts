@@ -64,13 +64,16 @@ class FooSchema<F extends Flags[]> extends Schema<void, 'foo', F> {
         cast: input =>is.string(input) ? 'foo' : input
     })
 
-    override readonly optional!: HasOptional<
+}
+
+interface FooSchema<F extends Flags[]> {
+    readonly optional: HasOptional<
     /**/ F,
     /**/ never,
     /**/ FooSchema<AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable: unknown
+    readonly mutable: unknown
 }
 const fooSchema = new FooSchema()
 

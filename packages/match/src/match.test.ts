@@ -9,7 +9,7 @@ import {
 } from './error'
 
 import { expectTypeOf } from 'expect-type'
-import { isBoolean, isNumber, isObject, isString } from '@benzed/util/lib'
+import { isBoolean, isNumber, isObject, isString } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

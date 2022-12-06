@@ -22,7 +22,7 @@ describe('custom transform-equal validator', () => {
         isEven = custom<number>(i => i - i % 2)
     })
     
-    it('creates a custom transform validator', () => {
+    it.only('creates a custom transform validator', () => {
 
         expect(isEven.validate(3, true))
             .toEqual(2)

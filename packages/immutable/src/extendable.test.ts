@@ -25,7 +25,7 @@ it('is immutable', () => {
     expect(original).not.toBe(improved)
 })
 
-it('methods can be extended', () => {
+it.skip('methods can be extended', () => {
 
     const run = extendable(
         function getSpeed(this: { speed: number }) {
@@ -48,7 +48,7 @@ it('extending multiple methods', () => {
 
 })
 
-it('extending multiple methods and properties', () => {
+it.skip('extending multiple methods and properties', () => {
 
     const m1 = extendable(
         function (this: { name: string }) {
@@ -68,7 +68,7 @@ it('extending multiple methods and properties', () => {
     expect(m2()).toEqual(30)
 })
 
-it('extends arrays', () => {
+it.skip('extends arrays', () => {
 
     const arr = extendable(
         function even(this: number[]): number[] {
@@ -91,7 +91,7 @@ it('array types resolve nicely', () => {
     ).toMatchTypeOf<Extended<readonly number[], { ace: number }>>()
 })
 
-it('implements immutable copy', () => {
+it.skip('implements immutable copy', () => {
 
     const m1 = extendable({ thing: 5 })
         .extend(function ace() {
@@ -227,7 +227,7 @@ it('no $$callable property on non-callable extensions', () => {
     expect($$callable in ace).toBe(false)
 })
 
-it('combining extendables', () => {
+it.skip('combining extendables', () => {
 
     const foo = extendable({ foo: 'foo' })
         .extend(function foo(){
