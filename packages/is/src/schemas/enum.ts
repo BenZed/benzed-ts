@@ -1,7 +1,6 @@
-import { extend } from '@benzed/immutable/lib'
-import { defineName } from '@benzed/util/lib'
+import { extend } from '@benzed/immutable'
 import { schema, Schema } from '../schema'
-import { Validator, validator } from '../validator'
+import { Validator } from '../validator'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -25,7 +24,7 @@ interface EnumValidator<T extends readonly Enumerable[]> extends Validator<unkno
 
 //// Setup ////
 
-const enumValidator = validator(defineName({
+const enumValidator = new Validator({
 
     options: [] as any[],
 
@@ -42,7 +41,7 @@ const enumValidator = validator(defineName({
             : `must be ${options.at(0)}`
     }
 
-}, 'enum'))
+})
 
 const enumSchematic: EnumSchema<any> = schema(enumValidator, $$enum).extend({
 

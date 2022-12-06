@@ -1,4 +1,4 @@
-import { defineName, isFunction, isObject, nil } from '@benzed/util'
+import { isFunction, isObject, nil } from '@benzed/util'
 import { extend, Extended } from '@benzed/immutable'
 
 import { Validate, ValidateContext, ValidateOptions, ValidationError } from '../validator'
@@ -61,15 +61,22 @@ type RangeSettingsSignature =
     [number, number] | 
     [number]
 
-type RangeValidator = Validate<unknown, number> & RangeSettings
-
-interface Range<R> {
+interface RangeValidatorSignature<R> {
     (settings: RangeSettings): R
     (min: number, comparator: BinaryComparator, max: number): R
     (comparator: UnaryComparator, value: number): R
     (min: number, max: number): R
     (equals: number): R
 }
+interface RangeValidatorConstructor {
+    new (settings: RangeSettings): RangeValidator
+    new (min: number, comparator: BinaryComparator, max: number):RangeValidator
+    new (comparator: UnaryComparator, value: number): RangeValidator
+    new (min: number, max: number): RangeValidator
+    new (equals: number): RangeValidator
+}
+
+type RangeValidator = Validate<unknown, number> & RangeSettings
 
 //// Operators ////
 
@@ -103,7 +110,7 @@ const binary = {
 
 //// Details ////
 
-const assertRange = defineName(function (this: RangeSettings, input: number, ctx?: ValidateOptions): number {
+function range(this: RangeSettings, input: number, ctx?: ValidateOptions): number {
 
     const context: ValidateContext<number> = { path: [], transform: true, ...ctx, input }
 
@@ -129,23 +136,22 @@ const assertRange = defineName(function (this: RangeSettings, input: number, ctx
     }
 
     return input
-}, 'range')
+}
 
 //// Exports ////
 
-const range: Range<RangeValidator> = (...args: RangeSettingsSignature) => 
-    extend(assertRange, toRangeSettings(args)) as Extended<Validate<unknown, number>, RangeSettings>
+const RangeValidator = function RangeValidator(...args: RangeSettingsSignature): RangeValidator {
+    return extend(range, toRangeSettings(args)) as Extended<Validate<unknown, number>, RangeSettings>
+} as unknown as RangeValidatorConstructor
 
-export default range 
+export default RangeValidator 
 
 export {
-    range,
-    Range,
-
     RangeValidator,
+    RangeValidatorSignature,
 
     toRangeSettings,
     RangeSettings,
-
     RangeSettingsSignature,
+
 }

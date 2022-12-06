@@ -1,6 +1,7 @@
 import lerp from './lerp'
 
-import { $$copy, $$equals, isObject } from '@benzed/immutable'
+import { $$copy, $$equals } from '@benzed/immutable'
+import { isObject } from '@benzed/util'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'

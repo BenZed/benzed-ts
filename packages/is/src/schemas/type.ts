@@ -1,4 +1,4 @@
-import { defineName, isFunction, isNil, nil, returns } from '@benzed/util'
+import { isFunction, isNil, nil, returns } from '@benzed/util'
 
 import { 
     schema, 
@@ -9,7 +9,6 @@ import {
 import { 
     ErrorMessage, 
     
-    validator,
     Validator, 
     ValidatorSettings 
 } from '../validator'
@@ -83,7 +82,7 @@ interface TypeSchema<T> extends Schema<T> {
 
 //// Schema ////
 
-const typeValidator: TypeValidator<unknown> = defineName(validator({
+const typeValidator: TypeValidator<unknown> = new Validator({
 
     transform(input: unknown, ctx: ValidateContext): unknown {
     
@@ -110,7 +109,7 @@ const typeValidator: TypeValidator<unknown> = defineName(validator({
 
     cast: undefined as Cast<unknown> | nil
 
-}), 'type')
+})
 
 const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend({ 
     

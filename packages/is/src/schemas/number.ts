@@ -1,10 +1,10 @@
-import { range, Range, RangeSettingsSignature, toRangeSettings } from '../validators/range'
+import { RangeValidator, RangeValidatorSignature, RangeSettingsSignature, toRangeSettings } from '../validators/range'
 import { typeSchema, TypeSchema } from './type'
 
 //// Type ////
 
 interface NumberSchema extends TypeSchema<number> {
-    range: Range<this>
+    range: RangeValidatorSignature<this>
 }
 
 //// Boolean ////
@@ -36,7 +36,7 @@ const number: NumberSchema = typeSchema({
 
         const settings = toRangeSettings(args)
 
-        return this.validates(range(settings), settings.comparator)
+        return this.validates(new RangeValidator(settings), settings.comparator)
 
     }
 

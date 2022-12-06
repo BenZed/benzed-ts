@@ -9,7 +9,6 @@ import {
     ValidatorSettings, 
     
     Validator, 
-    validator, 
     ValidateOptions 
 } from '../validator'
 
@@ -30,6 +29,15 @@ type Infer<S extends Schema<any>> = S extends Schema<infer T> ? T : unknown
 type Assert<T> = T extends Schema<infer Tx> 
     ? Assert<Tx> 
     : (input: unknown) => asserts input is T
+
+interface AddValidatorOptions {
+    
+    id?: string | number | symbol
+
+    replace?: boolean
+    
+    name?: string
+}
 
 interface Schema<T = unknown> extends Validate<unknown, T> {
 
@@ -125,7 +133,9 @@ const schematic = extend(validateAll, {
 
         const previous = this.validators[index]
 
-        const validate = extendable(validator(previous)).extend(settings).extend({ [$$id]: id })
+        const validate = extendable(new Validator(previous))
+            .extend(settings)
+            .extend({ [$$id]: id })
 
         const validators = [ ...this.validators ]
         if (index in validators)

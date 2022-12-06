@@ -84,29 +84,27 @@ function validate(
     return output
 }
 
-////  ////
-
 //// Main ////
 
-function validator<V extends Validate<unknown, any>>(validator: V): V
-function validator<S extends ValidatorSettings<unknown, any>>(settings: S): ValidatorExtended<S>
-function validator<I, O extends I = I>(settings: ValidatorSettings<I, O>): Validator<I, O> 
+interface ValidatorConstructor {
+    new <V extends Validate<unknown, any>>(validator: V): V
+    new <S extends ValidatorSettings<unknown, any>>(settings: S): ValidatorExtended<S>
+    new <I, O extends I = I>(settings: ValidatorSettings<I, O>): Validator<I, O> 
+}
 
-function validator(
+const Validator = function validator(
     validatorOrSettings: Validate<unknown, unknown> | ValidatorSettings<unknown, unknown>
 ): Validator<unknown, unknown> {
     return extend(validate, validatorOrSettings)
-}
+} as unknown as ValidatorConstructor
 
 //// Exports ////
 
-export default validator 
+export default Validator 
 
 export {
 
     Validate,
-
-    validator,
     Validator,
     ValidatorSettings,
 

@@ -1,5 +1,5 @@
 import { toCamelCase, capitalize, toDashCase } from '@benzed/string'
-import { chain, defineName } from '@benzed/util'
+import { chain } from '@benzed/util'
 
 import { ErrorMessage } from '../validator'
 import { typeSchema, TypeSchema } from './type'
@@ -13,7 +13,7 @@ const $$end = Symbol('end-with-validator')
 
 //// Helper ////
 
-const toPascalCase = defineName(chain(toCamelCase).link(capitalize), 'toPascalCase')
+const toPascalCase = chain(toCamelCase).link(capitalize)
 const toUpperCase = (i: string):string => i.toUpperCase()
 const toLowerCase = (i: string):string => i.toLowerCase()
 const trim = (i: string):string => i.trim()
@@ -125,7 +125,7 @@ const string: StringSchema<string> = typeSchema({
 
     startsWith(this: StringSchema<string>, start: string, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            defineName(i => i.startsWith(start) ? i : start + i, 'startsWith'),
+            i => i.startsWith(start) ? i : start + i, 
             error ?? `must start with "${start}"`,
             $$start
         )
@@ -133,7 +133,7 @@ const string: StringSchema<string> = typeSchema({
 
     endsWith(this: StringSchema<string>, end: string, error?: string | ErrorMessage<string>) {
         return this.transforms(
-            defineName(i => i.endsWith(end) ? i : i + end, 'endsWith'),
+            i => i.endsWith(end) ? i : i + end, 
             error ?? `must end with "${end}"`,
             $$end
         )
@@ -141,7 +141,7 @@ const string: StringSchema<string> = typeSchema({
 
     contains(this: StringSchema<string>, value: string, error?: string | ErrorMessage<string>) {
         return this.asserts(
-            defineName(i => i.includes(value), 'contains'),
+            i => i.includes(value), 
             error ?? `must contain value "${value}"`,
             `contains-${value}`
         )
