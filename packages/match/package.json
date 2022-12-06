@@ -6,7 +6,7 @@
     "private": true,
     "scripts": {
         "test": "jest --runInBand --all",
-        "test:dev": "jest --runInBand -o --verbose --watch",
+        "test:dev": "jest --runInBand --onlyChanged --verbose",
         "build": "npm run lint && npm run tsc",
         "build:dev": "npm run tsc -- -w",
         "lint": "eslint src/**/*.ts --fix",

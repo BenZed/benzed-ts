@@ -4,7 +4,7 @@ import semver from 'semver'
 
 import {
     PackageJson,
-    exec,
+    command,
     writeJson,
     forEachPackage,
     assertBranch,
@@ -27,7 +27,7 @@ async function getNpmVersionData(
 ): Promise<{ upToDate: boolean, version: string }> {
 
     try {
-        const upstreamVersion = (await exec(`npm info ${name} version`)).trim()
+        const upstreamVersion = (await command('npm', ['info', `${name} version`])).trim()
         return {
             upToDate: semver.lte(currentVersion, upstreamVersion),
             version: upstreamVersion
@@ -71,17 +71,17 @@ async function createTarBallPackageJson(json: PackageJson, url: string): Promise
 async function publishPackage(json: PackageJson, url: string): Promise<void> {
 
     process.stdout.write('test ')
-    await exec('npm run test', { cwd: url })
+    await command('npm', ['run', 'test'], { cwd: url })
     process.stdout.write('\b\b\b\b\b')
 
     process.stdout.write('build ')
-    await exec('npm run build', { cwd: url })
+    await command('npm', ['run', 'build'], { cwd: url })
     process.stdout.write('\b\b\b\b\b\b')
 
     const tarBallPackageJsonUrl = await createTarBallPackageJson(json, url)
 
     process.stdout.write('publish ')
-    await exec('npm publish --access=public', { cwd: path.join(url, 'lib') })
+    await command('npm', ['publish', '--access=public'], { cwd: path.join(url, 'lib') })
     process.stdout.write('\bed √\n')
 
     await fs.promises.unlink(tarBallPackageJsonUrl).catch(e => void e)

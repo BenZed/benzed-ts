@@ -3,6 +3,7 @@
     "compilerOptions": {
         // Build Options
         "target": "esnext", // prevents jest tests from failing,
+        "isolatedModules": true,
         "types": [
             "node",
             "jest"

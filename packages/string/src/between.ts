@@ -11,6 +11,8 @@
  *
  * @return Substring of the source between the two markers. Empty string if nothing found.
  */
+
+//
 function between(
     str: string,
     open: string,

@@ -12,7 +12,6 @@ class Parse extends Component<string, number> {
 //// Tests ////
 
 describe('Component.is', () => {
-
     it('returns true for Component instances', () => {
         expect(Component.is(new Parse())).toBe(true)
     })
@@ -20,7 +19,6 @@ describe('Component.is', () => {
     it('returns true for objects that are structurally components', () => {
         expect(Component.is(parse)).toBe(true)
     })
-
 })
 
 describe('Component.from', () => {
@@ -47,7 +45,7 @@ describe('types', () => {
         type ParseOutput = OutputOf<Parse>
         expectTypeOf<ParseOutput>().toEqualTypeOf<number>()
     })
-
+    
     it('Compute InputOf', () => {
         type ParseInput = InputOf<typeof parseFloat>
         expectTypeOf<ParseInput>().toEqualTypeOf<string>()

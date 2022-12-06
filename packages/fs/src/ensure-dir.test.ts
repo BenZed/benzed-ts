@@ -10,6 +10,7 @@ const DEEP = path.join(ROOT, '/deep/directory/tree')
 const TXT = path.join(ROOT, 'hello-world.txt')
 
 const results: boolean[] = []
+
 beforeAll(async () => {
 
     if (await exists(ROOT))

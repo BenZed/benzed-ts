@@ -1,5 +1,5 @@
 
-import { asNil, nil } from './types/nil'
+import { nil } from './types/nil'
 import { intersect } from './types/merge'
 
 //// Type ////
