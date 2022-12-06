@@ -1,5 +1,5 @@
 import { property } from '../property'
-import { Func, isFunc } from '../types/func'
+import { isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 
@@ -23,18 +23,19 @@ type CallableClass<S extends CallableSignature<InstanceType<C>>, C extends Class
 //// Helpers ////
     
 const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C extends Class>(
+    Callable: CallableClass<S,C>,
     signature: S, 
-    constructor: C, 
+    Class: C, 
     instance: InstanceType<C>,
     name: string = signature.name || 
 
         // PascalCase to camelCase
-        constructor.name.charAt(0).toLowerCase() +
-        constructor.name.slice(1),
+        Class.name.charAt(0).toLowerCase() +
+        Class.name.slice(1),
 ): Callable<S, InstanceType<C>> => {
 
     // Create callable
-    const callable = createCallableObject(
+    return createCallableObject(
         signature, 
         instance, 
         { 
@@ -42,14 +43,21 @@ const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C 
                 value: name,
                 configurable: true 
             },
-            [$$instance]: {
-                value: instance
-            },
-            ...property.descriptorsOf(constructor.prototype)
+
+            // TODO what might be better is creating getter/setter 
+            // properties that affect the actual instance
+            ...property.descriptorsOf(Class.prototype),
+
+            [$$instance]: { value: instance },
+
+            constructor: {
+                value: Callable,
+                enumerable: false,
+                writeable: true,
+                configurable: true
+            } as PropertyDescriptor
         }
     )
-
-    return callable
 }
 
 const isClass = (input: unknown): input is Class => 
@@ -72,28 +80,27 @@ function es5CreateCallableClass<
         throw new Error('Input must be a class definition')
 
     // declare
-    function Callable (...args: any[]): InstanceType<C> {
+    const Callable = function(...args: any[]): InstanceType<C> {
         return createCallableInstance(
+            Callable,
             signature,
             Class,
             new Class(...args),
             name,
         )
-    }
+    } as unknown as CallableClass<S,C>
     
     // extend
     Object.setPrototypeOf(Callable, Class)
 
     // instanceof
-    property.value(Callable, Symbol.hasInstance, 
-        (value: any) => (value?.[$$instance] ?? value) instanceof Class
-    )
+    property.value(Callable, Symbol.hasInstance, (value: any) => (value?.[$$instance] ?? value) instanceof Class)
 
     // name
     return property.name(
         Callable, 
         name ?? `Callable${Class.name}`
-    ) as unknown as CallableClass<S,C>
+    )
 }
 
 //// Es6 Extend ////
@@ -103,7 +110,6 @@ function es5CreateCallableClass<
  * Unsure why.
  */
 
-/*
 function es6CreateCallableClass <
     S extends CallableSignature<InstanceType<C>>,
     C extends Class
@@ -124,6 +130,7 @@ function es6CreateCallableClass <
         constructor(...args: any[]) {
             super(...args)
             return createCallableInstance(
+                Callable,
                 signature,
                 Class,
                 this as InstanceType<C>,
@@ -137,7 +144,6 @@ function es6CreateCallableClass <
         name ?? `Callable${Class.name}`
     )
 }
-*/ 
 
 //// Exports ////
 
@@ -145,6 +151,8 @@ export default es5CreateCallableClass
 
 export {
     es5CreateCallableClass as createCallableClass,
+    es5CreateCallableClass,
+    es6CreateCallableClass,
     CallableClass,
 
     Class,

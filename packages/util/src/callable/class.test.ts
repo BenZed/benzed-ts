@@ -1,4 +1,4 @@
-import { createCallableClass } from './class'
+import { createCallableClass, es5CreateCallableClass, es6CreateCallableClass } from './class'
 import { toNil } from '../types/nil'
 
 import { expectTypeOf } from 'expect-type'
@@ -285,5 +285,31 @@ describe('name option', () => {
         )
         expect(Bar.name).toBe('Callable')
     })
+
+})
+
+it('es5 correctly extends', () => {
+
+    class Foo {
+        _bar = 100
+        get bar(): `${number}` {
+            return `${this._bar}`
+        }
+    }
+
+    function bar(this: { bar: string }) {
+        return this.bar
+    }
+
+    const foo = new Foo()
+    expect(foo.constructor).toBe(Foo)
+
+    const CallableFooEs6 = es6CreateCallableClass(bar, Foo)
+    const es6 = new CallableFooEs6()
+    expect(es6.constructor).toBe(CallableFooEs6)
+
+    const CallableFooEs5 = es5CreateCallableClass(bar, Foo)
+    const es5 = new CallableFooEs5()
+    expect(es5.constructor).toBe(CallableFooEs5)
 
 })
