@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { Merge, nil, StringKeys } from '@benzed/util'
+import { Merge, nil, KeysOf } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -20,7 +20,7 @@ import {
     CommandModule, 
     CommandOutput
 } from './command'
-import is from '@benzed/is/lib'
+import is from '@benzed/is'
 
 //// Eslint ////
 
@@ -96,9 +96,6 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     ) {
         super()
 
-        if (!modules.every(m => !!m._copyWithParent)) 
-            console.log(modules)
-
         this._modules = modules.map(m => m._copyWithParent(this)) as unknown as M
         this._validateModules()
     }
@@ -141,7 +138,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         return this._commands ?? this._createCommands() as any
     }
 
-    execute<K extends StringKeys<ModuleCommands<M>>>(
+    execute<K extends KeysOf<ModuleCommands<M>>>(
         name: K,
         input: CommandInput<ModuleCommands<M>[K]>
     ): CommandOutput<ModuleCommands<M>[K]> {
@@ -152,7 +149,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     getCommand(name: string): Command<string, object, object>
 
-    getCommand<K extends StringKeys<ModuleCommands<M>>>(name: K): ModuleCommands<M>[K] {
+    getCommand<K extends KeysOf<ModuleCommands<M>>>(name: K): ModuleCommands<M>[K] {
         const command = this.commands[name]
         if (!command)
             throw new Error(`Command ${name} could not be found.`)

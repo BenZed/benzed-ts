@@ -4,7 +4,7 @@ import { Module } from '../module'
 import { HttpMethod, RequestHandler } from '../util'
 import { Command, RuntimeCommand } from './command'
 
-import { io, omit } from '@benzed/util'
+import { io, omit, Pipe } from '@benzed/util'
 import $, { Infer } from '@benzed/schema'
 import match from '@benzed/match'
 
@@ -76,22 +76,22 @@ describe('static builder pattern', () => {
             )
 
             expect(generic.name).toBe('killOrphans')
-            expect(generic.method).toBe(HttpMethod.Put)
-            expect(generic.toRequest(todo)).toHaveProperty('url', '/orphans')
+            expect(generic.request.method).toBe(HttpMethod.Put)
+            expect(generic.request.to(todo)).toHaveProperty('url', '/orphans')
         })
 
         it('generic signature: name, execute, method', () => {
             const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
             expect(makeRed.name).toEqual('makeRed')
-            expect(makeRed.method).toEqual(HttpMethod.Options)
-            expect(makeRed.toRequest(todo)).toHaveProperty('url', '/make-red')
+            expect(makeRed.request.method).toEqual(HttpMethod.Options)
+            expect(makeRed.request.to(todo)).toHaveProperty('url', '/make-red')
         })
 
         it('generic signature: name, execute', () => {
             const create = Command.create('create', $todo)
             expect(create.name).toEqual('create')
-            expect(create.method).toEqual(HttpMethod.Post)
-            expect(create.toRequest(todo)).toHaveProperty('url', '/')
+            expect(create.request.method).toEqual(HttpMethod.Post)
+            expect(create.request.to(todo)).toHaveProperty('url', '/')
         })
 
     })
@@ -116,11 +116,11 @@ describe('static builder pattern', () => {
             })
 
             it(`method == ${method}`, () => {
-                expect(cmd.method).toEqual(method)
+                expect(cmd.request.method).toEqual(method)
             })
 
             it('url == "/"', () => {
-                expect(cmd.toRequest({})).toHaveProperty('url', '/')
+                expect(cmd.request.to({})).toHaveProperty('url', '/')
             })
         })
     }
@@ -130,7 +130,7 @@ describe('instance builder pattern', () => {
 
     describe('.useHook()', () => {
 
-        it('append a hook method, changing the commands output', async () => {
+        it('append a hook method, changing the commands output',() => {
 
             const id = new ObjectId()
 
@@ -138,17 +138,17 @@ describe('instance builder pattern', () => {
                 .create($todoData)
 
             const dispatchTodo = getTodo
-
                 // add id
                 .useHook(data => ({ ...data, id: id.toString() }))
-
                 // set created timestamp
                 .useHook(data => ({ ...data, created: new Date() }))
-
                 // remove complete
                 .useHook(omit('completed'))
 
-            const todo = await dispatchTodo.execute({ completed: false, description: 'Pipe commands around' })
+            const todo = dispatchTodo({ 
+                completed: false, 
+                description: 'Pipe commands around' 
+            })
 
             expect(todo.id).toBe(id.toString())
             expect(todo.created).toBeInstanceOf(Date)
@@ -159,14 +159,14 @@ describe('instance builder pattern', () => {
 
             const getTodo = Command
                 .get($todoId)
-                .useHook(function (todo) {
+                .useHook(Pipe.convert(function (todo) {
 
                     expectTypeOf<typeof this>().toMatchTypeOf<RuntimeCommand<TodoId>>()
 
-                    expect(this?.method).toEqual(HttpMethod.Get)
+                    expect(this?.request.method).toEqual(HttpMethod.Get)
                     expect(this?.name).toEqual('get')
                     return todo
-                })
+                }))
 
             const todo = getTodo.execute({ id: '0' })
             expect(todo).toEqual({ 
@@ -191,7 +191,7 @@ describe('instance builder pattern', () => {
                         .setUrl`/todos/${'id'}`
                 ) 
 
-            const req = updateTodoWithNewReq.toRequest({ 
+            const req = updateTodoWithNewReq.request.to({ 
                 id: 'first-todo-ever', 
                 completed: false, 
                 description: 'I will not complete this'
@@ -210,7 +210,7 @@ describe('instance builder pattern', () => {
             const updateTodoWithNewReq = updateTodo
                 .useReq(req => req.setUrl`/todos/edit/${'id'}`)
 
-            expect(updateTodoWithNewReq.toRequest({
+            expect(updateTodoWithNewReq.request.to({
                 id: 'great-todo', 
                 completed: false, 
                 description: 'Do the thing'
@@ -250,7 +250,7 @@ describe('hook instead of schema', () => {
             input: 'hello' 
         })
 
-        expect(cmd.toRequest({ input: 'x' })).toEqual({ 
+        expect(cmd.request.to({ input: 'x' })).toEqual({ 
             url: '/?input=x',
             method: HttpMethod.Get,
         })
@@ -258,19 +258,22 @@ describe('hook instead of schema', () => {
 
 })
 
-describe('shape schema input', () => {
+describe.only('shape schema input', () => {
 
     it('allows slightly nicer validation syntax', () => {
 
-        const cmd = Command.get({
+        const cmd1 = Command.get({
             x: $.number,
             y: $.number
-        }).useHook(({ x,y }) => ({ magnitude:  Math.sqrt(x ** 2 + y ** 2)}))
+        })
+        
+        const cmd = cmd1.useHook(({ x,y }) => ({ magnitude:  Math.sqrt(x ** 2 + y ** 2)}))
 
         expect(cmd.execute({ x: 0, y: 10 }))
             .toEqual({ magnitude: 10 })
 
-        const cm1 = cmd.useHook((i: { x?: number, y?: number }) => ({ x: 0, y: 0, ...i }), true)
+        const cmd2 = cmd
+            .usePreHook((i: { x?: number, y?: number }) => ({ x: 0, y: 0, ...i }))
 
     })
 })

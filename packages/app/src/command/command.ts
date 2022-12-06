@@ -1,11 +1,23 @@
 import { pluck } from '@benzed/array'
-import $, { SchemaFor, Schematic } from '@benzed/schema'
-import { Pipe, Transform, isObject, isFunc, nil, isString } from '@benzed/util'
 import { toDashCase } from '@benzed/string'
+import $, { SchemaFor, Schematic } from '@benzed/schema'
+import { 
+    nil,
+
+    isObject,
+    isFunc,  
+    isString,
+     
+    Transform, 
+
+    Pipe, 
+    BoundPipe,
+    ContextPipe, 
+    ContextTransform
+} from '@benzed/util'
 
 import CommandModule from './command-module'
-
-import { HttpMethod, Path, Request, RequestHandler as Req, UrlParamKeys } from '../util'
+import { HttpMethod, Path, RequestHandler, UrlParamKeys } from '../util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -23,14 +35,13 @@ type ValidateHook<T extends object> = Schematic<T> | ShapeSchemaInput<T>
 /**
  * Command without build interface
  */
-export type RuntimeCommand<I extends object> = 
-    Omit<
-    Command<string, I, object>,
-    'useHook' | 'useName' | 'useReq' | 'useUrl' | 'useProvide'
-    >
+export type RuntimeCommand<I extends object> = {
+    [K in keyof Command<string, I, any> as K extends `use${string}` ? never : K]: Command<string,I,any>[K]
+}
 
-export type CommandHook<I extends object, O extends object> =
-    ((this: RuntimeCommand<I>, input: I) => O) | Transform<I, O>
+export type CommandHook<I extends object, O extends object> = 
+    Transform<I,O> | 
+    ContextPipe<I, O, RuntimeCommand<I>> 
 
 type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 
@@ -38,7 +49,7 @@ type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
 //// Types ////
 
-const isSchematic = <T extends object>(input: unknown): input is ValidateHook<T> => 
+const isSchematic = <T extends object> (input: unknown): input is ValidateHook<T> => 
     isObject<Partial<Schematic<T>>>(input) && 
     isFunc(input.validate) && 
     isFunc(input.assert) && 
@@ -103,9 +114,10 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
         return new Command(
             name, 
-            schema, 
             execute, 
-            Req.create(method).setUrl(path)
+            RequestHandler.create(method)
+                .setUrl(path)
+                .setSchema(schema)
         )
     }
 
@@ -176,43 +188,21 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     private constructor(
         name: N,
-        schema: Schematic<I> | nil,
-        execute: CommandHook<I, O>,
-        reqHandler: Req<I>
+        execute: Transform<I,O>,
+        handler: RequestHandler<I>
     ) {
-        super(name)
-        this._execute = Pipe.from(execute)
-        this._schema = schema
-        this._reqHandler = reqHandler.setSchema(schema)
+        super(name, handler)
+        this._executeOnServer = Pipe.from(execute).bind(this)
     }
 
-    protected readonly _schema: Schematic<I> | nil
-    protected readonly _execute: Pipe<I,O> 
-    protected readonly _reqHandler: Req<I>
+    protected readonly _executeOnServer: BoundPipe<I, O, this>
 
     protected override get _copyParams(): unknown[] {
         return [
             this.name,
-            this._schema,
-            this._execute,
-            this._reqHandler
+            this._executeOnServer,
+            this.request
         ]
-    }
-
-    //// State ////
-    
-    get method(): HttpMethod {
-        return this._reqHandler.method
-    }
-
-    //// Request Interface ////
-    
-    toRequest(input: I): Request {
-        return this._reqHandler.toRequest(input)
-    }
-
-    matchRequest(req: Request): I | nil {
-        return this._reqHandler.matchRequest(req)
     }
 
     //// Instance Build Interface ////
@@ -220,14 +210,26 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Add a hook to this command
      */
-    useHook<Ox extends object = O>(hook: CommandHook<O, Ox> | Command<string, O, Ox>): Command<N, I, Ox> {
-        return this._useHook(hook, false)
+    useHook<Ox extends object = O>(
+        hook: ContextTransform<O, Ox, this>
+    ): Command<N, I, Ox>
+
+    useHook<Ox extends object = O>(
+        hook: Transform<O, Ox>
+    ): Command<N, I, Ox> 
+    
+    useHook<Ox extends object = O>(
+        hook: Transform<O, Ox> | ContextTransform<O, Ox, this>   
+    ){
+        return this._useHook(hook as Transform<O, Ox>, false)
     }
 
     /**
      * Prepend a hook to this command
      */
-    usePreHook<Ix extends object = O>(hook: CommandHook<Ix, I> | Command<string, Ix, I>): Command<N, Ix, O> {
+    usePreHook<Ix extends object = O>(
+        hook: CommandHook<Ix, I> | Command<string, Ix, I>
+    ): Command<N, Ix, O> {
         return this._useHook(hook, true)
     }
     
@@ -237,28 +239,26 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     useName<Nx extends string>(name: Nx): Command<Nx, I, O> {
         return new Command(
             name,
-            this._schema,
-            this._execute,
-            this._reqHandler
+            this._executeOnServer,
+            this.request
         )
     }
 
     /**
      * Update or change the existing request handler for this command
      */
-    useReq(update: (req: Req<I>) => Req<I>): Command<N, I, O>
-    useReq(reqHandler: Req<I>): Command<N, I, O> 
-    useReq(input: Req<I> | ((req: Req<I>) => Req<I>)): Command<N,I,O> {
+    useReq(update: (req: RequestHandler<I>) => RequestHandler<I>): Command<N, I, O>
+    useReq(reqHandler: RequestHandler<I>): Command<N, I, O> 
+    useReq(input: RequestHandler<I> | ((req: RequestHandler<I>) => RequestHandler<I>)): Command<N,I,O> {
 
-        const reqHandler = isFunc(input) 
-            ? input(this._reqHandler) 
+        const handler = isFunc(input) 
+            ? input(this.request) 
             : input
 
         return new Command(
             this.name,
-            this._schema,
-            this._execute,
-            reqHandler
+            this._executeOnServer,
+            handler
         )
     }
 
@@ -279,9 +279,9 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     useValidate(validate: ValidateHook<I> | nil): Command<N, I, O> {
 
         const executeWithoutOldSchemaValidate = Pipe.from(
-            ...this._execute
+            ...this._executeOnServer
                 .transforms
-                .filter(link => link !== this._schema?.validate)
+                .filter(link => link !== this.request.schema?.validate)
         ) as Transform<I,O>
 
         const [newSchematic] = validate ? toSchematicAndValidate(validate) : [nil]
@@ -292,26 +292,28 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
         return new Command(
             this.name, 
-            newSchematic, 
             newExecute, 
-            this._reqHandler
+            this.request.setSchema(newSchematic)
         )
     }
 
     //// Helper ////
     
     private _useHook(hook: CommandHook<any, any> | Command<string, any, any>, prepend: boolean): Command<N, any, any> {
-        const oldExecute = this._execute
+        const oldExecute = this._executeOnServer
 
-        const newExecute = '_execute' in hook
-            ? hook.useValidate(nil)._execute
+        const newExecute = 'execute' in hook
+            ? hook.useValidate(nil)._executeOnServer
             : hook
+
+        const execute = prepend 
+            ? Pipe.from(newExecute).to(oldExecute) 
+            : Pipe.from(oldExecute).to(newExecute)
 
         return new Command(
             this.name,
-            this._schema,
-            prepend ? Pipe.from(newExecute).to(oldExecute) : Pipe.from(oldExecute).to(newExecute),
-            this._reqHandler
+            execute as BoundPipe<I, O, this>,
+            this.request
         )
     }
 }

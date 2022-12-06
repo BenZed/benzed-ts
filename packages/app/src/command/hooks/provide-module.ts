@@ -1,5 +1,6 @@
 
-import { nil } from '@benzed/util/lib'
+import { nil } from '@benzed/util'
+
 import { GetModuleInput, GetModuleScope, Module } from '../../module'
 import { provider, Provider } from './provider'
 

@@ -1,3 +1,4 @@
+import { nil } from '@benzed/util'
 import { App } from './app'
 import { Module } from './module'
 
@@ -85,7 +86,7 @@ it('.getModule() required param true', () => {
 
 it('.getModule() required param false', () => {
     const m1 = new Test()
-    expect(m1.getModule(Module)).toBe(null)
+    expect(m1.getModule(Module)).toBe(nil)
 })
 
 it('.getModule() scope param "parents"', () => {

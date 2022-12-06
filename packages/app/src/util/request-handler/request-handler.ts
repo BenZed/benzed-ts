@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import { isEmpty, nil, StringKeys } from '@benzed/util'
+import { isEmpty, nil, KeysOf } from '@benzed/util'
 import { Schematic } from '@benzed/schema'
 
 import { 
@@ -38,11 +38,6 @@ import {
 
 //// Types ////
 
-interface RequestConverter<T extends object> {
-    toRequest(data: T): Request
-    matchRequest(input: Request): T | nil
-}
-
 type Headerer<T extends object> = (headers: Headers, data: Partial<T>) => Partial<T>
 
 type HeaderMatch<T extends object> = (headers: Headers, data: Partial<T>) => Partial<T> | nil
@@ -51,12 +46,12 @@ type HeaderMatch<T extends object> = (headers: Headers, data: Partial<T>) => Par
  * Keys that can be used to store/retreive query object.
  */
 type QueryKey<T extends object> = keyof {
-    [K in StringKeys<T> as T[K] extends object | nil ? K : never]: K
+    [K in KeysOf<T> as T[K] extends object | nil ? K : never]: K
 }
 
 //// Main ////
 
-class RequestHandler<T extends object> implements RequestConverter<T> {
+class RequestHandler<T extends object> {
 
     static create<Tx extends object>(method: HttpMethod): RequestHandler<Partial<Tx>>
 
@@ -107,7 +102,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
 
     //// Handler Implementation ////
 
-    toRequest(data: T, urlPrefix?: Path): Request {
+    to(data: T, urlPrefix?: Path): Request {
     
         const { method } = this
 
@@ -125,7 +120,7 @@ class RequestHandler<T extends object> implements RequestConverter<T> {
         }
     }
 
-    matchRequest(req: Request): T | nil {
+    match(req: Request): T | nil {
 
         const { method } = this
         if (method !== req.method)
@@ -309,5 +304,5 @@ export default RequestHandler
 
 export {
     RequestHandler,
-    RequestConverter
+    RequestHandler as Req,
 }
