@@ -1,6 +1,6 @@
 import { property } from '../property'
 import { isFunc } from '../types/func'
-import createCallableObject, { BoundSignature, Callable } from './object'
+import createCallableObject, { BoundSignature, Callable, GetSignature } from './object'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -72,7 +72,7 @@ function createCallableClass <
     signature: S,
     Class: C,
     name?: string,
-): CallableClass<S, C> {
+): CallableClass<GetSignature<S, InstanceType<C>>, C> {
 
     if (!isClass(Class))
         throw new Error('Input must be a class definition')
@@ -96,7 +96,7 @@ function createCallableClass <
     return property.name(
         Callable, 
         name ?? `Callable${Class.name}`
-    )
+    ) as any
 }
 
 //// Exports ////

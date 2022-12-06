@@ -126,6 +126,8 @@ export default createCallableObject
 export {
     createCallableObject,
     BoundSignature,
+    GetSignature,
+    GetObjects,
 
     Callable,
 

@@ -1,4 +1,4 @@
-import createCallableObject, { bind$$This, Callable, BoundSignature, get$$This, transfer$$This } from './object'
+import createCallableObject, { bind$$This, Callable, BoundSignature, get$$This, transfer$$This, GetSignature, GetObjects } from './object'
 import createCallableClass, { isClass, Class, CallableClass } from './class'
 
 import type { Func} from '../types'
@@ -9,13 +9,12 @@ function callable<S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S,
     constructor: C,
     name?: string,
-): CallableClass<S, C>
+): CallableClass<GetSignature<S,InstanceType<C>>, C>
 
 function callable<S extends BoundSignature<O>, O extends object>(
     signature: S,
-    object: O,
-    name?: string
-): Callable<S,O>
+    object: O
+): Callable<GetSignature<S,O>, GetObjects<S,O>>
 
 function callable(
     signature: Func,
@@ -32,13 +31,7 @@ function callable(
        
         : createCallableObject(
             signature, 
-            objectOrConstructor, 
-            { 
-                name: {
-                    value: name, 
-                    configurable: true 
-                }
-            }
+            objectOrConstructor 
         )
 }
 
