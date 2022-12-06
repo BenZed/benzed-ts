@@ -42,6 +42,7 @@
         "mongodb": "^4.9.0"
     },
     "devDependencies": {
-        "@feathersjs/memory": "^5.0.0-pre.31"
+        "@feathersjs/memory": "^5.0.0-pre.31",
+        "@benzed/fs": "^3.1.0"
     }
 }
