@@ -1,4 +1,4 @@
-import { createCallableClass, es5CreateCallableClass, es6CreateCallableClass } from './class'
+import { createCallableClass } from './class'
 import { toNil } from '../types/nil'
 
 import { expectTypeOf } from 'expect-type'
@@ -102,6 +102,49 @@ it('supports getters/setters', () => {
     word.loud = 'yo!'
     expect(word.loud).toEqual('yo!')
     expect(word.quiet).toEqual('yo')
+
+})
+
+it('gets all properties on prototype chain', () => {
+
+    class Count {
+        constructor(public count: number) {}
+
+        get x2(){
+            return this.count * 2
+        }
+    }
+
+    const Count2 = createCallableClass(function increment () {
+        return this.count++
+    }, Count, 'Count2@')
+    const count2 = new Count2(1)
+    expect(count2.x2).toEqual(2)
+    expect(count2.constructor).toBe(Count2)
+
+    // @ts-expect-error It's fine
+    class Count3 extends Count2 {
+        get x3() {
+            return this.count * 3
+        }
+    }
+    const count3 = new Count3(1)
+    expect(count3.x2).toEqual(2)
+    expect(count3.x3).toEqual(3)
+    expect(count3.constructor).toBe(Count3)
+
+    class Count4 extends Count3 {
+        get x4() {
+            return this.count * 4
+        }
+    }
+
+    const count4 = new Count4(1)
+
+    expect(count4.x2).toEqual(2)
+    expect(count4.x4).toEqual(4)
+    expect(count4.x3).toEqual(3)
+    expect(count4.constructor).toBe(Count4)
 })
 
 it('instanceof', () => {
@@ -285,31 +328,5 @@ describe('name option', () => {
         )
         expect(Bar.name).toBe('Callable')
     })
-
-})
-
-it('es5 correctly extends', () => {
-
-    class Foo {
-        _bar = 100
-        get bar(): `${number}` {
-            return `${this._bar}`
-        }
-    }
-
-    function bar(this: { bar: string }) {
-        return this.bar
-    }
-
-    const foo = new Foo()
-    expect(foo.constructor).toBe(Foo)
-
-    const CallableFooEs6 = es6CreateCallableClass(bar, Foo)
-    const es6 = new CallableFooEs6()
-    expect(es6.constructor).toBe(CallableFooEs6)
-
-    const CallableFooEs5 = es5CreateCallableClass(bar, Foo)
-    const es5 = new CallableFooEs5()
-    expect(es5.constructor).toBe(CallableFooEs5)
 
 })

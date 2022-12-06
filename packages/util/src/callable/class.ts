@@ -1,9 +1,11 @@
 import { property } from '../property'
+import { omit } from '../types'
 import { isFunc } from '../types/func'
 import createCallableObject, { CallableSignature, Callable } from './object'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/restrict-plus-operands
 */
 
 //// Symbols ////
@@ -23,41 +25,50 @@ type CallableClass<S extends CallableSignature<InstanceType<C>>, C extends Class
 //// Helpers ////
     
 const createCallableInstance = <S extends CallableSignature<InstanceType<C>>, C extends Class>(
-    Callable: CallableClass<S,C>,
     signature: S, 
-    Class: C, 
     instance: InstanceType<C>,
     name: string = signature.name || 
-
         // PascalCase to camelCase
-        Class.name.charAt(0).toLowerCase() +
-        Class.name.slice(1),
+        instance.constructor.name.charAt(0).toLowerCase() +
+        instance.constructor.name.slice(1),
 ): Callable<S, InstanceType<C>> => {
 
-    // Create callable
-    return createCallableObject(
-        signature, 
-        instance, 
-        { 
-            name: { 
-                value: name,
-                configurable: true 
-            },
-
-            // TODO what might be better is creating getter/setter 
-            // properties that affect the actual instance
-            ...property.descriptorsOf(Class.prototype),
-
-            [$$instance]: { value: instance },
-
-            constructor: {
-                value: Callable,
-                enumerable: false,
-                writeable: true,
-                configurable: true
-            } as PropertyDescriptor
+    // Crawl prototype chain
+    let descriptors: PropertyDescriptorMap = {}
+    let prototype = instance
+    while ((prototype = Object.getPrototypeOf(prototype)) !== Object.prototype) {
+        descriptors = {
+            ...descriptors,
+            ...property.descriptorsOf(prototype)
         }
-    )
+    }
+
+    // Create callable
+    {
+        return createCallableObject(
+            signature, 
+            instance, 
+            { 
+                name: { 
+                    value: name,
+                    configurable: true 
+                },
+
+                ...descriptors,
+
+                constructor: {
+                    value: instance.constructor,
+                    writable: true,
+                    enumerable: false,
+                    configurable: true,
+                },
+
+                [$$instance]: { value: instance, enumerable: true }
+
+            }
+        )
+    }
+
 }
 
 const isClass = (input: unknown): input is Class => 
@@ -65,52 +76,14 @@ const isClass = (input: unknown): input is Class =>
     && input.prototype
     && Symbol.hasInstance in input
 
-////  ES5 Extend  ////
-
-function es5CreateCallableClass<
-    S extends CallableSignature<InstanceType<C>>,
-    C extends Class
->(
-    signature: S,
-    Class: C,
-    name?: string,
-): CallableClass<S,C> {
-    
-    if (!isClass(Class))
-        throw new Error('Input must be a class definition')
-
-    // declare
-    const Callable = function(...args: any[]): InstanceType<C> {
-        return createCallableInstance(
-            Callable,
-            signature,
-            Class,
-            new Class(...args),
-            name,
-        )
-    } as unknown as CallableClass<S,C>
-    
-    // extend
-    Object.setPrototypeOf(Callable, Class)
-
-    // instanceof
-    property.value(Callable, Symbol.hasInstance, (value: any) => (value?.[$$instance] ?? value) instanceof Class)
-
-    // name
-    return property.name(
-        Callable, 
-        name ?? `Callable${Class.name}`
-    )
-}
-
-//// Es6 Extend ////
+//// Main ////
 
 /**
  * This syntax works in testing, but breaks after being transpiled in other packages.
  * Unsure why.
  */
 
-function es6CreateCallableClass <
+function createCallableClass <
     S extends CallableSignature<InstanceType<C>>,
     C extends Class
 >(
@@ -125,14 +98,13 @@ function es6CreateCallableClass <
     class Callable extends Class {
 
         static [Symbol.hasInstance](value: any): boolean {
-            return (value?.[$$instance] ?? value) instanceof Class
+            return super[Symbol.hasInstance](value?.[$$instance] ?? value)
         }
+
         constructor(...args: any[]) {
             super(...args)
             return createCallableInstance(
-                Callable,
                 signature,
-                Class,
                 this as InstanceType<C>,
                 name,
             )
@@ -147,12 +119,10 @@ function es6CreateCallableClass <
 
 //// Exports ////
 
-export default es5CreateCallableClass
+export default createCallableClass
 
 export {
-    es5CreateCallableClass as createCallableClass,
-    es5CreateCallableClass,
-    es6CreateCallableClass,
+    createCallableClass,
     CallableClass,
 
     Class,
