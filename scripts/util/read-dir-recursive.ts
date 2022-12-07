@@ -1,9 +1,15 @@
 import fs from 'fs/promises'
 import path from 'path'
 
+//// Types ////
+
+type UrlFilter = (path: string) => boolean
+
+//// Main ////
+
 export async function readDirRecursive(
     dir: string, 
-    filter: (file: string) => boolean = () => true,
+    ...filters: UrlFilter[]
 ): Promise<readonly string[]> {
 
     const names = await fs.readdir(dir)
@@ -11,18 +17,17 @@ export async function readDirRecursive(
     const urls: string[] = []
 
     for (const name of names) {
-        if (name === 'node_modules')
-            continue
-
         const url = path.join(dir, name)
+
+        if (!filters.some(filter => filter(url)))
+            continue
 
         const stat = await fs.stat(url)
         if (stat.isDirectory()) {
             urls.push(
-                ...await readDirRecursive(url, filter)
+                ...await readDirRecursive(url, ...filters)
             )
-        } else if (filter(url))
-            urls.push(url)
+        }
     }
 
     return urls

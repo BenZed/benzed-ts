@@ -27,6 +27,9 @@ import ensureMongoDb from './util/ensure-mongo-db'
 const isTypeScriptFile = (file: string): boolean => 
     file.endsWith('.ts')
 
+const isNotInNodeModules = (file: string): boolean => 
+    !file.includes('node_modules')
+
 //// State ////
 
 const tsFileContents: Record<string,string> = {}
@@ -40,10 +43,10 @@ const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev'
 const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir => {
 
     // split this into functions
-    const typeScriptFiles = await readDirRecursive(pkgDir, isTypeScriptFile)
+    const typeScriptFiles = await readDirRecursive(pkgDir, isTypeScriptFile, isNotInNodeModules)
 
     const depWeb = await dependencyWeb
-    const thisPkgName = '@benzed' + pkgDir.slice(pkgDir.lastIndexOf(path.sep))
+    const thisPkgName = '@benzed/' + (pkgDir.split(path.sep).at(-1) as string)
     const thisDepWeb = depWeb[thisPkgName]
 
     // Split local/external deps
@@ -82,7 +85,7 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
 
     // Remove existing packagejson internal dependencies
     for (const key in packageJson.dependencies) {
-        if (key.startsWith('@benzed/'))
+        if (key.startsWith('@benzed'))
             delete packageJson.dependencies[key]
     }
 
@@ -120,16 +123,13 @@ ensureMongoDb({
 
 // Watch for ts changes
 watch(PACKAGES_DIR, {
-    ignored: 'node_modules' ,
-    followSymlinks: false
+    ignored: 'node_modules',
+    followSymlinks: false,
+    atomic: 250
 }).on('change', async file => {
-    console.log(file)
 
     if (!isTypeScriptFile(file))
         return 
-
-    if (file.includes('node_modules'))
-        return
 
     const contents = await fs.readFile(file, 'utf-8')
     if (tsFileContents[file] === contents) 
@@ -137,14 +137,22 @@ watch(PACKAGES_DIR, {
 
     console.log(
         file.replace(PACKAGES_DIR, ''), 
-        'updated', contents.length, 'bytes'
+        'updated', tsFileContents[file]?.length ?? '(uncached)', '>>', contents.length
     )
     tsFileContents[file] = contents
 
     if (!updateDependencyProcess.isRunning) 
         await updateDependencyProcess.run(file)
     
-    if (!testProcess.isRunning) 
-        await testProcess.run(file)
+    if (!testProcess.isRunning) {
+        const onlyThisFile = file.endsWith('.test.ts')
+
+        await testProcess.run(
+            file, 
+            onlyThisFile 
+                ? path.basename(file) 
+                : ''
+        )
+    }
 
 })

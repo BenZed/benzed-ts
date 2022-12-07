@@ -1,5 +1,10 @@
 import EventEmitter from './event-emitter'
 
+import { jest, it, expect, describe } from '@jest/globals'
+import { Func } from '../types'
+
+//// Tests ////
+
 describe('Event Emitter', () => {
 
     for (const addMethod of ['on', 'addListener'] as const) {
@@ -34,7 +39,7 @@ describe('Event Emitter', () => {
                     'favourite-number': [number]
                 }>()
 
-                const callback = jest.fn()
+                const callback = jest.fn<Func>()
 
                 emitter[onceMethod]('favourite-number', callback)
                 emitter.emit('favourite-number', 0)
@@ -54,7 +59,7 @@ describe('Event Emitter', () => {
                     'start': []
                 }>()
 
-                const callback = jest.fn()
+                const callback = jest.fn<Func>()
 
                 emitter.on('start', callback)
                 emitter.emit('start')
@@ -120,7 +125,7 @@ describe('Event Emitter', () => {
 
             const emitter = new EventEmitter()
 
-            const listener = jest.fn()
+            const listener = jest.fn<Func>()
 
             emitter.addListener('hello', listener)
             emitter.addListener('hello', listener)
@@ -142,7 +147,7 @@ describe('Event Emitter', () => {
                 'go': []
             }>()
 
-            emitter.on('go', jest.fn())
+            emitter.on('go', jest.fn<Func>())
 
             expect(emitter.getNumListeners('go')).toBe(1)
         })
@@ -153,7 +158,7 @@ describe('Event Emitter', () => {
                 'hello': []
             }>()
 
-            const callback = jest.fn()
+            const callback = jest.fn<Func>()
 
             emitter.on('hello', callback)
             emitter.once('hello', callback)
@@ -178,10 +183,10 @@ describe('Event Emitter', () => {
                 'three': []
             }>()
 
-            emitter.addListener('one', jest.fn())
-            emitter.addListener('one', jest.fn())
-            emitter.addListener('two', jest.fn())
-            emitter.addListener('three', jest.fn())
+            emitter.addListener('one', jest.fn<Func>())
+            emitter.addListener('one', jest.fn<Func>())
+            emitter.addListener('two', jest.fn<Func>())
+            emitter.addListener('three', jest.fn<Func>())
             emitter.removeAllListeners('two')
 
             expect(emitter.eventNames).toEqual(['one', 'three'])
@@ -224,8 +229,8 @@ describe('Event Emitter', () => {
             const eventEmitter = new EventEmitter(1)
 
             expect(() => {
-                eventEmitter.on('hello', jest.fn())
-                eventEmitter.on('hello', jest.fn())
+                eventEmitter.on('hello', jest.fn<Func>())
+                eventEmitter.on('hello', jest.fn<Func>())
             }).toThrow('Cannot add more than 1 listeners for the "hello" event.')
         })
 

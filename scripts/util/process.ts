@@ -11,7 +11,7 @@ export class FileProcess {
     }
     constructor(
         protected readonly _name: string,
-        protected _onRun: (file: string) => Promise<void>
+        protected _onRun: (file: string, ...args: string[]) => Promise<void>
     ) {}
 
     private _running: Promise<void> | null = null
@@ -19,12 +19,12 @@ export class FileProcess {
         return !!this._running
     }
     
-    run(file: string): Promise<void> {
+    run(file: string, ...args: string[]): Promise<void> {
         if (this.isRunning)
             throw new Error(`${this.name} is already running`)
 
         this._running = this
-            ._onRun(file)
+            ._onRun(file, ...args)
             .then(this._onComplete)
             .catch(this._onComplete)
 
@@ -56,7 +56,7 @@ export class PackageProcess extends FileProcess {
     }
 
     get pkg(): string {
-        return '@benzed/' + path.basename(this._pkgDir)
+        return '@benzed' + path.sep + path.basename(this._pkgDir)
     }
 
     constructor(
@@ -66,7 +66,7 @@ export class PackageProcess extends FileProcess {
         super(name, onRun)
     }
 
-    override run(file: string): Promise<void> {
+    override run(file: string, ...args: string[]): Promise<void> {
 
         const filePkgDirIndex = file.indexOf(PACKAGES_DIR)
         if (filePkgDirIndex < 0)
@@ -77,8 +77,8 @@ export class PackageProcess extends FileProcess {
             file.indexOf(path.sep, filePkgDirIndex + PACKAGES_DIR.length + 1)
             //                                                   ^ ignore first slash
         )
-        
-        return super.run(this._pkgDir = pkgDir)
+        this._pkgDir = pkgDir
+        return super.run(this._pkgDir, ...args)
     }
 }
 
@@ -91,15 +91,19 @@ export class PackageSpawnProcess extends PackageProcess {
     ) {
         super(
             name,
-            async (pkgDir: string) => {
+            async (pkgDir: string, ...moreArgs: readonly string[]) => {
                 console.clear()
-                console.log(`"${pkgDir}"`, cmd, ...args)
-                await command(cmd, args, { 
+                console.log(`"${pkgDir}"`, cmd, ...args, ...moreArgs)
+                await command(cmd, [...args, ...moreArgs], { 
                     cwd: pkgDir,
                     stdio: 'inherit',
                     shell: true
                 })
             }
         )
+    }
+
+    override run(file: string, ...args: readonly string[]): Promise<void> {
+        return super.run(file, ...args)
     }
 }
