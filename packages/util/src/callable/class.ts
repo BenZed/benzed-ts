@@ -70,7 +70,10 @@ function createCallableClass <
     class Callable extends Class {
 
         static [Symbol.hasInstance](value: object): boolean {
-            return !!value?.constructor && property.prototypes(value.constructor).includes(Class)
+            return !!value?.constructor && 
+                property
+                    .prototypes(value.constructor)
+                    .includes(Object.getPrototypeOf(this))
         }
 
         constructor(...args: any[]) {

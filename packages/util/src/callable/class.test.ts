@@ -163,12 +163,16 @@ describe('instanceof', () => {
     })
 
     it('is not an instance of extended classes', () => {
+
         // @ts-expect-error it's fine
         class VectorX extends Vector { }
+        class VectorY extends VectorX {}
 
-        const v = new Vector(1,1)
+        for (const VectorZ of [VectorX, VectorY]) {
+            expect(new Vector(1,1) instanceof VectorZ).toBe(false)
+            expect(new VectorZ(1,1) instanceof Vector).toBe(true)
+        }
 
-        expect(v instanceof VectorX).toBe(false)
     })
 
     it('in case someone is being a smartass', () => {
@@ -262,7 +266,6 @@ it('can be extended', () => {
     expect(Repeater.create('fool')(3)).toEqual('fool'.repeat(3))
 
     class X2Repeater extends Repeater {
-
         constructor(value: string) {
             super(value.repeat(2))
         }
