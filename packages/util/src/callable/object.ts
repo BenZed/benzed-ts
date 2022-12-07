@@ -16,6 +16,7 @@ const $$callable = Symbol('callable-signature-object-descriptors')
 interface $$Callable {
     [$$callable]: {
         signature: Func
+        object: object
         descriptors: PropertyDescriptorMap
     }
 }
@@ -110,7 +111,7 @@ const createCallableObject = <S extends BoundSignature<O>, O extends object>(
         {
             ...target.descriptors,
             [$$callable]: {
-                value: { ...target },
+                value: { ...target, object: source?.object ?? object },
                 writable: false,
                 enumerable: false,
                 configurable: false
@@ -133,6 +134,7 @@ export {
 
     $$callable,
     $$Callable,
+    get$$Callable,
 
     $$This,
     get$$This,

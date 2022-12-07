@@ -1,6 +1,6 @@
 import { property } from '../property'
 import { isFunc } from '../types/func'
-import createCallableObject, { BoundSignature, Callable, GetSignature } from './object'
+import createCallableObject, { BoundSignature, Callable, get$$Callable, GetSignature } from './object'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -70,10 +70,8 @@ function createCallableClass <
     class Callable extends Class {
 
         static [Symbol.hasInstance](value: object): boolean {
-            return !!value?.constructor && 
-                property
-                    .prototypes(value.constructor)
-                    .includes(Object.getPrototypeOf(this))
+            const instance = value && (get$$Callable(value)?.object ?? value)
+            return super[Symbol.hasInstance](instance)
         }
 
         constructor(...args: any[]) {

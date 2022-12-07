@@ -164,13 +164,22 @@ describe('instanceof', () => {
 
     it('is not an instance of extended classes', () => {
 
-        // @ts-expect-error it's fine
-        class VectorX extends Vector { }
-        class VectorY extends VectorX {}
+        class Module {}
 
-        for (const VectorZ of [VectorX, VectorY]) {
-            expect(new Vector(1,1) instanceof VectorZ).toBe(false)
-            expect(new VectorZ(1,1) instanceof Vector).toBe(true)
+        const CallableModule = createCallableClass(
+            () => '',
+            Module,
+        )
+        expect(new Module() instanceof CallableModule).toBe(false)
+
+        // @ts-expect-error it's fine
+        class CallableModule2 extends CallableModule { }
+        class CallableModule3 extends CallableModule2 {}
+
+        for (const CallableModuleX of [CallableModule2, CallableModule3]) {
+            expect(new CallableModule() instanceof CallableModuleX).toBe(false)
+            expect(new CallableModuleX() instanceof CallableModule).toBe(true)
+            expect(new Module() instanceof CallableModuleX).toBe(false)
         }
 
     })
@@ -365,5 +374,4 @@ describe('name option', () => {
         const foo = new Foo('ace')
         expect(foo.name).toEqual('ace')
     })
-
 })
