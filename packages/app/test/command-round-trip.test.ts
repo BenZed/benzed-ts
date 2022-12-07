@@ -30,10 +30,10 @@ for (const webSocketClient of [true, false]) {
 
             ] as const) {
 
-                it(`calculator ${name} test ${JSON.stringify(data)} should result in ${JSON.stringify(output)}`, async () => {
+                it(`calculator ${name} test ${JSON.stringify(data)} should result in ${JSON.stringify(output)}`, () => {
 
                     const command = client.getCommand(name)
-                    const result = await command.execute(data)
+                    const result = command.execute(data)
                     expect(result).toEqual(output)
                 })
             }
