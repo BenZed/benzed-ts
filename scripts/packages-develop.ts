@@ -7,14 +7,16 @@ import {
 
     PACKAGES_DIR, 
 
-    createDependencyWeb, 
+    command,
+
     readJson,
-    PackageJson,
     writeJson,
+    createDependencyWeb, 
+
+    PackageJson,
     PackageSpawnProcess,
     PackageProcess,
     readDirRecursive,
-    command,
 
 } from './util'
 
@@ -29,11 +31,11 @@ const isTypeScriptFile = (file: string): boolean =>
 
 const tsFileContents: Record<string,string> = {}
 
-const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev')
-
 const dependencyWeb = createDependencyWeb()
 
 //// Processes ////
+
+const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev')
 
 const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir => {
 
@@ -92,6 +94,7 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
             packageJson.dependencies[key] = '^' + newInternalDeps[key]
     }
     thisDepWeb.dependencies = newInternalDeps
+
     // write
     await writeJson(packageJson, packageJsonFile)
 
@@ -134,7 +137,7 @@ watch(PACKAGES_DIR).on('change', async file => {
     if (!updateDependencyProcess.isRunning) 
         await updateDependencyProcess.run(file)
     
-    // if (!testProcess.isRunning) 
-    //     await testProcess.run(file)
+    if (!testProcess.isRunning) 
+        await testProcess.run(file)
 
 })

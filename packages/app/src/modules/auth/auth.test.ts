@@ -12,6 +12,7 @@ import {
     expect, 
     describe, 
     beforeAll, 
+    beforeEach, 
     afterAll 
 } from '@jest/globals'
 
@@ -23,6 +24,7 @@ it('is sealed', () => {
 })
 
 it('static .create()', () => {
+
     const auth = Auth.create({})
     expect(auth).toBeInstanceOf(Auth)
 })
@@ -111,12 +113,15 @@ describe('Authentication', () => {
     }
 
     beforeAll(() => app.start())
+    beforeAll(() => app.getModule(MongoDb, true).clearAllCollections())
 
     let user: Record<User>
     beforeAll(async () => {
         user = await app.execute('usersCreate', CREDS)
+    
     })
 
+    beforeAll(() => app.getModule(MongoDb, true).clearAllCollections())
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {

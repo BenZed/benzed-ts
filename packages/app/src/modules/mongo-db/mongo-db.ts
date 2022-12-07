@@ -115,6 +115,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     override async start(): Promise<void> {
 
+        await super.start()
         const { settings } = this
 
         const uri = settings.uri
@@ -131,6 +132,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     override async stop(): Promise<void> {
         
+        await super.stop()
         if (!this._mongoClient) 
             return 
 

@@ -166,6 +166,7 @@ export class Module {
     private _active = false
 
     start(): void | Promise<void> {
+        this._assertStopped()
         this._active = true
     }
 
