@@ -93,7 +93,12 @@ export class PackageSpawnProcess extends PackageProcess {
             name,
             async (pkgDir: string) => {
                 console.clear()
-                await command(cmd, args, { cwd: pkgDir, stdio: 'inherit' })
+                console.log(`"${pkgDir}"`, cmd, ...args)
+                await command(cmd, args, { 
+                    cwd: pkgDir,
+                    stdio: 'inherit',
+                    shell: true
+                })
             }
         )
     }

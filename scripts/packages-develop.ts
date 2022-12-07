@@ -108,16 +108,22 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
 
 //// Execute ////
 
+console.clear()
+
 // Start Dev MongoDB
 ensureMongoDb({
     isRunning: true,
-    log: false,
+    log: true,
     cluster: 'test',
     clean: true
 })
 
 // Watch for ts changes
-watch(PACKAGES_DIR).on('change', async file => {
+watch(PACKAGES_DIR, {
+    ignored: 'node_modules' ,
+    followSymlinks: false
+}).on('change', async file => {
+    console.log(file)
 
     if (!isTypeScriptFile(file))
         return 

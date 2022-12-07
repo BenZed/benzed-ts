@@ -1,20 +1,14 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 
 import path from 'path'
-import fs from 'fs'
+import fs from 'fs/promises'
 import os from 'os'
 
 import { command } from './command'
 
 //// Constants ////
 
-const ROOT_DIR_NAME = 'benzed-ts'
 const IS_WIN = os.platform().startsWith('win')
-const CWD = process.cwd()
-
-const ROOT_DIR = __dirname.substring(0, __dirname.lastIndexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
-if (!ROOT_DIR.includes(ROOT_DIR_NAME) || !fs.existsSync(ROOT_DIR))
-    throw new Error(`Could not find ${ROOT_DIR_NAME} directory.`)
 
 const DEFAULT_MONGO_DB_PORT = 27017
 
@@ -80,11 +74,11 @@ function isMongoProcessInCorrectState(options: Required<EnsureMongoDbOptions>): 
 }
 
 function makeDir(path: string): Promise<void> {
-    return fs.promises.mkdir(path).catch(toVoid)
+    return fs.mkdir(path).catch(toVoid)
 }
 
 function removeDir(path: string): Promise<void> {
-    return fs.promises.rm(path, { recursive: true, force: true }).catch(toVoid)
+    return fs.rm(path, { recursive: true, force: true }).catch(toVoid)
 }
 
 function defaultifyOptions(options: EnsureMongoDbOptions): Required<EnsureMongoDbOptions> {
@@ -187,7 +181,7 @@ async function ensureMongoDb(input: EnsureMongoDbOptions): Promise<void> {
     if (clean && PROTECTED_CLUSTERS.includes(cluster))
         throw new Error(`Cannot clean protected cluster "${cluster}"`)
     if (clean) {
-        log(`Removing existing "${cluster}" cluster data.`)
+        log(`Removing mongodb "${cluster}" cluster existing data.`)
         await removeDir(`./storage/${cluster}`)
     }
 
@@ -196,14 +190,14 @@ async function ensureMongoDb(input: EnsureMongoDbOptions): Promise<void> {
     await makeDir(`./storage/${cluster}/files`)
     await makeDir(`./storage/${cluster}/db`)
 
-    log(`Starting mongodb "${cluster}" cluster on port ${port}`)
+    log(`Starting mongodb "${cluster}" cluster`)
 
     await new Promise<void>((resolve, reject) => {
 
         mongoProcess = spawn(
             MONGO_PROGRAM, [
                 '--dbpath', 
-                path.join(CWD, 'storage', cluster, 'db'),
+                path.join(process.cwd(), 'storage', cluster, 'db'),
 
                 '--port', 
                 port.toString()
@@ -239,6 +233,9 @@ async function ensureMongoDb(input: EnsureMongoDbOptions): Promise<void> {
             }
         })
     })
+
+    log(`Started mongodb "${cluster}" cluster on port ${port}`)
+
 }
 
 //// Exports ////
