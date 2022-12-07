@@ -8,7 +8,6 @@
         "test:dev": "jest --runInBand --onlyChanged --verbose",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
-        "build:dev": "npm run tsc -- -w",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
@@ -22,6 +21,6 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/util": "^3.7.0"
+        "@benzed/util": "^3.9.1"
     }
 }

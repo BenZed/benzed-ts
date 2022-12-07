@@ -30,6 +30,9 @@ const tsFileContents: Record<string,string> = {}
 const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev')
 
 const dependencyWeb = createDependencyWeb()
+
+//// Processes ////
+
 const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir => {
 
     const typeScriptFiles = await readDirRecursive(pkgDir, isTypeScriptFile)
@@ -53,7 +56,13 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     for (const ts of typeScriptFiles) {
         const contents = tsFileContents[ts] ??= await fs.readFile(ts, 'utf-8')
         for (const pkgName in depWeb) {
-            if (contents.includes(`'${pkgName}'`)) 
+
+            const hasPkg = contents.includes(`'${pkgName}'`)
+            if (hasPkg && pkgName === thisPkgName)
+                console.warn(thisPkgName, 'links to itself')
+            else if (hasPkg && thisPkgName in depWeb[pkgName].dependencies)
+                throw new Error(`${thisPkgName} and ${pkgName} link to each other`)
+            else if (hasPkg)
                 newInternalDeps[pkgName] = '^' + depWeb[pkgName].currVersion
         }
     }
@@ -70,21 +79,24 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     if (!changed)
         return 
 
+    // Re-Write package.json
     const packageJsonFile = path.join(pkgDir, 'package.json')
     const packageJson = await readJson(packageJsonFile) as PackageJson
 
-    // await writeJson({
-    //     ...packageJson,
-    //     dependencies: {
-    //         ...externalDeps,
-    //         ...newInternalDeps
-    //     }
-    // }, packageJsonFile)
+    thisDepWeb.dependencies = {
+        ...externalDeps,
+        ...newInternalDeps
+    }
+    await writeJson({
+        ...packageJson,
+        dependencies: thisDepWeb.dependencies
+    }, packageJsonFile)
 
     console.log(thisPkgName, 'internal dependencies updated:')
     for (const key in newInternalDeps)
         console.log(key, newInternalDeps[key])
 
+    // Bootstrap
     await command('npm', ['run', 'packages:bootstrap'], { cwd: process.cwd(), stdio: 'inherit' })
 })
 
@@ -101,10 +113,7 @@ watch(PACKAGES_DIR).on('change', async file => {
     const contents = await fs.readFile(file, 'utf-8')
     if (tsFileContents[file] === contents) 
         return 
-
     tsFileContents[file] = contents
-
-    console.log('cache', Object.keys(tsFileContents).length)
 
     if (!testProcess.isRunning) 
         await testProcess.run(file)

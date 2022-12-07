@@ -4,15 +4,12 @@
  * ```typescript
  *  between('<tag><a>content</tag>', '<tag>', '</tag>') // 'content'
  * ```
- *
  * @param  str Source string.
  * @param  open Open delimiter.
  * @param  close=open Close delimiter.
  *
  * @return Substring of the source between the two markers. Empty string if nothing found.
  */
-
-//
 function between(
     str: string,
     open: string,
@@ -33,6 +30,7 @@ function between(
         return ''
 
     return str.substring(openEndIndex, openEndIndex + closeLength)
+
 }
 
 //// Exports ////

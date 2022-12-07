@@ -10,7 +10,6 @@ import { StatOptions, PathLike } from './types'
 async function exists(url: PathLike, statOpts?: StatOptions): Promise<boolean> {
     try {
         await stat(url, statOpts)
-
         return true
     } catch {
         return false
