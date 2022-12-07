@@ -9,7 +9,7 @@ import Auth from '../auth'
 const provideAuth = memoize(
     <I extends object> (): Provider<I, Auth> => 
         provideModule<I, Auth, true>(
-            module => 'hashPassword' in module, 
+            Auth, 
             true, 
             'parents'
         )

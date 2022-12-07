@@ -114,8 +114,8 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
     /**
      * Access token if authenticated on the client
      */
-    get accessToken(): string | nil {
-        return this._accessToken
+    get accessToken(): string {
+        return this._accessToken ?? ''
     }
     private _accessToken: string | nil = nil // TODO serialize this
 
@@ -125,22 +125,21 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
         this._assertSingle()
     }
 
-    get collection(): MongoDbCollection<{ email: string, password: string }> {
+    get collection(): MongoDbCollection<Credentials> {
 
         const database = this.getModule(MongoDb, true)
 
-        const collection = database.getCollection<{ email: string, password: string }>(this.settings.collection)
+        const collection = database.getCollection<Credentials>(this.settings.collection)
         return collection
     }
     
     //// Command Module Implementation ////
 
     protected async _executeOnServer(
-        credentials: { email: string, password: string }
-    ): Promise<{ accessToken: string }> {
+        credentials: Credentials
+    ): Promise<AccessToken> {
 
-        const records = await this.collection.find({ email: credentials.email } as { /**/ })
-
+        const records = await this.collection.find({ email: credentials.email })
         const hashed = await this.hashPassword(credentials.password)
 
         const entity = records
@@ -154,7 +153,9 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
         return { accessToken }
     }
 
-    protected override async _executeOnClient(input: { email: string, password: string }): Promise<{ accessToken: string }> {
+    protected override async _executeOnClient(
+        input: { email: string, password: string }
+    ): Promise<{ accessToken: string }> {
         const { accessToken } = await super._executeOnClient(input)
 
         if (this.parent?.root.client)
@@ -187,7 +188,7 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
     ): Promise<T> {
 
         const { secret } = this.settings
-        
+
         // Verify
         const payload = await new Promise<JwtPayload>((resolve, reject) => 
             jwt.verify(

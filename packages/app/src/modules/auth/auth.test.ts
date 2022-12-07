@@ -12,7 +12,6 @@ import {
     expect, 
     describe, 
     beforeAll, 
-    beforeEach, 
     afterAll 
 } from '@jest/globals'
 
@@ -118,15 +117,14 @@ describe('Authentication', () => {
     let user: Record<User>
     beforeAll(async () => {
         user = await app.execute('usersCreate', CREDS)
-    
     })
 
-    beforeAll(() => app.getModule(MongoDb, true).clearAllCollections())
+    afterAll(() => app.getModule(MongoDb, true).clearAllCollections())
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {
-
         const auth = app.getModule(Auth, true)
+
         const result = await auth.execute(CREDS)
         const { accessToken } = result ?? {}
 
