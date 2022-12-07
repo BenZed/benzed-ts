@@ -42,21 +42,21 @@ type Callable<S extends BoundSignature<O>, O extends object> =
 
 //// Context Helpers ////
 
-const get$$Callable = (object: Partial<$$Callable>): $$Callable[typeof $$callable] | nil => 
+const get$$Callable = (object: any): $$Callable[typeof $$callable] | nil => 
     $$callable in object ? object[$$callable] : nil
 
-const get$$This = (object: Partial<$$This>): unknown => object?.[$$this] 
+const get$$This = (object: any): unknown => object?.[$$this] 
 
-const bind$$This = (object: Partial<$$This>, ctx: unknown): unknown => 
+const bind$$This = (object: any, ctx: unknown): unknown => 
     property(object, $$this, { value: ctx, writable: false, configurable: true, enumerable: false })
 
-const set$$This = (object: Partial<$$This>, ctx: unknown): unknown => {
+const set$$This = (object: any, ctx: unknown): unknown => {
     return transfer$$This({ [$$this]: ctx }, object)
 }
 
 const transfer$$This = (
-    from: Partial<$$This>, 
-    to: Partial<$$This>
+    from: any, 
+    to: any
 ): typeof to => {
     
     const transferContext = property.descriptorOf(from, $$this)
