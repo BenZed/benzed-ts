@@ -40,8 +40,8 @@ export type RuntimeCommand<I extends object> = {
 }
 
 export type CommandHook<I extends object, O extends object> = 
-    Transform<I,O> | 
-    ContextPipe<I, O, RuntimeCommand<I>> 
+    Transform<I,O | Promise<O>> | 
+    ContextPipe<I, O | Promise<O>, RuntimeCommand<I>> 
 
 type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 
@@ -186,6 +186,10 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     //// Sealed ////
 
+    override get name() {
+        return this._name
+    }
+
     private constructor(
         name: N,
         execute: Transform<I,O>,
@@ -199,7 +203,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
 
     protected override get _copyParams(): unknown[] {
         return [
-            this.name,
+            this._name,
             this._executeOnServer,
             this.request
         ]
@@ -256,7 +260,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             : input
 
         return new Command(
-            this.name,
+            this._name,
             this._executeOnServer,
             handler
         )
@@ -291,7 +295,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             : executeWithoutOldSchemaValidate
 
         return new Command(
-            this.name, 
+            this._name, 
             newExecute, 
             this.request.setSchema(newSchematic)
         )
@@ -311,7 +315,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
             : Pipe.from(oldExecute).to(newExecute)
 
         return new Command(
-            this.name,
+            this._name,
             execute as BoundPipe<I, O, this>,
             this.request
         )

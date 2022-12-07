@@ -166,22 +166,11 @@ export class Module {
     private _active = false
 
     start(): void | Promise<void> {
-        if (this.active) {
-            throw new Error(
-                `${this.name} has already been started`
-            )
-        }
-
         this._active = true
     }
 
     stop(): void | Promise<void> {
-        if (!this.active) {
-            throw new Error(
-                `${this.name} has not been started`
-            )
-        }
-
+        this._assertStarted()
         this._active = false
     }
 
@@ -229,6 +218,22 @@ export class Module {
         if (this.getModule(type, false, scope)) {
             throw new Error(
                 `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`
+            )
+        }
+    }
+
+    protected _assertStarted(): void {
+        if (!this.active) {
+            throw new Error(
+                `${this.name} has not been started`
+            )
+        }
+    }
+
+    protected _assertStopped(): void {
+        if (this.active) {
+            throw new Error(
+                `${this.name} has already been started`
             )
         }
     }

@@ -7,8 +7,17 @@ import { Service } from '../../service'
 import { MongoDb, Record } from '../mongo-db'
 import { hashPassword } from './hooks'
 
-it('is sealed', () => {
+import { 
+    it, 
+    expect, 
+    describe, 
+    beforeAll, 
+    afterAll 
+} from '@jest/globals'
 
+//// Tests ////
+
+it('is sealed', () => {
     // @ts-expect-error Sealed
     void class extends Auth {}
 })
@@ -35,10 +44,9 @@ it('verifies access tokens', async () => {
     const payload = { foo: 'Cake' }
 
     const token = await auth.createAccessToken(payload)
+
     const obj = await auth.verifyAccessToken(token)
-
     expect(obj).toEqual(payload)
-
 })
 
 it('optional verfication validator', async () => {
@@ -52,7 +60,6 @@ it('optional verfication validator', async () => {
     })
     const token1 = await auth.createAccessToken(payloadIn1)
 
-    //
     const payloadOut1 = await auth.verifyAccessToken(token1, payloadSchema)
     expect(payloadOut1).toEqual(payloadIn1)
 
@@ -121,7 +128,7 @@ describe('Authentication', () => {
         expect(typeof accessToken).toBe('string')
     })
 
-    it.only('hashes passwords', () => {
+    it('hashes passwords', () => {
         expect(user.password).not.toEqual(CREDS.password)
         expect(user.password.length).toBeGreaterThan(CREDS.password.length)
     })

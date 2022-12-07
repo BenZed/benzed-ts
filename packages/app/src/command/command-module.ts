@@ -14,7 +14,7 @@ const { assert: assertCamelCase } = $.string.validates(toCamelCase, 'must be in 
 function deferExecution<I extends object, O extends object>(
     this: CommandModule<string,I,O>, 
     input: I
-): O {
+): O | Promise<O> {
     const client = this.parent?.root.client ?? null
     return client 
         ? this._executeOnClient(input)
@@ -27,13 +27,13 @@ abstract class CommandModule<
     N extends string, 
     I extends object, 
     O extends object
-> extends ExecutableModule<I,O> {
+> extends ExecutableModule<I,O | Promise<O>> {
 
     override get name(): N {
         return this._name
     }
 
-    protected _executeOnClient (input: I): O {
+    protected _executeOnClient (input: I): O | Promise<O> {
         const client = this.root.getModule(Client, true)
 
         const path = this.pathFromRoot
@@ -50,7 +50,7 @@ abstract class CommandModule<
         return client.execute(rootName, input) as O
     }
 
-    protected abstract _executeOnServer (input: I): O
+    protected abstract _executeOnServer (input: I): O | Promise<O>
 
     constructor(
         readonly _name: N,

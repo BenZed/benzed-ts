@@ -1,9 +1,9 @@
-import { StringKeys } from '@benzed/util'
+import { KeysOf, nil } from '@benzed/util'
 import { SchemaFor } from '@benzed/schema'
 
 import { 
     MongoClient as _MongoClient, 
-    Db as _MongoDatabase, 
+    Db as _MongoDatabase,
 } from 'mongodb'
 
 import { 
@@ -34,7 +34,7 @@ type Collections = {
 }
 
 type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCollection<any>> = 
-    ({ [K in N | StringKeys<C>]: K extends N ? Cx : C[K] }) extends infer A 
+    ({ [K in N | KeysOf<C>]: K extends N ? Cx : C[K] }) extends infer A 
         ? A extends Collections 
             ? A 
             : never 
@@ -68,12 +68,10 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         // Commmands 
 
         return [
-
             Command.get(provideRecords<{ id: string }, object>(collectionName))
                 .useHook(([{ id }, records]) => records.get(id).then(assertRecord(id))),
                 
-            Command.find(query => ({ query }))
-                .useHook(provideRecords(collectionName))
+            Command.find(provideRecords(collectionName))
                 .useHook(([query, records]) => records.find(query)),
             
             Command.create(provideRecords(collectionName))
@@ -84,7 +82,6 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
             Command.remove(provideRecords<{ id: string }, object>(collectionName))
                 .useHook(([{id}, records]) => records.remove(id).then(assertRecord(id)))
-
         ]
     }
 
@@ -113,8 +110,8 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     // Module Implementation
 
-    private _mongoClient: _MongoClient | null = null
-    private _db: _MongoDatabase | null = null 
+    private _mongoClient: _MongoClient | nil = nil
+    private _db: _MongoDatabase | nil = nil
 
     override async start(): Promise<void> {
 
@@ -139,8 +136,8 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
         await this._mongoClient.close()
 
-        this._mongoClient = null
-        this._db = null
+        this._mongoClient = nil
+        this._db = nil
 
         this.log`mongodb disconnected`
     }
@@ -155,13 +152,14 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         return this._collections
     }
 
-    getCollection<N extends StringKeys<C>>(name: N): C[N]
-    getCollection<T extends object>(name: string): MongoDbCollection<T> {
+    getCollection<N extends KeysOf<C>>(name: N): C[N]
+    getCollection<T extends object>(name: string): MongoDbCollection<T> 
+    
+    getCollection(name: string): MongoDbCollection<object> {
 
-        const collection = this._getCollection(name as StringKeys<C>)
+        const collection = this._getCollection(name as KeysOf<C>)
 
-        if (!this._db)
-            throw new Error(`${this.name} is not connected.`)
+        this._assertConnected(this._db)
 
         if (!collection.connected)
             collection._connect(this._db.collection(name))
@@ -191,18 +189,43 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         )
     }
 
-    createRecordCommands<N extends StringKeys<C>>(collectionName: N): RecordCommands<RecordOf<C[N]>> 
+    async clearCollection<N extends KeysOf<C>>(collectionName: N): Promise<void> {
+        this._assertStarted()
+        this._assertConnected(this._db)
+        this._assertCollection(collectionName)
+
+        const _mongoCollection = this._db.collection(collectionName)
+        await _mongoCollection.deleteMany({})
+
+        this.log`cleared collection ${collectionName}`
+    }
+
+    async clearAllCollections(): Promise<void> {
+        for (const name in this._collections) 
+            await this.clearCollection(name)  
+    }
+
+    createRecordCommands<N extends KeysOf<C>>(collectionName: N): RecordCommands<RecordOf<C[N]>> 
     createRecordCommands<T extends object>(collectionName: string): RecordCommands<T> {
         return MongoDb.createRecordCommands<T>(collectionName)
     }
 
-    private _getCollection<N extends StringKeys<C>>(name: N): C[N]
-    private _getCollection<T extends object>(name: string): MongoDbCollection<T> {
-        const collection = this._collections[name]
-        if (!collection)
-            throw new Error(`Collection '${name}' does not exist.`)
+    //// Helper ////
 
-        return collection
+    private _getCollection<N extends KeysOf<C>>(name: N): C[N]
+    private _getCollection<T extends object>(name: string): MongoDbCollection<T> {
+        this._assertCollection(name)
+        return this._collections[name]
+    }
+
+    private _assertCollection(name: string): void {
+        if (!this._collections[name])
+            throw new Error(`Collection '${name}' does not exist.`)
+    }
+
+    private _assertConnected(db: _MongoDatabase | nil): asserts db is _MongoDatabase {
+        if (!db)
+            throw new Error(`${this.name} not connecteed`)
     }
 
 }

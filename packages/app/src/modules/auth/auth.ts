@@ -1,11 +1,11 @@
 import { is } from '@benzed/is'
-import $, { Infer } from '@benzed/schema'
+import $, { Infer, SchemaFor } from '@benzed/schema'
 import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
 import { CommandModule } from '../../command'
-import { HttpMethod, Request } from '../../util'
+import { HttpMethod, RequestHandler } from '../../util'
 
 import { MongoDb, MongoDbCollection } from '../mongo-db'
 
@@ -39,13 +39,55 @@ const $authSettings = $({
     collection: $.string.optional.default('users')
 })
 
+//// Types ////
+
 type AssertPayload<T extends object> = 
     | ((input: object) => asserts input is T)
     | { assert: (input: object) => asserts input is T }
 
+interface Credentials {
+    readonly email: string 
+    readonly password: string
+}
+
+const $credentials: SchemaFor<Credentials> = $({
+    email: $.string,
+    password: $.string
+})
+
+interface AccessToken {
+    accessToken: string
+}
+
+//// Handler ////
+
+const authRequestHandler = RequestHandler
+    .create(HttpMethod.Put, $credentials)
+    .addHeaderLink(
+        (head, { email, password, ...rest }) => {
+            const credentials = toBase64(`${email}:${password}`)
+            head.set('authorization', `Basic ${credentials}`)
+            return rest
+        },
+        (headers, data) => {
+
+            const auth = headers?.get('authorization')
+            if (!auth)
+                return nil 
+    
+            const [email, password] = fromBase64(auth.replace('Basic ', ''))
+                .split(':') 
+            
+            if (!is.string(email) || !is.string(password))
+                return nil
+
+            return { ...data, email, password }
+        }
+    )
+
 //// Module ////
 
-class Auth extends CommandModule<'authenticate', { email: string, password: string }, { accessToken: string }> {
+class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
 
     static create(settings: AuthSettings = {}): Auth {
         return new Auth(
@@ -56,7 +98,11 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
     private constructor(
         readonly settings: Required<AuthSettings>
     ) {
-        super('authenticate')
+        const name = 'authenticate'
+        super(
+            name,
+            authRequestHandler.setUrl(`/${name}`)
+        )
     }
 
     protected override get _copyParams(): unknown[] {
@@ -68,10 +114,10 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
     /**
      * Access token if authenticated on the client
      */
-    get accessToken(): string | null {
+    get accessToken(): string | nil {
         return this._accessToken
     }
-    private _accessToken: string | null = null // TODO serialize this
+    private _accessToken: string | nil = nil // TODO serialize this
 
     //// Module Interface ////
 
@@ -89,15 +135,18 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
     
     //// Command Module Implementation ////
 
-    async _execute(
+    protected async _executeOnServer(
         credentials: { email: string, password: string }
     ): Promise<{ accessToken: string }> {
 
         const records = await this.collection.find({ email: credentials.email } as { /**/ })
 
+        const hashed = await this.hashPassword(credentials.password)
+
         const entity = records
             .records
-            .find(r => this._comparePasswords(credentials.password, r.password))
+            .find(entity => entity.password === hashed)
+
         if (!entity)
             throw new Error('Invalid credentials')
 
@@ -105,54 +154,13 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         return { accessToken }
     }
 
-    override async execute(input: { email: string, password: string }): Promise<{ accessToken: string }> {
-        const { accessToken } = await super.execute(input)
+    protected override async _executeOnClient(input: { email: string, password: string }): Promise<{ accessToken: string }> {
+        const { accessToken } = await super._executeOnClient(input)
 
         if (this.parent?.root.client)
             this._accessToken = accessToken
 
         return { accessToken }
-    }
-
-    matchRequest({ method, headers, url }: Request): { email: string, password: string } | nil {
-        if (!this.methods.includes(method))
-            return nil
-
-        if (url !== `/${this.name}`)
-            return nil
-
-        const auth = headers?.get('authorization')
-        if (!auth)
-            return nil 
-
-        const [email, password] = fromBase64(auth.replace('Basic ', ''))
-            .split(':') 
-        if (!is.string(email) || !is.string(password))
-            return nil
-            
-        return { email, password }
-    }
-
-    toRequest(input: { email: string, password: string }): Request {
-
-        const headers = new Headers()
-
-        const { email, password } = input
-
-        const credentials = toBase64(`${email}:${password}`)
-
-        headers.set('authorization', `Basic ${credentials}`)
-
-        return {
-            method: this.methods[0],
-            url: `/${this.name}`,
-            body: {},
-            headers
-        }
-    }
-
-    get methods(): HttpMethod[] {
-        return [HttpMethod.Put]
     }
 
     //// Token Interface ////
@@ -193,7 +201,6 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
 
         // Validate
         if (validatePayload) {
-
             const validator = typeof validatePayload === 'function' 
                 ? { assert: validatePayload } 
                 : validatePayload
@@ -204,12 +211,10 @@ class Auth extends CommandModule<'authenticate', { email: string, password: stri
         return omit(payload, 'iat') as T // remove jwt fields added to the payload 
     }
 
-    //// Util ////
-
-    private _comparePasswords(a: string, b: string): boolean {
-        // TODO hash these
-        return a === b
+    hashPassword(password: string): Promise<string> {
+        return Promise.resolve(password.repeat(2))
     }
+
 }
 
 //// Exports ////

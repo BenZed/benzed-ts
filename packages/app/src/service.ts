@@ -217,6 +217,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
                 throw new Error(`Command name collision: "${name}" is used multiple times`)
 
             commands[name] = command
+        
         }
 
         for (const module of this.modules) {

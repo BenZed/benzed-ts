@@ -9,14 +9,19 @@ import { CommandHook } from '../../../command'
 const hashPassword = memoize(<I extends { password?: string }>(): CommandHook<I, I> => 
     Pipe
         .from(provideAuth<I>())
-        .to(([input, auth]) => {
+        .to(async ([input, auth]) => {
 
             const { password } = input
 
-            return {
+            const output = {
                 ...input,
-                password: password?.repeat(2),
+                password: 
+                    password && 
+                    await auth.hashPassword(password),
             } as I
+
+            //
+            return output
         }))
 
 //// Exports ////

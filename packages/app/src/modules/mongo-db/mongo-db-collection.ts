@@ -1,6 +1,7 @@
 import { SchemaFor } from '@benzed/schema'
+import { nil } from '@benzed/util/src'
 
-import { ObjectId } from 'mongodb'
+import { Collection as _MongoCollection, ObjectId } from 'mongodb'
 
 //// Eslint ////
 
@@ -27,7 +28,7 @@ type Paginated<T extends object> = {
 }
 
 type RecordQuery<T extends object> = {
-    [K in keyof T]: T[K]
+    [K in keyof T]?: T[K]
 }
 
 type RecordOf<C extends MongoDbCollection<any>> = C extends MongoDbCollection<infer R> ? R : object
@@ -45,12 +46,20 @@ class MongoDbCollection<T extends object> {
      * Connect this wrapper to an actual mongo db coollection
      */
     _connect(
-        mongoCollection: any
+        mongoCollection: _MongoCollection
     ): void {
         this._mongoCollection = mongoCollection
     }
 
-    private _mongoCollection: any = undefined // mongo db types are fucked
+    /**
+     * @internal
+     */
+    get _collection(): _MongoCollection {
+        if (!this._mongoCollection)
+            throw new Error('Not yet connected')
+        return this._mongoCollection
+    }
+    private _mongoCollection: _MongoCollection | nil = nil
     
     /**
      * Is this collection connected?
@@ -65,13 +74,13 @@ class MongoDbCollection<T extends object> {
     async get(id: Id): Promise<Record<T> | null> {
 
         const record = await this
-            ._mongoCollection
+            ._collection
             .findOne(new ObjectId(id))
 
         return record && { 
             ...record,
             _id: id
-        }
+        } as Record<T>
     }
 
     /**
@@ -81,11 +90,11 @@ class MongoDbCollection<T extends object> {
 
         const records: Record<T>[] = []
         const total = await this
-            ._mongoCollection
+            ._collection
             .estimatedDocumentCount(query)
 
         if (total > 0) {
-            const cursor = await this._mongoCollection.find(query)
+            const cursor = await (this._collection as any).find(query)
             await cursor.forEach(({ _id, ...data }: Record<T>) => 
                 records.push({
                     ...data,
@@ -109,7 +118,7 @@ class MongoDbCollection<T extends object> {
         const createData = this._schema.validate(data)
 
         const { insertedId: objectId } = await this
-            ._mongoCollection
+            ._collection
             .insertOne({ ...createData })
 
         return { 
@@ -134,7 +143,7 @@ class MongoDbCollection<T extends object> {
             .validate({ ...existing, ...data })
 
         await this
-            ._mongoCollection
+            ._collection
             .updateOne({
                 _id: new ObjectId(id)
             }, {
@@ -151,7 +160,7 @@ class MongoDbCollection<T extends object> {
 
         const record = await this.get(id)
         if (record) {
-            await this._mongoCollection.deleteOne({
+            await this._collection.deleteOne({
                 _id: new ObjectId(id)
             })
         }

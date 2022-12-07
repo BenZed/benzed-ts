@@ -9,6 +9,7 @@ import $, { Infer } from '@benzed/schema'
 import match from '@benzed/match'
 
 import { expectTypeOf } from 'expect-type'
+import { it, expect, describe } from '@jest/globals'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -93,7 +94,6 @@ describe('static builder pattern', () => {
             expect(create.request.method).toEqual(HttpMethod.Post)
             expect(create.request.to(todo)).toHaveProperty('url', '/')
         })
-
     })
 
     for (const name of ['create', 'get', 'find', 'delete', 'remove', 'patch', 'update', 'options'] as const) {
@@ -258,7 +258,7 @@ describe('hook instead of schema', () => {
 
 })
 
-describe.only('shape schema input', () => {
+describe('shape schema input', () => {
 
     it('allows slightly nicer validation syntax', () => {
 
@@ -268,12 +268,13 @@ describe.only('shape schema input', () => {
         })
         
         const cmd = cmd1.useHook(({ x,y }) => ({ magnitude:  Math.sqrt(x ** 2 + y ** 2)}))
-
         expect(cmd.execute({ x: 0, y: 10 }))
             .toEqual({ magnitude: 10 })
-
-        const cmd2 = cmd
-            .usePreHook((i: { x?: number, y?: number }) => ({ x: 0, y: 0, ...i }))
-
     })
+    
+    it('does stuff', () => {
+        //
+        //
+    })
+
 })
