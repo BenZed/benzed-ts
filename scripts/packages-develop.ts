@@ -17,6 +17,7 @@ import {
     PackageSpawnProcess,
     PackageProcess,
     readDirRecursive,
+    ROOT_DIR,
 
 } from './util'
 
@@ -25,7 +26,7 @@ import ensureMongoDb from './util/ensure-mongo-db'
 //// Helper ////
 
 const isTypeScriptFile = (file: string): boolean => 
-    file.endsWith('.ts')
+    path.extname(file).endsWith('.ts')
 
 const isNotInNodeModules = (file: string): boolean => 
     !file.includes('node_modules')
@@ -43,7 +44,11 @@ const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev'
 const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir => {
 
     // split this into functions
-    const typeScriptFiles = await readDirRecursive(pkgDir, isTypeScriptFile, isNotInNodeModules)
+    const typeScriptFileUrls = await readDirRecursive(
+        pkgDir, 
+        isTypeScriptFile, 
+        isNotInNodeModules
+    )
 
     const depWeb = await dependencyWeb
     const thisPkgName = '@benzed/' + (pkgDir.split(path.sep).at(-1) as string)
@@ -52,14 +57,15 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     // Split local/external deps
     const internalDeps = thisDepWeb.dependencies
     const newInternalDeps: Record<string,string> = {}
-    for (const ts of typeScriptFiles) {
-        const contents = tsFileContents[ts] ??= await fs.readFile(ts, 'utf-8')
+    for (const typeScriptFileUrl of typeScriptFileUrls) {
+        const contents = tsFileContents[typeScriptFileUrl] ??= await fs.readFile(typeScriptFileUrl, 'utf-8')
         for (const pkgName in depWeb) {
 
             const hasPkg = contents.includes(`'${pkgName}'`)
             // Validate dep self-link
             if (hasPkg && pkgName === thisPkgName)
                 console.warn(thisPkgName, 'links to itself')
+
             // validate dep circular link
             else if (hasPkg && thisPkgName in depWeb[pkgName].dependencies)
                 throw new Error(`${thisPkgName} and ${pkgName} link to each other`)
@@ -105,8 +111,10 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     await command(
         'npm', 
         ['run', 'packages:bootstrap'], 
-        { cwd: process.cwd(), stdio: 'inherit' }
+        { cwd: ROOT_DIR, stdio: 'inherit', shell: true }
     )
+
+    console.log('wtf')
 })
 
 //// Execute ////
@@ -114,12 +122,12 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
 console.clear()
 
 // Start Dev MongoDB
-ensureMongoDb({
-    isRunning: true,
-    log: true,
-    cluster: 'test',
-    clean: true
-})
+// ensureMongoDb({
+//     isRunning: true,
+//     log: true,
+//     cluster: 'test',
+//     clean: true
+// })
 
 // Watch for ts changes
 watch(PACKAGES_DIR, {
@@ -144,15 +152,15 @@ watch(PACKAGES_DIR, {
     if (!updateDependencyProcess.isRunning) 
         await updateDependencyProcess.run(file)
     
-    if (!testProcess.isRunning) {
-        const onlyThisFile = file.endsWith('.test.ts')
+    // if (!testProcess.isRunning) {
+    //     const onlyThisFile = file.endsWith('.test.ts')
 
-        await testProcess.run(
-            file, 
-            onlyThisFile 
-                ? path.basename(file) 
-                : ''
-        )
-    }
+    //     await testProcess.run(
+    //         file, 
+    //         onlyThisFile 
+    //             ? path.basename(file) 
+    //             : ''
+    //     )
+    // }
 
 })

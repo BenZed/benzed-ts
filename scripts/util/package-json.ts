@@ -24,7 +24,7 @@ export type DependencyWeb = Record<string, {
 
 const ROOT_DIR_NAME = 'benzed-ts'
 
-const ROOT_DIR = __dirname.substring(0, __dirname.lastIndexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
+export const ROOT_DIR = __dirname.substring(0, __dirname.lastIndexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
 if (!ROOT_DIR.includes(ROOT_DIR_NAME) || !fs.existsSync(ROOT_DIR))
     throw new Error(`Could not find ${ROOT_DIR_NAME} directory.`)
 

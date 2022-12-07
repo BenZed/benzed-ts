@@ -9,7 +9,8 @@ type UrlFilter = (path: string) => boolean
 
 export async function readDirRecursive(
     dir: string, 
-    ...filters: UrlFilter[]
+    fileFilter: UrlFilter = () => true,
+    dirFilter: UrlFilter = () => true
 ): Promise<readonly string[]> {
 
     const names = await fs.readdir(dir)
@@ -19,15 +20,17 @@ export async function readDirRecursive(
     for (const name of names) {
         const url = path.join(dir, name)
 
-        if (!filters.some(filter => filter(url)))
+        const stat = await fs.stat(url)
+        const isDirectory = stat.isDirectory()
+        if (isDirectory && !dirFilter(url) || !isDirectory && !fileFilter(url))
             continue
 
-        const stat = await fs.stat(url)
-        if (stat.isDirectory()) {
-            urls.push(
-                ...await readDirRecursive(url, ...filters)
-            )
-        }
+        urls.push(
+            ...isDirectory 
+                ? await readDirRecursive(url, fileFilter, dirFilter) 
+                : [url]
+        )
+        
     }
 
     return urls
