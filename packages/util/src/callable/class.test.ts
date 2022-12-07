@@ -149,33 +149,48 @@ it('gets all properties on prototype chain', () => {
     expect(count4.constructor).toBe(Count4)
 })
 
-it('instanceof', () => {
-    const v2 = new Vector(1,1)
-    expect(v2).toBeInstanceOf(Vector)
+describe('instanceof', () => {
 
-    // making sure other values don't break the Symbol.hasInstance method
-    for (const notInstance of [undefined, null, {}, toNil, class{}]) {
-        expect(() => notInstance instanceof Vector).not.toThrow(Vector)
-        expect(notInstance).not.toBeInstanceOf(Vector)
-    }
-
-    // In case someone is a smartass
-    const InstanceTroll = createCallableClass(
-        toNil,
-        class Troll {
-            
-            nestedInstance: unknown
-            constructor() {
-                this.nestedInstance = this 
-            }
-            getNestedInstance () {
-                return this.nestedInstance
-            }
+    it('is instanceof created class', () => {
+        const v2 = new Vector(1,1)
+        expect(v2).toBeInstanceOf(Vector)
+    
+        // making sure other values don't break the Symbol.hasInstance method
+        for (const notInstance of [undefined, null, {}, toNil, class{}]) {
+            expect(() => notInstance instanceof Vector).not.toThrow(Vector)
+            expect(notInstance).not.toBeInstanceOf(Vector)
         }
-    )
+    })
 
-    const instance = new InstanceTroll().getNestedInstance()
-    expect(instance).toBeInstanceOf(InstanceTroll)
+    it('is not an instance of extended classes', () => {
+        // @ts-expect-error it's fine
+        class VectorX extends Vector { }
+
+        const v = new Vector(1,1)
+
+        expect(v instanceof VectorX).toBe(false)
+    })
+
+    it('in case someone is being a smartass', () => {
+        // In case someone is a smartass
+        const InstanceTroll = createCallableClass(
+            toNil,
+            class Troll {
+                
+                nestedInstance: unknown
+                constructor() {
+                    this.nestedInstance = this 
+                }
+                getNestedInstance () {
+                    return this.nestedInstance
+                }
+            }
+        )
+    
+        const instance = new InstanceTroll().getNestedInstance()
+        expect(instance).toBeInstanceOf(InstanceTroll)
+    })
+
 })
 
 it('handles property definition conflicts', () => {
