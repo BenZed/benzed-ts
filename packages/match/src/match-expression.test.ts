@@ -4,7 +4,7 @@ import { MatchExpression, MatchExpressionIncomplete } from './types'
 import { match } from './match'
 
 import { expectTypeOf } from 'expect-type'
-import { isNumber } from '@benzed/util/lib'
+import { isNumber } from '@benzed/util'
 
 //// Setup ////
 

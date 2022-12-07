@@ -1,4 +1,5 @@
 import $ from '@benzed/schema'
+
 import { Command } from '../src/command'
 import { Service } from '../src/service'
 import { HttpMethod } from '../src/util'

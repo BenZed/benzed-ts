@@ -1,6 +1,6 @@
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
-import { nil } from '@benzed/util/lib'
+import { nil } from '@benzed/util'
 
 import type { Service, ServiceModule } from './service'
 import { Path } from './util/types'
