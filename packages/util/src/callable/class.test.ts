@@ -3,6 +3,8 @@ import { toNil } from '../types/nil'
 
 import { expectTypeOf } from 'expect-type'
 
+import { it, describe, expect } from '@jest/globals'
+
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type
 */
@@ -209,7 +211,7 @@ it('does not alter input method', () => {
     const foo2 = new Foo()
 
     expect(foo2).not.toEqual(foo)
-    expect(foo2.name).toEqual(foo.name)
+    expect(foo.name).toEqual('foo')
 
     expect(foo).not.toHaveProperty('bar')
 })
@@ -324,9 +326,26 @@ describe('name option', () => {
     it('uses "Callable" on anonymous classes', () => {
         const Bar = createCallableClass(
             () => 'bar',
-            class Bar {}
+            class {}
         )
         expect(Bar.name).toBe('Callable')
+    })
+
+    it('does not overwrite name of instnace', () => {
+
+        const Foo = createCallableClass(
+            () => 'foo',
+            class {
+                get name () {
+                    return this._name
+                }
+                constructor(private readonly _name: string) {}
+            },
+            'Foo'
+        )
+
+        const foo = new Foo('ace')
+        expect(foo.name).toEqual('ace')
     })
 
 })

@@ -21,11 +21,7 @@ type CallableClass<S extends BoundSignature<InstanceType<C>>, C extends Class> =
     
 const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S, 
-    instance: InstanceType<C>,
-    name: string = signature.name || 
-        // PascalCase to camelCase
-        instance.constructor.name.charAt(0).toLowerCase() +
-        instance.constructor.name.slice(1),
+    instance: InstanceType<C>
 ): Callable<S, InstanceType<C>> => {
 
     const callable = createCallableObject(
@@ -37,12 +33,6 @@ const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C ext
     return property(
         callable, 
         { 
-
-            name: { 
-                value: name,
-                configurable: true 
-            },
-
             constructor: {
                 value: instance.constructor,
                 writable: true,
@@ -88,7 +78,6 @@ function createCallableClass <
             return createCallableInstance(
                 signature,
                 this as InstanceType<C>,
-                name,
             )
         }
     }

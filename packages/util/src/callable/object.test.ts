@@ -1,6 +1,7 @@
 import { createCallableObject } from './object'
 import { expectTypeOf } from 'expect-type'
-import property from '../property'
+
+import { it, expect, } from '@jest/globals'
 
 ////  ////
 
@@ -151,7 +152,5 @@ it('instances keep their prototype methods', () => {
     )
 
     const foobar = createCallableObject(bar, foo)
-
-    // expect(foobar.bar()).toEqual(1)
     expect(foobar.foo()).toEqual(0)
 })
