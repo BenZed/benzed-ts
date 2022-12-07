@@ -1,5 +1,5 @@
+import fs from 'fs'
 import os from 'os'
-
 import path from 'path'
 
 import {
@@ -7,9 +7,6 @@ import {
     exec,
     ChildProcessWithoutNullStreams
 } from 'child_process'
-
-import { createLogger, toVoid } from '@benzed/util'
-import fs from '@benzed/fs'
 
 //// Constants ////
 
@@ -20,14 +17,14 @@ const CWD = process.cwd()
 const ROOT_DIR_NAME = 'benzed-ts'
 
 const ROOT_DIR = __dirname.substring(0, __dirname.indexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
-if (!ROOT_DIR.includes(ROOT_DIR_NAME) || !fs.sync.exists(ROOT_DIR))
+if (!ROOT_DIR.includes(ROOT_DIR_NAME) || !fs.existsSync(ROOT_DIR))
     throw new Error(`Could not find ${ROOT_DIR_NAME} directory.`)
 
 const SHX = path.relative(
     CWD,
     path.resolve(ROOT_DIR, 'node_modules/.bin/shx')
 )
-if (!fs.sync.exists(SHX))
+if (!fs.existsSync(SHX))
     throw new Error(`${__filename} could not find shx command`)
 
 const DEFAULT_MONGO_DB_PORT = 27017
@@ -77,6 +74,8 @@ let mongoProcess: ChildProcessWithoutNullStreams | null = null
 
 //// Helper ////
 
+const toVoid = (): void => undefined 
+
 function execute(cmd: string): Promise<string> {
     return new Promise((resolve, reject) => {
         exec(cmd, { cwd: CWD }, (err, output) => {
@@ -125,10 +124,10 @@ function defaultifyOptions(
     return { isRunning: true, clean, log, cluster, port }
 }
 
-function killMongoProcess(): Promise<void> {
+async function killMongoProcess(): Promise<void> {
 
     if (mongoProcess) {
-        return new Promise(resolve => {
+        await new Promise(resolve => {
             
             mongoProcess?.stdout.destroy()
             mongoProcess?.stdin.destroy()
@@ -141,12 +140,11 @@ function killMongoProcess(): Promise<void> {
 
         // ensure there is no mongodb process started elsewhere
     } else {
-        return execute(KILL_MONGO_CMD)
+        await execute(KILL_MONGO_CMD)
             .catch(e => {
                 if (e.message.includes('Access denied'))
                     return Promise.reject(e)
             })
-            .then(toVoid)
     }
 }
 
@@ -165,11 +163,9 @@ async function isPortFree(port: number): Promise<boolean> {
 }
 
 async function untilPortFree(port: number): Promise<void> {
-
     let portFree = false
     while (!portFree)
         portFree = await isPortFree(port)
-
 }
 
 //// Main ////
@@ -178,16 +174,13 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     
     const options = defaultifyOptions(input)
 
-    const log = createLogger({
-        header: '💾',
-        onLog: options.log
-            ? console.log.bind(console)
-            : (...args) => void args
-    })
+    const log = options.log
+        ? console.log.bind(console)
+        : toVoid
 
-    log`Ensuring mongodb ${options.isRunning
+    log(`Ensuring mongodb ${options.isRunning
         ? `is running ${options.clean ? 'clean ' : ''}` + `on port ${options.port} for cluster "${options.cluster}"`
-        : 'is not running'}`
+        : 'is not running'}`)
 
     if (isMongoProcessInCorrectState(options))
         return
@@ -196,7 +189,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     // either it's suppost to be shut down, or it needs to be started 
     // with different args.
     if (mongoProcess)
-        log`Shutting down existing mongo process`
+        log('Shutting down existing mongo process')
 
     await killMongoProcess()
 
@@ -211,7 +204,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
         throw new Error(`Cannot clean protected cluster "${cluster}"`)
 
     if (clean) {
-        log`Removing existing "${cluster}" cluster data.`
+        log(`Removing existing "${cluster}" cluster data.`)
         await execute(`${SHX} rm -rf ./storage/${cluster}`).catch(toVoid)
     }
 
@@ -220,7 +213,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     await execute(`${SHX} mkdir ./storage/${cluster}/db`).catch(toVoid)
     await execute(`${SHX} mkdir ./storage/${cluster}/files`).catch(toVoid)
 
-    log`Starting mongodb "${cluster}" cluster on port ${port}`
+    log(`Starting mongodb "${cluster}" cluster on port ${port}`)
 
     await new Promise<void>((resolve, reject) => {
 
@@ -243,7 +236,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
                 const output = JSON.parse(jsonStr) as { msg: string }[]
                 for (const { msg } of output) {
                     if (options.log === 'process')
-                        log`Process: ${msg}`
+                        log(`Process: ${msg}`)
 
                     if (msg.includes('Waiting for connections'))
                         resolve()
@@ -254,7 +247,7 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
 
             } catch (e) {
                 if (options.log === 'process')
-                    log`Process error: ${jsonStr}`
+                    log(`Process error: ${jsonStr}`)
             }
         })
     })

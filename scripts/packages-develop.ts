@@ -8,15 +8,17 @@ import {
     PACKAGES_DIR, 
 
     createDependencyWeb, 
-    PackageProcess, 
-    PackageSpawnProcess, 
-    readDirRecursive, 
     readJson,
     PackageJson,
     writeJson,
-    command
+    PackageSpawnProcess,
+    PackageProcess,
+    readDirRecursive,
+    command,
 
 } from './util'
+
+import ensureMongoDbInstance from './util/ensure-mongo-db-instance'
 
 //// Helper ////
 
@@ -101,6 +103,12 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
 })
 
 //// Execute ////
+
+ensureMongoDbInstance({
+    isRunning: true,
+    log: true,
+    cluster: 'test'
+})
 
 watch(PACKAGES_DIR).on('change', async file => {
 
