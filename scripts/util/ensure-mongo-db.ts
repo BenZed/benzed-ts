@@ -1,49 +1,32 @@
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
+
+import path from 'path'
 import fs from 'fs'
 import os from 'os'
-import path from 'path'
 
-import {
-    spawn,
-    exec,
-    ChildProcessWithoutNullStreams
-} from 'child_process'
+import { command } from './command'
 
 //// Constants ////
 
-const IS_WIN = os.platform() === 'win32'
-
+const ROOT_DIR_NAME = 'benzed-ts'
+const IS_WIN = os.platform().startsWith('win')
 const CWD = process.cwd()
 
-const ROOT_DIR_NAME = 'benzed-ts'
-
-const ROOT_DIR = __dirname.substring(0, __dirname.indexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
+const ROOT_DIR = __dirname.substring(0, __dirname.lastIndexOf(ROOT_DIR_NAME) + ROOT_DIR_NAME.length)
 if (!ROOT_DIR.includes(ROOT_DIR_NAME) || !fs.existsSync(ROOT_DIR))
     throw new Error(`Could not find ${ROOT_DIR_NAME} directory.`)
 
-const SHX = path.relative(
-    CWD,
-    path.resolve(ROOT_DIR, 'node_modules/.bin/shx')
-)
-if (!fs.existsSync(SHX))
-    throw new Error(`${__filename} could not find shx command`)
-
 const DEFAULT_MONGO_DB_PORT = 27017
+
 const PROTECTED_CLUSTERS = ['production'] // in case a local machine is used to run production
-const MONGO_CMD = IS_WIN
+
+const MONGO_PROGRAM = IS_WIN
     ? 'C:\\Program Files\\MongoDB\\Server\\6.0\\bin\\mongod.exe'
     : 'mongod'
 
-const KILL_MONGO_CMD = IS_WIN
-    ? 'TASKKILL /F /IM mongod.exe'
-    : `killall ${MONGO_CMD}`
-
-const CHECK_PORT_CMD = IS_WIN
-    ? `netstat -a -p udp | find ":${DEFAULT_MONGO_DB_PORT}"`
-    : `netstat -a -p udp | grep ".${DEFAULT_MONGO_DB_PORT}"`
-
 //// Types ////
 
-type EnsureMongoDbInstanceOptions = ({
+type EnsureMongoDbOptions = ({
 
     isRunning: true
 
@@ -70,24 +53,14 @@ type EnsureMongoDbInstanceOptions = ({
 
 //// Module State ////
 
-let mongoProcess: ChildProcessWithoutNullStreams | null = null
+let mongoProcess: ChildProcessWithoutNullStreams| null = null
+const spawnArgs: readonly string[] = []
 
 //// Helper ////
 
 const toVoid = (): void => undefined 
 
-function execute(cmd: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        exec(cmd, { cwd: CWD }, (err, output) => {
-            if (err)
-                reject(err)
-            else
-                resolve(output)
-        })
-    })
-}
-
-function isMongoProcessInCorrectState(options: Required<EnsureMongoDbInstanceOptions>): boolean {
+function isMongoProcessInCorrectState(options: Required<EnsureMongoDbOptions>): boolean {
 
     if (!options.isRunning)
         return !mongoProcess
@@ -98,18 +71,23 @@ function isMongoProcessInCorrectState(options: Required<EnsureMongoDbInstanceOpt
     if (options.clean)
         return false
 
-    const clusterArg = mongoProcess.spawnargs[1]
+    const clusterArg = spawnArgs[1]
         ?.replace(/^\.\/storage\//, '')
         .replace(/\/db$/, '')
 
-    const portArg = parseInt(mongoProcess.spawnargs[3])
-
+    const portArg = parseInt(spawnArgs[3])
     return options.cluster === clusterArg && options.port === portArg
 }
 
-function defaultifyOptions(
-    options: EnsureMongoDbInstanceOptions
-): Required<EnsureMongoDbInstanceOptions> {
+function makeDir(path: string): Promise<void> {
+    return fs.promises.mkdir(path).catch(toVoid)
+}
+
+function removeDir(path: string): Promise<void> {
+    return fs.promises.rm(path, { recursive: true, force: true }).catch(toVoid)
+}
+
+function defaultifyOptions(options: EnsureMongoDbOptions): Required<EnsureMongoDbOptions> {
 
     const { isRunning, log = false } = options
     if (!isRunning)
@@ -137,10 +115,14 @@ async function killMongoProcess(): Promise<void> {
         
             mongoProcess = null
         })
-
         // ensure there is no mongodb process started elsewhere
     } else {
-        await execute(KILL_MONGO_CMD)
+
+        const [cmd, ...args] = IS_WIN
+            ? ['TASKKILL', '/F', '/IM', 'mongod.exe']
+            : ['killall', MONGO_PROGRAM]
+    
+        await command(cmd, args)
             .catch(e => {
                 if (e.message.includes('Access denied'))
                     return Promise.reject(e)
@@ -150,14 +132,17 @@ async function killMongoProcess(): Promise<void> {
 
 async function isPortFree(port: number): Promise<boolean> {
     try {
-        await execute(
-            CHECK_PORT_CMD.replace(
-                CHECK_PORT_CMD.toString(),
-                port.toString()
-            )
+
+        const args = IS_WIN
+            ? ['-a', '-p', 'udp | find', `":${port}"`]
+            : ['-a', '-p', 'udp | grep', `".${port}"`]
+        
+        await command(
+            'netstat', 
+            args
         )
         return false
-    } catch {
+    } catch (e){
         return true
     }
 }
@@ -170,7 +155,7 @@ async function untilPortFree(port: number): Promise<void> {
 
 //// Main ////
 
-async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promise<void> {
+async function ensureMongoDb(input: EnsureMongoDbOptions): Promise<void> {
     
     const options = defaultifyOptions(input)
 
@@ -199,28 +184,31 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
     await untilPortFree(options.port)
 
     const { clean, cluster, port } = options
-
     if (clean && PROTECTED_CLUSTERS.includes(cluster))
         throw new Error(`Cannot clean protected cluster "${cluster}"`)
-
     if (clean) {
         log(`Removing existing "${cluster}" cluster data.`)
-        await execute(`${SHX} rm -rf ./storage/${cluster}`).catch(toVoid)
+        await removeDir(`./storage/${cluster}`)
     }
 
-    await execute(`${SHX} mkdir ./storage`).catch(toVoid)
-    await execute(`${SHX} mkdir ./storage/${cluster}`).catch(toVoid)
-    await execute(`${SHX} mkdir ./storage/${cluster}/db`).catch(toVoid)
-    await execute(`${SHX} mkdir ./storage/${cluster}/files`).catch(toVoid)
+    await makeDir('./storage')
+    await makeDir(`./storage/${cluster}`)
+    await makeDir(`./storage/${cluster}/files`)
+    await makeDir(`./storage/${cluster}/db`)
 
     log(`Starting mongodb "${cluster}" cluster on port ${port}`)
 
     await new Promise<void>((resolve, reject) => {
 
-        mongoProcess = spawn(MONGO_CMD, [
-            '--dbpath', path.join(CWD, 'storage', cluster, 'db'),
-            '--port', port.toString()
-        ])
+        mongoProcess = spawn(
+            MONGO_PROGRAM, [
+                '--dbpath', 
+                path.join(CWD, 'storage', cluster, 'db'),
+
+                '--port', 
+                port.toString()
+            ]
+        )
 
         mongoProcess.stdout.on('data', (data: Buffer) => {
 
@@ -255,8 +243,9 @@ async function ensureMongoDbInstance(input: EnsureMongoDbInstanceOptions): Promi
 
 //// Exports ////
 
-export default ensureMongoDbInstance
+export default ensureMongoDb
 
 export {
-    ensureMongoDbInstance
+    ensureMongoDb,
+    EnsureMongoDbOptions
 }

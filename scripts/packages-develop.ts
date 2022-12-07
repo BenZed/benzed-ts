@@ -20,7 +20,7 @@ import {
 
 } from './util'
 
-import ensureMongoDbInstance from './util/ensure-mongo-db-instance'
+import ensureMongoDb from './util/ensure-mongo-db'
 
 //// Helper ////
 
@@ -108,11 +108,12 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
 
 //// Execute ////
 
-// Start Dev MongoDB Instance
-ensureMongoDbInstance({
+// Start Dev MongoDB
+ensureMongoDb({
     isRunning: true,
-    log: true,
-    cluster: 'test'
+    log: false,
+    cluster: 'test',
+    clean: true
 })
 
 // Watch for ts changes

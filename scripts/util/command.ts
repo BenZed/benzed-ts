@@ -10,5 +10,6 @@ export function command(cmd: string, args: readonly string[], options: SpawnOpti
             .once('error', reject)
             
         spawned.stdout?.on('data', d => data.push(`${d}`))
+        spawned.stderr?.on('data', d => reject(new Error(`${d}`)))
     })
 }
