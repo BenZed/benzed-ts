@@ -4,8 +4,8 @@ import { InputOf, OutputOf } from '@benzed/util'
 import Connection from '../connection'
 
 import { $logIcon } from '../../../schemas'
-import { CommandModule } from '../../../command'
-import { DEFAULT_SERVER_PORT } from '../../../constants'
+import { CommandModule } from '../../../modules'
+import { DEFAULT_SERVER_PORT } from '../../../util'
 
 //// Types ////
 

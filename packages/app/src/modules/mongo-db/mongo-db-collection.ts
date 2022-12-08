@@ -1,5 +1,5 @@
 import { SchemaFor } from '@benzed/schema'
-import { nil } from '@benzed/util/src'
+import { nil } from '@benzed/util'
 
 import { Collection as _MongoCollection, ObjectId } from 'mongodb'
 

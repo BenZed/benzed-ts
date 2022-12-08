@@ -1,4 +1,5 @@
 import is from '@benzed/is'
+import { keysOf, nil } from '@benzed/util'
 
 import { createServer, Server as HttpServer } from 'http'
 
@@ -10,10 +11,8 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 
-import { Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
-import { WEBSOCKET_PATH } from '../../../constants'
-import { keysOf, nil } from '@benzed/util/src'
-import { Command } from '../../../command'
+import { Command } from '../../command'
+import { WEBSOCKET_PATH, Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
 
 //// Helper ////
 

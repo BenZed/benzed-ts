@@ -5,40 +5,21 @@ import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-import { CommandModule } from '../../command'
 import { HttpMethod, RequestHandler } from '../../util'
-
 import { MongoDb, MongoDbCollection } from '../mongo-db'
+
+import { CommandModule } from '../command/command-module'
 
 //// Helper ////
 
-// Generates a new secret every day.
-const randomSecret = (() => {
-
-    const random = Math.random() * 10000000
-
-    return () => {
-
-        const date = new Date()
-        date.setHours(0)
-        date.setMinutes(0)
-        date.setSeconds(0)
-        date.setMilliseconds(0)
-
-        return (date.getTime() + random)
-            .toString()
-            .replaceAll('.', '')
-    }
-
-})()
-
+const DEFAULT_SECRET = 'default-secret-do-not-use-in-production'
 const DEFAULT_PASSWORD_SALT_ROUNDS = 10
 
 //// Settings ////
 
 interface AuthSettings extends Infer<typeof $authSettings> {}
 const $authSettings = $({
-    secret: $.string.optional.default(randomSecret),
+    secret: $.string.optional.default(DEFAULT_SECRET),
     collection: $.string.optional.default('users'),
     saltRounds: $.number.default(DEFAULT_PASSWORD_SALT_ROUNDS).optional
 })

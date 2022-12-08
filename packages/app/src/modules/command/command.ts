@@ -16,7 +16,7 @@ import {
 } from '@benzed/util'
 
 import CommandModule from './command-module'
-import { HttpMethod, Path, RequestHandler, UrlParamKeys } from '../util'
+import { HttpMethod, Path, RequestHandler, UrlParamKeys } from '../../util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

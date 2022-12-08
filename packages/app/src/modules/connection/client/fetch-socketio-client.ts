@@ -7,8 +7,8 @@ import { capitalize } from '@benzed/string'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { WEBSOCKET_PATH } from '../../../constants'
-import { CommandModule } from '../../../command'
+import { WEBSOCKET_PATH } from '../../../util'
+import { CommandModule } from '../../../modules'
 
 //// Eslint ////
 

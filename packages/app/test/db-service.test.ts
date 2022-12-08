@@ -1,14 +1,7 @@
 import $ from '@benzed/schema'
 import { Empty } from '@benzed/util'
 
-import { App } from '../src/app'
-import { Command } from '../src/command'
-import { Service } from '../src/service'
-import { 
-    Client, 
-    Server, 
-    MongoDb
-} from '../src/modules'
+import { App, Command, Service, Client, Server, MongoDb } from '../src'
 
 import { HttpMethod } from '../src/util'
 

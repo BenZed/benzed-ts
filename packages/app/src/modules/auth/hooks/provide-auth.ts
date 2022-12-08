@@ -1,7 +1,7 @@
 
 import { memoize } from '@benzed/util'
 
-import { Provider, provideModule } from '../../../command'
+import { Provider, provideModule } from '../../command'
 import Auth from '../auth'
 
 //// Hook ////

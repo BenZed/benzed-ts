@@ -1,14 +1,14 @@
 import $, { Infer } from '@benzed/schema'
+import { Pipe } from '@benzed/util'
 
 import { App } from './app'
 import { Module } from './module'
+import { Command } from './modules'
 
 import { expectTypeOf } from 'expect-type'
 import { Service } from './service'
 
-import { Command } from './command'
 import { Path } from './util'
-import { Pipe } from '@benzed/util'
 
 //// Tests ////
 

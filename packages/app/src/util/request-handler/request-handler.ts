@@ -114,7 +114,7 @@ class RequestHandler<T extends object> {
 
         return {
             method,
-            body: dataWithoutQuery as BodyInit | nil,
+            body: dataWithoutQuery,
             url: isEmpty(query) ? url : url + '?' + toQueryString(query) as Path,
             headers
         }

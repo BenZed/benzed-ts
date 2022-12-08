@@ -2,7 +2,7 @@ import { Pipe, memoize, nil } from '@benzed/util'
 
 import provideAuth from './provide-auth'
 
-import { CommandHook } from '../../../command'
+import { CommandHook } from '../../command'
 
 //// Main ////
 

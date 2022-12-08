@@ -1,7 +1,7 @@
 import { nil } from '@benzed/util'
+
 import { App } from './app'
 import { Module, ExecutableModule } from './module'
-
 import { Service, ServiceModule } from './service'
 
 /* eslint-disable 

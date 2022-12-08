@@ -1,5 +1,5 @@
 import { memoize } from '@benzed/util'
-import { provider, Provider } from '../../../command'
+import { provider, Provider } from '../../command'
 
 import { MongoDb } from '../mongo-db'
 import MongoDbCollection from '../mongo-db-collection'

@@ -1,7 +1,7 @@
 
 import { nil } from '@benzed/util'
 
-import { GetModuleInput, GetModuleScope, Module } from '../../module'
+import { GetModuleInput, GetModuleScope, Module } from '../../../module'
 import { provider, Provider } from './provider'
 
 //// Main ////

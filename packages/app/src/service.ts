@@ -6,15 +6,14 @@ import { $path, Path, UnPath } from './util/types'
 
 import { 
     Module, 
-    Modules 
+    Modules,
 } from './module'
 
 import { 
     Client, 
-    Server 
+    Server,
+    CommandModule
 } from './modules'
-
-import { CommandModule } from './command'
 
 import is from '@benzed/is'
 

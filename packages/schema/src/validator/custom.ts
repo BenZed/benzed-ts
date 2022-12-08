@@ -1,5 +1,5 @@
 import { is } from '@benzed/is'
-import { io } from '@benzed/util/src'
+import { io } from '@benzed/util'
 
 import { 
     AssertValidTransformValidator,

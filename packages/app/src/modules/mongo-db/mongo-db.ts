@@ -10,7 +10,7 @@ import {
     SettingsModule 
 } from '../../module'
 
-import { Command } from '../../command'
+import { Command } from '../command'
 
 import { 
     $mongoDbSettings,
