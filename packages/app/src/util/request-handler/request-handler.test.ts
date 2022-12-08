@@ -19,7 +19,7 @@ for (const [name, method] of Object.entries(HttpMethod)) {
                 .toEqual(method)
         })
         it(`method ${name} in req.create() `, () => {
-            expect(req.toRequest({}))
+            expect(req.to({}))
                 .toHaveProperty('method', method)
         })
     })
@@ -31,7 +31,7 @@ describe('RequestHandler.create()', () => {
     it('path in req.create()', () => {
         const request = Req
             .create(HttpMethod.Get)
-            .toRequest({})
+            .to({})
 
         expect(request)
             .toHaveProperty('url', '/')
@@ -47,7 +47,7 @@ describe('req.setUrl()', () => {
 
     it('url with string', () => {
 
-        expect(req.toRequest({})).toEqual({
+        expect(req.to({})).toEqual({
             method: HttpMethod.Get,
             url: '/target',
             headers: undefined,
@@ -80,7 +80,7 @@ describe('req.setUrl()', () => {
                 .create<{ id: string }>(HttpMethod.Get)
                 .setUrl`/target/${'id'}`
 
-            const { url, body, method } = req.toRequest({ id: 'hello' })
+            const { url, body, method } = req.to({ id: 'hello' })
 
             expect(method).toBe(HttpMethod.Get)
             expect(body).toBeUndefined()
@@ -94,7 +94,7 @@ describe('req.setUrl()', () => {
 
         it('2 url param', () => {
             expect(
-                req.toRequest({ id: 'shirts', age: 34 })
+                req.to({ id: 'shirts', age: 34 })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -104,7 +104,7 @@ describe('req.setUrl()', () => {
 
         it('1 url & query param', () => {
             expect(
-                req.toRequest({ id: 'shirts', query: { name: 'joe' } })
+                req.to({ id: 'shirts', query: { name: 'joe' } })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -114,7 +114,7 @@ describe('req.setUrl()', () => {
 
         it('2 url and 2 query param', () => {
             expect(
-                req.toRequest({ id: 'shirts', query: { name: 'acer', size: 'large' }, age: 30 })
+                req.to({ id: 'shirts', query: { name: 'acer', size: 'large' }, age: 30 })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -124,7 +124,7 @@ describe('req.setUrl()', () => {
 
         it('2 query param', () => {
             expect(
-                req.toRequest({ query: { name: 'hey', size: 'large' } })
+                req.to({ query: { name: 'hey', size: 'large' } })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -166,23 +166,23 @@ describe('req.setUrl()', () => {
                         return nil
                     })
 
-            expect(req.toRequest({ id: 'monkey '})).toEqual({
+            expect(req.to({ id: 'monkey '})).toEqual({
                 method: HttpMethod.Get,
                 url: '/users/monkey'
             })
 
-            expect(req.toRequest({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
+            expect(req.to({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
                 method: HttpMethod.Get,
                 url: '/users/1293?friend=true&hello=darkness&my=old'
             })
 
-            expect(req.setMethod(HttpMethod.Delete).toRequest({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
+            expect(req.setMethod(HttpMethod.Delete).to({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
                 method: HttpMethod.Delete,
                 body: {},
                 url: '/users/cheese?front=bottoms&price=100'
             })
 
-            expect(req.setMethod(HttpMethod.Post).toRequest({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
+            expect(req.setMethod(HttpMethod.Post).to({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
                 method: HttpMethod.Post,
                 body: {},
                 url: '/admin-portal?cake=1&soke=cimm&tare=true'
@@ -204,7 +204,7 @@ describe('req.setMethod()', () => {
         const req = Req.create(HttpMethod.Get)
             .setUrl('/cake')
             .setMethod(HttpMethod.Patch)
-            .toRequest({})
+            .to({})
 
         expect(req.url).toEqual('/cake')
     })
@@ -244,7 +244,7 @@ describe('req.linkHeaders()', () => {
 
     it('matches requests with correct headers', () => {
 
-        const output = auth.matchRequest({
+        const output = auth.match({
             method: HttpMethod.Post,
             url: '/authenticate',
             headers: headersWithToken()
@@ -254,7 +254,7 @@ describe('req.linkHeaders()', () => {
     })
 
     it('doesn\'t match requests with headers missing', () => {
-        const output = auth.matchRequest({
+        const output = auth.match({
             method: HttpMethod.Post,
             url: '/authenticate'
         })
@@ -263,7 +263,7 @@ describe('req.linkHeaders()', () => {
 
     it('creates requests with headers', () => {
 
-        const { body, headers } = auth.toRequest({ accessToken: 'token'})
+        const { body, headers } = auth.to({ accessToken: 'token'})
        
         expect(body).toEqual({})
 
@@ -273,14 +273,14 @@ describe('req.linkHeaders()', () => {
 
     it('headers are not created with invalid values', () => {
 
-        const { body, headers } = auth.toRequest({ })
+        const { body, headers } = auth.to({ })
        
         expect(body).toEqual({})
         expect(headers).toEqual(nil)
     })
 })
 
-describe('req.matchRequest()', () => {
+describe('req.match()', () => {
 
     const getTodo = Req.create<{ id: string }>(HttpMethod.Get)
         .setUrl`/todos/${'id'}`
@@ -288,14 +288,14 @@ describe('req.matchRequest()', () => {
     it('returns data in positive matches', () => {
 
         expect(
-            getTodo.matchRequest({
+            getTodo.match({
                 method: HttpMethod.Get,
                 url: '/todos/1',
             })
         ).toEqual({ id: '1' })
 
         expect(
-            getTodo.matchRequest({
+            getTodo.match({
                 method: HttpMethod.Get,
                 url: '/todos',
             })
@@ -303,9 +303,9 @@ describe('req.matchRequest()', () => {
     })
 
     it('returns nil on negative matches', () => {
-        expect(getTodo.matchRequest({ method: HttpMethod.Post, url: '/todos/100' })).toEqual(nil)
-        expect(getTodo.matchRequest({ method: HttpMethod.Get, url: '/users/100' })).toEqual(nil)
-        expect(getTodo.matchRequest({ method: HttpMethod.Get, url: '/todo' })).toEqual(nil)
+        expect(getTodo.match({ method: HttpMethod.Post, url: '/todos/100' })).toEqual(nil)
+        expect(getTodo.match({ method: HttpMethod.Get, url: '/users/100' })).toEqual(nil)
+        expect(getTodo.match({ method: HttpMethod.Get, url: '/todo' })).toEqual(nil)
     })
 
     describe('with schema', () => {
@@ -327,7 +327,7 @@ describe('req.matchRequest()', () => {
 
         it('uses schema to ensure match valid', () => {
 
-            const employeeData = createEmployee.matchRequest({
+            const employeeData = createEmployee.match({
                 method: HttpMethod.Post,
                 url: '/user/art',
                 body: {
@@ -348,7 +348,7 @@ describe('req.matchRequest()', () => {
         it('allows requests with missing url parameters to be non-matched', () => {
             expect(
 
-                updateEmployee.matchRequest({
+                updateEmployee.match({
                     method: HttpMethod.Put,
                     url: '/user/admin',
                     body: {
@@ -362,7 +362,7 @@ describe('req.matchRequest()', () => {
 
             expect(
 
-                updateEmployee.matchRequest({
+                updateEmployee.match({
                     method: HttpMethod.Put,
                     url: '/user/admin/ace',
                     body: {
@@ -384,7 +384,7 @@ describe('req.matchRequest()', () => {
 
             expect(
 
-                createEmployee.matchRequest({
+                createEmployee.match({
                     method: HttpMethod.Post,
                     url: '/user',
                     body: {
@@ -400,7 +400,7 @@ describe('req.matchRequest()', () => {
         it('does not throw validation errors, rather a nil non match', () => {
             expect(
 
-                createEmployee.matchRequest({
+                createEmployee.match({
                     method: HttpMethod.Post,
                     url: '/user/film',
                     body: {
@@ -427,7 +427,7 @@ describe('req.matchRequest()', () => {
             })
         ).setUrl`/gang/${'gang'}`
 
-        const data = findGangster.matchRequest({
+        const data = findGangster.match({
             method: HttpMethod.Get,
             url: '/gang/crips?name=joe&members=1'
         })
