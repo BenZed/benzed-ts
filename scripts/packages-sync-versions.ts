@@ -1,5 +1,5 @@
 
-import { assertBranch, createDependencyWeb, DependencyWeb, forEachPackage, writeJson } from './util'
+import { assertBranch, eachPackage, writeJson } from './util'
 import semver from 'semver'
 
 import path from 'path'
@@ -15,6 +15,47 @@ import path from 'path'
 // a customized version script as well.
 
 //// Helper ////
+
+type DependencyWeb = Record<string, {
+    name: string
+    currVersion: string
+    nextVersion: string
+    dependencies: Record<string, string>
+}>
+
+async function createDependencyWeb(): Promise<DependencyWeb> {
+
+    const web = await eachPackage((packageJson): DependencyWeb[string] | undefined => {
+
+        const { name, version, dependencies } = packageJson
+
+        if (!version)
+            return
+
+        const deps: DependencyWeb[string] = {
+            name,
+            currVersion: version,
+            nextVersion: version,
+            dependencies: {}
+        }
+
+        for (const dependency in dependencies) {
+            if (!dependency.startsWith('@benzed'))
+                continue
+
+            deps.dependencies[dependency] = dependencies[dependency].replace('^', '')
+        }
+
+        return deps
+    })
+
+    for (const name in web) {
+        if (!web[name])
+            delete web[name]
+    }
+
+    return web as DependencyWeb
+}
 
 function sourceVersionIncrement(
     fromVersion: string,
@@ -92,7 +133,7 @@ function syncDependencyWebVersions(web: DependencyWeb): DependencyWeb {
 
 async function updatePackages(web: DependencyWeb): Promise<void> {
 
-    await forEachPackage(async (pkgJson, pkgUrl) => {
+    await eachPackage(async (pkgJson, pkgUrl) => {
 
         const { name } = pkgJson
 

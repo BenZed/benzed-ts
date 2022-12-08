@@ -6,7 +6,7 @@ import {
     PackageJson,
     command,
     writeJson,
-    forEachPackage,
+    eachPackage,
     assertBranch,
 } from './util'
 
@@ -98,7 +98,7 @@ void async function publishPackages() {
         let publishCount = 0
         let failCount = 0
 
-        await forEachPackage(async (packageJson, packageUrl) => {
+        await eachPackage(async (packageJson, packageUrl) => {
 
             const { main, version, name, private: _private } = packageJson
 

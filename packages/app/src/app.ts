@@ -3,7 +3,7 @@ import { ServiceModule, FlattenModules, ToService } from './service'
 import { Module, Modules } from './module'
 import { Path } from './util/types'
 
-//// Eslint ////
+//// Eslint /////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -12,7 +12,7 @@ import { Path } from './util/types'
 //// App ////
 
 /**
- * An app is essentially just a Service without a path. 
+ * An app is essentially just a Service without a path.
  */
 class App<M extends Modules = Modules> extends ServiceModule<M> {
 

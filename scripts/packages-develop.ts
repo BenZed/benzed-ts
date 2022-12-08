@@ -11,13 +11,13 @@ import {
 
     readJson,
     writeJson,
-    createDependencyWeb, 
 
     PackageJson,
     PackageSpawnProcess,
     PackageProcess,
     readDirRecursive,
     ROOT_DIR,
+    eachPackage,
 
 } from './util'
 
@@ -33,9 +33,7 @@ const isNotInNodeModules = (file: string): boolean =>
 
 //// State ////
 
-const tsFileContents: Record<string,string> = {}
-
-const dependencyWeb = createDependencyWeb()
+const tsFileContentCache: Record<string,string> = {}
 
 //// Processes ////
 
@@ -44,68 +42,64 @@ const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev'
 const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir => {
 
     // split this into functions
-    const typeScriptFileUrls = await readDirRecursive(
+    const tsFileUrls = await readDirRecursive(
         pkgDir, 
         isTypeScriptFile, 
         isNotInNodeModules
     )
 
-    const depWeb = await dependencyWeb
-    const thisPkgName = '@benzed/' + (pkgDir.split(path.sep).at(-1) as string)
-    const thisDepWeb = depWeb[thisPkgName]
+    const pkgs = await eachPackage(json => json)
+    const thisPkg = pkgs[pkgDir.split(path.sep).at(-1) as string]
+    if (!thisPkg.dependencies)  
+        thisPkg.dependencies = {}
 
-    // Split local/external deps
-    const internalDeps = thisDepWeb.dependencies
+    // Build iternal dependencies
     const newInternalDeps: Record<string,string> = {}
-    for (const typeScriptFileUrl of typeScriptFileUrls) {
-        const contents = tsFileContents[typeScriptFileUrl] ??= await fs.readFile(typeScriptFileUrl, 'utf-8')
-        for (const pkgName in depWeb) {
+    for (const tsFileUrl of tsFileUrls) {
+        const tsFileContent = tsFileContentCache[tsFileUrl] ??= await fs.readFile(tsFileUrl, 'utf-8')
+        for (const key in pkgs) {
+            const pkg = pkgs[key]
 
-            const hasPkg = contents.includes(`'${pkgName}'`)
+            const usesPkg = tsFileContent.includes(`'${pkg.name}'`)
             // Validate dep self-link
-            if (hasPkg && pkgName === thisPkgName)
-                console.warn(thisPkgName, 'links to itself')
+            if (usesPkg && pkg.name === thisPkg.name)
+                console.warn(thisPkg.name, 'links to itself:', tsFileUrl)
 
             // validate dep circular link
-            else if (hasPkg && thisPkgName in depWeb[pkgName].dependencies)
-                throw new Error(`${thisPkgName} and ${pkgName} link to each other`)
-            else if (hasPkg)
-                newInternalDeps[pkgName] = depWeb[pkgName].currVersion
+            else if (usesPkg && pkg.dependencies && thisPkg.name in pkg.dependencies)
+                console.error(thisPkg.name, 'and', pkg.name, 'link to each other:', tsFileUrl)
+
+            else if (usesPkg)
+                newInternalDeps[pkg.name] = '^' + pkg.version
         }
     }
 
-    // Check if deps changed
-    let changed = false
-    for (const key in { ...internalDeps, ...newInternalDeps }) {
-        if (newInternalDeps[key] !== internalDeps[key]) {
-            changed = true 
-            break
+    // Determine Changes
+    const changes: string[] = []
+    for (const key in pkgs) {
+        const pkg = pkgs[key]
+
+        if (thisPkg.dependencies[pkg.name] !== newInternalDeps[pkg.name]) {
+            changes.push(
+                `\n${pkg.name}\t${thisPkg.dependencies[pkg.name] ?? '(added)'} ${newInternalDeps[pkg.name] ?? '(removed)'}`
+            )
         }
+        if (newInternalDeps[pkg.name]) 
+            thisPkg.dependencies[pkg.name] = newInternalDeps[pkg.name]
+        else 
+            delete thisPkg.dependencies[pkg.name]
     }
-    if (!changed)
+    if (changes.length > 0) {
+        console.log(
+            '\n' + thisPkg.name, 
+            'internal dependencies updated:',
+            ...changes
+        )
+    } else 
         return 
 
-    // Re-Write package.json
-    const packageJsonFile = path.join(pkgDir, 'package.json')
-    const packageJson = await readJson(packageJsonFile) as PackageJson
-
-    // Remove existing packagejson internal dependencies
-    for (const key in packageJson.dependencies) {
-        if (key.startsWith('@benzed'))
-            delete packageJson.dependencies[key]
-    }
-
-    // Add new dependencies to package.json
-    console.log(thisPkgName, 'internal dependencies updated:')
-    for (const key in { ...internalDeps, ...newInternalDeps }) {
-        console.log(key, internalDeps[key] ?? '(added)', newInternalDeps[key] ?? '(removed)', )
-        if (newInternalDeps[key])
-            packageJson.dependencies[key] = '^' + newInternalDeps[key]
-    }
-    thisDepWeb.dependencies = newInternalDeps
-
-    // write
-    await writeJson(packageJson, packageJsonFile)
+    // Write Changes
+    await writeJson(thisPkg, path.join(pkgDir, 'package.json'))
 
     // Bootstrap
     await command(
@@ -113,8 +107,6 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
         ['run', 'packages:bootstrap'], 
         { cwd: ROOT_DIR, stdio: 'inherit', shell: true }
     )
-
-    console.log('wtf')
 })
 
 //// Execute ////
@@ -122,12 +114,12 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
 console.clear()
 
 // Start Dev MongoDB
-// ensureMongoDb({
-//     isRunning: true,
-//     log: true,
-//     cluster: 'test',
-//     clean: true
-// })
+ensureMongoDb({
+    isRunning: true,
+    log: true,
+    cluster: 'test',
+    clean: true
+})
 
 // Watch for ts changes
 watch(PACKAGES_DIR, {
@@ -140,27 +132,27 @@ watch(PACKAGES_DIR, {
         return 
 
     const contents = await fs.readFile(file, 'utf-8')
-    if (tsFileContents[file] === contents) 
+    if (tsFileContentCache[file] === contents) 
         return 
 
     console.log(
         file.replace(PACKAGES_DIR, ''), 
-        'updated', tsFileContents[file]?.length ?? '(uncached)', '>>', contents.length
+        'updated', tsFileContentCache[file]?.length ?? '(uncached)', '>>', contents.length
     )
-    tsFileContents[file] = contents
+    tsFileContentCache[file] = contents
 
     if (!updateDependencyProcess.isRunning) 
         await updateDependencyProcess.run(file)
     
-    // if (!testProcess.isRunning) {
-    //     const onlyThisFile = file.endsWith('.test.ts')
+    if (!testProcess.isRunning) {
+        const onlyThisFile = file.endsWith('.test.ts')
 
-    //     await testProcess.run(
-    //         file, 
-    //         onlyThisFile 
-    //             ? path.basename(file) 
-    //             : ''
-    //     )
-    // }
+        await testProcess.run(
+            file, 
+            onlyThisFile 
+                ? path.basename(file) 
+                : ''
+        )
+    }
 
 })

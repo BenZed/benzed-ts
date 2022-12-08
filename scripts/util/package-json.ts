@@ -13,13 +13,6 @@ export type PackageJson = {
     }
 }
 
-export type DependencyWeb = Record<string, {
-    name: string
-    currVersion: string
-    nextVersion: string
-    dependencies: Record<string, string>
-}>
-
 //// Constants ////
 
 const ROOT_DIR_NAME = 'benzed-ts'
@@ -46,9 +39,13 @@ export async function writeJson(json: unknown, url: string): Promise<void> {
     )
 }
 
-export async function forEachPackage(
-    func: (json: PackageJson, url: string) => void | Promise<void>
-): Promise<void> {
+type PackageMethod = (json: PackageJson, url: string) => unknown 
+
+export async function eachPackage<P extends PackageMethod>(
+    method: P
+): Promise<Record<string, ReturnType<P>>> {
+
+    const results: Record<string, ReturnType<P>> = {}
 
     const packageNames = await fs.promises.readdir(PACKAGES_DIR)
 
@@ -64,40 +61,14 @@ export async function forEachPackage(
             const packageJsonUrl = path.join(packageUrl, 'package.json')
             const packageJson = await readJson(packageJsonUrl) as PackageJson
 
-            await func(packageJson, packageUrl)
+            results[packageName] = await method(packageJson, packageUrl) as ReturnType<P>
         } catch (e) {
             const message = (e as Error).message
             if (!message.includes('ENOENT'))
                 console.error((e as { message: string }).message)
         }
     }
+
+    return results
 }
 
-export async function createDependencyWeb(): Promise<DependencyWeb> {
-
-    const web: DependencyWeb = {}
-
-    await forEachPackage((packageJson) => {
-
-        const { name, version, dependencies } = packageJson
-
-        if (!version)
-            return
-
-        web[name] = {
-            name,
-            currVersion: version,
-            nextVersion: version,
-            dependencies: {}
-        }
-
-        for (const dependency in dependencies) {
-            if (!dependency.startsWith('@benzed'))
-                continue
-
-            web[name].dependencies[dependency] = dependencies[dependency].replace('^', '')
-        }
-    })
-
-    return web
-}

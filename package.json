@@ -3,7 +3,7 @@
     "description": "TypeScript mono repo for all BenZed's code.",
     "scripts": {
         "update-deps": "npx npm-check -u",
-        "postinstall": "npm run packages:bootstrap && npm run packages:build",
+        "postinstall": "npm run packages:bootstrap",
         "packages:bootstrap": "lerna bootstrap --force-local",
         "packages:build": "lerna run build",
         "packages:develop": "ts-node ./scripts/packages-develop.ts",
