@@ -1,5 +1,5 @@
 import { Func, nil, TypeGuard } from '@benzed/util'
-import type { AnyNode, Node } from './node'
+import type { AnyNode } from './node'
 
 //// Types ////
 
@@ -29,8 +29,8 @@ export interface Module {
     get<M extends Module>(type: GetModule<M>, scope: FindScope, required?: false): M | nil
     get<M extends Module>(scope: FindScope, required: true): M | nil
     get<M extends Module>(scope: FindScope, required?: false): M | nil
-    get<N extends AnyNode>(path: Path, required?: false): N | nil 
-    get<N extends AnyNode>(path: Path, required: true): N 
+    get<N extends AnyNode>(path: path, required?: false): N | nil 
+    get<N extends AnyNode>(path: path, required: true): N 
 
     find<M extends Module>(type: GetModule<M>, scope: FindScope): M[]
     find<M extends Module>(type: GetModule<M>): M[]
