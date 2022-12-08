@@ -7,6 +7,7 @@ import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
 
 //// Setup ////
 
+//
 for (const webSocket of [false, true]) {
 
     describe(`websocket: ${webSocket}`, () => {
@@ -32,7 +33,6 @@ for (const webSocket of [false, true]) {
                 ?.catch(inputToOutput)
     
             stopErr = await client.stop()?.catch(inputToOutput)
-
             await client.start()
         }, 500)
     

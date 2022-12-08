@@ -12,6 +12,7 @@ import Server, { $serverSettings, ServerSettings } from './server'
 
 import { Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
+import { resolve } from 'path'
 
 //// Helper ////
 
@@ -98,10 +99,18 @@ export class KoaSocketIOServer extends Server {
         await super.stop()
     
         const http = this._http as HttpServer
+   
+        const io = this._io
+        if (io) {
+            io.sockets
+                .sockets
+                .forEach(socket => socket.disconnect())
 
-        if (this._io)
-            this._io.sockets.sockets.forEach(socket => socket.disconnect(true))
-            
+            await new Promise<void>((resolve, reject) => {
+                io.close(err => err ? reject(err) : resolve())
+            })
+        }
+
         await new Promise<void>((resolve, reject) => {
             http.close(err => err ? reject(err) : resolve())
         })
@@ -119,7 +128,8 @@ export class KoaSocketIOServer extends Server {
 
             const commandData = this.root
                 .getCommand(name)
-                .matchRequest(request)
+                .request
+                .match(request)
 
             if (commandData) 
                 return this.execute(name, commandData)

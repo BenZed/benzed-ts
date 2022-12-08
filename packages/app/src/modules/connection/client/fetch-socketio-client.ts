@@ -118,8 +118,7 @@ export class FetchSocketIOClient extends Client {
 
         const command = this.root.getCommand(rootName)
 
-        const { method, url: cmdEndPoint, body, headers } = command.toRequest(cmdData)
-
+        const { method, url: cmdEndPoint, body, headers } = command.request.to(cmdData)
         const { query, ...reqData } = (body ?? {}) as { query?: object }
 
         const fetchData = {
