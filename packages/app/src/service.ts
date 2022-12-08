@@ -147,47 +147,24 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     
     getService<P extends ServicePaths<M>>(path: P): ServiceAtPath<M, P> {
   
-        let found: Module | nil = nil
-        for (const service of this.modules) {
-            if (!(service instanceof Service))
-                continue 
-
-            if (service.path === path) {
-                found = service
-                break
-            }
-                
-            const subPath = path.replace(service.path, '')
-            if (subPath) {
-                try {
-                    return service.getService(subPath as never)
-                } catch {
-                    // TODO ^ lol this is ugly, knock this off. Make a _getService method or something
-                }
-            }
-        }
-        
-        if (!found)
+        const service = this._getService(path as Path)
+        if (!service)
             throw new Error(`No service registered at path '${path}'`)
 
-        return found as ServiceAtPath<M, P> 
+        return service as ServiceAtPath<M, P> 
     }
 
-    //// Command Implementation ////
-
-    private _commands: _ServiceCommands<M, ''> | null = null
+    private _commands: _ServiceCommands<M, ''> | nil = nil
     get commands(): ServiceCommands<M> {
         return this._commands ?? this._createCommands() as any
     }
 
-    //// Convenience Getters ////
-
-    get client(): Client | null {
-        return this.root.getModule(Client) ?? null
+    get client(): Client | nil {
+        return this.root.getModule(Client) ?? nil
     }
     
-    get server(): Server | null {
-        return this.root.getModule(Server) ?? null
+    get server(): Server | nil {
+        return this.root.getModule(Server) ?? nil
     }
 
     //// Module Implementation ////
@@ -197,8 +174,13 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         this._assertNoCommandNameCollisions()
     }
 
-    //// Helper ////
+    private _assertNoCommandNameCollisions(): void {
+        // commands throw on collision during creation anyway
+        void this._createCommands()
+    }
 
+    //// Helper ////
+    
     protected _pushModule(
         ...args: [path: Path, module: Module] | [module: Module] | Modules
     ): Modules {
@@ -228,11 +210,6 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         return [ ...this.modules, ...newModules ]
     }
 
-    private _assertNoCommandNameCollisions(): void {
-        // commands throw on collision during creation anyway
-        void this._createCommands()
-    }
-
     private _createCommands(): _ServiceCommands<M, ''> {
 
         const commands: { [key: string]: CommandModule<string, object, object> } = {}
@@ -242,7 +219,6 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
                 throw new Error(`Command name collision: "${name}" is used multiple times`)
 
             commands[name] = command
-        
         }
 
         for (const module of this.modules) {
@@ -266,6 +242,22 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
         this._commands = commands as _ServiceCommands<M, ''>
         return this._commands
+    }
+
+    private _getService(path: Path): Service<Path, Modules> | nil {
+  
+        const services = this.modules.filter((m): m is Service<Path, Modules> => m instanceof Service)
+        for (const service of services) {
+            if (service.path === path)
+                return service   
+            
+            const subPath = path.replace(service.path, '') as Path
+            const subService = service._getService(subPath)
+            if (subService)
+                return subService
+        }
+
+        return nil
     }
 
 }
@@ -341,5 +333,4 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
     protected override get _copyParams(): unknown[] {
         return [this._path, this.modules]
     }
-
 }

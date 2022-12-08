@@ -189,14 +189,16 @@ describe('instanceof', () => {
         const InstanceTroll = createCallableClass(
             toNil,
             class Troll {
-                
                 nestedInstance: unknown
+
                 constructor() {
                     this.nestedInstance = this 
                 }
+
                 getNestedInstance () {
                     return this.nestedInstance
                 }
+
             }
         )
     

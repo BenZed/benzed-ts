@@ -47,5 +47,7 @@ it('apps using apps turns them into services', () => {
         .create()
         .useService('/users', App.create())
 
-    expectTypeOf(app.modules[0]).toMatchTypeOf<Service<'/users', []>>()
+    const users = app.getService('/users')
+    expectTypeOf(users).toMatchTypeOf<Service<'/users', []>>()
+    expect(users).toBeInstanceOf(Service)
 })

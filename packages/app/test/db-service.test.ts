@@ -54,7 +54,7 @@ afterAll(() => client.stop())
 afterAll(() => server.stop())
 
 // We're going to do an exhaustive query test here
-it.only('mongo db app connects to a database', async () => {
+it('mongo db app connects to a database', async () => {
 
     const { getDatabaseSettings } = client.commands
 
@@ -74,7 +74,7 @@ it.only('mongo db app connects to a database', async () => {
 
 it('send client command from nested service', async () => {
 
-    const nestedOrderService = client.modules[2].modules[5]
+    const nestedOrderService = client.getService('/todos/orders')
  
     const { _id, ...rest } = await nestedOrderService
         .commands
