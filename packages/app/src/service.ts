@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { Merge, nil } from '@benzed/util'
+import { KeysOf, Merge, nil } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -26,52 +26,72 @@ import is from '@benzed/is'
 
 //// Commands Type ////
 
-type _CommandsOfModule<M extends Module, P extends string> = 
+type _ServiceCommand<M extends Module, P extends string> = 
     M extends Service<infer Px, infer Mx> 
-        ? _CommandsOfModules<Mx, ToCamelCase<[P, UnPath<Px>], '-'>>
+        ? _ServiceCommands<Mx, ToCamelCase<[P, UnPath<Px>]>>
         : M extends CommandModule<infer N, any, any> 
             ? { [K in N as ToCamelCase<[P, N], '-'>]: M }
             : {}
 
-type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [infer Mx, ...infer Mr] 
+type _ServiceCommands<M extends Modules, P extends string> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends Module 
         ? Mr extends Modules 
-            ? _CommandsOfModule<Mx, P> & _CommandsOfModules<Mr, P>
-            : _CommandsOfModule<Mx, P>
+            ? _ServiceCommand<Mx, P> & _ServiceCommands<Mr, P>
+            : _ServiceCommand<Mx, P>
         : {}
     : {}
 
-type ModuleCommands<M> = Merge<[
+type ServiceCommands<M> = Merge<[
     M extends ServiceModule<infer Mx> 
-        ? _CommandsOfModules<Mx>
+        ? _ServiceCommands<Mx, ''>
         : M extends Modules 
-            ? _CommandsOfModules<M>
+            ? _ServiceCommands<M, ''>
             : M extends Module 
-                ? _CommandsOfModule<M, ''> 
+                ? _ServiceCommand<M, ''> 
                 : never
 ]>
 
-//// Command Module ////
+type _Service<M, P extends string> = M extends Service<infer Px, infer Mx> 
+    ? { [K in `${P}${Px}`]: M } & _ServiceServices<Mx, `${P}${Px}`>
+    : {}
 
-export type FlattenModules<M extends Modules> = 
+type _ServiceServices<M, P extends string> = M extends [infer Sx, ...infer Sr] 
+    ? Sr extends Modules
+        ? _Service<Sx, P> & _ServiceServices<Sr, P>
+        : _Service<Sx, P>
+    : {}
+
+type ServicePaths<M extends Modules> = KeysOf<_ServiceServices<M, ''>>
+
+type ServiceAtPath<M extends Modules, P extends ServicePaths<M>> = _ServiceServices<M, ''>[P]
+
+//// Service ////
+
+/**
+ * @internal
+ */
+export type _FlattenModules<M extends Modules> = 
     M extends [infer Mx, ...infer Mr]
         ? Mx extends Module
             ? Mr extends Modules 
                 ? Mx extends ServiceModule<infer Mrx> 
-                    ? FlattenModules<[...Mrx, ...Mr]>
-                    : [Mx, ...FlattenModules<Mr>]
+                    ? _FlattenModules<[...Mrx, ...Mr]>
+                    : [Mx, ..._FlattenModules<Mr>]
                 : Mx extends ServiceModule<infer Mrx> 
-                    ? FlattenModules<Mrx>
+                    ? _FlattenModules<Mrx>
                     : [Mx]
             : []
         : [] 
 
-export type ToService<P extends Path, S extends ServiceModule> = S extends ServiceModule<infer M>
+/**
+ * @internal
+ */ 
+export type _ToService<P extends Path, S extends ServiceModule> = S extends ServiceModule<infer M>
     ? Service<P, M>
     : never
 
 /**
- * Get the Module types of a Command Module
+ * Get the Module types of a Service Module
  */
 export type ModulesOf<S extends ServiceModule<any>> = S extends ServiceModule<infer M> ? M : never
 
@@ -110,7 +130,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         await Promise.all(this.modules.map(m => m.stop()))
     }
 
-    //// Command Module Implementation ////
+    //// Service Implementation ////
 
     abstract useService<P extends Path, Mx extends ServiceModule<any>>(
         path: P,
@@ -124,11 +144,39 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     abstract useModules<Mx extends Modules>(
         ...modules: Mx
     ): unknown
+    
+    getService<P extends ServicePaths<M>>(path: P): ServiceAtPath<M, P> {
+  
+        let found: Module | nil = nil
+        for (const service of this.modules) {
+            if (!(service instanceof Service))
+                continue 
+
+            if (service.path === path) {
+                found = service
+                break
+            }
+                
+            const subPath = path.replace(service.path, '')
+            if (subPath) {
+                try {
+                    return service.getService(subPath as never)
+                } catch {
+                    // TODO ^ lol this is ugly, knock this off. Make a _getService method or something
+                }
+            }
+        }
+        
+        if (!found)
+            throw new Error(`No service registered at path '${path}'`)
+
+        return found as ServiceAtPath<M, P> 
+    }
 
     //// Command Implementation ////
 
-    private _commands: _CommandsOfModules<M> | null = null
-    get commands(): ModuleCommands<M> {
+    private _commands: _ServiceCommands<M, ''> | null = null
+    get commands(): ServiceCommands<M> {
         return this._commands ?? this._createCommands() as any
     }
 
@@ -185,7 +233,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         void this._createCommands()
     }
 
-    private _createCommands(): _CommandsOfModules<M> {
+    private _createCommands(): _ServiceCommands<M, ''> {
 
         const commands: { [key: string]: CommandModule<string, object, object> } = {}
 
@@ -216,7 +264,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
         }
 
-        this._commands = commands as _CommandsOfModules<M>
+        this._commands = commands as _ServiceCommands<M, ''>
         return this._commands
     }
 
@@ -263,29 +311,29 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
     override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): Service<P, [...M, ToService<Px ,S>]> {
+    ): Service<P, [...M, _ToService<Px ,S>]> {
         return Service._create(
             this._path,
             this._pushModule(path, module)
-        ) as Service<P, [...M, ToService<Px ,S>]> 
+        ) as Service<P, [...M, _ToService<Px ,S>]> 
     }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, [...M, ...FlattenModules<[Mx]>]> {
+    ): Service<P, [...M, ..._FlattenModules<[Mx]>]> {
         return Service._create(
             this._path,
             this._pushModule(module)
-        ) as Service<P, [...M, ...FlattenModules<[Mx]>]> 
+        ) as Service<P, [...M, ..._FlattenModules<[Mx]>]> 
     }
 
     override useModules<Mx extends Modules>(
         ...modules: Mx
-    ): Service<P, [...M, ...FlattenModules<Mx>]> {
+    ): Service<P, [...M, ..._FlattenModules<Mx>]> {
         return Service._create(
             this._path,
             this._pushModule(...modules)
-        ) as Service<P, [...M, ...FlattenModules<Mx>]> 
+        ) as Service<P, [...M, ..._FlattenModules<Mx>]> 
     }
 
     //// Module Implementation ////

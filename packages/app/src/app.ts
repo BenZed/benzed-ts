@@ -1,5 +1,5 @@
 
-import { ServiceModule, FlattenModules, ToService } from './service'
+import { ServiceModule, _FlattenModules, _ToService } from './service'
 import { Module, Modules } from './module'
 import { Path } from './util/types'
 
@@ -31,26 +31,26 @@ class App<M extends Modules = Modules> extends ServiceModule<M> {
     override useService<Px extends Path, S extends ServiceModule<any>>(
         path: Px,
         module: S
-    ): App<[...M, ToService<Px ,S>]> {
+    ): App<[...M, _ToService<Px ,S>]> {
         return new App(
             this._pushModule(path, module)
-        ) as App<[...M, ToService<Px ,S>]>
+        ) as App<[...M, _ToService<Px ,S>]>
     }
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): App<[...M, ...FlattenModules<[Mx]>]> {
+    ): App<[...M, ..._FlattenModules<[Mx]>]> {
         return new App(
             this._pushModule(module)
-        ) as App<[...M, ...FlattenModules<[Mx]>]>
+        ) as App<[...M, ..._FlattenModules<[Mx]>]>
     }
 
     override useModules<Mx extends Modules>(
         ...modules: Mx
-    ): App<[...M, ...FlattenModules<Mx>]> {
+    ): App<[...M, ..._FlattenModules<Mx>]> {
         return new App(
             this._pushModule(...modules)
-        ) as App<[...M, ...FlattenModules<Mx>]>
+        ) as App<[...M, ..._FlattenModules<Mx>]>
     }
 
 }

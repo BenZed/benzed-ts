@@ -29,6 +29,49 @@ describe('.useService(path)', () => {
     })
 })
 
+describe('.getService(path)', () => {
+
+    const orders = Service
+        .create()
+    
+    const accounts = Service
+        .create()
+
+    const users = Service
+        .create()
+        .useService('/accounts', accounts)
+
+    const app = App
+        .create()
+        .useService('/orders', orders)
+        .useService('/users', users)
+
+    it('gets a registered service', () => {
+        expect(app.getService('/orders')).toHaveProperty('path', '/orders')
+        expect(app.getService('/users')).toHaveProperty('path', '/users')
+    })
+
+    it('gets nested services', () => {
+        expect(app.getService('/users/accounts')).toHaveProperty('path', '/accounts')
+    })
+
+    it('is typesafe', () => {
+        type AppPaths = Parameters<typeof app.getService>[0]
+        expectTypeOf<AppPaths>()
+            .toEqualTypeOf<'/orders' | '/users' | '/users/accounts'>()
+
+        expectTypeOf(app.getService('/orders')).toEqualTypeOf<Service<'/orders', []>>()
+        expectTypeOf(app.getService('/users')).toEqualTypeOf<Service<'/users', [Service<'/accounts', []>]>>()
+        expectTypeOf(app.getService('/users/accounts')).toEqualTypeOf<Service<'/accounts', []>>()
+    })
+
+    it('throws if service cannot be found', () => {
+        // @ts-expect-error /paper is not a valid path
+        expect(() => app.getService('/paper')).toThrow('No service registered at path \'/paper\'')
+    })
+
+})
+
 describe('.commands', () => {
 
     interface OrderId extends Infer<typeof $orderId> {}
