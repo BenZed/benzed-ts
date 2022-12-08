@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { KeysOf, Merge, nil } from '@benzed/util'
+import { IndexesOf, KeysOf, Merge, nil } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -51,19 +51,23 @@ type ServiceCommands<M> = Merge<[
                 : never
 ]>
 
-type _Service<M, P extends string> = M extends Service<infer Px, infer Mx> 
-    ? { [K in `${P}${Px}`]: M } & _ServiceServices<Mx, `${P}${Px}`>
+type _ServiceAtPath<M, P extends string, R extends boolean> = M extends Service<infer Px, infer Mx> 
+    ? { [K in `${P}${Px}`]: M } & R extends true ? _ServicesAtPaths<Mx, `${P}${Px}`, true> : {}
     : {}
 
-type _ServiceServices<M, P extends string> = M extends [infer Sx, ...infer Sr] 
+type _ServicesAtPaths<M, P extends string, R extends boolean> = M extends [infer Sx, ...infer Sr] 
     ? Sr extends Modules
-        ? _Service<Sx, P> & _ServiceServices<Sr, P>
-        : _Service<Sx, P>
+        ? _ServiceAtPath<Sx, P, R> & _ServicesAtPaths<Sr, P, R>
+        : _ServiceAtPath<Sx, P, R>
     : {}
 
-type ServicePaths<M extends Modules> = KeysOf<_ServiceServices<M, ''>>
+type NestedPaths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', true>>
 
-type ServiceAtPath<M extends Modules, P extends ServicePaths<M>> = _ServiceServices<M, ''>[P]
+// type Paths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', false>>
+
+type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _ServicesAtPaths<M, '', true>[P]
+
+// type ServiceAtPath<M extends Modules, P extends Paths<M>> = _ServicesAtPaths<M, '', false>[P]
 
 //// Service ////
 
@@ -132,26 +136,25 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     //// Service Implementation ////
 
+    abstract useService<P extends ServiceAtNestedPath<M>>(path: P,module: Mx): unknown
     abstract useService<P extends Path, Mx extends ServiceModule<any>>(
         path: P,
         module: Mx
     ): unknown
 
-    abstract useModule<Mx extends Module>(
-        module: Mx
-    ): unknown
+    abstract useModule<Mx extends Module, I extends IndexesOf<M>, F extends (module: M[I]) => Mx>(index: I, updater: F): unknown
+    abstract useModule<Mx extends Module>(module: Mx): unknown
 
-    abstract useModules<Mx extends Modules>(
-        ...modules: Mx
-    ): unknown
+    abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
+    abstract useModules<Mx extends Modules>(...modules: Mx): unknown
     
-    getService<P extends ServicePaths<M>>(path: P): ServiceAtPath<M, P> {
+    getService<P extends NestedPaths<M>>(path: P): ServiceAtNestedPath<M, P> {
   
         const service = this._getService(path as Path)
         if (!service)
             throw new Error(`No service registered at path '${path}'`)
 
-        return service as ServiceAtPath<M, P> 
+        return service as ServiceAtNestedPath<M, P> 
     }
 
     private _commands: _ServiceCommands<M, ''> | nil = nil
