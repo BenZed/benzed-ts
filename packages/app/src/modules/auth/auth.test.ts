@@ -115,7 +115,7 @@ describe('Authentication', () => {
 
     let user: Record<User>
     beforeAll(async () => {
-        user = await app.execute('usersCreate', CREDS)
+        user = await app.commands.usersCreate(CREDS)
     })
 
     afterAll(() => app.getModule(MongoDb, true).clearAllCollections())

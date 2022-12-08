@@ -19,7 +19,7 @@ for (const [name, method] of Object.entries(HttpMethod)) {
                 .toEqual(method)
         })
         it(`method ${name} in req.create() `, () => {
-            expect(req.to({}))
+            expect(req.from({}))
                 .toHaveProperty('method', method)
         })
     })
@@ -31,7 +31,7 @@ describe('RequestHandler.create()', () => {
     it('path in req.create()', () => {
         const request = Req
             .create(HttpMethod.Get)
-            .to({})
+            .from({})
 
         expect(request)
             .toHaveProperty('url', '/')
@@ -47,7 +47,7 @@ describe('req.setUrl()', () => {
 
     it('url with string', () => {
 
-        expect(req.to({})).toEqual({
+        expect(req.from({})).toEqual({
             method: HttpMethod.Get,
             url: '/target',
             headers: undefined,
@@ -80,7 +80,7 @@ describe('req.setUrl()', () => {
                 .create<{ id: string }>(HttpMethod.Get)
                 .setUrl`/target/${'id'}`
 
-            const { url, body, method } = req.to({ id: 'hello' })
+            const { url, body, method } = req.from({ id: 'hello' })
 
             expect(method).toBe(HttpMethod.Get)
             expect(body).toBeUndefined()
@@ -94,7 +94,7 @@ describe('req.setUrl()', () => {
 
         it('2 url param', () => {
             expect(
-                req.to({ id: 'shirts', age: 34 })
+                req.from({ id: 'shirts', age: 34 })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -104,7 +104,7 @@ describe('req.setUrl()', () => {
 
         it('1 url & query param', () => {
             expect(
-                req.to({ id: 'shirts', query: { name: 'joe' } })
+                req.from({ id: 'shirts', query: { name: 'joe' } })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -114,7 +114,7 @@ describe('req.setUrl()', () => {
 
         it('2 url and 2 query param', () => {
             expect(
-                req.to({ id: 'shirts', query: { name: 'acer', size: 'large' }, age: 30 })
+                req.from({ id: 'shirts', query: { name: 'acer', size: 'large' }, age: 30 })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -124,7 +124,7 @@ describe('req.setUrl()', () => {
 
         it('2 query param', () => {
             expect(
-                req.to({ query: { name: 'hey', size: 'large' } })
+                req.from({ query: { name: 'hey', size: 'large' } })
             ).toEqual({
                 method: HttpMethod.Get,
                 body: undefined,
@@ -166,23 +166,23 @@ describe('req.setUrl()', () => {
                         return nil
                     })
 
-            expect(req.to({ id: 'monkey '})).toEqual({
+            expect(req.from({ id: 'monkey '})).toEqual({
                 method: HttpMethod.Get,
                 url: '/users/monkey'
             })
 
-            expect(req.to({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
+            expect(req.from({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
                 method: HttpMethod.Get,
                 url: '/users/1293?friend=true&hello=darkness&my=old'
             })
 
-            expect(req.setMethod(HttpMethod.Delete).to({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
+            expect(req.setMethod(HttpMethod.Delete).from({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
                 method: HttpMethod.Delete,
                 body: {},
                 url: '/users/cheese?front=bottoms&price=100'
             })
 
-            expect(req.setMethod(HttpMethod.Post).to({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
+            expect(req.setMethod(HttpMethod.Post).from({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
                 method: HttpMethod.Post,
                 body: {},
                 url: '/admin-portal?cake=1&soke=cimm&tare=true'
@@ -195,7 +195,6 @@ describe('req.setMethod()', () => {
 
     it('returns a new request handler with a different method', () => {
         const req = Req.create(HttpMethod.Get)
-
         expect(req.method).toEqual(HttpMethod.Get)
         expect(req.setMethod(HttpMethod.Options).method).toEqual(HttpMethod.Options)
     })
@@ -204,16 +203,14 @@ describe('req.setMethod()', () => {
         const req = Req.create(HttpMethod.Get)
             .setUrl('/cake')
             .setMethod(HttpMethod.Patch)
-            .to({})
-
+            .from({})
         expect(req.url).toEqual('/cake')
     })
-
 })
 
 describe('req.linkHeaders()', () => {
 
-    const auth = Req.create<{ accessToken: string }>(HttpMethod.Post)
+    const request = Req.create<{ accessToken: string }>(HttpMethod.Post)
         .setUrl`/authenticate`
         .setHeaderLink(
             (headers, data) => {
@@ -244,7 +241,7 @@ describe('req.linkHeaders()', () => {
 
     it('matches requests with correct headers', () => {
 
-        const output = auth.match({
+        const output = request.match({
             method: HttpMethod.Post,
             url: '/authenticate',
             headers: headersWithToken()
@@ -254,7 +251,7 @@ describe('req.linkHeaders()', () => {
     })
 
     it('doesn\'t match requests with headers missing', () => {
-        const output = auth.match({
+        const output = request.match({
             method: HttpMethod.Post,
             url: '/authenticate'
         })
@@ -263,7 +260,7 @@ describe('req.linkHeaders()', () => {
 
     it('creates requests with headers', () => {
 
-        const { body, headers } = auth.to({ accessToken: 'token'})
+        const { body, headers } = request.from({ accessToken: 'token'})
        
         expect(body).toEqual({})
 
@@ -273,7 +270,7 @@ describe('req.linkHeaders()', () => {
 
     it('headers are not created with invalid values', () => {
 
-        const { body, headers } = auth.to({ })
+        const { body, headers } = request.from({ })
        
         expect(body).toEqual({})
         expect(headers).toEqual(nil)

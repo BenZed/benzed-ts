@@ -72,21 +72,21 @@ describe('static builder pattern', () => {
 
             expect(generic.name).toBe('killOrphans')
             expect(generic.request.method).toBe(HttpMethod.Put)
-            expect(generic.request.to(todo)).toHaveProperty('url', '/orphans')
+            expect(generic.request.from(todo)).toHaveProperty('url', '/orphans')
         })
 
         it('generic signature: name, execute, method', () => {
             const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
             expect(makeRed.name).toEqual('makeRed')
             expect(makeRed.request.method).toEqual(HttpMethod.Options)
-            expect(makeRed.request.to(todo)).toHaveProperty('url', '/make-red')
+            expect(makeRed.request.from(todo)).toHaveProperty('url', '/make-red')
         })
 
         it('generic signature: name, execute', () => {
             const create = Command.create('create', $todo)
             expect(create.name).toEqual('create')
             expect(create.request.method).toEqual(HttpMethod.Post)
-            expect(create.request.to(todo)).toHaveProperty('url', '/')
+            expect(create.request.from(todo)).toHaveProperty('url', '/')
         })
     })
 
@@ -114,7 +114,7 @@ describe('static builder pattern', () => {
             })
 
             it('url == "/"', () => {
-                expect(cmd.request.to({})).toHaveProperty('url', '/')
+                expect(cmd.request.from({})).toHaveProperty('url', '/')
             })
         })
     }
@@ -185,7 +185,7 @@ describe('instance builder pattern', () => {
                         .setUrl`/todos/${'id'}`
                 ) 
 
-            const req = updateTodoWithNewReq.request.to({ 
+            const req = updateTodoWithNewReq.request.from({ 
                 id: 'first-todo-ever', 
                 completed: false, 
                 description: 'I will not complete this'
@@ -204,7 +204,7 @@ describe('instance builder pattern', () => {
             const updateTodoWithNewReq = updateTodo
                 .useReq(req => req.setUrl`/todos/edit/${'id'}`)
 
-            expect(updateTodoWithNewReq.request.to({
+            expect(updateTodoWithNewReq.request.from({
                 id: 'great-todo', 
                 completed: false, 
                 description: 'Do the thing'
@@ -244,7 +244,7 @@ describe('hook instead of schema', () => {
             input: 'hello' 
         })
 
-        expect(cmd.request.to({ input: 'x' })).toEqual({ 
+        expect(cmd.request.from({ input: 'x' })).toEqual({ 
             url: '/?input=x',
             method: HttpMethod.Get,
         })

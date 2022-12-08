@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { Merge, nil, KeysOf } from '@benzed/util'
+import { Merge, nil } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -14,12 +14,8 @@ import {
     Server 
 } from './modules'
 
-import { 
-    Command, 
-    CommandInput, 
-    CommandModule, 
-    CommandOutput
-} from './command'
+import { CommandModule } from './command'
+
 import is from '@benzed/is'
 
 //// Eslint ////
@@ -46,16 +42,15 @@ type _CommandsOfModules<M extends Modules, P extends string = ''> = M extends [i
         : {}
     : {}
 
-type ModuleCommands<M extends Modules | Module> = 
-    Merge<[
-        M extends ServiceModule<infer Mx> 
-            ? _CommandsOfModules<Mx>
-            : M extends Modules 
-                ? _CommandsOfModules<M>
-                : M extends Module 
-                    ? _CommandsOfModule<M, ''> 
-                    : never
-    ]>
+type ModuleCommands<M> = Merge<[
+    M extends ServiceModule<infer Mx> 
+        ? _CommandsOfModules<Mx>
+        : M extends Modules 
+            ? _CommandsOfModules<M>
+            : M extends Module 
+                ? _CommandsOfModule<M, ''> 
+                : never
+]>
 
 //// Command Module ////
 
@@ -138,25 +133,8 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
         return this._commands ?? this._createCommands() as any
     }
 
-    execute<K extends KeysOf<ModuleCommands<M>>>(
-        name: K,
-        input: CommandInput<ModuleCommands<M>[K]>
-    ): CommandOutput<ModuleCommands<M>[K]> {
-        return this.getCommand(name).execute(input as object) as CommandOutput<ModuleCommands<M>[K]>
-    }
-
     //// Convenience Getters ////
 
-    getCommand(name: string): Command<string, object, object>
-
-    getCommand<K extends KeysOf<ModuleCommands<M>>>(name: K): ModuleCommands<M>[K] {
-        const command = this.commands[name]
-        if (!command)
-            throw new Error(`Command ${name} could not be found.`)
-    
-        return command
-    }
-    
     get client(): Client | null {
         return this.root.getModule(Client) ?? null
     }

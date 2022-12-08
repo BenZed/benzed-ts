@@ -12,6 +12,8 @@ import Server, { $serverSettings, ServerSettings } from './server'
 
 import { Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
+import { keysOf, nil } from '@benzed/util/src'
+import { Command } from '../../../command'
 
 //// Helper ////
 
@@ -70,14 +72,6 @@ export class KoaSocketIOServer extends Server {
 
     }
 
-    // Connection Implementation
-
-    execute(name: string, data: object): Promise<object> {
-        return Promise.resolve(
-            this.root.getCommand(name).execute(data)
-        )
-    }
-
     // Module Implementation
 
     override async start(): Promise<void> {
@@ -119,21 +113,29 @@ export class KoaSocketIOServer extends Server {
 
         const request = ctxToRequest(ctx)
 
-        for (const name in this.root.commands) {
+        for (const commandName of keysOf(this.root.commands)) {
 
-            const commandData = this.root
-                .getCommand(name)
+            const command = this._getCommand(commandName)
+            if (!command)
+                continue 
+    
+            const commandData = command
                 .request
                 .match(request)
 
             if (commandData) 
-                return this.execute(name, commandData)
+                return command.execute(commandData) as Promise<object>
         }
 
         return ctx.throw(
             HttpCode.NotFound, 
             `Not found: ${ctx.method} ${ctx.url}`
         )
+    }
+
+    private _getCommand(name: string): Command<string, object, object> | nil {
+        const commands = this.root.commands
+        return commands[name as keyof typeof commands]
     }
 
     // Initialization
@@ -173,8 +175,11 @@ export class KoaSocketIOServer extends Server {
                 this.log`${socket.id} command: ${name} ${input}`
 
                 try {
+                    const command = this._getCommand(name)
+                    if (!command)
+                        throw new Error(`${name} is not a valid command.`)
 
-                    const output = await this.execute(name, input)
+                    const output = await command(input)
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)

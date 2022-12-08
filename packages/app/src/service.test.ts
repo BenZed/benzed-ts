@@ -8,6 +8,7 @@ import { Service } from './service'
 
 import { Command } from './command'
 import { Path } from './util'
+import { Pipe } from '@benzed/util'
 
 //// Tests ////
 
@@ -69,22 +70,22 @@ describe('.commands', () => {
 
     const getOrder = Command
         .get<OrderId>($orderId)
-        .useHook(function ({ id }) {
+        .useHook(Pipe.convert(function ({ id }) {
             const orders = this.getModule(Orders, true)
             const order = orders.find(id)
             return { order }
-        })
+        }))
 
     const createOrder = Command
         .create<OrderData>($orderData)
-        .useHook(function ({ type }) {
+        .useHook(Pipe.convert(function ({ type }) {
 
             const orders = this.getModule(Orders, true)
 
             return {
                 order: orders.create({ type })
             }
-        })
+        }))
 
     it('gets all commands attached to modules', () => {
 

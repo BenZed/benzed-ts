@@ -102,7 +102,7 @@ class RequestHandler<T extends object> {
 
     //// Handler Implementation ////
 
-    to(data: T, urlPrefix?: Path): Request {
+    from(data: T, urlPrefix?: Path): Request {
     
         const { method } = this
 
@@ -114,7 +114,7 @@ class RequestHandler<T extends object> {
 
         return {
             method,
-            body: dataWithoutQuery,
+            body: dataWithoutQuery as BodyInit | nil,
             url: isEmpty(query) ? url : url + '?' + toQueryString(query) as Path,
             headers
         }
@@ -260,7 +260,7 @@ class RequestHandler<T extends object> {
 
         const [ urlWithoutPrefix, dataWithoutUrlParams ] = this._path.to(data)
 
-        const url = $path.validate(urlPrefix ?? '' + urlWithoutPrefix)
+        const url = $path.validate((urlPrefix ?? '') + urlWithoutPrefix)
         return [ url, dataWithoutUrlParams ]
     }
 

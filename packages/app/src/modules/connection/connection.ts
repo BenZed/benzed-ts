@@ -6,11 +6,6 @@ import { SettingsModule } from '../../module'
  */
 export abstract class Connection<O extends object> extends SettingsModule<O> {
 
-    /**
-     * Execute a command with the given name and data
-     */
-    abstract execute(name: string, data: object): Promise<object>
-
     //// Module Implementation ////
 
     override _validateModules(): void {

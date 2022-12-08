@@ -61,14 +61,14 @@ afterAll(() => client.stop())
 afterAll(() => server.stop())
 
 // We're going to do an exhaustive query test here
-it('mongo db app connects to a database', async () => {
+it.only('mongo db app connects to a database', async () => {
 
     const { getDatabaseSettings } = client.commands
 
-    expect(getDatabaseSettings.request.to({}))
+    expect(getDatabaseSettings.request.from({}))
         .toEqual({
             method: HttpMethod.Get,
-            url: '/get-database-settings',
+            url: '/get-database-settings', 
         })
 
     const settings = await getDatabaseSettings({})
@@ -82,7 +82,7 @@ it('mongo db app connects to a database', async () => {
 it('send client command from nested service', async () => {
 
     const nestedOrderService = client.modules[2].modules[5]
-
+ 
     const { _id, ...rest } = await nestedOrderService
         .commands
         .create({

@@ -16,25 +16,21 @@ export type UnPath<S extends string> = S extends `/${infer Sx}` ? Sx : S
 /**
  * Schema for path
  */
-export const $path = Object.assign($.string
+export const $path = $.string
     .trim()
     .validates(
         s => s.startsWith('/') ? s : `/${s}`, 
-    
         'Must start with a "/"'
     )
     .validates(
         s => s.replace(/\/+/g, '/'), 
-    
         'Must not have multiple consecutive "/"s'
     ) 
     .validates(
         s => s.replace(/\/$/, '') || '/',
         //                                                      ^ in case we just removed the last slash
         'Must not end with a "/"'
-    ) as Schema<Path, Path>, {
-    
-})
+    ) as Schema<Path, Path>
 
 /**
  * usable url param values

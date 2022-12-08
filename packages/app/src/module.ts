@@ -103,6 +103,11 @@ export class Module {
                     this.root.modules.forEach(f)
                     break
                 }
+
+                default: {
+                    const badScope: never = scope
+                    throw new Error(`${badScope} is an invalid scope.`)
+                }
             }
         }
     }

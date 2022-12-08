@@ -1,5 +1,5 @@
 import $ from '@benzed/schema'
-import { capitalize, toCamelCase } from '@benzed/string'
+import { toCamelCase } from '@benzed/string'
 
 import { Client } from '../modules'
 import { RequestHandler } from '../util'
@@ -35,19 +35,7 @@ abstract class CommandModule<
 
     protected _executeOnClient (input: I): O | Promise<O> {
         const client = this.root.getModule(Client, true)
-
-        const path = this.pathFromRoot
-        const rootName = path.length > 1
-            ? path // "/deep/nested/service" => "deepNestedService${name}"
-                .split('/')
-                .filter(i => i)
-                .concat(this.name)
-                .map((n,i) => i === 0 ? n : capitalize(n))
-                .join('')
-            
-            : this.name
-
-        return client.execute(rootName, input) as O
+        return client.execute(this as CommandModule<string, I, O>, input) as O
     }
 
     protected abstract _executeOnServer (input: I): O | Promise<O>
