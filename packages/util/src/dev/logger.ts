@@ -1,25 +1,24 @@
 import ansi from './ansi'
 import { inspect } from 'util'
+import callable from '../callable'
+import { nil } from '../types'
+
+/* eslint-disable 
+    @typescript-eslint/no-this-alias,
+    no-return-assign
+*/
 
 //// Types ////
 
-type Log = (strings: TemplateStringsArray, ...inputs: unknown[]) => void
-
-type Logger = Log & {
-    info: Log
-    error: Log
-    warn: Log
-}
-
 type TimeStamp = boolean // TODO add month/day?
 
-type LoggerOptions = {
+interface LoggerOptions {
 
     /**
      * First argument to any log. 
      * 
      * ```ts
-     * const logger = createLogger({ header: '😃', timeStamp: false })
+     * const logger = new Logger({ header: '😃', timeStamp: false })
      * 
      * log`Hello World`
      * 
@@ -32,7 +31,7 @@ type LoggerOptions = {
      * Include a timestamp
      * 
      * ```ts
-     * const logger = createLogger({ timeStamp: true })
+     * const logger = new Logger({ timeStamp: true })
      * 
      * log`Hello World`
      * 
@@ -48,7 +47,22 @@ type LoggerOptions = {
 
 }
 
+type Log = (strings: TemplateStringsArray, ...inputs: unknown[]) => void
+
 type LogHandler = (...items: unknown[]) => void
+
+interface Logger extends Log {
+    info: Log
+    error: Log
+    warn: Log
+}
+
+interface LoggerConstructor {
+    create(options: LoggerOptions): Logger
+    is: typeof isLogger
+}
+
+type Icon = typeof WARN_ICON | typeof ERR_ICON | nil
 
 //// Constants ////
 
@@ -60,15 +74,15 @@ const INPECT_DEPTH = 3
 
 //// Helper ////
 
-function twoDigit(input: number, count = 2): string {
+function digits(input: number, count: number): string {
     return input.toString().padStart(count, '0')
 }
 
 function createTimeStamp(date: Date): string {
 
     const hours = date.getHours()
-    const minutes = twoDigit(date.getMinutes())
-    const seconds = twoDigit(date.getSeconds())
+    const minutes = digits(date.getMinutes(), 2)
+    const seconds = digits(date.getSeconds(), 2)
 
     return `[${hours}:${minutes}:${seconds}]`
 }
@@ -76,7 +90,7 @@ function createTimeStamp(date: Date): string {
 function colorTimeStamp(
     timeStamp: string,
     lastTimeStamp: string,
-    status: typeof WARN_ICON | typeof ERR_ICON | void
+    status: Icon
 ): string {
 
     if (status) {
@@ -100,29 +114,76 @@ function isLogger(input: unknown): input is Logger {
         (input as Logger).info === input
 }
 
+function log(this: { options: LoggerOptions, info: Log }, strings: TemplateStringsArray, ...params: unknown[]): void {
+    return this.info(strings, ...params)
+}
+
 //// Main ////
 
-const createLogger =
-    (
-        options: LoggerOptions = {}
-    ): Logger => {
+const Logger = callable(
 
-        const {
-            header,
-            timeStamp: includeTimeStamp = true,
-            onLog = console.log.bind(console),
-        } = options
+    log, 
+    class {
 
-        let lastTimeStamp = ''
+        static is = isLogger 
 
-        const log: Logger = function (
-            this: typeof WARN_ICON | typeof ERR_ICON | void,
-            strings,
-            ...inputs
+        static create(options: LoggerOptions): Logger {
+            return new this({
+                onLog: console.log.bind(console),
+                timeStamp: true,
+                ...options
+            }) as unknown as Logger
+        }
+
+        constructor(
+            readonly options: LoggerOptions = {}
+        ) {}
+
+        private _lastTimeStamp = ''
+
+        private _error: Log | nil = nil
+        get error(): Log {
+            const _this = this
+            return this._error ??= _this.info.bind({
+                get options(): LoggerOptions {
+                    return _this.options
+                },
+                get _lastTimeStamp(): string {
+                    return _this._lastTimeStamp
+                },
+                set _lastTimeStamp(value: string) {
+                    _this._lastTimeStamp = value
+                },
+                status: ERR_ICON
+            })
+        }
+
+        private _warn: Log | nil = nil
+        get warn(): Log {
+            const _this = this
+            return this._warn ??= this.info.bind({
+                get options(): LoggerOptions {
+                    return _this.options
+                },
+                get _lastTimeStamp(): string {
+                    return _this._lastTimeStamp
+                },
+                set _lastTimeStamp(value: string) {
+                    _this._lastTimeStamp = value
+                },
+                status: WARN_ICON
+            })
+        }
+
+        info(
+            strings: TemplateStringsArray,
+            ...inputs: unknown[]
         ): void {
 
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
-            const status = typeof this === 'string' ? this : undefined
+            const { status } = this as (typeof this & { status: Icon })
+
+            if (strings.includes('Uh Oh'))
+                console.log(this)
 
             const outputs: unknown[] = []
             for (let i = 0; i < strings.length; i++) {
@@ -140,42 +201,36 @@ const createLogger =
 
             const prefix: string[] = []
 
-            if (header)
-                prefix.push(header)
+            if (this.options.header)
+                prefix.push(this.options.header)
 
-            if (includeTimeStamp) {
+            if (this.options.timeStamp) {
                 const timeStamp = createTimeStamp(new Date())
 
                 prefix.push(
                     colorTimeStamp(
                         timeStamp,
-                        lastTimeStamp,
+                        this._lastTimeStamp,
                         status
                     )
                 )
 
-                lastTimeStamp = timeStamp
+                this._lastTimeStamp = timeStamp
             }
 
             if (status)
                 prefix.push(status)
 
-            onLog(...prefix, outputs.join(''))
+            this.options.onLog?.(...prefix, outputs.join(''))
         }
 
-        log.info = log
-        log.error = log.bind(ERR_ICON)
-        log.warn = log.bind(WARN_ICON)
-
-        return log
-    }
+    }) as LoggerConstructor 
 
 //// Exports ////
 
-export default createLogger
+export default Logger
 
 export {
-    createLogger,
 
     Logger,
     isLogger,
