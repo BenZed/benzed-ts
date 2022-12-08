@@ -12,7 +12,6 @@ import {
 
     Pipe, 
     BoundPipe,
-    ContextPipe, 
     ContextTransform
 } from '@benzed/util'
 
@@ -40,8 +39,8 @@ export type RuntimeCommand<I extends object> = {
 }
 
 export type CommandHook<I extends object, O extends object> = 
-    Transform<I,O | Promise<O>> | 
-    ContextPipe<I, O | Promise<O>, RuntimeCommand<I>> 
+    ContextTransform<I, O | Promise<O>, RuntimeCommand<I>> |
+    Transform<I, O | Promise<O>>
 
 type CommandInput<C> = C extends Command<any, infer I, any> ? I : unknown
 
@@ -127,7 +126,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     static get<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'get', Ix, Ox>
     static get<Ix extends object>(validate: ValidateHook<Ix>): Command<'get', Ix, Ix>
     static get(input: ValidateHook<object> | CommandHook<object,object>) {
-        return this.create('get', input as ValidateHook<object>, HttpMethod.Get, '/') 
+        return this.create('get', input, HttpMethod.Get, '/') 
     }
 
     /**

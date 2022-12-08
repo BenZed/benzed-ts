@@ -1,15 +1,12 @@
-import { Schematic } from '@benzed/schema'
-
-import { Service } from '../src/service'
+import $ from '@benzed/schema'
+import { Empty } from '@benzed/util'
 
 import { App } from '../src/app'
 import { Command } from '../src/command'
+import { Service } from '../src/service'
 import { 
     Client, 
     Server, 
-    Record,
-
-    WithId,
     MongoDb
 } from '../src/modules'
 
@@ -17,37 +14,34 @@ import { HttpMethod } from '../src/util'
 
 //// Build App ////
 
-const dummySchematic = <I extends object>(): Schematic<I> => ({ 
-    validate: i => i as I, 
-    is: (i): i is I => true, 
-    assert: i => void i
-})
+const mongoDb = MongoDb
+    .create({ database: 'db-test' })
+    .addCollection('todos', $({
+        completed: $.boolean,
+        description: $.string
+    }))
 
-const crudService = Service
-    .create()
-    .useModules(
-        Command.create(dummySchematic<object>()),
-        Command.get(dummySchematic<WithId>()),
-        Command.remove(dummySchematic<WithId>()),
+const getDbSettings = Command
+    .create(
+        'getDatabaseSettings', 
+        (_: Empty, cmd) => cmd.getModule(MongoDb, true).settings,
+        HttpMethod.Get        
     )
+
+const todoCmds = mongoDb.createRecordCommands('todos')
+
+const todoService = Service
+    .create()
+    .useModules(...todoCmds)
 
 const app = App
     .create()
     .useModules(
-        MongoDb.create({ database: 'db-test' }),
-        Command
-            .create(
-                'getDatabaseSettings', 
-                dummySchematic<object>(), 
-                HttpMethod.Get
-            )
-            .useHook(function() {
-                const db = this.getModule(MongoDb, true)
-                return db.settings
-            })
+        mongoDb,
+        getDbSettings
     )
-    .useService('/todos', crudService.useService('/orders', crudService))
-    .useService('/orders', crudService)
+    .useService('/todos', todoService.useService('/orders', todoService))
+    .useService('/orders', todoService)
 
 //// Server & Client ////
     
@@ -62,9 +56,8 @@ const client = app
     )
 
 beforeAll(() => server.start())
-
 beforeAll(() => client.start())
-
+afterAll(() => client.stop())
 afterAll(() => server.stop())
 
 // We're going to do an exhaustive query test here
@@ -72,31 +65,32 @@ it('mongo db app connects to a database', async () => {
 
     const { getDatabaseSettings } = client.commands
 
-    expect(getDatabaseSettings.toRequest({}))
+    expect(getDatabaseSettings.request.to({}))
         .toEqual({
             method: HttpMethod.Get,
             url: '/get-database-settings',
         })
 
-    const settings = await getDatabaseSettings.execute({})
+    const settings = await getDatabaseSettings({})
+
+    const db = app.getModule(MongoDb, true)
 
     expect(settings)
-        .toEqual(app.modules[0].settings)
+        .toEqual(db.settings)
 })
 
-it.skip('send client command from nested service', async () => {
+it('send client command from nested service', async () => {
 
-    const nestedOrderService = client.modules[2].modules[3]
+    const nestedOrderService = client.modules[2].modules[5]
 
     const { _id, ...rest } = await nestedOrderService
         .commands
-        .create
-        .execute({ 
-            some: 'data', 
-            goes: 'here'
-        }) as Record<object>
+        .create({
+            completed: false,
+            description: 'Nested orders'
+        }) 
 
-    expect(rest).toEqual({ some: 'data', goes: 'here' })
+    expect(rest).toEqual({ completed: false, description: 'Nested orders' })
     expect(_id).toBeTruthy()
 
 })
