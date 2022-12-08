@@ -4,8 +4,8 @@
     "main": "./src",
     "version": "3.1.3",
     "scripts": {
-        "test": "jest --runInBand --all",
-        "test:dev": "jest --runInBand --onlyChanged --verbose",
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --force-exit --verbose",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
         "tsc": "shx rm -rf lib && mkdir lib && tsc"

@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb'
 
-import { Module } from '../module'
 import { HttpMethod, RequestHandler } from '../util'
 import { Command, RuntimeCommand } from './command'
 
@@ -39,11 +38,6 @@ const $todo = $({
 it('is sealed', () => {
     // @ts-expect-error Sealed
     void class extends Command<'bad', object, object> {}
-})
-
-it('is a module', () => {
-    const getTodo = Command.create('getTodo', $todoId)
-    expect(getTodo).toBeInstanceOf(Module)
 })
 
 it('is strongly typed', () => {
@@ -130,7 +124,7 @@ describe('instance builder pattern', () => {
 
     describe('.useHook()', () => {
 
-        it('append a hook method, changing the commands output',() => {
+        it('append a hook method, changing the commands output', async () => {
 
             const id = new ObjectId()
 
@@ -145,7 +139,7 @@ describe('instance builder pattern', () => {
                 // remove complete
                 .useHook(omit('completed'))
 
-            const todo = dispatchTodo({ 
+            const todo = await dispatchTodo({ 
                 completed: false, 
                 description: 'Pipe commands around' 
             })

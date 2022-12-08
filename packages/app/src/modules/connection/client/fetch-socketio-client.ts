@@ -41,7 +41,6 @@ export class FetchSocketIOClient extends Client {
                 forceNew: true
             })
             : null
-
     }
  
     // Module Implementation
@@ -85,7 +84,6 @@ export class FetchSocketIOClient extends Client {
             io.once('connect_error', reject)
             io.connect()
         })
-
         this.log`connected to server ${ host }`
     }
 

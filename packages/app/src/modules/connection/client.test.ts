@@ -3,6 +3,8 @@ import { inputToOutput } from '@benzed/util'
 import { Client } from './client'
 import { Server} from './server'
 
+import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
+
 //// Setup ////
 
 for (const webSocket of [false, true]) {
@@ -15,7 +17,7 @@ for (const webSocket of [false, true]) {
             server = Server.create({ webSocket })
             await server.start()
         })
-    
+
         afterAll(async () => {
             await server.stop()
         })
