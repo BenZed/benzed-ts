@@ -3,6 +3,7 @@ import $, { Infer, SchemaFor } from '@benzed/schema'
 import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 
 import { CommandModule } from '../../command'
 import { HttpMethod, RequestHandler } from '../../util'
@@ -31,12 +32,15 @@ const randomSecret = (() => {
 
 })()
 
+const DEFAULT_PASSWORD_SALT_ROUNDS = 10
+
 //// Settings ////
 
 interface AuthSettings extends Infer<typeof $authSettings> {}
 const $authSettings = $({
     secret: $.string.optional.default(randomSecret),
-    collection: $.string.optional.default('users')
+    collection: $.string.optional.default('users'),
+    saltRounds: $.number.default(DEFAULT_PASSWORD_SALT_ROUNDS).optional
 })
 
 //// Types ////
@@ -91,7 +95,9 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
 
     static create(settings: AuthSettings = {}): Auth {
         return new Auth(
-            $authSettings.validate(settings) as Required<AuthSettings>
+            $authSettings.validate({
+                ...settings,
+            }) as Required<AuthSettings>
         )
     }
 
@@ -139,14 +145,12 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
         credentials: Credentials
     ): Promise<AccessToken> {
 
-        const records = await this.collection.find({ email: credentials.email })
-        const hashed = await this.hashPassword(credentials.password)
+        const password = await this.hashPassword(credentials.password)
 
-        const entity = records
-            .records
-            .find(entity => entity.password === hashed)
+        const { records } = await this.collection.find({ email: credentials.email })
 
-        if (!entity)
+        const [ entity ] = records
+        if (!entity || await bcrypt.compare(password, entity.password))
             throw new Error('Invalid credentials')
 
         const accessToken = await this.createAccessToken({ _id: entity._id, })
@@ -213,7 +217,8 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
     }
 
     hashPassword(password: string): Promise<string> {
-        return Promise.resolve(password.repeat(2))
+        const { saltRounds } = this.settings
+        return bcrypt.hash(password, saltRounds)
     }
 
 }

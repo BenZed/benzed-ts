@@ -23,7 +23,6 @@ it('is sealed', () => {
 })
 
 it('static .create()', () => {
-
     const auth = Auth.create({})
     expect(auth).toBeInstanceOf(Auth)
 })
@@ -124,7 +123,6 @@ describe('Authentication', () => {
 
     it('authenticate with email/pass', async () => {
         const auth = app.getModule(Auth, true)
-
         const result = await auth.execute(CREDS)
         const { accessToken } = result ?? {}
 
