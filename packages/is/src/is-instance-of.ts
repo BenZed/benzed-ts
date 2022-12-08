@@ -5,7 +5,7 @@
 import { isBigInt, isBoolean, isFunction, isNumber, isObject, isString, isSymbol } from './is-basic'
 import type { Constructor } from './types'
 
-/*** Types ***/
+//// Types ////
 
 type TypeTest<T> = (input: unknown) => input is T
 
@@ -15,7 +15,7 @@ type IsOfTypeable<T> = T extends Constructor<T>
     ? InstanceType<T>
     : T extends { prototype: infer U } ? U : never
 
-/*** Data ***/
+//// Data ////
 
 const typeTests: Map<Typeable<unknown>, TypeTest<unknown>> = new Map()
 typeTests.set(String, isString)
@@ -39,7 +39,7 @@ function isInstanceOf<T extends (Typeable<any>)[]>(
 ): input is IsOfTypeable<typeof types[number]> {
 
     if (types.length === 0)
-        throw new Error(`At least one type is required.`)
+        throw new Error('At least one type is required.')
 
     let alreadyTested = false
     for (const type of types) {
@@ -62,7 +62,7 @@ function isInstanceOf<T extends (Typeable<any>)[]>(
     return false
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default isInstanceOf
 

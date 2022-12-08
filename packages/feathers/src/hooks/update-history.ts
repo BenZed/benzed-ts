@@ -21,7 +21,7 @@ import is from '@benzed/is'
 
 import { getInternalServiceMethods } from '../util'
 
-/*** Types ***/
+//// Types ////
 
 type HookData = HookContext['data']
 
@@ -53,18 +53,18 @@ const $historyQueryParam = (({ or, string, shape, tuple, number }) => {
 
 interface HistoryQueryParam extends Infer<typeof $historyQueryParam> {}
 
-/*** Constants ***/
+//// Constants ////
 
-const HISTORY_QUERY_PARAM = `$history`
+const HISTORY_QUERY_PARAM = '$history'
 
-/*** Helper ***/
+//// Helper ////
 
 async function getExistingHistory<T>(
     ctx: HookContext<unknown, Service<Historical<T>>>
 ): Promise<Historical<T>['history']> {
 
     if (ctx.id === undefined)
-        throw new Error(`Cannot retrieve existing history, id missing.`)
+        throw new Error('Cannot retrieve existing history, id missing.')
 
     const record = await getInternalServiceMethods(ctx.service).$get(ctx.id) as Historical<T>
     return record.history
@@ -74,13 +74,13 @@ function getEntryData<T extends object>(input: HookData, mask?: (d: unknown) => 
 
     if (is.array(input)) {
         throw new BadRequest(
-            `Multi record requests are invalid.`
+            'Multi record requests are invalid.'
         )
     }
 
     const output = applyMask(input, mask)
 
-    if (`history` in output)
+    if ('history' in output)
         delete output.history
 
     return output
@@ -134,7 +134,7 @@ async function applyScribeData<T extends object>(
     } else if (ctx.service && ctx.id)
         await getInternalServiceMethods(ctx.service).$patch(ctx.id, scribeData)
     else
-        throw new BadRequest(`Invalid history input.`)
+        throw new BadRequest('Invalid history input.')
 }
 
 function createEntry<T extends object>(
@@ -151,14 +151,14 @@ function createEntry<T extends object>(
     const timestamp = Date.now()
     const method = ctx.method as 'patch' | 'remove' | 'create'
 
-    const entry: HistoryEntry<T> = method === `remove`
+    const entry: HistoryEntry<T> = method === 'remove'
         ? { method, signature, timestamp }
         : { method, signature, timestamp, data: getEntryData(ctx.data, dataMask) }
 
     return entry
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Updates the history of the of the given record.
@@ -178,7 +178,7 @@ function updateHistory<T extends object>(
 
         // Validate Call
         const method = ctx.method as 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get'
-        if (method === `find` || method === `get` || method === `update`)
+        if (method === 'find' || method === 'get' || method === 'update')
             throw new Error(`Cannot use updateHistory hook with '${method}' method`)
 
         try {
@@ -186,14 +186,14 @@ function updateHistory<T extends object>(
             // Compute Next History
             let scribe = new HistoryScribe<T>({
                 ...scribeOptions,
-                history: method === `create`
+                history: method === 'create'
                     ? []
                     : await getExistingHistory(ctx)
             })
 
             // Prevent history errors from being thrown when they should probably 
             // be bad requests.
-            if (scribe.history.some(e => e.method === `remove`))
+            if (scribe.history.some(e => e.method === 'remove'))
                 scribe = scribe.revert(-1)
 
             const entry = createEntry(ctx, dataMask)
@@ -218,7 +218,7 @@ function updateHistory<T extends object>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default updateHistory
 

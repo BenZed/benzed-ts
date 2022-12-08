@@ -1,6 +1,6 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-import { isDefined } from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     Metadata
@@ -12,19 +12,19 @@ import {
     Output
 } from './settings'
 
-/*** Types ***/
+//// Types ////
 
 type CreateMP3Options =
     & Input
     & Output
     & AudioSetting
 
-/*** Constants ***/
+//// Constants ////
 
-const AUDIO_CODEC = `libmp3lame`
-const OUTPUT_FORMAT = `mp3`
+const AUDIO_CODEC = 'libmp3lame'
+const OUTPUT_FORMAT = 'mp3'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Converts a source stream to an mp4 
@@ -44,18 +44,18 @@ function createMP3(
         .audioCodec(AUDIO_CODEC)
         .format(OUTPUT_FORMAT)
 
-    if (isDefined(abr))
+    if (is.defined(abr))
         cmd.audioBitrate(abr)
 
     const start = Date.now()
 
-    throw new Error(`Not yet implemented.`)
+    throw new Error('Not yet implemented.')
     void output
     const renderTime = Date.now() - start
     return Promise.resolve({ renderTime })
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createMP3
 

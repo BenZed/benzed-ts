@@ -1,7 +1,6 @@
 import resolveIndex from './resolve-index'
-import { assertDefined } from '@benzed/util'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { indexOf } = Array.prototype
 
@@ -32,8 +31,6 @@ function adjacent<T>(
         : undefined
 }
 
-adjacent.assert = assertDefined(adjacent)
-
-/*** Exports ***/
+//// Exports ////
 
 export default adjacent

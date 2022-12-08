@@ -1,24 +1,24 @@
 import { inputToOutput } from '@benzed/util'
 
-import { Command } from "../../command"
-import { Client } from "./client"
-import { Server} from "./server"
+import { Client } from './client'
+import { Server} from './server'
 
-/*** Setup ***/
+import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
 
+//// Setup ////
+
+//
 for (const webSocket of [false, true]) {
 
     describe(`websocket: ${webSocket}`, () => {
-        const log: Command[] = []
+        // const log: Command[] = []
 
         let server: Server
         beforeAll(async () => {
             server = Server.create({ webSocket })
-            server[`_relayCommand`] = (cmd: Command) => void log.push(cmd) ?? Promise.resolve(cmd)
-            server.getCommandList = () => Promise.resolve([`get-test`])
             await server.start()
         })
-    
+
         afterAll(async () => {
             await server.stop()
         })
@@ -26,16 +26,13 @@ for (const webSocket of [false, true]) {
         let client: Client
         let startErr: unknown
         let stopErr: unknown
-        let commandList: string[]
         beforeAll(async () => {
             client = Client.create({ webSocket })
             startErr = await client
                 .start()
                 ?.catch(inputToOutput)
     
-            commandList = await client.getCommandList().catch(inputToOutput)
             stopErr = await client.stop()?.catch(inputToOutput)
-
             await client.start()
         }, 500)
     
@@ -43,31 +40,15 @@ for (const webSocket of [false, true]) {
             await client.stop()
         })
     
-        /*** Tests ***/
+        //// Tests ////
     
-        it(`.start()`, () => {
+        it('.start()', () => {
             expect(startErr).toEqual(undefined)
         })
     
-        it(`.stop()`, () => {
+        it('.stop()', () => {
             expect(stopErr).toEqual(undefined)
         })
-    
-        it(`.getServerCommandList()`, () => {
-            expect(commandList).toEqual([`get-test`])
-        })
-    
-        it(`.executeOnServer()`, async () => {
-    
-            // since the server isn't connected to an app for this test, it sends
-            const result = await client.executeOnServer({ name: commandList[0] })
-            expect(result).toEqual({ name: commandList[0] })
-    
-            expect(log).toEqual([result])
-        })
-    
-        it(`.type === "client"`, () => {
-            expect(client.type).toBe(`client`)
-        })
+
     })
 }

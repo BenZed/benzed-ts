@@ -10,11 +10,11 @@ import createFileServerApp from '../server/create-file-server-app'
 
 import { UploadedAssetData, Uploader, TEST_FILE_SERVER_CONFIG } from '../util.test'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Server ***/
+//// Server ////
 
 const server = createFileServerApp({
     ...TEST_FILE_SERVER_CONFIG,
@@ -43,7 +43,7 @@ beforeAll(async () => {
     uploadData = await upload.assets(uploader._id)
 })
 
-/*** Tests ***/
+//// Tests ////
 
 describe(`upload`, () => {
 

@@ -45,17 +45,10 @@ import BooleanSchema from './boolean'
 
 import {
     Constructor,
-    isBoolean,
-    isFunction,
-    isInstanceOf,
-    isNumber,
-    isPlainObject,
-    isString,
-    isSymbol
+    is
 } from '@benzed/is'
 
 import { 
-    Compile, 
     TypeGuard 
 } from '@benzed/util'
 
@@ -68,16 +61,18 @@ import {
 import DateSchema from './date'
 
 import GenericSchema from './generic'
+import { Flags } from './flags'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
-type SchemaFor<T> = Compile<{ 
-    validate: Schema<any,T,any>['validate']
-    assert: Schema<any,T,any>['assert']
-    is: Schema<any,T,any>['is']
-}>
+/**
+ * A schematic is just the is/assert/validation methods of a schema.
+ */
+type Schematic<T> = Pick<Schema<any,T,any>, 'validate' | 'assert' | 'is'>
+
+type SchemaFor<O, F extends Flags[] = []> = Schema<unknown, O, F>
 
 type SchemaInterfaceShortcutSignature =
     [ShapeSchemaInput] | TupleSchemaInput | EnumSchemaInput | [Constructor<unknown>]
@@ -93,7 +88,7 @@ type SchemaInterfaceShortcutOuput<T extends SchemaInterfaceShortcutSignature> =
                      ? GenericSchema<TypeGuard<O>, O>
                      : never
 
-/*** Convenience Type Defs ***/
+//// Convenience Type Defs ////
      
 type UndefinedSchema = EnumSchema<[undefined], undefined>
 
@@ -107,7 +102,7 @@ type ObjectSchema = RecordSchema<[UnknownSchema], RecordSchemaOutput<[UnknownSch
 
 type UnknownSchema = GenericSchema<TypeGuard<unknown>, unknown> 
 
-/*** Interface ***/
+//// Interface ////
 
 interface SchemaInterface {
 
@@ -161,31 +156,31 @@ interface SchemaInterface {
 
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function isEnumSchemaInput(args: SchemaInterfaceShortcutSignature): args is EnumSchemaInput {
     return [...args].every(arg =>
-        isString(arg) ||
-        isNumber(arg) ||
-        isBoolean(arg) || 
+        is.string(arg) ||
+        is.number(arg) ||
+        is.boolean(arg) || 
         arg == null
     )
 }
 
 function isTupleSchemaInput(args: SchemaInterfaceShortcutSignature): args is TupleSchemaInput {
     return [...args].every(arg =>
-        isInstanceOf(arg, Schema)
+        is.type(arg, Schema)
     )
 }
 
 function isShapeSchemaInput(args: SchemaInterfaceShortcutSignature): args is [ShapeSchemaInput] {
-    return args.length === 1 && isPlainObject(args[0])
+    return args.length === 1 && is.record(args[0])
 }
 
 function isConstructorInput(
     args: SchemaInterfaceShortcutSignature
 ): args is [Constructor<unknown>] {
-    return args.length === 1 && isFunction(args[0])
+    return args.length === 1 && is.function(args[0])
 }
 
 function createSchemaInterface(): SchemaInterface {
@@ -204,7 +199,7 @@ function createSchemaInterface(): SchemaInterface {
                         : null
 
         if (!schema)
-            throw new Error(`Input not recognized.`)
+            throw new Error('Input not recognized.')
 
         return schema as SchemaInterfaceShortcutOuput<T>
     }
@@ -219,8 +214,8 @@ function createSchemaInterface(): SchemaInterface {
 
     $.number = new NumberSchema()
     $.integer = $.number
-        .floor(1, `must be an integer`)
-        .name(`integer`)
+        .floor(1, 'must be an integer')
+        .name('integer')
 
     $.string = new StringSchema()
     $.boolean = new BooleanSchema()
@@ -231,7 +226,7 @@ function createSchemaInterface(): SchemaInterface {
     $.null = $.enum(null)
 
     $.typeOf = guard => new GenericSchema(guard)
-    $.symbol = $.typeOf(isSymbol).name({ name: `symbol`, article: `a` })
+    $.symbol = $.typeOf(is.symbol).name({ name: 'symbol', article: 'a' })
     $.unknown = $.typeOf((_): _ is unknown => true)
 
     $.object = $.record($.unknown)
@@ -251,18 +246,21 @@ function extendSchemaInterface<T extends object, S extends SchemaInterface = Sch
     return Object.assign($ ?? createSchemaInterface() as S, addedProperties)
 }
 
-/*** Main ***/
+//// Main ////
 
 const $ = createSchemaInterface()
 
-/*** Exports ***/
+//// Exports ////
 
 export default $
 
 export {
     $,
+    
     Schema,
     SchemaFor,
+    Schematic,
+
     SchemaOutput,
     SchemaOutput as Infer,
 

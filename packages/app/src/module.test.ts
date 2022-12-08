@@ -1,102 +1,157 @@
-import { Module, Service } from "./module"
+import { nil } from '@benzed/util'
+
 import { App } from './app'
+import { Module, ExecutableModule } from './module'
+import { Service, ServiceModule } from './service'
 
-const m1 = new Module({})
-const m2 = new Module({})
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
-const service = App.create()
+//// Setup ////
 
-/*** Tests ***/
+class Test extends Module {
 
-it(`.use() to add module as immutable copy`, () => {
-    const app = App.create().use(m1)
-    expect(app.has(Module)).toBe(true)
+}
 
-    const [m1c] = app.modules
-    expect(m1c).not.toBe(m1)
+//// Tests ////
+
+it('.start() cannot be called consecutively', async () => {
+    const test = new Test()
+    try {
+        await test.start()
+        await test.start()
+    } catch (e: any) {
+        expect(e.message).toContain(`${test.name} has already been started`)
+    }
+    expect.assertions(1)
 })
 
-it(`.use() sets parent`, () => {
-
-    const app = service
-        .server()
-        .use(m1)
-
-    const [m1c] = app.modules
-    expect(m1c.parent).toBe(app)
-    expect(m1.parent).toBe(null)
+it('.stop() cannot be called until started', async () => {
+    const test = new Test()
+    try {
+        await test.stop()
+    } catch (e: any) {
+        expect(e.message).toContain(`${test.name} has not been started`)
+    }
+    expect.assertions(1)
 })
 
-it(`.modules redirects to parent modules`, () => {
-    const s1 = service.use(m1)
+it('.stop() cannot be called consecutively', async () => {
+    const test = new Test()
+    try {
+        await test.start()
+        await test.stop()
+        await test.stop()
+    } catch (e: any) {
+        expect(e.message).toContain(`${test.name} has not been started`)
+    }
+    expect.assertions(1)
+})
+
+it('.modules redirects to parent modules', () => {
+    const service = Service.create()
+    const m1 = new Test()
+
+    const s1 = service.useModule(m1)
 
     const [m1c] = s1.modules
     expect(m1c.modules).toBe(s1.modules)
 })
 
-it(`.modules is empty on modules with no parent`, () => {
+it('.modules is empty on modules with no parent', () => {
+    const m1 = new Test()
     expect(m1.modules).toEqual([])
 })
 
-it(`.get() a module`, () => {
-    const service = App.create()
-        .use(m1)
-        .use(m2)
+it('.getModule()', () => {
 
-    const m1f = service.get(Module)
+    const m1 = new Test()
+    const m2 = new Test()
+
+    const service = App.create()
+        .useModule(m1)
+        .useModule(m2)
+
+    const m1f = service.getModule(Module)
     expect(m1f).toBeInstanceOf(Module)
 })
 
-it(`.get() returns null if no modules could be found`, () => {
-    const m = m1.get(Module)
-    expect(m).toBe(null)
+it('.getModule() required param true', () => {
+
+    const m1 = new Test()
+
+    expect(() => m1.getModule(ServiceModule, true)).toThrow('is missing')
 })
 
-it(`.has() a module`, () => {
-    expect(service.has(Module)).toBe(false)
-    expect(service.use(m1).has(Module)).toBe(true)
+it('.getModule() required param false', () => {
+    const m1 = new Test()
+    expect(m1.getModule(Module)).toBe(nil)
 })
 
-it(`.withSettings() makes an immutable copy with new settings`, () => {
+it('.getModule() scope param "parents"', () => {
 
-    const s1 = new Module({ logIcon: `!` })
-    const s2 = s1.withSettings({ logIcon: `!!` }) 
+    const s1 = Service
+        .create()
+        .useModule(new Test())
 
-    expect(s1).not.toBe(s2)
-    expect(s2.settings).toEqual({ logIcon: `!!` })
-})
-
-it(`.parent`, () => {
+    const s2 = s1.useService('/child', s1)
     
-    const app = App.create().use(Service.create())
+    const m = s2.modules[0].modules[0].getModule(Test, false, 'parents')
+    expect(m).toBe(s2.modules[0])
+})
 
+it('.getModule() scope param "children"', () => {
+
+    const s1 = Service
+        .create()
+        .useModule(new Test())
+
+    const s2 = Service.create().useService('/child', s1)
+    
+    const m = s2.getModule(Test, false, 'children')
+    expect(m).toBe(s2.modules[0].modules[0])
+})
+
+it('.getModule() predicate', () => {
+
+    const s1 = Service
+        .create()
+        .useModule(new Test())
+
+    const s2 = Service.create().useService('/child', s1)
+    
+    const m = s2.getModule(i => i instanceof Test, false, 'children')
+    expect(m).toBe(s2.modules[0].modules[0])
+})
+
+it('.hasModule()', () => {
+
+    const service = Service.create()
+    const m1 = new Test()
+
+    expect(service.hasModule(Module)).toBe(false)
+    expect(service.useModule(m1).hasModule(Module)).toBe(true)
+})
+
+it('.parent', () => {
+    
+    const app = App.create().useModule(new Module())
     const service = app.modules[0]
-
     expect(service.parent).toBe(app)
 
 })
 
-it(`.root`, () => {
-    const app = App.create().use(Service.create().use(Service.create()))
+it('.root', () => {
 
+    const service = Service.create().useModule(new Module())
+
+    const app = App.create().useModule(service.useService('/eh', service))
     const child = app.modules[0].modules[0]
-
     expect(child.root).toBe(app)
 })
 
-describe(`.use(path)`, () => {
-
-    const app = App.create().server()
-    const appWithService = app.use(service)
-    const appWithServiceEndpoint = app.use(`todos`, service)
-
-    it(`places one as a module of the other`, () => {
-        expect(appWithService.modules[1].parent)
-            .toBe(appWithService)
-    })
-
-    it(`can place nested services at different endpoints`, () => {
-        expect(appWithServiceEndpoint.modules[1].path)
-            .toBe(`todos`)
-    })
+it('callable module', () => {
+    const executable = new ExecutableModule((x: { foo: string }) => ({ ...x, count: 0 }))
+    expect(executable({ foo: 'string' })).toEqual({ foo: 'string', count: 0 })
 })

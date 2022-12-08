@@ -1,16 +1,16 @@
 
+import { is } from '@benzed/is'
+import { copy } from '@benzed/immutable'
+import { Intersect } from '@benzed/util'
+
 import { ParentSchema, Schema, SchemaOutput, SchemaValidationContext } from './schema'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
-
-import { copy } from '@benzed/immutable'
-import { isObject } from '@benzed/is'
-import { Intersect } from '@benzed/util'
 
 import { TypeValidator } from '../validator/type'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type IntersectionSchemaInput = readonly Schema<object, any>[]
 
@@ -19,7 +19,7 @@ type IntersectionSchemaOutput<T extends IntersectionSchemaInput> =
         [K in keyof T]: SchemaOutput<T[K]>
     }>
 
-/*** Main ***/
+//// Main ////
 
 class IntersectionSchema<
 
@@ -30,12 +30,12 @@ class IntersectionSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator<O>({
-        name: `object`,
-        article: `an`,
-        is: isObject as (input: unknown) => input is O
+        name: 'object',
+        article: 'an',
+        is: is.object as (input: unknown) => input is O
     })
 
-    /*** ParentSchema Implementation ***/
+    //// ParentSchema Implementation ////
 
     protected _validateChildren(input: O, inputContext: SchemaValidationContext): O {
 
@@ -48,32 +48,42 @@ class IntersectionSchema<
 
             Object.assign(
                 output as any,
-                schema[`_validate`](input, context)
+                schema['_validate'](input, context)
             )
         }
 
         return output
     }
 
-    /*** Schema methods ***/
+}
 
-    override readonly optional!: HasOptional<
+interface IntersectionSchema<
+
+    I extends IntersectionSchemaInput,
+    O extends IntersectionSchemaOutput<I>,
+    F extends Flags[] = []
+
+    /**/> extends ParentSchema<I, O, F> {
+
+    //// Schema methods ////
+
+    readonly optional: HasOptional<
     /**/ F,
     /**/ never,
     /**/ IntersectionSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F,
     /**/ never,
     /**/ IntersectionSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => IntersectionSchema<I, O>
+    readonly clearFlags: () => IntersectionSchema<I, O>
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default IntersectionSchema
 

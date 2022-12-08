@@ -1,4 +1,5 @@
 import ffmpeg from 'fluent-ffmpeg'
+import { is } from '@benzed/is'
 
 import {
     AudioSetting,
@@ -13,9 +14,7 @@ import getMetadata, { RenderMetadata } from './get-metadata'
 
 import { getFfmpegSizeOptionString, createOutputStreams } from './util'
 
-import { isDefined } from '@benzed/is'
-
-/*** Types ***/
+//// Types ////
 
 type CreateMP4Options =
     Input
@@ -24,15 +23,15 @@ type CreateMP4Options =
     & VideoSetting
     & AudioSetting
 
-/*** Constants ***/
+//// Constants ////
 
-const VIDEO_CODEC = `libx264`
-const AUDIO_CODEC = `aac`
-const VIDEO_FORMAT = `mp4`
+const VIDEO_CODEC = 'libx264'
+const AUDIO_CODEC = 'aac'
+const VIDEO_FORMAT = 'mp4'
 const DEFAULT_VIDEO_BIT_RATE = 10000
 const DEFAULT_AUDIO_BIT_RATE = 128
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Converts a source stream to an mp4 
@@ -56,7 +55,7 @@ async function createMP4(
 
     // Optionally set bit rate
     cmd.videoBitrate(vbr)
-    if (isDefined(fps) && fps > 0)
+    if (is.defined(fps) && fps > 0)
         cmd.outputFPS(fps)
 
     if (abr <= 0)
@@ -79,10 +78,10 @@ async function createMP4(
     const render = new Promise((resolve, reject) => {
         const pass2Cmd = cmd.clone()
         pass2Cmd
-            .on(`error`, reject)
-            .on(`end`, resolve)
+            .on('error', reject)
+            .on('end', resolve)
             .addOptions([
-                `-movflags frag_keyframe+empty_moov` // allows streaming
+                '-movflags frag_keyframe+empty_moov' // allows streaming
             ])
             .output(outputStream, { end: true })
             .run()
@@ -101,7 +100,7 @@ async function createMP4(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default createMP4
 

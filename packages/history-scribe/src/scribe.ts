@@ -1,5 +1,6 @@
-import { wrap } from '@benzed/array'
+
 import { equals, copy, $$equals, $$copy } from '@benzed/immutable'
+import { wrap } from '@benzed/array'
 import { max } from '@benzed/math'
 
 import {
@@ -22,14 +23,14 @@ import {
     toDate
 } from './helper'
 
-/*** Types ***/
+//// Types ////
 
 /**
  * By default, sigantures are strings.
  */
 type Signature = string
 
-/*** Main ***/
+//// Main ////
 
 /**
  * A scribe instance provides an interface for computing immutable history
@@ -58,13 +59,13 @@ class HistoryScribe<T extends object, I = Signature> {
             collapseMask
         }
 
-        this._history = `data` in options && options.data
+        this._history = 'data' in options && options.data
             ? [{
-                method: `create`,
+                method: 'create',
                 data: copy(options.data),
                 ...resolveHistoryMeta()
             }]
-            : `history` in options && options.history
+            : 'history' in options && options.history
                 ? wrap(copy(options.history))
                 : []
 
@@ -90,7 +91,7 @@ class HistoryScribe<T extends object, I = Signature> {
      */
     create(data: T, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: `create`,
+            method: 'create',
             data,
             ...resolveHistoryMeta(signature)
         })
@@ -104,7 +105,7 @@ class HistoryScribe<T extends object, I = Signature> {
      */
     patch(data: Partial<T>, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: `patch`,
+            method: 'patch',
             data,
             ...resolveHistoryMeta(signature)
         })
@@ -117,7 +118,7 @@ class HistoryScribe<T extends object, I = Signature> {
      */
     remove(signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: `remove`,
+            method: 'remove',
             ...resolveHistoryMeta(signature)
         })
     }
@@ -203,7 +204,7 @@ class HistoryScribe<T extends object, I = Signature> {
     compile(): T & Historical<T, I> {
         const { _history: history, _data: data } = this
         if (history.length === 0)
-            throw new HistoryInvalidError(`No entries.`)
+            throw new HistoryInvalidError('No entries.')
 
         return copy({
             ...data as T,
@@ -211,7 +212,7 @@ class HistoryScribe<T extends object, I = Signature> {
         })
     }
 
-    /*** @benzed/immutable Implementation ***/
+    //// @benzed/immutable Implementation ////
 
     /**
      * Creates a deep copy of this scribe with the same state. 
@@ -239,7 +240,7 @@ class HistoryScribe<T extends object, I = Signature> {
             equals(this._history, other._history)
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     /**
      * Mutate a given historical to be valid, or throw if that is not possible.
@@ -261,34 +262,34 @@ class HistoryScribe<T extends object, I = Signature> {
 
             // assert sorted chronologicaly
             if (!isSameAgeOrOlder(valid.prevEntryTimeStamp, entry.timestamp))
-                throw new HistoryInvalidError(`Entries must be in chronological order.`)
+                throw new HistoryInvalidError('Entries must be in chronological order.')
             else
                 valid.prevEntryTimeStamp = entry.timestamp
 
             // handle Entry
             switch (entry.method) {
 
-                case `create`: {
+                case 'create': {
                     // validate create entry
                     if (!isFirstIndex)
-                        throw new HistoryInvalidError(`"create" entry must be first.`)
+                        throw new HistoryInvalidError('"create" entry must be first.')
 
                     // update valid data to include create data
                     valid.data.push({ ...entry.data })
                     break
                 }
 
-                case `patch`: {
+                case 'patch': {
                     // validate patch entry
                     if (isFirstIndex) {
                         throw new HistoryInvalidError(
-                            `"patch" entry must be placed after a "create" entry.`
+                            '"patch" entry must be placed after a "create" entry.'
                         )
                     }
 
                     if (valid.removeEntryExists) {
                         throw new HistoryInvalidError(
-                            `"patch" entry cannot be after a "remove" entry.`
+                            '"patch" entry cannot be after a "remove" entry.'
                         )
                     }
 
@@ -321,18 +322,18 @@ class HistoryScribe<T extends object, I = Signature> {
                     break
                 }
 
-                case `remove`: {
+                case 'remove': {
                     // validate remove entry
                     if (isFirstIndex) {
                         throw new HistoryInvalidError(
-                            `"remove" entry must be be placed after a "create" entry.`
+                            '"remove" entry must be be placed after a "create" entry.'
                         )
                     }
 
                     if (!valid.removeEntryExists)
                         valid.removeEntryExists = true
                     else
-                        throw new HistoryInvalidError(`There can only be one "remove" entry.`)
+                        throw new HistoryInvalidError('There can only be one "remove" entry.')
                     break
                 }
             }
@@ -343,7 +344,7 @@ class HistoryScribe<T extends object, I = Signature> {
 
         // validate num entries
         if (valid.history.length === 0)
-            throw new HistoryInvalidError(`No entries.`)
+            throw new HistoryInvalidError('No entries.')
 
         // apply validated history & data
         this._history.length = 0
@@ -360,7 +361,7 @@ class HistoryScribe<T extends object, I = Signature> {
             return false
 
         // only patch entries can be merged
-        if (target.method !== `patch`)
+        if (target.method !== 'patch')
             return false
 
         // no collapsing data with keys in the collapse mask
@@ -382,7 +383,7 @@ class HistoryScribe<T extends object, I = Signature> {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default HistoryScribe
 

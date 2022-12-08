@@ -1,16 +1,16 @@
 import $, { Infer } from '@benzed/schema'
-import { Command } from '../../../command'
-import { DEFAULT_SERVER_PORT } from '../../../constants'
-import { $logIcon } from '../../../schemas'
+import { InputOf, OutputOf } from '@benzed/util'
 
 import Connection from '../connection'
+import { CommandModule } from '../../../modules'
+import { DEFAULT_SERVER_PORT, $logIcon } from '../../../util'
 
-/*** Types ***/
+//// Types ////
 
 interface ClientSettings extends Infer<typeof $clientSettings> {}
 const $clientSettings = $({
     logIcon: $logIcon   
-        .default(`💻`),
+        .default('📱'),
     
     webSocket: $.boolean
         .optional
@@ -21,20 +21,24 @@ const $clientSettings = $({
         .default(`http://localhost:${DEFAULT_SERVER_PORT}`)
 })
 
-/*** Client ***/
+//// Client ////
 
 /**
  * Creates connection to server, allows commands to be emitted.
  */
 abstract class Client extends Connection<Required<ClientSettings>> {
 
-    readonly type = `client` as const
-
-    abstract executeOnServer(command: Command): Promise<object>
-
+    /**
+     * Execute a command with the given name and data
+     */
+    abstract execute<C extends CommandModule<string, object, object>>(
+        command: C,
+        data: InputOf<C>
+    ): Promise<OutputOf<C>>
+        
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Client
 

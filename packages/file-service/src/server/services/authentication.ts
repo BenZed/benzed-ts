@@ -4,21 +4,21 @@ import { FeathersService } from '@feathersjs/feathers'
 
 import type { FileServerApp } from '../create-file-server-app'
 
-/*** Main ***/
+//// Main ////
 
 export default function setupAuthenticationService(
     app: FileServerApp
 ): FeathersService<FileServerApp, AuthenticationService> {
 
     const authentication = new AuthenticationService(app)
-    authentication.register('jwt', new JWTStrategy())
-    authentication.register('local', new LocalStrategy())
+    authentication.register(`jwt`, new JWTStrategy())
+    authentication.register(`local`, new LocalStrategy())
     // authentication.register('renderer', new RendererStrategy())
 
-    app.use('authentication', authentication)
+    app.use(`authentication`, authentication)
     app.log`authentication service configured`
 
-    return app.service('authentication')
+    return app.service(`authentication`)
 }
 
 export {

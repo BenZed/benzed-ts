@@ -18,11 +18,11 @@ import {
 import { Input, Output } from './ffmpeg/settings'
 
 import fs from '@benzed/fs'
-import { isString } from '@benzed/is'
-import { Queue, QueueItem } from '@benzed/async'
+import { is } from '@benzed/is'
 import { pass } from '@benzed/util'
+import { Queue, QueueItem } from '@benzed/async'
 
-/*** Constants ***/
+//// Constants ////
 
 const EXT = {
     audio: '.mp3',
@@ -74,7 +74,7 @@ interface RenderData
 type RenderItem =
     QueueItem<RenderMetadata, RenderData>
 
-/*** Helper ***/
+//// Helper ////
 
 function getOutput(
     options: AddRenderItemOptions,
@@ -84,20 +84,20 @@ function getOutput(
 
     const { source, target } = options
 
-    const fileName = isString(source)
+    const fileName = is.string(source)
         ? path.basename(source, path.extname(source))
         : Date.now().toString()
 
     const ext = EXT[type]
 
-    const output = isString(target)
+    const output = is.string(target)
         ? path.join(target, `${fileName}_${setting}${ext}`)
         : target({ fileName, ext, setting })
 
     return output
 }
 
-/*** Main ***/
+//// Main ////
 
 class Renderer {
 
@@ -274,7 +274,7 @@ class Renderer {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Renderer
 

@@ -1,4 +1,5 @@
-import { isDate, isNaN, isNumber, isString } from '@benzed/is'
+import { is } from '@benzed/is'
+
 import { 
     RangeValidator, 
     RangeValidatorSettingsShortcut, 
@@ -15,30 +16,31 @@ import {
     HasMutable,
     HasOptional
 } from './flags'
+
 import Schema from './schema'
 
-/*** Helper ***/
+//// Helper ////
 
 function isValidDate(date: unknown): date is Date {
-    return isDate(date) && 
-        !isNaN(date.getMilliseconds()) 
+    return is.date(date) && 
+        !is.nan(date.getMilliseconds()) 
 }
 
 function tryCastToDate(value: unknown): unknown {
 
-    if (isString(value) || isNumber(value) && isValidDate(new Date(value)))
+    if (is.string(value) || is.number(value) && isValidDate(new Date(value)))
         return new Date(value)
 
     return value
 }
 
-/*** Main ***/
+//// Main ////
 
 class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `date`,
-        article: `a`,
+        name: 'date',
+        article: 'a',
         is: isValidDate,
         cast: tryCastToDate
     })
@@ -47,34 +49,37 @@ class DateSchema<F extends Flags[] = []> extends Schema<Date, Date, F> {
         super( new Date(), ...flags)
     }
 
-    /*** Chain Schema Methods ***/
+    //// Chain Schema Methods ////
 
     range(...input: RangeValidatorSettingsShortcut<Date>): this {
         return this._copyWithPostTypeValidator(
-            `range`,
+            'range',
             new RangeValidator(
                 toRangeValidatorSettings(input)
             )
         )
     }
 
-    override readonly optional!: HasOptional<
+}
+
+interface DateSchema<F extends Flags[] = []> {
+
+    readonly optional: HasOptional<
     /**/ F,
     /**/ never,
     /**/ DateSchema<AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F,
     /**/ never,
     /**/ DateSchema<AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => DateSchema
-
+    readonly clearFlags: () => DateSchema
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default DateSchema
 

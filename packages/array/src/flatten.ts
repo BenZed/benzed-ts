@@ -1,10 +1,10 @@
-import { isArrayLike } from '@benzed/is'
+import { is } from '@benzed/is'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { push } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Unwraps all nested arrays into a single array.
@@ -16,7 +16,7 @@ function flatten<T>(input: ArrayLike<T>): T[] {
 
     for (let i = 0; i < input.length; i++) {
         const item = input[i]
-        if (isArrayLike(item))
+        if (is.array.like(item))
             push.apply(output, flatten(item))
         else
             output.push(item)
@@ -25,6 +25,6 @@ function flatten<T>(input: ArrayLike<T>): T[] {
     return output
 }
 
-/*** Export ***/
+//// Export ////
 
 export default flatten

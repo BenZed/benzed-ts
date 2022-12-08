@@ -1,13 +1,13 @@
-import { isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 
-/*** Main ***/
+//// Main ////
 
 function resolveIndex(
     arrLikeOrLength: number | ArrayLike<unknown>,
     index: number
 ): number {
 
-    const length = isNumber(arrLikeOrLength)
+    const length = is.number(arrLikeOrLength)
         ? arrLikeOrLength
         : arrLikeOrLength.length
 
@@ -16,9 +16,9 @@ function resolveIndex(
 
     return (index % length + length) % length || 0 // <- in case of NaN, which only
     //                                       happens if the array is empty in which 
-    //                                       case the only valid index is 0, anyway
+    //                                      `     case the only valid index is 0, anyway
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default resolveIndex

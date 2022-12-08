@@ -3,7 +3,7 @@
 
 type Validator = (...args: any[]) => (input: unknown) => input is unknown
 
-/*** Main ***/
+//// Main ////
 
 const describeValidator = <T extends Validator>(options: {
     factory: T
@@ -28,7 +28,7 @@ const describeValidator = <T extends Validator>(options: {
     })
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     describeValidator

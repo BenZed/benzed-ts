@@ -1,6 +1,4 @@
-import {
-    isNumber
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     round,
@@ -15,7 +13,7 @@ import {
     ErrorDefault
 } from './validator'
 
-/*** Types ***/
+//// Types ////
 
 interface RoundValidatorSettings extends ErrorSettings<[
     value: number,
@@ -37,18 +35,18 @@ type RoundValidatorSettingsShortcut = [
     Omit<RoundValidatorSettings, 'method'>
 ]
 
-/*** Const ***/
+//// Const ////
 
 const ROUNDER_METHODS = { round, ceil, floor }
 
-/*** Helper ***/
+//// Helper ////
 
 function toRoundValidatorSettings(
     method: RounderMethod,
     shortcut: RoundValidatorSettingsShortcut,
 ): RoundValidatorSettings {
 
-    const { precision, error } = isNumber(shortcut[0])
+    const { precision, error } = is.number(shortcut[0])
         ? { precision: shortcut[0], error: shortcut[1] }
         : shortcut[0]
 
@@ -60,14 +58,14 @@ function toRoundValidatorSettings(
 
 }
 
-/*** Main ***/
+//// Main ////
 
 class RoundValidator extends AssertValidTransformValidator<
 /**/ number,
 /**/ RoundValidatorSettings
 > {
 
-    /*** AssertTransformEqualValidator Implementation ***/
+    //// AssertTransformEqualValidator Implementation ////
 
     protected _transform(input: number): number {
 
@@ -94,7 +92,7 @@ class RoundValidator extends AssertValidTransformValidator<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default RoundValidator
 

@@ -8,27 +8,27 @@ import {
     expectValidationError
 } from '../util.test'
 
-/*** Input ***/
+//// Input ////
 
 const $buffer = new ArraySchema(new NumberSchema())
 
 // TODO move me
 
-describe(`validate()`, () => {
+describe('validate()', () => {
 
-    it(`validates arrays`, () => {
+    it('validates arrays', () => {
         expect($buffer.validate([0, 1, 2, 3, 4, 5, 6]))
             .toEqual([0, 1, 2, 3, 4, 5, 6])
 
     })
 
-    it(`validates children`, () => {
-        const expectError = expectValidationError(() => $buffer.validate([0, `One`, 2]))
-        expectError.toHaveProperty(`path`, [1])
-        expectError.toHaveProperty(`message`, `must be a number`)
+    it('validates children', () => {
+        const expectError = expectValidationError(() => $buffer.validate([0, 'One', 2]))
+        expectError.toHaveProperty('path', [1])
+        expectError.toHaveProperty('message', 'must be a number')
     })
 
-    it(`validates nested children`, () => {
+    it('validates nested children', () => {
 
         const $tokens = new ArraySchema(new ShapeSchema({
             payload: new StringSchema(),
@@ -38,22 +38,22 @@ describe(`validate()`, () => {
 
         expectValidationError(
             () => $tokens.validate([
-                { payload: `1ag4az`, referrer: `adfa`, expiration: 100 },
-                { payload: `1ag4az`, referrer: `adfa`, expiration: `never lol` },
+                { payload: '1ag4az', referrer: 'adfa', expiration: 100 },
+                { payload: '1ag4az', referrer: 'adfa', expiration: 'never lol' },
             ])
-        ).toHaveProperty(`path`, [1, `expiration`])
+        ).toHaveProperty('path', [1, 'expiration'])
     })
 
 })
 
-describe(`default()`, () => {
+describe('default()', () => {
 
-    it(`changes default setting`, () => {
+    it('changes default setting', () => {
         expect($buffer.default([0]).validate(undefined))
             .toEqual([0])
     })
 
-    it(`default() defaults to empty array`, () => {
+    it('default() defaults to empty array', () => {
         expect(
             $buffer
                 .default()
@@ -63,16 +63,16 @@ describe(`default()`, () => {
 
 })
 
-describe(`length()`, () => {
+describe('length()', () => {
 
     const $polygon = new ArraySchema(
         new ShapeSchema({
             x: new NumberSchema(),
             y: new NumberSchema()
         })
-    ).length(3, `...`, 4)
+    ).length(3, '...', 4)
 
-    it(`instances a new schema with a length validator`, () => {
+    it.only('instances a new schema with a length validator', () => {
 
         const square = [
             { x: 0, y: 0 },
@@ -85,18 +85,18 @@ describe(`length()`, () => {
             .toEqual(square)
 
         expectValidationError(() => $polygon.validate(square.slice(2)))
-            .toHaveProperty(`message`, `length must be from 3 to 4`)
+            .toHaveProperty('message', 'length must be from 3 to 4')
 
     })
 
-    it(`length validator settings cant be below 0`, () => {
+    it('length validator settings cant be below 0', () => {
         expect(() => $polygon.length(-1))
-            .toThrow(`cannot validate length below 0`)
+            .toThrow('cannot validate length below 0')
     })
 
-    it(`length validator settings must be integers`, () => {
+    it('length validator settings must be integers', () => {
         expect(() => $polygon.length(3.5))
-            .toThrow(`value must be an integer`)
+            .toThrow('value must be an integer')
     })
 
 })

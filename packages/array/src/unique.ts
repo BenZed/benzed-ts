@@ -1,52 +1,37 @@
-import { descending } from './sorted-array'
+//// Shortcuts ////
 
-/*** Shortcuts ***/
+const { splice, findIndex } = Array.prototype
 
-const { splice } = Array.prototype
+//// Helper ////
 
-/*** Main ***/
+//// Main ////
 
 /**
- * Removes all duplicate values in a given array.
- *
- * @param  {Array} input ArrayLike to be uniquified
- * @return {Array} ArrayLike is mutated in place, but method returns it anyway.
+ * Given filter arguements, return true if the provided 
  */
-function unique<T extends string | ArrayLike<unknown>>(
-    arrayLike: T
-): T {
+function unique<T>(value: T, index: number, array: ArrayLike<T>): boolean
+function unique<T extends string | ArrayLike<unknown>>(arrayLike: T): T
+function unique<T extends ArrayLike<unknown>>(this: T): T
+function unique(this: unknown, pivot?: unknown, index?: number, array?: ArrayLike<unknown>): unknown {
+    
+    if (this) 
+        return unique(this as ArrayLike<unknown>)
+    
+    if (array) 
+        return findIndex.call(array, value => Object.is(pivot, value)) === index
+    else   
+        array = pivot as ArrayLike<unknown>
+        
+    if (typeof array === 'string')
+        return unique(array.split('')).join('')
 
-    if (typeof arrayLike === `string`) {
-
-        let output = ``
-        for (const char of arrayLike) {
-            if (!output.includes(char))
-                output += char
-        }
-
-        return output as T
-
-    } else {
-
-        const indexesToDelete: number[] = []
-        const arraySplice = splice.bind(arrayLike)
-
-        for (let i = 0; i < arrayLike.length; i++) {
-            if (indexesToDelete.includes(i))
-                continue
-            for (let ii = i + 1; ii < arrayLike.length; ii++) {
-                if (Object.is(arrayLike[ii], arrayLike[i]))
-                    indexesToDelete.push(ii)
-            }
-        }
-
-        for (const indexToDelete of indexesToDelete.sort(descending))
-            arraySplice(indexToDelete, 1)
-
-        return arrayLike
+    for (let i = array.length - 1; i >= 0; i--) {
+        if (!unique(array[i], i, array)) 
+            splice.call(array, i, 1)
     }
+    return array
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default unique

@@ -8,16 +8,16 @@ import { createTestApp } from '../util.test'
 let service: FeathersService<any, any>
 
 beforeAll(async () => {
-    service = createTestApp([`users`]).service(`users`)
+    service = createTestApp(['users']).service('users')
     await service.create({
-        name: `Steve`
+        name: 'Steve'
     })
     await service.create({
-        name: `Joe`
+        name: 'Joe'
     })
 })
 
-it(`casts array results to paginated results`, async () => {
+it('casts array results to paginated results', async () => {
 
     const users = await service.find()
 

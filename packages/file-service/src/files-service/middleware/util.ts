@@ -1,7 +1,7 @@
 import path from 'path'
 
 import { MongoDBApplication } from '@benzed/feathers'
-import { isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import match from '@benzed/match'
 
 import { FeathersService } from '@feathersjs/feathers'
@@ -12,7 +12,7 @@ import FileService from '../service'
 import { File, FilePayload, FileServiceConfig } from '../schema'
 import { UPLOAD_QUERY_PARAM } from '../constants'
 
-/*** Types ***/
+//// Types ////
 
 interface FileRoutingSettings {
 
@@ -42,7 +42,7 @@ function assertFileMiddlewareSettings(
     }
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function getCtxFileService(
     ctx: FeathersKoaContext,
@@ -60,7 +60,7 @@ async function getCtxPayload(
 
     const uploadToken = ctx.query[UPLOAD_QUERY_PARAM]
 
-    const payload = isString(uploadToken)
+    const payload = is.string(uploadToken)
         ? await verify(uploadToken)
         : null
 
@@ -97,7 +97,7 @@ export async function validatePayload(
     return file
 }
 
-/*** Main ***/
+//// Main ////
 
 function createFileRoutingMiddleware(
     create: (settings: FileMiddlewareSettings) => Middleware    
@@ -128,7 +128,7 @@ function createFileRoutingMiddleware(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     createFileRoutingMiddleware,

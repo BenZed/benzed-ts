@@ -1,11 +1,11 @@
 
-/*** Types ***/
+//// Types ////
 
 interface Abort {
     (): void
 }
 
-/*** Main ***/
+//// Main ////
 
 function onTimeout(
     callback: () => unknown,
@@ -31,7 +31,7 @@ function onAnimationFrame(
     callback: () => unknown
 ): Abort {
 
-    if (typeof `requestAnimationFrame` !== `function`) {
+    if (typeof 'requestAnimationFrame' !== 'function') {
         const SIXTY_FRAMES_PER_SECOND = 1000 / 60
         return onInterval(callback, SIXTY_FRAMES_PER_SECOND)
     }
@@ -50,7 +50,7 @@ function onAnimationFrame(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     onTimeout,

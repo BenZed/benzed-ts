@@ -1,7 +1,7 @@
 
 import { AssertTransformValidator, ErrorSettings } from './validator'
 
-/*** Types ***/
+//// Types ////
 
 interface TypeValidatorSettings<T> extends ErrorSettings<[
     value: unknown, 
@@ -32,7 +32,7 @@ interface TypeValidatorSettings<T> extends ErrorSettings<[
     readonly article?: string
 }
 
-/*** Main ***/
+//// Main ////
 
 class TypeValidator<O> extends AssertTransformValidator<
 /**/ unknown,
@@ -40,7 +40,7 @@ class TypeValidator<O> extends AssertTransformValidator<
 /**/ TypeValidatorSettings<O>
 > {
 
-    /*** AssertTransformValidator Implementation ***/
+    //// AssertTransformValidator Implementation ////
 
     protected _transform(input: unknown): unknown | O {
 
@@ -59,7 +59,7 @@ class TypeValidator<O> extends AssertTransformValidator<
 
         if (!is(input)) {
             this._throwWithErrorSetting(
-                `must be ${article ? article + ` ` + name : name}`,
+                `must be ${article ? article + ' ' + name : name}`,
                 input,
                 name,
                 article
@@ -69,7 +69,7 @@ class TypeValidator<O> extends AssertTransformValidator<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default TypeValidator
 

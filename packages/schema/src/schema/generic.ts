@@ -11,7 +11,7 @@ import {
 import { TypeValidator } from '../validator/type'
 import { TypeGuard } from '@benzed/util'
 
-/*** Types ***/
+//// Types ////
 
 type GenericSchemaInput = TypeGuard<unknown> 
 
@@ -19,7 +19,7 @@ type GenericSchemaOutput<I> = I extends TypeGuard<infer O>
     ? O 
     : unknown
 
-/*** Main ***/
+//// Main ////
 
 class GenericSchema<
     I extends GenericSchemaInput,
@@ -30,12 +30,12 @@ class GenericSchema<
 
     protected _typeValidator = new TypeValidator<O>({
 
-        name: this._input.name.replace(/^is/, ``) || `unknown`,
+        name: this._input.name.replace(/^is/, '') || 'unknown',
         //    ^ isType -> Type
 
-        error: (value, typeName, article) => typeName === `unknown` 
+        error: (value, typeName, article) => typeName === 'unknown' 
             ? `${value} is invalid` 
-            : `must be ${article ? article + ` ` + typeName : typeName}`,
+            : `must be ${article ? article + ' ' + typeName : typeName}`,
 
         is: this._input
     })
@@ -44,19 +44,27 @@ class GenericSchema<
         super(input, ...flags)
     }
 
-    override readonly optional!: HasOptional<
+}
+
+interface GenericSchema<
+    I extends GenericSchemaInput,
+    O extends GenericSchemaOutput<I>,
+    F extends Flags[] = []
+> {
+
+    readonly optional: HasOptional<
     /**/ F, never, GenericSchema<I, O, AddFlag<Flags.Optional, F>>
     >
 
-    override readonly mutable!: HasMutable<
+    readonly mutable: HasMutable<
     /**/ F, never, GenericSchema<I, O, AddFlag<Flags.Mutable, F>>
     >
 
-    override readonly clearFlags!: () => GenericSchema<I,O>
+    readonly clearFlags: () => GenericSchema<I,O>
 
 }
 
-/*** Expors ***/
+//// Expors ////
 
 export default GenericSchema
 

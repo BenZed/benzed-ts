@@ -1,55 +1,36 @@
-import { Func } from '@benzed/util'
+import { Func, memoize as _memoize, MemoizeOptions, Memoized } from '@benzed/util'
+
 import { ValueMap } from './value-map'
 
-/*** Helper ***/
+//// Main ////
 
-function trimCacheToSize(
-    cache: ValueMap<unknown, unknown>,
-    size: number
-): void {
+function memoize<F extends Func>(f: F, name?: string): Memoized<F>
 
-    const keys = cache['_keys']
-    const values = cache['_values']
+function memoize<F extends Func>(f: F, maxCacheSize?: number): Memoized<F>
 
-    if (cache.size > size) {
-        const deleteCount = cache.size - size
+function memoize<F extends Func>(f: F, options?: { name?: string, maxCacheSize?: number }): Memoized<F>
 
-        keys.splice(0, deleteCount)
-        values.splice(0, deleteCount)
-    }
+function memoize<F extends Func>(
+    func: F,
+    options?: string | number | Omit<MemoizeOptions<F>, 'cache'>
+): Memoized<F> {
+
+    const { name, maxCacheSize } = _memoize.options(func, options)
+ 
+    return _memoize(func, { 
+        name, 
+        maxCacheSize, 
+
+        // all we need to do to switch from parameter identical memoization
+        // to parameter deep-equal memoization is switch the cache type.
+        cache: new ValueMap<Parameters<F>, ReturnType<F>>()
+    })
 }
 
-/*** Main ***/
-
-/**
- * Memoize a method by comparing it's arguments as value-equal.
- * @param method Method to memoize.
- * @param maxCacheSize Maximum number of argument variants to cache.
- * @returns Memoized method.
- */
-function memoize<T extends Func>(
-    method: T,
-    maxCacheSize = Infinity
-): T {
-
-    const cache = new ValueMap<Parameters<T>, ReturnType<T>>()
-
-    return ((...args: Parameters<T>): ReturnType<T> => {
-
-        let result: ReturnType<T>
-        if (cache.has(args))
-            result = cache.get(args) as ReturnType<T>
-        else {
-            result = method(...args as unknown[]) as ReturnType<T>
-            cache.set(args, result)
-
-            trimCacheToSize(cache, maxCacheSize)
-        }
-
-        return result
-    }) as T
-}
-
-/*** Exports ***/
+//// Exports ////
 
 export default memoize
+
+export {
+    memoize
+}

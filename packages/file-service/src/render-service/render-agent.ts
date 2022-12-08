@@ -18,7 +18,7 @@ import { File, SERVER_RENDERER_ID } from '../files-service'
 import { RENDER_DIR_NAME } from '../files-service/constants'
 import { getFsFilePath } from '../files-service/middleware/util'
 
-/*** Types ***/
+//// Types ////
 
 interface RenderAgentResult {
     readonly error: Error | null
@@ -33,7 +33,7 @@ interface RenderAgentData {
     }[]
 }
 
-/*** Helper ***/
+//// Helper ////
 
 async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentResult[]> {
 
@@ -47,7 +47,7 @@ async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentRes
     }))
 }
 
-/*** Main ***/
+//// Main ////
 
 class RenderAgent implements RenderAgentData {
 
@@ -67,13 +67,13 @@ class RenderAgent implements RenderAgentData {
             .map(([_id, results]) => ({ _id, results }))
     }
 
-    /*** Constructor ***/
+    //// Constructor ////
     
     constructor (
         readonly agent: Renderer | Socket,
     ) { }
 
-    /*** Interface ***/
+    //// Interface ////
 
     render(file: File): QueueItem<RenderAgentResult[], { fileId: string }> {
 
@@ -106,13 +106,13 @@ class RenderAgent implements RenderAgentData {
         return this.queue.complete()
     }
 
-    /*** To Json ***/
+    //// To Json ////
     
     toJSON(): RenderAgentData {
         return pick(this, `_id`, `files`)
     }
 
-    /*** Helper ***/
+    //// Helper ////
     
     protected _renderLocal(agent: Renderer, file: File): Promise<RenderAgentResult[]> {
 
@@ -163,7 +163,7 @@ class RenderAgent implements RenderAgentData {
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default RenderAgent
 

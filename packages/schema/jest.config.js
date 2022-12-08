@@ -1,10 +1,17 @@
 module.exports = {
-    preset: 'ts-jest',
-    globals: {
-        'ts-jest': {
-            isolatedModules: true
-        }
+    roots: [
+        './src'
+    ],
+
+    transform: {
+        '^.+\\.tsx?$': [
+            'ts-jest',
+            {
+                tsconfig: '../../tsconfig.test.json',
+            }
+        ]
     },
+
     modulePathIgnorePatterns: [
         'util.test.ts'
     ]

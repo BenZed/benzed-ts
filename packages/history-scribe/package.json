@@ -1,13 +1,12 @@
 {
     "name": "@benzed/history-scribe",
     "description": "Structure for tracking historical changes to data.",
-    "main": "./lib",
+    "main": "./src",
     "version": "1.1.1",
     "scripts": {
-        "test": "NODE_ENV=test jest --maxWorkers=1 -o",
-        "test:dev": "npm run test -- --verbose --watch",
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --force-exit --verbose",
         "build": "npm run lint && npm run tsc",
-        "build:dev": "npm run tsc -- -w",
         "lint": "eslint src/**/*.ts --fix",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },

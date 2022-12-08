@@ -4,7 +4,7 @@ import { AuthenticationResult } from '@feathersjs/authentication'
 import { HookContext } from '@feathersjs/feathers'
 import socketio from '@feathersjs/socketio'
 
-/*** Main ***/
+//// Main ////
 
 function setupSocketIO(app: FileServerApp): void {
     
@@ -36,7 +36,7 @@ function setupSocketIO(app: FileServerApp): void {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default setupSocketIO
 

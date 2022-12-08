@@ -1,6 +1,6 @@
 
+import { is } from '@benzed/is'
 import { push } from '@benzed/immutable'
-import { isObject } from '@benzed/is'
 
 import { TypeValidator } from '../validator/type'
 import { AddFlag, Flags, HasMutable, HasOptional } from './flags'
@@ -13,7 +13,7 @@ import UnionSchema from './union'
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type RecordSchemaInput = 
     [ 
@@ -41,7 +41,7 @@ type RecordSchemaOutput<T extends RecordSchemaInput> =
     /**/ ? RecordSchemaKeyValueOutput<T[0], T[1]>
     /**/ : RecordSchemaKeyValueOutput<StringSchema<any>, T[0]>
 
-/*** Main ***/
+//// Main ////
 
 class RecordSchema<
     /**/
@@ -53,9 +53,9 @@ class RecordSchema<
     /**/> extends ParentSchema<I, O, F> {
 
     protected _typeValidator = new TypeValidator({
-        name: `object`,
-        article: `an`,
-        is: (input): input is O => isObject(input),
+        name: 'object',
+        article: 'an',
+        is: (input): input is O => is.object(input),
     })
 
     protected override _validateChildren(input: O, inputContext: SchemaValidationContext): O {
@@ -80,10 +80,10 @@ class RecordSchema<
             }
 
             const validKey = keySchema
-                ? keySchema[`_validate`](key, keyContext) as typeof key
+                ? keySchema['_validate'](key, keyContext) as typeof key
                 : key
 
-            output[validKey] = valueSchema[`_validate`](value, keyContext)
+            output[validKey] = valueSchema['_validate'](value, keyContext)
         }
 
         return output
@@ -97,23 +97,34 @@ class RecordSchema<
         return this._input[1]
     }
 
-    override readonly optional!: HasOptional<
-    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
-    >
-
-    override readonly mutable!: HasMutable<
-    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
-    >
-
-    override readonly clearFlags!: () => RecordSchema<I, O>
-
     override default(defaultValue = {} as O): this {
         return super.default(defaultValue)
     }
 
 }
 
-/*** Expors ***/
+interface RecordSchema<
+    /**/
+
+    I extends RecordSchemaInput,
+    O extends RecordSchemaOutput<I>,
+    F extends Flags[] = []
+
+    /**/> {
+        
+    readonly optional: HasOptional<
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Optional, F>>
+    >
+
+    readonly mutable: HasMutable<
+    /**/ F, never, RecordSchema<I, O, AddFlag<Flags.Mutable, F>>
+    >
+
+    readonly clearFlags: () => RecordSchema<I, O>
+
+}
+
+//// Expors ////
 
 export default RecordSchema
 

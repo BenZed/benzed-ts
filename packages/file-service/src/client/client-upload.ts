@@ -5,7 +5,7 @@ import fs from '@benzed/fs'
 import { File } from '../files-service'
 import { RENDER_DIR_NAME } from '../files-service/constants'
 
-/*** Main ***/
+//// Main ////
 
 function clientUpload(
     _host: string,
@@ -21,7 +21,7 @@ function clientUpload(
     return fs.createWriteStream(filePath)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default clientUpload
 

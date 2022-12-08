@@ -1,15 +1,16 @@
 import type { Json } from '@benzed/util'
+
 import { writeFile } from './export'
 import { PathLike } from './types'
 
-/*** Types ***/
+//// Types ////
 
 type StringifyParams = Parameters<typeof JSON.stringify>
 
 type Replacer = Exclude<StringifyParams[1], undefined>
 type Spaces = Exclude<StringifyParams[2], undefined>
 
-/*** Main ***/
+//// Main ////
 
 async function writeJson<T extends Json>(
     input: T,
@@ -20,10 +21,10 @@ async function writeJson<T extends Json>(
 
     const str = JSON.stringify(input, replacer, spaces)
 
-    await writeFile(url, str, `utf-8`)
+    await writeFile(url, str, 'utf-8')
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default writeJson
 

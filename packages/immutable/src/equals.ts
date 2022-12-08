@@ -1,23 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
-import { isIterable, isArrayLike, isFunction, isObject, isInstanceOf } from '@benzed/is'
+import { keysOf, isFunc, isIterable, isArrayLike, isObject } from '@benzed/util'
 
-import { getKeys, isReferable, Prototypal } from './util'
 import { $$equals } from './symbols'
+import { isReferable, Prototypal } from './util'
 
-/*** Types ***/
+//// Types ////
 
-interface Comparable<T> {
-    [$$equals]: (this: Comparable<T>, right: unknown) => right is T
+interface Comparable {
+    [$$equals]: (right: unknown) => right is this
 }
 
-function isComparable<T>(input: unknown): input is Comparable<T> {
-    return isFunction((input as Comparable<T>)[$$equals])
+function isComparable(input: unknown): input is Comparable {
+    return isFunc((input as Comparable)[$$equals])
 }
 
-/*** Helper ***/
+//// Helper ////
 
-function compareWithImplementation<T>(left: T, right: unknown): boolean {
+function compareWithImplementation(left: unknown, right: unknown): boolean {
 
     if (left == null || right == null || Object.is(left, right))
         return Object.is(left, right)
@@ -38,7 +38,7 @@ function compareWithImplementation<T>(left: T, right: unknown): boolean {
     return false
 }
 
-function compareArrayLikes<T>(left: ArrayLike<T>, right: ArrayLike<T>): boolean {
+function compareArrayLikes(left: ArrayLike<unknown>, right: ArrayLike<unknown>): boolean {
 
     if (left.length !== right.length)
         return false
@@ -51,7 +51,7 @@ function compareArrayLikes<T>(left: ArrayLike<T>, right: ArrayLike<T>): boolean 
     return true
 }
 
-/*** Standard Implementations ***/
+//// Standard Implementations ////
 
 function equalIs<T>(this: T, right: unknown): right is T {
     const left = this
@@ -79,15 +79,15 @@ function equalArrayLike<T extends ArrayLike<any>>(this: T, right: unknown): righ
     return compareArrayLikes(left, right)
 }
 
-function equalObject<T>(this: T, right: unknown): right is T {
+function equalObject<T extends object>(this: T, right: unknown): right is T {
 
     if (!isObject(right))
         return false
 
     const left = this
 
-    const leftKeys = getKeys(left)
-    const rightKeys = getKeys(right)
+    const leftKeys = [...keysOf(left)]
+    const rightKeys = [...keysOf(right)]
 
     if (leftKeys.length !== rightKeys.length)
         return false
@@ -104,23 +104,23 @@ function equalDate(this: Date, right: unknown): right is Date {
     const left = this
 
     return isReferable(right) &&
-        isFunction(right.getTime) &&
+        isFunc(right.getTime) &&
         left.getTime() === right.getTime()
 }
 
 function equalRegExp(this: RegExp, right: unknown): right is RegExp {
     const left = this
 
-    return isInstanceOf(right, RegExp) && left.toString() === right.toString()
+    return right instanceof RegExp && left.toString() === right.toString()
 }
 
-/*** Add Standard Implementations ***/
+//// Add Standard Implementations ////
 
 {
 
-    const addToPrototype = <T>(
+    const addToPrototype = (
         { prototype }: Prototypal,
-        implementation: Comparable<T>[typeof $$equals]
+        implementation: (right: unknown) => boolean
     ): void => {
 
         Object.defineProperty(prototype, $$equals, {
@@ -133,11 +133,11 @@ function equalRegExp(this: RegExp, right: unknown): right is RegExp {
         addToPrototype(Immutable, equalIs)
 
     for (const Iterable of [Map, Set])
-        addToPrototype(Iterable, equalIterable as any)
+        addToPrototype(Iterable, equalIterable)
 
     addToPrototype(Object, equalObject)
-    addToPrototype(RegExp, equalRegExp as any)
-    addToPrototype(Date, equalDate as any)
+    addToPrototype(RegExp, equalRegExp)
+    addToPrototype(Date, equalDate)
 
     for (const ArrayType of [
         Array,
@@ -151,16 +151,16 @@ function equalRegExp(this: RegExp, right: unknown): right is RegExp {
         Float32Array,
         Float64Array
     ])
-        addToPrototype(ArrayType, equalArrayLike as any)
+        addToPrototype(ArrayType, equalArrayLike)
 }
 
-/*** Main ***/
+//// Main ////
 
 function equals<T>(a: T, b: unknown): b is T {
     return compareWithImplementation(a, b)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default equals
 

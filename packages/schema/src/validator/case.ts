@@ -5,10 +5,7 @@ import {
     ErrorSettings
 } from './validator'
 
-import {
-    isPlainObject,
-    isString
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
 import {
     capitalize,
@@ -16,7 +13,7 @@ import {
     toDashCase
 } from '@benzed/string'
 
-/*** Types ***/
+//// Types ////
 
 interface CaseValidatorSettings<C extends Casing = Casing>
     extends ErrorSettings<[input: string, casing: C]> {
@@ -41,28 +38,26 @@ type Casing =
     'pascal'
 
 type CaseValidatorSettingsShortcut<C extends Casing> = Delimiter<C> extends never
+    
     ? [
         error: ErrorDefault<CaseValidatorSettings<C>>
     ] | [
         Omit<CaseValidatorSettings<C>, 'case'>
-    ]
+    ] | []
+
     : [
         delimiter: Delimiter<C>
     ] | [
         delimiter: Delimiter<C>, error: ErrorDefault<CaseValidatorSettings<C>>
     ] | [
         Omit<CaseValidatorSettings<C>, 'case'>
-    ]
+    ] | []
 
 function isDelimitedCasing(casing: Casing): casing is 'dash' | 'camel' | 'pascal' {
-    return casing === `dash` || casing === `camel` || casing === `pascal`
+    return casing === 'dash' || casing === 'camel' || casing === 'pascal'
 }
 
-/*** Constants ***/
-
-const SPACE_DASH_UNDERSCORE = / |-|_/
-
-/*** Helper ***/
+//// Helper ////
 
 function toCaseValidatorSettings<C extends Casing>(
     input: CaseValidatorSettingsShortcut<C>,
@@ -74,7 +69,7 @@ function toCaseValidatorSettings<C extends Casing>(
 
     const [arg1, arg2] = input
 
-    const settings: Settings = isPlainObject<Settings>(arg1)
+    const settings: Settings = is.record<Settings>(arg1)
         ? arg1
         : isDelimitedCasing(casing)
             ? { error: arg2, delimiter: arg1 as Delimiter<C> }
@@ -86,7 +81,7 @@ function toCaseValidatorSettings<C extends Casing>(
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 class CaseValidator<C extends Casing>
     extends AssertValidTransformValidator<string, CaseValidatorSettings<C>> {
@@ -110,40 +105,40 @@ class CaseValidator<C extends Casing>
 
         switch (settings.case) {
 
-            case `lower`: {
+            case 'lower': {
                 return input.toLocaleLowerCase()
             }
 
-            case `upper`: {
+            case 'upper': {
                 return input.toLocaleUpperCase()
             }
 
-            case `capital`: {
+            case 'capital': {
                 return capitalize(input)
             }
 
-            case `dash`: {
+            case 'dash': {
 
-                const delimiter = isString(settings.delimiter)
+                const delimiter =is.string(settings.delimiter)
                     ? settings.delimiter
-                    : undefined
+                    : '-'
 
-                return toDashCase(input, delimiter)
+                return toDashCase(input).replaceAll('-', delimiter)
             }
 
-            case `camel`: {
+            case 'camel': {
 
-                const { delimiter = SPACE_DASH_UNDERSCORE } = settings
+                const { delimiter } = settings
 
-                return toCamelCase(input, delimiter)
+                return toCamelCase(input, delimiter as RegExp)
             }
 
-            case `pascal`: {
+            case 'pascal': {
 
-                const { delimiter = SPACE_DASH_UNDERSCORE } = settings
+                const { delimiter } = settings
 
                 return capitalize(
-                    toCamelCase(input, delimiter)
+                    toCamelCase(input, delimiter as RegExp)
                 )
             }
 
@@ -154,7 +149,7 @@ class CaseValidator<C extends Casing>
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default CaseValidator
 

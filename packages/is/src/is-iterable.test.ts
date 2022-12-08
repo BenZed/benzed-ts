@@ -3,7 +3,7 @@ import { inspect } from 'util'
 
 // eslint-disable-next-line no-unused-vars
 
-describe(`returns true if an object is iterable`, function () {
+describe('returns true if an object is iterable', function () {
 
     /* eslint-disable-next-line*/
     const args = arguments
@@ -21,7 +21,7 @@ describe(`returns true if an object is iterable`, function () {
 
     const objs = [
         [1, 2, 3],
-        `string`,
+        'string',
         new Int8Array(5),
         Buffer.alloc(5, 64),
         args,
@@ -32,14 +32,14 @@ describe(`returns true if an object is iterable`, function () {
 
     for (const obj of objs) {
         it(
-            `${obj === args ? `<arguments>` : inspect(obj)} is iterable`,
+            `${obj === args ? '<arguments>' : inspect(obj)} is iterable`,
             () => expect(isIterable(obj)).toEqual(true)
         )
     }
 
 })
 
-describe(`returns false if object is not iterable`, () => {
+describe('returns false if object is not iterable', () => {
 
     class CustomTypeWithoutIterator {
 
@@ -50,7 +50,7 @@ describe(`returns false if object is not iterable`, () => {
         /length-regex/g,
         true,
         5,
-        Symbol(`symbols-arn't-array-like`),
+        Symbol('symbols-arn\'t-array-like'),
         { size: 10 },
         new CustomTypeWithoutIterator()
     ]

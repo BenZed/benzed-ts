@@ -1,6 +1,6 @@
 
 import { first, wrap } from '@benzed/array'
-import { isArray, isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 import { ceil } from '@benzed/math'
 
 import { 
@@ -14,7 +14,7 @@ import { BadRequest } from '@feathersjs/errors'
 import { FileData, File, FileQuery, FileServiceConfig, FilePayload } from './schema'
 import { MAX_UPLOAD_PART_SIZE, UPLOAD_QUERY_PARAM } from './constants'
 
-/*** Types ***/
+//// Types ////
 
 interface FileParams extends MongoDBAdapterParams<FileQuery> { 
 
@@ -39,13 +39,13 @@ interface FileServiceSettings extends MongoDBAdapterOptions {
 
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function* eachFilePart(
     file: File | number
 ): Generator<{ readonly index: number, readonly total: number }> {
 
-    const size = isNumber(file) ? file : file.size
+    const size = is.number(file) ? file : file.size
 
     const total = ceil(size / MAX_UPLOAD_PART_SIZE)
 
@@ -53,7 +53,7 @@ function* eachFilePart(
         yield { index, total }
 }
 
-/*** Main ***/
+//// Main ////
 
 class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
 
@@ -94,7 +94,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
             })
         }
 
-        return isArray(data) ? signedFiles : first(signedFiles) as SignedFile
+        return is.array(data) ? signedFiles : first(signedFiles) as SignedFile
     }
 
     async createSignedUrls(file: File): Promise<SignedFile['urls']> {
@@ -125,7 +125,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
     private async _createUrl(file: File, action: FilePayload['action']): Promise<string> {
 
         if (!file.uploader)
-            throw new BadRequest(`Uploader is required.`)
+            throw new BadRequest('Uploader is required.')
         
         const payload: FilePayload = {
             uploader: file.uploader,
@@ -138,7 +138,7 @@ class FileService extends MongoDBService<File, Partial<FileData>, FileParams> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default FileService
 

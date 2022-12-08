@@ -1,12 +1,12 @@
 import lerp from './lerp'
 
 import { $$copy, $$equals } from '@benzed/immutable'
-import { isArray, isArrayOfNumber, isObject, isString } from '@benzed/is'
+import { isString, isArray, isObject, isNumber } from '@benzed/util'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'
 
-/*** Types ***/
+//// Types ////
 
 type V2String = `${number},${number}`
 
@@ -16,7 +16,7 @@ type V2Signature = Partial<V2Json> | V2String | [number, number]
 
 type V2ConstructorSignature = [V2Signature] | [number, number] | [number] | []
 
-/*** Main ***/
+//// Main ////
 
 class V2 {
 
@@ -81,17 +81,17 @@ class V2 {
         let x, y
 
         if (isString(args[0]))
-            args = args[0].split(`,`).map(parseFloat) as [number, number]
+            args = args[0].split(',').map(parseFloat) as [number, number]
 
         else if (isArray(args[0]))
             args = args[0]
 
-        else if (isObject(args[0])) {
+        else if (isObject<{ x: number, y: number }>(args[0])) {
             x = args[0].x
             y = args[0].y
         }
 
-        if (isArrayOfNumber(args))
+        if (isArray(args, isNumber))
             [x, y] = args
 
         this.x = x ?? 0
@@ -228,7 +228,7 @@ class V2 {
 
 }
 
-/*** Util ***/
+//// Util ////
 
 interface V2Utility {
     (...args: V2ConstructorSignature): V2
@@ -245,41 +245,47 @@ interface V2Utility {
  * Different from V2.from, this method will always create a new V2 instnace, weather or
  * not it receives one as input.
  */
-const v2 = ((...args: V2ConstructorSignature): V2 => new V2(...args)) as V2Utility
 
-Object.defineProperties(v2, {
-    zero: {
-        get() {
-            return V2.ZERO
-        }, enumerable: true
-    },
-    up: {
-        get() {
-            return V2.UP
-        },
-        enumerable: true
-    },
-    right: {
-        get() {
-            return V2.RIGHT
-        },
-        enumerable: true
-    },
-    down: {
-        get() {
-            return V2.DOWN
-        },
-        enumerable: true
-    },
-    left: {
-        get() {
-            return V2.LEFT
-        },
-        enumerable: true
-    },
-})
+const v2 = Object.defineProperties(
+    (...args: V2ConstructorSignature): V2 => new V2(...args), 
+    {
 
-/*** Exports ***/
+        zero: {
+            get() {
+                return V2.ZERO
+            }, enumerable: true
+        },
+
+        up: {
+            get() {
+                return V2.UP
+            },
+            enumerable: true
+        },
+
+        right: {
+            get() {
+                return V2.RIGHT
+            },
+            enumerable: true
+        },
+
+        down: {
+            get() {
+                return V2.DOWN
+            },
+            enumerable: true
+        },
+
+        left: {
+            get() {
+                return V2.LEFT
+            },
+            enumerable: true
+        },
+    }) as V2Utility
+
+//// Exports ////
 
 export default V2
 

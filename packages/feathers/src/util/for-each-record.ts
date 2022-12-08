@@ -2,11 +2,11 @@ import { Paginated, Service, Query } from '@feathersjs/feathers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 type RecordOf<S extends Service> = S extends Service<infer R, any, any> ? R : any
 
-/*** For Each Record ***/
+//// For Each Record ////
 
 /**
  * Iterate through each record of a given query on the client or server
@@ -49,7 +49,7 @@ async function forEachRecord<S extends Service>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default forEachRecord
 

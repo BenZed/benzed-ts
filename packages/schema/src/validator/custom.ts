@@ -1,4 +1,5 @@
-import { isFunction } from '@benzed/is'
+import { is } from '@benzed/is'
+import { io } from '@benzed/util'
 
 import { 
     AssertValidTransformValidator,
@@ -7,11 +8,11 @@ import {
     ErrorSettings 
 } from './validator'
 
-/*** Constants ***/
+//// Constants ////
 
-const CUSTOM_VALIDATOR_DEFAULT_ERROR = `Validation failed`
+const CUSTOM_VALIDATOR_DEFAULT_ERROR = 'Validation failed'
 
-/*** Type ***/
+//// Type ////
 
 interface CustomTransform<I, O extends I = I> {
 
@@ -61,7 +62,7 @@ type CustomValidatorSettingsShortcut<I, O extends I = I> =
         CustomValidatorSettings<I, O>
     ]
 
-/*** Helper ***/
+//// Helper ////
 
 const toCustomValidatorSettings = <I, O extends I = I>(
 
@@ -73,7 +74,7 @@ const toCustomValidatorSettings = <I, O extends I = I>(
             const [ transformOrSettings ] = input 
             return {
                 error: CUSTOM_VALIDATOR_DEFAULT_ERROR,
-                ...isFunction(transformOrSettings) 
+                ...is.function(transformOrSettings) 
                     ? { transform: transformOrSettings } 
                     : transformOrSettings
             }
@@ -98,25 +99,23 @@ const toCustomValidatorSettings = <I, O extends I = I>(
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 class CustomValidator<I, O extends I = I> 
     extends AssertValidTransformValidator<I, CustomValidatorSettings<I,O>> {
 
-    protected _onApplySettings(): void {
+    protected override _onApplySettings(): void {
 
         const { settings } = this
 
-        this._isValid = `isValid` in settings 
+        this._isValid = 'isValid' in settings 
             ? settings.isValid
             : super._isValid
 
-        this._transform = `transform` in settings 
-            ? settings[`transform`]
-            : i => i
+        this._transform = 'transform' in settings 
+            ? settings['transform']
+            : io
     }
-        
-    protected _transform!: CustomTransform<I,O>['transform']
 
     protected _getErrorDefaultAndArgs(
         i: I
@@ -126,7 +125,14 @@ class CustomValidator<I, O extends I = I>
 
 }
 
-/*** Exports ***/
+interface CustomValidator<I, O extends I = I> {
+    /**
+     * @internal
+     */
+    _transform: CustomTransform<I,O>['transform']
+}
+
+//// Exports ////
 
 export default CustomValidator
 

@@ -4,7 +4,7 @@ import { BadRequest } from '@feathersjs/errors'
 
 import { StringKeys } from '../types'
 
-/*** Types ***/
+//// Types ////
 
 type ServicesOf<A extends Application> = A extends Application<infer S> ? S : unknown
 
@@ -27,7 +27,7 @@ export const recordMustExist = <
     if (id) {
         await app
             .service(serviceName)
-            .get(id ?? ``)
+            .get(id ?? '')
     } else 
         throw new BadRequest(`id for ${serviceName} service required`)
 

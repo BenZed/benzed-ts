@@ -29,7 +29,7 @@ import {
     FileServiceSettings 
 } from './service'
 
-/*** Helper ***/
+//// Helper ////
 
 function encodeBase64Payload(payload: FilePayload): string {
 
@@ -71,7 +71,7 @@ function createSignAndVerify(
         }
 }
 
-/*** Main ***/
+//// Main ////
 
 function setupFileService<A extends MongoDBApplication>(
     setingsAndRefs: FileServiceConfig & {
@@ -134,7 +134,7 @@ function setupFileService<A extends MongoDBApplication>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default setupFileService
 

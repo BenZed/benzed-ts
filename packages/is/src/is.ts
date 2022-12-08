@@ -1,4 +1,4 @@
-import isInstanceOf from './is-instance-of'
+import { merge } from '@benzed/util'
 
 import {
     isString,
@@ -18,9 +18,6 @@ import {
     isDate,
     isPrimitive,
 } from './is-basic'
-
-import isArrayLike from './is-array-like'
-import isIterable from './is-iterable'
 
 import arrayOf, {
     isArrayOfArray,
@@ -52,14 +49,16 @@ import {
     isOdd,
     isPositive
 } from './is-math'
+
+import isIterable from './is-iterable'
+import isArrayLike from './is-array-like'
+import isInstanceOf from './is-instance-of'
 import isSortedArray from './is-sorted-array'
 import isPlainObject from './is-plain-object'
 
-/* eslint-disable 
-    @typescript-eslint/ban-types, 
-*/
+/* eslint-disable @typescript-eslint/ban-types */
 
-/*** Types ***/
+//// Types ////
 
 type Is = typeof isInstanceOf & {
 
@@ -71,7 +70,38 @@ type Is = typeof isInstanceOf & {
     primitive: typeof isPrimitive
 
     object: typeof isObject
-    array: typeof isArray
+    array: typeof isArray & {
+
+        like: typeof isArrayLike
+        sorted: typeof isSortedArray
+        of: typeof arrayOf & {
+            string: typeof isArrayOfString
+            boolean: typeof isArrayOfBoolean
+            number: typeof isArrayOfNumber
+            int: typeof isArrayOfInt
+            bigint: typeof isArrayOfBigInt
+
+            object: typeof isArrayOfObject
+            array: typeof isArrayOfArray
+            function: typeof isArrayOfFunction
+            symbol: typeof isArrayOfSymbol
+            promise: typeof isArrayOfPromise
+            date: typeof isArrayOfDate
+
+            nan: typeof isArrayOfNaN
+            truthy: typeof isArrayOfTruthy
+            falsy: typeof isArrayOfFalsy
+            defined: typeof isArrayOfDefined
+
+            arrayLike: typeof isArrayOfArrayLike
+            iterable: typeof isArrayOfIterable
+
+            record: typeof isArrayOfPlainObject
+
+            sortable: typeof isArrayOfSortable
+        }
+    }
+
     function: typeof isFunction
     symbol: typeof isSymbol
     promise: typeof isPromise
@@ -89,44 +119,16 @@ type Is = typeof isInstanceOf & {
     multipleOf: typeof isMultipleOf
     integer: typeof isInteger
 
-    instanceOf: typeof isInstanceOf
-    arrayLike: typeof isArrayLike
+    type: typeof isInstanceOf
     iterable: typeof isIterable
 
-    plainObject: typeof isPlainObject
+    record: typeof isPlainObject
 
     sortable: typeof isSortable
     sortedArray: typeof isSortedArray
-
-    arrayOf: typeof arrayOf & {
-        string: typeof isArrayOfString
-        boolean: typeof isArrayOfBoolean
-        number: typeof isArrayOfNumber
-        int: typeof isArrayOfInt
-        bigint: typeof isArrayOfBigInt
-
-        object: typeof isArrayOfObject
-        array: typeof isArrayOfArray
-        function: typeof isArrayOfFunction
-        symbol: typeof isArrayOfSymbol
-        promise: typeof isArrayOfPromise
-        date: typeof isArrayOfDate
-
-        nan: typeof isArrayOfNaN
-        truthy: typeof isArrayOfTruthy
-        falsy: typeof isArrayOfFalsy
-        defined: typeof isArrayOfDefined
-
-        arrayLike: typeof isArrayOfArrayLike
-        iterable: typeof isArrayOfIterable
-
-        plainObject: typeof isArrayOfPlainObject
-
-        sortable: typeof isArrayOfSortable
-    }
 }
 
-/*** Combine ***/
+//// Combine ////
 
 let is: Is
 {
@@ -142,7 +144,6 @@ let is: Is
     is.primitive = isPrimitive
 
     is.object = isObject
-    is.array = isArray
     is.function = isFunction
     is.symbol = isSymbol
     is.promise = isPromise
@@ -160,43 +161,50 @@ let is: Is
     is.multipleOf = isMultipleOf
     is.integer = isInteger
 
-    is.instanceOf = isInstanceOf
-    is.arrayLike = isArrayLike
+    is.type = isInstanceOf
     is.iterable = isIterable
 
-    is.plainObject = isPlainObject
-
+    is.record = isPlainObject
     is.sortable = isSortable
-    is.sortedArray = isSortedArray
 
-    is.arrayOf = arrayOf.bind(undefined) as Is['arrayOf']
-
-    is.arrayOf.string = isArrayOfString
-    is.arrayOf.boolean = isArrayOfBoolean
-    is.arrayOf.number = isArrayOfNumber
-    is.arrayOf.int = isArrayOfInt
-    is.arrayOf.bigint = isArrayOfBigInt
-
-    is.arrayOf.object = isArrayOfObject
-    is.arrayOf.array = isArrayOfArray
-    is.arrayOf.function = isArrayOfFunction
-    is.arrayOf.symbol = isArrayOfSymbol
-    is.arrayOf.promise = isArrayOfPromise
-    is.arrayOf.date = isArrayOfDate
-
-    is.arrayOf.nan = isArrayOfNaN
-    is.arrayOf.truthy = isArrayOfTruthy
-    is.arrayOf.falsy = isArrayOfFalsy
-    is.arrayOf.defined = isArrayOfDefined
-
-    is.arrayOf.arrayLike = isArrayOfArrayLike
-    is.arrayOf.iterable = isArrayOfIterable
-
-    is.arrayOf.plainObject = isArrayOfPlainObject
-
-    is.arrayOf.sortable = isArrayOfSortable
+    is.array = merge(
+        isArray.bind(undefined), 
+        {
+            like: isArrayLike,
+            sorted: isSortedArray,
+            of: merge(
+                arrayOf.bind(undefined),
+                {
+                    string: isArrayOfString,
+                    boolean: isArrayOfBoolean,
+                    number: isArrayOfNumber,
+                    int: isArrayOfInt,
+                    bigint: isArrayOfBigInt,
+                    object: isArrayOfObject,
+                    array: isArrayOfArray,
+                    function: isArrayOfFunction,
+                    symbol: isArrayOfSymbol,
+                    promise: isArrayOfPromise,
+                    date: isArrayOfDate,
+                    nan: isArrayOfNaN,
+                    truthy: isArrayOfTruthy,
+                    falsy: isArrayOfFalsy,
+                    defined: isArrayOfDefined,
+                    arrayLike: isArrayOfArrayLike,
+                    iterable: isArrayOfIterable,
+                    record: isArrayOfPlainObject,
+                    sortable: isArrayOfSortable
+                }
+            )
+        }
+    ) as Is['array']
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default is
+
+export {
+    is,
+    Is
+}

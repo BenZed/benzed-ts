@@ -9,7 +9,7 @@ import { StringKeys } from '../types'
 const getDefaultConfiguration = <C>(): C =>
     feathersConfiguration()() as unknown as C
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Validate an app configuration using @benzed/schema 
@@ -30,7 +30,7 @@ function configure<C>(
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default configure
 

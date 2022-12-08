@@ -17,7 +17,7 @@ import { RenderServiceConfig } from './schema'
 
 import { FeathersFileService } from '../files-service/middleware/util'
 
-/*** Helper ***/
+//// Helper ////
 
 function getSocketIOServer(app: MongoDBApplication): Promise<Server> {
     return new Promise((resolve, reject) => app.once(`listen`, () => {
@@ -34,7 +34,7 @@ function getSocketIOServer(app: MongoDBApplication): Promise<Server> {
     }))
 }
 
-/*** Hooks ***/
+//// Hooks ////
 
 function joinChannel(channel: string): AroundHookFunction {
     return async ({ params, app }, next) => {
@@ -48,7 +48,7 @@ function joinChannel(channel: string): AroundHookFunction {
     }
 }
 
-/*** Main ***/
+//// Main ////
 
 function setupRenderService<A extends MongoDBApplication>(
     configAndRefs: RenderServiceConfig & { 
@@ -92,7 +92,7 @@ function setupRenderService<A extends MongoDBApplication>(
     return render as unknown as FeathersService<A, RenderService> 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default setupRenderService
 

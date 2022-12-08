@@ -1,33 +1,35 @@
+import { Transform } from './classes/pipe'
 
-import { Pipe } from './pipe'
-
-/* eslint-disable
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/explicit-function-return-type
- */
-
-/*** Types ***/
+//// Types ////
 
 type Sortable = string | bigint | number | { valueOf(): string | bigint | number }
 
-type SortableKeys<T> = keyof {
+type SortableValues<T> = {
     [K in keyof T as T[K] extends Sortable ? K : never]: K
 }
 
-type Sort<T = Sortable> = (a: T, b: T) => number
+/**
+ * Keys of a given object that have sortable values
+ */
+ type SortableKeys<T> = keyof SortableValues<T>
 
-/*** By ***/
+/**
+ * Sorting method
+ */
+type Sorter<T = Sortable> = (a: T, b: T) => number
+
+//// By ////
 
 /**
  * Compares inputs as values
  */
-const byValue: Sort = (a, b) => a > b ? 1 : a < b ? -1 : 0
+const byValue: Sorter = (a, b) => a > b ? 1 : a < b ? -1 : 0
 
 /**
  * Compares inputs by checking with each provided sorter
  * until it finds one that doesn't return an equivalent result.
  */
-const byMany = <T>(...sorters: Sort<T>[]): Sort<T> => (a, b) => {
+const byMany = <T>(...sorters: Sorter<T>[]): Sorter<T> => (a, b) => {
 
     for (const sort of sorters) {
         const result = sort(a, b)
@@ -45,10 +47,9 @@ const byMany = <T>(...sorters: Sort<T>[]): Sort<T> => (a, b) => {
  * Multiple maps may be provided, and will be checked if 
  * the previous outputs were equivalent.
  */
-const byMap = <T>(...maps: Pipe<T, Sortable>[]): Sort<T> =>
+const byMap = <T>(...maps: Transform<T, Sortable>[]): Sorter<T> =>
     byMany(
-        ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b))
-        )
+        ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b)))
     )
 
 /**
@@ -58,30 +59,30 @@ const byMap = <T>(...maps: Pipe<T, Sortable>[]): Sort<T> =>
  * Multiple properties may be provided, and will be checked if
  * previous property values were equivalent.
  */
-const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K): Sort<T> =>
+const byProp = <T extends object, K extends SortableKeys<T>[]>(
+    ...properties: K
+): Sorter<T> =>
     byMany(
-        ...properties.map(property =>
-            byMap((t: any) => t[property])
+        ...properties.map((property) =>
+            byMap(object => (object as SortableValues<T>)[property] as Sortable)
         )
     )
 
-/*** By Interface ***/
+//// By Interface ////
 
-const by = <T>(...args: Pipe<T, Sortable>[]) => byMap(...args)
-
+const by = <T>(...args: ((input: T) => Sortable)[]): Sorter<T> => byMap(...args)
 by.value = byValue
 by.many = byMany
 by.map = byMap
 by.prop = byProp
 
-/*** Exports ***/
+//// Exports ////
 
 export default by
 
 export {
 
-    byValue as sort,
-    Sort,
+    Sorter,
     Sortable,
     SortableKeys,
 

@@ -3,7 +3,7 @@ import path from 'path'
 import { PathLike } from './types'
 import { makeDir, stat } from './export'
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Creates a directory if it does not exist. 
@@ -29,7 +29,7 @@ async function ensureDir(pathLike: PathLike): Promise<boolean> {
     return false
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default ensureDir
 

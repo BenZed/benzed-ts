@@ -2,7 +2,7 @@ import ValidationError from './util/validation-error'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Exports ***/
+//// Exports ////
 
 export function expectValidationError(func: () => unknown): ReturnType<typeof expect> {
 

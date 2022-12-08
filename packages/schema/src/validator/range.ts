@@ -1,24 +1,14 @@
-import {
-    pluck
-} from '@benzed/array'
-
-import {
-    isObject,
-    isSortable,
-
-    isString,
-
-    Sortable
-} from '@benzed/is'
+import { pluck } from '@benzed/array'
+import { is, Sortable } from '@benzed/is'
 
 import { AssertValidator, ErrorSettings } from './validator'
 
-/*** Types ***/
+//// Types ////
 
-const BINARY_COMPARATORS = [`-`, `..`, `...`] as const
-const UNARY_COMPARATORS = [`>=`, `>`, `==`, `<`, `<=`] as const
+const BINARY_COMPARATORS = ['-', '..', '...'] as const
+const UNARY_COMPARATORS = ['>=', '>', '==', '<', '<='] as const
 
-/*** Types ***/
+//// Types ////
 
 type BinaryComparator = typeof BINARY_COMPARATORS[number]
 type UnaryComparator = typeof UNARY_COMPARATORS[number]
@@ -49,10 +39,10 @@ type RangeValidatorSettingsShortcut<O extends Sortable> =
     RangeValidatorSettingsArrayShortcut<O> |
     [RangeValidatorSettings<O>]
 
-/*** Type Guards ***/
+//// Type Guards ////
 
 const isNumericSortable = (input: unknown): input is Sortable => 
-    !isString(input) && isSortable(input)
+    !is.string(input) && is.sortable(input)
     
 function isBinaryComparator(input: unknown): input is BinaryComparator {
     return BINARY_COMPARATORS.includes(input as BinaryComparator)
@@ -66,26 +56,26 @@ function isRangeValidatorSettings<O extends Sortable>(
     input: unknown
 ): input is RangeValidatorSettings<O> {
 
-    if (!isObject(input))
+    if (!is.object(input))
         return false
 
     const option = input as RangeValidatorSettings<O>
-    if (`value` in option) {
-        return typeof option.value === `number` &&
+    if ('value' in option) {
+        return typeof option.value === 'number' &&
             isUnaryComparator(option.comparator)
     }
 
-    if (`min` in option) {
+    if ('min' in option) {
         return (
-            typeof option.min === `number` &&
-            typeof option.max === `number`
+            typeof option.min === 'number' &&
+            typeof option.max === 'number'
         )
     }
 
     return false
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function parseRangeValidatorSettingsArrayShortcut<O extends Sortable>(
     range: RangeValidatorSettingsArrayShortcut<O>
@@ -103,7 +93,7 @@ function parseRangeValidatorSettingsArrayShortcut<O extends Sortable>(
 
     } else {
         const [value] = numbers
-        const [comparator = `==`] = pluck(range, isUnaryComparator) as UnaryComparator[]
+        const [comparator = '=='] = pluck(range, isUnaryComparator) as UnaryComparator[]
         const [error] = range as RangeValidatorErrorFormat<O>[] // only thing left could be error
 
         return { value, comparator, error }
@@ -121,7 +111,7 @@ function toRangeValidatorSettings<O extends Sortable>(
         if (isNumericSortable(input[0])) {
             settings = {
                 value: input[0],
-                comparator: `==`
+                comparator: '=='
             }
         } else
             settings = input[0]
@@ -129,21 +119,19 @@ function toRangeValidatorSettings<O extends Sortable>(
         settings = parseRangeValidatorSettingsArrayShortcut(input)
 
     if (!isRangeValidatorSettings(settings))
-        throw new Error(`Invalid Range Settings Input`)
+        throw new Error('Invalid Range Settings Input')
 
     return settings
 }
 
-/*** Main ***/
+//// Main ////
 
 class RangeValidator<O extends Sortable = number> extends AssertValidator<
 /**/ O,
 /**/ RangeValidatorSettings<O>
 > {
 
-    private _rangeTest!: (input: O) => string | null
-
-    /*** AssertValidator Implementation ***/
+    //// AssertValidator Implementation ////
 
     protected override _onApplySettings(): void {
         this._rangeTest = this._createRangeTest()
@@ -162,7 +150,7 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
         )
     }
 
-    /*** Helpers ***/
+    //// Helpers ////
 
     private _createRangeTest(): (input: O) => string | null {
 
@@ -172,41 +160,41 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
 
         switch (settings.comparator) {
 
-            case `<`: {
+            case '<': {
                 const { value } = settings
                 return input => input < value
                     ? PASS
                     : `below ${value}`
             }
 
-            case `<=`: {
+            case '<=': {
                 const { value } = settings
                 return input => input <= value
                     ? PASS
                     : `equal or below ${value}`
             }
 
-            case `==`: {
+            case '==': {
                 const { value } = settings
                 return input => input === value
                     ? PASS
                     : `equal ${value}`
             }
 
-            case `>`: {
+            case '>': {
                 const { value } = settings
                 return input => input > value
                     ? PASS
                     : `above ${value}`
             }
 
-            case `>=`:
+            case '>=':
                 const { value } = settings
                 return input => input >= value
                     ? PASS
                     : `above or equal ${value}`
 
-            case `...`: {
+            case '...': {
                 const { min, max } = settings
                 return input => input >= min && input <= max
                     ? PASS
@@ -223,7 +211,15 @@ class RangeValidator<O extends Sortable = number> extends AssertValidator<
     }
 }
 
-/*** Exports ***/
+interface RangeValidator<O extends Sortable = number> {
+    /**
+     * @internal
+     */
+    _rangeTest: (input: O) => string | null
+
+}
+
+//// Exports ////
 
 export default RangeValidator
 

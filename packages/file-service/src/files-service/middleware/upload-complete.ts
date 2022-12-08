@@ -22,7 +22,7 @@ import {
     validatePayload 
 } from './util'
 
-/*** Helper ***/
+//// Helper ////
 
 function readRequestBody(ctx: FeathersKoaContext): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -62,7 +62,7 @@ async function validateUploadCompleteSignal(
 
         // body to array of part signals
         const partSignals = body.split(',')
-        if (!is.arrayOf.string(partSignals))
+        if (!is.array.of.string(partSignals))
             throw new Error('Must be an array of strings')
 
         // part signals to parts
@@ -177,7 +177,7 @@ async function mergePartsIntoFile(
 
 }
 
-/*** Main ***/
+//// Main ////
 
 const uploadCompleteMiddleware = createFileRoutingMiddleware(({ verify, path, fs: localDir }) => 
     async (ctx, toService) => {
@@ -203,7 +203,7 @@ const uploadCompleteMiddleware = createFileRoutingMiddleware(({ verify, path, fs
         }
     })
 
-/*** Exports ***/
+//// Exports ////
 
 export default uploadCompleteMiddleware
 

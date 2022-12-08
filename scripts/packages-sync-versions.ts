@@ -1,10 +1,10 @@
 
-import { assertBranch, forEachPackage, writeJson } from './util'
+import { assertBranch, eachPackage, writeJson } from './util'
 import semver from 'semver'
 
 import path from 'path'
 
-/*** Sync Package Versions ***/
+//// Sync Package Versions ////
 
 // So, up until mid version 3 of most benzed packages, I've been
 // using * as the inter-dependency version specifier, which is a 
@@ -14,7 +14,7 @@ import path from 'path'
 // because I have a customized publish script, I might as well use
 // a customized version script as well.
 
-/*** Helper ***/
+//// Helper ////
 
 type DependencyWeb = Record<string, {
     name: string
@@ -23,18 +23,16 @@ type DependencyWeb = Record<string, {
     dependencies: Record<string, string>
 }>
 
-const createDependencyWeb = async (): Promise<DependencyWeb> => {
+async function createDependencyWeb(): Promise<DependencyWeb> {
 
-    const web: DependencyWeb = {}
-
-    await forEachPackage((packageJson) => {
+    const web = await eachPackage((packageJson): DependencyWeb[string] | undefined => {
 
         const { name, version, dependencies } = packageJson
 
         if (!version)
             return
 
-        web[name] = {
+        const deps: DependencyWeb[string] = {
             name,
             currVersion: version,
             nextVersion: version,
@@ -45,12 +43,18 @@ const createDependencyWeb = async (): Promise<DependencyWeb> => {
             if (!dependency.startsWith('@benzed'))
                 continue
 
-            web[name].dependencies[dependency] = dependencies[dependency].replace('^', '')
+            deps.dependencies[dependency] = dependencies[dependency].replace('^', '')
         }
 
+        return deps
     })
 
-    return web
+    for (const name in web) {
+        if (!web[name])
+            delete web[name]
+    }
+
+    return web as DependencyWeb
 }
 
 function sourceVersionIncrement(
@@ -97,7 +101,6 @@ function syncDependencyWebVersions(web: DependencyWeb): DependencyWeb {
             const currPkg = web[currPkgName]
 
             for (const depPkgName in currPkg.dependencies) {
-
                 const depPkg = web[depPkgName]
 
                 const depPkgInstalledVersion = currPkg.dependencies[depPkgName]
@@ -121,10 +124,8 @@ function syncDependencyWebVersions(web: DependencyWeb): DependencyWeb {
                     currPkg.nextVersion = nextVersion
                     versionsAreInSync = false
                 }
-
             }
         }
-
     } while (!versionsAreInSync)
 
     return web
@@ -132,7 +133,7 @@ function syncDependencyWebVersions(web: DependencyWeb): DependencyWeb {
 
 async function updatePackages(web: DependencyWeb): Promise<void> {
 
-    await forEachPackage(async (pkgJson, pkgUrl) => {
+    await eachPackage(async (pkgJson, pkgUrl) => {
 
         const { name } = pkgJson
 
@@ -160,7 +161,7 @@ async function updatePackages(web: DependencyWeb): Promise<void> {
 
 }
 
-/*** Execute ***/
+//// Execute ////
 
 void async function setPackageVersions() {
 

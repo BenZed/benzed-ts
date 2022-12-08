@@ -1,4 +1,4 @@
-import is from './is'
+import is, { Is } from './is'
 
 import { inspect } from 'util'
 
@@ -6,7 +6,7 @@ import { isDefined } from './is-basic'
 import isArrayOf from './is-array-of'
 import isPlainObject from './is-plain-object'
 
-/*** Types ***/
+//// Types ////
 
 interface TestEachValueConfig {
     title: string
@@ -14,26 +14,26 @@ interface TestEachValueConfig {
     result: (input: unknown) => boolean
 }
 
-/*** Data ***/
+//// Data ////
 
 class Foo { }
 
-const SHORTCUTS = [
-    `string`,
-    `number`,
-    `boolean`,
-    `object`,
-    `function`,
-    `symbol`,
-    `array`,
-    `date`,
-    `promise`,
-    `nan`,
-    `plainObject`,
-    `defined`,
-    `truthy`,
-    `falsy`
-]
+const SHORTCUTS: (keyof Is)[] = [
+    'string',
+    'number',
+    'boolean',
+    'object',
+    'function',
+    'symbol',
+    'array',
+    'date',
+    'promise',
+    'nan',
+    'record',
+    'defined',
+    'truthy',
+    'falsy'
+] 
 
 const TYPES = {
     string: String,
@@ -48,7 +48,7 @@ const TYPES = {
 }
 
 const VALUES = [
-    `string`,
+    'string',
     100,
     0,
     -1,
@@ -58,11 +58,11 @@ const VALUES = [
     undefined,
     null,
     function () { /* empty */ },
-    Symbol(`symbol`),
+    Symbol('symbol'),
     Promise.resolve(true),
     [],
     {},
-    { foo: `bar` },
+    { foo: 'bar' },
     { true: true },
     { false: false },
     { zero: 0, one: 1 },
@@ -80,7 +80,7 @@ const VALUES_PLUS_VALUES_IN_ARRAY = [
     ...VALUES.map(v => [v])
 ]
 
-/*** Helper ***/
+//// Helper ////
 
 function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): void {
     describe(title, () => {
@@ -100,14 +100,14 @@ function testEachValue({ title, test, result }: Readonly<TestEachValueConfig>): 
         }
 
         if (!atLeastOneFalse)
-            throw new Error(title + ` did not have a value that returned false`)
+            throw new Error(title + ' did not have a value that returned false')
 
         if (!atLeastOneTrue)
-            throw new Error(title + ` did not have a value that returned true`)
+            throw new Error(title + ' did not have a value that returned true')
     })
 }
 
-describe(`is() shortcuts give same output as counterparts`, () => {
+describe('is() shortcuts give same output as counterparts', () => {
     for (const property in TYPES) {
 
         const key = property as keyof typeof TYPES
@@ -119,60 +119,60 @@ describe(`is() shortcuts give same output as counterparts`, () => {
         })
 
         testEachValue({
-            title: `is.arrayOf.${key}`,
-            test: is.arrayOf[key],
+            title: `is.array.of.${key}`,
+            test: is.array.of[key],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            result: value => is.arrayOf(value, TYPES[key] as any)
+            result: value => is.array.of(value, TYPES[key] as any)
         })
 
         testEachValue({
-            title: `is.arrayOf(value, ${TYPES[key]})`,
+            title: `is.array.of(value, ${TYPES[key]})`,
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            test: value => is.arrayOf(value, TYPES[key] as any),
+            test: value => is.array.of(value, TYPES[key] as any),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             result: value => isArrayOf(value, TYPES[key] as any)
         })
     }
 })
 
-describe(`exotic shortcuts`, () => {
+describe('exotic shortcuts', () => {
 
     testEachValue({
-        title: `is.defined`,
+        title: 'is.defined',
         test: is.defined,
         result: isDefined
     })
 
     testEachValue({
-        title: `is.plainObject`,
-        test: is.plainObject,
+        title: 'is.record',
+        test: is.record,
         result: isPlainObject
     })
 
     testEachValue({
-        title: `is.nan`,
+        title: 'is.nan',
         test: is.nan,
         result: Number.isNaN
     })
 
     testEachValue({
-        title: `is.truthy`,
+        title: 'is.truthy',
         test: is.truthy,
         result: value => !!value
     })
 
     testEachValue({
-        title: `is.falsy`,
+        title: 'is.falsy',
         test: is.falsy,
         result: value => !value
     })
 
     for (const property of SHORTCUTS) {
-        const shortcut = property as keyof (typeof is | typeof is.arrayOf)
+        const shortcut = property as keyof (typeof is | typeof is.array.of)
         testEachValue({
-            title: `is.arrayOf.${shortcut}`,
-            test: is.arrayOf[shortcut],
+            title: `is.array.of.${shortcut}`,
+            test: is.array.of[shortcut],
             result: value => is.array(value) && value.length > 0 && value.every(is[shortcut])
         })
     }

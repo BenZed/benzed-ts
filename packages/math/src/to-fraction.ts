@@ -1,17 +1,17 @@
 import { pow, floor } from './overrides'
 
-/*** Types ***/
+//// Types ////
 
 type Fraction = readonly [numerator: number, denominator: number]
 
-/*** Helper ***/
+//// Helper ////
 
 function getNumberOfDecimalPlaces(value: number): number {
     return floor(value) === value
         ? 0
         : value
             .toString()
-            .split(`.`)[1]
+            .split('.')[1]
             .length
 }
 
@@ -23,7 +23,7 @@ function getGreatestCommonDivisor(numerator: number, denominator: number): numbe
 
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Converts the given number to a fractional representation.
@@ -33,7 +33,7 @@ function getGreatestCommonDivisor(numerator: number, denominator: number): numbe
 function toFraction(value: number): Fraction {
 
     if (Number.isNaN(value))
-        throw new Error(`cannot convert NaN to a fraction`)
+        throw new Error('cannot convert NaN to a fraction')
 
     const denominator = pow(10, getNumberOfDecimalPlaces(value))
     const numerator = value * denominator
@@ -51,7 +51,7 @@ function fromFraction(fraction: Fraction): number {
     return numerator / denominator
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default toFraction
 

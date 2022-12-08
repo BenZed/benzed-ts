@@ -3,25 +3,26 @@
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/prefer-readonly-parameter-types
 */
-import { isFunction } from '@benzed/is'
+import { keysOf, isFunc } from '@benzed/util'
 
-import { getKeys, isPrototypal, isReferable, Prototypal } from './util'
+import { isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
 
-/*** Types ***/
+//// Types ////
 
 type Refs = any[]
-interface Copyable<T> {
-    [$$copy]: (this: Readonly<T>, refs?: Refs) => T
+
+interface Copyable {
+    [$$copy]: (refs?: Refs) => this
 }
 
-function isCopyable<T>(input: unknown): input is Copyable<T> {
-    return isFunction((input as Copyable<T>)[$$copy])
+function isCopyable(input: unknown): input is Copyable {
+    return isFunc((input as Copyable)[$$copy])
 }
 
-/*** Helper ***/
+//// Helper ////
 
-function hasCircularRef<T>(value: T, refs: Refs): boolean {
+function hasCircularRef(value: unknown, refs: Refs): boolean {
     const hasCircularReference = isReferable(value) && refs.includes(value)
     return hasCircularReference
 }
@@ -37,11 +38,11 @@ function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
     return copyWithImplementation(value, refs)
 }
 
-function copyObjectWithoutCircularRefs<T>(value: T, refs: Refs = [value]): T {
+function copyObjectWithoutCircularRefs<T extends object>(value: T, refs: Refs = [value]): T {
 
     const clone = {} as any
 
-    for (const key of getKeys(value)) {
+    for (const key of keysOf(value)) {
 
         if (!hasCircularRef(value[key], refs))
             clone[key] = copyWithoutCircularRef(value[key], refs)
@@ -67,18 +68,18 @@ function copyWithImplementation<T>(value: T, refs?: Refs): T {
     if (value == null)
         return value
 
-    if (isCopyable<T>(value))
+    if (isCopyable(value))
         return value[$$copy](refs)
 
     if (!isPrototypal(value))
         return copyObjectWithoutCircularRefs(value, refs)
 
     throw new Error(
-        `${value.constructor?.name || 'value'} does not implement Copyable<T>`
+        `${value.constructor?.name || 'value'} does not implement CopyableF`
     )
 }
 
-/*** Standard Implementations ***/
+//// Standard Implementations ////
 
 function copyImmutable<T>(this: Readonly<T>): T {
     return this
@@ -116,12 +117,12 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
     return new Map(args)
 }
 
-/*** Add Standard Implementations ***/
+//// Add Standard Implementations ////
 {
 
-    const addToPrototype = <T>(
-        { prototype }: Readonly<Prototypal>,
-        implementation: Copyable<T>[typeof $$copy]
+    const addToPrototype = (
+        { prototype }: Prototypal,
+        implementation: (refs?: Refs) => unknown 
     ): void => {
 
         Object.defineProperty(prototype, $$copy, {
@@ -138,13 +139,13 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
     // ^ obviously they're not immutable, but the a weak collection can't be
     // copied as it's contents can't be iterated
 
-    addToPrototype<Set<any>>(Set, copySet)
-    addToPrototype<Map<any, any>>(Map, copyMap)
+    addToPrototype(Set, copySet)
+    addToPrototype(Map, copyMap)
     addToPrototype(Object, copyObject)
     addToPrototype(Date, copyDate)
 
     if (typeof Buffer !== 'undefined') {
-        addToPrototype(Buffer, function (this: Readonly<Buffer>): Buffer {
+        addToPrototype(Buffer, function (this: Buffer): Buffer {
             return Buffer.from(this)
         })
     }
@@ -166,7 +167,7 @@ function copyMap<K, V>(this: Readonly<Map<K, V>>, refs?: Refs): Map<K, V> {
         Float32Array,
         Float64Array
     ])
-        addToPrototype<any[]>(ArrayType, copyArray)
+        addToPrototype(ArrayType, copyArray)
 
 }
 
@@ -178,7 +179,7 @@ function copy<T>(value: T): T {
     return copyWithImplementation(value)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default copy
 

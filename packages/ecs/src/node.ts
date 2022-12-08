@@ -1,88 +1,119 @@
-import { Func, nil } from '@benzed/util'
+import { First, IndexesOf, Last } from '@benzed/array'
+import is from '@benzed/is'
 
-import { 
-    Extension, 
-    FindScope, 
-    GetModule, 
-    Module, 
-    Modules 
-} from './module'
+import { Component } from './component'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
-*/
+//// Eslint ////
 
-type SetModule<M extends Module> = M 
-
-type Add<Mx extends Module, M extends Modules> = [...M, Mx]
-
-export type AnyNode = Node<{}, Modules>
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 //// Types ////
 
-interface Node<N extends Func | object, M extends Modules> {
+/**
+ * Array of Components
+ */
+export type Components<I = unknown, O = I> = readonly Component<I,O>[]
 
-    get root(): AnyNode 
+type GetComponent<C extends Components, Cx extends ComponentConstructor<any, A>, A extends boolean> = 
+    C extends [infer I, ...infer Ir] 
+        ? I extends InstanceType<Cx> 
+            ? I
+            : Ir extends Components 
+                ? GetComponent<Ir, Cx, A> 
+                : never
+        : never
 
-    get parent(): AnyNode | nil
-    get first(): Module | nil 
-    get last(): Module | nil
-    get modules(): Module[]
+type HasComponent<C extends Components, Cx extends ComponentConstructor<any, A>, A extends boolean> = 
+    InstanceType<Cx> extends C[number] 
+        ? true 
+        : false
 
-    find<M extends Module>(type: GetModule<M>, scope: FindScope): M[]
-    find<M extends Module>(type: GetModule<M>): M[]
+//// Node ////
+
+type ComponentConstructor<C extends Components, A extends boolean = false> = 
+    A extends true 
+        ? abstract new (...args: any[]) => C[number]  
+        : new (...args: any[]) => C[number]
+
+/**
+ * Node is the base class for any component that is comprised of other components.
+ * 
+ * By convention, Nodes are created with a builder pattern; 
+ * each extended class should have a static .create() method and 
+ * a private constructor which would be used to enforce type
+ * validation on private components
+ */
+export abstract class Node<I, O, C extends Components> extends Component<I,O> {
+
+    constructor(
+        readonly components: C
+    ) {
+        super() 
+        this._validateComponents()
+    }
+
+    has<Ix extends number>(index: Ix): Ix extends IndexesOf<C> ? true : false 
+    has<T extends ComponentConstructor<C, A>, A extends boolean>(type: T): HasComponent<C, T, A>
+    has(input: unknown): unknown {
+        return is.number(input) 
+            ? input in this.components
+            : this.components.some(component => component instanceof (input as any))
+    }
+
+    get<Ix extends IndexesOf<C>>(index: Ix): C[Ix] 
+    get<T extends ComponentConstructor<C, A>, A extends boolean>(type: T): GetComponent<C, T, A>
+    get(input: unknown): unknown {
+
+        const component = is.number(input) 
+            ? this.components[input]
+            : this.components.find(component => component instanceof (input as any))
+    
+        if (!component) {
+            throw new Error(
+                'Could not find component ' + (
+                    is.number(input) 
+                        ? `at index ${input}` 
+                        : `of type ${(input as any).name}`
+                )
+            )
+        }
+
+        return component
+    }
+
+    get first(): First<C> {
+        return this.components.at(0) as First<C>
+    }
+
+    get last(): Last<C> {
+        return this.components.at(-1) as Last<C>
+    }
 
     /**
-     * Get a node by a path/to/a/location
+     * No validation by default, extend this method
      */
-    get(): {}
+    protected _validateComponents(): void { /**/ }
 
-    /**
-     * Set a Node by a path: /path/to/location, which will automatically
-     * create nodes between '/' delimeters
-     * 
-     * Set a Module by an index, replacing the module at that location.
-     * 
-     * Value is a new Node or Module. 
-     * 
-     * If the location is occupied, the value can be a function taking the
-     * existing Node or Module as an argument, replaced value will be the output
-     * of the method.
-     */
-    set(): {}
+    protected _assertAtLeastOneComponent(): void {
+        if (this.components.length === 0)
+            throw new Error('Node must be created with at least one component')
+    }
 
-    /**
-     * Add a Node by a path: /add, nodes cannot be created
-     * between '/' delimiters. Method will throw if path is occupied.
-     * 
-     * Add a Module at the next index.
-     * If the location is occupied, the value can be a function taking the
-     * existing Node or Module as an argument, replaced value will be the output
-     * of the method.
-     */
-    add(): {}
+    protected _assertConflicting<A extends boolean>(...types: ComponentConstructor<C, A>[]): void {
+        const found = types.filter(t => this.has(t))
+        if (found.length > 0)
+            throw new Error(`${this.constructor.name} cannot be used with conflicting components: ${found.map(m => m.name)}`)
+    }
 
-    /**
-     * Remove a node by a path, /can/be/deeply/nested
-     * Remove a module by an index.
-     */
-    remove(): {}
+    protected _assertRequired<A extends boolean>(...types: ComponentConstructor<C, A>[]): void {
+        const missing = types.filter(t => !this.has(t))
+        if (missing.length > 0)
+            throw new Error(`${this.constructor.name} missing required components: ${missing.map(m => m.name)}`)
+    }
+
+    protected _assertSingle(): void {
+        if (this.has(this.constructor as ComponentConstructor<C>))
+            throw new Error(`${this.constructor.name} cannot be used more than once.`)
+    }
 
 }
-
-export interface NodeConstructor {
-
-    create<M extends Modules>(modules: M): Node<{}, M>
-    extend<E extends Extension>(): Node<E, []>
-
-}
-
-//// Exports ////
-
-export default Node 
-
-export {
-    Node
-}
-

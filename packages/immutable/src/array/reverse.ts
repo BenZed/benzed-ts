@@ -1,10 +1,10 @@
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { reverse: _reverse } = Array.prototype
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably reverse an Arraylike.

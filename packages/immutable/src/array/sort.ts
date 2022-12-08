@@ -1,18 +1,18 @@
 
 import copy from '../copy'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
 const { sort: _sort } = Array.prototype
 
 type SortParams = Parameters<typeof Array.prototype.sort>
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Immutably sort an ArrayLike.
  * 
- * @returns A clone of the input Arraylike not including the final, popped off item.
+ * @returns A sorted clone of the input array-like
  */
 export default function sort<T extends ArrayLike<unknown>>(
     input: T,

@@ -1,20 +1,17 @@
 import { Copyable } from './copy'
 import { Comparable } from './equals'
 
-/*** Types ***/
-
-type CopyComparable<T> = Copyable<T> & Comparable<T>
-
-/*** Exports ***/
+//// Exports ////
 
 export * from './copy'
 export * from './equals'
-export { CopyComparable }
+export type CopyComparable = Copyable & Comparable
 
 export * from './array'
 export * from './memoize'
 export * from './value-map'
+export * from './extendable'
 
-export * from './util'
+export { Immutable, Mutable } from './util'
 
 export { $$copy, $$equals } from './symbols'

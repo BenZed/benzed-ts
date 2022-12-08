@@ -17,11 +17,11 @@ import {
 
 import { FileServerApp, FileServerConfig } from './server/create-file-server-app'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Server ***/
+//// Server ////
 
 export const TEST_FILE_SERVER_CONFIG = configuration()() as unknown as FileServerConfig
 
@@ -40,7 +40,7 @@ export class Uploader {
         ...TEST_ASSETS,
         large: path.resolve(
             TEST_FILE_SERVER_CONFIG.fs as string, 
-            '../large-binary-list.json'
+            `../large-binary-list.json`
         )
     }
 
@@ -82,7 +82,7 @@ export class Uploader {
     
         const stat = fs.sync.stat(localFilePath)
     
-        return this.server.service('files').create({
+        return this.server.service(`files`).create({
             size: stat.size,
             name: path.basename(localFilePath),
             uploader: uploaderId
@@ -99,7 +99,7 @@ export class Uploader {
         const res = await fetch(
             HOST + partUrl,
             {
-                method: 'PUT',
+                method: `PUT`,
                 body: fs.createReadStream(sourceFileUrl, { 
                     start: partIndex * MAX_UPLOAD_PART_SIZE,
                     end: min((partIndex + 1) * MAX_UPLOAD_PART_SIZE, sourceFileSize)
@@ -111,7 +111,7 @@ export class Uploader {
         if (res.status >= 400)
             throw json
 
-        return res.headers.get('etag') as string
+        return res.headers.get(`etag`) as string
     }
 
     async complete (
@@ -122,9 +122,9 @@ export class Uploader {
         const res = await fetch(
             HOST + completeUrl,
             {
-                method: 'POST',
+                method: `POST`,
                 headers: {
-                    'content-type': 'application/json'
+                    'content-type': `application/json`
                 },
                 body: etags
             }
@@ -174,7 +174,7 @@ export class Uploader {
 
             const partNames = fs.sync.readDir(
                 path.join(
-                    this.server.get('fs') as string, 
+                    this.server.get(`fs`) as string, 
                     signedFile._id, 
                     PART_DIR_NAME
                 )

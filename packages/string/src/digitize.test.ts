@@ -1,79 +1,80 @@
-import { PI } from '@benzed/math'
 import digitize from './digitize'
 
-describe(`digitize`, () => {
+const PI = Math.PI
 
-    it(`converts a number to a string`, () => {
-        expect(digitize(0)).toEqual(`0`)
+describe('digitize', () => {
+
+    it('converts a number to a string', () => {
+        expect(digitize(0)).toEqual('0')
     })
 
     for (const toZero of [Infinity, -Infinity, NaN]) {
         it(`converts ${toZero} to zero`, () => {
-            expect(digitize(toZero)).toEqual(`0`)
+            expect(digitize(toZero)).toEqual('0')
         })
     }
 
-    describe(`decimal options`, () => {
+    describe('decimal options', () => {
 
-        describe(`decimalPlaces`, () => {
+        describe('decimalPlaces', () => {
 
-            it(`number of decimal places to round to`, () => {
-                expect(digitize(1.2, { decimalPlaces: 2 })).toEqual(`1.2`)
+            it('number of decimal places to round to', () => {
+                expect(digitize(1.2, { decimalPlaces: 2 })).toEqual('1.2')
             })
 
-            it(`decimal places are correctly rounded`, () => {
-                expect(digitize(1.258, { decimalPlaces: 2 })).toEqual(`1.26`)
+            it('decimal places are correctly rounded', () => {
+                expect(digitize(1.258, { decimalPlaces: 2 })).toEqual('1.26')
             })
 
-            it(`must be an integer`, () => {
+            it('must be an integer', () => {
                 expect(() => digitize(PI, { decimalPlaces: 1.5 }))
-                    .toThrow(`decimalPlaces must be an integer`)
+                    .toThrow('decimalPlaces must be an integer')
             })
 
         })
 
-        describe(`trailingZeros`, () => {
-            it(`fills trailing zeros to decimal places`, () => {
+        describe('trailingZeros', () => {
+            it('fills trailing zeros to decimal places', () => {
                 expect(digitize(1.2, { decimalPlaces: 5, trailingZeros: true }))
-                    .toEqual(`1.20000`)
+                    .toEqual('1.20000')
             })
         })
 
     })
 
-    describe(`whole options`, () => {
+    describe('whole options', () => {
 
-        describe(`wholePlaces`, () => {
-            it(`adds leading zeros to output`, () => {
+        describe('wholePlaces', () => {
+            it('adds leading zeros to output', () => {
                 expect(digitize(78, { wholePlaces: 5 }))
-                    .toEqual(`00078`)
+                    .toEqual('00078')
             })
 
-            it(`0 has no effect`, () => {
+            it('0 has no effect', () => {
                 expect(digitize(78, { wholePlaces: 0 }))
-                    .toEqual(`78`)
+                    .toEqual('78')
             })
 
-            it(`must be an integer`, () => {
+            it('must be an integer', () => {
                 expect(() => digitize(PI, { wholePlaces: 1.5 }))
-                    .toThrow(`wholePlaces must be an integer`)
+                    .toThrow('wholePlaces must be an integer')
             })
         })
 
-        describe(`truncateWhole`, () => {
-            it(`truncates numbers that have more digits than wholePlaces`, () => {
+        describe('truncateWhole', () => {
+            it('truncates numbers that have more digits than wholePlaces', () => {
                 expect(digitize(12345, { wholePlaces: 4, truncateWhole: true }))
-                    .toEqual(`2345`)
+                    .toEqual('2345')
             })
 
-            it(`combined with wholePlace 0, removes everything before the decimal`, () => {
+            it('combined with wholePlace 0, removes everything before the decimal', () => {
                 expect(digitize(12345.67, { wholePlaces: 0, truncateWhole: true }))
-                    .toEqual(`.67`)
+                    .toEqual('.67')
             })
         })
     })
 
-    describe(`Both option types work in unison`, () => {
+    describe('Both option types work in unison', () => {
 
         for (const { options, input, output } of [
             {
@@ -83,7 +84,7 @@ describe(`digitize`, () => {
                     trailingZeros: true
                 },
                 input: 10,
-                output: `0010.00`
+                output: '0010.00'
             },
             {
                 options: {
@@ -92,7 +93,7 @@ describe(`digitize`, () => {
                     truncateWhole: true
                 },
                 input: 11958.000001,
-                output: `58`
+                output: '58'
             },
             {
                 options: {
@@ -102,10 +103,10 @@ describe(`digitize`, () => {
                     trailingZeros: true
                 },
                 input: 1212.1245,
-                output: `212.125`
+                output: '212.125'
             },
         ]) {
-            it(`${input} @${JSON.stringify(options).replace(/"/g, ``)} -> ${output}`, () => {
+            it(`${input} @${JSON.stringify(options).replace(/"/g, '')} -> ${output}`, () => {
                 expect(digitize(input, options)).toBe(output)
             })
         }

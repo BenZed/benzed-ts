@@ -1,6 +1,6 @@
-import { isFunction } from '@benzed/is'
+import { is } from '@benzed/is'
 
-/*** Exports ***/
+//// Exports ////
 
 export default class ValidationError extends Error {
 
@@ -10,13 +10,13 @@ export default class ValidationError extends Error {
         readonly value: unknown
     ) {
 
-        const message = isFunction(msgOrFormat)
+        const message = is.function(msgOrFormat)
             ? msgOrFormat(path)
             : msgOrFormat
 
         super(message)
 
-        this.name = `ValidationError`
+        this.name = 'ValidationError'
 
     }
 }

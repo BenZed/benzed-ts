@@ -1,10 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { isArray } from '@benzed/is'
-import { assertDefined } from '@benzed/util'
+import { is } from '@benzed/is'
+
 import first from './first'
 
-/*** Types ***/
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
+//// Types ////
 
 type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
     ? V
@@ -12,7 +15,7 @@ type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
     /**/ ? V | undefined
     /**/ : T
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Unwraps an array if it is one.
@@ -22,13 +25,11 @@ type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
  *                    returns the input.
  */
 function unwrap<T>(array: T): Unwrap<T> {
-    return (isArray(array)
+    return (is.array(array)
         ? first(array)
         : array) as Unwrap<T>
 }
 
-/*** Exports ***/
-
-unwrap.assert = assertDefined(unwrap)
+//// Exports ////
 
 export default unwrap

@@ -1,11 +1,10 @@
 import copy from '../copy'
 import unique from './unique'
-import { Comparable } from '../equals'
 import { $$equals } from '../symbols'
 
-describe(`unique()`, () => {
+describe('unique()', () => {
 
-    it(`outputs a copy of the input with non-duplicated values`, () => {
+    it('outputs a copy of the input with non-duplicated values', () => {
         const array = [0, 0, 0, 1, 1, 1]
         const array2 = copy(array)
         const clone = unique(array2)
@@ -17,19 +16,19 @@ describe(`unique()`, () => {
         expect(clone).not.toBe(array)
     })
 
-    describe(`outputs a copy of the input with non-value-equal values`, () => {
+    describe('outputs a copy of the input with non-value-equal values', () => {
 
-        const primitives = [0, -0, 1, 1, `string`, `string`, true, true, false, false]
-        const pResults = [0, -0, 1, `string`, true, false]
+        const primitives = [0, -0, 1, 1, 'string', 'string', true, true, false, false]
+        const pResults = [0, -0, 1, 'string', true, false]
 
-        it(`works on primitives`, () => {
+        it('works on primitives', () => {
 
             expect(unique(primitives)).toEqual(pResults)
         })
 
-        it(`works on plain objects`, () => {
-            const foo = { foo: `bar` }
-            const baz = { foo: `baz` }
+        it('works on plain objects', () => {
+            const foo = { foo: 'bar' }
+            const baz = { foo: 'baz' }
             const cake1 = { cake: { town: true } }
             const cake2 = { cake: { town: false } }
 
@@ -46,30 +45,30 @@ describe(`unique()`, () => {
             }
 
             // eslint-disable-next-line
-            public equals(b: any): b is Foo {
-                return b.bar === this.bar
+            public equals(b: unknown): b is this {
+                return (b as Foo).bar === this.bar
             }
 
         }
 
         const foos = primitives.map(p => new Foo(p))
 
-        it(`works on objects with $$equals method`, () => {
+        it('works on objects with $$equals method', () => {
             expect(unique(foos).map(f => f.bar)).toEqual(pResults)
         })
 
-        class UltraFoo extends Foo implements Comparable<Foo> {
+        class UltraFoo extends Foo {
             [$$equals] = Foo.prototype.equals
         }
 
         const ultrafoos = primitives.map(p => new UltraFoo(p))
 
-        it(`works on objects with 'equals' method`, () => {
+        it('works on objects with \'equals\' method', () => {
             expect(unique(ultrafoos).map(f => f.bar)).toEqual(pResults)
         })
     })
 
-    it(`does not mutate original array`, () => {
+    it('does not mutate original array', () => {
         const array = [0, 0, 0, 1, 1, 1]
         const array2 = copy(array)
 
@@ -82,11 +81,11 @@ describe(`unique()`, () => {
         expect(array3).not.toBe(array)
     })
 
-    it(`works on array-likes`, () => {
+    it('works on array-likes', () => {
 
         const arraylike = {
-            0: `base`,
-            1: `ace`,
+            0: 'base',
+            1: 'ace',
             length: 2
         }
 

@@ -7,16 +7,13 @@ import {
 
 } from '@benzed/immutable'
 
-import {
-    isFunction,
-    isInstanceOf
-} from '@benzed/is'
+import { is } from '@benzed/is'
 
-/*** Linting ***/
+//// Linting ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Types ***/
+//// Types ////
 
 interface NoSettings {
     [key: string]: never
@@ -33,33 +30,33 @@ type ErrorDefault<T extends ErrorSettings> = NonNullable<T['error']>
 
 type ErrorDefaultAndArgs<T extends ErrorSettings> = [ErrorDefault<T>, ...ErrorArgs<T>]
 
-/*** Main ***/
+//// Main ////
 
 abstract class Validator<
     I,
     O extends I = I,
     S extends object = object,
-/**/> implements CopyComparable<Validator<I, O, S>> {
+/**/> implements CopyComparable {
 
-    /*** State ***/
+    //// State ////
 
     private _settings: S
     get settings(): Readonly<S> {
         return this._settings
     }
 
-    /*** Construction ***/
+    //// Construction ////
 
     constructor (settings: S) {
         this._settings = this._stripUndefinedSettings(settings) as S
         this._onApplySettings()
     }
 
-    /*** Validation ***/
+    //// Validation ////
 
     abstract validate(input: I, allowTransform: boolean): I | O
 
-    /*** Helpers ***/
+    //// Helpers ////
 
     applySettings(settings: Partial<S>): void {
 
@@ -73,10 +70,10 @@ abstract class Validator<
 
     protected _onApplySettings(): void { /**/ }
 
-    /*** CopyComparable Implementation ***/
+    //// CopyComparable Implementation ////
 
     [$$equals](other: unknown): other is this {
-        return isInstanceOf(other, this.constructor) &&
+        return is.type(other, this.constructor) &&
             equals(other.settings, this.settings)
     }
 
@@ -85,7 +82,7 @@ abstract class Validator<
         return new ThisValidator(this.settings)
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private _stripUndefinedSettings(settings: Partial<S>): Partial<S> {
 
@@ -131,7 +128,7 @@ abstract class AssertTransformValidator<
 
     protected abstract _assert(input: I): asserts input is O
 
-    validate(input: I, allowTransform: boolean): O {
+    override validate(input: I, allowTransform: boolean): O {
         const output = super.validate(input, allowTransform)
 
         this._assert(output)
@@ -139,7 +136,7 @@ abstract class AssertTransformValidator<
         return output
     }
 
-    /*** Helpers ***/
+    //// Helpers ////
 
     protected _throwWithErrorSetting(
         errorDefault: ErrorDefault<S>,
@@ -149,7 +146,7 @@ abstract class AssertTransformValidator<
         const error = this.settings.error ?? errorDefault
 
         throw new Error(
-            isFunction<ErrorMethod<ErrorArgs<S>>>(error)
+            is.function<ErrorMethod<ErrorArgs<S>>>(error)
                 ? error(...args)
                 : error
         )
@@ -174,7 +171,7 @@ abstract class AssertValidator<O, S extends ErrorSettings>
 
 /**
  * An assert-valid-transform is a convenience abstraction that transforms
- * data to the expected output type. If transforms are now allowed for validation,
+ * data to the expected output type. If transforms are not allowed for validation,
  * it throws if the input is not the same was what the transformation would be.
  * 
  * Most validators will be this.
@@ -185,7 +182,7 @@ abstract class AssertValidTransformValidator<
 >
     extends AssertTransformValidator<O, O, S> {
 
-    /*** AssertTransformValidator Implementation ***/
+    //// AssertTransformValidator Implementation ////
 
     protected _assert(
         input: O
@@ -201,7 +198,7 @@ abstract class AssertValidTransformValidator<
         }
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     protected _isValid(input: O): boolean {
         return equals(input, this._transform(input))
@@ -213,7 +210,7 @@ abstract class AssertValidTransformValidator<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default Validator
 
