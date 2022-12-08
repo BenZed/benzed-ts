@@ -1,75 +1,88 @@
+import { Func, nil } from '@benzed/util'
 
-import _Module, { ModuleConstructor, ModuleParams, Modules } from './module'
+import { 
+    Extension, 
+    FindScope, 
+    GetModule, 
+    Module, 
+    Modules 
+} from './module'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
-//// Module Implementations for Extended Classes ////
+type SetModule<M extends Module> = M 
 
-function useModule<Mx extends _Module, M extends _Node<Modules>>(this: M, module: Mx): M {
-    return _Module._create(
-        this.constructor as ModuleConstructor,
-        [...this.modules, module]
-    ) as M
-}
+type Add<Mx extends Module, M extends Modules> = [...M, Mx]
 
-type UseModuleType<T extends ModuleConstructor, M extends _Node<Modules>> = (...params: ModuleParams<T>) => M
-const useModuleType = <T extends ModuleConstructor, M extends _Node<Modules>> (type: T): UseModuleType<T, M> => 
-    function (this: M, ...params: ModuleParams<T>) {
-        return this.useModule(
-            _Module._create(type, params)
-        ) as unknown as M
-    }
+export type AnyNode = Node<{}, Modules>
 
-type UseModuleInit<T extends ModuleConstructor, M extends _Node<Modules>> = <I extends (i: InstanceType<T>) => InstanceType<T>>(init: I) => M
-const useModuleInit = <T extends ModuleConstructor, M extends _Node<Modules>> (type: T, ...params: ModuleParams<T>): UseModuleInit<T, M> => 
-    function (this: M, init: any) { 
-        return this.useModule(
-            init(
-                _Module._create(type, params)
-            ) 
-        ) as unknown as M
-    } 
+//// Types ////
 
-//// Main ////
+interface Node<N extends Func | object, M extends Modules> {
 
-abstract class _Node<M extends Modules> extends _Module {
+    get root(): AnyNode 
 
-    readonly modules: M
+    get parent(): AnyNode | nil
+    get first(): Module | nil 
+    get last(): Module | nil
+    get modules(): Module[]
 
-    constructor (...modules: M) {
-
-        super(...modules)
-        this.modules = modules
-        this.modules.forEach(m => {
-            m._setParent(this)
-        })
-    }
+    find<M extends Module>(type: GetModule<M>, scope: FindScope): M[]
+    find<M extends Module>(type: GetModule<M>): M[]
 
     /**
-     * Parent a module instance to this node.
+     * Get a node by a path/to/a/location
      */
-    abstract useModule: <Mx extends _Module>(module: Mx) => _Node<[...M, Mx]>
+    get(): {}
 
-    abstract _useModuleType<T extends ModuleConstructor>(type: T): UseModuleType<T, _Node<[...M, InstanceType<T>]>>
+    /**
+     * Set a Node by a path: /path/to/location, which will automatically
+     * create nodes between '/' delimeters
+     * 
+     * Set a Module by an index, replacing the module at that location.
+     * 
+     * Value is a new Node or Module. 
+     * 
+     * If the location is occupied, the value can be a function taking the
+     * existing Node or Module as an argument, replaced value will be the output
+     * of the method.
+     */
+    set(): {}
 
-    abstract _useModuleInit<T extends ModuleConstructor>(type: T, ...params: ModuleParams<T>): UseModuleInit<T, _Node<[...M, InstanceType<T>]>>
+    /**
+     * Add a Node by a path: /add, nodes cannot be created
+     * between '/' delimiters. Method will throw if path is occupied.
+     * 
+     * Add a Module at the next index.
+     * If the location is occupied, the value can be a function taking the
+     * existing Node or Module as an argument, replaced value will be the output
+     * of the method.
+     */
+    add(): {}
+
+    /**
+     * Remove a node by a path, /can/be/deeply/nested
+     * Remove a module by an index.
+     */
+    remove(): {}
+
+}
+
+export interface NodeConstructor {
+
+    create<M extends Modules>(modules: M): Node<{}, M>
+    extend<E extends Extension>(): Node<E, []>
 
 }
 
 //// Exports ////
 
-export default _Node
+export default Node 
 
 export {
-    _Node,
-    
-    useModule,
-
-    UseModuleInit,
-    useModuleInit,
-
-    UseModuleType,
-    useModuleType,
+    Node
 }
+

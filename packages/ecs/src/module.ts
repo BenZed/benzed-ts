@@ -1,84 +1,48 @@
-
-import { $$copy } from "@benzed/immutable"
-import type _Node from "./node"
-
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-*/
-
-//// Symbols ////
-
-const $$params = Symbol(`immutable-copy-params`)
+import { Func, nil, TypeGuard } from '@benzed/util'
+import type { AnyNode, Node } from './node'
 
 //// Types ////
 
-type Modules = readonly _Module[]
+export type GetModule<M extends Module> = M | TypeGuard<M, Module>
 
-type ModuleConstructor = new (...params: any[]) => _Module
+export type FindScope = 'parent' | 'siblings' | 'children'
+export type path = `/${string | number}`
+export type Modules = Modules[]
 
-type ModuleParams<T extends ModuleConstructor> = ConstructorParameters<T> 
+export type Extension = object | Func
 
-//// Main ////
+//// Module ////
 
-class _Module {
+export interface Module {
 
-    private _parent: _Node<Modules> | null = null
-    get parent(): _Node<Modules> | null {
-        return this._parent
-    }
+    get root(): AnyNode
 
-    /**
-     * @internal
-     */
-    _setParent(parent: _Node<Modules> | null): this {
-        this._parent = parent
-        return this
-    }
+    get parent(): AnyNode | nil
+    get first(): Module | nil 
+    get last(): Module | nil
+    get modules(): Module[]
 
-    //// Set It And Forget It Immutability ////
-    // (Provided super() calls are done correctly)
+    get prev(): Module | nil
+    get next(): Module | nil
 
-    /**
-     * Create an instance of any module without having
-     * to worry about private constructors.
-     * 
-     * For internal use, only.
-     * @internal
-     */
-    static _create<T extends ModuleConstructor>(
-        type: T,
-        params: ModuleParams<T>
-    ): InstanceType<T> {
-        return new type(...params) as InstanceType<T>
-    }
-    
-    constructor(
-        ...params: unknown[]
-    ) {
-        this[$$params] = params
-    }
+    get<M extends Module>(type: GetModule<M>, scope: FindScope, required: true): M | nil    
+    get<M extends Module>(type: GetModule<M>, scope: FindScope, required?: false): M | nil
+    get<M extends Module>(scope: FindScope, required: true): M | nil
+    get<M extends Module>(scope: FindScope, required?: false): M | nil
+    get<N extends AnyNode>(path: Path, required?: false): N | nil 
+    get<N extends AnyNode>(path: Path, required: true): N 
 
-    private readonly [$$params]: unknown[]
+    find<M extends Module>(type: GetModule<M>, scope: FindScope): M[]
+    find<M extends Module>(type: GetModule<M>): M[]
 
-    [$$copy](): this {
-
-        const Constructor = this.constructor as (new (...params: unknown[]) => this)
-
-        return _Module._create(
-            Constructor, this[$$params]
-        )
-    }
 }
 
-/*** Export ***/
+/**
+ * Path
+ */
+export interface Path<P extends path> extends Module {
 
-export default _Module
+    path: P
 
-export {
-    _Module,
-    Modules,
-    ModuleConstructor,
-    ModuleParams,
-
-    $$params
 }
+
