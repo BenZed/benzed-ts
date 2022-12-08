@@ -29,10 +29,13 @@ const multiply = Command
     .create('multiply', $values, HttpMethod.Get)
     .useHook(({ a, b }) => ({ result: a * b }))
 
-const calculator = Service.create()
-    .useModule(add)
-    .useModule(subtract)
-    .useModule(divide)
-    .useModule(multiply)
+const calculator = Service
+    .create()
+    .useModules(
+        add,
+        subtract,
+        divide,
+        multiply
+    )
 
 export { calculator }

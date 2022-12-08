@@ -12,7 +12,6 @@ import Server, { $serverSettings, ServerSettings } from './server'
 
 import { Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
-import { resolve } from 'path'
 
 //// Helper ////
 
@@ -51,7 +50,6 @@ function ctxToRequest(ctx: Context): Request {
 export class KoaSocketIOServer extends Server {
 
     static create(settings: ServerSettings = {}): KoaSocketIOServer {
-
         return new KoaSocketIOServer(
             $serverSettings.validate(settings) as Required<ServerSettings>
         )
@@ -69,6 +67,7 @@ export class KoaSocketIOServer extends Server {
         this._io = this.settings.webSocket 
             ? this._setupSocketIOServer(this._http)
             : null
+
     }
 
     // Connection Implementation
@@ -84,7 +83,7 @@ export class KoaSocketIOServer extends Server {
     override async start(): Promise<void> {
     
         await super.start()
-    
+        
         const { port } = this.settings
     
         await new Promise<void>((resolve, reject) => {
@@ -105,11 +104,7 @@ export class KoaSocketIOServer extends Server {
             io.sockets
                 .sockets
                 .forEach(socket => socket.disconnect())
-
-            await new Promise<void>((resolve, reject) => {
-                io.close(err => err ? reject(err) : resolve())
-            })
-        }
+        } //
 
         await new Promise<void>((resolve, reject) => {
             http.close(err => err ? reject(err) : resolve())
@@ -197,5 +192,6 @@ export class KoaSocketIOServer extends Server {
         })
 
         return io
+
     }
 }

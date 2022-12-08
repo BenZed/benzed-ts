@@ -34,8 +34,9 @@ let findResult: Paginated<Todo>
 let todos: MongoDbCollection<Todo>
 beforeAll(async () => {
 
-    todos = mongoDb.getCollection('todos')
+    await mongoDb.clearAllCollections()
 
+    todos = mongoDb.getCollection('todos')
     createResult = await todos.create({ 
         completed: false, 
         description: 'build an app'

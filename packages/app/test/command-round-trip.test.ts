@@ -1,25 +1,25 @@
 import { calculator } from './util.test'
-import { App, Client, Server } from '../src'
+import { Client, Server } from '../src'
 
-//// Setup ////
+import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
+
+//// Setup //// 
 
 for (const webSocketClient of [true, false]) {
-    for (const webSocketServer of [true, false]) {
+    for (const webSocketServer of [true, false]) { 
 
         describe(`websocket ${webSocketClient ? 'enabled' : 'disabled'} on client, ${webSocketServer ? 'enabled' : 'disabled'} on server`, () => {
-            
-            const app = App.create().useModule(calculator)
-
-            const client = app.useModule(Client.create({ webSocket: webSocketClient }))
-            const server = app.useModule(Server.create({ webSocket: webSocketServer }))
-        
+            const server = calculator.useModule(Server.create({ webSocket: webSocketServer }))
+            const client = calculator.useModule(Client.create({ webSocket: webSocketClient }))
+            // 
+  
             beforeAll(() => server.start())
             beforeAll(() => client.start())
-        
-            afterAll(() => server.stop())
+            
             afterAll(() => client.stop())
+            afterAll(() => server.stop())
 
-            //// Tests ////
+            //// Tests //// 
         
             for (const [{ name, ...data }, output] of [
 
@@ -28,12 +28,11 @@ for (const webSocketClient of [true, false]) {
                 [ { name: 'divide', a: 10, b: 10 }, { result: 1 } ],
                 [ { name: 'subtract', a: 10, b: 10 }, { result: 0 } ],
 
-            ] as const) {
+            ] as const) { 
 
-                it(`calculator ${name} test ${JSON.stringify(data)} should result in ${JSON.stringify(output)}`, () => {
-
+                it(`calculator ${name} test ${JSON.stringify(data)} should result in ${JSON.stringify(output)}`, async () => {
                     const command = client.getCommand(name)
-                    const result = command.execute(data)
+                    const result = await command.execute(data)
                     expect(result).toEqual(output)
                 })
             }

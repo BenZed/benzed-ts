@@ -2,7 +2,7 @@ import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
 import { nil } from '@benzed/util'
 
-import type { Service, ServiceModule } from './service'
+import type { ServiceModule } from './service'
 import { Path } from './util/types'
 
 /* eslint-disable 
@@ -146,11 +146,11 @@ export class Module {
 
         this._forEachAscendent(m => {
             if ('path' in m)
-                path.push((m as Service<any,any>).path)
+                path.push(m.path as string)
         })
 
         if ('path' in this)
-            path.push((this as Service<any,any>).path)
+            path.push(this.path as string)
 
         return path.reverse().join('') as Path
     }

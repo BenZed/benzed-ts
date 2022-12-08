@@ -16,7 +16,7 @@ it('.start()', () => {
     expect(startErr).toBe(undefined)
 })
 
-it('.stop()', () => {
+it('.stop()', () => { 
     expect(stopErr).toBe(undefined)
 })
 

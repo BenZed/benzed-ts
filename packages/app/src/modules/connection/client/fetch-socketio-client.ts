@@ -8,6 +8,7 @@ import { stringify as toQueryString } from 'query-string'
 
 import { HttpMethod } from '../../../util'
 import { WEBSOCKET_PATH } from '../../../constants'
+import { through } from '@benzed/util'
 
 //// Eslint ////
 
@@ -26,30 +27,17 @@ export class FetchSocketIOClient extends Client {
 
         return new FetchSocketIOClient(
             $clientSettings.validate(settings) as Required<ClientSettings>
-        )
+        ) 
     }
 
     _io: Socket | null = null
 
-    constructor(settings: Required<ClientSettings>) {
-        super(settings)
-
-        this._io = settings.webSocket 
-            ? io(settings.host, { 
-                path: WEBSOCKET_PATH, 
-                autoConnect: false, 
-                forceNew: true
-            })
-            : null
-    }
- 
     // Module Implementation
 
     override async start(): Promise<void> {
         await super.start()
         if (this.settings.webSocket)
-            // 
-            await this._startSocketIO().catch(io)
+            await this._startSocketIO()
     }
 
     override async stop(): Promise<void> {
@@ -61,10 +49,7 @@ export class FetchSocketIOClient extends Client {
     // Connection Implementation 
 
     execute(name: string, data: object): Promise<object> {
-
-        const { webSocket } = this.settings
-
-        return webSocket && this._io?.connected
+        return this._io?.connected
             ? this._executeSocketIOCommand(name, data)
             : this._executeFetchCommand(name, data)
     }
@@ -73,23 +58,32 @@ export class FetchSocketIOClient extends Client {
     
     private async _startSocketIO(): Promise<void> {
         
-        const { host } = this.settings
+        const { host, webSocket } = this.settings
+            
+        if (!this._io && webSocket) {
+            this._io = io(host, { 
+                path: WEBSOCKET_PATH, 
+                autoConnect: false, 
+                forceNew: true
+            })
+        }
 
-        const io = this._io as Socket
-        if (io.connected)
-            return 
+        const _io = this._io
+        if (!_io)
+            return
 
         await new Promise<void>((resolve, reject) => {
-            io.once('connect', resolve)
-            io.once('connect_error', reject)
-            io.connect()
-        })
+            _io.once('connect', resolve)
+            _io.once('connect_error', reject)
+            _io.connect()
+        }).catch(through)
+
         this.log`connected to server ${ host }`
     }
 
     private async _stopSocketIO(): Promise<void> {
-        const io = this._io as Socket 
-        if (!io.connected)
+        const io = this._io
+        if (!io?.connected)
             return 
 
         await new Promise<void>((resolve) => {

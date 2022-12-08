@@ -35,7 +35,7 @@ export class FileProcess {
 
     protected readonly _onComplete = (error: Error | void): void => {
         if (!this.isRunning)
-            throw new Error(`${this.name} is is not running`)
+            throw new Error(`${this.name} is not running`)
 
         if (error instanceof Error)
             console.error('\n' + this.name,'error', error)
