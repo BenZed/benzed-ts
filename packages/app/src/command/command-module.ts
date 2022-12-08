@@ -1,9 +1,9 @@
 import $ from '@benzed/schema'
 import { toCamelCase } from '@benzed/string'
 
-import { Client } from '../modules'
 import { RequestHandler } from '../util'
-import ExecutableModule from './executable-module'
+import { ExecutableModule } from '../module'
+import { Client } from '../modules'
 
 //// Validation ////
 

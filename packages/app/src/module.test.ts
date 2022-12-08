@@ -1,6 +1,6 @@
 import { nil } from '@benzed/util'
 import { App } from './app'
-import { Module } from './module'
+import { Module, ExecutableModule } from './module'
 
 import { Service, ServiceModule } from './service'
 
@@ -149,4 +149,9 @@ it('.root', () => {
     const app = App.create().useModule(service.useService('/eh', service))
     const child = app.modules[0].modules[0]
     expect(child.root).toBe(app)
+})
+
+it('callable module', () => {
+    const executable = new ExecutableModule((x: { foo: string }) => ({ ...x, count: 0 }))
+    expect(executable({ foo: 'string' })).toEqual({ foo: 'string', count: 0 })
 })

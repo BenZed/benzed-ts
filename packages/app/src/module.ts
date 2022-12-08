@@ -1,6 +1,6 @@
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
-import { nil } from '@benzed/util'
+import { callable, nil, Transform } from '@benzed/util'
 
 import type { ServiceModule } from './service'
 import { Path } from './util/types'
@@ -310,3 +310,40 @@ export class SettingsModule<S extends object> extends Module {
     }
 
 }
+
+//// Executable Module ////
+
+export interface ExecutableModule<I extends object, O extends object> extends Module, Transform<I,O> {
+    readonly execute: Transform<I,O>
+}
+
+//
+
+interface ExecutableModuleConstructor {
+    new<I extends object, O extends object>(
+        
+        execute: Transform<I, O> | 
+        ((this: ExecutableModule<I,O>, input: I) => O)
+
+    ): ExecutableModule<I, O>
+}
+
+//// Executable Module ////
+
+export const ExecutableModule: ExecutableModuleConstructor = callable(
+    function (i: object): object {
+        return this.execute(i)
+    },
+    class extends Module {
+
+        constructor(
+            readonly execute: Transform<object, object>,
+        ) {
+            super()
+        }
+
+        protected override get _copyParams(): unknown[] {
+            return [this.execute]
+        }
+    }
+)
