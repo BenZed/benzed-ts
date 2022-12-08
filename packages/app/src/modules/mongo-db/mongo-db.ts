@@ -154,10 +154,8 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         return this._collections
     }
 
-    getCollection<T extends object>(name: string): MongoDbCollection<T> 
     getCollection<N extends KeysOf<C>>(name: N): C[N]
-    
-    getCollection(name: string): MongoDbCollection<object> {
+    getCollection<T extends object>(name: string): MongoDbCollection<T> {
 
         const collection = this._getCollection(name as KeysOf<C>)
 

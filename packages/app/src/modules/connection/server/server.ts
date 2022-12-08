@@ -3,7 +3,7 @@ import $, { Infer } from '@benzed/schema'
 
 import Connection from '../connection'
 import { $clientSettings } from '../client'
-import { $logIcon, $port } from '../../../schemas'
+import { $logIcon, $port } from '../../../util/schemas'
 import { DEFAULT_SERVER_PORT } from '../../../util'
 
 //// Types ////

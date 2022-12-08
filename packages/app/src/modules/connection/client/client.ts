@@ -2,10 +2,8 @@ import $, { Infer } from '@benzed/schema'
 import { InputOf, OutputOf } from '@benzed/util'
 
 import Connection from '../connection'
-
-import { $logIcon } from '../../../schemas'
 import { CommandModule } from '../../../modules'
-import { DEFAULT_SERVER_PORT } from '../../../util'
+import { DEFAULT_SERVER_PORT, $logIcon } from '../../../util'
 
 //// Types ////
 

@@ -1,6 +1,6 @@
 import { $, Infer } from '@benzed/schema'
 
-import { $port } from '../../schemas'
+import { $port } from '../../util/schemas'
 import { DEFAULT_MONGODB_PORT } from '../../util'
 
 //// Eslint ////
