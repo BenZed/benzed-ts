@@ -1,6 +1,6 @@
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
-import { callable, nil, Transform } from '@benzed/util'
+import { callable, Logger, nil, toVoid, Transform } from '@benzed/util'
 
 import type { ServiceModule } from './service'
 import { Path } from './util/types'
@@ -31,6 +31,10 @@ export type GetModuleScope =
 
 export type GetModuleInput<M extends Module> = ModuleConstructor<M> | GetPredicate | GetGuard<M>
 
+const DUMMY_LOGGER = Logger.create({
+    onLog: toVoid
+})
+
 // TODO make this and SettingsModule abstract
 export class Module {
 
@@ -40,10 +44,10 @@ export class Module {
         return this.constructor.name
     }
 
-    log(strings: TemplateStringsArray, ...items: unknown[]): void {
-        void strings
-        void items
-        // TODO implement
+    get log(): Logger {
+        const logger: Logger = this.getModule(m => m.name === 'Logger', false, 'parents')?.log ?? DUMMY_LOGGER
+        logger.options.header = (this.constructor as { icon?: string }).icon ?? ''
+        return logger
     }
 
     getModule<M extends Module, R extends boolean = false>(

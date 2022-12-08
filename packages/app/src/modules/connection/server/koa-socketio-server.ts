@@ -12,7 +12,16 @@ import { Server as IOServer } from 'socket.io'
 import Server, { $serverSettings, ServerSettings } from './server'
 
 import { Command } from '../../command'
-import { WEBSOCKET_PATH, Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
+
+import { 
+    WEBSOCKET_PATH, 
+    Request, 
+    Headers, 
+    Path, 
+    HttpCode, 
+    HttpMethod, 
+    $path
+} from '../../../util'
 
 //// Helper ////
 
@@ -21,7 +30,7 @@ function ctxBodyToObject(ctx: Context): Record<string, unknown> {
     if (is.object<Record<string, unknown>>(ctx.request.body))   
         return ctx.request.body
 
-    if (is.string(ctx.request.body))
+    if (is.string(ctx.request.body)) 
         return JSON.parse(ctx.request.body)
 
     return {}
@@ -68,7 +77,6 @@ export class KoaSocketIOServer extends Server {
         this._io = this.settings.webSocket 
             ? this._setupSocketIOServer(this._http)
             : null
-
     }
 
     // Module Implementation
@@ -110,20 +118,22 @@ export class KoaSocketIOServer extends Server {
 
     private _executeCtxCommand(ctx: Context): Promise<object> {
 
-        const request = ctxToRequest(ctx)
+        const { url, ...req } = ctxToRequest(ctx)
 
         for (const commandName of keysOf(this.root.commands)) {
-
             const command = this._getCommand(commandName)
             if (!command)
-                continue 
+                continue
     
-            const commandData = command
+            const data = command
                 .request
-                .match(request)
+                .match({
+                    ...req,
+                    url: url.replace(command.pathFromRoot, '') as Path
+                })
 
-            if (commandData) 
-                return command.execute(commandData) as Promise<object>
+            if (data) 
+                return command.execute(data) as Promise<object>
         }
 
         return ctx.throw(

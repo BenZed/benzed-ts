@@ -43,8 +43,10 @@ export const createUrlParamPather = <T extends object>(
             url += urlParamValue
     }
 
+    const output = omit(data, ...urlParamKeys as never[]) as object
+
     return [
         $path.validate(url), 
-        omit(data, ...urlParamKeys) as Partial<T>
+        output
     ]
 }

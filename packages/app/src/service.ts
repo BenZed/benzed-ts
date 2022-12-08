@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { IndexesOf, KeysOf, Merge, nil } from '@benzed/util'
+import { KeysOf, Merge, nil, Infer } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -52,7 +52,7 @@ type ServiceCommands<M> = Merge<[
 ]>
 
 type _ServiceAtPath<M, P extends string, R extends boolean> = M extends Service<infer Px, infer Mx> 
-    ? { [K in `${P}${Px}`]: M } & R extends true ? _ServicesAtPaths<Mx, `${P}${Px}`, true> : {}
+    ? { [K in `${P}${Px}`]: M } & (R extends true ? _ServicesAtPaths<Mx, `${P}${Px}`, true> : {})
     : {}
 
 type _ServicesAtPaths<M, P extends string, R extends boolean> = M extends [infer Sx, ...infer Sr] 
@@ -136,16 +136,16 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     //// Service Implementation ////
 
-    abstract useService<P extends ServiceAtNestedPath<M>>(path: P,module: Mx): unknown
+    // abstract useService<P extends ServiceAtNestedPath<M>>(path: P,module: Mx): unknown
     abstract useService<P extends Path, Mx extends ServiceModule<any>>(
         path: P,
         module: Mx
     ): unknown
 
-    abstract useModule<Mx extends Module, I extends IndexesOf<M>, F extends (module: M[I]) => Mx>(index: I, updater: F): unknown
+    // abstract useModule<Mx extends Module, I extends IndexesOf<M>, F extends (module: M[I]) => Mx>(index: I, updater: F): unknown
     abstract useModule<Mx extends Module>(module: Mx): unknown
 
-    abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
+    // abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
     abstract useModules<Mx extends Modules>(...modules: Mx): unknown
     
     getService<P extends NestedPaths<M>>(path: P): ServiceAtNestedPath<M, P> {

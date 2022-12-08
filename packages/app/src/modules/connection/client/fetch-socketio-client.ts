@@ -119,10 +119,19 @@ export class FetchSocketIOClient extends Client {
 
         const { method, url, body, headers } = command
             .request
-            .from(cmdData, command.pathFromRoot)
+            .from(cmdData)
 
-        const response = await fetch(`${host}${url}`, { method, body: body as BodyInit, headers })
-        return response.json()
+        const response = await fetch(
+            `${host}${command.pathFromRoot}${url}`, 
+            { 
+                method,
+                body: body && JSON.stringify(body), 
+                headers 
+            }
+        )
+
+        const text = await response.text()
+        return JSON.parse(text)
     }
     
     private _getCommandRootName(command: CommandModule<string, object, object>): string {

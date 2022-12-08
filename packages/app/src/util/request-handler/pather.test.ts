@@ -14,7 +14,7 @@ describe(`${createStaticPather.name}()`, () => {
         // @ts-expect-error must be a path
         createStaticPather('')
     })
-
+ 
     it('is memoized', () => {
         expect(defaultPather).toBe(createStaticPather('/'))
     })

@@ -25,7 +25,7 @@ interface LoggerOptions {
      * // '😃 Hello World'
      * ```
      */
-    header?: string
+    header: string
 
     /**
      * Include a timestamp
@@ -38,12 +38,12 @@ interface LoggerOptions {
      * // '😃 Hello World'
      * ```
      */
-    timeStamp?: TimeStamp
+    timeStamp: TimeStamp
 
     /**
      * console.log by default.
      */
-    onLog?: LogHandler
+    onLog: LogHandler
 
 }
 
@@ -52,13 +52,14 @@ type Log = (strings: TemplateStringsArray, ...inputs: unknown[]) => void
 type LogHandler = (...items: unknown[]) => void
 
 interface Logger extends Log {
+    options: LoggerOptions
     info: Log
     error: Log
     warn: Log
 }
 
 interface LoggerConstructor {
-    create(options: LoggerOptions): Logger
+    create(options: Partial<LoggerOptions>): Logger
     is: typeof isLogger
 }
 
@@ -127,8 +128,9 @@ const Logger = callable(
 
         static is = isLogger 
 
-        static create(options: LoggerOptions): Logger {
+        static create(options: Partial<LoggerOptions>): Logger {
             return new this({
+                header: '',
                 onLog: console.log.bind(console),
                 timeStamp: true,
                 ...options
@@ -136,7 +138,7 @@ const Logger = callable(
         }
 
         constructor(
-            readonly options: LoggerOptions = {}
+            readonly options: LoggerOptions
         ) {}
 
         private _lastTimeStamp = ''
