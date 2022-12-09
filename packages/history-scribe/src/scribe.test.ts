@@ -1,10 +1,12 @@
 import HistoryScribe from './scribe'
 
+import { describe, it, expect } from '@jest/globals'
+
 describe('HistoryScribe class', () => {
 
     type Structure = {
         floors: {
-            rooms: number
+            rooms: number 
         }[]
         stage: 'carpentry' | 'painting' | 'finishing'
         type: 'industrial' | 'residential' | 'commercial'

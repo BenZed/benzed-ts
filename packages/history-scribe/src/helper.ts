@@ -1,13 +1,13 @@
-import is from '@benzed/is'
-import { equals } from '@benzed/immutable'
 import { resolveIndex as _resolveIndex } from '@benzed/array'
+import { equals } from '@benzed/immutable'
+import { isNumber, isObject } from '@benzed/util'
 
 import { HistoryEntry, HistoryMeta } from './types'
 
 //// Exports ////
 
 export function toDate(a: Date | number | string): Date {
-    return is.date(a) ? a : new Date(a)
+    return a instanceof Date ? a : new Date(a)
 }
 
 export function isSameAgeOrOlder(a: Date | number | string, b: Date | number | string): boolean {
@@ -30,7 +30,7 @@ export function resolveIndex<T extends object, I>(
     if (indexOrDate === entries.length && allowEndIndex)
         return indexOrDate
 
-    if (is.number(indexOrDate))
+    if (isNumber(indexOrDate))
         return _resolveIndex(entries.length, indexOrDate)
 
     const date = toDate(indexOrDate)
@@ -81,7 +81,7 @@ export function resolveHistoryMeta<I>(
     signatureOrMeta?: I | Partial<HistoryMeta<I>>
 ): HistoryMeta<I> {
 
-    const partialMeta = is.object(signatureOrMeta) &&
+    const partialMeta = isObject(signatureOrMeta) &&
         ('signature' in signatureOrMeta || 'timestamp' in signatureOrMeta)
         ? signatureOrMeta
         : {
