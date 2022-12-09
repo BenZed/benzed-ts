@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import { keysOf, nil } from '@benzed/util'
+import { keysOf, nil, isNumber } from '@benzed/util'
 
 import { createServer, Server as HttpServer } from 'http'
 
@@ -11,7 +11,7 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 
-import { Command } from '../../command'
+import { Command, CommandError } from '../../command'
 
 import { 
     WEBSOCKET_PATH, 
@@ -19,8 +19,7 @@ import {
     Headers, 
     Path, 
     HttpCode, 
-    HttpMethod, 
-    $path
+    HttpMethod
 } from '../../../util'
 
 //// Helper ////
@@ -105,7 +104,7 @@ export class KoaSocketIOServer extends Server {
             io.sockets
                 .sockets
                 .forEach(socket => socket.disconnect())
-        } //
+        }
 
         await new Promise<void>((resolve, reject) => {
             http.close(err => err ? reject(err) : resolve())
@@ -116,9 +115,11 @@ export class KoaSocketIOServer extends Server {
 
     // Koa Helpers
 
-    private _executeCtxCommand(ctx: Context): Promise<object> {
+    private async _executeCtxCommand(ctx: Context): Promise<object> {
 
         const { url, ...req } = ctxToRequest(ctx)
+
+        let methodMatch = false
 
         for (const commandName of keysOf(this.root.commands)) {
             const command = this._getCommand(commandName)
@@ -132,14 +133,37 @@ export class KoaSocketIOServer extends Server {
                     url: url.replace(command.pathFromRoot, '') as Path
                 })
 
-            if (data) 
-                return command.execute(data) as Promise<object>
+            if (data) {
+                try {
+                    const result = await command.execute(data) as Promise<object>
+                    return await result
+                } catch (e) {
+                    throw CommandError.from(e, {
+                        data: {
+                            command: command.name,
+                            data,
+                            url: ctx.url
+                        }
+                    })
+                }
+            } else if (command.request.method === req.method)
+                methodMatch = true
         }
 
-        return ctx.throw(
-            HttpCode.NotFound, 
-            `Not found: ${ctx.method} ${ctx.url}`
-        )
+        if (!methodMatch) {
+            throw new CommandError(
+                HttpCode.MethodNotAllowed,
+                `Method ${ctx.method} is not allowed`
+            )
+        } else {
+            throw new CommandError(
+                HttpCode.NotFound, 
+                `Could not ${ctx.method} location ${ctx.url}`, 
+                { 
+                    method: ctx.method,
+                    url: ctx.url
+                })
+        }
     }
 
     private _getCommand(name: string): Command<string, object, object> | nil {
@@ -160,7 +184,12 @@ export class KoaSocketIOServer extends Server {
         // Route Everything to command handlers
         koa.use(async (ctx, next) => {
             await next()
-            ctx.body = await this._executeCtxCommand(ctx)
+            const result = await this._executeCtxCommand(ctx).catch(CommandError.from) as { code?: number }
+            
+            if (isNumber(result.code))
+                ctx.status = result.code 
+            
+            ctx.body = result
         })
 
         return koa
@@ -183,19 +212,32 @@ export class KoaSocketIOServer extends Server {
 
                 this.log`${socket.id} command: ${name} ${input}`
 
+                const command = this._getCommand(name)
                 try {
-                    const command = this._getCommand(name)
-                    if (!command)
-                        throw new Error(`${name} is not a valid command.`)
+                    if (!command) {
+                        throw new CommandError(
+                            HttpCode.NotFound, 
+                            `No command with name ${name}`
+                        )
+                    }
 
                     const output = await command(input)
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)
+                
                 } catch (e) {
 
                     this.log`${socket.id} command error: ${e}`
-                    reply(e)
+                    reply(
+                        CommandError.from(e, {
+                            data: {
+                                data: input,
+                                command: command?.name,
+                                method: command?.request.method,
+                            }
+                        })
+                    )
                 }
             })
 

@@ -7,8 +7,8 @@ import { capitalize } from '@benzed/string'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { WEBSOCKET_PATH } from '../../../util'
-import { CommandModule } from '../../../modules'
+import { HttpCode, WEBSOCKET_PATH } from '../../../util'
+import { CommandError, CommandModule } from '../../../modules'
 
 //// Eslint ////
 
@@ -107,7 +107,7 @@ export class FetchSocketIOClient extends Client {
         return new Promise<object>((resolve, reject) => {
             io.emit('command', rootName, data, (err: null, result: object) => {
                 if (err)
-                    reject(err)
+                    reject(CommandError.from(err))
                 else 
                     resolve(result)
             })
@@ -130,8 +130,21 @@ export class FetchSocketIOClient extends Client {
             }
         )
 
-        const text = await response.text()
-        return JSON.parse(text)
+        if (response.status >= HttpCode.BadRequest) {
+            const text = await response.text()
+            let error
+            try {
+                error = JSON.parse(text)
+            } catch {
+                error = new CommandError(
+                    HttpCode.InternalServerError,
+                    response.statusText
+                )
+            }
+            throw CommandError.from(error)
+        }
+
+        return response.json()
     }
     
     private _getCommandRootName(command: CommandModule<string, object, object>): string {
