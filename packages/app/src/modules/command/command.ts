@@ -114,7 +114,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         return new Command(
             name, 
             execute, 
-            RequestHandler.create(method)
+            RequestHandler
+                .create(method)
                 .setUrl(path)
                 .setSchema(schema)
         )
@@ -211,7 +212,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     //// Instance Build Interface ////
 
     /**
-     * Add a hook to this command
+     * Appen a hook to this command
      */
     useHook<Ox extends object = O>(
         hook: ContextTransform<O, Ox, this>
@@ -290,7 +291,9 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         const [newSchematic] = validate ? toSchematicAndValidate(validate) : [nil]
 
         const newExecute = newSchematic 
-            ? Pipe.from(newSchematic.validate).to(executeWithoutOldSchemaValidate)
+            ? Pipe
+                .from(newSchematic.validate)
+                .to(executeWithoutOldSchemaValidate)
             : executeWithoutOldSchemaValidate
 
         return new Command(

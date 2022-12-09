@@ -5,10 +5,11 @@ import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-import { HttpMethod, RequestHandler } from '../../util'
+import { HttpCode, HttpMethod, RequestHandler } from '../../util'
 import { MongoDb, MongoDbCollection } from '../mongo-db'
 
 import { CommandModule } from '../command/command-module'
+import { CommandError } from '../command'
 
 //// Helper ////
 
@@ -21,7 +22,7 @@ interface AuthSettings extends Infer<typeof $authSettings> {}
 const $authSettings = $({
     secret: $.string.optional.default(DEFAULT_SECRET),
     collection: $.string.optional.default('users'),
-    saltRounds: $.number.default(DEFAULT_PASSWORD_SALT_ROUNDS).optional
+    saltRounds: $.number.optional.default(DEFAULT_PASSWORD_SALT_ROUNDS)
 })
 
 //// Types ////
@@ -72,7 +73,7 @@ const authRequestHandler = RequestHandler
 
 //// Module ////
 
-class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
+class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToken>> {
 
     static create(settings: AuthSettings = {}): Auth {
         return new Auth(
@@ -113,10 +114,12 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
     }
 
     get collection(): MongoDbCollection<Credentials> {
+        type C = typeof this.settings.collection
 
-        const database = this.getModule(MongoDb, true)
+        const database = this
+            .getModule<MongoDb<{ [K in C]: MongoDbCollection<Credentials> }>, true>(MongoDb, true)
 
-        const collection = database.getCollection<Credentials>(this.settings.collection)
+        const collection = database.getCollection(this.settings.collection)
         return collection
     }
     
@@ -132,16 +135,16 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
 
         const [ entity ] = records
         if (!entity || await bcrypt.compare(password, entity.password))
-            throw new Error('Invalid credentials')
+            throw new CommandError(HttpCode.Unauthorized, 'Invalid credentials.')
 
         const accessToken = await this.createAccessToken({ _id: entity._id, })
         return { accessToken }
     }
 
     protected override async _executeOnClient(
-        input: { email: string, password: string }
-    ): Promise<{ accessToken: string }> {
-        const { accessToken } = await super._executeOnClient(input)
+        credentials: Credentials
+    ): Promise<AccessToken> {
+        const { accessToken } = await super._executeOnClient(credentials)
 
         if (this.parent?.root.client)
             this._accessToken = accessToken
@@ -201,7 +204,6 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
         const { saltRounds } = this.settings
         return bcrypt.hash(password, saltRounds)
     }
-
 }
 
 //// Exports ////
@@ -209,5 +211,7 @@ class Auth extends CommandModule<'authenticate', Credentials, AccessToken> {
 export default Auth
 
 export {
-    Auth
+    Auth,
+    Credentials as AuthCredentials,
+    AccessToken
 }

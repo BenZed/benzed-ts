@@ -3,7 +3,7 @@ import { $$copy, unique } from '@benzed/immutable'
 import { callable, Logger, nil, toVoid, Transform } from '@benzed/util'
 
 import type { ServiceModule } from './service'
-import { Path } from './util/types'
+import { $path, Path } from './util/types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -161,7 +161,7 @@ export class Module {
         if ('path' in this)
             path.push(this.path as string)
 
-        return path.reverse().join('') as Path
+        return $path.validate(path.reverse().join(''))
     }
 
     //// Lifecycle Hooks ////

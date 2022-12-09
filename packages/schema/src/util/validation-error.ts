@@ -1,4 +1,11 @@
 import { is } from '@benzed/is'
+import { isString } from '@benzed/util'
+
+//// Helper ////
+
+function formatPath (path: readonly (string | number | symbol)[]): string {
+    return path.map((p,i) => i === 0 ? String(p) : isString(p) ? `.${p}` : `[${String(p)}]`).join('')
+}
 
 //// Exports ////
 
@@ -14,7 +21,7 @@ export default class ValidationError extends Error {
             ? msgOrFormat(path)
             : msgOrFormat
 
-        super(message)
+        super(`${formatPath(path)} ${message}`.trim())
 
         this.name = 'ValidationError'
 

@@ -1,6 +1,5 @@
-import { isObject } from '@benzed/is/src/is-basic'
-import { defined } from '@benzed/util/src'
-import { ValidationError } from '@benzed/schema/src'
+import { isObject, defined, omit } from '@benzed/util'
+import { ValidationError } from '@benzed/schema'
 
 import { HttpCode } from '../../util'
 
@@ -22,11 +21,10 @@ class CommandError extends Error {
         // auto wrap validation errors
         const error: Partial<CommandErrorJson> = input instanceof ValidationError 
             ? {
-                ...input,
+                message: input.message,
                 code: HttpCode.BadRequest,
                 data: {
-                    path: input.path,
-                    value: input.value
+                    ...omit(input, 'name', 'message')
                 }
             }
 

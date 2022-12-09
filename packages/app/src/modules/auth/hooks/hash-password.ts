@@ -15,7 +15,9 @@ const hashPassword = memoize(<I extends { password?: string }>(): CommandHook<I,
 
             const output = {
                 ...input,
-                password: password ? await auth.hashPassword(password) : nil,
+                password: password 
+                    ? await auth.hashPassword(password) 
+                    : nil,
             } as I
 
             //

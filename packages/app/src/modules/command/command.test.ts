@@ -18,7 +18,7 @@ import { expectTypeOf } from 'expect-type'
 //// Todo ////
 
 // interface TodoData extends Infer<typeof $todoData> {}
-const $todoData = $({
+const $todoData = $({ 
     completed: $.boolean,
     description: $.string
 })
@@ -150,7 +150,7 @@ describe('instance builder pattern', () => {
 
         })
 
-        it('has access to partial module interface', () => {
+        it('has access to partial module interface', async () => {
 
             const getTodo = Command
                 .get($todoId)
@@ -163,7 +163,7 @@ describe('instance builder pattern', () => {
                     return todo
                 }))
 
-            const todo = getTodo.execute({ id: '0' })
+            const todo = await getTodo.execute({ id: '0' })
             expect(todo).toEqual({ 
                 id: '0', 
             })
@@ -236,11 +236,11 @@ describe('name', () => {
 
 describe('hook instead of schema', () => {
 
-    it('allows non-validated commands to be created', () => {
+    it('allows non-validated commands to be created', async () => {
 
         const cmd = Command.get((i: { input: string }) => ({ ...i, foo: 'bar' }))
 
-        expect(cmd.execute({ input: 'hello' })).toEqual({ 
+        expect(await cmd.execute({ input: 'hello' })).toEqual({ 
             foo: 'bar', 
             input: 'hello' 
         })
@@ -255,7 +255,7 @@ describe('hook instead of schema', () => {
 
 describe('shape schema input', () => {
 
-    it('allows slightly nicer validation syntax', () => {
+    it('allows slightly nicer validation syntax', async () => {
 
         const cmd1 = Command.get({
             x: $.number,
@@ -263,7 +263,7 @@ describe('shape schema input', () => {
         })
         
         const cmd = cmd1.useHook(({ x,y }) => ({ magnitude:  Math.sqrt(x ** 2 + y ** 2)}))
-        expect(cmd.execute({ x: 0, y: 10 }))
+        expect(await cmd.execute({ x: 0, y: 10 }))
             .toEqual({ magnitude: 10 })
     })
     

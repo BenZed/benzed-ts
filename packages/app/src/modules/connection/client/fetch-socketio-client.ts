@@ -2,12 +2,12 @@
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
 
+import { capitalize, toCamelCase } from '@benzed/string'
 import { InputOf, OutputOf, through } from '@benzed/util'
-import { capitalize } from '@benzed/string'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { HttpCode, WEBSOCKET_PATH } from '../../../util'
+import { $path, HttpCode, WEBSOCKET_PATH } from '../../../util'
 import { CommandError, CommandModule } from '../../../modules'
 
 //// Eslint ////
@@ -48,15 +48,15 @@ export class FetchSocketIOClient extends Client {
 
     // Connection Implementation 
 
-    execute<C extends CommandModule<string, any, any>>(
+    _execute<C extends CommandModule<string, any, any>>(
         command: C,
         data: InputOf<C>
-    ): Promise<OutputOf<C>> {
+    ): OutputOf<C> {
         return (
             this._io?.connected
                 ? this._executeSocketIOCommand(command, data)
                 : this._executeFetchCommand(command, data)
-        ) as Promise<OutputOf<C>>
+        ) as OutputOf<C>
     }
 
     // Helper 
@@ -122,7 +122,7 @@ export class FetchSocketIOClient extends Client {
             .from(cmdData)
 
         const response = await fetch(
-            `${host}${command.pathFromRoot}${url}`, 
+            host + $path.validate(`${command.pathFromRoot}${url}`), 
             { 
                 method,
                 body: body && JSON.stringify(body), 
@@ -136,10 +136,10 @@ export class FetchSocketIOClient extends Client {
             try {
                 error = JSON.parse(text)
             } catch {
-                error = new CommandError(
-                    HttpCode.InternalServerError,
-                    response.statusText
-                )
+                error = {
+                    code: HttpCode.InternalServerError,
+                    message: response.statusText
+                }
             }
             throw CommandError.from(error)
         }
@@ -148,19 +148,12 @@ export class FetchSocketIOClient extends Client {
     }
     
     private _getCommandRootName(command: CommandModule<string, object, object>): string {
+
         const path = command.pathFromRoot
 
-        const rootName = path.length > 1
-            ? path // "/deep/nested/service" => "deepNestedService${name}"
-                .split('/')
-                .filter(i => i)
-                .concat(command.name)
-                .map((n,i) => i === 0 ? n : capitalize(n))
-                .join('')
-        
+        return path.length > 1
+            ? toCamelCase(command.pathFromRoot, '/') + capitalize(command.name)
             : command.name
-        
-        return rootName
     }
 
 }

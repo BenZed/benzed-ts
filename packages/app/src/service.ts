@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { KeysOf, Merge, nil, Infer } from '@benzed/util'
+import { KeysOf, Merge, nil } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'

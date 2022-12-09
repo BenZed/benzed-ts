@@ -66,7 +66,7 @@ it('.create() data validated', async () => {
     // @ts-expect-error Invalid
     const err = await todos.create({ description: '' }).catch(io)
     expect(err).toHaveProperty('path', ['completed'])
-    expect(err).toHaveProperty('message', 'is required')
+    expect(err).toHaveProperty('message', 'completed is required')
 
 })
 
@@ -110,7 +110,7 @@ it('.update() data validated', async () => {
     const err = await todos.update(_id, { description: { foo: 'incorrect' } }).catch(io)
 
     expect(err).toHaveProperty('path', ['description'])
-    expect(err).toHaveProperty('message', 'must be a string')
+    expect(err).toHaveProperty('message', 'description must be a string')
 })
 
 it('.update() returns null if there was no record to update', async () => {

@@ -29,12 +29,13 @@ const $clientSettings = $({
 abstract class Client extends Connection<Required<ClientSettings>> {
 
     /**
+     * @internal
      * Execute a command with the given name and data
      */
-    abstract execute<C extends CommandModule<string, object, object>>(
+    abstract _execute<C extends CommandModule<string, object, object>>(
         command: C,
         data: InputOf<C>
-    ): Promise<OutputOf<C>>
+    ): OutputOf<C>
         
 }
 

@@ -36,7 +36,8 @@
         "@benzed/match": "^0.9.0",
         "@benzed/schema": "^0.3.0",
         "@benzed/string": "^3.2.3",
-        "@benzed/util": "^3.9.1"
+        "@benzed/util": "^3.9.1",
+        "@benzed/async": "^3.4.1"
     },
     "peerDependencies": {},
     "devDependencies": {
