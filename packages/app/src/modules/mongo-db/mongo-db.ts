@@ -39,8 +39,6 @@ type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCo
             : never 
         : never
 
-type IdInput = { id: string }
-
 //// Record Commands ////
 
 type RecordCommands<T extends object> = [
