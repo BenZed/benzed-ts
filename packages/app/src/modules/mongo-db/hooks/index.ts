@@ -1,1 +1,1 @@
-export * from './provide-records'
+export * from './history-scribe'

@@ -10,7 +10,7 @@ import {
     SettingsModule 
 } from '../../module'
 
-import { Command } from '../command'
+import { Command, RuntimeCommand } from '../command'
 
 import { 
     $mongoDbSettings,
@@ -18,7 +18,6 @@ import {
 } from './mongo-db-settings'
 
 import MongoDbCollection, { Paginated, RecordQuery, Record, RecordOf } from './mongo-db-collection'
-import { provideRecords } from './hooks'
 
 //// Eslint ////
 
@@ -40,14 +39,16 @@ type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCo
             : never 
         : never
 
+type IdInput = { id: string }
+
 //// Record Commands ////
 
 type RecordCommands<T extends object> = [
-    Command<'get', { id: string }, Promise<Record<T>>>,
-    Command<'find', RecordQuery<T>, Promise<Paginated<Record<T>>>>,
-    Command<'create', T, Promise<Record<T>>>,
-    Command<'update', { id: string } & Partial<T>, Promise<Record<T>>>,
-    Command<'remove', { id: string }, Promise<Record<T>>>
+    Command<'get', { id: string }, Record<T>>,
+    Command<'find', RecordQuery<T>, Paginated<Record<T>>>,
+    Command<'create', T, Record<T>>,
+    Command<'update', { id: string } & Partial<T>, Record<T>>,
+    Command<'remove', { id: string }, Record<T>>
 ]
 
 //// Mongodb Database ////
@@ -65,23 +66,22 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
             return record
         }
 
+        const records = <I extends object>(cmd: RuntimeCommand<I>): MongoDbCollection<object> => cmd
+            .getModule(MongoDb, true, 'parents')
+            .getCollection(collectionName)
+
         // Commmands 
 
         return [
-            Command.get(provideRecords<{ id: string }, object>(collectionName))
-                .useHook(([{ id }, records]) => records.get(id).then(assertRecord(id))),
+            Command.get(({ id }, cmd) => records(cmd).get(id).then(assertRecord(id))),
                 
-            Command.find(provideRecords(collectionName))
-                .useHook(([query, records]) => records.find(query)),
+            Command.find((query, cmd) => records(cmd).find(query)),
             
-            Command.create(provideRecords(collectionName))
-                .useHook(([data, records]) => records.create(data)),
+            Command.create((data, cmd) => records(cmd).create(data)),
 
-            Command.update(provideRecords<{ id: string } & Partial<object>, object>(collectionName))
-                .useHook(([{ id, ...data }, records]) => records.update(id, data).then(assertRecord(id))),
+            Command.update(({ id, ...data }, cmd) => records(cmd).update(id, data).then(assertRecord(id))),
 
-            Command.remove(provideRecords<{ id: string }, object>(collectionName))
-                .useHook(([{id}, records]) => records.remove(id).then(assertRecord(id)))
+            Command.remove(({ id }, cmd) => records(cmd).remove(id).then(assertRecord(id)))
         ]
     }
 
