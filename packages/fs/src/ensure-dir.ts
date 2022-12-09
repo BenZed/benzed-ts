@@ -10,12 +10,11 @@ import { makeDir, stat } from './export'
  * 
  * Returns true if folders needed to be created, false otherwise.
  */
-async function ensureDir(pathLike: PathLike): Promise<boolean> {
+async function ensureDir(dir: PathLike): Promise<boolean> {
 
-    const dir = pathLike.toString()
     const dirStat = await stat(dir).catch(() => null)
     if (!dirStat) {
-        const parentDir = path.dirname(dir)
+        const parentDir = path.dirname(dir.toString())
 
         await ensureDir(parentDir)
         await makeDir(dir)
