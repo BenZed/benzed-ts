@@ -1,5 +1,7 @@
 import seconds from './seconds'
 
+import { describe, it, expect } from '@jest/globals'
+
 describe('seconds', () => {
 
     it('returns a promise', () => {

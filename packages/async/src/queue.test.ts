@@ -1,7 +1,9 @@
-import { toFalse, toTrue } from '@benzed/util'
+import { Func, toFalse, toTrue } from '@benzed/util'
 
 import milliseconds from './milliseconds'
 import { isQueuePayload, Queue } from './queue'
+
+import { describe, it, expect, jest, beforeAll } from '@jest/globals'
 
 jest.setTimeout(500)
 
@@ -46,10 +48,10 @@ describe('maxTotalItems option', () => {
 
         const queue = new Queue({ maxTotalItems: 2 })
 
-        queue.add(jest.fn())
-        queue.add(jest.fn())
+        queue.add(jest.fn<Func>())
+        queue.add(jest.fn<Func>())
 
-        expect(() => queue.add(jest.fn()))
+        expect(() => queue.add(jest.fn<Func>()))
             .toThrow('Cannot queue more than 2 items.')
     })
 })
@@ -290,11 +292,11 @@ describe('pausing', () => {
 
         const queue = new Queue()
 
-        const itemPrePause = queue.add(jest.fn())
+        const itemPrePause = queue.add(jest.fn<Func>())
         await milliseconds(25)
 
         queue.isPaused = true
-        const itemPostPause = queue.add(jest.fn())
+        const itemPostPause = queue.add(jest.fn<Func>())
 
         expect(itemPrePause.isQueued).toBe(false)
         expect(itemPrePause.isComplete).toBe(true)
@@ -332,7 +334,7 @@ describe('events', () => {
 
         const item = queue.add(doThing)
 
-        const callback = jest.fn()
+        const callback = jest.fn<Func>()
 
         queue.on('complete', callback)
 
@@ -345,7 +347,7 @@ describe('events', () => {
     it('"complete" event second argument is value',
         async () => {
 
-            const callback = jest.fn()
+            const callback = jest.fn<Func>()
 
             const strQ = new Queue<string>()
             strQ.on('complete', (_, output) => {
@@ -399,7 +401,7 @@ describe('events', () => {
 
         const item = queue.add(uhOh)
 
-        const callback = jest.fn()
+        const callback = jest.fn<Func>()
 
         queue.on('error', callback)
 
