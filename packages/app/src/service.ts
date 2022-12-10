@@ -157,11 +157,11 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     }
 
     get client(): Client | nil {
-        return this.root.getModule(Client) ?? nil
+        return this.root.findModule(Client) ?? nil
     }
     
     get server(): Server | nil {
-        return this.root.getModule(Server) ?? nil
+        return this.root.findModule(Server) ?? nil
     }
 
     //// Module Implementation ////

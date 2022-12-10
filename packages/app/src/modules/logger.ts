@@ -1,5 +1,5 @@
 
-import { Logger as _Logger, LoggerOptions, PartialOptional } from '@benzed/util'
+import { LoggerOptions, PartialOptional } from '@benzed/util'
 import { SettingsModule } from '../module'
 
 ////  ////
@@ -32,27 +32,20 @@ class Logger extends SettingsModule<LoggerSettings> {
         options: LoggerSettings
     ) {
         super(options)
-        this._log = _Logger.create({
-            ...options,
-            onLog: (...args) => {
+    }
 
-                this._logs.push(args)
-                while (this._logs.length > this.settings.cacheLength)
-                    this._logs.splice(0, 1)
-                
-                this.settings.onLog(...args)
-            }
-        })
+    /**
+     * @internal
+     */
+    _pushLog = (...args: unknown[]): void => {
+        this._logs.push(args)
+        while (this._logs.length > this.settings.cacheLength)
+            this._logs.splice(0, 1)
     }
 
     private readonly _logs: unknown[][] = []
     get logs(): readonly unknown[][] {
         return this._logs
-    }
-
-    private readonly _log: _Logger
-    override get log(): _Logger {
-        return this._log
     }
 
     override _validateModules(): void {

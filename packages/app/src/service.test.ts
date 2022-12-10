@@ -117,7 +117,7 @@ describe('.commands', () => {
     const getOrder = Command
         .get<OrderId>($orderId)
         .useHook(Pipe.convert(function ({ id }) {
-            const orders = this.getModule(Orders, true)
+            const orders = this.findModule(Orders, true)
             const order = orders.find(id)
             return { order }
         }))
@@ -126,7 +126,7 @@ describe('.commands', () => {
         .create<OrderData>($orderData)
         .useHook(Pipe.convert(function ({ type }) {
 
-            const orders = this.getModule(Orders, true)
+            const orders = this.findModule(Orders, true)
 
             return {
                 order: orders.create({ type })

@@ -12,20 +12,28 @@ import { $path, Path } from './util/types'
     @typescript-eslint/ban-types
 */
 
-//// Types ////
+//// Constants ////
 
-type ModuleTypeGuard<M extends Module> = (input: Module) => input is M 
+/**
+ * Allow the use of the .log api without breaking any modules in
+ * the event that logging is not enabled.
+ */
+const DUMMY_LOGGER = Logger.create({
+    onLog: toVoid
+})
 
 //// Types ////
 
 export type Modules = readonly Module[]
+
+export type FindModuleGuard<M extends Module> = (input: Module) => input is M 
 
 export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M) | 
      { name: string, prototype: M }
 
-export type GetModuleScope = 
+export type FindModuleScope = 
     'siblings' | 
     'parents' | 
     'children' | 
@@ -37,10 +45,6 @@ export type GetModuleScope =
         'root'
     )[]
 
-const DUMMY_LOGGER = Logger.create({
-    onLog: toVoid
-})
-
 // TODO make this and SettingsModule abstract
 export class Module {
 
@@ -50,49 +54,71 @@ export class Module {
         return this.constructor.name
     }
 
-    get log(): Logger {
-        const logger: Logger = this.getModule(
-            (m: Module): m is LoggerModule => m.name === 'Logger', 
-            false, 
-            'parents'
-        )?.log ?? DUMMY_LOGGER
+    private get _icon(): string {
 
-        logger.options.header = (this.constructor as { icon?: string }).icon ?? ''
+        type Iconable = { icon?: string }
 
-        return logger
+        return (this as Iconable)?.icon ?? 
+            (this.constructor as Iconable)?.icon ?? ''
     }
 
-    getModule<M extends Module, R extends boolean = false>(
-        type: ModuleTypeGuard<M>, 
+    private _log: Logger | nil = nil
+    get log(): Logger {
+        
+        if (!this._log) {
+        
+            const logger = this.findModule(
+                (m: Module): m is LoggerModule => m.name === 'Logger', 
+                false, 
+                'parents'
+            )
+
+            this._log = logger 
+                ? Logger.create({
+                    ...logger.settings,
+                    header: this._icon,
+                    onLog: (...args) => {
+                        logger._pushLog(...args)
+                        logger.settings.onLog(...args)
+                    }
+                })
+                : DUMMY_LOGGER
+        }
+
+        return this._log
+    }
+
+    findModule<M extends Module, R extends boolean = false>(
+        type: FindModuleGuard<M>, 
         required?: R,
-        scope?: GetModuleScope
+        scope?: FindModuleScope
     ): R extends true ? M : M | nil
 
-    getModule<M extends Module, R extends boolean = false>(
+    findModule<M extends Module, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required?: R,
-        scope?: GetModuleScope
+        scope?: FindModuleScope
     ): R extends true ? M : M | nil 
     
-    getModule(
-        type: ModuleTypeGuard<Module> | ModuleConstructor<Module>,
+    findModule(
+        type: FindModuleGuard<Module> | ModuleConstructor<Module>,
         required?: boolean,
-        scope?: GetModuleScope
+        scope?: FindModuleScope
     ): Module | nil {
         return this
-            .getModules(type, required, scope)
+            .findModules(type, required, scope)
             .at(0) 
     }
 
-    getModules<M extends Module, R extends boolean = false>(
+    findModules<M extends Module, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required?: R,
-        scope?: GetModuleScope
+        scope?: FindModuleScope
     ): M[] {
 
         const modules: M[] = []
 
-        const guard: ModuleTypeGuard<M> = 'prototype' in type 
+        const guard: FindModuleGuard<M> = 'prototype' in type 
             ? (i): i is M => i instanceof (type as any) 
             : type
         
@@ -109,8 +135,8 @@ export class Module {
         return modules
     }
 
-    forEachModule(f: (input: Module) => void, scope: GetModuleScope = 'siblings'): void {
-        const scopes = unique(wrap(scope)) as unknown as Exclude<GetModuleScope, string>
+    forEachModule(f: (input: Module) => void, scope: FindModuleScope = 'siblings'): void {
+        const scopes = unique(wrap(scope)) as unknown as Exclude<FindModuleScope, string>
 
         for (const scope of scopes) {
             switch (scope) {
@@ -141,7 +167,7 @@ export class Module {
     }
 
     hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
-        return !!this.getModule(type)
+        return !!this.findModule(type)
     }
 
     get modules(): Modules {
@@ -220,8 +246,8 @@ export class Module {
     /**
      * Must be the only module of it's type in a parent.
      */
-    protected _assertSingle(scope?: GetModuleScope): void { 
-        const clone = this.getModule(this.constructor as ModuleConstructor, false, scope)
+    protected _assertSingle(scope?: FindModuleScope): void { 
+        const clone = this.findModule(this.constructor as ModuleConstructor, false, scope)
         if (clone && clone !== this)
             throw new Error(`${this.name} may only be used once in scope ${scope}`)
     }
@@ -237,8 +263,8 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(type: ModuleConstructor<Module> | ModuleTypeGuard<Module>, scope?: GetModuleScope): void {
-        if (!this.getModule(type, false, scope)) {
+    protected _assertRequired(type: ModuleConstructor<Module> | FindModuleGuard<Module>, scope?: FindModuleScope): void {
+        if (!this.findModule(type, false, scope)) {
             throw new Error(
                 `${this.name} is missing required module ${type.name} in scope ${scope}`
             )
@@ -248,8 +274,8 @@ export class Module {
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(type: ModuleConstructor<Module> | ModuleTypeGuard<Module>, scope?: GetModuleScope): void { 
-        if (this.getModule(type, false, scope)) {
+    protected _assertConflicting(type: ModuleConstructor<Module> | FindModuleGuard<Module>, scope?: FindModuleScope): void { 
+        if (this.findModule(type, false, scope)) {
             throw new Error(
                 `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`
             )

@@ -47,7 +47,7 @@ const trees = Service
 
         Command.create((data: TreeData, cmd) => {
             const trees = cmd
-                .getModule<typeof db, true>(MongoDb, true, 'parents')
+                .findModule<typeof db, true>(MongoDb, true, 'parents')
                 .getCollection('trees')
 
             const dataWithHistory = HistoryScribe
@@ -60,7 +60,7 @@ const trees = Service
         Command.update(async ({ id, ...data }: { id: string } & Partial<TreeData>, cmd) => {
 
             const trees = cmd
-                .getModule<typeof db, true>(MongoDb, true, 'parents')
+                .findModule<typeof db, true>(MongoDb, true, 'parents')
                 .getCollection('trees')
 
             const existing = await trees.get(id)
@@ -88,7 +88,7 @@ const server = app.useModule(Server.create())
 //// Setup ////
 
 beforeAll(() => server.start())
-beforeAll(() => server.getModule(MongoDb, true).clearAllCollections())
+beforeAll(() => server.findModule(MongoDb, true).clearAllCollections())
 beforeAll(() => client.start())
 
 afterAll(() => client.stop())

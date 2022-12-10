@@ -34,15 +34,15 @@ let noIcon: NoIcon
 beforeAll(() => app.start())
 
 beforeAll(() => {
-    logger = app.getModule(Logger, true)
+    logger = app.findModule(Logger, true)
     logger.log`This should be omitted`
 
-    noIcon = app.getModule(NoIcon, true)
+    noIcon = app.findModule(NoIcon, true)
     noIcon.log.info`Info`
     noIcon.log.warn`Warn`
     noIcon.log.error`Error`
     
-    icon = app.getModule(Icon, true)
+    icon = app.findModule(Icon, true)
     icon.log.info`Info`
     icon.log.warn`Warn`
     icon.log.error`Error`

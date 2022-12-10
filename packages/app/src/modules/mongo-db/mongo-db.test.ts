@@ -114,7 +114,7 @@ describe('createCommands()', () => {
     let rmCake: Record<{ readonly slices: number }>
     
     beforeAll(() => cakeApp.start())
-    beforeAll(() => cakeApp.getModule(MongoDb, true).clearAllCollections())
+    beforeAll(() => cakeApp.findModule(MongoDb, true).clearAllCollections())
     beforeAll(async () => {
         smallCake = await cakeApp.commands.create({ slices: 3 })
         rmCake = await cakeApp.commands.create({ slices: 4 })

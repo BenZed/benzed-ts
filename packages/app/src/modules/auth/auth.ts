@@ -117,7 +117,7 @@ class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToke
         type C = typeof this.settings.collection
 
         const database = this
-            .getModule<MongoDb<{ [K in C]: MongoDbCollection<Credentials> }>, true>(MongoDb, true)
+            .findModule<MongoDb<{ [K in C]: MongoDbCollection<Credentials> }>, true>(MongoDb, true)
 
         const collection = database.getCollection(this.settings.collection)
         return collection

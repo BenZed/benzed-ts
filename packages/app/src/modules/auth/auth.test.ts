@@ -111,7 +111,7 @@ describe('Authentication', () => {
 
     beforeAll(() => app.start())
     beforeAll(() => app
-        .getModule(MongoDb, true)
+        .findModule(MongoDb, true)
         .clearAllCollections()
     )
 
@@ -121,13 +121,13 @@ describe('Authentication', () => {
     })
 
     afterAll(() => app
-        .getModule(MongoDb, true)
+        .findModule(MongoDb, true)
         .clearAllCollections()
     )
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {
-        const auth = app.getModule(Auth, true)
+        const auth = app.findModule(Auth, true)
         const result = await auth.execute(CREDS)
         const { accessToken } = result ?? {}
 
@@ -135,7 +135,7 @@ describe('Authentication', () => {
     })
 
     it('throws on invalid credentials', async () => {
-        const auth = app.getModule(Auth, true)
+        const auth = app.findModule(Auth, true)
         const result = await auth.execute({ 
             email: 'hacker@email.com', 
             password: 'not-today-you-scallywag'

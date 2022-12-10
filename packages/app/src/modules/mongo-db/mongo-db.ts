@@ -67,7 +67,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         }
 
         const records = <I extends object>(cmd: RuntimeCommand<I>): MongoDbCollection<object> => cmd
-            .getModule(MongoDb, true, 'parents')
+            .findModule(MongoDb, true, 'parents')
             .getCollection(collectionName)
 
         // Commmands 
