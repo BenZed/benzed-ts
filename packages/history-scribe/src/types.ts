@@ -6,7 +6,7 @@ export interface HistoryMeta<I = string> {
 
 export enum HistoryMethods {
     Create = 'create',
-    Update = 'patch',
+    Update = 'update',
     Remove = 'remove'
 }
 
