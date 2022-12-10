@@ -16,6 +16,7 @@ import {
     readDirRecursive,
     ROOT_DIR,
     eachPackage,
+    FileProcess,
 
 } from './util'
 
@@ -36,6 +37,33 @@ const tsFileContentCache: Record<string,string> = {}
 //// Processes ////
 
 const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev')
+
+const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) => {
+
+    const contents = await fs.readFile(file, 'utf-8')
+    const lines = contents.split('\n')
+
+    const SRC = '/src'
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+
+        const bzImportIndex = line.indexOf('\'@benzed/')
+        if (bzImportIndex < 0)
+            continue
+        
+        const srcIndex = line.indexOf(SRC, bzImportIndex)
+        if (srcIndex < 0)
+            continue 
+
+        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + SRC.length)
+    }
+    
+    const newContents = lines.join('\n')
+    if (newContents !== contents)
+        await fs.writeFile(file, newContents, 'utf-8')
+
+})
 
 const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir => {
 
@@ -129,15 +157,16 @@ watch(PACKAGES_DIR, {
     if (!isTypeScriptFile(file))
         return 
 
+    if (!stripSrcSuffixProcess.isRunning)
+        await stripSrcSuffixProcess.run(file, file) // <- Fix this signature, this is stupid.
+
     const contents = await fs.readFile(file, 'utf-8')
     if (tsFileContentCache[file] === contents) 
         return 
 
     tsFileContentCache[file] = contents
     
-    if (testProcess.isRunning) 
-        console.log('! tests already running for', updateDependencyProcess.dir)
-    else{
+    if (!testProcess.isRunning) {
         const onlyThisFile = file.endsWith('.test.ts')
 
         await testProcess.run(
@@ -148,9 +177,7 @@ watch(PACKAGES_DIR, {
         )
     }
 
-    if (updateDependencyProcess.isRunning)
-        console.log('! dependencies already being updated for', updateDependencyProcess.dir)
-    else
+    if (!updateDependencyProcess.isRunning)
         await updateDependencyProcess.run(file)
 
     // rel/path/to/file updated oldsize >> newsize
