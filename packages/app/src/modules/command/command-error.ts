@@ -39,6 +39,7 @@ class CommandError extends Error {
             message = def?.message ?? 'Command failed.',
             data
         } = error
+
         return new CommandError(
             code,
             message,

@@ -1,5 +1,5 @@
 import { resolveIndex as _resolveIndex } from '@benzed/array'
-import { isNumber, isObject } from '@benzed/util'
+import { defined, isDefined, isEmpty, isNumber, isObject, keysOf } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 
 import { HistoryEntry, HistoryMeta, HistoryMethods } from './types'
@@ -45,15 +45,13 @@ export function resolveIndex<T extends object, I>(
  * @param target 
  * @param source 
  */
-export function applyData<T extends object>(
+export function assignDefined<T extends object>(
     target: T,
     source: Partial<T>
 ): T {
 
-    for (const key in source) {
-        if (source[key] !== undefined)
-            target[key] = source[key] as T[typeof key]
-    }
+    for (const key of keysOf(defined(source))) 
+        target[key] = source[key] as T[typeof key]
 
     return target
 }
@@ -68,8 +66,7 @@ export function entryContainsData<T extends object, I>(
 ): entry is
     ({ method: HistoryMethods.Update, data: Partial<T> } | { method: HistoryMethods.Create, data: T })
     & HistoryMeta<I> {
-    return 'data' in entry &&
-        Object.keys(entry.data).length > 0
+    return 'data' in entry && !isEmpty(entry.data)
 }
 
 /**
@@ -96,32 +93,32 @@ export function resolveHistoryMeta<I>(
 }
 
 /**
- * Get a patch entry that includes the provided data merged in with the provided patch entry.
+ * Get an update entry that includes the provided data merged in with the provided patch entry.
  * @param input 
  * @param data 
  * @returns 
  */
-export function mergePatchEntry<T extends object, I>(
+export function mergeUpdateEntry<T extends object, I>(
     input: { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I>,
     data: Partial<T>,
 ): { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I> {
 
     const output = {
         ...input,
-        data: applyData({ ...input.data }, data)
+        data: assignDefined(input.data, data)
     }
 
     return output
 }
 
 /**
- * Get a patch entry that doesn't include any shared keys from the provided data with
+ * Get a update entry that doesn't include any shared keys from the provided data with
  * the provided entry
  * @param input 
  * @param data 
  * @returns 
  */
-export function cleanPatchEntry<T extends object, I>(
+export function cleanUpdateEntry<T extends object, I>(
     input: { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I>,
     data: T
 ): { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I> {
@@ -131,13 +128,9 @@ export function cleanPatchEntry<T extends object, I>(
         data: {}
     }
 
-    for (const key in data) {
-        if (
-            !equals(data[key], input.data[key]) &&
-            input.data[key] !== undefined
-        )
+    for (const key of keysOf(data)) {
+        if (!equals(data[key], input.data[key]) && isDefined(input.data[key]))
             output.data[key] = input.data[key]
-
     }
 
     return output

@@ -9,11 +9,9 @@ import {
     Modules,
 } from './module'
 
-import { 
-    Client, 
-    Server,
-    CommandModule
-} from './modules'
+import { CommandModule } from './modules/command/command-module'
+import { Client } from './modules/connection/client'
+import { Server } from './modules/connection/server'
 
 import is from '@benzed/is'
 
@@ -61,9 +59,9 @@ type _ServicesAtPaths<M, P extends string, R extends boolean> = M extends [infer
         : _ServiceAtPath<Sx, P, R>
     : {}
 
-type NestedPaths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', true>>
+export type NestedPaths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', true>>
 
-// type Paths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', false>>
+export type Paths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', false>>
 
 type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _ServicesAtPaths<M, '', true>[P]
 
@@ -71,21 +69,17 @@ type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _Service
 
 //// Service ////
 
-/**
- * @internal
- */
-export type _FlattenModules<M extends Modules> = 
-    M extends [infer Mx, ...infer Mr]
-        ? Mx extends Module
-            ? Mr extends Modules 
-                ? Mx extends ServiceModule<infer Mrx> 
-                    ? _FlattenModules<[...Mrx, ...Mr]>
-                    : [Mx, ..._FlattenModules<Mr>]
-                : Mx extends ServiceModule<infer Mrx> 
-                    ? _FlattenModules<Mrx>
-                    : [Mx]
-            : []
-        : [] 
+type FlattenModule<M> = M extends ServiceModule<infer Mx> 
+    ? FlattenModules<Mx>
+    : M extends Module 
+        ? [M]
+        : []
+
+export type FlattenModules<M> = M extends ServiceModule<infer Mx> 
+    ? FlattenModules<Mx>
+    : M extends [infer Mx, ...infer Mr]
+        ? [...FlattenModule<Mx>, ...FlattenModules<Mr>]
+        : []
 
 /**
  * @internal
@@ -315,20 +309,20 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, [...M, ..._FlattenModules<[Mx]>]> {
+    ): Service<P, [...M, ...FlattenModules<[Mx]>]> {
         return Service._create(
             this._path,
             this._pushModule(module)
-        ) as Service<P, [...M, ..._FlattenModules<[Mx]>]> 
+        ) as Service<P, [...M, ...FlattenModules<[Mx]>]> 
     }
 
     override useModules<Mx extends Modules>(
         ...modules: Mx
-    ): Service<P, [...M, ..._FlattenModules<Mx>]> {
+    ): Service<P, [...M, ...FlattenModules<Mx>]> {
         return Service._create(
             this._path,
             this._pushModule(...modules)
-        ) as Service<P, [...M, ..._FlattenModules<Mx>]> 
+        ) as Service<P, [...M, ...FlattenModules<Mx>]> 
     }
 
     //// Module Implementation ////

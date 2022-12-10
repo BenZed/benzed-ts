@@ -1,5 +1,4 @@
 import { KeysOf, nil } from '@benzed/util'
-import { SchemaFor } from '@benzed/schema'
 
 import { 
     MongoClient as _MongoClient, 
@@ -18,6 +17,7 @@ import {
 } from './mongo-db-settings'
 
 import MongoDbCollection, { Paginated, RecordQuery, Record, RecordOf } from './mongo-db-collection'
+import { SchemaHook } from '../../util'
 
 //// Eslint ////
 
@@ -53,6 +53,8 @@ type RecordCommands<T extends object> = [
 
 class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSettings>> {
 
+    static readonly icon = '🗃️'
+
     // Static Create with Schema Validation
 
     static createRecordCommands<T extends object>(collectionName: string): RecordCommands<T>
@@ -72,13 +74,9 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
         return [
             Command.get(({ id }, cmd) => records(cmd).get(id).then(assertRecord(id))),
-                
             Command.find((query, cmd) => records(cmd).find(query)),
-            
             Command.create((data, cmd) => records(cmd).create(data)),
-
             Command.update(({ id, ...data }, cmd) => records(cmd).update(id, data).then(assertRecord(id))),
-
             Command.remove(({ id }, cmd) => records(cmd).remove(id).then(assertRecord(id)))
         ]
     }
@@ -167,7 +165,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     addCollection<N extends string, T extends object>(
         name: N, 
-        schema: SchemaFor<T>
+        schematic: SchemaHook<T>
     ): MongoDb<AddCollection<C, N, MongoDbCollection<T>>> {
 
         if (!name)
@@ -178,7 +176,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
         const collections = {
             ...this._collections,
-            [name as N]: new MongoDbCollection<T>(schema)
+            [name as N]: new MongoDbCollection<T>(schematic)
         } as unknown as AddCollection<C, N, MongoDbCollection<T>>
 
         return new MongoDb(

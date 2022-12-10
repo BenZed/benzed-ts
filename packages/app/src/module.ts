@@ -1,8 +1,10 @@
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
-import { callable, Logger, nil, toVoid, Transform } from '@benzed/util'
+import { callable, nil, toVoid, Logger, Transform } from '@benzed/util'
 
 import type { ServiceModule } from './service'
+import type { Logger as LoggerModule } from './modules'
+
 import { $path, Path } from './util/types'
 
 /* eslint-disable 
@@ -12,9 +14,7 @@ import { $path, Path } from './util/types'
 
 //// Types ////
 
-type GetPredicate = (input: Module) => boolean
-
-type GetGuard<M extends Module> = (input: Module) => input is M 
+type ModuleTypeGuard<M extends Module> = (input: Module) => input is M 
 
 //// Types ////
 
@@ -26,10 +26,16 @@ export type ModuleConstructor<M extends Module = Module> =
      { name: string, prototype: M }
 
 export type GetModuleScope = 
-    'siblings' | 'parents' | 'children' | 'root' |
-    readonly ('siblings' | 'parents' | 'children' | 'root')[]
-
-export type GetModuleInput<M extends Module> = ModuleConstructor<M> | GetPredicate | GetGuard<M>
+    'siblings' | 
+    'parents' | 
+    'children' | 
+    'root' |
+    readonly (
+        'siblings' | 
+        'parents' | 
+        'children' | 
+        'root'
+    )[]
 
 const DUMMY_LOGGER = Logger.create({
     onLog: toVoid
@@ -45,30 +51,48 @@ export class Module {
     }
 
     get log(): Logger {
-        const logger: Logger = this.getModule(m => m.name === 'Logger', false, 'parents')?.log ?? DUMMY_LOGGER
+        const logger: Logger = this.getModule(
+            (m: Module): m is LoggerModule => m.name === 'Logger', 
+            false, 
+            'parents'
+        )?.log ?? DUMMY_LOGGER
+
         logger.options.header = (this.constructor as { icon?: string }).icon ?? ''
+
         return logger
     }
 
     getModule<M extends Module, R extends boolean = false>(
-        type: GetModuleInput<M>, 
+        type: ModuleTypeGuard<M>, 
         required?: R,
         scope?: GetModuleScope
-    ): R extends true ? M : M | nil {
+    ): R extends true ? M : M | nil
+
+    getModule<M extends Module, R extends boolean = false>(
+        type: ModuleConstructor<M>, 
+        required?: R,
+        scope?: GetModuleScope
+    ): R extends true ? M : M | nil 
+    
+    getModule(
+        type: ModuleTypeGuard<Module> | ModuleConstructor<Module>,
+        required?: boolean,
+        scope?: GetModuleScope
+    ): Module | nil {
         return this
             .getModules(type, required, scope)
-            .at(0) as R extends true ? M : M | nil
+            .at(0) 
     }
 
     getModules<M extends Module, R extends boolean = false>(
-        type: GetModuleInput<M>, 
+        type: ModuleConstructor<M>, 
         required?: R,
         scope?: GetModuleScope
     ): M[] {
 
         const modules: M[] = []
 
-        const guard: GetGuard<M> = 'prototype' in type 
+        const guard: ModuleTypeGuard<M> = 'prototype' in type 
             ? (i): i is M => i instanceof (type as any) 
             : type
         
@@ -213,7 +237,7 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetModuleScope): void {
+    protected _assertRequired(type: ModuleConstructor<Module> | ModuleTypeGuard<Module>, scope?: GetModuleScope): void {
         if (!this.getModule(type, false, scope)) {
             throw new Error(
                 `${this.name} is missing required module ${type.name} in scope ${scope}`
@@ -224,7 +248,7 @@ export class Module {
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetModuleScope): void { 
+    protected _assertConflicting(type: ModuleConstructor<Module> | ModuleTypeGuard<Module>, scope?: GetModuleScope): void { 
         if (this.getModule(type, false, scope)) {
             throw new Error(
                 `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`

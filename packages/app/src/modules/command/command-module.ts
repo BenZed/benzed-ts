@@ -25,7 +25,9 @@ function deferExecution<I extends object, O extends object>(
 ): ToAsync<O> {
 
     try {
+
         const client = this.parent?.root.client
+
         const result = client 
             ? this._executeOnClient(input)
             : this._executeOnServer(input)

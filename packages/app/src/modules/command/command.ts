@@ -1,6 +1,6 @@
 import { pluck } from '@benzed/array'
 import { toDashCase } from '@benzed/string'
-import $, { SchemaFor, Schematic } from '@benzed/schema'
+import { Schematic } from '@benzed/schema'
 import { 
     nil,
 
@@ -16,7 +16,15 @@ import {
 } from '@benzed/util'
 
 import CommandModule from './command-module'
-import { HttpMethod, Path, RequestHandler, UrlParamKeys } from '../../util'
+
+import { 
+    HttpMethod, 
+    Path, 
+    RequestHandler, 
+    SchemaHook, 
+    toSchematic, 
+    UrlParamKeys 
+} from '../../util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -24,12 +32,6 @@ import { HttpMethod, Path, RequestHandler, UrlParamKeys } from '../../util'
 */
 
 //// Types ////
-
-type ShapeSchemaInput<T> = {
-    [K in keyof T]: SchemaFor<T[K]>
-}
-
-type ValidateHook<T extends object> = Schematic<T> | ShapeSchemaInput<T>
 
 /**
  * Command without build interface
@@ -48,14 +50,8 @@ type CommandOutput<C> = C extends Command<any, any, infer O> ? O : unknown
 
 //// Types ////
 
-const isSchematic = <T extends object> (input: unknown): input is ValidateHook<T> => 
-    isObject<Partial<Schematic<T>>>(input) && 
-    isFunc(input.validate) && 
-    isFunc(input.assert) && 
-    isFunc(input.is)
-
-const toSchematicAndValidate = <T extends object>(input: ValidateHook<T>): [Schematic<T>, Schematic<T>['validate']] => {
-    const schematic = (isSchematic(input) ? input : $(input)) as Schematic<T>
+const toSchematicAndValidate = <T extends object>(input: SchemaHook<T>): [Schematic<T>, Schematic<T>['validate']] => {
+    const schematic = toSchematic(input)
     return [schematic, schematic.validate]
 }
 
@@ -75,7 +71,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     ): Command<Nx, Ix, Ox>
     static create<Nx extends string, Ix extends object>(
         name: Nx,
-        validate: ValidateHook<Ix>,
+        schematic: SchemaHook<Ix>,
         method?: HttpMethod,
         path?: Path
     ): Command<Nx, Ix, Ix>
@@ -87,18 +83,18 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         execute: CommandHook<Ix, Ox>,
     ): Command<'create', Ix, Ox>
     static create<Ix extends object>(
-        validate: ValidateHook<Ix>,
+        schematic: SchemaHook<Ix>,
     ): Command<'create', Ix, Ix>
 
     static create(...args: unknown[]) {
 
         const isNamed = isString(args[0])
-        const [ cmdOrValidate ] = pluck(args, (i: unknown): i is ValidateHook<object> | CommandHook<object,object> =>
+        const [ cmdOrValidate ] = pluck(args, (i: unknown): i is SchemaHook<object> | CommandHook<object,object> =>
             isFunc(i) || isObject(i)
         )
 
         const [schema, execute] = isObject(cmdOrValidate)
-            ? toSchematicAndValidate(cmdOrValidate as ValidateHook<object>)
+            ? toSchematicAndValidate(cmdOrValidate as SchemaHook<object>)
             : [nil, cmdOrValidate]
         
         const [
@@ -125,8 +121,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new GET command named 'get'
      */
     static get<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'get', Ix, Ox>
-    static get<Ix extends object>(validate: ValidateHook<Ix>): Command<'get', Ix, Ix>
-    static get(input: ValidateHook<object> | CommandHook<object,object>) {
+    static get<Ix extends object>(validate: SchemaHook<Ix>): Command<'get', Ix, Ix>
+    static get(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('get', input, HttpMethod.Get, '/') 
     }
 
@@ -134,8 +130,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new GET command named 'find'
      */
     static find<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'find', Ix, Ox>
-    static find<Ix extends object>(validate: ValidateHook<Ix>): Command<'find', Ix, Ix>
-    static find(input: ValidateHook<object> | CommandHook<object,object>) {
+    static find<Ix extends object>(validate: SchemaHook<Ix>): Command<'find', Ix, Ix>
+    static find(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('find', input, HttpMethod.Get, '/')
     }
 
@@ -143,8 +139,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new DELETE command named 'delete'
      */
     static delete<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'delete', Ix, Ox>
-    static delete<Ix extends object>(validate: ValidateHook<Ix>): Command<'delete', Ix, Ix>
-    static delete(input: ValidateHook<object> | CommandHook<object,object>) {
+    static delete<Ix extends object>(validate: SchemaHook<Ix>): Command<'delete', Ix, Ix>
+    static delete(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('delete', input, HttpMethod.Delete, '/')
     }
 
@@ -152,8 +148,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new DELETE command named 'remove'
      */
     static remove<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'remove', Ix, Ox>
-    static remove<Ix extends object>(validate: ValidateHook<Ix>): Command<'remove', Ix, Ix>
-    static remove(input: ValidateHook<object> | CommandHook<object,object>) {
+    static remove<Ix extends object>(validate: SchemaHook<Ix>): Command<'remove', Ix, Ix>
+    static remove(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('remove', input, HttpMethod.Delete, '/')
     }
 
@@ -161,8 +157,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new PATCH command named 'patch'
      */
     static patch<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'patch', Ix, Ox>
-    static patch<Ix extends object>(validate: ValidateHook<Ix>): Command<'patch', Ix, Ix>
-    static patch(input: ValidateHook<object> | CommandHook<object,object>) {
+    static patch<Ix extends object>(validate: SchemaHook<Ix>): Command<'patch', Ix, Ix>
+    static patch(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('patch', input, HttpMethod.Patch, '/')
     }
 
@@ -170,8 +166,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new PUT command named 'update'
      */
     static update<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'update', Ix, Ox>
-    static update<Ix extends object>(validate: ValidateHook<Ix>): Command<'update', Ix, Ix>
-    static update(input: ValidateHook<object> | CommandHook<object,object>) {
+    static update<Ix extends object>(validate: SchemaHook<Ix>): Command<'update', Ix, Ix>
+    static update(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('update', input, HttpMethod.Put, '/')
     }
 
@@ -179,8 +175,8 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Create a new OPTIONS command named 'options'
      */
     static options<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'options', Ix, Ox>
-    static options<Ix extends object>(validate: ValidateHook<Ix>): Command<'options', Ix, Ix>
-    static options(input: ValidateHook<object> | CommandHook<object,object>) {
+    static options<Ix extends object>(validate: SchemaHook<Ix>): Command<'options', Ix, Ix>
+    static options(input: SchemaHook<object> | CommandHook<object,object>) {
         return this.create('options', input, HttpMethod.Options, '/')
     }
 
@@ -212,7 +208,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     //// Instance Build Interface ////
 
     /**
-     * Appen a hook to this command
+     * Append a hook to this command
      */
     useHook<Ox extends object = O>(
         hook: ContextTransform<O, Ox, this>
@@ -232,9 +228,17 @@ class Command<N extends string, I extends object, O extends object> extends Comm
      * Prepend a hook to this command
      */
     usePreHook<Ix extends object = O>(
-        hook: CommandHook<Ix, I> | Command<string, Ix, I>
+        hook: ContextTransform<Ix, I, this>
+    ): Command<N, Ix, O>
+
+    usePreHook<Ix extends object = O>(
+        hook: Transform<Ix, I>
+    ): Command<N, Ix, O> 
+
+    usePreHook<Ix extends object = O>(
+        hook: Transform<Ix, I> | ContextTransform<Ix, I, this>  
     ): Command<N, Ix, O> {
-        return this._useHook(hook, true)
+        return this._useHook(hook as Transform<Ix, I>, true)
     }
     
     /**
@@ -280,7 +284,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
         return this.useReq(r => r.setMethod(method))
     }
 
-    useValidate(validate: ValidateHook<I> | nil): Command<N, I, O> {
+    useValidate(validate: SchemaHook<I> | nil): Command<N, I, O> {
 
         const executeWithoutOldSchemaValidate = Pipe.from(
             ...this._executeOnServer

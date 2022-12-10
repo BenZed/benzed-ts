@@ -14,12 +14,12 @@ import {
 
 import HistoryInvalidError from './error'
 import {
-    applyData,
-    cleanPatchEntry,
+    assignDefined,
+    cleanUpdateEntry,
     resolveHistoryMeta,
     entryContainsData,
     isSameAgeOrOlder,
-    mergePatchEntry,
+    mergeUpdateEntry,
     resolveIndex,
     toDate
 } from './helper'
@@ -40,9 +40,17 @@ type Signature = string
 class HistoryScribe<T extends object, I = Signature> {
 
     static from<T extends object, I>(
-        history: HistoryEntry<T, I>[]
+        history: HistoryEntry<T, I>[],
+        options?: HistoryScribeOptions<T>
     ): HistoryScribe<T, I> {
-        return new HistoryScribe<T, I>({ history })
+        return new HistoryScribe<T, I>({ history, ...options })
+    }
+
+    static create<T extends object, I>(
+        data: T,
+        options?: HistoryScribeOptions<T>
+    ): HistoryScribe<T, I> {
+        return new HistoryScribe<T,I>(options).create(data)
     }
 
     readonly options: Required<HistoryScribeOptions<T>>
@@ -99,12 +107,12 @@ class HistoryScribe<T extends object, I = Signature> {
     }
 
     /**
-     * Create a new HistoryScribe with a patch entry appended.
+     * Create a new HistoryScribe with a update entry appended.
      * @param data Partial Data
      * @param signature Signature or meta data.
      * @returns HistoryScribe 
      */
-    patch(data: Partial<T>, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
+    update(data: Partial<T>, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
             method: HistoryMethods.Update,
             data,
@@ -300,7 +308,7 @@ class HistoryScribe<T extends object, I = Signature> {
                             valid.history.pop() as { method: HistoryMethods.Update, data: T } & HistoryMeta<I>
                         valid.data.pop()
 
-                        entry = mergePatchEntry(
+                        entry = mergeUpdateEntry(
                             prevEntry,
                             entry.data
                         )
@@ -309,13 +317,13 @@ class HistoryScribe<T extends object, I = Signature> {
                     const currentValidData = valid.data.at(-1) as T
 
                     // remove redundant data 
-                    entry = cleanPatchEntry(entry, currentValidData)
+                    entry = cleanUpdateEntry(entry, currentValidData)
                     if (!entryContainsData(entry))
                         continue // skipping emptry or redundant HistoryMethods.Update entry
 
                     // update valid data to include patch data
                     valid.data.push(
-                        applyData(
+                        assignDefined(
                             { ...currentValidData },
                             entry.data
                         )
@@ -350,7 +358,7 @@ class HistoryScribe<T extends object, I = Signature> {
         // apply validated history & data
         this._history.length = 0
         this._history.push(...valid.history)
-        applyData(this._data, valid.data.at(-1) as T)
+        assignDefined(this._data, valid.data.at(-1) as T)
     }
 
     private _canCollapseEntry(

@@ -58,7 +58,7 @@ describe('HistoryScribe class', () => {
             const scribe = new HistoryScribe<Structure>({ data })
 
             expect(() => {
-                scribe.patch({
+                scribe.update({
                     stage: 'painting' as const
                 }, {
                     timestamp: new Date(2019, 1, 1).getTime()
@@ -76,7 +76,7 @@ describe('HistoryScribe class', () => {
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
-                .patch({
+                .update({
                     stage: undefined,
                     type: 'commercial'
                 })
@@ -103,7 +103,7 @@ describe('HistoryScribe class', () => {
 
             const scribe1 = new HistoryScribe<Structure>({ data })
 
-            const scribe2 = scribe1.patch({
+            const scribe2 = scribe1.update({
                 stage: 'painting' as const,
             })
 
@@ -143,9 +143,9 @@ describe('HistoryScribe class', () => {
             const scribe = new HistoryScribe<Structure>({
                 collapseInterval: 1000,
                 data
-            }).patch({
+            }).update({
                 stage: 'painting' as const,
-            }).patch({
+            }).update({
                 stage: 'finishing' as const,
             })
 
@@ -176,7 +176,7 @@ describe('HistoryScribe class', () => {
             const scribe = new HistoryScribe<any>()
 
             expect(() => {
-                scribe.patch({
+                scribe.update({
                     stage: 'painting' as const,
                 })
             }).toThrow(
@@ -197,7 +197,7 @@ describe('HistoryScribe class', () => {
                         finished: false
                     })
                     .remove()
-                    .patch({
+                    .update({
                         stage: 'painting' as const,
                     })
             }).toThrow(`History output invalid: "${HistoryMethods.Update}" entry cannot be after a "${HistoryMethods.Remove}" entry.`)
@@ -213,7 +213,7 @@ describe('HistoryScribe class', () => {
                     type: 'industrial' as const,
                     finished: false
                 })
-                .patch({})
+                .update({})
                 .compile()
 
             expect(structure.history).toHaveLength(1)
@@ -227,14 +227,14 @@ describe('HistoryScribe class', () => {
                     type: 'industrial',
                     finished: false
                 })
-                .patch({
+                .update({
                     stage: 'painting'
                 })
 
             const structure1 = scribe.compile()
 
             const structure2 = scribe
-                .patch({
+                .update({
                     stage: 'painting',
                 })
                 .compile()
@@ -250,7 +250,7 @@ describe('HistoryScribe class', () => {
                     type: 'industrial',
                     finished: false
                 })
-                .patch({
+                .update({
                     floors: [{ rooms: 1 }, { rooms: 2 }],
                     stage: 'painting',
                 })
@@ -287,13 +287,13 @@ describe('HistoryScribe class', () => {
                         finished: false
                     },
                     { timestamp: new Date(1000).getTime() }
-                ).patch(
+                ).update(
                     { stage: 'painting' },
                     { timestamp: new Date(2000).getTime() }
-                ).patch(
+                ).update(
                     { stage: 'painting' },
                     { timestamp: new Date(3000).getTime() }
-                ).patch(
+                ).update(
                     { stage: 'painting' },
                     { timestamp: new Date(3400).getTime() }
                 )
@@ -335,9 +335,9 @@ describe('HistoryScribe class', () => {
                     type: 'industrial' as const,
                     finished: false
                 })
-                .patch({ stage: 'painting' })
-                .patch({ stage: 'finishing' })
-                .patch({ stage: 'finishing' })
+                .update({ stage: 'painting' })
+                .update({ stage: 'finishing' })
+                .update({ stage: 'finishing' })
                 .compile()
 
             expect(structure.history).toHaveLength(3)
@@ -415,10 +415,10 @@ describe('HistoryScribe class', () => {
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
-                .patch({
+                .update({
                     stage: 'painting' as const,
                 })
-                .patch({
+                .update({
                     stage: 'finishing' as const,
                 })
                 .revert(2)
@@ -456,9 +456,9 @@ describe('HistoryScribe class', () => {
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data, { timestamp: new Date(1000).getTime() })
-                .patch({ stage: 'painting' }, { timestamp: new Date(2000).getTime() })
-                .patch({ stage: 'finishing', }, { timestamp: new Date(3000).getTime() })
-                .patch({ finished: true }, { timestamp: new Date(4000).getTime() })
+                .update({ stage: 'painting' }, { timestamp: new Date(2000).getTime() })
+                .update({ stage: 'finishing', }, { timestamp: new Date(3000).getTime() })
+                .update({ finished: true }, { timestamp: new Date(4000).getTime() })
                 .revert(new Date(2500))
 
             expect(scribe.compile()).toEqual({
@@ -494,8 +494,8 @@ describe('HistoryScribe class', () => {
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
-                .patch({ stage: 'painting' })
-                .patch({ stage: 'finishing' })
+                .update({ stage: 'painting' })
+                .update({ stage: 'finishing' })
                 .revert(-1)
 
             expect(scribe.compile()).toEqual({
@@ -638,13 +638,13 @@ describe('HistoryScribe class', () => {
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
-                .patch({
+                .update({
                     stage: 'painting' as const,
                 })
-                .patch({
+                .update({
                     stage: 'finishing' as const,
                 })
-                .patch({
+                .update({
                     finished: true,
                 })
                 .remove()
@@ -688,7 +688,7 @@ describe('HistoryScribe class', () => {
 
             const scribe = new HistoryScribe<Structure>()
                 .create(data)
-                .patch({
+                .update({
                     stage: 'painting' as const,
                 })
                 .remove()
