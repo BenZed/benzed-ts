@@ -74,13 +74,13 @@ it('mongo db app connects to a database', async () => {
 
 it('send client command from nested service', async () => {
 
-    const nestedOrderService = client.getService('/todos/orders')
- 
+    const nestedOrderService = client.getService('/todos/orders')  
+  
     const { _id, ...rest } = await nestedOrderService
         .commands
         .create({
             completed: false,
-            description: 'Nested orders'
+            description: 'Nested orders' 
         }) 
 
     expect(rest).toEqual({ completed: false, description: 'Nested orders' })

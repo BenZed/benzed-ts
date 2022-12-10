@@ -1,11 +1,13 @@
 import ansi, { ansiColorTag, ANSI_UTIL_TAGS } from './ansi'
+
 import {
-    createLogger,
     Logger,
     LoggerOptions,
     WARN_ICON,
     ERR_ICON
 } from './logger'
+
+import { describe, it, expect } from '@jest/globals'
 
 describe('Logger', () => {
 
@@ -15,14 +17,14 @@ describe('Logger', () => {
 
         const logs: unknown[] = []
 
-        const log = createLogger({
+        const log = Logger.create({
             ...options,
             onLog: (...args: unknown[]) => {
                 logs.push(...args)
 
                 // Comment out when tests are complete.
                 // console.log(...args)
-            }
+            } 
         })
         return { log, logs }
     }

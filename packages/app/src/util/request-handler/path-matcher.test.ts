@@ -14,7 +14,7 @@ describe(`${createStaticPathMatcher.name}()`, () => {
     it('returns nil if no match', () => {
         expect(target('/ace', { foo: 'bar' })).toEqual(nil)
     })
-
+    
 })
 
 describe(`${createUrlParamPathMatcher.name}()`, () => {

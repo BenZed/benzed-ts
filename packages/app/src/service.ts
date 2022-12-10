@@ -1,5 +1,5 @@
 import { pluck } from '@benzed/array'
-import { IndexesOf, KeysOf, Merge, nil } from '@benzed/util'
+import { KeysOf, Merge, nil } from '@benzed/util'
 import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 
 import { $path, Path, UnPath } from './util/types'
@@ -9,11 +9,9 @@ import {
     Modules,
 } from './module'
 
-import { 
-    Client, 
-    Server,
-    CommandModule
-} from './modules'
+import { CommandModule } from './modules/command/command-module'
+import { Client } from './modules/connection/client'
+import { Server } from './modules/connection/server'
 
 import is from '@benzed/is'
 
@@ -52,7 +50,7 @@ type ServiceCommands<M> = Merge<[
 ]>
 
 type _ServiceAtPath<M, P extends string, R extends boolean> = M extends Service<infer Px, infer Mx> 
-    ? { [K in `${P}${Px}`]: M } & R extends true ? _ServicesAtPaths<Mx, `${P}${Px}`, true> : {}
+    ? { [K in `${P}${Px}`]: M } & (R extends true ? _ServicesAtPaths<Mx, `${P}${Px}`, true> : {})
     : {}
 
 type _ServicesAtPaths<M, P extends string, R extends boolean> = M extends [infer Sx, ...infer Sr] 
@@ -61,9 +59,9 @@ type _ServicesAtPaths<M, P extends string, R extends boolean> = M extends [infer
         : _ServiceAtPath<Sx, P, R>
     : {}
 
-type NestedPaths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', true>>
+export type NestedPaths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', true>>
 
-// type Paths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', false>>
+export type Paths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', false>>
 
 type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _ServicesAtPaths<M, '', true>[P]
 
@@ -71,21 +69,17 @@ type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _Service
 
 //// Service ////
 
-/**
- * @internal
- */
-export type _FlattenModules<M extends Modules> = 
-    M extends [infer Mx, ...infer Mr]
-        ? Mx extends Module
-            ? Mr extends Modules 
-                ? Mx extends ServiceModule<infer Mrx> 
-                    ? _FlattenModules<[...Mrx, ...Mr]>
-                    : [Mx, ..._FlattenModules<Mr>]
-                : Mx extends ServiceModule<infer Mrx> 
-                    ? _FlattenModules<Mrx>
-                    : [Mx]
-            : []
-        : [] 
+type FlattenModule<M> = M extends ServiceModule<infer Mx> 
+    ? FlattenModules<Mx>
+    : M extends Module 
+        ? [M]
+        : []
+
+export type FlattenModules<M> = M extends ServiceModule<infer Mx> 
+    ? FlattenModules<Mx>
+    : M extends [infer Mx, ...infer Mr]
+        ? [...FlattenModule<Mx>, ...FlattenModules<Mr>]
+        : []
 
 /**
  * @internal
@@ -136,16 +130,16 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
 
     //// Service Implementation ////
 
-    abstract useService<P extends ServiceAtNestedPath<M>>(path: P,module: Mx): unknown
+    // abstract useService<P extends ServiceAtNestedPath<M>>(path: P,module: Mx): unknown
     abstract useService<P extends Path, Mx extends ServiceModule<any>>(
         path: P,
         module: Mx
     ): unknown
 
-    abstract useModule<Mx extends Module, I extends IndexesOf<M>, F extends (module: M[I]) => Mx>(index: I, updater: F): unknown
+    // abstract useModule<Mx extends Module, I extends IndexesOf<M>, F extends (module: M[I]) => Mx>(index: I, updater: F): unknown
     abstract useModule<Mx extends Module>(module: Mx): unknown
 
-    abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
+    // abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
     abstract useModules<Mx extends Modules>(...modules: Mx): unknown
     
     getService<P extends NestedPaths<M>>(path: P): ServiceAtNestedPath<M, P> {
@@ -163,11 +157,11 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     }
 
     get client(): Client | nil {
-        return this.root.getModule(Client) ?? nil
+        return this.root.findModule(Client) ?? nil
     }
     
     get server(): Server | nil {
-        return this.root.getModule(Server) ?? nil
+        return this.root.findModule(Server) ?? nil
     }
 
     //// Module Implementation ////
@@ -315,20 +309,20 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
 
     override useModule<Mx extends Module>(
         module: Mx
-    ): Service<P, [...M, ..._FlattenModules<[Mx]>]> {
+    ): Service<P, [...M, ...FlattenModules<[Mx]>]> {
         return Service._create(
             this._path,
             this._pushModule(module)
-        ) as Service<P, [...M, ..._FlattenModules<[Mx]>]> 
+        ) as Service<P, [...M, ...FlattenModules<[Mx]>]> 
     }
 
     override useModules<Mx extends Modules>(
         ...modules: Mx
-    ): Service<P, [...M, ..._FlattenModules<Mx>]> {
+    ): Service<P, [...M, ...FlattenModules<Mx>]> {
         return Service._create(
             this._path,
             this._pushModule(...modules)
-        ) as Service<P, [...M, ..._FlattenModules<Mx>]> 
+        ) as Service<P, [...M, ...FlattenModules<Mx>]> 
     }
 
     //// Module Implementation ////

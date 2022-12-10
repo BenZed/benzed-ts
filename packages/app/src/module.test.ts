@@ -64,7 +64,7 @@ it('.modules is empty on modules with no parent', () => {
     expect(m1.modules).toEqual([])
 })
 
-it('.getModule()', () => {
+it('.findModule()', () => {
 
     const m1 = new Test()
     const m2 = new Test()
@@ -73,23 +73,23 @@ it('.getModule()', () => {
         .useModule(m1)
         .useModule(m2)
 
-    const m1f = service.getModule(Module)
+    const m1f = service.findModule(Module)
     expect(m1f).toBeInstanceOf(Module)
 })
 
-it('.getModule() required param true', () => {
+it('.findModule() required param true', () => {
 
     const m1 = new Test()
 
-    expect(() => m1.getModule(ServiceModule, true)).toThrow('is missing')
+    expect(() => m1.findModule(ServiceModule, true)).toThrow('is missing')
 })
 
-it('.getModule() required param false', () => {
+it('.findModule() required param false', () => {
     const m1 = new Test()
-    expect(m1.getModule(Module)).toBe(nil)
+    expect(m1.findModule(Module)).toBe(nil)
 })
 
-it('.getModule() scope param "parents"', () => {
+it('.findModule() scope param "parents"', () => {
 
     const s1 = Service
         .create()
@@ -97,11 +97,11 @@ it('.getModule() scope param "parents"', () => {
 
     const s2 = s1.useService('/child', s1)
     
-    const m = s2.modules[0].modules[0].getModule(Test, false, 'parents')
+    const m = s2.modules[0].modules[0].findModule(Test, false, 'parents')
     expect(m).toBe(s2.modules[0])
 })
 
-it('.getModule() scope param "children"', () => {
+it('.findModule() scope param "children"', () => {
 
     const s1 = Service
         .create()
@@ -109,11 +109,11 @@ it('.getModule() scope param "children"', () => {
 
     const s2 = Service.create().useService('/child', s1)
     
-    const m = s2.getModule(Test, false, 'children')
+    const m = s2.findModule(Test, false, 'children')
     expect(m).toBe(s2.modules[0].modules[0])
 })
 
-it('.getModule() predicate', () => {
+it('.findModule() predicate', () => {
 
     const s1 = Service
         .create()
@@ -121,7 +121,7 @@ it('.getModule() predicate', () => {
 
     const s2 = Service.create().useService('/child', s1)
     
-    const m = s2.getModule(i => i instanceof Test, false, 'children')
+    const m = s2.findModule(i => i instanceof Test, false, 'children')
     expect(m).toBe(s2.modules[0].modules[0])
 })
 

@@ -12,7 +12,6 @@ it('is sealed', () => {
 for (const [name, method] of Object.entries(HttpMethod)) {
 
     const req = Req.create(method)
-
     describe(`RequestHandler.create(${name})`, () => {
         it(`created with ${name}`, () => {
             expect(req.method)
@@ -47,12 +46,14 @@ describe('req.setUrl()', () => {
 
     it('url with string', () => {
 
-        expect(req.from({})).toEqual({
-            method: HttpMethod.Get,
-            url: '/target',
-            headers: undefined,
-            body: undefined
-        })
+        expect(
+            req.from({}))
+            .toEqual({
+                method: HttpMethod.Get,
+                url: '/target',
+                headers: undefined,
+                body: undefined
+            })
 
     })
 
@@ -81,7 +82,6 @@ describe('req.setUrl()', () => {
                 .setUrl`/target/${'id'}`
 
             const { url, body, method } = req.from({ id: 'hello' })
-
             expect(method).toBe(HttpMethod.Get)
             expect(body).toBeUndefined()
             expect(url).toEqual('/target/hello')

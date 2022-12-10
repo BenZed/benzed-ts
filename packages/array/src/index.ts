@@ -5,7 +5,6 @@ import adjacent from './adjacent'
 import shuffle from './shuffle'
 import unique from './unique'
 import pluck from './pluck'
-import flatten from './flatten'
 import random from './random'
 import ensure from './ensure'
 import remove from './remove'
@@ -24,7 +23,6 @@ export {
     shuffle,
     unique,
     pluck,
-    flatten,
     random,
 
     ensure,

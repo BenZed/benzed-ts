@@ -1,35 +1,48 @@
+
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
-import { callable, nil, Transform } from '@benzed/util'
+import { callable, nil, toVoid, Logger, Transform } from '@benzed/util'
 
 import type { ServiceModule } from './service'
-import { Path } from './util/types'
+import type { Logger as LoggerModule } from './modules'
+
+import { $path, Path } from './util/types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
 
-//// Types ////
+//// Constants ////
 
-type GetPredicate = (input: Module) => boolean
-
-type GetGuard<M extends Module> = (input: Module) => input is M 
+/**
+ * Allow the use of the .log api without breaking any modules in
+ * the event that logging is not enabled.
+ */
+const DUMMY_LOGGER = Logger.create({ onLog: toVoid })
 
 //// Types ////
 
 export type Modules = readonly Module[]
+
+export type FindModuleGuard<M extends Module> = (input: Module) => input is M 
 
 export type ModuleConstructor<M extends Module = Module> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M) | 
      { name: string, prototype: M }
 
-export type GetModuleScope = 
-    'siblings' | 'parents' | 'children' | 'root' |
-    readonly ('siblings' | 'parents' | 'children' | 'root')[]
-
-export type GetModuleInput<M extends Module> = ModuleConstructor<M> | GetPredicate | GetGuard<M>
+export type FindModuleScope = 
+    'siblings' | 
+    'parents' | 
+    'children' | 
+    'root' |
+    readonly (
+        'siblings' | 
+        'parents' | 
+        'children' | 
+        'root'
+    )[]
 
 // TODO make this and SettingsModule abstract
 export class Module {
@@ -40,35 +53,81 @@ export class Module {
         return this.constructor.name
     }
 
-    log(strings: TemplateStringsArray, ...items: unknown[]): void {
-        void strings
-        void items
-        // TODO implement
+    private get _icon(): string {
+
+        type Iconable = { icon?: string }
+
+        return (this as Iconable)?.icon ?? 
+            (this.constructor as Iconable)?.icon ?? ''
     }
 
-    getModule<M extends Module, R extends boolean = false>(
-        type: GetModuleInput<M>, 
+    private _log: Logger | nil = nil
+    get log(): Logger {
+        if (!this._log) {
+        
+            const logger = this.findModule(
+                (m: Module): m is LoggerModule => m.name === 'Logger', 
+                false, 
+                'parents'
+            )
+
+            this._log = logger 
+                ? Logger.create({
+                    ...logger.settings,
+                    header: this._icon,
+                    onLog: (...args) => {
+                        logger._pushLog(...args)
+                        logger.settings.onLog(...args)
+                    }
+                })
+                : DUMMY_LOGGER
+        }
+
+        return this._log
+    }
+
+    // /**
+    //  * Get a module corresponding with a provided instance
+    //  */
+    // getModule<M extends Module>(module: M): M{
+
+    // }
+
+    findModule<M extends Module, R extends boolean = false>(
+        type: FindModuleGuard<M>, 
         required?: R,
-        scope?: GetModuleScope
-    ): R extends true ? M : M | nil {
+        scope?: FindModuleScope
+    ): R extends true ? M : M | nil
+
+    findModule<M extends Module, R extends boolean = false>(
+        type: ModuleConstructor<M>, 
+        required?: R,
+        scope?: FindModuleScope
+    ): R extends true ? M : M | nil 
+    
+    findModule(
+        type: FindModuleGuard<Module> | ModuleConstructor<Module>,
+        required?: boolean,
+        scope?: FindModuleScope
+    ): Module | nil {
         return this
-            .getModules(type, required, scope)
-            .at(0) as R extends true ? M : M | nil
+            .findModules(type, required, scope)
+            .at(0) 
     }
 
-    getModules<M extends Module, R extends boolean = false>(
-        type: GetModuleInput<M>, 
+    findModules<M extends Module, R extends boolean = false>(
+        type: ModuleConstructor<M>, 
         required?: R,
-        scope?: GetModuleScope
+        scope?: FindModuleScope
     ): M[] {
 
         const modules: M[] = []
 
-        const guard: GetGuard<M> = 'prototype' in type 
+        const guard: FindModuleGuard<M> = 'prototype' in type 
             ? (i): i is M => i instanceof (type as any) 
             : type
         
-        this.forEachModule(m => {
+        this.eachModule(m => {
             for (const m1 of m.modules) {
                 if (guard(m1) && !modules.includes(m1)) 
                     modules.push(m1)
@@ -81,27 +140,23 @@ export class Module {
         return modules
     }
 
-    forEachModule(f: (input: Module) => void, scope: GetModuleScope = 'siblings'): void {
-        const scopes = unique(wrap(scope)) as unknown as Exclude<GetModuleScope, string>
+    eachModule<F extends (input: Module) => unknown>(f: F, scope: FindModuleScope = 'siblings'): ReturnType<F>[] {
+        const scopes = wrap(scope).filter(unique) as unknown as Exclude<FindModuleScope, string>
 
         for (const scope of scopes) {
             switch (scope) {
                 case 'siblings': {
-                    this.modules.forEach(f)
-                    break
+                    return this.modules.map(f) as ReturnType<F>[]
                 }
                 case 'parents': {
-                    this._forEachAscendent(f)
-                    break
+                    return this._eachAncestor(f)
 
                 }
                 case 'children': {
-                    this._forEachDesendent(f)
-                    break
+                    return this._eachDescendent(f) 
                 }
                 case 'root': {
-                    this.root.modules.forEach(f)
-                    break
+                    return this.root.modules.forEach(f) as ReturnType<F>[]
                 }
 
                 default: {
@@ -110,10 +165,12 @@ export class Module {
                 }
             }
         }
+
+        return []
     }
 
     hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
-        return !!this.getModule(type)
+        return !!this.findModule(type)
     }
 
     get modules(): Modules {
@@ -149,7 +206,7 @@ export class Module {
 
         const path: string[] = []
 
-        this._forEachAscendent(m => {
+        this._eachAncestor(m => {
             if ('path' in m)
                 path.push(m.path as string)
         })
@@ -157,7 +214,7 @@ export class Module {
         if ('path' in this)
             path.push(this.path as string)
 
-        return path.reverse().join('') as Path
+        return $path.validate(path.reverse().join(''))
     }
 
     //// Lifecycle Hooks ////
@@ -192,8 +249,8 @@ export class Module {
     /**
      * Must be the only module of it's type in a parent.
      */
-    protected _assertSingle(scope?: GetModuleScope): void { 
-        const clone = this.getModule(this.constructor as ModuleConstructor, false, scope)
+    protected _assertSingle(scope?: FindModuleScope): void { 
+        const clone = this.findModule(this.constructor as ModuleConstructor, false, scope)
         if (clone && clone !== this)
             throw new Error(`${this.name} may only be used once in scope ${scope}`)
     }
@@ -209,8 +266,8 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetModuleScope): void {
-        if (!this.getModule(type, false, scope)) {
+    protected _assertRequired(type: ModuleConstructor<Module> | FindModuleGuard<Module>, scope?: FindModuleScope): void {
+        if (!this.findModule(type, false, scope)) {
             throw new Error(
                 `${this.name} is missing required module ${type.name} in scope ${scope}`
             )
@@ -220,8 +277,8 @@ export class Module {
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(type: ModuleConstructor<Module> | GetPredicate | GetGuard<Module>, scope?: GetModuleScope): void { 
-        if (this.getModule(type, false, scope)) {
+    protected _assertConflicting(type: ModuleConstructor<Module> | FindModuleGuard<Module>, scope?: FindModuleScope): void { 
+        if (this.findModule(type, false, scope)) {
             throw new Error(
                 `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`
             )
@@ -246,22 +303,29 @@ export class Module {
 
     // Helper 
 
-    private _forEachAscendent(f: (input: Module) => void): void {
+    private _eachAncestor<F extends (input: Module) => unknown>(f: F): ReturnType<F>[] {
         let ref = this._parent
 
+        const results: ReturnType<F>[] = []
         while (ref) {
-            f(ref)
+            results.push(f(ref) as ReturnType<F>)
             ref = ref.parent
         }
+
+        return results
     }
 
-    private _forEachDesendent(f: (input: Module) => void): void {
-        for (const m of this.modules) {
-            if (m.modules !== this.modules) {
-                f(m)
-                m._forEachDesendent(f)
+    private _eachDescendent<F extends (input: Module) => unknown>(f: F): ReturnType<F>[] {
+        const results: ReturnType<F>[] = []
+        
+        for (const module of this.modules) {
+            if (module.modules !== this.modules) {
+                results.push(f(module) as ReturnType<F>)
+                results.push(...module._eachDescendent(f))
             }
         }
+
+        return results
     }
 
     /**

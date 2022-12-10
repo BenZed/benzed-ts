@@ -1,7 +1,8 @@
-import { SchemaFor } from '@benzed/schema'
+import { Schematic } from '@benzed/schema'
 import { nil } from '@benzed/util'
 
 import { Collection as _MongoCollection, ObjectId } from 'mongodb'
+import { SchemaHook, toSchematic } from '../../util'
 
 //// Eslint ////
 
@@ -37,9 +38,12 @@ type RecordOf<C extends MongoDbCollection<any>> = C extends MongoDbCollection<in
 
 class MongoDbCollection<T extends object> {
 
+    readonly _schema: Schematic<T>
     constructor(
-        readonly _schema: SchemaFor<T>
-    ) { /**/ }
+        schematic: SchemaHook<T>
+    ) { 
+        this._schema = toSchematic(schematic)
+    }
 
     /**
      * @internal
@@ -71,11 +75,11 @@ class MongoDbCollection<T extends object> {
     /**
      * Get a record from the collection
      */
-    async get(id: Id): Promise<Record<T> | null> {
+    async get(id: Id): Promise<Record<T> | nil> {
 
         const record = await this
             ._collection
-            .findOne(new ObjectId(id))
+            .findOne(new ObjectId(id)) ?? nil
 
         return record && { 
             ...record,
@@ -107,7 +111,6 @@ class MongoDbCollection<T extends object> {
             total,
             records
         }
-
     }
 
     /**
@@ -130,11 +133,11 @@ class MongoDbCollection<T extends object> {
     /**
      * Update a record in the collection
      */
-    async update(id: Id, data: Partial<T>): Promise<Record<T> | null> {
+    async update(id: Id, data: Partial<T>): Promise<Record<T> | nil> {
 
         const record = await this.get(id)
         if (!record)
-            return null
+            return nil
 
         const { _id, ...existing } = record
 
@@ -156,7 +159,7 @@ class MongoDbCollection<T extends object> {
     /**
      * Remove a record from the collection
      */
-    async remove(id: Id): Promise<Record<T> | null> {
+    async remove(id: Id): Promise<Record<T> | nil> {
 
         const record = await this.get(id)
         if (record) {

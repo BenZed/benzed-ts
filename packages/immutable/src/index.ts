@@ -1,7 +1,7 @@
 import { Copyable } from './copy'
 import { Comparable } from './equals'
 
-//// Exports ////
+////  Exports ////
 
 export * from './copy'
 export * from './equals'

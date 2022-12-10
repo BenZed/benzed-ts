@@ -1,4 +1,4 @@
-import { Sortable, is } from '@benzed/is'
+import { Sortable, isArray } from '@benzed/util'
 
 //// Types ////
 
@@ -69,7 +69,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * Returns true if the array is currently sorted.
      */
     get isSorted(): boolean {
-        return is.array.sorted(this)
+        return isSortedArray(this)
     }
 
     /**
@@ -167,13 +167,42 @@ class SortedArray<T extends Sortable> extends Array<T> {
 
 }
 
+function isSortedArray<T extends Sortable>(
+    input: unknown,
+    isAscending?: boolean
+): input is T[] {
+
+    if (!isArray<Sortable>(input))
+        return false
+
+    if (isAscending === undefined)
+        isAscending = input[0] < input[input.length - 1]
+
+    let value: Sortable = isAscending ? -Infinity : Infinity
+
+    for (const item of input) {
+
+        const isInOrder = isAscending
+            ? item >= value
+            : item <= value
+
+        if (isInOrder)
+            value = item
+        else
+            return false
+    }
+
+    return true
+}
+
 //// Exports ////
 
 export default SortedArray
 
 export {
     ascending,
-    descending
+    descending,
+    isSortedArray
 }
 
 export type {

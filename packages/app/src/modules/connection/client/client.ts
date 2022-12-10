@@ -3,22 +3,21 @@ import { InputOf, OutputOf } from '@benzed/util'
 
 import Connection from '../connection'
 import { CommandModule } from '../../../modules'
-import { DEFAULT_SERVER_PORT, $logIcon } from '../../../util'
+import { DEFAULT_SERVER_PORT } from '../../../util'
 
 //// Types ////
 
 interface ClientSettings extends Infer<typeof $clientSettings> {}
 const $clientSettings = $({
-    logIcon: $logIcon   
-        .default('📱'),
-    
+
     webSocket: $.boolean
         .optional
         .default(false),
-    
+
     host: $.string
         .optional
         .default(`http://localhost:${DEFAULT_SERVER_PORT}`)
+
 })
 
 //// Client ////
@@ -28,13 +27,16 @@ const $clientSettings = $({
  */
 abstract class Client extends Connection<Required<ClientSettings>> {
 
+    static readonly icon = '📱'
+
     /**
+     * @internal
      * Execute a command with the given name and data
      */
-    abstract execute<C extends CommandModule<string, object, object>>(
+    abstract _execute<C extends CommandModule<string, object, object>>(
         command: C,
         data: InputOf<C>
-    ): Promise<OutputOf<C>>
+    ): OutputOf<C>
         
 }
 

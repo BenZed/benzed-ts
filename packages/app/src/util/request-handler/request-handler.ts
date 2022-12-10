@@ -102,11 +102,11 @@ class RequestHandler<T extends object> {
 
     //// Handler Implementation ////
 
-    from(data: T, urlPrefix?: Path): Request {
+    from(data: T): Request {
     
         const { method } = this
 
-        const [ url, dataWithoutParams ] = this._createPath(this.schema?.validate(data) ?? data, urlPrefix)
+        const [ url, dataWithoutParams ] = this._path.to(this.schema?.validate(data) ?? data)
 
         const [ headers, dataWithoutHeaders ] = this._addHeaders(dataWithoutParams)
 
@@ -115,7 +115,7 @@ class RequestHandler<T extends object> {
         return {
             method,
             body: dataWithoutQuery,
-            url: isEmpty(query) ? url : url + '?' + toQueryString(query) as Path,
+            url: $path.validate(isEmpty(query) ? url : url + '?' + toQueryString(query)),
             headers
         }
     }
@@ -123,12 +123,13 @@ class RequestHandler<T extends object> {
     match(req: Request): T | nil {
 
         const { method } = this
+
         if (method !== req.method)
             return nil
 
         const { headers = new Headers(), url: urlWithQuery, body = {}} = req
 
-        const [ url, queryString ] = urlWithQuery.split('?') as [ Path, string | nil ]
+        const [ url, queryString ] = urlWithQuery.split('?')
 
         const query = queryString ? fromQueryString(queryString) : nil
 
@@ -136,7 +137,7 @@ class RequestHandler<T extends object> {
             ? { [this.queryKey]: query, ...body } 
             : { ...query, ...body }
 
-        const pathedData = this._path.match(url, data)
+        const pathedData = this._path.match($path.validate(url), data)
         if (!pathedData)
             return nil
 
@@ -256,14 +257,6 @@ class RequestHandler<T extends object> {
 
     //// Helper ////
     
-    private _createPath(data: T, urlPrefix?: Path): ReturnType<Pather<T>> {
-
-        const [ urlWithoutPrefix, dataWithoutUrlParams ] = this._path.to(data)
-
-        const url = $path.validate((urlPrefix ?? '') + urlWithoutPrefix)
-        return [ url, dataWithoutUrlParams ]
-    }
-
     private _addHeaders(inputData: T | Partial<T>): [ Headers | nil, Partial<T> ] {
 
         const headers = new Headers()

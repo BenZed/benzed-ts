@@ -5,7 +5,7 @@
     "version": "3.1.3",
     "scripts": {
         "test": "jest --run-in-band --all",
-        "test:dev": "jest --run-in-band --only-changed --force-exit --verbose",
+        "test:dev": "jest --run-in-band --only-changed --detect-open-handles --verbose",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/array": "^3.1.4",
+        "@benzed/array": "^3.2.3",
         "@benzed/util": "^3.9.1"
     }
 }

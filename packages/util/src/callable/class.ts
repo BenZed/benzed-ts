@@ -40,7 +40,7 @@ const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C ext
                 configurable: true,
             }
         }
-    )
+    ) as Callable<S, InstanceType<C>>
 }
 
 const isClass = (input: unknown): input is Class => 

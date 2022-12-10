@@ -47,8 +47,11 @@ describe('.getService(path)', () => {
         .useService('/users', users)
 
     it('gets a registered service', () => {
-        expect(app.getService('/orders')).toHaveProperty('path', '/orders')
-        expect(app.getService('/users')).toHaveProperty('path', '/users')
+        expect(app.getService('/orders'))   
+            .toHaveProperty('path', '/orders')
+        
+        expect(app.getService('/users'))
+            .toHaveProperty('path', '/users')
     })
 
     it('gets nested services', () => {
@@ -60,9 +63,14 @@ describe('.getService(path)', () => {
         expectTypeOf<AppPaths>()
             .toEqualTypeOf<'/orders' | '/users' | '/users/accounts'>()
 
-        expectTypeOf(app.getService('/orders')).toEqualTypeOf<Service<'/orders', []>>()
-        expectTypeOf(app.getService('/users')).toEqualTypeOf<Service<'/users', [Service<'/accounts', []>]>>()
-        expectTypeOf(app.getService('/users/accounts')).toEqualTypeOf<Service<'/accounts', []>>()
+        expectTypeOf(app.getService('/orders'))
+            .toEqualTypeOf<Service<'/orders', []>>()
+        
+        expectTypeOf(app.getService('/users'))
+            .toEqualTypeOf<Service<'/users', [Service<'/accounts', []>]>>()
+        
+        expectTypeOf(app.getService('/users/accounts'))
+            .toEqualTypeOf<Service<'/accounts', []>>()
     })
 
     it('throws if service cannot be found', () => {
@@ -96,25 +104,20 @@ describe('.commands', () => {
         get orders(): readonly Order[] {
             return this._orders
         }
-
         find(id: string): Order | null {
             return this.orders.find(order => order.id === id) ?? null
         }
-
         create(data: OrderData): Order {
             const order = { ...data, id: Date.now().toString() }
             this._orders.push(order)
             return order
         }
-
     }
-
-    // function hook(hookF: (this: RuntimeCommand<OrderId>)
 
     const getOrder = Command
         .get<OrderId>($orderId)
         .useHook(Pipe.convert(function ({ id }) {
-            const orders = this.getModule(Orders, true)
+            const orders = this.findModule(Orders, true)
             const order = orders.find(id)
             return { order }
         }))
@@ -123,7 +126,7 @@ describe('.commands', () => {
         .create<OrderData>($orderData)
         .useHook(Pipe.convert(function ({ type }) {
 
-            const orders = this.getModule(Orders, true)
+            const orders = this.findModule(Orders, true)
 
             return {
                 order: orders.create({ type })

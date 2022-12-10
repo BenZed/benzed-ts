@@ -1,5 +1,6 @@
 import is from '@benzed/is'
-import { keysOf, nil } from '@benzed/util'
+import { keysOf, nil, isNumber } from '@benzed/util'
+import { unique } from '@benzed/array'
 
 import { createServer, Server as HttpServer } from 'http'
 
@@ -11,8 +12,16 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 
-import { Command } from '../../command'
-import { WEBSOCKET_PATH, Request, Headers, Path, HttpCode, HttpMethod } from '../../../util'
+import { Command, CommandError } from '../../command'
+
+import { 
+    WEBSOCKET_PATH, 
+    Request, 
+    Headers, 
+    Path, 
+    HttpCode, 
+    HttpMethod
+} from '../../../util'
 
 //// Helper ////
 
@@ -21,14 +30,13 @@ function ctxBodyToObject(ctx: Context): Record<string, unknown> {
     if (is.object<Record<string, unknown>>(ctx.request.body))   
         return ctx.request.body
 
-    if (is.string(ctx.request.body))
+    if (is.string(ctx.request.body)) 
         return JSON.parse(ctx.request.body)
 
     return {}
 }
 
 function ctxToRequest(ctx: Context): Request {
-
     const headers = new Headers()
     for (const key in ctx.headers) {
         if (ctx.headers[key])
@@ -56,32 +64,24 @@ export class KoaSocketIOServer extends Server {
         )
     }
 
-    private readonly _http: HttpServer
-    private readonly _koa: Koa
-    private readonly _io: IOServer | null
-
-    constructor(settings: Required<ServerSettings>) {
-        super(settings)
-
-        this._koa = this._setupKoa()
-        this._http = this._setupHttpServer(this._koa)
-        this._io = this.settings.webSocket 
-            ? this._setupSocketIOServer(this._http)
-            : null
-
-    }
+    private _http: HttpServer | nil = nil
+    private _io: IOServer | nil = nil
 
     // Module Implementation
 
     override async start(): Promise<void> {
     
         await super.start()
+
+        const http = this._http ?? this._setupHttpServer()
+        if (!this._io && this.settings.webSocket)
+            this._setupSocketIOServer(http)
         
         const { port } = this.settings
     
         await new Promise<void>((resolve, reject) => {
-            this._http.listen(port, resolve)
-            this._http.once('error', reject)
+            http.listen(port, resolve)
+            http.once('error', reject)
         })
 
         this.log`listening for connections ${{ port }}`
@@ -89,47 +89,66 @@ export class KoaSocketIOServer extends Server {
     
     override async stop(): Promise<void> {
         await super.stop()
-    
-        const http = this._http as HttpServer
    
         const io = this._io
         if (io) {
             io.sockets
                 .sockets
                 .forEach(socket => socket.disconnect())
-        } //
+        }
 
-        await new Promise<void>((resolve, reject) => {
-            http.close(err => err ? reject(err) : resolve())
-        })
+        const http = this._http
+        if (http) {
+            await new Promise<void>((resolve, reject) => {
+                http.close(err => err ? reject(err) : resolve())
+            })
+        }
 
         this.log`shutdown`
     }
 
     // Koa Helpers
 
-    private _executeCtxCommand(ctx: Context): Promise<object> {
+    private async _executeCtxCommand(ctx: Context): Promise<object> {
 
-        const request = ctxToRequest(ctx)
+        const { url, ...req } = ctxToRequest(ctx)
 
+        let matchMethod = false
         for (const commandName of keysOf(this.root.commands)) {
-
             const command = this._getCommand(commandName)
             if (!command)
-                continue 
-    
-            const commandData = command
-                .request
-                .match(request)
+                continue
 
-            if (commandData) 
-                return command.execute(commandData) as Promise<object>
+            if (command.request.method === req.method)
+                matchMethod = true
+    
+            const input = command
+                .request
+                .match({
+                    ...req,
+                    url: url.replace(command.pathFromRoot, '') as Path
+                })
+
+            if (input) {
+                const result = await command.execute(input)
+                return result
+            }
         }
 
-        return ctx.throw(
-            HttpCode.NotFound, 
-            `Not found: ${ctx.method} ${ctx.url}`
-        )
+        if (!matchMethod) {
+            throw new CommandError(
+                HttpCode.MethodNotAllowed,
+                `Method ${ctx.method} is not allowed`
+            )
+        } else {
+            throw new CommandError(
+                HttpCode.NotFound, 
+                `Could not ${ctx.method} ${ctx.url}`, 
+                { 
+                    method: ctx.method,
+                    url: ctx.url
+                })
+        }
     }
 
     private _getCommand(name: string): Command<string, object, object> | nil {
@@ -139,32 +158,47 @@ export class KoaSocketIOServer extends Server {
 
     // Initialization
 
-    private _setupKoa(): Koa {
+    private _createKoa(): Koa {
 
         const koa = new Koa()
 
+        const allowMethods: string[] = this.parent 
+            ? Object.values(this.root.commands).map(c => c.request.method).filter(unique)
+            : Object.values(HttpMethod)
+
         // Standard Middleware
-        koa.use(cors())
+        koa.use(cors({ allowMethods }))
         koa.use(body())
 
         // Route Everything to command handlers
         koa.use(async (ctx, next) => {
             await next()
-            ctx.body = await this._executeCtxCommand(ctx)
+            const result = await this
+                ._executeCtxCommand(ctx)
+                .catch(CommandError.from) as { code?: number }
+            
+            if (isNumber(result.code))
+                ctx.status = result.code 
+            
+            ctx.body = result
         })
 
         return koa
     }
 
-    private _setupHttpServer(koa: Koa): HttpServer {
-        return createServer(koa.callback())
+    private _setupHttpServer(): HttpServer {
+
+        const koa = this._createKoa()
+
+        this._http = createServer(koa.callback())
+        return this._http
     }
 
     private _setupSocketIOServer(http: HttpServer): IOServer {
 
-        const io = new IOServer(http, { path: WEBSOCKET_PATH })
+        this._io = new IOServer(http, { path: WEBSOCKET_PATH })
 
-        io.on('connection', socket => {
+        this._io.on('connection', socket => {
 
             this.log`${socket.id} connected`
 
@@ -173,19 +207,22 @@ export class KoaSocketIOServer extends Server {
 
                 this.log`${socket.id} command: ${name} ${input}`
 
+                const command = this._getCommand(name)
                 try {
-                    const command = this._getCommand(name)
-                    if (!command)
-                        throw new Error(`${name} is not a valid command.`)
+                    if (!command) {
+                        throw new CommandError(
+                            HttpCode.NotFound, 
+                            `Could not find command '${name}'`
+                        )
+                    }
 
-                    const output = await command(input)
+                    const output = await command.execute(input)
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)
                 } catch (e) {
-
                     this.log`${socket.id} command error: ${e}`
-                    reply(e)
+                    reply(CommandError.from(e))
                 }
             })
 
@@ -195,7 +232,7 @@ export class KoaSocketIOServer extends Server {
             })
         })
 
-        return io
+        return this._io
 
     }
 }

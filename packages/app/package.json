@@ -6,7 +6,7 @@
     "version": "0.9.0",
     "scripts": {
         "test": "jest --run-in-band --all",
-        "test:dev": "jest --run-in-band --only-changed --force-exit --detect-open-handles --verbose",
+        "test:dev": "jest --run-in-band --only-changed --detect-open-handles --verbose history-scribe",
         "build": "npm run lint && npm run tsc",
         "lint": "eslint src/**/*.ts --fix",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
@@ -36,7 +36,9 @@
         "@benzed/match": "^0.9.0",
         "@benzed/schema": "^0.3.0",
         "@benzed/string": "^3.2.3",
-        "@benzed/util": "^3.9.1"
+        "@benzed/util": "^3.9.1",
+        "@benzed/async": "^3.4.1",
+        "@benzed/history-scribe": "^1.1.1"
     },
     "peerDependencies": {},
     "devDependencies": {

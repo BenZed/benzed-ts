@@ -1,5 +1,5 @@
 
-import { is } from '@benzed/is'
+import { isArray } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -23,7 +23,7 @@ type Wrap<T> = T extends any[] | readonly any[]
 function wrap<T>(
     value: T
 ): Wrap<T> {
-    return (is.array(value) ? value : [value]) as Wrap<T>
+    return (isArray(value) ? value : [value]) as Wrap<T>
 }
 
 //// Exports ////

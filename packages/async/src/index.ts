@@ -10,3 +10,5 @@ export * from './until-next-tick'
 export * from './queue'
 
 export * from './on-timeout'
+
+export * from './types'

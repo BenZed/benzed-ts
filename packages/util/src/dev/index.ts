@@ -1,8 +1,6 @@
 export * from './benchmark'
 
 export {
-    createLogger,
-
     Logger,
     isLogger,
 

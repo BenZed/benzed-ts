@@ -1,5 +1,5 @@
 import $ from '@benzed/schema'
-import { io } from '@benzed/util'
+import { through } from '@benzed/util'
 
 import { Auth } from './auth'
 import { App } from '../../app'
@@ -14,6 +14,7 @@ import {
     beforeAll, 
     afterAll 
 } from '@jest/globals'
+import { HttpCode } from '../../util'
 
 //// Tests ////
 
@@ -42,7 +43,6 @@ it('verifies access tokens', async () => {
     const auth = Auth.create({})
 
     const payload = { foo: 'Cake' }
-
     const token = await auth.createAccessToken(payload)
 
     const obj = await auth.verifyAccessToken(token)
@@ -65,8 +65,7 @@ it('optional verfication validator', async () => {
 
     // 
     const token2 = await auth.createAccessToken({ badPayload: true })
-    const token2Error = await auth.verifyAccessToken(token2, payloadSchema.assert).catch(io)
-
+    const token2Error = await auth.verifyAccessToken(token2, payloadSchema.assert).catch(through)
     expect(token2Error).toHaveProperty('name', 'ValidationError')
 })
 
@@ -111,22 +110,40 @@ describe('Authentication', () => {
     }
 
     beforeAll(() => app.start())
-    beforeAll(() => app.getModule(MongoDb, true).clearAllCollections())
+    beforeAll(() => app
+        .findModule(MongoDb, true)
+        .clearAllCollections()
+    )
 
     let user: Record<User>
     beforeAll(async () => {
         user = await app.commands.usersCreate(CREDS)
     })
 
-    afterAll(() => app.getModule(MongoDb, true).clearAllCollections())
+    afterAll(() => app
+        .findModule(MongoDb, true)
+        .clearAllCollections()
+    )
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {
-        const auth = app.getModule(Auth, true)
+        const auth = app.findModule(Auth, true)
         const result = await auth.execute(CREDS)
         const { accessToken } = result ?? {}
 
         expect(typeof accessToken).toBe('string')
+    })
+
+    it('throws on invalid credentials', async () => {
+        const auth = app.findModule(Auth, true)
+        const result = await auth.execute({ 
+            email: 'hacker@email.com', 
+            password: 'not-today-you-scallywag'
+        }).catch(through)
+
+        expect(result).toHaveProperty('code', HttpCode.Unauthorized)
+        expect(result).toHaveProperty('message', 'Invalid credentials.')
+        
     })
 
     it('hashes passwords', () => {

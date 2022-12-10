@@ -4,7 +4,9 @@ import { ensureDir } from './ensure-dir'
 import { exists } from './exists'
 import { remove, writeFile } from './export'
 
-const ROOT = './test-dir'
+import { beforeAll, it, expect } from '@jest/globals'
+
+const ROOT = './test-dir' 
 
 const DEEP = path.join(ROOT, '/deep/directory/tree')
 const TXT = path.join(ROOT, 'hello-world.txt')

@@ -1,26 +1,27 @@
-import { Pipe, memoize, nil } from '@benzed/util'
-
-import provideAuth from './provide-auth'
+import { memoize, nil } from '@benzed/util'
 
 import { CommandHook } from '../../command'
+import Auth from '../auth'
 
 //// Main ////
 
 const hashPassword = memoize(<I extends { password?: string }>(): CommandHook<I, I> => 
-    Pipe
-        .from(provideAuth<I>())
-        .to(async ([input, auth]) => {
+    async (input, cmd) => {
 
-            const { password } = input
+        const { password } = input
 
-            const output = {
-                ...input,
-                password: password ? await auth.hashPassword(password) : nil,
-            } as I
+        const auth = cmd.findModule(Auth, true, 'parents')
 
-            //
-            return output
-        }))
+        const output = {
+            ...input,
+            password: password 
+                ? await auth.hashPassword(password) 
+                : nil,
+        } as I
+
+        //
+        return output
+    })
 
 //// Exports ////
 

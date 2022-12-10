@@ -1,5 +1,4 @@
 import { KeysOf, nil } from '@benzed/util'
-import { SchemaFor } from '@benzed/schema'
 
 import { 
     MongoClient as _MongoClient, 
@@ -10,7 +9,7 @@ import {
     SettingsModule 
 } from '../../module'
 
-import { Command } from '../command'
+import { Command, RuntimeCommand } from '../command'
 
 import { 
     $mongoDbSettings,
@@ -18,7 +17,7 @@ import {
 } from './mongo-db-settings'
 
 import MongoDbCollection, { Paginated, RecordQuery, Record, RecordOf } from './mongo-db-collection'
-import { provideRecords } from './hooks'
+import { SchemaHook } from '../../util'
 
 //// Eslint ////
 
@@ -43,16 +42,18 @@ type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCo
 //// Record Commands ////
 
 type RecordCommands<T extends object> = [
-    Command<'get', { id: string }, Promise<Record<T>>>,
-    Command<'find', RecordQuery<T>, Promise<Paginated<Record<T>>>>,
-    Command<'create', T, Promise<Record<T>>>,
-    Command<'update', { id: string } & Partial<T>, Promise<Record<T>>>,
-    Command<'remove', { id: string }, Promise<Record<T>>>
+    Command<'get', { id: string }, Record<T>>,
+    Command<'find', RecordQuery<T>, Paginated<Record<T>>>,
+    Command<'create', T, Record<T>>,
+    Command<'update', { id: string } & Partial<T>, Record<T>>,
+    Command<'remove', { id: string }, Record<T>>
 ]
 
 //// Mongodb Database ////
 
 class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSettings>> {
+
+    static readonly icon = '🗃️'
 
     // Static Create with Schema Validation
 
@@ -65,23 +66,18 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
             return record
         }
 
+        const records = <I extends object>(cmd: RuntimeCommand<I>): MongoDbCollection<object> => cmd
+            .findModule(MongoDb, true, 'parents')
+            .getCollection(collectionName)
+
         // Commmands 
 
         return [
-            Command.get(provideRecords<{ id: string }, object>(collectionName))
-                .useHook(([{ id }, records]) => records.get(id).then(assertRecord(id))),
-                
-            Command.find(provideRecords(collectionName))
-                .useHook(([query, records]) => records.find(query)),
-            
-            Command.create(provideRecords(collectionName))
-                .useHook(([data, records]) => records.create(data)),
-
-            Command.update(provideRecords<{ id: string } & Partial<object>, object>(collectionName))
-                .useHook(([{ id, ...data }, records]) => records.update(id, data).then(assertRecord(id))),
-
-            Command.remove(provideRecords<{ id: string }, object>(collectionName))
-                .useHook(([{id}, records]) => records.remove(id).then(assertRecord(id)))
+            Command.get(({ id }, cmd) => records(cmd).get(id).then(assertRecord(id))),
+            Command.find((query, cmd) => records(cmd).find(query)),
+            Command.create((data, cmd) => records(cmd).create(data)),
+            Command.update(({ id, ...data }, cmd) => records(cmd).update(id, data).then(assertRecord(id))),
+            Command.remove(({ id }, cmd) => records(cmd).remove(id).then(assertRecord(id)))
         ]
     }
 
@@ -169,7 +165,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
     addCollection<N extends string, T extends object>(
         name: N, 
-        schema: SchemaFor<T>
+        schematic: SchemaHook<T>
     ): MongoDb<AddCollection<C, N, MongoDbCollection<T>>> {
 
         if (!name)
@@ -180,7 +176,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
 
         const collections = {
             ...this._collections,
-            [name as N]: new MongoDbCollection<T>(schema)
+            [name as N]: new MongoDbCollection<T>(schematic)
         } as unknown as AddCollection<C, N, MongoDbCollection<T>>
 
         return new MongoDb(
