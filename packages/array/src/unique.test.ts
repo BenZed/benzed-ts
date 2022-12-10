@@ -4,7 +4,8 @@ import { inspect } from 'util'
 describe('removes duplicate items from input array', () => {
 
     it('[0,0,1,1,2,2,3,3] >> [0,1,2,3]', () => {
-        const arr = unique([0, 0, 1, 1, 2, 2, 3, 3])
+        const arr = [0, 0, 1, 1, 2, 2, 3, 3]
+        unique(arr)
         expect(arr.sort()).toEqual([0, 1, 2, 3])
     })
 

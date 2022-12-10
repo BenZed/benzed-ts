@@ -75,10 +75,30 @@ export type Compile<T, E = void, R extends boolean = true> =
 /**
  * Retreive conditional types if two input types are equal.
  */
-export type IfEquals<T1, T2, Y, N = never> =
+export type IsIdentical<T1, T2> =
     // This is some magician shit I got off the internet and did not write.
-    (<T>() => T extends T1 ? 1 : 2) extends
-    (<T>() => T extends T2 ? 1 : 2) ? Y : N
+    (<T>() => T extends T1 ? 1 : 2) extends (<T>() => T extends T2 ? 1 : 2) ? true : false
+
+export type AsMutable<T> = {
+
+    [K in keyof T as 
+    IsIdentical<{ [_ in K]: T[K] }, { -readonly [_ in K]: T[K] }> extends true 
+        ? K 
+        : never
+    
+    ]: T[K]
+
+}
+
+export type AsReadonly<T> = {
+    [K in keyof T as 
+    IsIdentical<{ [_ in K]: T[K] }, { -readonly [_ in K]: T[K] }> extends true 
+        ? never 
+        : K
+        
+    ]: T[K]
+    
+}
 
 /**
  * Convert a type to a numeric

@@ -88,6 +88,13 @@ export class Module {
         return this._log
     }
 
+    // /**
+    //  * Get a module corresponding with a provided instance
+    //  */
+    // getModule<M extends Module>(module: M): M{
+
+    // }
+
     findModule<M extends Module, R extends boolean = false>(
         type: FindModuleGuard<M>, 
         required?: R,
@@ -122,7 +129,7 @@ export class Module {
             ? (i): i is M => i instanceof (type as any) 
             : type
         
-        this.forEachModule(m => {
+        this.eachModule(m => {
             for (const m1 of m.modules) {
                 if (guard(m1) && !modules.includes(m1)) 
                     modules.push(m1)
@@ -135,8 +142,8 @@ export class Module {
         return modules
     }
 
-    forEachModule(f: (input: Module) => void, scope: FindModuleScope = 'siblings'): void {
-        const scopes = unique(wrap(scope)) as unknown as Exclude<FindModuleScope, string>
+    eachModule<F extends (input: Module) => unknown>(f: F, scope: FindModuleScope = 'siblings'): ReturnType<F>[] {
+        const scopes = wrap(scope).filter(unique) as unknown as Exclude<FindModuleScope, string>
 
         for (const scope of scopes) {
             switch (scope) {

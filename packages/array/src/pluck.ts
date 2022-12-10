@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { nil } from '@benzed/util'
+
 //// Shortcuts ////
 
 const { splice } = Array.prototype
@@ -33,13 +35,22 @@ function pluck<T>(
     input: ArrayLike<T>,
     predicate: Predicate<T>,
     count?: number
-): T[] 
+): T[]
+
+function pluck<T>(
+    this: ArrayLike<T>,
+    predicate: Predicate<T>,
+    count?: number
+): T[]
 
 function pluck(
-    input: ArrayLike<unknown>,
-    predicate: Predicate<unknown>,
-    count = input.length
+    this: unknown,
+    ...args: unknown[]
 ): unknown[] {
+
+    const [ input, predicate, maxToRemove ] = (args.length <= 1 ? [this, ...args] : args) as [ArrayLike<unknown>, Predicate<unknown>, number | nil ]
+
+    let count = maxToRemove ?? input.length
 
     const results: unknown[] = []
     const indexes: number[] = []

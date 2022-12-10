@@ -1,5 +1,5 @@
 
-import { is } from '@benzed/is'
+import { isArray } from '@benzed/util'
 
 import first from './first'
 
@@ -25,7 +25,7 @@ type Unwrap<T> = T extends readonly [infer V, ...unknown[]]
  *                    returns the input.
  */
 function unwrap<T>(array: T): Unwrap<T> {
-    return (is.array(array)
+    return (isArray(array)
         ? first(array)
         : array) as Unwrap<T>
 }

@@ -17,13 +17,18 @@ const { indexOf, push } = Array.prototype
  * @param arrayLike Collection
  * @param value Value to ensure
  */
-function ensure<T>(arrayLike: ArrayLike<T>, value: T): ArrayLike<T> {
+function ensure<T>(input: ArrayLike<T>, value: T): ArrayLike<T> 
+function ensure<T>(this: ArrayLike<T>, value: T): ArrayLike<T> 
 
-    const index = indexOf.call(arrayLike, value)
+function ensure(this: unknown, ...args: [ArrayLike<unknown>, unknown] | [unknown]): ArrayLike<unknown> {
+
+    const [ input, value ] = (args.length < 2 ? [this, ...args] : args) as [ArrayLike<unknown>, unknown]
+
+    const index = indexOf.call(input, value)
     if (index === -1)
-        push.call(arrayLike, value)
+        push.call(input, value)
 
-    return arrayLike
+    return input
 }
 
 //// Exports ////
