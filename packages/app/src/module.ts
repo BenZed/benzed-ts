@@ -1,3 +1,4 @@
+
 import { wrap } from '@benzed/array'
 import { $$copy, unique } from '@benzed/immutable'
 import { callable, nil, toVoid, Logger, Transform } from '@benzed/util'
@@ -18,9 +19,7 @@ import { $path, Path } from './util/types'
  * Allow the use of the .log api without breaking any modules in
  * the event that logging is not enabled.
  */
-const DUMMY_LOGGER = Logger.create({
-    onLog: toVoid
-})
+const DUMMY_LOGGER = Logger.create({ onLog: toVoid })
 
 //// Types ////
 
@@ -64,7 +63,6 @@ export class Module {
 
     private _log: Logger | nil = nil
     get log(): Logger {
-        
         if (!this._log) {
         
             const logger = this.findModule(
@@ -148,21 +146,17 @@ export class Module {
         for (const scope of scopes) {
             switch (scope) {
                 case 'siblings': {
-                    this.modules.forEach(f)
-                    break
+                    return this.modules.map(f) as ReturnType<F>[]
                 }
                 case 'parents': {
-                    this._forEachAscendent(f)
-                    break
+                    return this._eachAncestor(f)
 
                 }
                 case 'children': {
-                    this._forEachDesendent(f)
-                    break
+                    return this._eachDescendent(f) 
                 }
                 case 'root': {
-                    this.root.modules.forEach(f)
-                    break
+                    return this.root.modules.forEach(f) as ReturnType<F>[]
                 }
 
                 default: {
@@ -171,6 +165,8 @@ export class Module {
                 }
             }
         }
+
+        return []
     }
 
     hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
@@ -210,7 +206,7 @@ export class Module {
 
         const path: string[] = []
 
-        this._forEachAscendent(m => {
+        this._eachAncestor(m => {
             if ('path' in m)
                 path.push(m.path as string)
         })
@@ -307,22 +303,29 @@ export class Module {
 
     // Helper 
 
-    private _forEachAscendent(f: (input: Module) => void): void {
+    private _eachAncestor<F extends (input: Module) => unknown>(f: F): ReturnType<F>[] {
         let ref = this._parent
 
+        const results: ReturnType<F>[] = []
         while (ref) {
-            f(ref)
+            results.push(f(ref) as ReturnType<F>)
             ref = ref.parent
         }
+
+        return results
     }
 
-    private _forEachDesendent(f: (input: Module) => void): void {
-        for (const m of this.modules) {
-            if (m.modules !== this.modules) {
-                f(m)
-                m._forEachDesendent(f)
+    private _eachDescendent<F extends (input: Module) => unknown>(f: F): ReturnType<F>[] {
+        const results: ReturnType<F>[] = []
+        
+        for (const module of this.modules) {
+            if (module.modules !== this.modules) {
+                results.push(f(module) as ReturnType<F>)
+                results.push(...module._eachDescendent(f))
             }
         }
+
+        return results
     }
 
     /**
