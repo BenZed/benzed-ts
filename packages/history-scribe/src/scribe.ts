@@ -39,18 +39,29 @@ type Signature = string
  */
 class HistoryScribe<T extends object, I = Signature> {
 
-    static from<T extends object, I>(
-        history: HistoryEntry<T, I>[],
-        options?: HistoryScribeOptions<T>
-    ): HistoryScribe<T, I> {
-        return new HistoryScribe<T, I>({ history, ...options })
-    }
-
     static create<T extends object, I>(
         data: T,
+        signature?: I,
         options?: HistoryScribeOptions<T>
-    ): HistoryScribe<T, I> {
-        return new HistoryScribe<T,I>(options).create(data)
+    ): T & Historical<T, I> {
+        return new HistoryScribe<T,I>(options).create(data, signature).compile()
+    }
+
+    static update<T extends object, I>(
+        { history }: Historical<T, I>,
+        data: Partial<T>,
+        signature?: I,
+        options?: HistoryScribeOptions<T>
+    ): T & Historical<T, I> {
+        return new HistoryScribe<T,I>({ history, ...options }).update(data, signature).compile()
+    }
+
+    static remove<T extends object, I>(
+        { history }: Historical<T, I>,
+        signature?: I,
+        options?: HistoryScribeOptions<T>
+    ): T & Historical<T, I> {
+        return new HistoryScribe<T,I>({ history, ...options }).remove(signature).compile()
     }
 
     readonly options: Required<HistoryScribeOptions<T>>

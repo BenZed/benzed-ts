@@ -2,7 +2,7 @@
     "name": "@benzed/history-scribe",
     "description": "Structure for tracking historical changes to data.",
     "main": "./src",
-    "version": "1.1.1",
+    "version": "2.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",
         "test:dev": "jest --run-in-band --only-changed --detect-open-handles --verbose",
