@@ -7,6 +7,7 @@ import {
     Historical,
     HistoryEntry,
     HistoryMeta,
+    HistoryMethods,
     HistoryScribeInput,
     HistoryScribeOptions
 } from './types'
@@ -61,7 +62,7 @@ class HistoryScribe<T extends object, I = Signature> {
 
         this._history = 'data' in options && options.data
             ? [{
-                method: 'create',
+                method: HistoryMethods.Create,
                 data: copy(options.data),
                 ...resolveHistoryMeta()
             }]
@@ -91,7 +92,7 @@ class HistoryScribe<T extends object, I = Signature> {
      */
     create(data: T, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: 'create',
+            method: HistoryMethods.Create,
             data,
             ...resolveHistoryMeta(signature)
         })
@@ -105,7 +106,7 @@ class HistoryScribe<T extends object, I = Signature> {
      */
     patch(data: Partial<T>, signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: 'patch',
+            method: HistoryMethods.Update,
             data,
             ...resolveHistoryMeta(signature)
         })
@@ -118,7 +119,7 @@ class HistoryScribe<T extends object, I = Signature> {
      */
     remove(signature?: I | Partial<HistoryMeta<I>>): HistoryScribe<T, I> {
         return this.push({
-            method: 'remove',
+            method: HistoryMethods.Remove,
             ...resolveHistoryMeta(signature)
         })
     }
@@ -269,34 +270,34 @@ class HistoryScribe<T extends object, I = Signature> {
             // handle Entry
             switch (entry.method) {
 
-                case 'create': {
+                case HistoryMethods.Create: {
                     // validate create entry
                     if (!isFirstIndex)
-                        throw new HistoryInvalidError('"create" entry must be first.')
+                        throw new HistoryInvalidError(`"${HistoryMethods.Create}" entry must be first.`)
 
                     // update valid data to include create data
                     valid.data.push({ ...entry.data })
                     break
                 }
 
-                case 'patch': {
+                case HistoryMethods.Update: {
                     // validate patch entry
                     if (isFirstIndex) {
                         throw new HistoryInvalidError(
-                            '"patch" entry must be placed after a "create" entry.'
+                            `"${HistoryMethods.Update}" entry must be placed after a "${HistoryMethods.Create}" entry.`
                         )
                     }
 
                     if (valid.removeEntryExists) {
                         throw new HistoryInvalidError(
-                            '"patch" entry cannot be after a "remove" entry.'
+                            `"${HistoryMethods.Update}" entry cannot be after a "${HistoryMethods.Remove}" entry.`
                         )
                     }
 
                     // collapse with previous patch entries, if possible
                     if (this._canCollapseEntry(entry, valid.history.at(-1))) {
                         const prevEntry =
-                            valid.history.pop() as { method: 'patch', data: T } & HistoryMeta<I>
+                            valid.history.pop() as { method: HistoryMethods.Update, data: T } & HistoryMeta<I>
                         valid.data.pop()
 
                         entry = mergePatchEntry(
@@ -310,7 +311,7 @@ class HistoryScribe<T extends object, I = Signature> {
                     // remove redundant data 
                     entry = cleanPatchEntry(entry, currentValidData)
                     if (!entryContainsData(entry))
-                        continue // skipping emptry or redundant 'patch' entry
+                        continue // skipping emptry or redundant HistoryMethods.Update entry
 
                     // update valid data to include patch data
                     valid.data.push(
@@ -322,11 +323,11 @@ class HistoryScribe<T extends object, I = Signature> {
                     break
                 }
 
-                case 'remove': {
+                case HistoryMethods.Remove: {
                     // validate remove entry
                     if (isFirstIndex) {
                         throw new HistoryInvalidError(
-                            '"remove" entry must be be placed after a "create" entry.'
+                            `"${HistoryMethods.Remove}" entry must be be placed after a "${HistoryMethods.Create}" entry.`
                         )
                     }
 
@@ -353,15 +354,15 @@ class HistoryScribe<T extends object, I = Signature> {
     }
 
     private _canCollapseEntry(
-        source: { method: 'patch', data: Partial<T> } & HistoryMeta<I>,
+        source: { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I>,
         target: HistoryEntry<T, I> | undefined
-    ): target is ({ method: 'patch', data: Partial<T> } & HistoryMeta<I>) {
+    ): target is ({ method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I>) {
 
         if (!target)
             return false
 
         // only patch entries can be merged
-        if (target.method !== 'patch')
+        if (target.method !== HistoryMethods.Update)
             return false
 
         // no collapsing data with keys in the collapse mask

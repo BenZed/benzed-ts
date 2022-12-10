@@ -4,14 +4,20 @@ export interface HistoryMeta<I = string> {
     signature: I | null
 }
 
+export enum HistoryMethods {
+    Create = 'create',
+    Update = 'patch',
+    Remove = 'remove'
+}
+
 export type HistoryMethod<T> = {
-    method: 'create'
+    method: HistoryMethods.Create
     data: T
 } | {
-    method: 'patch'
+    method: HistoryMethods.Update
     data: Partial<T>
 } | {
-    method: 'remove'
+    method: HistoryMethods.Remove
 }
 
 export type HistoryEntry<T, I = string> =

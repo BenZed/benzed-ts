@@ -1,8 +1,8 @@
 import { resolveIndex as _resolveIndex } from '@benzed/array'
-import { equals } from '@benzed/immutable'
 import { isNumber, isObject } from '@benzed/util'
+import { equals } from '@benzed/immutable'
 
-import { HistoryEntry, HistoryMeta } from './types'
+import { HistoryEntry, HistoryMeta, HistoryMethods } from './types'
 
 //// Exports ////
 
@@ -66,7 +66,7 @@ export function applyData<T extends object>(
 export function entryContainsData<T extends object, I>(
     entry: HistoryEntry<T, I>
 ): entry is
-    ({ method: 'patch', data: Partial<T> } | { method: 'create', data: T })
+    ({ method: HistoryMethods.Update, data: Partial<T> } | { method: HistoryMethods.Create, data: T })
     & HistoryMeta<I> {
     return 'data' in entry &&
         Object.keys(entry.data).length > 0
@@ -102,9 +102,9 @@ export function resolveHistoryMeta<I>(
  * @returns 
  */
 export function mergePatchEntry<T extends object, I>(
-    input: { method: 'patch', data: Partial<T> } & HistoryMeta<I>,
+    input: { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I>,
     data: Partial<T>,
-): { method: 'patch', data: Partial<T> } & HistoryMeta<I> {
+): { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I> {
 
     const output = {
         ...input,
@@ -122,11 +122,11 @@ export function mergePatchEntry<T extends object, I>(
  * @returns 
  */
 export function cleanPatchEntry<T extends object, I>(
-    input: { method: 'patch', data: Partial<T> } & HistoryMeta<I>,
+    input: { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I>,
     data: T
-): { method: 'patch', data: Partial<T> } & HistoryMeta<I> {
+): { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I> {
 
-    const output: { method: 'patch', data: Partial<T> } & HistoryMeta<I> = {
+    const output: { method: HistoryMethods.Update, data: Partial<T> } & HistoryMeta<I> = {
         ...input,
         data: {}
     }

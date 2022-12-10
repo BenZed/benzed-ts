@@ -1,4 +1,5 @@
 import HistoryScribe from './scribe'
+import { HistoryMethods } from './types'
 
 import { describe, it, expect } from '@jest/globals'
 
@@ -20,7 +21,7 @@ describe('HistoryScribe class', () => {
         })
     })
 
-    describe('create', () => {
+    describe(HistoryMethods.Create, () => {
         it('returns a new object with initialized history property', () => {
             const scribe = new HistoryScribe<Structure>()
 
@@ -35,7 +36,7 @@ describe('HistoryScribe class', () => {
             expect(structure).toEqual({
                 ...data,
                 history: [{
-                    method: 'create',
+                    method: HistoryMethods.Create,
                     data,
                     timestamp: expect.any(Number),
                     signature: null
@@ -44,7 +45,7 @@ describe('HistoryScribe class', () => {
         })
     })
 
-    describe('patch', () => {
+    describe(HistoryMethods.Update, () => {
 
         it('throws if provided date meta-data is not in order', () => {
             const data = {
@@ -113,13 +114,13 @@ describe('HistoryScribe class', () => {
                 stage: 'painting',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'painting'
                         },
@@ -153,13 +154,13 @@ describe('HistoryScribe class', () => {
                 stage: 'finishing',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'finishing'
                         },
@@ -179,7 +180,7 @@ describe('HistoryScribe class', () => {
                     stage: 'painting' as const,
                 })
             }).toThrow(
-                'History output invalid: "patch" entry must be placed after a "create" entry.'
+                `History output invalid: "${HistoryMethods.Update}" entry must be placed after a "${HistoryMethods.Create}" entry.`
             )
         })
 
@@ -199,7 +200,7 @@ describe('HistoryScribe class', () => {
                     .patch({
                         stage: 'painting' as const,
                     })
-            }).toThrow('History output invalid: "patch" entry cannot be after a "remove" entry.')
+            }).toThrow(`History output invalid: "${HistoryMethods.Update}" entry cannot be after a "${HistoryMethods.Remove}" entry.`)
         })
 
         it('empty entries are ignored', () => {
@@ -255,7 +256,7 @@ describe('HistoryScribe class', () => {
                 })
 
             expect(scribe.compile().history).toEqual([{
-                method: 'create',
+                method: HistoryMethods.Create,
                 data: {
                     floors: [{ rooms: 1 }, { rooms: 2 }],
                     stage: 'carpentry',
@@ -265,7 +266,7 @@ describe('HistoryScribe class', () => {
                 timestamp: expect.any(Number),
                 signature: null
             }, {
-                method: 'patch',
+                method: HistoryMethods.Update,
                 data: {
                     stage: 'painting',
                 },
@@ -302,7 +303,7 @@ describe('HistoryScribe class', () => {
             expect(structure.stage).toBe('painting')
             expect(structure.history).toEqual([
                 {
-                    method: 'create',
+                    method: HistoryMethods.Create,
                     data: {
                         floors: [{ rooms: 1 }, { rooms: 2 }],
                         stage: 'carpentry' as const,
@@ -312,7 +313,7 @@ describe('HistoryScribe class', () => {
                     signature: null,
                     timestamp: 1000
                 }, {
-                    method: 'patch',
+                    method: HistoryMethods.Update,
                     data: {
                         stage: 'painting'
                     },
@@ -343,7 +344,7 @@ describe('HistoryScribe class', () => {
         })
     })
 
-    describe('remove', () => {
+    describe(HistoryMethods.Remove, () => {
 
         it('returns a new object with updated history property', () => {
 
@@ -366,13 +367,13 @@ describe('HistoryScribe class', () => {
                 ...data,
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'remove',
+                        method: HistoryMethods.Remove,
                         timestamp: expect.any(Number),
                         signature: null
                     }
@@ -391,7 +392,7 @@ describe('HistoryScribe class', () => {
             const scribe = new HistoryScribe<Structure>({ data })
 
             expect(() => scribe.remove().remove())
-                .toThrow('History output invalid: There can only be one "remove" entry.')
+                .toThrow(`History output invalid: There can only be one "${HistoryMethods.Remove}" entry.`)
         })
 
         it('throws if no create entry is on the history stack', () => {
@@ -427,13 +428,13 @@ describe('HistoryScribe class', () => {
                 stage: 'painting',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'painting'
                         },
@@ -465,13 +466,13 @@ describe('HistoryScribe class', () => {
                 stage: 'painting',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'painting'
                         },
@@ -502,13 +503,13 @@ describe('HistoryScribe class', () => {
                 stage: 'painting',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'painting'
                         },
@@ -551,7 +552,7 @@ describe('HistoryScribe class', () => {
 
             const scribeReplaced = scribeOriginal.replace([
                 {
-                    method: 'create',
+                    method: HistoryMethods.Create,
                     data: {
                         floors: [{ rooms: 1 }, { rooms: 2 }],
                         stage: 'carpentry' as const,
@@ -562,7 +563,7 @@ describe('HistoryScribe class', () => {
                     timestamp: new Date(1000).getTime()
                 },
                 {
-                    method: 'patch',
+                    method: HistoryMethods.Update,
                     data: {
                         stage: 'painting'
                     },
@@ -570,14 +571,14 @@ describe('HistoryScribe class', () => {
                     timestamp: new Date(2000).getTime()
                 },
                 {
-                    method: 'patch',
+                    method: HistoryMethods.Update,
                     data: {
                         finished: true
                     },
                     signature: null,
                     timestamp: new Date(3000).getTime()
                 }, {
-                    method: 'remove',
+                    method: HistoryMethods.Remove,
                     signature: null,
                     timestamp: new Date(4000).getTime()
                 }
@@ -590,7 +591,7 @@ describe('HistoryScribe class', () => {
                 type: 'industrial',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data: {
                             floors: [{ rooms: 1 }, { rooms: 2 }],
                             stage: 'carpentry' as const,
@@ -600,21 +601,21 @@ describe('HistoryScribe class', () => {
                         signature: null,
                         timestamp: 1000
                     }, {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'painting'
                         },
                         signature: null,
                         timestamp: 2000
                     }, {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             finished: true
                         },
                         signature: null,
                         timestamp: 3000
                     }, {
-                        method: 'remove',
+                        method: HistoryMethods.Remove,
                         signature: null,
                         timestamp: 4000
                     }
@@ -654,13 +655,13 @@ describe('HistoryScribe class', () => {
                 stage: 'painting',
                 history: [
                     {
-                        method: 'create',
+                        method: HistoryMethods.Create,
                         data,
                         timestamp: expect.any(Number),
                         signature: null
                     },
                     {
-                        method: 'patch',
+                        method: HistoryMethods.Update,
                         data: {
                             stage: 'painting'
                         },
@@ -668,7 +669,7 @@ describe('HistoryScribe class', () => {
                         signature: null
                     },
                     {
-                        method: 'remove',
+                        method: HistoryMethods.Remove,
                         timestamp: expect.any(Number),
                         signature: null
                     }
@@ -694,7 +695,7 @@ describe('HistoryScribe class', () => {
 
             expect(() => scribe.splice(0, 1))
                 .toThrow(
-                    'History output invalid: "patch" entry must be placed after a "create" entry.'
+                    `History output invalid: "${HistoryMethods.Update}" entry must be placed after a "${HistoryMethods.Create}" entry.`
                 )
         })
     })
