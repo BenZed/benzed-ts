@@ -9,10 +9,8 @@ import {
 
     command,
 
-    readJson,
     writeJson,
 
-    PackageJson,
     PackageSpawnProcess,
     PackageProcess,
     readDirRecursive,
@@ -123,7 +121,7 @@ ensureMongoDb({
 
 // Watch for ts changes
 watch(PACKAGES_DIR, {
-    ignored: 'node_modules',
+    ignored: ['/node_modules/', '/lib/'],
     followSymlinks: false,
     atomic: 250
 }).on('change', async file => {
@@ -135,16 +133,11 @@ watch(PACKAGES_DIR, {
     if (tsFileContentCache[file] === contents) 
         return 
 
-    console.log(
-        file.replace(PACKAGES_DIR, ''), 
-        'updated', tsFileContentCache[file]?.length ?? '(uncached)', '>>', contents.length
-    )
     tsFileContentCache[file] = contents
-
-    if (!updateDependencyProcess.isRunning) 
-        await updateDependencyProcess.run(file)
     
-    if (!testProcess.isRunning) {
+    if (testProcess.isRunning) 
+        console.log('! tests already running for', updateDependencyProcess.dir)
+    else{
         const onlyThisFile = file.endsWith('.test.ts')
 
         await testProcess.run(
@@ -154,5 +147,19 @@ watch(PACKAGES_DIR, {
                 : ''
         )
     }
+
+    if (updateDependencyProcess.isRunning)
+        console.log('! dependencies already being updated for', updateDependencyProcess.dir)
+    else
+        await updateDependencyProcess.run(file)
+
+    // rel/path/to/file updated oldsize >> newsize
+    console.log(
+        '\n' + file.replace(PACKAGES_DIR, ''), 
+        'updated', 
+        tsFileContentCache[file]?.length ?? '(uncached)', 
+        '>>', 
+        contents.length
+    )
 
 })
