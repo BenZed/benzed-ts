@@ -1,6 +1,8 @@
 
 import memoize from './memoize'
 
+import { describe, it, expect } from '@jest/globals'
+
 describe('memoize', () => {
     const add = (a: number, b: number): number => {
         addCalls++
@@ -21,15 +23,12 @@ describe('memoize', () => {
     })
 
     // it('no arguments is also considered value-equal', () => {
-
     //     const memoizedPrimes = memoize(() => [...primes(2, 50000)])
-
     //     const timedMemoizedPrimes = (): number => {
     //         const start = Date.now()
     //         memoizedPrimes()
     //         return Date.now() - start
     //     }
-
     //     expect(
     //         timedMemoizedPrimes() >
     //         timedMemoizedPrimes(),
