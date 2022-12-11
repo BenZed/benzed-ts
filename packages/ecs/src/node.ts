@@ -1,90 +1,125 @@
-import { Func, nil } from '@benzed/util'
-
-import { 
-    Extension, 
-    FindScope, 
-    GetModule, 
-    Module, 
-    Modules 
-} from './module'
+import { Func, isFunc, keysOf, property } from '@benzed/util'
+import Module from './module'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
 
-export type AnyNode = Node<{}, Modules>
+//// Helper ////
 
-//// Types ////
+/**
+ * Get the method properties of a type.
+ */
+type _MethodsOf<M extends Module> = {
+    [K in keyof M as M[K] extends Func ? K : never]: M[K]
+}
 
-interface Node<N extends Func | object, M extends Modules> {
+/**
+ * Add the key/values of type B if they do not exist on A
+ */
+type _Fill<A, B> = {
+    [K in keyof A | keyof B]: K extends keyof A 
+        ? A[K] 
+        : K extends keyof B 
+            ? B[K] 
+            : never
+}
 
-    get root(): AnyNode 
+//// Definition ////
 
-    get parent(): AnyNode | nil
-    get first(): Module | nil 
-    get last(): Module | nil
-    get modules(): Module[]
+interface EmptyNode<M extends readonly Module[]> {
 
-    find<M extends Module>(type: GetModule<M>, scope: FindScope): M[]
-    find<M extends Module>(type: GetModule<M>): M[]
-
-    /**
-     * Get a node by a path/to/a/location
-     */
-    get(): {}
-
-    /**
-     * Set a Node by a path: /path/to/location, which will automatically
-     * create nodes between '/' delimeters
-     * 
-     * Set a Module by an index, replacing the module at that location.
-     * 
-     * Value is a new Node or Module. 
-     * 
-     * If the location is occupied, the value can be a function taking the
-     * existing Node or Module as an argument, replaced value will be the output
-     * of the method.
-     */
-    set(): {}
+    readonly modules: M
 
     /**
-     * Add a Node by a path: /add, nodes cannot be created
-     * between '/' delimiters. Method will throw if path is occupied.
-     * 
-     * Add a Module at the next index.
-     * If the location is occupied, the value can be a function taking the
-     * existing Node or Module as an argument, replaced value will be the output
-     * of the method.
+     * Create a node with a given set of modules.
      */
-    add(): {}
+    create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx>
+}
 
-    /**
-     * Remove a node by a path, /can/be/deeply/nested
-     * Remove a module by an index.
-     */
-    remove(): {}
+/**
+ * A node's interface is comprised of public methods of it's modules.
+ */
+type NodeInterface<M> = M extends [infer Mx, ...infer Mr] 
+    ? Mx extends Module 
+        ? _Fill<_MethodsOf<Mx>, NodeInterface<Mr>>
+        : NodeInterface<Mr>
+    : {}
+
+type Node<M extends readonly Module[]> = EmptyNode<M> & NodeInterface<M>
+
+export type GenericNode = Node<Module[]>
+
+//// Implementation ////
+
+function deferModuleInterfaceMethod(module: Module, methodName: string): Func {
+
+    const m = module as unknown as { [name: string]: Func }
+
+    return property.name((...args: unknown[]) => {
+        return m[methodName](...args)
+    }, methodName)
 
 }
 
-export interface NodeConstructor {
+/**
+ * @internal
+ * Implementation of the Node interface
+ */
+class NodeImplementation {
 
-    /**
-     * 
-     */
-    create<M extends Modules>(modules: M): Node<{}, M>
+    constructor(
+        readonly modules: readonly Module[]
+    ) {
+        this._applyNodeInterface()
+    }
 
-    /**
-     * 
-     */
-    extend<E extends Extension>(): Node<E, []>
+    create(...modules: readonly Module[]): NodeImplementation {
+        return new NodeImplementation(modules)
+    }
+
+    //// Helper ////
+    
+    private _applyNodeInterface(): void {
+
+        const { descriptorsOf, prototypeOf, define } = property
+  
+        const nodeDescriptors: PropertyDescriptorMap = {}
+
+        for (const module of this.modules) {
+            const moduleDescriptors = descriptorsOf(prototypeOf(module))
+            for (const key of keysOf(moduleDescriptors)) {
+
+                const isPrivate = key.startsWith('_')
+                const isConstructor = key === 'constructor'
+                const isAlreadyDefined = key in nodeDescriptors
+                const isFunction = 'value' in moduleDescriptors[key] && isFunc(moduleDescriptors[key].value)
+
+                if (
+                    !isPrivate && 
+                    !isConstructor && 
+                    !isAlreadyDefined && 
+                    isFunction
+                ) {
+                    nodeDescriptors[key] = {
+                        ...moduleDescriptors[key],
+                        value: deferModuleInterfaceMethod(module, key)
+                    }
+                }
+            }
+        }
+
+        define(this, nodeDescriptors)
+    }
 
 }
 
 //// Exports ////
 
-export default Node 
+const Node = new NodeImplementation([]) as unknown as Node<[]> 
 
+export default Node
 export {
     Node
 }

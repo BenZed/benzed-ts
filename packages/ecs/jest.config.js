@@ -2,21 +2,22 @@
 module.exports = {
 
     roots: [
-        `./src`
+        './src'
     ],
 
     transform: {
         '^.+\\.tsx?$': [
-            `ts-jest`,
+            'ts-jest',
             {
-                tsconfig: `../../tsconfig.test.json`
+                tsconfig: '../../tsconfig.test.json',
+                isolatedModules: true
             }
         ]
     },
 
     modulePathIgnorePatterns: [
-        `util.test.ts`,
-        `./src/old/*`
+        'util.test.ts',
+        './src/old/*'
     ]
 
 }
