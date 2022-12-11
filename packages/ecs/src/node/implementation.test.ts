@@ -1,5 +1,5 @@
-import { Node } from './node'
-import { Module } from './module'
+import { Node } from './implementation'
+import { Module } from '../module'
 import { expectTypeOf } from 'expect-type'
 
 import { describe, it, expect } from '@jest/globals'
