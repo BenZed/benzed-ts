@@ -29,11 +29,16 @@ function deferModuleMethod(module: Module, methodName: string): Func {
  * @internal
  * Implementation of the Node interface
  */
-class _Node {
+class _Node extends Module {
+
+    override get modules(): readonly Module[] {
+        return this._modules
+    }
 
     constructor(
-        readonly modules: readonly Module[]
+        private readonly _modules: readonly Module[]
     ) {
+        super()
         this._applyNodeInterface()
     }
 

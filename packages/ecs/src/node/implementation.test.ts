@@ -21,7 +21,7 @@ describe('Node interface is described by it\'s modules', () => {
     class Bar extends Module {
 
         state = 100
-        
+
         getState(): number {
             return this.state
         }
@@ -89,12 +89,10 @@ describe('Node interface is described by it\'s modules', () => {
     })
 
     it('works with generics', () => {
-
         const node = Node.create(new Generic(true))
         const state = node.getState()
         expect(state).toBe(true)
         expectTypeOf(state).toMatchTypeOf<boolean>()
-
     })
 
 })
