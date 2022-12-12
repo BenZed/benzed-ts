@@ -7,7 +7,7 @@ import { isArray } from '@benzed/util'
 
 //// Types ////
 
-type Wrap<T> = T extends any[] | readonly any[]
+type Wrap<T> = T extends (unknown[] | readonly unknown[])
     ? T
     : T[]
 

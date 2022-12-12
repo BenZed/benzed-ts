@@ -3,6 +3,7 @@ import {
 } from '@benzed/util'
 
 import Module from '../module'
+import Modules from '../module/modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -31,18 +32,6 @@ type _Fill<A, B> = {
 
 //// Definition ////
 
-export interface EmptyNode<M extends readonly Module[]> {
-
-    readonly modules: M
-
-    /**
-     * Create a node with a given set of modules.
-     */
-    create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx>
-}
-
-export type GenericNode = Node<Module[]>
-
 /**
  * A node's interface is comprised of public methods of it's modules.
  */
@@ -52,5 +41,4 @@ export type NodeInterface<M> = M extends [infer Mx, ...infer Mr]
         : NodeInterface<Mr>
     : {}
 
-export type Node<M extends readonly Module[]> = EmptyNode<M> & NodeInterface<M>
-
+export type Node<M extends readonly Module[]> = Modules<M> & NodeInterface<M>

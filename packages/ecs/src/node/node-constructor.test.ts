@@ -1,12 +1,27 @@
-import { Node } from './implementation'
+import { Node } from './node-constructor'
 import { Module } from '../module'
 import { expectTypeOf } from 'expect-type'
 
 import { describe, it, expect } from '@jest/globals'
 
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
+
 describe('Node interface is described by it\'s modules', () => {
 
-    class Foo extends Module {
+    class NonSerializeable extends Module {
+
+        constructor() {
+            super({})
+        }
+
+        toJSON(): object {
+            return {}
+        }
+    }
+
+    class Foo extends NonSerializeable {
 
         getState(): string {
             return 'bar'    
@@ -16,9 +31,13 @@ describe('Node interface is described by it\'s modules', () => {
             void state
         }
 
+        toJSON(): object {
+            return {}
+        }
+
     }
 
-    class Bar extends Module {
+    class Bar extends NonSerializeable {
 
         state = 100
 
@@ -39,7 +58,7 @@ describe('Node interface is described by it\'s modules', () => {
         }
     }
 
-    class Generic<T> extends Module {
+    class Generic<T> extends NonSerializeable {
 
         constructor(readonly state: T) {
             super()

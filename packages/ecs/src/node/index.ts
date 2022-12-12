@@ -1,2 +1,2 @@
-export { NodeInterface, EmptyNode, GenericNode } from './definition'
-export { Node } from './implementation'
+export { NodeInterface, EmptyNode, GenericNode } from './node-type'
+export { Node } from './node-constructor'

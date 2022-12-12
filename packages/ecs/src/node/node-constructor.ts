@@ -5,47 +5,39 @@ import {
     property 
 } from '@benzed/util'
 
-import Module from '../module'
-import { Node } from './definition'
+import { Module } from '../module'
+import Modules from '../module/modules'
+import { Node } from './node-type'
 
-//// Helper ////
+//// NodeConstructor ////
 
-function deferModuleMethod(module: Module, methodName: string): Func {
+export interface NodeConstructor {
 
-    const methodDeferred = (...args: unknown[]): unknown => 
-        (module as unknown as { [key: string]: Func })
-            [methodName]
-            (...args)
+    create<M extends readonly Module[]>(modules: M): Node<M>
 
-    return property.name(
-        methodDeferred, 
-        methodName
-    )
+    new <M extends readonly Module[]>(modules: M): Node<M>
+
 }
 
-//// Main ////
+//// NodeConstructor class implementation ////
 
 /**
  * @internal
  * Implementation of the Node interface
  */
-class _Node extends Module {
+const Node = class <M extends readonly Module[]> extends Modules<M> {
 
-    override get modules(): readonly Module[] {
-        return this._modules
-    }
-
-    constructor(
-        private readonly _modules: readonly Module[]
-    ) {
-        super()
-        this._applyNodeInterface()
+    static create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx> {
+        return new Node(modules)
     }
 
     //// Main ////
 
-    create(...modules: readonly Module[]): _Node {
-        return new _Node(modules)
+    constructor(
+        modules: M
+    ) {
+        super(modules)
+        this._applyNodeInterface()
     }
 
     //// Helper ////
@@ -73,7 +65,7 @@ class _Node extends Module {
                 ) {
                     nodeDescriptors[key] = {
                         ...moduleDescriptors[key],
-                        value: deferModuleMethod(module, key)
+                        value: wrapAppliedNodeInterfaceMethod(module, key)
                     }
                 }
             }
@@ -81,11 +73,24 @@ class _Node extends Module {
         define(this, nodeDescriptors)
     }
 
+} as NodeConstructor
+
+//// Helper ////
+
+function wrapAppliedNodeInterfaceMethod(module: Module, methodName: string): Func {
+
+    const methodDeferred = (...args: unknown[]): unknown => 
+        (module as unknown as { [key: string]: Func })
+            [methodName]
+            (...args)
+
+    return property.name(
+        methodDeferred, 
+        methodName
+    )
 }
 
 //// Exports ////
-
-const Node = new _Node([]) as unknown as Node<[]> 
 
 export default Node
 export {
