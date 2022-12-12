@@ -33,6 +33,7 @@ interface Property {
     keysOf(...objects: object[]): string[]
 
     prototypes(object: object, blacklist?: object[]): object[]
+    prototypeOf(object: object): object
 }
 
 //// Helper ////
@@ -113,6 +114,10 @@ const property = intersect(
             }
 
             return prototypes.reverse()
+        },
+
+        prototypeOf(object: object): object[] {
+            return Object.getPrototypeOf(object)
         }
     }
 
