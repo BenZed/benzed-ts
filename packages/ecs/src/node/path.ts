@@ -11,6 +11,22 @@ type path = `/${string}`
 
 class Path<P extends path> extends Module<P> {
 
+    static validate<P extends path>(path: P): P {
+
+        // '/lower-dash-case-with-digits-000'
+        if (!path
+            .split('')
+            .every((char, i) => i === 0 ? char === '/' : /[a-z]|\d|-/.test(char))
+        )
+            throw new Error(`${path} is an invalid path.`)
+    
+        return path
+    }
+
+    constructor(path: P) {
+        super(Path.validate(path))
+    }
+
     get path(): P {
         return this._state
     }
@@ -36,15 +52,11 @@ class Path<P extends path> extends Module<P> {
             module = module.parent
         }
 
-        return paths.reverse().join('/') as path
+        return paths.reverse().join('') as path
     }
 
     getPathFromRoot(): path {
         return this.getPathFrom(this.root)
-    }
-
-    constructor(path: P) {
-        super(path)
     }
     
 }

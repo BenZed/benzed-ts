@@ -35,6 +35,8 @@ class Module<S = unknown> implements CopyComparable {
      */
     static [$$isModuleConstructor] = true
  
+    //// State ////
+    
     constructor(protected readonly _state: S) {}
 
     get state(): Readonly<S> {
@@ -50,6 +52,8 @@ class Module<S = unknown> implements CopyComparable {
         return new Constructor(state)
     }
 
+    //// Relationships ////
+    
     /**
      * Root module of this node. 
      * Self if node is unparented.
@@ -73,11 +77,11 @@ class Module<S = unknown> implements CopyComparable {
 
     /**
      * @internal
+     * Set by the ModuleParent
      */
     _setParent(parent: ModuleParent): void {
         if (this._parent) 
             throw new Error('Parent is already set.')
-
         this._parent = parent
     }
 
@@ -96,6 +100,8 @@ class Module<S = unknown> implements CopyComparable {
         return this.parent?.modules.filter(other => other !== this) ?? []
     }
 
+    //// Find interface ////
+    
     find(scope: FindScope | readonly FindScope[], required?: boolean | number): Module[]
     find<M extends Module>(type: FindModule<M>, required?: boolean | number): M[]
     find<M extends Module>(type: FindModule<M>, scope?: FindScope | readonly FindScope[], required?: boolean | number): M[]
@@ -187,7 +193,7 @@ class Module<S = unknown> implements CopyComparable {
         void this.find(type, scope, true)
     }
 
-    //// Helper ////
+    //// CopyComparable Interface ////
 
     [$$equals](input: unknown): input is this {
         return input instanceof Module && 
