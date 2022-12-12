@@ -38,7 +38,7 @@ class Module<S = unknown> implements CopyComparable {
     constructor(protected readonly _state: S) {}
 
     get state(): Readonly<S> {
-        return this.state
+        return this._state
     }
 
     getState(): Readonly<S> {
