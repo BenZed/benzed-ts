@@ -38,7 +38,7 @@
         "@benzed/string": "^3.2.3",
         "@benzed/util": "^3.9.1",
         "@benzed/async": "^3.4.1",
-        "@benzed/history-scribe": "^1.1.1"
+        "@benzed/history-scribe": "^2.0.0"
     },
     "peerDependencies": {},
     "devDependencies": {
