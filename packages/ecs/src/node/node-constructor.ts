@@ -7,13 +7,14 @@ import {
 
 import { Module } from '../module'
 import Modules from '../module/modules'
+
 import { Node } from './node-type'
 
 //// NodeConstructor ////
 
 export interface NodeConstructor {
 
-    create<M extends readonly Module[]>(modules: M): Node<M>
+    create<M extends readonly Module[]>(...modules: M): Node<M>
 
     new <M extends readonly Module[]>(modules: M): Node<M>
 
@@ -25,16 +26,16 @@ export interface NodeConstructor {
  * @internal
  * Implementation of the Node interface
  */
-const Node = class <M extends readonly Module[]> extends Modules<M> {
+const Node = class _Node extends Modules<readonly Module[]> {
 
-    static create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx> {
-        return new Node(modules)
+    static create(...modules: readonly Module[]): _Node {
+        return new _Node(modules)
     }
 
     //// Main ////
 
     constructor(
-        modules: M
+        modules: readonly Module[]
     ) {
         super(modules)
         this._applyNodeInterface()
@@ -90,9 +91,14 @@ function wrapAppliedNodeInterfaceMethod(module: Module, methodName: string): Fun
     )
 }
 
+//// Extend ////
+
+property.name(Node, 'Node')
+
 //// Exports ////
 
 export default Node
+
 export {
     Node
 }

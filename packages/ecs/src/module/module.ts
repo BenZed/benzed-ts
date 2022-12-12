@@ -1,7 +1,8 @@
 import { isString, TypeGuard, nil, pass, isNumber, isArray, isBoolean } from '@benzed/util'
 import { equals, $$equals, $$copy, CopyComparable } from '@benzed/immutable'
-import type Modules from './modules'
 import { wrap } from '@benzed/array'
+
+import type Modules from './modules'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -9,18 +10,45 @@ import { wrap } from '@benzed/array'
 
 //// Types ////
 
+const $$isModuleConstructor = Symbol('is-module-constructor')
+
 type ModuleConstructor<M extends Module> = (new (state: object) => M)
+
 interface ModuleTypeGuard<M extends Module> extends TypeGuard<M, Module> {}
+
 export type FindModule<M extends Module> = ModuleTypeGuard<M> | ModuleConstructor<M> | M
+
 export type FindScope = 'parents' | 'siblings' | 'children'
 
 export type ModuleParent = Modules<readonly Module[]>
 
 //// Definition ////
 
-abstract class Module<S = unknown> implements CopyComparable {
+class Module<S = unknown> implements CopyComparable {
+
+    /**
+     * @internal
+     * Allows the find() method to differentiate between type guards and module constructors,
+     * ensuring edge cases:
+     * - modules extended by callable
+     * - function () {} typeguards
+     */
+    static [$$isModuleConstructor] = true
  
     constructor(protected readonly _state: S) {}
+
+    get state(): Readonly<S> {
+        return this.state
+    }
+
+    getState(): Readonly<S> {
+        return this.state
+    }
+
+    setState(state: S): this {
+        const Constructor = this.constructor as new (state: S) => this
+        return new Constructor(state)
+    }
 
     /**
      * Root module of this node. 
@@ -168,8 +196,7 @@ abstract class Module<S = unknown> implements CopyComparable {
     }
 
     [$$copy](): this {
-        const Constructor = this.constructor as new (state: S) => this
-        return new Constructor(this._state)
+        return this.setState(this._state)
     }
 
 }
@@ -177,7 +204,7 @@ abstract class Module<S = unknown> implements CopyComparable {
 //// Helper ////
 
 function isModuleConstructor<M extends Module>(input: TypeGuard<M, Module<unknown>> | ModuleConstructor<M>): input is ModuleConstructor<M> {
-    return Symbol.hasInstance in input
+    return $$isModuleConstructor in input && !!input[$$isModuleConstructor]
 }
 
 function toModuleTypeGuard<M extends Module>(input: FindModule<M>): ModuleTypeGuard<M> {
@@ -185,7 +212,7 @@ function toModuleTypeGuard<M extends Module>(input: FindModule<M>): ModuleTypeGu
         return ((other) => equals(other, input)) as ModuleTypeGuard<M>
         
     if (isModuleConstructor(input))
-        return ((other) => input[Symbol.hasInstance](other)) as ModuleTypeGuard<M>
+        return ((other) => other instanceof input) as ModuleTypeGuard<M>
 
     return input
 } 

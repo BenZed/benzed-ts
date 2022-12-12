@@ -11,10 +11,6 @@ type path = `/${string}`
 
 class Path<P extends path> extends Module<P> {
 
-    static create<Px extends path>(path: Px): Path<Px> {
-        return new Path(path)
-    }
-
     get path(): P {
         return this._state
     }
@@ -27,8 +23,9 @@ class Path<P extends path> extends Module<P> {
         this.assert(ancestor, 'parents')
 
         const paths: path[] = [this.getPath()]
+
         let module: Path<path> | Module = this
-        while (module.parent && module !== ancestor) {
+        while (module.parent && module.parent !== ancestor) {
             const { parent } = module 
 
             const path: path = parent instanceof Path
@@ -46,7 +43,7 @@ class Path<P extends path> extends Module<P> {
         return this.getPathFrom(this.root)
     }
 
-    private constructor(path: P) {
+    constructor(path: P) {
         super(path)
     }
     
