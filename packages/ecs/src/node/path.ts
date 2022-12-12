@@ -28,11 +28,11 @@ class Path<P extends path> extends Module<P> {
     }
 
     get path(): P {
-        return this._state
+        return this.state
     }
 
     getPath(): P {
-        return this._state
+        return this.state
     }
 
     getPathFrom(ancestor: Module): path {

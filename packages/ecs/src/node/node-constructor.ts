@@ -66,7 +66,7 @@ const Node = class _Node extends Modules<readonly Module[]> {
                 ) {
                     nodeDescriptors[key] = {
                         ...moduleDescriptors[key],
-                        value: wrapAppliedNodeInterfaceMethod(module, key)
+                        value: wrapNodeInterfaceMethod(module, key)
                     }
                 }
             }
@@ -78,7 +78,7 @@ const Node = class _Node extends Modules<readonly Module[]> {
 
 //// Helper ////
 
-function wrapAppliedNodeInterfaceMethod(module: Module, methodName: string): Func {
+function wrapNodeInterfaceMethod(module: Module, methodName: string): Func {
 
     const methodDeferred = (...args: unknown[]): unknown => 
         (module as unknown as { [key: string]: Func })
