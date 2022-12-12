@@ -16,7 +16,7 @@ export interface NodeConstructor {
 
     create<M extends readonly Module[]>(...modules: M): Node<M>
 
-    new <M extends readonly Module[]>(modules: M): Node<M>
+    new <M extends readonly Module[]>(...modules: M): Node<M>
 
 }
 
@@ -29,15 +29,15 @@ export interface NodeConstructor {
 const Node = class _Node extends Modules<readonly Module[]> {
 
     static create(...modules: readonly Module[]): _Node {
-        return new _Node(modules)
+        return new _Node(...modules)
     }
 
     //// Main ////
 
     constructor(
-        modules: readonly Module[]
+        ...modules: readonly Module[]
     ) {
-        super(modules)
+        super(...modules)
         this._applyNodeInterface()
     }
 

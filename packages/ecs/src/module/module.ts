@@ -75,11 +75,11 @@ class Module<S = unknown> implements CopyComparable {
  
     //// State ////
     
-    constructor(state: S) {
-        this.state = state
-    }
+    constructor(private readonly _state: S) {}
 
-    readonly state: Readonly<S>
+    get state(): S extends object ? Readonly<S> : S {
+        return this._state as S extends object ? Readonly<S> : S
+    }
 
     /**
      * Create a copy of this module with a new state.
@@ -251,8 +251,13 @@ class Module<S = unknown> implements CopyComparable {
                     )
 
                 } else {
-                    const siblingsWithChildren = this.siblings.filter(sibling => !sibling.modules.includes(sibling))
-                    const foundDescendantsInSiblings = siblingsWithChildren.flatMap(sibling => sibling.find(predicate, 'children', false))
+                    const siblingsWithChildren = this
+                        .siblings
+                        .filter(sibling => !sibling.modules.includes(sibling))
+
+                    const foundDescendantsInSiblings = siblingsWithChildren
+                        .flatMap(sibling => sibling.find(predicate, 'children', false))
+                    
                     found.push(
                         ...foundDescendantsInSiblings
                     )
