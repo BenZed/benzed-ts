@@ -17,7 +17,7 @@ describe('state', () => {
             score: [] as number[]
         })
 
-        const m2 = m1.setState({ score: [10] })
+        const m2 = m1._setState({ score: [10] })
 
         it('updates state', () => {
             expect(m2.state).not.toEqual(m1.state)
@@ -32,7 +32,7 @@ describe('state', () => {
             class Score extends Module<{ score: number[] }> {}
 
             const s1 = new Score({ score: [0]})
-            const s2 = s1.setState({ score: [1] })
+            const s2 = s1._setState({ score: [1] })
 
             expect(s2).toBeInstanceOf(Score)
         })
@@ -86,8 +86,8 @@ const child = new Module(0)
 
 const parent = new Modules(
     child,
-    child.setState(1),
-    child.setState(2)
+    child._setState(1),
+    child._setState(2)
 )
 
 test('.modules', () => {

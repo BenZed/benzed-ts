@@ -1,26 +1,33 @@
+import type Modules from './modules'
+
 import { wrap } from '@benzed/array'
+
 import { 
+
     equals, 
     $$equals, 
+
     copy,
     $$copy,
-    CopyComparable
+
+    CopyComparable,
+
 } from '@benzed/immutable'
 
-import { 
-    isString,  
-    isNumber, 
+import {
+
+    isString,
+    isNumber,
     isArray,
-    isBoolean, 
-    isObject, 
+    isBoolean,
+    isObject,
     isInteger,
 
-    TypeGuard, 
-    nil, 
+    TypeGuard,
+    nil,
     pass
-} from '@benzed/util'
 
-import type Modules from './modules'
+} from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -82,9 +89,10 @@ class Module<S = unknown> implements CopyComparable {
     }
 
     /**
-     * Create a copy of this module with a new state.
+     * @internal
+     * Create a copy of the module with a different state
      */
-    setState(state: S): this {
+    _setState(state: S): this {
         const Constructor = this.constructor as new (state: S) => this
         return new Constructor(state)
     }
@@ -204,7 +212,9 @@ class Module<S = unknown> implements CopyComparable {
     }
 
     [$$copy](): this {
-        return this.setState(copy(this.state))
+        return this._setState(
+            copy(this._state)
+        )
     }
 
     //// Helper ////

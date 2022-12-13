@@ -3,6 +3,8 @@ import { copy } from '@benzed/immutable'
 import { Module } from './module'
 import { Modules } from './modules'
 
+//// Setup ////
+
 const _modules = [
     new Module(0),
     new Module(1),
@@ -10,6 +12,8 @@ const _modules = [
 ]
 
 const modules = new Modules(..._modules)
+
+//// Tests ////
 
 it('throws if multiple instances of the same module exist in the parent', () => {
     const module = new Module(0)
