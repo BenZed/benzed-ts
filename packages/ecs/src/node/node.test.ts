@@ -149,5 +149,17 @@ describe('operations', () => {
         expect(copy(n1.swap(2,0).modules)).toEqual([c,b,a])
 
     })
+
+    it('.remove()', () => {
+
+        const n1 = Node.create(
+            new Text('A'),
+            new Text('B')
+        )
+
+        const n2 = n1.remove(1)
+        expect(n2).toHaveLength(1)
+        expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>]>>()
+    })
     
 })

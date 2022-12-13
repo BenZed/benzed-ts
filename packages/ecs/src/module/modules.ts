@@ -3,7 +3,7 @@ import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
 import { Fill, MethodsOf } from '../types'
 
 import Module from './module'
-import { addModules, swapModules } from './module-operations'
+import { addModules, removeModule, swapModules } from './module-operations'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -33,6 +33,8 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
     static add = addModules
 
     static swap = swapModules
+
+    static remove = removeModule
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
 

@@ -7,6 +7,7 @@ import {
     ModulesInterface,
     SwapModules
 } from '../module'
+import { RemoveModule } from '../module/module-operations'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -20,6 +21,8 @@ interface NodeInterface<M extends readonly Module[]> extends Modules<M> {
     add<Mx extends readonly Module[]>(...modules: Mx): Node<AddModules<M, Mx>>
 
     swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(a: A, b: B): Node<SwapModules<M, A, B>> 
+
+    remove<I extends IndexesOf<M>>(i: I): Node<RemoveModule<M,I>>
 
 }
 
@@ -42,12 +45,21 @@ const Node = class <M extends readonly Module[]> extends Modules<M> implements N
         )
     }
 
-    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(a: A, b: B): Node<SwapModules<M, A, B>> {
+    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(fromIndex: A, toIndex: B): Node<SwapModules<M, A, B>> {
         return Node.create(
             ...Modules.swap(
                 this.modules,
-                a,
-                b
+                fromIndex,
+                toIndex
+            )
+        )
+    }
+
+    remove<A extends IndexesOf<M>>(index: A): Node<RemoveModule<M,A>> {
+        return Node.create(
+            ...Modules.remove(
+                this.modules,
+                index,
             )
         )
     }
