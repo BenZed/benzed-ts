@@ -3,6 +3,7 @@ import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
 import { Fill, MethodsOf } from '../types'
 
 import Module from './module'
+import { addModules, swapModules } from './module-operations'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -14,38 +15,24 @@ import Module from './module'
 /**
  * A node's interface is comprised of public methods of it's modules.
  */
-type _ModulesInterface<M> = M extends [infer Mx, ...infer Mr] 
+type _InheritModuleMethods<M> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends Module 
-        ? Fill<MethodsOf<Mx>, _ModulesInterface<Mr>>
-        : _ModulesInterface<Mr>
+        ? Fill<MethodsOf<Mx>, _InheritModuleMethods<Mr>>
+        : _InheritModuleMethods<Mr>
     : {}
 
 //// Definition ////
 
 type ModulesInterface<I extends Modules<M>, M extends readonly Module[]> = 
-    Fill<I, _ModulesInterface<M>>
-
-type AddModules<A extends readonly Module[], B extends readonly Module[]> = [
-    ...A,
-    ...B
-]
+    Fill<I, _InheritModuleMethods<M>>
 
 //// Main ////
 
 class Modules<M extends readonly Module[]> extends Module<M> implements Iterable<M[number]> {
 
-    static add<
-        A extends readonly Module[],
-        B extends readonly Module[],
-    >(
-        a: A,
-        b: B
-    ): AddModules<A,B> {
-        return [
-            ...this._unparentModules(a),
-            ...this._unparentModules(b)
-        ]
-    }
+    static add = addModules
+
+    static swap = swapModules
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
 
@@ -77,10 +64,6 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
         }
 
         return define(modules, nodeInterfaceDescriptors)
-    }
-
-    private static _unparentModules<M extends readonly Module[]>(modules: M): M {
-        return modules.map(m => m.parent ? copy(m) : m) as readonly Module[] as M
     }
     
     //// State ////
@@ -120,7 +103,7 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
     
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...this.state)
+        return new Constructor(...copy(this.state))
     }
 
 }
@@ -146,6 +129,5 @@ export default Modules
 
 export {
     Modules,
-    ModulesInterface,
-    AddModules
+    ModulesInterface
 }

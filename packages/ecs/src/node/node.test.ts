@@ -5,6 +5,7 @@ import { Module } from '../module'
 import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
+import { copy } from '@benzed/immutable'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -132,6 +133,21 @@ describe('operations', () => {
             Text<'5th'>,
         ]>
         >()
+    })
+
+    it('.swap()', () => {
+
+        const n1 = Node.create(
+            new Text('A'),
+            new Text('B'),
+            new Text('C')
+        )
+
+        const [a,b,c] = copy(n1.modules)
+
+        expect(copy(n1.swap(0,1).modules)).toEqual([b,a,c])
+        expect(copy(n1.swap(2,0).modules)).toEqual([c,b,a])
+
     })
     
 })

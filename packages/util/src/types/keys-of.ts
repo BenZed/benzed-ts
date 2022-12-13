@@ -95,7 +95,7 @@ type IndexesOfOptionsSignature =
     [reverse: boolean, start: number, end: number, step: number ] | 
     [ Partial<IndexesOfOptions>]
 
-type Indexes<A extends unknown[] | readonly unknown[]> = {
+export type Indexes<A extends unknown[] | readonly unknown[]> = {
     [K in keyof A]: ToNumber<K>
 }
 

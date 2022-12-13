@@ -1,9 +1,11 @@
 
+import { IndexesOf } from '@benzed/util'
 import { 
     AddModules,
     Module, 
     Modules, 
-    ModulesInterface
+    ModulesInterface,
+    SwapModules
 } from '../module'
 
 /* eslint-disable 
@@ -14,12 +16,16 @@ import {
 //// Definition ////
 
 interface NodeInterface<M extends readonly Module[]> extends Modules<M> {
+    
     add<Mx extends readonly Module[]>(...modules: Mx): Node<AddModules<M, Mx>>
+
+    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(a: A, b: B): Node<SwapModules<M, A, B>> 
+
 }
 
 type Node<M extends readonly Module[]> = ModulesInterface<NodeInterface<M>, M>
 
-const Node = class <M extends readonly Module[]> extends Modules<M> {
+const Node = class <M extends readonly Module[]> extends Modules<M> implements NodeInterface<M> {
 
     static create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx> {
         return Modules.applyInterface(
@@ -32,6 +38,16 @@ const Node = class <M extends readonly Module[]> extends Modules<M> {
             ...Modules.add(
                 this.modules,
                 modules
+            )
+        )
+    }
+
+    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(a: A, b: B): Node<SwapModules<M, A, B>> {
+        return Node.create(
+            ...Modules.swap(
+                this.modules,
+                a,
+                b
             )
         )
     }
