@@ -1,2 +1,1 @@
-export { NodeInterface } from './node-type'
-export { NodeConstructor } from './node'
+export { Node } from './node'

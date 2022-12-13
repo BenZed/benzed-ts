@@ -2,13 +2,31 @@
 import { describe, it } from '@jest/globals'
 
 import { Module } from '../module'
-import { NodeConstructor } from './node'
+import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
 */
+
+//// Setup ////
+
+class Text<T extends string> extends Module<T> {
+
+    get text(): T {
+        return this.state
+    }
+
+    setText<Tx extends string>(text: Tx): Text<Tx> {
+        return new Text(text)
+    }
+
+    getText(): T {
+        return this.text
+    }
+
+}  
 
 //// Tests ////
 
@@ -68,8 +86,8 @@ describe('NodeInterface', () => {
     it('first modules take precedence', () => {
         type GetCountParameters = Parameters<typeof node.setCount>[0]
         expectTypeOf<GetCountParameters>().toMatchTypeOf<number>()
-
-        //@ts-expect-error No overload signatures
+ 
+        // @ts-expect-error No overload signatures
         node.setCount(25n)
 
         count.setCount(25)
@@ -86,40 +104,34 @@ describe('NodeInterface', () => {
 
 describe('operations', () => {
 
-    class Text<T extends string> extends Module<T> {
+    it('.add()', () => {
 
-        get text(): T {
-            return this.state
-        }
+        const n1 = Node
+            .create(
+                new Text('1st'),
+                new Text('2nd')
+            )
 
-        setText<Tx extends string>(text: Tx): Text<Tx> {
-            return new Text(text)
-        }
-
-        getText(): T {
-            return this.text
-        }
-
-    }
-
-    describe('get()', () => {
-
-        const n1 = new Node(
-            new Text('zero'),
-            new Text('one'),
+        const n2 = n1.add(
+            new Text('3rd')
         )
-
-        it('get node at index', () => {
-            const [ zero, one ] = n1.modules
-            expect(n1.get(0)).toEqual(zero)
-            expect(n1.get(1)).toEqual(one)
-        })
-
-        it('throws if index out of bounds', () => {
-            // @ts-expect-error invalid index
-            expect(() => n1.get(2)).toThrow('Invalid index')
-        })
-
+ 
+        const n3 = n2.add(
+            new Text('4th'),
+            new Text('5th')
+        )
+    
+        expect(n2.modules).toHaveLength(3)
+        expect(n3.modules).toHaveLength(5)
+        expectTypeOf(n3).toEqualTypeOf<
+        Node<[
+            Text<'1st'>,
+            Text<'2nd'>,
+            Text<'3rd'>,
+            Text<'4th'>,
+            Text<'5th'>,
+        ]>
+        >()
     })
-
+    
 })

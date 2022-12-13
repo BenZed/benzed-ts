@@ -88,15 +88,6 @@ class Module<S = unknown> implements CopyComparable {
         return this._state as S extends object ? Readonly<S> : S
     }
 
-    /**
-     * @internal
-     * Create a copy of the module with a different state
-     */
-    _setState(state: S): this {
-        const Constructor = this.constructor as new (state: S) => this
-        return new Constructor(state)
-    }
-
     //// Relationships ////
 
     /**
@@ -212,9 +203,8 @@ class Module<S = unknown> implements CopyComparable {
     }
 
     [$$copy](): this {
-        return this._setState(
-            copy(this._state)
-        )
+        const Constructor = this.constructor as new (modules: S) => this
+        return new Constructor(this.state)
     }
 
     //// Helper ////

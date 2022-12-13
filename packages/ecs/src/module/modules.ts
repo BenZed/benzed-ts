@@ -1,3 +1,4 @@
+import { $$copy, copy } from '@benzed/immutable'
 import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
 import { Fill, MethodsOf } from '../types'
 
@@ -13,52 +14,40 @@ import Module from './module'
 /**
  * A node's interface is comprised of public methods of it's modules.
  */
-type ModulesInterface<M> = M extends [infer Mx, ...infer Mr] 
+type _ModulesInterface<M> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends Module 
-        ? Fill<MethodsOf<Mx>, ModulesInterface<Mr>>
-        : ModulesInterface<Mr>
+        ? Fill<MethodsOf<Mx>, _ModulesInterface<Mr>>
+        : _ModulesInterface<Mr>
     : {}
 
 //// Definition ////
 
-// type Node<M extends readonly Module[]> = Fill<NodeInterface<M>, NodeModuleInterface<M>>
+type ModulesInterface<I extends Modules<M>, M extends readonly Module[]> = 
+    Fill<I, _ModulesInterface<M>>
 
-type ModulesOf<T> = T extends Modules<infer M> ? M : []
-
-type _ME<E extends (new (...modules: readonly Module[]) => Modules<readonly Module[]>)> = E & {
-
-    new <M extends readonly Module[]>(...modules: M): 
-    InstanceType<E> & 
-    ModulesInterface<ModulesOf<InstanceType<E>>> 
-
-}
-
-export type ModulesExtension<I extends Modules<M>, M extends readonly Module[]> = 
-    Fill<I, ModulesInterface<M>>
+type AddModules<A extends readonly Module[], B extends readonly Module[]> = [
+    ...A,
+    ...B
+]
 
 //// Main ////
 
 class Modules<M extends readonly Module[]> extends Module<M> implements Iterable<M[number]> {
 
-    /**
-     * @param ModuleExtension 
-     * @returns 
-     */
-    static applyInterface<E extends (new (...args: any[]) => Modules<readonly Module[]>)>(
-        ModuleExtension: E
-    ): _ME<E> {
-        return class extends ModuleExtension {
-        
-            private constructor(...args: any[]) {
-                super(...args)
-                Modules._applyInterface(this)
-            }
-        
-        } as _ME<E>
-
+    static add<
+        A extends readonly Module[],
+        B extends readonly Module[],
+    >(
+        a: A,
+        b: B
+    ): AddModules<A,B> {
+        return [
+            ...this._unparentModules(a),
+            ...this._unparentModules(b)
+        ]
     }
 
-    private static _applyInterface(modules: Modules<readonly Module[]>): void {
+    static applyInterface<M extends Modules<any>>(modules: M): M {
 
         const { descriptorsOf, prototypeOf, define } = property
   
@@ -87,9 +76,13 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
             }
         }
 
-        define(modules, nodeInterfaceDescriptors)
+        return define(modules, nodeInterfaceDescriptors)
     }
 
+    private static _unparentModules<M extends readonly Module[]>(modules: M): M {
+        return modules.map(m => m.parent ? copy(m) : m) as readonly Module[] as M
+    }
+    
     //// State ////
     
     /**
@@ -97,11 +90,6 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
      */
     override get modules(): M {
         return this.state
-    }
-
-    override _setState(state: M): this {
-        const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...state)
     }
 
     constructor(...modules: M) {
@@ -128,6 +116,13 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
         yield* this.state
     }
 
+    //// CopyComparable ////
+    
+    [$$copy](): this {
+        const Constructor = this.constructor as new (...modules: M) => this
+        return new Constructor(...this.state)
+    }
+
 }
 
 //// Helper ////
@@ -151,5 +146,6 @@ export default Modules
 
 export {
     Modules,
-    ModulesInterface
+    ModulesInterface,
+    AddModules
 }
