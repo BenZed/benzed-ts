@@ -5,5 +5,7 @@ export * from './modules'
 
 export {
     AddModules,
-    SwapModules
+    SwapModules,
+    RemoveModule,
+    SetModule,
 } from './module-operations'

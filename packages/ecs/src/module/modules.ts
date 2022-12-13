@@ -3,7 +3,7 @@ import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
 import { Fill, MethodsOf } from '../types'
 
 import Module from './module'
-import { addModules, removeModule, swapModules } from './module-operations'
+import { addModules, removeModule, swapModules, setModule } from './module-operations'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -35,6 +35,8 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
     static swap = swapModules
 
     static remove = removeModule
+
+    static set = setModule
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
 
@@ -105,7 +107,9 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
     
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...copy(this.state))
+        
+        const modules = copy(this.state)
+        return new Constructor(...modules)
     }
 
 }

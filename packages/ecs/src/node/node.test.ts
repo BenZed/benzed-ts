@@ -1,7 +1,7 @@
 
 import { describe, it } from '@jest/globals'
 
-import { Module } from '../module'
+import { Module, Modules } from '../module'
 import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
@@ -161,5 +161,44 @@ describe('operations', () => {
         expect(n2).toHaveLength(1)
         expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>]>>()
     })
+
+    it('.set()', () => {
+
+        const n1 = Node.create(
+            new Text('A'),
+            new Text('B')
+        )
+        
+        const n2 = n1   
+            .set(
+                new Text('Ax'),
+                0
+            )
+        expect(n2).toHaveLength(2)
+        expectTypeOf(n2).toEqualTypeOf<Node<[Text<'Ax'>, Text<'B'>]>>()
+    })
     
+    it('.set() with function', () => {
+
+        const n1 = Node.create(new Text('A'))
+            .set(
+                text => text.setText('A!'),
+                0
+            )
+
+        expect(n1.getText()).toEqual('A!')
+
+        const root = Node
+            .create()
+            .add(
+                new Text('Hello'),
+                new Text('World')
+            )
+            .add(
+                Node
+                    .create()
+                    .add(new Text('!')) 
+            )
+
+    })
 })

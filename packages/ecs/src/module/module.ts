@@ -209,7 +209,7 @@ class Module<S = unknown> implements CopyComparable {
 
     //// Helper ////
     
-    protected _findInScope(scope: FindScope, predicate: ModuleTypeGuard<Module>, found: Module[]): void {
+    private _findInScope(scope: FindScope, predicate: ModuleTypeGuard<Module>, found: Module[]): void {
         switch (scope) {
 
             case 'siblings': {

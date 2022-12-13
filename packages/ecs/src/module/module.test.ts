@@ -4,40 +4,40 @@ import { isBoolean, isDefined } from '@benzed/util'
 import { Module, ModuleParent } from './module'
 import Modules from './modules'
 
-describe('state', () => {
+// describe('state', () => {
 
-    test('.state', () => {
-        const module = new Module('Hello')
-        expect(module.state).toEqual('Hello')
-    })
+//     test('.state', () => {
+//         const module = new Module('Hello')
+//         expect(module.state).toEqual('Hello')
+//     })
     
-    describe('.setState(state)', () => {
+//     describe('.setState(state)', () => {
 
-        const m1 = new Module({ 
-            score: [] as number[]
-        })
+//         const m1 = new Module({ 
+//             score: [] as number[]
+//         })
 
-        const m2 = m1._setState({ score: [10] })
+//         const m2 = m1._setState({ score: [10] })
 
-        it('updates state', () => {
-            expect(m2.state).not.toEqual(m1.state)
-        })
+//         it('updates state', () => {
+//             expect(m2.state).not.toEqual(m1.state)
+//         })
 
-        it('creates new instance', () => {
-            expect(m2).not.toBe(m1)
-        })
+//         it('creates new instance', () => {
+//             expect(m2).not.toBe(m1)
+//         })
 
-        it('respects constructor instance', () => {
+//         it('respects constructor instance', () => {
 
-            class Score extends Module<{ score: number[] }> {}
+//             class Score extends Module<{ score: number[] }> {}
 
-            const s1 = new Score({ score: [0]})
-            const s2 = s1._setState({ score: [1] })
+//             const s1 = new Score({ score: [0]})
+//             const s2 = s1._setState({ score: [1] })
 
-            expect(s2).toBeInstanceOf(Score)
-        })
-    })
-})
+//             expect(s2).toBeInstanceOf(Score)
+//         })
+//     })
+// })
 
 describe('parent', () => {
 
@@ -82,24 +82,26 @@ describe('parent', () => {
 
 })
 
-const child = new Module(0)
+const children = [
+    new Module(0),
+    new Module(1),
+    new Module(2)
+]
 
-const parent = new Modules(
-    child,
-    child._setState(1),
-    child._setState(2)
-)
+const parent = new Modules(...children)
 
 test('.modules', () => {
-    expect(child.modules).toEqual(parent.modules)
+    expect(children).toEqual(parent.modules)
 })
 
 test('.siblings', () => {
-    expect(child.siblings).not.toContain(module)
+    const child = parent.modules[0]
+    expect(child.siblings).not.toContain(child)
     expect(child.siblings).toEqual(parent.modules.slice(1))
 })
 
 test('.root', () => {
+    const child = parent.modules[0]
     const grandParent = new Modules(parent)
     expect(grandParent.root).toBe(grandParent)
     expect(parent.root).toEqual(grandParent)
@@ -244,7 +246,6 @@ describe('CopyComparable', () => {
 
         expect(m2).not.toBe(m1)
         expect(m2).toBeInstanceOf(Module)
-        expect(m2.state).not.toBe(m1.state)
         expect(equals(m1.state, m2.state)).toBe(true)
     })
 
