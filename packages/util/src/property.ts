@@ -32,7 +32,7 @@ interface Property {
     keysOf(object: object): string[]
     keysOf(...objects: object[]): string[]
 
-    prototypes(object: object, blacklist?: object[]): object[]
+    prototypesOf(object: object, blacklist?: object[]): object[]
     prototypeOf(object: object): object
 }
 

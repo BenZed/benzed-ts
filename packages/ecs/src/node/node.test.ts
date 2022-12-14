@@ -1,11 +1,11 @@
 
 import { describe, it } from '@jest/globals'
+import { copy } from '@benzed/immutable'
 
-import { Module, Modules } from '../module'
+import { Module } from '../module'
 import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
-import { copy } from '@benzed/immutable'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -55,7 +55,7 @@ describe('NodeInterface', () => {
     class BigCount extends Module<void> {
         constructor(private _count: bigint) {
             super()
-        }
+        } 
 
         get count(): bigint {
             return this._count
@@ -153,12 +153,12 @@ describe('operations', () => {
     it('.remove()', () => {
 
         const n1 = Node.create(
-            new Text('A'),
+            new Text('A'),  
             new Text('B')
         )
 
         const n2 = n1.remove(1)
-        expect(n2).toHaveLength(1)
+        expect(n2.modules).toHaveLength(1)
         expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>]>>()
     })
 
@@ -171,10 +171,10 @@ describe('operations', () => {
         
         const n2 = n1   
             .set(
+                0,
                 new Text('Ax'),
-                0
             )
-        expect(n2).toHaveLength(2)
+        expect(n2.modules).toHaveLength(2)
         expectTypeOf(n2).toEqualTypeOf<Node<[Text<'Ax'>, Text<'B'>]>>()
     })
     
@@ -182,17 +182,17 @@ describe('operations', () => {
 
         const n1 = Node.create(new Text('A'))
             .set(
+                0,
                 text => text.setText('A!'),
-                0
             )
 
-        expect(n1.getText()).toEqual('A!')
+        expect(n1.getText()).toEqual('A!')  
 
-        const root = Node
+        const r1 = Node
             .create()
             .add(
                 new Text('Hello'),
-                new Text('World')
+                new Text('World') 
             )
             .add(
                 Node
@@ -200,5 +200,23 @@ describe('operations', () => {
                     .add(new Text('!')) 
             )
 
+        const r2 = r1
+            .set(0, t => t.setText('Hi'))
+            .set(2, n => n.add(new Text('!')))
+
+        expect(r2.get(2).modules.length).toEqual(2)
+        expectTypeOf(r2).toEqualTypeOf<
+
+        Node<[
+            Text<'Hi'>, 
+            Text<'World'>, 
+            Node<[
+                Text<'!'>, 
+                Text<'!'>
+            ]>
+        ]>
+
+        >()
+            
     })
 })

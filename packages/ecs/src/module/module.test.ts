@@ -1,43 +1,8 @@
 import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
 import { isBoolean, isDefined } from '@benzed/util'
 
-import { Module, ModuleParent } from './module'
+import { Module } from './module'
 import Modules from './modules'
-
-// describe('state', () => {
-
-//     test('.state', () => {
-//         const module = new Module('Hello')
-//         expect(module.state).toEqual('Hello')
-//     })
-    
-//     describe('.setState(state)', () => {
-
-//         const m1 = new Module({ 
-//             score: [] as number[]
-//         })
-
-//         const m2 = m1._setState({ score: [10] })
-
-//         it('updates state', () => {
-//             expect(m2.state).not.toEqual(m1.state)
-//         })
-
-//         it('creates new instance', () => {
-//             expect(m2).not.toBe(m1)
-//         })
-
-//         it('respects constructor instance', () => {
-
-//             class Score extends Module<{ score: number[] }> {}
-
-//             const s1 = new Score({ score: [0]})
-//             const s2 = s1._setState({ score: [1] })
-
-//             expect(s2).toBeInstanceOf(Score)
-//         })
-//     })
-// })
 
 describe('parent', () => {
 
@@ -51,12 +16,12 @@ describe('parent', () => {
 
     describe('_setParent(parent?) @internal', () => {
 
-        const parents: ModuleParent[] = []
+        const parents: Module[] = [] 
 
         class ModuleSpy extends Module<number> {
-            _applyParent(parent: ModuleParent): void {
+            _setParent(parent: Module): void {
                 parents.push(parent)
-                super._applyParent(parent)
+                super._setParent(parent)
             }
         }
 
@@ -70,12 +35,12 @@ describe('parent', () => {
         })
 
         it('throws if parent has already been set', () => {
-            expect(() => spy._applyParent(modules)).toThrow('Parent already set')
+            expect(() => spy._setParent(modules)).toThrow('Parent already set')
         })
 
         it('throws if parent does not contain module', () => {
             const liar = new Modules()
-            expect(() => new ModuleSpy(0)._applyParent(liar)).toThrow('Parent invalid')
+            expect(() => new ModuleSpy(0)._setParent(liar)).toThrow('Parent invalid')
         })
 
     })
@@ -108,7 +73,7 @@ test('.root', () => {
     expect(child.root).toEqual(grandParent)
 })
 
-describe('find', () => {
+describe('find', () => { 
 
     class Zero extends Module<0> {
         constructor() {
@@ -185,7 +150,6 @@ describe('find', () => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const result = (index as { find(...args: any[]): Module[]}).find(...args)
                     expect(result).toHaveLength(_required) 
-
                 })
             }
         }

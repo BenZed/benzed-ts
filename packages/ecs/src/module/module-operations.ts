@@ -1,20 +1,20 @@
 import { copy } from '@benzed/immutable'
 import { Indexes, IndexesOf, swap } from '@benzed/util'
-import Module from './module'
+import Module, { ModuleArray } from './module'
 
 //// AddModules ////
     
 export type AddModules<
-    A extends readonly Module[], 
-    B extends readonly Module[]
+    A extends ModuleArray, 
+    B extends ModuleArray
 > = [
     ...A,
     ...B
 ] 
 
 export function addModules<
-    A extends readonly Module<any>[],
-    B extends readonly Module<any>[],
+    A extends ModuleArray,
+    B extends ModuleArray,
 >(
     inputA: A,
     inputB: B
@@ -27,7 +27,7 @@ export function addModules<
 
 //// SwapModules ////
 
-type _SwapOne<T extends readonly Module[], A extends number, B extends number, I> = I extends A 
+type _SwapOne<T extends ModuleArray, A extends number, B extends number, I> = I extends A 
     ? T[B]
     : I extends B 
         ? T[A]
@@ -36,7 +36,7 @@ type _SwapOne<T extends readonly Module[], A extends number, B extends number, I
             : never
 
 // TODO this could probably be moved to util or array
-type _Swap<T extends readonly Module[], A extends number, B extends number, I extends readonly number[] = Indexes<T>> = 
+type _Swap<T extends ModuleArray, A extends number, B extends number, I extends readonly number[] = Indexes<T>> = 
     I extends [infer Ix, ...infer Ir]
         ? Ir extends readonly number[]
             ? [ _SwapOne<T,A,B,Ix>, ..._Swap<T, A, B, Ir> ]
@@ -44,17 +44,17 @@ type _Swap<T extends readonly Module[], A extends number, B extends number, I ex
         : []
 
 export type SwapModules<
-    M extends readonly Module[],
+    M extends ModuleArray,
     A extends IndexesOf<M>,
     B extends IndexesOf<M>
 > = _Swap<M,A,B> extends infer M 
-    ? M extends readonly Module[]
+    ? M extends ModuleArray
         ? M
         : []
     : []
 
 export function swapModules<
-    M extends readonly Module[],
+    M extends ModuleArray,
     A extends IndexesOf<M>,
     B extends IndexesOf<M>
 >(
@@ -63,7 +63,7 @@ export function swapModules<
     indexB: B
 ): SwapModules<M,A,B> {
 
-    const output = unparent(input) as readonly Module[]
+    const output = unparent(input) as ModuleArray
     swap(output, indexA as number, indexB)
 
     return output as SwapModules<M,A,B>
@@ -71,7 +71,7 @@ export function swapModules<
 
 //// RemoveModule ////
 
-type _SpliceOneAt<M extends readonly Module[], R extends IndexesOf<M>, Mx, I> = 
+type _SpliceOneAt<M extends ModuleArray, R extends IndexesOf<M>, Mx, I> = 
     I extends number  
         ? I extends R 
             ? unknown extends Mx
@@ -80,7 +80,7 @@ type _SpliceOneAt<M extends readonly Module[], R extends IndexesOf<M>, Mx, I> =
             : [M[I]]
         : []
 
-type _SpliceOne<M extends readonly Module[], R extends IndexesOf<M>, Mx, I extends readonly number[] = Indexes<M>> = 
+type _SpliceOne<M extends ModuleArray, R extends IndexesOf<M>, Mx, I extends readonly number[] = Indexes<M>> = 
     I extends [infer Ix, ...infer Ir]
         ? Ir extends readonly number[]
             ? [ ..._SpliceOneAt<M, R, Mx, Ix>, ..._SpliceOne<M, R, Mx, Ir> ]
@@ -88,23 +88,23 @@ type _SpliceOne<M extends readonly Module[], R extends IndexesOf<M>, Mx, I exten
         : []
 
 export type RemoveModule<
-    M extends readonly Module[],
+    M extends ModuleArray,
     I extends IndexesOf<M>
 > = _SpliceOne<M, I, unknown> extends infer M 
-    ? M extends readonly Module[]
+    ? M extends ModuleArray
         ? M
         : never 
     : never
 
 export function removeModule<
-    M extends readonly Module[],
+    M extends ModuleArray,
     I extends IndexesOf<M>
 >(
     input: M,
     index: I
 ): RemoveModule<M, I> {
 
-    const output = unparent(input) as readonly Module[]
+    const output = unparent(input) as ModuleArray
     (output as Module[]).splice(index, 1)
 
     return output as RemoveModule<M, I>
@@ -112,32 +112,42 @@ export function removeModule<
 
 //// SetModule ////
 
-export type SetModule<M extends readonly Module[], Mx,I extends IndexesOf<M>>   
+export type SetModule<M extends ModuleArray, Mx,I extends IndexesOf<M>>   
     = _SpliceOne<M, I, Mx>
 
 export function setModule<
-    M extends readonly Module[],
+    M extends ModuleArray,
+    I extends IndexesOf<M>,
+    F extends (input: M[I]) => Module, 
+>(input: M, index: I, createModule: F): SetModule<M, ReturnType<F>, I>
+
+export function setModule<
+    M extends ModuleArray,
+    I extends IndexesOf<M>,
     Mx extends Module,
-    I extends IndexesOf<M>
 >(
     input: M,
-    module: Mx,
     index: I,
-): SetModule<M, Mx, I> {
+    module: Mx
+): SetModule<M, Mx, I> 
+
+export function setModule(input: ModuleArray, index: number, module: Module | ((current: Module) => Module)): ModuleArray {
+
+    module = 'parent' in module ? module : module(input[index])
 
     const [newModule] = unparent([module]) 
 
-    const output = unparent(input) as readonly Module[]
+    const output = unparent(input) as ModuleArray
     (output as Module[]).splice(index, 1, newModule)
 
-    return output as SetModule<M, Mx, I>
+    return output
 }
 
 //// Helper ////
 
-function unparent<M extends readonly Module[]>(modules: M): M {
+export function unparent<M extends ModuleArray>(modules: M): M {
     return modules.some(m => m.parent)
-        ? modules.map(m => m.parent ? copy(m) : m) as readonly Module[] as M
+        ? modules.map(m => m.parent ? copy(m) : m) as ModuleArray as M
         : modules
 }
 

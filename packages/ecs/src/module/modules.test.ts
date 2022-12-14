@@ -42,20 +42,16 @@ it('iterates modules', () => {
 describe('get()', () => {
 
     class Text<T extends string> extends Module<T> {
-
         get text(): T {
             return this.state
         }
-
         setText<Tx extends string>(text: Tx): Text<Tx> {
             return new Text(text)
         }
-
         getText(): T {
             return this.text
         }
-
-    }  
+    }
 
     const n1 = new Modules(
         new Text('zero'),

@@ -1,14 +1,16 @@
-import { $$copy, copy } from '@benzed/immutable'
+import { $$copy } from '@benzed/immutable'
 import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
 import { Fill, MethodsOf } from '../types'
 
-import Module from './module'
-import { addModules, removeModule, swapModules, setModule } from './module-operations'
+import Module, { ModuleArray } from './module'
+import { addModules, removeModule, swapModules, setModule, unparent } from './module-operations'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
     @typescript-eslint/no-explicit-any
 */
+
+//// Constants ////
 
 //// Types ////
 
@@ -23,12 +25,12 @@ type _InheritModuleMethods<M> = M extends [infer Mx, ...infer Mr]
 
 //// Definition ////
 
-type ModulesInterface<I extends Modules<M>, M extends readonly Module[]> = 
+type ModulesInterface<I extends Modules<M>, M extends ModuleArray> = 
     Fill<I, _InheritModuleMethods<M>>
 
 //// Main ////
 
-class Modules<M extends readonly Module[]> extends Module<M> implements Iterable<M[number]> {
+class Modules<M extends ModuleArray> extends Module<M> implements Iterable<M[number]> {
 
     static add = addModules
 
@@ -42,15 +44,17 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
 
         const { descriptorsOf, prototypeOf, define } = property
   
-        const nodeInterfaceDescriptors: PropertyDescriptorMap = {}
-
+        const modulesDescriptors = descriptorsOf(prototypeOf(modules))
+        const applyDescriptors: PropertyDescriptorMap = {}
+ 
         for (const module of modules.modules) {
+            
             const moduleDescriptors = descriptorsOf(prototypeOf(module))
-            for (const key of keysOf(moduleDescriptors)) {
+            for (const key of keysOf(moduleDescriptors)) { 
 
                 const isPrivate = key.startsWith('_')
                 const isConstructor = key === 'constructor'
-                const isAlreadyDefined = key in nodeInterfaceDescriptors
+                const isAlreadyDefined = key in applyDescriptors || key in modulesDescriptors
                 const isFunction = 'value' in moduleDescriptors[key] && isFunc(moduleDescriptors[key].value)
 
                 if (
@@ -59,7 +63,7 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
                     !isAlreadyDefined && 
                     isFunction
                 ) {
-                    nodeInterfaceDescriptors[key] = {
+                    applyDescriptors[key] = {
                         ...moduleDescriptors[key],
                         value: wrapNodeInterfaceMethod(module, key)
                     }
@@ -67,7 +71,7 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
             }
         }
 
-        return define(modules, nodeInterfaceDescriptors)
+        return define(modules, applyDescriptors)
     }
     
     //// State ////
@@ -84,7 +88,8 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
         super(modules)
 
         for (const module of this) 
-            module._applyParent(this)
+            module._setParent(this)
+        
     }
 
     //// Interface ////
@@ -104,12 +109,10 @@ class Modules<M extends readonly Module[]> extends Module<M> implements Iterable
     }
 
     //// CopyComparable ////
-    
+
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        
-        const modules = copy(this.state)
-        return new Constructor(...modules)
+        return new Constructor(...unparent(this.state))
     }
 
 }

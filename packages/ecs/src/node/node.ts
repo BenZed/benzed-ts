@@ -1,13 +1,17 @@
 
 import { IndexesOf } from '@benzed/util'
 import { 
-    AddModules,
     Module, 
+    ModuleArray,
+
     Modules, 
     ModulesInterface,
+
+    AddModules,
     SwapModules,
     RemoveModule,
-    SetModule
+    SetModule,
+
 } from '../module'
 
 /* eslint-disable 
@@ -17,24 +21,24 @@ import {
 
 //// Definition ////
 
-interface NodeInterface<M extends readonly Module[]> extends Modules<M> {
+interface NodeInterface<M extends ModuleArray> extends Modules<M> {
     
-    add<Mx extends Module>(module: Mx): Node<[...M, Mx]>
+    add<Mx extends ModuleArray>(...modules: Mx): Node<AddModules<M, Mx>>
 
     swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(from: A, to: B): Node<SwapModules<M, A, B>> 
 
     remove<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>>
 
-    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(module: F, index: I): Node<SetModule<M, ReturnType<F>, I>>
-    set<Mx extends Module, I extends IndexesOf<M>>(module: Mx, index: I): Node<SetModule<M, Mx, I>>
+    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, module: F): Node<SetModule<M, ReturnType<F>, I>>
+    set<Mx extends Module, I extends IndexesOf<M>>( index: I, module: Mx): Node<SetModule<M, Mx, I>>
 
 }
 
-type Node<M extends readonly Module[]> = ModulesInterface<NodeInterface<M>, M>
+type Node<M extends ModuleArray> = ModulesInterface<NodeInterface<M>, M>
 
-const Node = class <M extends readonly Module[]> extends Modules<M> implements NodeInterface<M> {
+const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInterface<M> {
 
-    static create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx> {
+    static create<Mx extends ModuleArray>(...modules: Mx): Node<Mx> {
         return Modules.applyInterface(
             new this(...modules)
         ) as Node<Mx>
@@ -68,19 +72,21 @@ const Node = class <M extends readonly Module[]> extends Modules<M> implements N
         )
     }
 
-    set<Mx extends Module, A extends IndexesOf<M>>(module: Mx, index: A): Node<SetModule<M, Mx, A>> {
+    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, module: F): Node<SetModule<M, ReturnType<F>, I>>
+    set<Mx extends Module, A extends IndexesOf<M>>(index: A, module: Mx): Node<SetModule<M, Mx, A>> {
+        
         return Node.create(
             ...Modules.set(
                 this.modules,
-                module,
-                index
+                index,
+                module
             )
         )
     }
 
 } as {
 
-    create<Mx extends readonly Module[]>(...modules: Mx): Node<Mx>
+    create<Mx extends ModuleArray>(...modules: Mx): Node<Mx>
 
 }
 

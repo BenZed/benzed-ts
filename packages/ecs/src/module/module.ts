@@ -1,4 +1,3 @@
-import type Modules from './modules'
 
 import { wrap } from '@benzed/array'
 
@@ -7,7 +6,6 @@ import {
     equals, 
     $$equals, 
 
-    copy,
     $$copy,
 
     CopyComparable,
@@ -48,13 +46,13 @@ export type FindModule<M extends Module> = ModuleTypeGuard<M> | ModuleConstructo
 
 export type FindScope = 'parents' | 'siblings' | 'children'
 
-export type ModuleParent = Modules<readonly Module[]>
+export type ModuleArray = readonly Module<any>[]
 
 //// Errors ////
 
 class InvalidParentError extends Error {
-    constructor(readonly module: Module, msg: string) {
-        super(`${msg}: _applyParent method should only be called internally.`)
+    constructor(msg: string) {
+        super(`${msg}: ${Module.prototype._setParent.name} method should only be called internally.`)
     }
 }
 
@@ -67,9 +65,14 @@ class ModuleNotFoundError extends Error {
     }
 }
 
+//// Private ////
+
+const _state = new WeakMap<Module, unknown>
+const _parent = new WeakMap<Module, nil | Module>
+
 //// Definition ////
 
-class Module<S = unknown> implements CopyComparable {
+class Module<S = unknown> implements CopyComparable{
 
     /**
      * @internal
@@ -79,55 +82,59 @@ class Module<S = unknown> implements CopyComparable {
      * - function () {} typeguards
      */
     protected static readonly [$$isModuleConstructor] = true
- 
+
     //// State ////
     
-    constructor(private readonly _state: S) {}
-
-    get state(): S extends object ? Readonly<S> : S {
-        return this._state as S extends object ? Readonly<S> : S
+    constructor(state: S) {
+        _state.set(this, state)
     }
 
-    //// Relationships ////
+    get state(): S {
+        return _state.get(this) as S
+    }
 
     /**
      * Parent of this node.
      * nil if no parent.
      */
-    get parent(): ModuleParent | nil {
-        return this._parent
+    get parent(): Module | nil {
+        return _parent.get(this)
     }
-    private _parent: ModuleParent | nil
-
+    
     /**
      * @internal
      */
-    _applyParent(parent: ModuleParent): void {
+    _setParent(newParent: Module): void {
+    
+        const parent = _parent.get(this)
+        if (parent)
+            throw new InvalidParentError('Parent already set')
+   
+        const module = this as unknown as Module
 
-        if (this._parent)
-            throw new InvalidParentError(this, 'Parent already set')
-
-        if (!parent.modules.includes(this))
-            throw new InvalidParentError(parent, 'Parent invalid')
-
-        if (parent.modules.indexOf(this) !== parent.modules.lastIndexOf(this))
+        if (!newParent.modules.includes(module))
+            throw new InvalidParentError('Parent invalid')
+    
+        if (newParent.modules.indexOf(module) !== newParent.modules.lastIndexOf(module))
             throw new Error( 'Parent may only contain single reference of child')
-
-        this._parent = parent
+    
+        _parent.set(this, newParent)
     }
+
+    //// Relationships ////
 
     /**
      * All of the modules on this module's parent (including this one)
      * Returns an empty array if this module has no parent.
      */
-    get modules(): readonly Module[] {
+    get modules(): ModuleArray {
         return this.parent?.modules ?? []
     }
 
     /**
      * Siblings of this node
      */
-    get siblings(): readonly Module[] {
+    get siblings(): ModuleArray {
         return this.parent?.modules.filter(other => other !== this) ?? []
     }
 
@@ -135,7 +142,7 @@ class Module<S = unknown> implements CopyComparable {
      * Root module of this node. 
      * Self if node is unparented.
      */
-    get root(): Module | ModuleParent {
+    get root(): Module {
         let module: Module<unknown> = this
         while (module.parent)
             module = module.parent
@@ -175,7 +182,7 @@ class Module<S = unknown> implements CopyComparable {
             throw new Error('required argument must be a positive integer')
 
         for (const scope of scopes) 
-            this._findInScope(scope, predicate, found)
+            findInScope(this, scope, predicate, found)
 
         // ensure required
 
@@ -207,73 +214,72 @@ class Module<S = unknown> implements CopyComparable {
         return new Constructor(this.state)
     }
 
-    //// Helper ////
-    
-    private _findInScope(scope: FindScope, predicate: ModuleTypeGuard<Module>, found: Module[]): void {
-        switch (scope) {
-
-            case 'siblings': {
-                const foundSiblings = this.siblings.filter(predicate)
-                found.push(...foundSiblings)
-                break
-            }
-
-            case 'parents': {
-                if (this.parent && predicate(this.parent))
-                    found.push(this.parent)
-
-                if (this.parent) {
-                    const foundAncestors = this.parent.find(predicate, ['siblings', 'parents'], false)
-                    found.push(...foundAncestors)
-                }
-                break
-            }
-
-            case 'children': {
-
-                // should only be the case for classes that extend Modules
-                const hasChildren = !this.modules.includes(this)
-                if (hasChildren) {  
-                    const foundChildren = this
-                        .modules
-                        .filter(predicate)
-                    
-                    const childrenWithChildren = this
-                        .modules
-                        .filter(child => !child.modules.includes(child))
-                    
-                    const foundDescendants = childrenWithChildren
-                        .flatMap(child => child.find(predicate, 'children', false))
-
-                    found.push(
-                        ...foundChildren, 
-                        ...foundDescendants
-                    )
-
-                } else {
-                    const siblingsWithChildren = this
-                        .siblings
-                        .filter(sibling => !sibling.modules.includes(sibling))
-
-                    const foundDescendantsInSiblings = siblingsWithChildren
-                        .flatMap(sibling => sibling.find(predicate, 'children', false))
-                    
-                    found.push(
-                        ...foundDescendantsInSiblings
-                    )
-                }
-                break
-            }
-
-            default: {
-                const badScope: never = scope
-                throw new Error(`${badScope} is an invalid scope.`)
-            }
-        }
-    }
 }
 
 //// Helper ////
+
+function findInScope(module: Module, scope: FindScope, predicate: ModuleTypeGuard<Module>, found: Module[]): void {
+    switch (scope) {
+
+        case 'siblings': {
+            const foundSiblings = module.siblings.filter(predicate)
+            found.push(...foundSiblings)
+            break
+        }
+
+        case 'parents': {
+            if (module.parent && predicate(module.parent))
+                found.push(module.parent)
+
+            if (module.parent) {
+                const foundAncestors = module.parent.find(predicate, ['siblings', 'parents'], false)
+                found.push(...foundAncestors)
+            }
+            break
+        }
+
+        case 'children': {
+
+            // should only be the case for classes that extend Modules
+            const hasChildren = !module.modules.includes(module)
+            if (hasChildren) {  
+                const foundChildren = module
+                    .modules
+                    .filter(predicate)
+                
+                const childrenWithChildren = module
+                    .modules
+                    .filter(child => !child.modules.includes(child))
+                
+                const foundDescendants = childrenWithChildren
+                    .flatMap(child => child.find(predicate, 'children', false))
+
+                found.push(
+                    ...foundChildren, 
+                    ...foundDescendants
+                )
+
+            } else {
+                const siblingsWithChildren = module
+                    .siblings
+                    .filter(sibling => !sibling.modules.includes(sibling))
+
+                const foundDescendantsInSiblings = siblingsWithChildren
+                    .flatMap(sibling => sibling.find(predicate, 'children', false))
+                
+                found.push(
+                    ...foundDescendantsInSiblings
+                )
+            }
+            break
+        }
+
+        default: {
+            const badScope: never = scope
+            throw new Error(`${badScope} is an invalid scope.`)
+        }
+    }
+}
 
 function isModuleConstructor<M extends Module>(input: TypeGuard<M, Module<unknown>> | ModuleConstructor<M>): input is ModuleConstructor<M> {
     return $$isModuleConstructor in input && !!input[$$isModuleConstructor]
