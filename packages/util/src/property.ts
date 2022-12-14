@@ -103,7 +103,7 @@ const property = intersect(
                 .filter((x,i,a) => a.findIndex(y => Object.is(x, y)) === i) // unique
         },
 
-        prototypes(object: object, blacklist = [Object.prototype]): object[] {
+        prototypesOf(object: object, blacklist = [Object.prototype]): object[] {
             const prototypes: object[] = []
 
             let prototype: object | nil = object
