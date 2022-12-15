@@ -13,6 +13,7 @@ import {
     SetModule,
 
 } from '../module'
+import { InsertModule } from '../module/module-operations'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -25,12 +26,14 @@ interface NodeInterface<M extends ModuleArray> extends Modules<M> {
     
     add<Mx extends ModuleArray>(...modules: Mx): Node<AddModules<M, Mx>>
 
-    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(from: A, to: B): Node<SwapModules<M, A, B>> 
+    insert<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): Node<InsertModule<M, I, Mx>>
+
+    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, module: F): Node<SetModule<M, I, ReturnType<F>>>
+    set<Mx extends Module, I extends IndexesOf<M>>( index: I, module: Mx): Node<SetModule<M, I, Mx>>
 
     remove<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>>
 
-    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, module: F): Node<SetModule<M, ReturnType<F>, I>>
-    set<Mx extends Module, I extends IndexesOf<M>>( index: I, module: Mx): Node<SetModule<M, Mx, I>>
+    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(from: A, to: B): Node<SwapModules<M, A, B>> 
 
 }
 
@@ -53,17 +56,28 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         )
     }
 
-    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(fromIndex: A, toIndex: B): Node<SwapModules<M, A, B>> {
+    insert<I extends IndexesOf<M>, Mx extends Module>(index: I, module: Mx): Node<InsertModule<M, I, Mx>> {
         return Node.create(
-            ...Modules.swap(
+            ...Modules.insert(
                 this.modules,
-                fromIndex,
-                toIndex
+                index,
+                module
+            )
+        )
+    }
+    
+    set<I extends IndexesOf<M>, F extends (input: M[I]) => Module>(index: I, module: F): Node<SetModule<M, I, ReturnType<F>>>
+    set<A extends IndexesOf<M>, Mx extends Module>(index: A, module: Mx): Node<SetModule<M, A, Mx>> {
+        return Node.create(
+            ...Modules.set(
+                this.modules,
+                index,
+                module
             )
         )
     }
 
-    remove<R extends IndexesOf<M>>(index: R): Node<RemoveModule<M,R>> {
+    remove<R extends IndexesOf<M>>(index: R): Node<RemoveModule<M, R>> {
         return Node.create(
             ...Modules.remove(
                 this.modules,
@@ -72,14 +86,12 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         )
     }
 
-    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, module: F): Node<SetModule<M, ReturnType<F>, I>>
-    set<Mx extends Module, A extends IndexesOf<M>>(index: A, module: Mx): Node<SetModule<M, Mx, A>> {
-        
+    swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(fromIndex: A, toIndex: B): Node<SwapModules<M, A, B>> {
         return Node.create(
-            ...Modules.set(
+            ...Modules.swap(
                 this.modules,
-                index,
-                module
+                fromIndex,
+                toIndex
             )
         )
     }

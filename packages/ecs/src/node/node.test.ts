@@ -1,6 +1,6 @@
 
 import { describe, it } from '@jest/globals'
-import { copy } from '@benzed/immutable'
+import { copy, equals } from '@benzed/immutable'
 
 import { Module } from '../module'
 import { Node } from './node'
@@ -218,5 +218,26 @@ describe('operations', () => {
 
         >()
             
+    })
+
+    it('insert', () => {
+
+        const n1 = Node.create(
+            new Text('Ace'),
+            new Text('Case')
+        )
+
+        const n2 = n1.insert(1, new Text('Base'))
+        expect(n2.modules).toHaveLength(3)
+
+        expect(equals(n2.modules, [new Text('Ace'), new Text('Base'), new Text('Case')]))
+            .toEqual(true)
+
+        expectTypeOf(n2).toEqualTypeOf<Node<[
+            Text<'Ace'>,
+            Text<'Base'>,
+            Text<'Case'>
+        ]>>()
+
     })
 })

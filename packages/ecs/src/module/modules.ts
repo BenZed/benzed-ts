@@ -3,7 +3,7 @@ import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
 import { Fill, MethodsOf } from '../types'
 
 import Module, { ModuleArray } from './module'
-import { addModules, removeModule, swapModules, setModule, unparent } from './module-operations'
+import { addModules, removeModule, swapModules, setModule, unparent, insertModule } from './module-operations'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -34,11 +34,13 @@ class Modules<M extends ModuleArray> extends Module<M> implements Iterable<M[num
 
     static add = addModules
 
-    static swap = swapModules
+    static insert = insertModule
+
+    static set = setModule
 
     static remove = removeModule
 
-    static set = setModule
+    static swap = swapModules
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
 
