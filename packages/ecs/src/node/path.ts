@@ -1,6 +1,6 @@
 import { KeysOf } from '@benzed/util'
 
-import { Module, ModuleArray, Modules, ModulesInterface } from '../module'
+import { Module, ModuleArray, Modules } from '../module'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -36,17 +36,17 @@ type path = `/${string}`
 
 //// Path Inference Types ////
 
-export type NestedPathsOf<M extends ModuleArray> = KeysOf<_ModulesAtPath<M, '', true>>
+type NestedPathsOf<M extends ModuleArray> = KeysOf<_ModulesAtPath<M, '', true>>
 
-export type PathsOf<M extends ModuleArray> = KeysOf<_ModulesAtPath<M, '', false>>
+type PathsOf<M extends ModuleArray> = KeysOf<_ModulesAtPath<M, '', false>>
 
-export type ModuleAtNestedPath<M extends ModuleArray, P extends NestedPathsOf<M>> = _ModulesAtPath<M, '', true>[P]
+type ModuleAtNestedPath<M extends ModuleArray, P extends NestedPathsOf<M>> = _ModulesAtPath<M, '', true>[P]
 
-export type ModuleAtPath<M extends ModuleArray, P extends PathsOf<M>> = _ModulesAtPath<M, '', false>[P]
+type ModuleAtPath<M extends ModuleArray, P extends PathsOf<M>> = _ModulesAtPath<M, '', false>[P]
 
 //// Main ////
 
-class Path<P extends path> extends Module<P> {
+class Path<P extends path = path> extends Module<P> {
 
     static validate<P extends path>(path: P): P {
 
@@ -73,36 +73,44 @@ class Path<P extends path> extends Module<P> {
     }
 
     getPath(): P {
-        return this.state
+        return this.path
     }
 
     getPathFrom(ancestor: Module): path {
         this.assert(ancestor, 'parents')
+        
+        const paths: path[] = [this.path]
 
-        const paths: path[] = [this.getPath()]
+        let parent = this.parent
+        while (parent && parent.parent !== ancestor && parent !== ancestor) {
 
-        let module: Path<path> | Module = this
-        while (module.parent) {
+            const path = parent?.find(Path).at(0)
+            if (!path && parent !== this.root)
+                throw new Error('Every ancestor except the root must have a Path module')
+            
+            if (path)
+                paths.push(path.path)
 
-            const parent = module.parent as ModulesInterface<Modules<[Path<path>]>, [Path<path>]>
+            parent = parent.parent
 
-            const path: path = parent.has(Path<path>, 'siblings')
-                ? parent.find(Path<path>, 'siblings', true)[0].getPath()
-                : `/${parent.parent?.modules.indexOf(parent) ?? 0}`
-
-            module = module.parent
-            if (module?.parent === ancestor) // ensure relative
-                break 
-
-            paths.push(path)
         }
 
         return paths.reverse().join('') as path
     }
-
+ 
     getPathFromRoot(): path {
         return this.getPathFrom(this.root)
     }
+
+    //// Validation ////
+    
+    override validate(): void {
+        Modules.assert.isSingle(this)
+
+        // should assert
+        void this.getPathFromRoot()
+    }
+  
 }
 
 //// Exports ////
@@ -110,6 +118,10 @@ class Path<P extends path> extends Module<P> {
 export default Path
 
 export {
+    path,
     Path,
-    path
+    PathsOf,
+    NestedPathsOf,
+    ModuleAtPath,
+    ModuleAtNestedPath
 }

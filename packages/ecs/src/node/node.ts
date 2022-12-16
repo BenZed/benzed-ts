@@ -37,7 +37,7 @@ interface NodeInterface<M extends ModuleArray> extends Modules<M> {
 
 }
 
-type Node<M extends ModuleArray> = ModulesInterface<NodeInterface<M>, M>
+type Node<M extends ModuleArray> = ModulesInterface<NodeInterface<M>>
 
 const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInterface<M> {
 

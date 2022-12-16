@@ -27,6 +27,8 @@ import {
 
 } from '@benzed/util'
 
+import type Modules from './modules'
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/no-this-alias,
@@ -67,8 +69,7 @@ class ModuleNotFoundError extends Error {
 
 //// Private ////
 
-const _state = new WeakMap<Module, unknown>
-const _parent = new WeakMap<Module, nil | Module>
+const _parent = new WeakMap<Module, nil | Modules>
 
 //// Definition ////
 
@@ -85,26 +86,24 @@ class Module<S = unknown> implements CopyComparable{
 
     //// State ////
     
-    constructor(state: S) {
-        _state.set(this, state)
-    }
+    constructor(readonly state: S) {}
 
-    get state(): S {
-        return _state.get(this) as S
+    get name(): string {
+        return this.constructor.name
     }
 
     /**
      * Parent of this node.
      * nil if no parent.
      */
-    get parent(): Module | nil {
+    get parent(): Modules | nil {
         return _parent.get(this)
     }
     
     /**
      * @internal
      */
-    _setParent(newParent: Module): void {
+    _setParent(newParent: Modules): void {
     
         const parent = _parent.get(this)
         if (parent)
@@ -119,17 +118,10 @@ class Module<S = unknown> implements CopyComparable{
             throw new Error( 'Parent may only contain single reference of child')
     
         _parent.set(this, newParent)
+        this.validate()
     }
 
     //// Relationships ////
-
-    /**
-     * All of the modules on this module's parent (including this one)
-     * Returns an empty array if this module has no parent.
-     */
-    get modules(): ModuleArray {
-        return this.parent?.modules ?? []
-    }
 
     /**
      * Siblings of this node
@@ -177,6 +169,7 @@ class Module<S = unknown> implements CopyComparable{
         const found: Module[] = []
         const predicate = toModuleTypeGuard(input)
         const scopes = wrap(scope)
+        
         const requiredLength = isNumber(required) ? required : required ? 1 : 0
         if (!isInteger(requiredLength) || requiredLength < 0)
             throw new Error('required argument must be a positive integer')
@@ -198,6 +191,15 @@ class Module<S = unknown> implements CopyComparable{
 
     assert<M extends Module>(type: FindModule<M>, scope?: FindScope): void {
         void this.find(type, scope, true)
+    }
+
+    //// Validate ////
+    
+    /**
+     * Called when the module is parented.
+     */
+    validate(): void {
+        // 
     }
 
     //// CopyComparable Interface ////
@@ -228,6 +230,7 @@ function findInScope(module: Module, scope: FindScope, predicate: ModuleTypeGuar
         }
 
         case 'parents': {
+            
             if (module.parent && predicate(module.parent))
                 found.push(module.parent)
 
@@ -235,21 +238,21 @@ function findInScope(module: Module, scope: FindScope, predicate: ModuleTypeGuar
                 const foundAncestors = module.parent.find(predicate, ['siblings', 'parents'], false)
                 found.push(...foundAncestors)
             }
+
             break
         }
 
         case 'children': {
 
             // should only be the case for classes that extend Modules
-            const hasChildren = !module.modules.includes(module)
-            if (hasChildren) {  
+            if (hasChildren(module)) {  
                 const foundChildren = module
                     .modules
                     .filter(predicate)
                 
                 const childrenWithChildren = module
                     .modules
-                    .filter(child => !child.modules.includes(child))
+                    .filter(hasChildren)
                 
                 const foundDescendants = childrenWithChildren
                     .flatMap(child => child.find(predicate, 'children', false))
@@ -262,7 +265,7 @@ function findInScope(module: Module, scope: FindScope, predicate: ModuleTypeGuar
             } else {
                 const siblingsWithChildren = module
                     .siblings
-                    .filter(sibling => !sibling.modules.includes(sibling))
+                    .filter(hasChildren)
 
                 const foundDescendantsInSiblings = siblingsWithChildren
                     .flatMap(sibling => sibling.find(predicate, 'children', false))
@@ -287,13 +290,17 @@ function isModuleConstructor<M extends Module>(input: TypeGuard<M, Module<unknow
 
 function toModuleTypeGuard<M extends Module>(input: FindModule<M>): ModuleTypeGuard<M> {
     if (input instanceof Module) 
-        return (other => equals(input, other)) as ModuleTypeGuard<M>
+        return (other => input[$$equals](other)) as ModuleTypeGuard<M>
         
     if (isModuleConstructor(input))
         return (other => other instanceof input) as ModuleTypeGuard<M>
 
     return input
 } 
+
+function hasChildren(module: Module): module is Modules {
+    return 'modules' in module
+}
 
 function toModuleName<M extends Module>(input: FindModule<M>): string {
     

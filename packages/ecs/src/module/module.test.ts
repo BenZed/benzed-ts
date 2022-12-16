@@ -4,6 +4,8 @@ import { isBoolean, isDefined } from '@benzed/util'
 import { Module } from './module'
 import Modules from './modules'
 
+import { describe, it, test, expect } from '@jest/globals'
+
 describe('parent', () => {
 
     const m1 = new Module(0)
@@ -19,7 +21,7 @@ describe('parent', () => {
         const parents: Module[] = [] 
 
         class ModuleSpy extends Module<number> {
-            _setParent(parent: Module): void {
+            override _setParent(parent: Modules): void {
                 parents.push(parent)
                 super._setParent(parent)
             }
@@ -130,7 +132,7 @@ describe('find', () => {
                     const needle = type === 'instance'
                         ? {
                             siblings: required ? index.siblings[0] : new Missing(),
-                            children: required ? index.parent?.modules.at(-1)?.modules[0] : new Missing(),
+                            children: required ? (index.parent?.modules.at(-1) as Modules)?.modules[0] : new Missing(),
                             parents: required ? index.parent?.siblings[0] : new Missing()
                         }[_scope]
                         : type === 'constructor'
@@ -168,7 +170,10 @@ describe('find', () => {
 
         const results = index.parent?.find(Modules, 'children') ?? []
         expect(results).toHaveLength(2)
-        expect(results).toEqual([index.siblings.at(-1), index.siblings.at(-1)?.modules.at(-1)])
+        expect(results).toEqual([
+            index.siblings.at(-1), 
+            (index.siblings.at(-1) as Modules)?.modules.at(-1)
+        ])
     })
 
     test('.has(type, scope?)', () => {
@@ -226,6 +231,27 @@ describe('CopyComparable', () => {
         
         expect(m2[$$equals](m1)).toBe(false)
         expect(m2[$$equals](m1[$$copy]())).toBe(false)
+    })
+
+})
+
+describe('validate()', () => {
+
+    it('is called on parent', () => {
+
+        let called = false 
+
+        class ValidateTest extends Module<void> {
+            override validate(): void {
+                called = true
+            }
+        }
+
+        const test = new ValidateTest()
+        void new Modules(test)
+
+        expect(called).toBe(true)
+
     })
 
 })

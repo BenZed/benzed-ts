@@ -1,9 +1,22 @@
 import { $$copy } from '@benzed/immutable'
-import { Func, IndexesOf, isFunc, keysOf, property } from '@benzed/util'
+import { Func, IndexesOf, isFunc, isNumber, isTruthy as isNotEmpty, keysOf, nil, property } from '@benzed/util'
+import Path, { ModuleAtNestedPath, NestedPathsOf, path } from '../node/path'
 import { Fill, MethodsOf } from '../types'
 
 import Module, { ModuleArray } from './module'
-import { addModules, removeModule, swapModules, setModule, unparent, insertModule } from './module-operations'
+import { 
+    addModules,
+    removeModule, 
+    swapModules, 
+    setModule, 
+    insertModule, 
+     
+    unparent
+} from './module-operations'
+
+import { 
+    isSingle
+} from './module-assertions'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -25,33 +38,35 @@ type _InheritModuleMethods<M> = M extends [infer Mx, ...infer Mr]
 
 //// Definition ////
 
-type ModulesInterface<I extends Modules<M>, M extends ModuleArray> = 
-    Fill<I, _InheritModuleMethods<M>>
+type ModulesOf<I extends Modules<ModuleArray>> = I extends Modules<infer M> ? M : []
+
+type ModulesInterface<I extends Modules<ModuleArray>> = 
+    Fill<I, _InheritModuleMethods<ModulesOf<I>>>
 
 //// Main ////
 
-class Modules<M extends ModuleArray> extends Module<M> implements Iterable<M[number]> {
+class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements Iterable<M[number]> {
 
     static add = addModules
-
     static insert = insertModule
-
     static set = setModule
-
     static remove = removeModule
-
     static swap = swapModules
+
+    static assert = {
+        isSingle
+    } as const
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
 
-        const { descriptorsOf, prototypeOf, define } = property
+        const { descriptorsOf, prototypesOf, define } = property
   
-        const modulesDescriptors = descriptorsOf(prototypeOf(modules))
+        const modulesDescriptors = descriptorsOf(...prototypesOf(modules, [Module.prototype]))
         const applyDescriptors: PropertyDescriptorMap = {}
  
         for (const module of modules.modules) {
             
-            const moduleDescriptors = descriptorsOf(prototypeOf(module))
+            const moduleDescriptors = descriptorsOf(...prototypesOf(module, [Module.prototype]))
             for (const key of keysOf(moduleDescriptors)) { 
 
                 const isPrivate = key.startsWith('_')
@@ -81,7 +96,7 @@ class Modules<M extends ModuleArray> extends Module<M> implements Iterable<M[num
     /**
      * Get children of this module.
      */
-    override get modules(): M {
+    get modules(): M {
         return this.state
     }
 
@@ -96,12 +111,17 @@ class Modules<M extends ModuleArray> extends Module<M> implements Iterable<M[num
 
     //// Interface ////
 
-    get<I extends IndexesOf<M>>(index: I): M[I] {
-        const module = this.modules.at(index)
-        if (!module)
-            throw new Error('Invalid index.')
+    get<I extends IndexesOf<M>>(index: I): M[I]
+    get<P extends NestedPathsOf<M>>(path: P): ModuleAtNestedPath<M, P> 
+    get(at: path | number) : Module {
+        return isNumber(at) 
+            ? this._getModuleAtIndex(at)
+            : this._getModuleAtPath(at)
+    }
 
-        return module
+    override validate(): void {
+        for (const module of this)
+            module.validate()
     }
 
     //// Iterable Implementation ////
@@ -115,6 +135,40 @@ class Modules<M extends ModuleArray> extends Module<M> implements Iterable<M[num
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
         return new Constructor(...unparent(this.state))
+    }
+
+    //// Helper ////
+
+    _getModuleAtIndex(index: number): Module {
+        const module = this.modules.at(index)
+        if (!module)
+            throw new Error(`Invalid index: ${index}`)
+
+        return module
+    }
+
+    _getModuleAtPath(nestedPath: path): Modules {
+
+        let modules = this as Modules | nil
+        
+        const paths = nestedPath
+            .split('/')
+            .filter(isNotEmpty)
+            .map(path => `/${path}`) as path[]
+
+        for (const path of paths) {
+            modules = modules?.modules.find(child => 
+                child instanceof Modules && 
+                child.modules.find((grandChild: Module) => 
+                    grandChild instanceof Path && 
+                    grandChild.path === path)
+            ) as Modules | nil
+        }
+ 
+        if (!modules)
+            throw new Error(`Invalid path: ${nestedPath}`)
+
+        return modules
     }
 
 }
@@ -140,5 +194,6 @@ export default Modules
 
 export {
     Modules,
+    ModulesOf,
     ModulesInterface
 }
