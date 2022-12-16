@@ -2,7 +2,7 @@ import { Path, PathsOf, NestedPathsOf } from './path'
 import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
-import { Module, Modules } from '../module'
+import { Modules } from '../module'
 
 import { it, expect } from '@jest/globals'
 
@@ -25,28 +25,33 @@ it('provides path metadata to nodes', () => {
 const createTestNodeTree = () => Node
     .create()
     .add(
+
         Node.create(  
             Path.create('/foo')
         ),
+
         Node.create(
             Path.create('/bar')
         ),
+
         Node.create( 
             Path.create('/baz'),
+
             Node.create(
                 Path.create('/nerd')
             ),
+
             Node.create(
                 Path.create('/bone'),
                 Node.create(
                     Path.create('/sass')
                 )
             ),
+
             Node.create(
                 Path.create('/ace'),
             )
-        ), 
-        new Module('root' as const)
+        )
     )
 
 it('identifiable nested paths', () => {
