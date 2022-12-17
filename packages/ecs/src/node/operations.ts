@@ -2,7 +2,6 @@ import { Indexes, IndexesOf, isTruthy as isNotEmpty, nil } from '@benzed/util'
 
 import Module, { ModuleArray } from '../module'
 import Modules, { AddModules, SetModule } from '../modules'
-import { unparent } from '../modules/operations'
 import { Node } from '../node'
 
 import { 
@@ -87,13 +86,15 @@ export function setNodeAtPath(
     input: Modules | ((input: Module) => Modules)
 ): ModuleArray {
 
-    const outputModule = 'parent' in input 
+    const inputModule = 'parent' in input 
         ? input
         : input(getNodeAtPath(modules, path as never))
 
     const outputNode = Node.create(
         Path.create(path),  
-        ...outputModule.modules.map(unparent)
+        ...inputModule
+            .find
+            .all(m => m instanceof Path ? nil : m._clearParent())
     )
 
     const replaceIndex = modules.findIndex(module =>
@@ -101,7 +102,7 @@ export function setNodeAtPath(
         module.path === path 
     )
 
-    const outputModules = modules.map(unparent)
+    const outputModules = modules.map(module => module._clearParent())
     if (replaceIndex < 0)
         outputModules.push(outputNode)
     else 

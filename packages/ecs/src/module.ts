@@ -1,6 +1,4 @@
 
-import { wrap } from '@benzed/array'
-
 import { 
 
     equals, 
@@ -13,21 +11,24 @@ import {
 } from '@benzed/immutable'
 
 import {
-
-    isString,
-    isNumber,
-    isArray,
-    isBoolean,
     isObject,
-    isInteger,
-
-    TypeGuard,
     nil,
-    pass
-
 } from '@benzed/util'
 
-import type { Modules } from './modules'
+import { 
+    Finder, 
+    FindModule, 
+    FindFlag, 
+    
+    AssertModule, 
+    HasModule, 
+    hasChildren
+} from './find'
+
+import type { 
+    KeyState, 
+    Modules 
+} from './modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -35,18 +36,11 @@ import type { Modules } from './modules'
     @typescript-eslint/ban-types
 */
 
-//// Types ////
+//// Constants ////
 
 const $$isModuleConstructor = Symbol('is-module-constructor')
-type ModuleConstructor<M extends Module> = 
-    (new (...args: any) => M) | 
-    (abstract new (...args: any) => M)
 
-interface ModuleTypeGuard<M extends Module> extends TypeGuard<M, Module> {}
-
-export type FindModule<M extends Module> = ModuleTypeGuard<M> | ModuleConstructor<M> | M
-
-export type FindScope = 'parents' | 'siblings' | 'children'
+//// Types ////
 
 export type ModuleArray = readonly Module<any>[]
 
@@ -58,22 +52,33 @@ class InvalidParentError extends Error {
     }
 }
 
-class ModuleNotFoundError extends Error {
-    constructor(readonly input: FindModule<Module>, readonly scope: FindScope, readonly required: number) {
-        const count = required === 1 
-            ? '' 
-            : ` in required amount (${required})`
-        super(`Could not find ${toModuleName(input)} in scope ${scope}${count}`)
-    }
-}
-
 //// Private ////
 
-const _parent = new WeakMap<Module, nil | Modules>
+const _parents = new WeakMap<Module, nil | Modules>
 
 //// Definition ////
 
-class Module<S = unknown> implements CopyComparable{
+class Module<S = unknown> implements CopyComparable {
+
+    /**
+     * Create a module with generic get/set state setters
+     */
+    static for<T>(state: T): State<T> 
+    static for<K,T>(key: K, state: T): KeyState<K,T>
+    static for(...args: unknown[]): Module<unknown> {
+        
+        const $$none = Symbol('no-key-provided')
+
+        const [key, value] = args.length === 1 ? [$$none, ...args] : args
+
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const _KeyState = require('./modules').KeyState as typeof KeyState
+        //    ^ prevent circular references
+
+        return key === $$none 
+            ? new State(value)
+            : new _KeyState(key, value)
+    }
 
     /**
      * @internal
@@ -94,19 +99,26 @@ class Module<S = unknown> implements CopyComparable{
 
     /**
      * Parent of this node.
-     * nil if no parent.
+     * Throws if parent has not yet been set.
      */
-    get parent(): Modules | nil {
-        return _parent.get(this)
+    get parent(): Modules {
+        const parent = _parents.get(this)
+        if (!parent)
+            throw new Error(`${this.name} does not have a parent. Use .hasParent() to check, first.`)
+
+        return parent
     }
-    
+
+    get hasParent(): boolean {
+        return _parents.has(this)
+    }
+
     /**
      * @internal
      */
-    _setParent(newParent: Modules): void {
+    _setParent(newParent: Modules): this {
     
-        const parent = _parent.get(this)
-        if (parent)
+        if (this.hasParent)
             throw new InvalidParentError('Parent already set')
    
         const module = this as unknown as Module
@@ -117,17 +129,69 @@ class Module<S = unknown> implements CopyComparable{
         if (newParent.modules.indexOf(module) !== newParent.modules.lastIndexOf(module))
             throw new Error( 'Parent may only contain single reference of child')
     
-        _parent.set(this, newParent)
+        _parents.set(this, newParent)
         this.validate()
+        return this
     }
+
+    /**
+     * @internal
+     */
+    _clearParent(): this {
+        return this.hasParent ? this[$$copy]() : this
+    } 
 
     //// Relationships ////
 
-    /**
-     * Siblings of this node
-     */
+    * eachSibling(): IterableIterator<Module> {
+        if (this.hasParent) {
+            for (const child of this.parent.eachChild()) {
+                if (child !== this)
+                    yield child
+            }
+        }
+    }
+
     get siblings(): ModuleArray {
-        return this.parent?.modules.filter(other => other !== this) ?? []
+        return Array.from(this.eachSibling())
+    }
+
+    * eachParent(): IterableIterator<Modules> {
+        let current: Module = this
+        while (current.hasParent) {
+            yield current.parent
+            current = current.parent
+        }
+    }
+
+    get parents(): Module[] {
+        return Array.from(this.eachParent())
+    }
+
+    * eachAncestor(): IterableIterator<Module> {
+        for (const parent of this.eachParent()) {
+            yield parent
+            yield* parent.eachSibling()
+        }
+    }
+
+    get ancestors(): Module[] {
+        return Array.from(this.eachAncestor())
+    }
+
+    * eachDescendent(): IterableIterator<Module> {
+        for (const sibling of this.eachSibling()) {
+            if (hasChildren(sibling))
+                yield* sibling.eachDescendent()
+        }
+    }
+
+    get descendents(): Module[] {
+        return Array.from(this.eachDescendent())
+    }
+
+    get numDescendents(): number {
+        return this.descendents.length
     }
 
     /**
@@ -135,62 +199,21 @@ class Module<S = unknown> implements CopyComparable{
      * Self if node is unparented.
      */
     get root(): Module {
-        let module: Module<unknown> = this
-        while (module.parent)
-            module = module.parent
-            
-        return module
+        return this.parents.at(-1) ?? this
     }
 
     //// Find interface ////
-    
-    find(scope: FindScope | readonly FindScope[], required?: boolean | number): Module[]
-    find<M extends Module>(type: FindModule<M>, required?: boolean | number): M[]
-    find<M extends Module>(type: FindModule<M>, scope?: FindScope | readonly FindScope[], required?: boolean | number): M[]
-    find(...args: unknown[]): Module[] {
 
-        const [input, scope = 'siblings', required = false] = 
-        (
-            isString(args[0]) || isArray(args[0])
-
-            // .find(scope|s, required?)
-                ? [pass, ...args]
-            
-                : isNumber(args[1]) || isBoolean(args[1])
-
-                // .find(type, required?)
-                    ? [args[0], nil, args[1]]
-            
-                // .find(type, scope|s?, required?)
-                    : args
-                    
-        ) as [FindModule<Module>, FindScope | nil, number | boolean | nil]
-
-        const found: Module[] = []
-        const predicate = toModuleTypeGuard(input)
-        const scopes = wrap(scope)
-        
-        const requiredLength = isNumber(required) ? required : required ? 1 : 0
-        if (!isInteger(requiredLength) || requiredLength < 0)
-            throw new Error('required argument must be a positive integer')
-
-        for (const scope of scopes) 
-            findInScope(this, scope, predicate, found)
-
-        // ensure required
-
-        if (found.length < requiredLength) 
-            throw new ModuleNotFoundError(input, scope, requiredLength)
-
-        return found
+    get find(): FindModule {
+        return new Finder(this)
     }
 
-    has<M extends Module>(type: FindModule<M>, scope?: FindScope): boolean {
-        return this.find(type, scope).length > 0
+    get has(): HasModule {
+        return new Finder(this, FindFlag.Has) as HasModule
     }
 
-    assert<M extends Module>(type: FindModule<M>, scope?: FindScope): void {
-        void this.find(type, scope, true)
+    assert(error?: string): AssertModule {
+        return new Finder(this, FindFlag.Require, error) as AssertModule
     }
 
     //// Validate ////
@@ -199,7 +222,7 @@ class Module<S = unknown> implements CopyComparable{
      * Called when the module is parented.
      */
     validate(): void {
-        // 
+        //
     }
 
     //// CopyComparable Interface ////
@@ -218,106 +241,19 @@ class Module<S = unknown> implements CopyComparable{
 
 }
 
-//// Helper ////
+/**
+ * I'm going to use this a lot.
+ */
+export class State<T> extends Module<T> {
 
-function findInScope(module: Module, scope: FindScope, predicate: ModuleTypeGuard<Module>, found: Module[]): void {
-    switch (scope) {
-
-        case 'siblings': {
-            const foundSiblings = module.siblings.filter(predicate)
-            found.push(...foundSiblings)
-            break
-        }
-
-        case 'parents': {
-            
-            if (module.parent && predicate(module.parent))
-                found.push(module.parent)
-
-            if (module.parent) {
-                const foundAncestors = module.parent.find(predicate, ['siblings', 'parents'], false)
-                found.push(...foundAncestors)
-            }
-
-            break
-        }
-
-        case 'children': {
-
-            // should only be the case for classes that extend Modules
-            if (hasChildren(module)) {  
-                const foundChildren = module
-                    .modules
-                    .filter(predicate)
-                
-                const childrenWithChildren = module
-                    .modules
-                    .filter(hasChildren)
-                
-                const foundDescendants = childrenWithChildren
-                    .flatMap(child => child.find(predicate, 'children', false))
-
-                found.push(
-                    ...foundChildren, 
-                    ...foundDescendants
-                )
-
-            } else {
-                const siblingsWithChildren = module
-                    .siblings
-                    .filter(hasChildren)
-
-                const foundDescendantsInSiblings = siblingsWithChildren
-                    .flatMap(sibling => sibling.find(predicate, 'children', false))
-                
-                found.push(
-                    ...foundDescendantsInSiblings
-                )
-            }
-            break
-        }
-
-        default: {
-            const badScope: never = scope
-            throw new Error(`${badScope} is an invalid scope.`)
-        }
+    setState<Tx>(newState: Tx): State<Tx>{
+        return new State(newState)
     }
-}
 
-function isModuleConstructor<M extends Module>(input: TypeGuard<M, Module<unknown>> | ModuleConstructor<M>): input is ModuleConstructor<M> {
-    return $$isModuleConstructor in input && !!input[$$isModuleConstructor]
-}
+    getState(): T {
+        return this.state
+    }
 
-function toModuleTypeGuard<M extends Module>(input: FindModule<M>): ModuleTypeGuard<M> {
-    if (input instanceof Module) 
-        return (other => input[$$equals](other)) as ModuleTypeGuard<M>
-        
-    if (isModuleConstructor(input))
-        return (other => other instanceof input) as ModuleTypeGuard<M>
-
-    return input
-} 
-
-function hasChildren(module: Module): module is Modules {
-    return 'modules' in module
-}
-
-function toModuleName<M extends Module>(input: FindModule<M>): string {
-    
-    let name = input instanceof Module 
-        ? input.constructor.name 
-        : input.name
-   
-    // assume typeguard with convention isModuleName
-    if (name.startsWith('is'))
-        name = name.slice(0, 2)
-
-    // assume anonymous typeguard
-    if (!name)
-        return Module.name
-    
-    return name
-        
 }
 
 //// Exports ////
@@ -325,5 +261,6 @@ function toModuleName<M extends Module>(input: FindModule<M>): string {
 export default Module 
 
 export {
-    Module
+    Module,
+    $$isModuleConstructor
 }

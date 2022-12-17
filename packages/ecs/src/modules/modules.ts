@@ -1,4 +1,4 @@
-import { $$copy } from '@benzed/immutable'
+import { $$copy, equals } from '@benzed/immutable'
 import { 
     Func, 
     isFunc,
@@ -7,6 +7,7 @@ import {
     
     keysOf, 
     property,
+    IsIdentical,
 
 } from '@benzed/util'
 
@@ -21,7 +22,6 @@ import {
     setModule, 
     insertModule, 
      
-    unparent,
     getModule,
     GetModule
 } from './operations'
@@ -107,19 +107,40 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
     //// State ////
     
     /**
-     * Get children of this module.
+     * Alias for children
      */
     get modules(): M {
         return this.state
     }
 
+    get numModules(): M['length'] {
+        return this.state.length
+    }
+
+    * eachChild(): IterableIterator<Module> {
+        yield* this.state
+    }
+
+    get children(): Module[] {
+        return Array.from(this.eachChild())
+    }
+
+    get numChildren(): number {
+        return this.numModules
+    }
+
+    override * eachDescendent(): IterableIterator<Module> {
+        for (const child of this.eachChild()) {
+            yield child
+            if (child instanceof Modules)
+                yield* child.eachDescendent()
+        }
+    }
+
     constructor(...modules: M) {
-
         super(modules)
-
         for (const module of this) 
             module._setParent(this)
-        
     }
 
     //// Interface ////
@@ -129,7 +150,7 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
     }
 
     override validate(): void {
-        for (const module of this)
+        for (const module of this.modules)
             module.validate()
     }
 
@@ -143,10 +164,40 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
 
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...this.state.map(unparent) as ModuleArray as M)
+        return new Constructor(...this.state.map(m => m._clearParent()) as ModuleArray as M)
     }
 
-    //// Helper ////
+}
+
+//// Another Helper State Class ////
+
+type _GetKeyState<M, K> = M extends [infer M1, ...infer Mr ]
+    ? M1 extends KeyState<infer Kx, infer T> 
+        ? IsIdentical<K, Kx> extends true 
+            ? T
+            : _GetKeyState<Mr, K>
+        : _GetKeyState<Mr, K>
+    : never
+
+export type GetState<M, K> = M extends ModuleArray
+    ? _GetKeyState<M, K>
+    : M extends Modules<infer Mm> 
+        ? _GetKeyState<Mm, K>
+        : never
+
+export class KeyState<K, T> extends Module<T> {
+
+    constructor(readonly key: K, state: T) {
+        super(state)
+    }
+
+    getState<M extends Modules>(this: M, key: K): GetState<M, K> {
+        return this
+            .parent
+            .assert(`No state with key ${key}`)
+            .inChildren((m): m is KeyState<K, GetState<M, K>> => m instanceof KeyState && equals(m.key, key))
+            .state
+    }
 
 }
 

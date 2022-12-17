@@ -52,7 +52,7 @@ const createTestNodeTree = () => Node
             Node.create(
                 Path.create('/ace'),
             )
-        )
+        )  
     )
 
 it('identifiable nested paths', () => {
@@ -75,33 +75,34 @@ it('identifiable nested paths', () => {
     | '/baz/bone/sass'  
     | '/baz/ace' 
     >()
-}) 
-
-it('.getPathFrom()', () => {
+})  
+ 
+it('.getPathFrom()', () => { 
     const n1 = createTestNodeTree()
-
-    const [path] = n1 
-        .get(2)
-        .get(2)
-        .get(1)
-        .find(Path, 'children', true)
-
     expect(n1.root).toEqual(n1)
-    const output = path.getPathFrom(n1.get(2)) 
 
-    expect(output).toEqual('/bone/sass')
-})
+    const n2 = n1  
+        .get(2) 
+        .get(2)
+        .get(1) 
+
+    for (const n2x of [n2, n2.find.require(Path)]) {
+        const output = n2x.getPathFrom(n1.get(2))
+        expect(output).toEqual('/bone/sass')
+    }
+ 
+}) 
 
 it('.getFromRoot()', () => {   
     const n1 = createTestNodeTree()
-
     const n2 = n1 
         .get(2)
         .get(2)
         .get(1)
 
-    const path = n2.modules.find(c => c instanceof Path)
-    expect(path?.getPathFromRoot()).toEqual('/baz/bone/sass')
+    for (const n2x of [n2.find.require(Path), n2]) 
+        expect(n2x.getPathFromRoot()).toEqual('/baz/bone/sass')
+    
 })
 
 it('must be the only path module in parent', () => {
@@ -158,4 +159,19 @@ it('.set() from a path', () => {
     expectTypeOf(n2).toMatchTypeOf<N2>()
     expect(n2.modules).toHaveLength(2)
     expect(n2.get(1)).toEqual(n2.get('/bar'))
+})
+
+it('.set() overwrites existing path', () => {
+
+    const bar = Node.create(
+        Path.create('/bar'),
+        Module.for('bar' as const)
+    )
+
+    const foo = Node
+        .create()
+        .set('/foo', bar)
+
+    expect(foo.numModules).toEqual(1)
+
 })

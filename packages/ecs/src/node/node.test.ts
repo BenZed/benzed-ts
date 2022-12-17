@@ -1,11 +1,11 @@
 
-import { describe, it } from '@jest/globals'
 import { copy, equals } from '@benzed/immutable'
 
 import { Module } from '../module'
 import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
+import { describe, it } from '@jest/globals'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -169,11 +169,10 @@ describe('operations', () => {
             new Text('B')
         )
         
-        const n2 = n1   
-            .set(
-                0,
-                new Text('Ax'),
-            )
+        const n2 = n1.set(
+            0,
+            new Text('Ax'),
+        )
         expect(n2.modules).toHaveLength(2)
         expectTypeOf(n2).toEqualTypeOf<Node<[Text<'Ax'>, Text<'B'>]>>()
     })

@@ -1,4 +1,3 @@
-import { copy } from '@benzed/immutable'
 
 import { 
     Indexes, 
@@ -57,8 +56,8 @@ export function addModules<
     inputB: B
 ): AddModules<A,B> {
     return [
-        ...inputA.map(unparent) as ModuleArray as A,
-        ...inputB.map(unparent) as ModuleArray as B
+        ...inputA.map(m => m._clearParent()) as ModuleArray as A,
+        ...inputB.map(m => m._clearParent()) as ModuleArray as B
     ]
 }
 
@@ -80,7 +79,7 @@ export function insertModule<
     newModule: Mx
 ): InsertModule<M, I, Mx> {
 
-    const output = input.map(unparent)
+    const output = input.map(m => m._clearParent())
     output.splice(index, 0, newModule)
     
     return output as InsertModule<M,I,Mx>
@@ -123,7 +122,7 @@ export function swapModules<
     indexB: B
 ): SwapModules<M,A,B> {
 
-    const output = input.map(unparent)
+    const output = input.map(m => m._clearParent())
     swap(output, indexA as number, indexB)
 
     return output as SwapModules<M,A,B>
@@ -144,7 +143,7 @@ export function removeModule<
     index: I
 ): RemoveModule<M, I> {
 
-    const output = input.map(unparent)
+    const output = input.map(m => m._clearParent())
     output.splice(index, 1)
 
     return output as RemoveModule<M, I>
@@ -175,9 +174,9 @@ export function setModule(input: ModuleArray, index: number, module: Module | ((
 
     module = 'parent' in module ? module : module(input[index])
 
-    const newModule = unparent(module)
+    const newModule = module._clearParent()
 
-    const output = input.map(unparent)
+    const output = input.map(m => m._clearParent())
     output.splice(index, 1, newModule)
 
     return output
@@ -193,16 +192,5 @@ export function getModule<M extends ModuleArray, I extends IndexesOf<M>>(modules
         throw new Error(`Invalid index: ${index}`)
 
     return module
-}
-
-//// Helper ////
-
-/**
- * 
- * @param modules 
- * @returns 
- */
-export function unparent<M extends Module>(module: M): M {
-    return module.parent ? copy(module) : module
 }
 

@@ -1,3 +1,4 @@
+import { $$equals } from '@benzed/immutable'
 import { isString, KeysOf } from '@benzed/util'
 
 import { Module, ModuleArray } from '../module'
@@ -92,22 +93,22 @@ class Path<P extends path = path> extends Module<P> {
     }
 
     getPathFrom(ancestor: Module): path {
-        this.assert(ancestor, 'parents')
+        this.assert('Must get path from a direct ancestor')
+            .inParents(ancestor)
         
-        const paths: path[] = [this.path]
+        const paths: path[] = []
 
-        let parent = this.parent
-        while (parent && parent.parent !== ancestor && parent !== ancestor) {
+        for (const parent of this.eachParent()) {
 
-            const path = parent?.find(Path).at(0)
+            const path = parent.find(Path)?.path
             if (!path && parent !== this.root)
-                throw new Error('Every ancestor except the root must have a Path module')
-            
+                throw new Error(`Every ancestor except the root must have a ${this.name} module.`)
+
+            if (parent[$$equals](ancestor))
+                break
+
             if (path)
-                paths.push(path.path)
-
-            parent = parent.parent
-
+                paths.push(path)
         }
 
         return paths.reverse().join('') as path
@@ -134,9 +135,9 @@ export default Path
 
 export {
     path,
-    ToPath,
     Path,
     PathsOf,
+    ToPath,
     NestedPathsOf,
     GetNodeAtPath,
     GetNodeAtNestedPath
