@@ -27,7 +27,7 @@ import {
 
 } from '@benzed/util'
 
-import type Modules from './modules'
+import type { Modules } from './modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

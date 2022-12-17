@@ -1,6 +1,7 @@
-import { KeysOf } from '@benzed/util'
+import { isString, KeysOf } from '@benzed/util'
 
-import { Module, ModuleArray, Modules } from '../module'
+import { Module, ModuleArray } from '../module'
+import { Modules } from '../modules'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -16,18 +17,18 @@ type _PathOf<M extends ModuleArray> = M extends [infer Mx, ...infer Mr]
             : unknown
     : unknown
 
-type _ModuleAtPath<M, P extends string, R extends boolean> = M extends Modules<infer Mx> 
+type _NodeAtPath<N, P extends string, R extends boolean> = N extends Modules<infer Mx> 
     ? _PathOf<Mx> extends path 
-        ? { [K in `${P}${_PathOf<Mx>}`]: M } & 
-        (R extends true ? _ModulesAtPath<Mx, `${P}${_PathOf<Mx>}`, true> : {})
+        ? { [K in `${P}${_PathOf<Mx>}`]: N } & 
+        (R extends true ? _NodesAtPath<Mx, `${P}${_PathOf<Mx>}`, true> : {})
         
         : {}
     : {}
 
-type _ModulesAtPath<M, P extends string, R extends boolean> = M extends [infer Sx, ...infer Sr] 
+type _NodesAtPath<M, P extends string, R extends boolean> = M extends [infer Sx, ...infer Sr] 
     ? Sr extends ModuleArray
-        ? _ModuleAtPath<Sx, P, R> & _ModulesAtPath<Sr, P, R>
-        : _ModuleAtPath<Sx, P, R>
+        ? _NodeAtPath<Sx, P, R> & _NodesAtPath<Sr, P, R>
+        : _NodeAtPath<Sx, P, R>
     : {}
 
 //// Path Type ////
@@ -36,13 +37,15 @@ type path = `/${string}`
 
 //// Path Inference Types ////
 
-type NestedPathsOf<M extends ModuleArray> = KeysOf<_ModulesAtPath<M, '', true>>
+type NestedPathsOf<M extends ModuleArray> = KeysOf<_NodesAtPath<M, '', true>>
 
-type PathsOf<M extends ModuleArray> = KeysOf<_ModulesAtPath<M, '', false>>
+type ToPath<P extends string> = P extends path ? P : `/${P}`
 
-type ModuleAtNestedPath<M extends ModuleArray, P extends NestedPathsOf<M>> = _ModulesAtPath<M, '', true>[P]
+type PathsOf<M extends ModuleArray> = KeysOf<_NodesAtPath<M, '', false>>
 
-type ModuleAtPath<M extends ModuleArray, P extends PathsOf<M>> = _ModulesAtPath<M, '', false>[P]
+type GetNodeAtNestedPath<M extends ModuleArray, P extends NestedPathsOf<M>> = _NodesAtPath<M, '', true>[P]
+
+type GetNodeAtPath<M extends ModuleArray, P extends PathsOf<M>> = _NodesAtPath<M, '', false>[P]
 
 //// Main ////
 
@@ -55,9 +58,21 @@ class Path<P extends path = path> extends Module<P> {
             .split('')
             .every((char, i) => i === 0 ? char === '/' : /[a-z]|\d|-/.test(char))
         )
-            throw new Error(`${path} is an invalid path.`)
+            throw new Error(`${path} is not a valid path.`)
     
         return path
+    }
+
+    static is(input: unknown): input is path {
+        if (!isString(input))
+            return false 
+
+        try {
+            Path.validate(input as path)
+            return true
+        } catch {
+            return false
+        }
     }
 
     static create<Px extends path>(path: Px): Path<Px> {
@@ -119,9 +134,10 @@ export default Path
 
 export {
     path,
+    ToPath,
     Path,
     PathsOf,
     NestedPathsOf,
-    ModuleAtPath,
-    ModuleAtNestedPath
+    GetNodeAtPath,
+    GetNodeAtNestedPath
 }

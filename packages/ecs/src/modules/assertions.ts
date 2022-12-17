@@ -1,4 +1,4 @@
-import Module from './module'
+import Module from '../module'
 
 /**
  * Module is the only instance of it's kind on it's parent

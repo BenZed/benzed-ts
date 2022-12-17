@@ -1,10 +1,11 @@
 import { Path, PathsOf, NestedPathsOf } from './path'
 import { Node } from './node'
 
-import { expectTypeOf } from 'expect-type'
-import { Modules } from '../module'
+import { Module } from '../module'
+import { Modules } from '../modules'
 
 import { it, expect } from '@jest/globals'
+import { expectTypeOf } from 'expect-type'
 
 //// Tests ////
 
@@ -103,6 +104,24 @@ it('.getFromRoot()', () => {
     expect(path?.getPathFromRoot()).toEqual('/baz/bone/sass')
 })
 
+it('must be the only path module in parent', () => {
+    expect(() => new Modules(
+        new Path('/good'),
+        new Path('/bad')
+    )).toThrow('Path cannot be placed with other Path modules')
+})
+
+it('all ancestors must have a path', () => {
+
+    expect(() => new Modules(
+        new Modules(
+            new Modules(
+                new Path('/uh-oh')
+            )
+        )
+    )).toThrow('Every ancestor except the root must have a Path module')
+})
+
 it('.get() from a path', () => {
     const n1 = createTestNodeTree()
 
@@ -123,20 +142,20 @@ it('.get() throws on bad paths', () => {
     expect(() => n1.get('/baz/bone1')).toThrow('Invalid path: /baz/bone1')
 })
 
-it('must be the only path module in parent', () => {
-    expect(() => new Modules(
-        new Path('/good'),
-        new Path('/bad')
-    )).toThrow('Path cannot be placed with other Path modules')
-})
+it('.set() from a path', () => { 
 
-it('all ancestors must have a path', () => {
+    const n1 = Node.create().add(new Module(0 as const))
+    const n2 = n1.set('/bar', Node.create().add(new Module(1 as const)))
 
-    expect(() => new Modules(
-        new Modules(
-            new Modules(
-                new Path('/uh-oh')
-            )
-        )
-    )).toThrow('Every ancestor except the root must have a Path module')
+    type N2 = Node<[
+        Module<0>,
+        Node<[
+            Path<'/bar'>, 
+            Module<1>
+        ]>
+    ]>
+
+    expectTypeOf(n2).toMatchTypeOf<N2>()
+    expect(n2.modules).toHaveLength(2)
+    expect(n2.get(1)).toEqual(n2.get('/bar'))
 })

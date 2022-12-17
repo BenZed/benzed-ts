@@ -2,7 +2,7 @@ import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
 import { isBoolean, isDefined } from '@benzed/util'
 
 import { Module } from './module'
-import Modules from './modules'
+import { Modules } from './modules'
 
 import { describe, it, test, expect } from '@jest/globals'
 

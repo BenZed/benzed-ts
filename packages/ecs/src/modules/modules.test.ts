@@ -1,6 +1,6 @@
 import { copy } from '@benzed/immutable'
 
-import { Module } from './module'
+import { Module } from '../module'
 import { Modules } from './modules'
 
 //// Setup ////

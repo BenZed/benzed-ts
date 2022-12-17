@@ -1,1 +1,2 @@
-export { Node } from './node'
+export * from './node'
+export { default } from './node'

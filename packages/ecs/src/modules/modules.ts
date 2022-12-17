@@ -1,9 +1,19 @@
 import { $$copy } from '@benzed/immutable'
-import { Func, IndexesOf, isFunc, isNumber, isTruthy as isNotEmpty, keysOf, nil, property } from '@benzed/util'
-import Path, { ModuleAtNestedPath, NestedPathsOf, path } from '../node/path'
+import { 
+    Func, 
+    isFunc,
+
+    IndexesOf,
+    
+    keysOf, 
+    property,
+
+} from '@benzed/util'
+
 import { Fill, MethodsOf } from '../types'
 
-import Module, { ModuleArray } from './module'
+import Module, { ModuleArray } from '../module'
+
 import { 
     addModules,
     removeModule, 
@@ -11,19 +21,20 @@ import {
     setModule, 
     insertModule, 
      
-    unparent
-} from './module-operations'
+    unparent,
+    getModule,
+    GetModule
+} from './operations'
 
 import { 
-    isSingle
-} from './module-assertions'
+    isSingle,
+    isRootLevel
+} from './assertions'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
     @typescript-eslint/no-explicit-any
 */
-
-//// Constants ////
 
 //// Types ////
 
@@ -52,9 +63,11 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
     static set = setModule
     static remove = removeModule
     static swap = swapModules
+    static get = getModule
 
     static assert = {
-        isSingle
+        isSingle,
+        isRootLevel
     } as const
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
@@ -111,12 +124,8 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
 
     //// Interface ////
 
-    get<I extends IndexesOf<M>>(index: I): M[I]
-    get<P extends NestedPathsOf<M>>(path: P): ModuleAtNestedPath<M, P> 
-    get(at: path | number) : Module {
-        return isNumber(at) 
-            ? this._getModuleAtIndex(at)
-            : this._getModuleAtPath(at)
+    get<I extends IndexesOf<M>>(index: I): GetModule<M,I> {
+        return Modules.get(this.modules, index)
     }
 
     override validate(): void {
@@ -126,7 +135,7 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
 
     //// Iterable Implementation ////
     
-    *[Symbol.iterator](): Iterator<M[number]> {
+    *[Symbol.iterator](): Iterator<Module> {
         yield* this.state
     }
 
@@ -134,42 +143,10 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
 
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...unparent(this.state))
+        return new Constructor(...this.state.map(unparent) as ModuleArray as M)
     }
 
     //// Helper ////
-
-    _getModuleAtIndex(index: number): Module {
-        const module = this.modules.at(index)
-        if (!module)
-            throw new Error(`Invalid index: ${index}`)
-
-        return module
-    }
-
-    _getModuleAtPath(nestedPath: path): Modules {
-
-        let modules = this as Modules | nil
-        
-        const paths = nestedPath
-            .split('/')
-            .filter(isNotEmpty)
-            .map(path => `/${path}`) as path[]
-
-        for (const path of paths) {
-            modules = modules?.modules.find(child => 
-                child instanceof Modules && 
-                child.modules.find((grandChild: Module) => 
-                    grandChild instanceof Path && 
-                    grandChild.path === path)
-            ) as Modules | nil
-        }
- 
-        if (!modules)
-            throw new Error(`Invalid path: ${nestedPath}`)
-
-        return modules
-    }
 
 }
 

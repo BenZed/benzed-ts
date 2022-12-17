@@ -1,6 +1,13 @@
 import { copy } from '@benzed/immutable'
-import { Indexes, IndexesOf, swap } from '@benzed/util'
-import Module, { ModuleArray } from './module'
+
+import { 
+    Indexes, 
+    IndexesOf, 
+    swap
+
+} from '@benzed/util'
+
+import Module, { ModuleArray } from '../module'
 
 //// SpliceModules ////
 
@@ -50,8 +57,8 @@ export function addModules<
     inputB: B
 ): AddModules<A,B> {
     return [
-        ...unparent(inputA),
-        ...unparent(inputB)
+        ...inputA.map(unparent) as ModuleArray as A,
+        ...inputB.map(unparent) as ModuleArray as B
     ]
 }
 
@@ -73,8 +80,8 @@ export function insertModule<
     newModule: Mx
 ): InsertModule<M, I, Mx> {
 
-    const output = unparent(input) as ModuleArray
-    (output as Module[]).splice(index, 0, newModule)
+    const output = input.map(unparent)
+    output.splice(index, 0, newModule)
     
     return output as InsertModule<M,I,Mx>
 }
@@ -116,7 +123,7 @@ export function swapModules<
     indexB: B
 ): SwapModules<M,A,B> {
 
-    const output = unparent(input) as ModuleArray
+    const output = input.map(unparent)
     swap(output, indexA as number, indexB)
 
     return output as SwapModules<M,A,B>
@@ -137,8 +144,8 @@ export function removeModule<
     index: I
 ): RemoveModule<M, I> {
 
-    const output = unparent(input) as ModuleArray
-    (output as Module[]).splice(index, 1)
+    const output = input.map(unparent)
+    output.splice(index, 1)
 
     return output as RemoveModule<M, I>
 }
@@ -168,12 +175,24 @@ export function setModule(input: ModuleArray, index: number, module: Module | ((
 
     module = 'parent' in module ? module : module(input[index])
 
-    const [newModule] = unparent([module]) 
+    const newModule = unparent(module)
 
-    const output = unparent(input) as ModuleArray
-    (output as Module[]).splice(index, 1, newModule)
+    const output = input.map(unparent)
+    output.splice(index, 1, newModule)
 
     return output
+}
+
+//// GetModule ////
+
+export type GetModule<M extends ModuleArray, I extends IndexesOf<M>> = M[I]
+
+export function getModule<M extends ModuleArray, I extends IndexesOf<M>>(modules: M, index: I): Module {
+    const module = modules.at(index)
+    if (!module)
+        throw new Error(`Invalid index: ${index}`)
+
+    return module
 }
 
 //// Helper ////
@@ -183,9 +202,7 @@ export function setModule(input: ModuleArray, index: number, module: Module | ((
  * @param modules 
  * @returns 
  */
-export function unparent<M extends ModuleArray>(modules: M): M {
-    return modules.some(m => m.parent)
-        ? modules.map(m => m.parent ? copy(m) : m) as ModuleArray as M
-        : modules
+export function unparent<M extends Module>(module: M): M {
+    return module.parent ? copy(module) : module
 }
 
