@@ -51,8 +51,7 @@ type _InheritModuleMethods<M> = M extends [infer Mx, ...infer Mr]
 
 type ModulesOf<I extends Modules<ModuleArray>> = I extends Modules<infer M> ? M : []
 
-type ModulesInterface<I extends Modules<ModuleArray>> = 
-    Fill<I, _InheritModuleMethods<ModulesOf<I>>>
+type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = Fill<I, _InheritModuleMethods<M>>
 
 //// Main ////
 

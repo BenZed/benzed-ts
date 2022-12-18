@@ -163,15 +163,18 @@ it('.set() from a path', () => {
 
 it('.set() overwrites existing path', () => {
 
+    const hero = Node.create(
+        Module.for('hero' as const)
+    )
+
     const bar = Node.create(
         Path.create('/bar'),
         Module.for('bar' as const)
     )
 
-    const foo = Node
-        .create()
-        .set('/foo', bar)
+    const foo = hero.set('/foo', bar)
 
-    expect(foo.numModules).toEqual(1)
+    expect(foo.numModules).toEqual(2)
+    expect(foo.get(1).getPath()).toEqual('/foo')
 
 })

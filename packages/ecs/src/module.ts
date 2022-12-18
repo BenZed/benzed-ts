@@ -12,8 +12,10 @@ import {
 
 import {
     isObject,
+    isString,
     nil,
 } from '@benzed/util'
+import { assert } from 'console'
 
 import { 
     Finder, 
@@ -22,7 +24,9 @@ import {
     
     AssertModule, 
     HasModule, 
-    hasChildren
+    hasChildren,
+    FindInput,
+    FindOutput
 } from './find'
 
 import type { 
@@ -54,6 +58,11 @@ class InvalidParentError extends Error {
 
 //// Private ////
 
+/**
+ * Parents are stored a weak map as opposed to private method for two reasons:
+ * - to prevent Node from complaining about not fulfilling the contract of private methods (because of the ModuleInterface trickery)
+ * - to allow any arbitrary deep-equal method to work on modules and nodes
+ */
 const _parents = new WeakMap<Module, nil | Modules>
 
 //// Definition ////
@@ -179,21 +188,6 @@ class Module<S = unknown> implements CopyComparable {
         return Array.from(this.eachAncestor())
     }
 
-    * eachDescendent(): IterableIterator<Module> {
-        for (const sibling of this.eachSibling()) {
-            if (hasChildren(sibling))
-                yield* sibling.eachDescendent()
-        }
-    }
-
-    get descendents(): Module[] {
-        return Array.from(this.eachDescendent())
-    }
-
-    get numDescendents(): number {
-        return this.descendents.length
-    }
-
     /**
      * Root module of this node. 
      * Self if node is unparented.
@@ -212,8 +206,17 @@ class Module<S = unknown> implements CopyComparable {
         return new Finder(this, FindFlag.Has) as HasModule
     }
 
-    assert(error?: string): AssertModule {
-        return new Finder(this, FindFlag.Require, error) as AssertModule
+    assert<T extends FindInput>(input: T): FindOutput<T>
+    assert(error?: string): AssertModule
+    assert(input?: FindInput | string): FindOutput<FindInput> | AssertModule {
+
+        const isError = isString(input)
+        const error = isError ? input : undefined
+
+        const finder = new Finder(this, FindFlag.Require, error)
+
+        const isFindInput = !isError && input
+        return (isFindInput ? finder(input) : finder) as FindOutput<FindInput> | AssertModule
     }
 
     //// Validate ////

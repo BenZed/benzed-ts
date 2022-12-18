@@ -157,7 +157,7 @@ describe('operations', () => {
             new Text('B')
         )
 
-        const n2 = n1.remove(1)
+        const n2 = n1.remove(1) 
         expect(n2.modules).toHaveLength(1)
         expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>]>>()
     })
@@ -173,8 +173,11 @@ describe('operations', () => {
             0,
             new Text('Ax'),
         )
+
+        const n3: Node<[Text<'Ax'>, Text<'B'>]> = n2
+
         expect(n2.modules).toHaveLength(2)
-        expectTypeOf(n2).toEqualTypeOf<Node<[Text<'Ax'>, Text<'B'>]>>()
+        expectTypeOf(n2).toEqualTypeOf<Node<[Text<'Ax'>, Text<'B'>]>>(n3)
     })
     
     it('.set() with function', () => {
@@ -205,7 +208,6 @@ describe('operations', () => {
 
         expect(r2.get(2).modules.length).toEqual(2)
         expectTypeOf(r2).toEqualTypeOf<
-
         Node<[
             Text<'Hi'>, 
             Text<'World'>, 
@@ -214,12 +216,11 @@ describe('operations', () => {
                 Text<'!'>
             ]>
         ]>
-
         >()
             
     })
 
-    it('insert', () => {
+    it('.insert()', () => {
 
         const n1 = Node.create(
             new Text('Ace'),

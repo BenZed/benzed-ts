@@ -1,35 +1,121 @@
 
+import { nil } from '@benzed/util'
+
 import { Finder } from './find'
 import Module from './module'
 import { Node } from './node'
-import Path from './node/path'
 
-it('creates a convenience interface for finding modules', () => {
+class Rank<S extends string> extends Module<S> {
 
-    const node = Node.create(
-        Module.for('aunt' as const),
+    static of<Sx extends string>(rank: Sx): Rank<Sx> {
+        return new Rank(rank)
+    }
+
+    getRank(): S {
+        return this.state
+    }
+
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createFamilyTreeAndFinder = () => {
+    
+    const tree = Node.create(
         Node.create(
-            Path.create('/current-generation'),
-            Module.for('brother' as const),
-            Module.for('hero' as const),
-            Module.for('sister' as const),
+            Rank.of('uncle')
+        ),
+        Node.create(
+            Rank.of('mom'),
             Node.create(
-                Path.create('/next-generation'),
-                Module.for('neice' as const),
-                Module.for('nephew' as const)
+                Rank.of('brother'),
+            ),
+            Node.create(
+                Rank.of('you'),
+                Node.create(
+                    Rank.of('son')
+                ),
+                Node.create(
+                    Rank.of('daughter'),
+                    Node.create(
+                        Rank.of('grandson')
+                    )
+                )
+            ),
+            Node.create(
+                Rank.of('sister'),
+                Node.create(
+                    Rank.of('neice'),
+                ),
+                Node.create(
+                    Rank.of('nephew')
+                )
             )
         ),
-        Module.for('uncle' as const)
+        Node.create(
+            Rank.of('uncle')
+        )
     )
 
-    const hero = node
-        .get('/current-generation')
-        .get(2)
+    const you = tree.get(1).get(2)
+    const finder = new Finder(you)
 
-    const find = new Finder(hero)
+    return [ finder, tree, you ] as const
+}
 
-    const neice = find.require.inDescendents(Module.for('neice' as const)) 
-    expect(neice.state).toEqual('neice')
+//// Exports ////
 
-    expect(neice.parent.find(Path)) 
+for (const scope of ['inDescendents', 'inChildren', 'inSiblings', 'inParents', 'inAncestors'] as const) {
+    for (const flag of ['require', 'all', undefined] as const) {
+        it(`input scope ${scope} ${flag ? 'with flag ' + flag : ''}`.trim(), () => {
+
+            const [ finder, tree ] = createFamilyTreeAndFinder()
+
+            const target = {
+
+                inDescendents: Node.create(Rank.of('grandson')),
+                inChildren: Node.create(Rank.of('son')),
+                inSiblings: Node.create(Rank.of('brother')),
+                inParents: tree,
+                inAncestors: Node.create(Rank.of('uncle')),
+
+            }[scope]
+
+            const findWithFlag = flag ? finder[flag] : finder
+            const found = findWithFlag[scope](target)
+            if (flag === 'all')
+                expect(found).toBeInstanceOf(Array)
+            else 
+                expect(found).toBeInstanceOf(Node)
+
+            if (flag === 'require')
+                expect(() => findWithFlag(Rank.of('invalid'))).toThrow('Could not find')
+        })
+    }
+}
+
+describe('callable signature', () => {
+    it('in nodes, defaults to children', () => {
+        const [ finder,,you ] = createFamilyTreeAndFinder()
+        expect(finder(Module)).toEqual(you.modules.at(0))
+        expect(finder(Node.create())).toEqual(nil)
+    })
+    it('in modules, defaults to siblings', () => {
+        const [,, you] = createFamilyTreeAndFinder()
+        const youRank = you.get(0)
+        const youRankFind = new Finder(youRank)
+        expect(youRankFind(Module)).toEqual(youRank.siblings.at(0))
+
+    })
+})
+
+it('require flag', () => {
+    const [finder, tree, you] = createFamilyTreeAndFinder()
+    expect(() => finder.require.inAncestors(Node.create(Module.for('cheese')))).toThrow('Could not find module')
+    const root = finder.require.inAncestors(you.root)
+    expect(root).toEqual(tree)
+})
+
+it('all flag', () => {
+    const [ finder,,you ] = createFamilyTreeAndFinder()
+    expect(finder.all.inParents(Module)).toEqual(you.parents)
 })

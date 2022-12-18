@@ -43,44 +43,37 @@ export interface FindModule {
     inSiblings<I extends FindInput>(state: I): FindOutput<I> | nil
     inParents<I extends FindInput>(state: I): FindOutput<I> | nil
     inAncestors<I extends FindInput>(state: I): FindOutput<I> | nil
-
 }
 
 export interface HasModule {
-
     <I extends FindInput>(state: I): boolean
     inDescendents<I extends FindInput>(state: I): boolean
     inChildren<I extends FindInput>(state: I): boolean
     inSiblings<I extends FindInput>(state: I): boolean
     inParents<I extends FindInput>(state: I): boolean
     inAncestors<I extends FindInput>(state: I): boolean
-
 }
 
 //// AssertModule ////
 
 export interface AssertModule {
-
     <I extends FindInput>(state: I): FindOutput<I>
     inDescendents<I extends FindInput>(state: I): FindOutput<I>
     inChildren<I extends FindInput>(state: I): FindOutput<I>
     inSiblings<I extends FindInput>(state: I): FindOutput<I>
     inParents<I extends FindInput>(state: I): FindOutput<I>
     inAncestors<I extends FindInput>(state: I): FindOutput<I>
-
 }
 
 //// FindModules ////
 
 export interface FindModules {
-
     <I extends FindInput>(state: I): FindOutput<I>[]
     inDescendents<I extends FindInput>(state: I): FindOutput<I>[]
     inChildren<I extends FindInput>(state: I): FindOutput<I>[]
     inSiblings<I extends FindInput>(state: I): FindOutput<I>[]
     inParents<I extends FindInput>(state: I): FindOutput<I>[]
     inAncestors<I extends FindInput>(state: I): FindOutput<I>[]
-
 }
 
 //// Implementation ////
@@ -95,91 +88,93 @@ interface FindConstructor {
     new (module: Module, flag?: FindFlag, error?: string): FindModule
 }
 
-const _Finder = callable(function find(input: FindInput) {
-    return hasChildren(this.module)
-        ? this.inChildren(input)
-        : this.inSiblings(input)
-}, class {
+const _Finder = callable(
+    function find(input: FindInput) {
+        return hasChildren(this.module)
+            ? this.inChildren(input)
+            : this.inSiblings(input)
+    }, 
+    class {
 
-    constructor(
-        readonly module: Module,
-        private readonly _flag?: FindFlag,
-        private readonly _error?: string
-    ) { }
+        constructor(
+            readonly module: Module,
+            private readonly _flag?: FindFlag,
+            private readonly _error?: string
+        ) { }
 
-    get require(): FindModule {
-        this._assertNoFlag()
-        return new _Finder(this.module, FindFlag.Require, this._error) as FindModule
-    }
-
-    get all(): FindModules { 
-        this._assertNoFlag()
-
-        return new _Finder(this.module, FindFlag.All, this._error) as FindModules
-    }
-
-    inDescendents = (input: FindInput): unknown => this._find(
-        this.module.eachDescendent(),
-        input
-    )
-
-    inChildren = (input: FindInput): unknown => this._find(
-        hasChildren(this.module) 
-            ? this.module.eachChild()
-            : [][Symbol.iterator](),
-        input 
-    )
-
-    inSiblings = (input: FindInput): unknown => this._find(
-        this.module.eachSibling(),
-        input
-    )
-
-    inParents = (input: FindInput): unknown => this._find(
-        this.module.eachParent(),
-        input
-    )
-
-    inAncestors = (input: FindInput): unknown => this._find(
-        this.module.eachAncestor(),
-        input
-    )
-
-    //// Helper ////
-
-    private _find(iterator: IterableIterator<Module>, input: FindInput): unknown {
-        const predicate = toModulePredicate(input)
-
-        const output: Module[] = []
-        const { _flag: flag } = this
-
-        for (const module of iterator) {
-            const pass = predicate(module)
-            if (pass)
-                output.push(pass instanceof Module ? pass : module)
-            if (pass && flag !== FindFlag.All)
-                break
+        get require(): FindModule {
+            this._assertNoFlag()
+            return new _Finder(this.module, FindFlag.Require, this._error) as FindModule
         }
 
-        const has = output.length > 0
-        if (flag === FindFlag.Require && !has)
-            throw new Error(this._error ?? `Could not find module ${toModuleName(input)}`)
+        get all(): FindModules { 
+            this._assertNoFlag()
 
-        if (flag === FindFlag.All)
-            return output
+            return new _Finder(this.module, FindFlag.All, this._error) as FindModules
+        }
 
-        if (flag === FindFlag.Has)
-            return has
+        inDescendents = (input: FindInput): unknown => this._find(
+            hasChildren(this.module) ? this.module.eachDescendent() : nil,
+            input
+        )
 
-        return output.at(0)
-    }
+        inChildren = (input: FindInput): unknown => this._find(
+            hasChildren(this.module) ? this.module.eachChild() : nil,
+            input 
+        )
 
-    private _assertNoFlag(): void {
-        if (!isNil(this._flag) )
-            throw new Error(`Find has ${FindFlag[this._flag]}`)
-    }
+        inSiblings = (input: FindInput): unknown => this._find(
+            this.module.eachSibling(),
+            input
+        )
 
-}, 'Finder')
+        inParents = (input: FindInput): unknown => this._find(
+            this.module.eachParent(),
+            input
+        )
+
+        inAncestors = (input: FindInput): unknown => this._find(
+            this.module.eachAncestor(),
+            input
+        )
+
+        //// Helper ////
+
+        private _find(iterator: IterableIterator<Module> | nil, input: FindInput): unknown {
+            const predicate = toModulePredicate(input)
+
+            const output: Module[] = []
+            const { _flag: flag } = this
+
+            if (iterator) {
+                for (const module of iterator) {
+                    const pass = predicate(module)
+                    if (pass)
+                        output.push(pass instanceof Module ? pass : module)
+                    if (pass && flag !== FindFlag.All)
+                        break
+                }
+            }
+
+            const has = output.length > 0
+            if (flag === FindFlag.Require && !has)
+                throw new Error(this._error ?? `Could not find module ${toModuleName(input)}`)
+
+            if (flag === FindFlag.All)
+                return output
+
+            if (flag === FindFlag.Has)
+                return has
+
+            return output.at(0)
+        }
+
+        private _assertNoFlag(): void {
+            if (!isNil(this._flag) )
+                throw new Error(`Find has ${FindFlag[this._flag]}`)
+        }
+
+    }, 'Finder')
 
 export const Finder = _Finder as unknown as FindConstructor
 
