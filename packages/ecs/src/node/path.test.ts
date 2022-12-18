@@ -1,7 +1,7 @@
 import { Path, PathsOf, NestedPathsOf } from './path'
 import { Node } from './node'
 
-import { Module } from '../module'
+import { Module, State } from '../module'
 import { Modules } from '../modules'
 
 import { it, expect } from '@jest/globals'
@@ -145,14 +145,14 @@ it('.get() throws on bad paths', () => {
 
 it('.set() from a path', () => { 
 
-    const n1 = Node.create().add(new Module(0 as const))
-    const n2 = n1.set('/bar', Node.create().add(new Module(1 as const)))
+    const n1 = Node.create().add(Module.for(0 as const))
+    const n2 = n1.set('/bar', Node.create().add(Module.for(1 as const)))
 
     type N2 = Node<[
-        Module<0>,
+        State<0>,
         Node<[
             Path<'/bar'>, 
-            Module<1>
+            State<1>
         ]>
     ]>
 
@@ -177,4 +177,34 @@ it('.set() overwrites existing path', () => {
     expect(foo.numModules).toEqual(2)
     expect(foo.get(1).getPath()).toEqual('/foo')
 
+})
+
+it('.remove() from a path', () => {
+
+    const t1 = Node.create(
+        Module.for(0 as const),
+        Node.create(
+            Path.create('/one'),
+            Module.for(1 as const)
+        ),
+        Node.create(
+            Path.create('/two'),
+            Module.for(2 as const)
+        )
+    )
+
+    const t2 = t1.remove('/one')
+    type T2 = Node<[
+        State<0>,
+        Node<[
+            Path<'/two'>,
+            State<2>
+        ]>
+    ]>
+
+    expectTypeOf(t2).toEqualTypeOf<T2>()
+
+    expect(t2.modules).not.toContain(t1.get('/one'))
+    expect(t2.modules[0]).toEqual(t1.get(0))
+    expect(t2.modules[1]).toEqual(t1.get('/two'))
 })

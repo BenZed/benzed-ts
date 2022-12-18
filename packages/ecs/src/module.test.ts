@@ -166,7 +166,6 @@ describe('relationships', () => {
             expect(tree.root).toEqual(tree)
         })
     })
-
 })
 
 test('.find', () => {
@@ -178,7 +177,6 @@ test('.find', () => {
 
     const mom = you.find.inSiblings(Rank.of('mom'))
     expect(mom).toEqual(you.siblings[0])
-
 })
 
 test('.has', () => {
@@ -233,7 +231,6 @@ describe('CopyComparable', () => {
 })
 
 describe('validate()', () => {
-
     it('is called on parent', () => {
         let called = false 
 
@@ -248,5 +245,4 @@ describe('validate()', () => {
 
         expect(called).toBe(true)
     })
-
 })

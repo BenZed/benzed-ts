@@ -1,7 +1,9 @@
 import { Indexes, IndexesOf, isTruthy as isNotEmpty, nil } from '@benzed/util'
+import { hasChildren } from '../find'
 
 import Module, { ModuleArray } from '../module'
-import Modules, { AddModules, SetModule } from '../modules'
+import Modules, { AddModules, RemoveModule, SetModule } from '../modules'
+import { removeModule } from '../modules/operations'
 import { Node } from '../node'
 
 import { 
@@ -116,7 +118,9 @@ export function setNodeAtPath(
 export type RemoveNodeAtPath<
     M extends ModuleArray,
     P extends PathsOf<M>
-> = any
+> = IndexOfModuleAtPath<M, ToPath<P>> extends IndexesOf<M> 
+    ? RemoveModule<M, IndexOfModuleAtPath<M, ToPath<P>>>
+    : never
 
 export function removeNodeAtPath<
     M extends ModuleArray, 
@@ -125,7 +129,12 @@ export function removeNodeAtPath<
     modules: M,
     path: P
 ): RemoveNodeAtPath<M,P> {
-    return [] 
+    const index = modules.findIndex(node => hasChildren(node) && node.find((child): child is Path => child instanceof Path && child.path === path))
+    if (index < 0)
+        throw new Error(`Invalid path: ${path}`)
+
+    const removed = removeModule(modules, index as IndexesOf<M>)
+    return removed as ModuleArray as RemoveNodeAtPath<M,P>
 }
 
 //// GetNodeAtPath ////
@@ -139,13 +148,13 @@ export function getNodeAtPath(modules: ModuleArray, nestedPath: path): Modules {
         .map(path => `/${path}`) as path[]
 
     let output: Modules | nil
-
     for (const path of paths) {
-        output = modules.find(child => 
-            child instanceof Modules && 
-            child.modules.find((grandChild: Module) => 
-                grandChild instanceof Path && 
-                grandChild.path === path)
+
+        output = modules.find(m => 
+            m instanceof Modules && 
+            m.children.find((mx: Module) => 
+                mx instanceof Path && 
+                mx.path === path)
         ) as Modules | nil
 
         if (!output)
@@ -153,7 +162,6 @@ export function getNodeAtPath(modules: ModuleArray, nestedPath: path): Modules {
 
         modules = output.modules
     }
-
     if (!output)
         throw new Error(`Invalid path: ${nestedPath}`)
 

@@ -192,7 +192,7 @@ abstract class Module<S = unknown> implements CopyComparable {
 
     get ancestors(): Module[] {
         return Array.from(this.eachAncestor())
-    }
+    } 
 
     get numAncestors(): number {
         return this.ancestors.length
