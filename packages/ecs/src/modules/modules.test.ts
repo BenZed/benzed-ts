@@ -6,9 +6,9 @@ import { Modules } from './modules'
 //// Setup ////
 
 const _modules = [
-    new Module(0),
-    new Module(1),
-    new Module(2)
+    Module.for(0),
+    Module.for(1),
+    Module.for(2)
 ]
 
 const modules = new Modules(..._modules)
@@ -16,7 +16,7 @@ const modules = new Modules(..._modules)
 //// Tests ////
 
 it('throws if multiple instances of the same module exist in the parent', () => {
-    const module = new Module(0)
+    const module = Module.for(0)
     expect(() => new Modules(module, module)).toThrow('Parent may only contain single reference of child')
 })
 

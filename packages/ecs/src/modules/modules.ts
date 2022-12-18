@@ -128,7 +128,7 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
         return this.numModules
     }
 
-    override * eachDescendent(): IterableIterator<Module> {
+    * eachDescendent(): IterableIterator<Module> {
         for (const child of this.eachChild()) {
             yield child
             if (child instanceof Modules)

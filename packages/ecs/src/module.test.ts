@@ -1,103 +1,204 @@
 import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
 
 import { Module } from './module'
-import { Modules } from './modules'
 
 import { describe, it, test, expect } from '@jest/globals'
 import { Finder } from './find'
+import { Node } from './node'
+import { Modules } from './modules'
 
-describe('parent', () => {
+//// Setup ////
 
-    const m1 = new Module(0)
-    const ms = new Modules(m1)
+class Rank<S extends string> extends Module<S> {
 
-    it('gets module parent', () => {
-        expect(ms.modules).toContain(m1)
-        expect(m1.parent).toBe(ms)
-    })
+    static of<Sx extends string>(rank: Sx): Rank<Sx> {
+        return new Rank(rank)
+    }
 
-    describe('_setParent(parent?) @internal', () => {
+    getRank(): S {
+        return this.state
+    }
 
-        const parents: Module[] = [] 
+}
 
-        class ModuleSpy extends Module<number> {
-            override _setParent(parent: Modules): this {
-                parents.push(parent)
-                return super._setParent(parent)
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createFamilyTree = () => {
+    
+    const tree = Node.create(
+        Node.create(
+            Rank.of('uncle')
+        ),
+        Node.create(
+            Rank.of('mom'),
+            Node.create(
+                Rank.of('brother'),
+            ),
+            Node.create(
+                Rank.of('you'),
+                Node.create(
+                    Rank.of('son')
+                ),
+                Node.create(
+                    Rank.of('daughter'),
+                    Node.create(
+                        Rank.of('grandson')
+                    )
+                )
+            ),
+            Node.create(
+                Rank.of('sister'),
+                Node.create(
+                    Rank.of('neice'),
+                ),
+                Node.create(
+                    Rank.of('nephew')
+                )
+            )
+        ),
+        Node.create(
+            Rank.of('uncle')
+        )
+    )
+    const you = tree.get(1).get(2)
+    return [tree, you] as const
+}
+//// Tests ////
+
+describe('relationships', () => {
+
+    describe('.parent', () => {
+
+        const child = Module.for('hey' as const)
+        const parent = Node.create(child)
+    
+        it('gets module parent', () => {
+            expect(parent.modules).toContain(child)
+            expect(child.parent).toBe(parent)
+        })
+
+        it('throws if no parent', () => {
+            expect(() => Module.for(0).parent).toThrow('does not have a parent')
+        })
+    
+        describe('_setParent(parent?) @internal', () => {
+    
+            const parents: Module[] = [] 
+    
+            class ModuleSpy extends Module<number> {
+                override _setParent(parent: Modules): this {
+                    parents.push(parent)
+                    return super._setParent(parent)
+                }
             }
-        }
-
-        const spy = new ModuleSpy(100)
-        const modules = new Modules(spy)
-
-        it('sets module parent', () => {
-
-            expect(modules.modules).toContain(spy)
-            expect(parents).toContain(modules)
-        })
-
-        it('throws if parent has already been set', () => {
-            expect(() => spy._setParent(modules)).toThrow('Parent already set')
-        })
-
-        it('throws if parent does not contain module', () => {
-            const liar = new Modules()
-            expect(() => new ModuleSpy(0)._setParent(liar)).toThrow('Parent invalid')
+    
+            const spy = new ModuleSpy(100)
+            const modules = new Modules(spy)
+    
+            it('sets module parent', () => {
+    
+                expect(modules.modules).toContain(spy)
+                expect(parents).toContain(modules)
+            })
+    
+            it('throws if parent has already been set', () => {
+                expect(() => spy._setParent(modules)).toThrow('Parent already set')
+            })
+    
+            it('throws if parent does not contain module', () => {
+                const liar = new Modules()
+                expect(() => new ModuleSpy(0)._setParent(liar)).toThrow('Parent invalid')
+            })
         })
     })
-})
 
-const children = [
-    new Module(0),
-    new Module(1),
-    new Module(2)
-]
+    describe('.siblings', () => {
+        const [, you ] = createFamilyTree()
 
-const parent = new Modules(...children)
+        it('contains all parent children except this node', () => {
+            expect(you.siblings).toEqual(you.parent.children.filter(c => c !== you))
+        })
+        it('eachSibling() iterator', () => {
+            expect([...you.eachSibling()]).toEqual(you.siblings)
+        })
+    })
 
-test('.modules', () => {
-    expect(children).toEqual(parent.modules)
-})
+    describe('.parents', () => {
+        const [ , you ] = createFamilyTree()
 
-test('.siblings', () => {
-    const child = parent.modules[0]
-    expect(child.siblings).not.toContain(child)
-    expect(child.siblings).toEqual(parent.modules.slice(1))
-})
+        it('contains all direct descendents to root', () => {
+            expect(you.parents).toEqual([you.parent, you.parent.parent])
+        })
 
-test('.root', () => {
-    const child = parent.modules[0]
-    const grandParent = new Modules(parent)
-    expect(grandParent.root).toBe(grandParent)
-    expect(parent.root).toEqual(grandParent)
-    expect(child.root).toEqual(grandParent)
+        it('eachParent() iterator', () => {
+            expect([...you.eachParent()]).toEqual(you.parents)
+        })
+    })
+
+    describe('.ancestors', () => {
+        const [ ,you ] = createFamilyTree()
+
+        it('contains all ancestors up to root', () => {
+            expect(you.ancestors).toEqual([ you.parent, ...you.parent.siblings, you.parent.parent ])
+        })
+
+        it('eachAncestor() iterator', () => {
+            expect([...you.eachAncestor()]).toEqual(you.ancestors)
+        })
+    })
+
+    describe('.root', () => {
+        const [ tree, you ] = createFamilyTree()
+
+        it('contains root node', () => {
+            expect(you.root).toEqual(tree)
+        })
+
+        it('defaults to self if unparented', () => {
+            expect(tree.root).toEqual(tree)
+        })
+    })
+
 })
 
 test('.find', () => {
-    const find = parent.find
+
+    const [, you] = createFamilyTree()
+
+    const find = you.find
     expect(find).toBeInstanceOf(Finder)
 
-    const zero = parent.find(new Module(0))
-    expect(zero).toEqual(new Module(0))
+    const mom = you.find.inSiblings(Rank.of('mom'))
+    expect(mom).toEqual(you.siblings[0])
+
 })
 
 test('.has', () => {
-    const has = parent.has
-    expect(has).toBeInstanceOf(Finder)
+    const [, you] = createFamilyTree()
+    expect(you.has).toBeInstanceOf(Finder)
 
-    expect(parent.has(new Module(2))).toBe(true)
+    expect(you.has(Node.create(
+        Rank.of('son')
+    ))).toBe(true)
 })
 
 test('.assert', () => {
-    expect(parent.assert()).toBeInstanceOf(Finder)
-    expect(() => parent.assert(new Module(4))).toThrow('Could not find')
-    expect(() => parent.assert('Module<4> is required!').inChildren(new Module(4))).toThrow('Module<4> is required!')
+
+    const [ , you ] = createFamilyTree()
+
+    expect(you.assert()).toBeInstanceOf(Finder)
+    expect(() => you.assert(Rank.of('none'))).toThrow('Could not find')
+    expect(() => you
+        .assert('Rank<"steve"> is required!')
+        .inChildren(
+            Rank.of('steve')
+        )
+    ).toThrow('Rank<"steve"> is required!')
 })
 
 describe('CopyComparable', () => {
     test('@benzed/immutable copy()', () => {
 
-        const m1 = new Module({ foo: 'bar' })
+        const m1 = Module.for({ foo: 'bar' })
 
         const m2 = copy(m1)
 
@@ -108,8 +209,8 @@ describe('CopyComparable', () => {
 
     test('@benzed/immutable equals()', () => {
 
-        const m1 = new Module({ id: 1 })
-        const m2 = new Module({ id: 2 })
+        const m1 = Module.for({ id: 1 })
+        const m2 = Module.for({ id: 2 })
 
         expect(equals(m1, m2)).toBe(false)
         expect(equals(m1, copy(m1))).toBe(true)

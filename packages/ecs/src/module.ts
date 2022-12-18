@@ -15,7 +15,6 @@ import {
     isString,
     nil,
 } from '@benzed/util'
-import { assert } from 'console'
 
 import { 
     Finder, 
@@ -24,7 +23,6 @@ import {
     
     AssertModule, 
     HasModule, 
-    hasChildren,
     FindInput,
     FindOutput
 } from './find'
@@ -67,7 +65,7 @@ const _parents = new WeakMap<Module, nil | Modules>
 
 //// Definition ////
 
-class Module<S = unknown> implements CopyComparable {
+abstract class Module<S = unknown> implements CopyComparable {
 
     /**
      * Create a module with generic get/set state setters
