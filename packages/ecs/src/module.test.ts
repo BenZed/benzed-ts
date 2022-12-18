@@ -120,6 +120,9 @@ describe('relationships', () => {
         it('eachSibling() iterator', () => {
             expect([...you.eachSibling()]).toEqual(you.siblings)
         })
+        it('numSiblings', () => {
+            expect(you.numSiblings).toEqual(you.siblings.length)
+        })
     })
 
     describe('.parents', () => {
@@ -132,6 +135,9 @@ describe('relationships', () => {
         it('eachParent() iterator', () => {
             expect([...you.eachParent()]).toEqual(you.parents)
         })
+        it('numParents', () => {
+            expect(you.numParents).toEqual(you.parents.length)
+        })
     })
 
     describe('.ancestors', () => {
@@ -143,6 +149,9 @@ describe('relationships', () => {
 
         it('eachAncestor() iterator', () => {
             expect([...you.eachAncestor()]).toEqual(you.ancestors)
+        })
+        it('numAncestors', () => {
+            expect(you.numAncestors).toEqual(you.ancestors.length)
         })
     })
 

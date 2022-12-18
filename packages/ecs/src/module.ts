@@ -163,6 +163,10 @@ abstract class Module<S = unknown> implements CopyComparable {
         return Array.from(this.eachSibling())
     }
 
+    get numSiblings(): number {
+        return this.siblings.length
+    }
+
     * eachParent(): IterableIterator<Modules> {
         let current: Module = this
         while (current.hasParent) {
@@ -175,6 +179,10 @@ abstract class Module<S = unknown> implements CopyComparable {
         return Array.from(this.eachParent())
     }
 
+    get numParents(): number {
+        return this.parents.length
+    }
+
     * eachAncestor(): IterableIterator<Module> {
         for (const parent of this.eachParent()) {
             yield parent
@@ -184,6 +192,10 @@ abstract class Module<S = unknown> implements CopyComparable {
 
     get ancestors(): Module[] {
         return Array.from(this.eachAncestor())
+    }
+
+    get numAncestors(): number {
+        return this.ancestors.length
     }
 
     /**

@@ -70,3 +70,22 @@ describe('get()', () => {
     })
 
 })
+
+test('children', () => {
+    expect(modules.children).toEqual(modules.modules)
+    expect([...modules.eachChild()]).toEqual(modules.modules)
+})
+
+test('descendents', () => {
+
+    const modules = new Modules(
+        new Modules(
+            Module.for(0),
+            Module.for(1)
+        )
+    )
+
+    expect(modules.descendents).toEqual([modules.get(0), ...modules.get(0).modules])
+    expect([...modules.eachDescendent()]).toEqual(modules.descendents)
+    expect(modules.numDescendents).toEqual(modules.descendents.length)
+})

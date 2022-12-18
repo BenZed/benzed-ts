@@ -136,6 +136,14 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
         }
     }
 
+    get descendents(): Module[] {
+        return Array.from(this.eachDescendent())
+    }
+
+    get numDescendents(): number {
+        return this.descendents.length
+    }
+
     constructor(...modules: M) {
         super(modules)
         for (const module of this) 
