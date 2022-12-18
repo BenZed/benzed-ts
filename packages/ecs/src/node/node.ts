@@ -47,7 +47,7 @@ interface NodeInterface<M extends ModuleArray> extends Modules<M> {
     
     add<Mx extends ModuleArray>(...modules: Mx): Node<AddModules<M, Mx>>
 
-    insert<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): Node<InsertModule<M, I, Mx>>
+    insert<Mx extends ModuleArray, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModule<M, I, Mx>>
 
     set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, initalizer: F): Node<SetModule<M, I, ReturnType<F>>>
     set<Mx extends Module, I extends IndexesOf<M>>( index: I, module: Mx): Node<SetModule<M, I, Mx>>
@@ -97,21 +97,25 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         )
     }
 
-    insert<I extends IndexesOf<M>, Mx extends Module>(index: I, module: Mx): Node<InsertModule<M, I, Mx>> {
+    insert<I extends IndexesOf<M>, Mx extends ModuleArray>(index: I, ...modules: Mx): Node<InsertModule<M, I, Mx>> {
         return Node.create(
             ...Modules.insert(
                 this.modules,
                 index,
-                module
+                ...modules
             )
         )
     }
 
     set<F extends (input: GetNodeAtPath<M, P>) => Node, P extends PathsOf<M>>(
-        path: P, initialzer: F
+        path: P, 
+        initialzer: F
     ): Node<SetNodeAtPath<M, ToPath<P>, ReturnType<F>>>
     set<N extends Node, P extends path>(path: P, node: N): Node<SetNodeAtPath<M, P, N>>
-    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, initializer: F): Node<SetModule<M, I, ReturnType<F>>>
+    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(
+        index: I, 
+        initializer: F
+    ): Node<SetModule<M, I, ReturnType<F>>>
     set<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): Node<SetModule<M, I, Mx>>
 
     set(...args: unknown[]): unknown {

@@ -38,14 +38,10 @@ type SpliceModules<
         : []
     : []
 
-function spliceModule(input: ModuleArray, index: number, deleteCount: number, module?: Module): ModuleArray {
-
+function spliceModule(input: ModuleArray, index: number, deleteCount: number, ...insert: Module[]): ModuleArray {
     const output = [...input]
-
-    if (module)
-        output.splice(index, deleteCount, module)
-    else 
-        output.splice(index, deleteCount)
+    
+    output.splice(index, deleteCount, ...insert)
 
     return output
 }
@@ -78,19 +74,19 @@ export function addModules<
 export type InsertModule<
     M extends ModuleArray,
     I extends IndexesOf<M>,
-    Mx extends Module
-> = SpliceModules<M, I, [Mx]>
+    Mx extends ModuleArray
+> = SpliceModules<M, I, Mx>
 
-export function insertModule<
+export function insertModules<
     M extends ModuleArray,
     I extends IndexesOf<M>,
-    Mx extends Module 
+    Mx extends ModuleArray 
 >(
     input: M,
     index: I,
-    newModule: Mx
+    ...modules: Mx
 ): InsertModule<M, I, Mx> {
-    return spliceModule(input, index, 0, newModule) as InsertModule<M,I,Mx>
+    return spliceModule(input, index, 0, ...modules) as InsertModule<M,I,Mx>
 }
 
 //// SwapModules ////

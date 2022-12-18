@@ -20,7 +20,7 @@ import {
     removeModule, 
     swapModules, 
     setModule, 
-    insertModule, 
+    insertModules, 
      
     getModule,
     GetModule
@@ -58,7 +58,7 @@ type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = Fill<I, _In
 class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements Iterable<M[number]> {
 
     static add = addModules
-    static insert = insertModule
+    static insert = insertModules
     static set = setModule
     static remove = removeModule
     static swap = swapModules

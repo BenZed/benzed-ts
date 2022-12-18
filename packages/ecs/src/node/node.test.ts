@@ -239,5 +239,13 @@ describe('operations', () => {
             Text<'Case'>
         ]>>()
 
+        const n3 = n1.insert(0, new Text('Dame'), new Text('Edam'))
+        expect(n3.modules).toHaveLength(4)
+        expectTypeOf(n3).toEqualTypeOf<Node<[
+            Text<'Dame'>,
+            Text<'Edam'>,
+            Text<'Ace'>,
+            Text<'Case'>
+        ]>>()
     })
 })
