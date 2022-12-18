@@ -145,7 +145,7 @@ abstract class Module<S = unknown> implements CopyComparable {
      * @internal
      */
     _clearParent(): this {
-        return this.hasParent ? this[$$copy]() : this
+        return this.hasParent ? this.copy() : this
     } 
 
     //// Relationships ////
@@ -247,9 +247,17 @@ abstract class Module<S = unknown> implements CopyComparable {
             equals(this.state, input.state)
     }
 
+    equals(input: unknown): input is this {
+        return this[$$equals](input)
+    }
+
     [$$copy](): this {
         const Constructor = this.constructor as new (modules: S) => this
         return new Constructor(this.state)
+    }
+
+    copy(): this {
+        return this[$$copy]()
     }
 
 }

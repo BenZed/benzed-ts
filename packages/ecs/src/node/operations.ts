@@ -1,5 +1,5 @@
+import { equals } from '@benzed/immutable'
 import { Indexes, IndexesOf, isTruthy as isNotEmpty, nil } from '@benzed/util'
-import { hasChildren } from '../find'
 
 import Module, { ModuleArray } from '../module'
 import Modules, { AddModules, RemoveModule, SetModule } from '../modules'
@@ -88,23 +88,22 @@ export function setNodeAtPath(
     input: Modules | ((input: Module) => Modules)
 ): ModuleArray {
 
-    const inputModule = 'parent' in input 
+    const inputNode = 'parent' in input 
         ? input
         : input(getNodeAtPath(modules, path as never))
 
+    const newPath = Path.create(path)
+
     const outputNode = Node.create(
-        Path.create(path),  
-        ...inputModule
+        newPath,  
+        ...inputNode
             .find
-            .all(m => m instanceof Path ? nil : m._clearParent())
+            .all(m => m instanceof Path ? nil : m) // remove existing paths
     )
 
-    const replaceIndex = modules.findIndex(module =>
-        module instanceof Path && 
-        module.path === path 
-    )
+    const replaceIndex = modules.findIndex(module => equals(module, newPath))
 
-    const outputModules = modules.map(module => module._clearParent())
+    const outputModules = [...modules]
     if (replaceIndex < 0)
         outputModules.push(outputNode)
     else 
@@ -129,7 +128,10 @@ export function removeNodeAtPath<
     modules: M,
     path: P
 ): RemoveNodeAtPath<M,P> {
-    const index = modules.findIndex(node => hasChildren(node) && node.find((child): child is Path => child instanceof Path && child.path === path))
+
+    const keyPath = Path.create(path as path)
+    
+    const index = modules.findIndex(node => node.find.inChildren(keyPath))
     if (index < 0)
         throw new Error(`Invalid path: ${path}`)
 
@@ -145,18 +147,12 @@ export function getNodeAtPath(modules: ModuleArray, nestedPath: path): Modules {
     const paths = nestedPath
         .split('/')
         .filter(isNotEmpty)
-        .map(path => `/${path}`) as path[]
+        .map(path => Path.create(`/${path}`))
 
     let output: Modules | nil
     for (const path of paths) {
 
-        output = modules.find(m => 
-            m instanceof Modules && 
-            m.children.find((mx: Module) => 
-                mx instanceof Path && 
-                mx.path === path)
-        ) as Modules | nil
-
+        output = modules.find(module => module.find.inChildren(path)) as Modules | nil
         if (!output)
             break
 

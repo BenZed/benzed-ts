@@ -38,6 +38,18 @@ type SpliceModules<
         : []
     : []
 
+function spliceModule(input: ModuleArray, index: number, deleteCount: number, module?: Module): ModuleArray {
+
+    const output = [...input]
+
+    if (module)
+        output.splice(index, deleteCount, module)
+    else 
+        output.splice(index, deleteCount)
+
+    return output
+}
+
 //// AddModules ////
     
 export type AddModules<
@@ -56,8 +68,8 @@ export function addModules<
     inputB: B
 ): AddModules<A,B> {
     return [
-        ...inputA.map(m => m._clearParent()) as ModuleArray as A,
-        ...inputB.map(m => m._clearParent()) as ModuleArray as B
+        ...inputA,
+        ...inputB
     ]
 }
 
@@ -78,11 +90,7 @@ export function insertModule<
     index: I,
     newModule: Mx
 ): InsertModule<M, I, Mx> {
-
-    const output = input.map(m => m._clearParent())
-    output.splice(index, 0, newModule)
-    
-    return output as InsertModule<M,I,Mx>
+    return spliceModule(input, index, 0, newModule) as InsertModule<M,I,Mx>
 }
 
 //// SwapModules ////
@@ -122,7 +130,7 @@ export function swapModules<
     indexB: B
 ): SwapModules<M,A,B> {
 
-    const output = input.map(m => m._clearParent())
+    const output = [...input] as ModuleArray
     swap(output, indexA as number, indexB)
 
     return output as SwapModules<M,A,B>
@@ -142,11 +150,7 @@ export function removeModule<
     input: M,
     index: I
 ): RemoveModule<M, I> {
-
-    const output = input.map(m => m._clearParent())
-    output.splice(index, 1)
-
-    return output as RemoveModule<M, I>
+    return spliceModule(input, index, 1) as RemoveModule<M, I>
 }
 
 //// SetModule ////
@@ -158,7 +162,7 @@ export function setModule<
     M extends ModuleArray,
     I extends IndexesOf<M>,
     F extends (input: M[I]) => Module
->(input: M, index: I, createModule: F): SetModule<M, I, ReturnType<F>>
+>(input: M, index: I, initializer: F): SetModule<M, I, ReturnType<F>>
 
 export function setModule<
     M extends ModuleArray,
@@ -170,16 +174,14 @@ export function setModule<
     module: Mx
 ): SetModule<M, I, Mx> 
 
-export function setModule(input: ModuleArray, index: number, module: Module | ((current: Module) => Module)): ModuleArray {
+export function setModule(input: ModuleArray, index: number, moduleOrInitializer: Module | ((current: Module) => Module)): ModuleArray {
 
-    module = 'parent' in module ? module : module(input[index])
+    const newModule = 'parent' in moduleOrInitializer 
+        ? moduleOrInitializer 
+        : moduleOrInitializer(input[index])
 
-    const newModule = module._clearParent()
+    return spliceModule(input, index, 1, newModule) 
 
-    const output = input.map(m => m._clearParent())
-    output.splice(index, 1, newModule)
-
-    return output
 }
 
 //// GetModule ////

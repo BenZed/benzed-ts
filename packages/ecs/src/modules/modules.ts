@@ -145,7 +145,7 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
     }
 
     constructor(...modules: M) {
-        super(modules)
+        super(modules.map(m => m._clearParent()) as ModuleArray as M)
         for (const module of this) 
             module._setParent(this)
     }
@@ -171,7 +171,7 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
 
     [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...this.state.map(m => m._clearParent()) as ModuleArray as M)
+        return new Constructor(...this.state)
     }
 
 }
