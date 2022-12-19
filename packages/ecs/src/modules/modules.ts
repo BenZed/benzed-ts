@@ -1,4 +1,4 @@
-import { $$copy, equals } from '@benzed/immutable'
+import { $$copy } from '@benzed/immutable'
 import { 
     Func, 
     isFunc,
@@ -7,12 +7,10 @@ import {
     
     keysOf, 
     property,
-    IsIdentical,
 
 } from '@benzed/util'
 
 import { Fill, MethodsOf } from '../types'
-
 import Module, { ModuleArray } from '../module'
 
 import { 
@@ -30,6 +28,7 @@ import {
     isSingle,
     isRootLevel
 } from './assertions'
+import { hasChildren } from '../find'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -55,7 +54,9 @@ type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = Fill<I, _In
 
 //// Main ////
 
-class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements Iterable<M[number]> {
+class Modules<M extends ModuleArray = ModuleArray> 
+    extends Module<M> 
+    implements Iterable<M[number]> {
 
     static add = addModules
     static insert = insertModules
@@ -69,32 +70,41 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
         isRootLevel
     } as const
 
+    static flatten(modules: ModuleArray): ModuleArray {
+        return modules.flatMap(m => hasChildren(m) 
+            ? Modules.flatten(m.modules) 
+            : m
+        )
+    }
+
     static applyInterface<M extends Modules<any>>(modules: M): M {
 
         const { descriptorsOf, prototypesOf, define } = property
   
-        const modulesDescriptors = descriptorsOf(...prototypesOf(modules, [Module.prototype]))
+        const modulesDescriptors = descriptorsOf(
+            ...prototypesOf(modules, [Object.prototype, Module.prototype, Modules.prototype])
+        )
         const applyDescriptors: PropertyDescriptorMap = {}
  
-        for (const module of modules.modules) {
+        for (const module of Modules.flatten(modules.modules)) {  
             
-            const moduleDescriptors = descriptorsOf(...prototypesOf(module, [Module.prototype]))
-            for (const key of keysOf(moduleDescriptors)) { 
+            const descriptors = descriptorsOf(...prototypesOf(module, [Object.prototype, Module.prototype, Modules.prototype]))
+            for (const key of keysOf(descriptors)) { 
+                const descriptor = descriptors[key]
 
                 const isPrivate = key.startsWith('_')
-                const isConstructor = key === 'constructor'
                 const isAlreadyDefined = key in applyDescriptors || key in modulesDescriptors
-                const isFunction = 'value' in moduleDescriptors[key] && isFunc(moduleDescriptors[key].value)
+                const isFunction = isFunc(descriptor.value)
 
                 if (
                     !isPrivate && 
-                    !isConstructor && 
                     !isAlreadyDefined && 
                     isFunction
                 ) {
                     applyDescriptors[key] = {
-                        ...moduleDescriptors[key],
-                        value: wrapNodeInterfaceMethod(module, key)
+                        ...descriptor,
+                        enumerable: true,
+                        value: wrapNodeInterfaceMethod(module, descriptor)
                     }
                 }
             }
@@ -102,29 +112,24 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
 
         return define(modules, applyDescriptors)
     }
-    
-    //// State ////
-    
+
     /**
      * Alias for children
      */
     get modules(): M {
-        return this.state
+        return this.data
     }
-
     get numModules(): M['length'] {
-        return this.state.length
+        return this.data.length
     }
 
     * eachChild(): IterableIterator<Module> {
-        yield* this.state
+        yield* this.data
     }
-
     get children(): Module[] {
         return Array.from(this.eachChild())
     }
-
-    get numChildren(): number {
+    get numChildren(): M['length'] {
         return this.numModules
     }
 
@@ -135,11 +140,9 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
                 yield* child.eachDescendent()
         }
     }
-
     get descendents(): Module[] {
         return Array.from(this.eachDescendent())
     }
-
     get numDescendents(): number {
         return this.descendents.length
     }
@@ -153,73 +156,44 @@ class Modules<M extends ModuleArray = ModuleArray> extends Module<M> implements 
     //// Interface ////
 
     get<I extends IndexesOf<M>>(index: I): GetModule<M,I> {
-        return Modules.get(this.modules, index)
+        return Modules.get(this.modules, index)  
     }
 
     override validate(): void {
         for (const module of this.modules)
             module.validate()
     }
-
+ 
     //// Iterable Implementation ////
     
     *[Symbol.iterator](): Iterator<Module> {
-        yield* this.state
+        yield* this.data
     }
 
-    //// CopyComparable ////
+    //// Copyable ////
 
-    [$$copy](): this {
+    override [$$copy](): this {
         const Constructor = this.constructor as new (...modules: M) => this
-        return new Constructor(...this.state)
-    }
-
-}
-
-//// Another Helper State Class ////
-
-type _GetKeyState<M, K> = M extends [infer M1, ...infer Mr ]
-    ? M1 extends KeyState<infer Kx, infer T> 
-        ? IsIdentical<K, Kx> extends true 
-            ? T
-            : _GetKeyState<Mr, K>
-        : _GetKeyState<Mr, K>
-    : never
-
-export type GetState<M, K> = M extends ModuleArray
-    ? _GetKeyState<M, K>
-    : M extends Modules<infer Mm> 
-        ? _GetKeyState<Mm, K>
-        : never
-
-export class KeyState<K, T> extends Module<T> {
-
-    constructor(readonly key: K, state: T) {
-        super(state)
-    }
-
-    getState<M extends Modules>(this: M, key: K): GetState<M, K> {
-        return this
-            .parent
-            .assert(`No state with key ${key}`)
-            .inChildren((m): m is KeyState<K, GetState<M, K>> => m instanceof KeyState && equals(m.key, key))
-            .state
+        return new Constructor(...this.data)
     }
 
 }
 
 //// Helper ////
 
-function wrapNodeInterfaceMethod(module: Module, methodName: string): Func {
+const $$wrapped = Symbol('wrapped-node-interface-method')
 
-    const methodDeferred = (...args: unknown[]): unknown => 
-        (module as unknown as { [key: string]: Func })
-            [methodName]
-            (...args)
+function wrapNodeInterfaceMethod(module: Module, descriptor: PropertyDescriptor): Func {
+
+    const method = $$wrapped in descriptor.value 
+        ? descriptor.value[$$wrapped] 
+        : descriptor.value
+
+    const methodDeferred = (...args: unknown[]): unknown => method.apply(module, args)
 
     return property.name(
         methodDeferred, 
-        methodName
+        method.name
     )
 }
 

@@ -5,6 +5,7 @@ import { Module } from '../module'
 import { Node } from './node'
 
 import { expectTypeOf } from 'expect-type'
+
 import { describe, it } from '@jest/globals'
 
 /* eslint-disable 
@@ -16,7 +17,7 @@ import { describe, it } from '@jest/globals'
 class Text<T extends string> extends Module<T> {
 
     get text(): T {
-        return this.state
+        return this.data
     }
 
     setText<Tx extends string>(text: Tx): Text<Tx> {
@@ -70,10 +71,10 @@ describe('NodeInterface', () => {
         }
     }
 
-    const node = Node.create(
+    const node = Node.from(
         new Count(10),
         new BigCount(10n)
-    )
+    ) 
 
     const [ count ] = node.modules
 
@@ -94,11 +95,29 @@ describe('NodeInterface', () => {
         count.setCount(25)
         expect(node.getCount()).toEqual(25)
         expect(count.getCount()).toEqual(25)
+    }) 
+
+    it('gets State setters', () => {
+        const n1 = Node.from(
+            Module.data(100)
+        )
+
+        const state = n1.getData()
+        expect(state).toEqual(100)
     })
 
     it('does not include getters', () => {
         //@ts-expect-error Not defined
         expect(node.count).toEqual(undefined)
+    })
+
+    it('interface is preserved on copy', () => {
+
+        const a1 = Node.from(Module.data('ace'))
+        expect(a1.getData()).toEqual('ace')
+
+        const a2 = a1.setData('base')
+        expect(a2.getData()).toEqual('base')
     })
 
 })
@@ -108,7 +127,7 @@ describe('operations', () => {
     it('.add()', () => {
 
         const n1 = Node
-            .create(
+            .from(
                 new Text('1st'),
                 new Text('2nd')
             )
@@ -137,7 +156,7 @@ describe('operations', () => {
 
     it('.swap()', () => {
 
-        const n1 = Node.create(
+        const n1 = Node.from(
             new Text('A'),
             new Text('B'),
             new Text('C')
@@ -152,7 +171,7 @@ describe('operations', () => {
 
     it('.remove()', () => {
 
-        const n1 = Node.create(
+        const n1 = Node.from(
             new Text('A'),  
             new Text('B')
         )
@@ -164,7 +183,7 @@ describe('operations', () => {
 
     it('.set()', () => {
 
-        const n1 = Node.create(
+        const n1 = Node.from(
             new Text('A'),
             new Text('B')
         )
@@ -182,7 +201,7 @@ describe('operations', () => {
     
     it('.set() with function', () => {
 
-        const n1 = Node.create(new Text('A'))
+        const n1 = Node.from(new Text('A'))
             .set(
                 0,
                 text => text.setText('A!'),
@@ -191,14 +210,14 @@ describe('operations', () => {
         expect(n1.getText()).toEqual('A!')  
 
         const r1 = Node
-            .create()
+            .from()
             .add(
                 new Text('Hello'),
                 new Text('World') 
             )
             .add(
                 Node
-                    .create()
+                    .from()
                     .add(new Text('!')) 
             )
 
@@ -208,6 +227,7 @@ describe('operations', () => {
 
         expect(r2.get(2).modules.length).toEqual(2)
         expectTypeOf(r2).toEqualTypeOf<
+
         Node<[
             Text<'Hi'>, 
             Text<'World'>, 
@@ -216,13 +236,14 @@ describe('operations', () => {
                 Text<'!'>
             ]>
         ]>
+
         >()
             
     })
 
     it('.insert()', () => {
 
-        const n1 = Node.create(
+        const n1 = Node.from(
             new Text('Ace'),
             new Text('Case')
         )

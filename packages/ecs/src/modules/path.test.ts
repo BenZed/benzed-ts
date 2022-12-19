@@ -1,18 +1,20 @@
-import { Path, PathsOf, NestedPathsOf } from './path'
-import { Node } from './node'
 
-import { Module, State } from '../module'
-import { Modules } from '../modules'
+import { Data } from './data'
+import { Node } from '../node'
+import { Module } from '../module'
+import { Modules } from './modules'
+import { Path, PathsOf, NestedPathsOf } from './path'
 
 import { it, expect } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
+import { override } from '@benzed/util'
 
 //// Tests ////
 
 it('provides path metadata to nodes', () => {
 
     const n1 = Node
-        .create()
+        .from()
         .add(Path.create('/place'))
 
     expect(n1.getPath())
@@ -24,32 +26,26 @@ it('provides path metadata to nodes', () => {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createTestNodeTree = () => Node
-    .create()
+    .from()
     .add(
-
-        Node.create(  
+        Node.from(  
             Path.create('/foo')
         ),
-
-        Node.create(
+        Node.from(
             Path.create('/bar')
         ),
-
-        Node.create( 
+        Node.from( 
             Path.create('/baz'),
-
-            Node.create(
+            Node.from(
                 Path.create('/nerd')
             ),
-
-            Node.create(
+            Node.from(
                 Path.create('/bone'),
-                Node.create(
+                Node.from(
                     Path.create('/sass')
                 )
             ),
-
-            Node.create(
+            Node.from(
                 Path.create('/ace'),
             )
         )  
@@ -77,7 +73,7 @@ it('identifiable nested paths', () => {
     >()
 })  
  
-it('.getPathFrom()', () => { 
+it('.getPathFrom()', () => {   
     const n1 = createTestNodeTree()
     expect(n1.root).toEqual(n1)
 
@@ -87,11 +83,10 @@ it('.getPathFrom()', () => {
         .get(1) 
 
     for (const n2x of [n2, n2.find.require(Path)]) {
-        const output = n2x.getPathFrom(n1.get(2))
+        const output = n2x.getRelativePath(n1.get(2))
         expect(output).toEqual('/bone/sass')
     }
- 
-}) 
+})
 
 it('.getFromRoot()', () => {   
     const n1 = createTestNodeTree()
@@ -143,16 +138,17 @@ it('.get() throws on bad paths', () => {
     expect(() => n1.get('/baz/bone1')).toThrow('Invalid path: /baz/bone1')
 })
 
-it('.set() from a path', () => { 
+it('.set() node from a path', () => { 
 
-    const n1 = Node.create().add(Module.for(0 as const))
-    const n2 = n1.set('/bar', Node.create().add(Module.for(1 as const)))
+    const n1 = Node.from().add(Module.data(0 as const))
+    const n2 = n1.set('/bar', Node.from().add(Module.data(1 as const)))
+    expect(n2.getData()).toEqual(0)
 
-    type N2 = Node<[
-        State<0>,
+    type N2 = Node<[ 
+        Data<0>,
         Node<[
             Path<'/bar'>, 
-            State<1>
+            Data<1>
         ]>
     ]>
 
@@ -161,15 +157,47 @@ it('.set() from a path', () => {
     expect(n2.get(1)).toEqual(n2.get('/bar'))
 })
 
+it('.set() an existing node', () => {
+
+    const ace = Node.from(
+        Module.data('ace' as const)
+    )
+    expect(ace.getData()).toEqual('ace')
+
+    const base = Node.from(  
+        Module.data('base' as const)
+    )
+    expect(base.getData()).toEqual('base')
+
+    override(Modules, 'applyInterface', (original, modules) => original(modules))(() => {
+
+        const n1 = Node.from().set('/state', ace)
+        expect(n1.get('/state').getData()).toEqual('ace')
+        expect(n1.getData()).toEqual('ace')
+
+        const n2 = n1.set('/state', base)
+
+        expect(n2.get('/state').getData()).toEqual('base')
+        // @ts-expect-error bad index
+        expect(() => n2.get(1)).toThrow('Invalid')
+
+        expect(n2.modules).toHaveLength(1) 
+        expect(n2.get('/state').getData()).toEqual('base')
+        expect(n2.getData()).toEqual('base')
+    })
+
+})
+
 it('.set() overwrites existing path', () => {
 
-    const hero = Node.create(
-        Module.for('hero' as const)
+    const hero = Node.from(
+        Module
+            .data('hero' as const)
     )
 
-    const bar = Node.create(
+    const bar = Node.from(
         Path.create('/bar'),
-        Module.for('bar' as const)
+        Module.data('bar' as const)
     )
 
     const foo = hero.set('/foo', bar)
@@ -181,30 +209,30 @@ it('.set() overwrites existing path', () => {
 
 it('.remove() from a path', () => {
 
-    const t1 = Node.create(
-        Module.for(0 as const),
-        Node.create(
-            Path.create('/one'),
-            Module.for(1 as const)
+    const t1 = Node.from(
+        Module.data(0 as const),
+        Node.from(
+            Path.create('/one'), 
+            Module.data(1 as const)
         ),
-        Node.create(
+        Node.from(
             Path.create('/two'),
-            Module.for(2 as const)
+            Module.data(2 as const)
         )
     )
 
-    const t2 = t1.remove('/one')
-    type T2 = Node<[
-        State<0>,
+    const t2 = t1.remove('/one') 
+    interface T2 extends Node<[
+        Data<0>,
         Node<[
             Path<'/two'>,
-            State<2>
+            Data<2>
         ]>
-    ]>
+    ]> {}
 
     expectTypeOf(t2).toEqualTypeOf<T2>()
 
     expect(t2.modules).not.toContain(t1.get('/one'))
     expect(t2.modules[0]).toEqual(t1.get(0))
-    expect(t2.modules[1]).toEqual(t1.get('/two'))
+    expect(t2.modules[1].data).toEqual(t1.get('/two').data)
 })

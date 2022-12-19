@@ -2,57 +2,60 @@
 import { nil } from '@benzed/util'
 
 import { Finder } from './find'
-import Module from './module'
+import State from './module'
 import { Node } from './node'
 
-class Rank<S extends string> extends Module<S> {
+class Rank<S extends string> extends State<S> {
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
     }
 
     getRank(): S {
-        return this.state
+        return this.data
     }
 
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFamilyTreeAndFinder = () => {
+
+    const node = Node.from.bind(Node)
+    const rank = Rank.of.bind(Rank) 
     
-    const tree = Node.create(
-        Node.create(
-            Rank.of('uncle')
+    const tree = node(
+        node(
+            rank('uncle')
         ),
-        Node.create(
-            Rank.of('mom'),
-            Node.create(
-                Rank.of('brother'),
+        node(
+            rank('mom'),
+            node(
+                rank('brother'),
             ),
-            Node.create(
-                Rank.of('you'),
-                Node.create(
-                    Rank.of('son')
+            node(
+                rank('you'),
+                node(
+                    rank('son')
                 ),
-                Node.create(
-                    Rank.of('daughter'),
-                    Node.create(
-                        Rank.of('grandson')
+                node(
+                    rank('daughter'),
+                    node(
+                        rank('grandson')
                     )
                 )
             ),
-            Node.create(
-                Rank.of('sister'),
-                Node.create(
-                    Rank.of('neice'),
+            node(
+                rank('sister'),
+                node(
+                    rank('neice'),
                 ),
-                Node.create(
-                    Rank.of('nephew')
+                node(
+                    rank('nephew')
                 )
             )
         ),
-        Node.create(
-            Rank.of('uncle')
+        node(
+            rank('uncle')
         )
     )
 
@@ -72,11 +75,11 @@ for (const scope of ['inDescendents', 'inChildren', 'inSiblings', 'inParents', '
 
             const target = {
 
-                inDescendents: Node.create(Rank.of('grandson')),
-                inChildren: Node.create(Rank.of('son')),
-                inSiblings: Node.create(Rank.of('brother')),
+                inDescendents: Node.from(Rank.of('grandson')),
+                inChildren: Node.from(Rank.of('son')),
+                inSiblings: Node.from(Rank.of('brother')),
                 inParents: tree,
-                inAncestors: Node.create(Rank.of('uncle')),
+                inAncestors: Node.from(Rank.of('uncle')),
 
             }[scope]
 
@@ -96,26 +99,26 @@ for (const scope of ['inDescendents', 'inChildren', 'inSiblings', 'inParents', '
 describe('callable signature', () => {
     it('in nodes, defaults to children', () => {
         const [ finder,,you ] = createFamilyTreeAndFinder()
-        expect(finder(Module)).toEqual(you.modules.at(0))
-        expect(finder(Node.create())).toEqual(nil)
+        expect(finder(State)).toEqual(you.modules.at(0))
+        expect(finder(Node.from())).toEqual(nil)
     })
     it('in modules, defaults to siblings', () => {
         const [,, you] = createFamilyTreeAndFinder()
         const youRank = you.get(0)
         const youRankFind = new Finder(youRank)
-        expect(youRankFind(Module)).toEqual(youRank.siblings.at(0))
+        expect(youRankFind(State)).toEqual(youRank.siblings.at(0))
 
     })
 })
 
 it('require flag', () => {
     const [finder, tree, you] = createFamilyTreeAndFinder()
-    expect(() => finder.require.inAncestors(Node.create(Module.for('cheese')))).toThrow('Could not find module')
+    expect(() => finder.require.inAncestors(Node.from(State.data('cheese')))).toThrow('Could not find module')
     const root = finder.require.inAncestors(you.root)
     expect(root).toEqual(tree)
 })
 
 it('all flag', () => {
     const [ finder,,you ] = createFamilyTreeAndFinder()
-    expect(finder.all.inParents(Module)).toEqual(you.parents)
+    expect(finder.all.inParents(State)).toEqual(you.parents)
 })

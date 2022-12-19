@@ -1,7 +1,7 @@
 import { $$equals, equals } from '@benzed/immutable'
 import { callable, isFunc, isNil, nil, TypeGuard } from '@benzed/util'
 
-import Module, { $$isModuleConstructor } from './module'
+import State, { $$isModuleConstructor } from './module'
 import type { Modules } from './modules'
 
 /* eslint-disable 
@@ -11,24 +11,22 @@ import type { Modules } from './modules'
 //// Helper ////
 
 type ModuleConstructor = 
-    (new (...args: any) => Module) | 
-    (abstract new (...args: any) => Module)
+    (new (...args: any) => State) | 
+    (abstract new (...args: any) => State)
 
-type ModuleTypeGuard = TypeGuard<Module, Module>
+type ModuleTypeGuard = TypeGuard<State, State>
+type ModulePredicate = (input: State) => State | nil
 
-type ModulePredicate = (input: Module) => Module | nil
-
-export type FindInput = Module | ModulePredicate | ModuleTypeGuard | ModuleConstructor
-
-export type FindOutput<F> = F extends (input: Module) => infer Mx 
-    ? F extends TypeGuard<infer M , Module>   
+export type FindInput = State | ModulePredicate | ModuleTypeGuard | ModuleConstructor
+export type FindOutput<F> = F extends (input: State) => infer Mx 
+    ? F extends TypeGuard<infer M , State>   
         ? M 
         : Exclude<Mx, nil> 
     : F extends ModuleConstructor
         ? InstanceType<F>
-        : F extends Module 
+        : F extends State 
             ? F
-            : Module<F>
+            : State<F>
 
 //// FindModule ////
 
@@ -85,7 +83,7 @@ export enum FindFlag {
 }
 
 interface FindConstructor {
-    new (module: Module, flag?: FindFlag, error?: string): FindModule
+    new (module: State, flag?: FindFlag, error?: string): FindModule
 }
 
 const _Finder = callable(
@@ -97,7 +95,7 @@ const _Finder = callable(
     class {
 
         constructor(
-            readonly module: Module,
+            readonly module: State,
             private readonly _flag?: FindFlag,
             private readonly _error?: string
         ) { }
@@ -140,17 +138,17 @@ const _Finder = callable(
 
         //// Helper ////
 
-        private _find(iterator: IterableIterator<Module> | nil, input: FindInput): unknown {
+        private _find(iterator: IterableIterator<State> | nil, input: FindInput): unknown {
             const predicate = toModulePredicate(input)
 
-            const output: Module[] = []
+            const output: State[] = []
             const { _flag: flag } = this
 
             if (iterator) {
                 for (const module of iterator) {
                     const pass = predicate(module)
                     if (pass)
-                        output.push(pass instanceof Module ? pass : module)
+                        output.push(pass instanceof State ? pass : module)
                     if (pass && flag !== FindFlag.All)
                         break
                 }
@@ -185,7 +183,7 @@ function isModuleConstructor(input: FindInput): input is ModuleConstructor {
 }
 
 function toModulePredicate(input: FindInput): ModuleTypeGuard | ModulePredicate {
-    if (input instanceof Module) 
+    if (input instanceof State) 
         return (other => input[$$equals](other)) as ModuleTypeGuard
         
     if (isModuleConstructor(input))
@@ -195,7 +193,7 @@ function toModulePredicate(input: FindInput): ModuleTypeGuard | ModulePredicate 
         return input
         
     // basic state comparison
-    return other => equals(input, other.state) ? other : nil
+    return other => equals(input, other.data) ? other : nil
 } 
 
 function toModuleName({ name }: FindInput): string {
@@ -206,14 +204,14 @@ function toModuleName({ name }: FindInput): string {
 
     // assume anonymous typeguard
     if (!name)
-        return Module.name
+        return State.name
 
     return name
 }
 
 //// Helper ////
 
-export function hasChildren(module: Module): module is Modules {
+export function hasChildren(module: State): module is Modules {
     return 'children' in module
 }
 

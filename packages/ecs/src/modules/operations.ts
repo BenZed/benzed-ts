@@ -6,7 +6,7 @@ import {
 
 } from '@benzed/util'
 
-import Module, { ModuleArray } from '../module'
+import State, { ModuleArray } from '../module'
 
 //// SpliceModules ////
 
@@ -15,7 +15,7 @@ type _SpliceModule<M extends ModuleArray, Mi extends IndexesOf<M>, Mx, I> =
         ? I extends Mi 
             ? Mx extends ModuleArray // insert
                 ? [...Mx, M[I]] 
-                : Mx extends Module /// overwrite
+                : Mx extends State /// overwrite
                     ? [Mx]
                     : [] //          // delete
             : [M[I]]
@@ -38,7 +38,10 @@ type SpliceModules<
         : []
     : []
 
-function spliceModule(input: ModuleArray, index: number, deleteCount: number, ...insert: Module[]): ModuleArray {
+/**
+ * @internal
+ */
+export function spliceModules(input: ModuleArray, index: number, deleteCount: number, ...insert: State[]): ModuleArray {
     const output = [...input]
     
     output.splice(index, deleteCount, ...insert)
@@ -60,18 +63,18 @@ export function addModules<
     A extends ModuleArray,
     B extends ModuleArray,
 >(
-    inputA: A,
-    inputB: B
+    existing: A,
+    ...additional: B
 ): AddModules<A,B> {
     return [
-        ...inputA,
-        ...inputB
+        ...existing,
+        ...additional
     ]
 }
 
 //// InsertModules ////
 
-export type InsertModule<
+export type InsertModules<
     M extends ModuleArray,
     I extends IndexesOf<M>,
     Mx extends ModuleArray
@@ -85,8 +88,12 @@ export function insertModules<
     input: M,
     index: I,
     ...modules: Mx
-): InsertModule<M, I, Mx> {
-    return spliceModule(input, index, 0, ...modules) as InsertModule<M,I,Mx>
+): InsertModules<M, I, Mx> {
+    return spliceModules(
+        input, 
+        index, 0, 
+        ...modules
+    ) as InsertModules<M,I,Mx>
 }
 
 //// SwapModules ////
@@ -146,7 +153,7 @@ export function removeModule<
     input: M,
     index: I
 ): RemoveModule<M, I> {
-    return spliceModule(input, index, 1) as RemoveModule<M, I>
+    return spliceModules(input, index, 1) as RemoveModule<M, I>
 }
 
 //// SetModule ////
@@ -157,26 +164,26 @@ export type SetModule<M extends ModuleArray, I extends IndexesOf<M>, Mx>
 export function setModule<
     M extends ModuleArray,
     I extends IndexesOf<M>,
-    F extends (input: M[I]) => Module
+    F extends (input: M[I]) => State
 >(input: M, index: I, initializer: F): SetModule<M, I, ReturnType<F>>
 
 export function setModule<
     M extends ModuleArray,
     I extends IndexesOf<M>,
-    Mx extends Module,
+    Mx extends State,
 >(
     input: M,
     index: I,
     module: Mx
 ): SetModule<M, I, Mx> 
 
-export function setModule(input: ModuleArray, index: number, moduleOrInitializer: Module | ((current: Module) => Module)): ModuleArray {
+export function setModule(input: ModuleArray, index: number, moduleOrInitializer: State | ((current: State) => State)): ModuleArray {
 
     const newModule = 'parent' in moduleOrInitializer 
         ? moduleOrInitializer 
         : moduleOrInitializer(input[index])
 
-    return spliceModule(input, index, 1, newModule) 
+    return spliceModules(input, index, 1, newModule) 
 
 }
 
@@ -184,7 +191,7 @@ export function setModule(input: ModuleArray, index: number, moduleOrInitializer
 
 export type GetModule<M extends ModuleArray, I extends IndexesOf<M>> = M[I]
 
-export function getModule<M extends ModuleArray, I extends IndexesOf<M>>(modules: M, index: I): Module {
+export function getModule<M extends ModuleArray, I extends IndexesOf<M>>(modules: M, index: I): State {
     const module = modules.at(index)
     if (!module)
         throw new Error(`Invalid index: ${index}`)

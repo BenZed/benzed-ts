@@ -9,7 +9,7 @@ import {
     SwapModules,
     RemoveModule,
     SetModule,
-    InsertModule,
+    InsertModules,
     GetModule,
 
 } from '../modules'
@@ -26,7 +26,7 @@ import {
     NestedPathsOf,
     GetNodeAtNestedPath,
     ToPath
-} from './path'
+} from '../modules/path'
 
 import { 
     getNodeAtPath, 
@@ -47,23 +47,35 @@ interface NodeInterface<M extends ModuleArray> extends Modules<M> {
     
     add<Mx extends ModuleArray>(...modules: Mx): Node<AddModules<M, Mx>>
 
-    insert<Mx extends ModuleArray, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModule<M, I, Mx>>
+    insert<Mx extends ModuleArray, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>>
 
-    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(index: I, initalizer: F): Node<SetModule<M, I, ReturnType<F>>>
-    set<Mx extends Module, I extends IndexesOf<M>>( index: I, module: Mx): Node<SetModule<M, I, Mx>>
+    // TODO: set at nested apth
+    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(
+        index: I, 
+        initalizer: F
+    ): Node<SetModule<M, I, ReturnType<F>>>
+    set<Mx extends Module, I extends IndexesOf<M>>( 
+        index: I, 
+        module: Mx
+    ): Node<SetModule<M, I, Mx>>
     set<F extends (input: GetNodeAtPath<M, P>) => Node<any>, P extends PathsOf<M>>(
-        path: P, initializer: F
+        path: P, 
+        initializer: F
     ): Node<SetNodeAtPath<M, ToPath<P>, ReturnType<F>>>
-    set<N extends Node<any>, P extends path>(path: P, node: N): Node<SetNodeAtPath<M, P, N>>
+    set<N extends Node<any>, P extends path>(
+        path: P, 
+        node: N
+    ): Node<SetNodeAtPath<M, P, N>>
 
     get<I extends IndexesOf<M>>(index: I): GetModule<M,I>
     get<P extends NestedPathsOf<M>>(path: P): GetNodeAtNestedPath<M,P>
 
+    // TODO: remove at nested path
     remove<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>>
     remove<P extends PathsOf<M>>(path: P): Node<RemoveNodeAtPath<M, P>>
 
+    // TODO: swap paths
     swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(from: A, to: B): Node<SwapModules<M, A, B>> 
-
 }
 
 type Node<M extends ModuleArray = ModuleArray> = ModulesInterface<M, NodeInterface<M>>
@@ -73,11 +85,9 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
     static is<N extends Node>(input: Module): input is N {
         return input instanceof this 
     }
-    
-    static create<Mx extends ModuleArray>(...modules: Mx): Node<Mx> {
-        return Modules.applyInterface(
-            new this(...modules)
-        ) as Node<Mx>
+
+    static from<Mx extends ModuleArray>(...modules: Mx): Node<Mx> {
+        return new this(...modules) as Node<Mx>
     }
 
     override get<I extends IndexesOf<M>>(index: I): GetModule<M,I>
@@ -88,17 +98,22 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
             : getNodeAtPath(this.modules, at as NestedPathsOf<M>) as Module | Node
     }
 
+    private constructor(...modules: M) {
+        super(...modules)
+        Modules.applyInterface(this)
+    }
+
     add<Mx extends readonly Module<any>[]>(...modules: Mx): Node<AddModules<M, Mx>> {
-        return Node.create(
+        return Node.from(
             ...Modules.add(
                 this.modules, 
-                modules
+                ...modules
             )
         )
     }
 
-    insert<I extends IndexesOf<M>, Mx extends ModuleArray>(index: I, ...modules: Mx): Node<InsertModule<M, I, Mx>> {
-        return Node.create(
+    insert<I extends IndexesOf<M>, Mx extends ModuleArray>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>> {
+        return Node.from(
             ...Modules.insert(
                 this.modules,
                 index,
@@ -111,12 +126,18 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         path: P, 
         initialzer: F
     ): Node<SetNodeAtPath<M, ToPath<P>, ReturnType<F>>>
-    set<N extends Node, P extends path>(path: P, node: N): Node<SetNodeAtPath<M, P, N>>
+    set<N extends Node, P extends path>(
+        path: P, 
+        node: N
+    ): Node<SetNodeAtPath<M, P, N>>
     set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(
         index: I, 
         initializer: F
     ): Node<SetModule<M, I, ReturnType<F>>>
-    set<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): Node<SetModule<M, I, Mx>>
+    set<Mx extends Module, I extends IndexesOf<M>>(
+        index: I, 
+        module: Mx
+    ): Node<SetModule<M, I, Mx>>
 
     set(...args: unknown[]): unknown {
 
@@ -134,9 +155,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
                 module as Modules
             )
 
-        return Node.create(
-            ...modules
-        )
+        return Node.from(...modules)
     }
 
     remove<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>>
@@ -147,11 +166,11 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
             ? Modules.remove(this.modules, at as IndexesOf<M>)
             : removeNodeAtPath(this.modules, at as PathsOf<M>)
 
-        return Node.create(...modules)
+        return Node.from(...modules)
     }
 
     swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(fromIndex: A, toIndex: B): Node<SwapModules<M, A, B>> {
-        return Node.create(
+        return Node.from(
             ...Modules.swap(
                 this.modules,
                 fromIndex,
@@ -163,7 +182,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
 } as {
 
     is<N extends Node>(input: Module): input is N
-    create<Mx extends ModuleArray>(...modules: Mx): Node<Mx>
+    from<Mx extends ModuleArray>(...modules: Mx): Node<Mx>
 
 }
 

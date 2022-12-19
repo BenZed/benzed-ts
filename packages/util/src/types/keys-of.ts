@@ -20,6 +20,10 @@ const count = (iterator: Iterator<unknown>): number => {
 
 export type KeysOf<T> = Extract<keyof T, string>
 
+export type KeysOfType<T,V> = keyof {
+    [K in keyof T as T[K] extends V ? K : never]: never
+} extends infer Tk extends keyof T ? Tk : never
+
 /**
  * Iteration of enumerable string keys on any number of objects
  */

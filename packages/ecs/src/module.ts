@@ -28,14 +28,16 @@ import {
 } from './find'
 
 import type { 
-    KeyState, 
+    Data,
+    KeyData, 
     Modules 
 } from './modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/no-this-alias,
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/no-var-requires
 */
 
 //// Constants ////
@@ -65,26 +67,31 @@ const _parents = new WeakMap<Module, nil | Modules>
 
 //// Definition ////
 
-abstract class Module<S = unknown> implements CopyComparable {
+abstract class Module<D = unknown> implements CopyComparable {
+
+    static get Data(): typeof Data {
+        return require('./modules').Data
+    }
+
+    static get KeyData(): typeof KeyData {
+        return require('./modules').KeyData
+    }
 
     /**
      * Create a module with generic get/set state setters
      */
-    static for<T>(state: T): State<T> 
-    static for<K,T>(key: K, state: T): KeyState<K,T>
-    static for(...args: unknown[]): Module<unknown> {
+    static data<T>(data: T): Data<T> 
+    static data<K,T>(key: K, state: T): KeyData<K,T>
+    static data(...args: unknown[]): Module<unknown> {
         
         const $$none = Symbol('no-key-provided')
 
         const [key, value] = args.length === 1 ? [$$none, ...args] : args
-
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const _KeyState = require('./modules').KeyState as typeof KeyState
-        //    ^ prevent circular references
+        const { Data, KeyData } = Module
 
         return key === $$none 
-            ? new State(value)
-            : new _KeyState(key, value)
+            ? new Data(value)
+            : new KeyData(key, value)
     }
 
     /**
@@ -96,18 +103,16 @@ abstract class Module<S = unknown> implements CopyComparable {
      */
     protected static readonly [$$isModuleConstructor] = true
 
-    //// State ////
+    //// Data ////
     
-    constructor(readonly state: S) {}
+    constructor(readonly data: D) {}
 
     get name(): string {
         return this.constructor.name
     }
 
-    /**
-     * Parent of this node.
-     * Throws if parent has not yet been set.
-     */
+    //// Relationships ////
+
     get parent(): Modules {
         const parent = _parents.get(this)
         if (!parent)
@@ -145,7 +150,7 @@ abstract class Module<S = unknown> implements CopyComparable {
      * @internal
      */
     _clearParent(): this {
-        return this.hasParent ? this.copy() : this
+        return this.hasParent ? this[$$copy]() : this
     } 
 
     //// Relationships ////
@@ -168,14 +173,14 @@ abstract class Module<S = unknown> implements CopyComparable {
     }
 
     * eachParent(): IterableIterator<Modules> {
-        let current: Module = this
+        let current: Pick<Module, 'hasParent' | 'parent'> = this
         while (current.hasParent) {
             yield current.parent
             current = current.parent
         }
     }
 
-    get parents(): Module[] {
+    get parents(): Modules[] {
         return Array.from(this.eachParent())
     }
 
@@ -183,14 +188,14 @@ abstract class Module<S = unknown> implements CopyComparable {
         return this.parents.length
     }
 
-    * eachAncestor(): IterableIterator<Module> {
+    * eachAncestor(): IterableIterator<Module | Modules> {
         for (const parent of this.eachParent()) {
             yield parent
             yield* parent.eachSibling()
         }
     }
 
-    get ancestors(): Module[] {
+    get ancestors(): (Module | Modules)[] {
         return Array.from(this.eachAncestor())
     } 
 
@@ -198,11 +203,7 @@ abstract class Module<S = unknown> implements CopyComparable {
         return this.ancestors.length
     }
 
-    /**
-     * Root module of this node. 
-     * Self if node is unparented.
-     */
-    get root(): Module {
+    get root(): Module | Modules {
         return this.parents.at(-1) ?? this
     }
 
@@ -234,9 +235,7 @@ abstract class Module<S = unknown> implements CopyComparable {
     /**
      * Called when the module is parented.
      */
-    validate(): void {
-        //
-    }
+    validate(): void { /**/ }
 
     //// CopyComparable Interface ////
 
@@ -244,35 +243,12 @@ abstract class Module<S = unknown> implements CopyComparable {
         return isObject(input) && 
             input instanceof Module && 
             input.constructor === this.constructor && 
-            equals(this.state, input.state)
-    }
-
-    equals(input: unknown): input is this {
-        return this[$$equals](input)
+            equals(this.data, input.data)
     }
 
     [$$copy](): this {
-        const Constructor = this.constructor as new (modules: S) => this
-        return new Constructor(this.state)
-    }
-
-    copy(): this {
-        return this[$$copy]()
-    }
-
-}
-
-/**
- * I'm going to use this a lot.
- */
-export class State<T> extends Module<T> {
-
-    setState<Tx>(newState: Tx): State<Tx>{
-        return new State(newState)
-    }
-
-    getState(): T {
-        return this.state
+        const Constructor = this.constructor as new (modules: D) => this
+        return new Constructor(this.data)
     }
 
 }

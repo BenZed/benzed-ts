@@ -16,7 +16,7 @@ class Rank<S extends string> extends Module<S> {
     }
 
     getRank(): S {
-        return this.state
+        return this.data
     }
 
 }
@@ -24,38 +24,38 @@ class Rank<S extends string> extends Module<S> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFamilyTree = () => {
     
-    const tree = Node.create(
-        Node.create(
+    const tree = Node.from(
+        Node.from(
             Rank.of('uncle')
         ),
-        Node.create(
+        Node.from(
             Rank.of('mom'),
-            Node.create(
+            Node.from(
                 Rank.of('brother'),
             ),
-            Node.create(
+            Node.from(
                 Rank.of('you'),
-                Node.create(
+                Node.from(
                     Rank.of('son')
                 ),
-                Node.create(
+                Node.from(
                     Rank.of('daughter'),
-                    Node.create(
+                    Node.from(
                         Rank.of('grandson')
                     )
                 )
             ),
-            Node.create(
+            Node.from(
                 Rank.of('sister'),
-                Node.create(
+                Node.from(
                     Rank.of('neice'),
                 ),
-                Node.create(
+                Node.from(
                     Rank.of('nephew')
                 )
             )
         ),
-        Node.create(
+        Node.from(
             Rank.of('uncle')
         )
     )
@@ -68,8 +68,8 @@ describe('relationships', () => {
 
     describe('.parent', () => {
 
-        const child = Module.for('hey' as const)
-        const parent = Node.create(child)
+        const child = Module.data('hey' as const)
+        const parent = Node.from(child)
     
         it('gets module parent', () => {
             expect(parent.modules).toContain(child)
@@ -77,7 +77,7 @@ describe('relationships', () => {
         })
 
         it('throws if no parent', () => {
-            expect(() => Module.for(0).parent).toThrow('does not have a parent')
+            expect(() => Module.data(0).parent).toThrow('does not have a parent')
         })
     
         describe('_setParent(parent?) @internal', () => {
@@ -113,7 +113,6 @@ describe('relationships', () => {
 
     describe('.siblings', () => {
         const [, you ] = createFamilyTree()
-
         it('contains all parent children except this node', () => {
             expect(you.siblings).toEqual(you.parent.children.filter(c => c !== you))
         })
@@ -183,7 +182,7 @@ test('.has', () => {
     const [, you] = createFamilyTree()
     expect(you.has).toBeInstanceOf(Finder)
 
-    expect(you.has(Node.create(
+    expect(you.has(Node.from(
         Rank.of('son')
     ))).toBe(true)
 })
@@ -205,19 +204,19 @@ test('.assert', () => {
 describe('CopyComparable', () => {
     test('@benzed/immutable copy()', () => {
 
-        const m1 = Module.for({ foo: 'bar' })
+        const m1 = Module.data({ foo: 'bar' })
 
         const m2 = copy(m1)
 
         expect(m2).not.toBe(m1)
         expect(m2).toBeInstanceOf(Module)
-        expect(equals(m1.state, m2.state)).toBe(true)
+        expect(equals(m1.data, m2.data)).toBe(true)
     })
 
     test('@benzed/immutable equals()', () => {
 
-        const m1 = Module.for({ id: 1 })
-        const m2 = Module.for({ id: 2 })
+        const m1 = Module.data({ id: 1 })
+        const m2 = Module.data({ id: 2 })
 
         expect(equals(m1, m2)).toBe(false)
         expect(equals(m1, copy(m1))).toBe(true)

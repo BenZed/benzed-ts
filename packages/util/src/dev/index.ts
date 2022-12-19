@@ -15,3 +15,5 @@ export {
     AnsiOptions
 
 } from './ansi'
+
+export * from './override'

@@ -1,20 +1,29 @@
-import { equals } from '@benzed/immutable'
 import { Indexes, IndexesOf, isTruthy as isNotEmpty, nil } from '@benzed/util'
 
-import Module, { ModuleArray } from '../module'
-import Modules, { AddModules, RemoveModule, SetModule } from '../modules'
-import { removeModule } from '../modules/operations'
 import { Node } from '../node'
+
+import State, { ModuleArray } from '../module'
+import Modules, { 
+    AddModules, 
+    RemoveModule, 
+    SetModule 
+} from '../modules'
+
+import { 
+    addModules, 
+    removeModule, 
+    spliceModules
+} from '../modules/operations'
 
 import { 
     path, 
-    Path,
+    Path, 
     GetNodeAtPath,
-    PathsOf,
-    NestedPathsOf,
-    GetNodeAtNestedPath,
-    ToPath,
-} from './path'
+    PathsOf, 
+    NestedPathsOf, 
+    GetNodeAtNestedPath, 
+    ToPath 
+} from '../modules/path'
 
 //// Helper ////
 
@@ -36,7 +45,7 @@ type _ResolveModuleArrayPath<M> = M extends [infer Mx, ...infer Mr]
         : _ResolveModuleArrayPath<Mr>
     : unknown
 
-type _ResolveModulePath<M extends Module> = M extends Modules<infer Mx> 
+type _ResolveModulePath<M extends State> = M extends Modules<infer Mx> 
     ? _ResolveModuleArrayPath<Mx>
     : unknown
 
@@ -85,31 +94,28 @@ export function setNodeAtPath<
 export function setNodeAtPath(
     modules: ModuleArray,
     path: path,
-    input: Modules | ((input: Module) => Modules)
+    input: Modules | ((input: State) => Modules)
 ): ModuleArray {
 
     const inputNode = 'parent' in input 
         ? input
-        : input(getNodeAtPath(modules, path as never))
+        : input(
+            getNodeAtPath(modules, path as never)
+        )
 
     const newPath = Path.create(path)
 
-    const outputNode = Node.create(
+    const outputNode = Node.from(
         newPath,  
         ...inputNode
             .find
             .all(m => m instanceof Path ? nil : m) // remove existing paths
     )
 
-    const replaceIndex = modules.findIndex(module => equals(module, newPath))
-
-    const outputModules = [...modules]
-    if (replaceIndex < 0)
-        outputModules.push(outputNode)
-    else 
-        outputModules.splice(replaceIndex, 1, outputNode)
-
-    return outputModules
+    const replaceIndex = modules.findIndex(module => module.has.inChildren(newPath))
+    return replaceIndex < 0
+        ? addModules(modules, outputNode)
+        : spliceModules(modules, replaceIndex, 1, outputNode)
 }
 
 //// RemoveModuleAtPath ////
@@ -141,8 +147,14 @@ export function removeNodeAtPath<
 
 //// GetNodeAtPath ////
 
-export function getNodeAtPath<M extends ModuleArray, P extends NestedPathsOf<M>>(modules: M, path: P): GetNodeAtNestedPath<M,P>
-export function getNodeAtPath(modules: ModuleArray, nestedPath: path): Modules {
+export function getNodeAtPath<M extends ModuleArray, P extends NestedPathsOf<M>>(
+    modules: M, 
+    path: P
+): GetNodeAtNestedPath<M,P>
+export function getNodeAtPath(
+    modules: ModuleArray, 
+    nestedPath: path
+): Modules {
     
     const paths = nestedPath
         .split('/')
@@ -158,9 +170,9 @@ export function getNodeAtPath(modules: ModuleArray, nestedPath: path): Modules {
 
         modules = output.modules
     }
+
     if (!output)
         throw new Error(`Invalid path: ${nestedPath}`)
-
     return output
 }
 

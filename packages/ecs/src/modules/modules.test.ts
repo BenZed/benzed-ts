@@ -6,9 +6,9 @@ import { Modules } from './modules'
 //// Setup ////
 
 const _modules = [
-    Module.for(0),
-    Module.for(1),
-    Module.for(2)
+    Module.data(0),
+    Module.data(1),
+    Module.data(2)
 ]
 
 const modules = new Modules(..._modules)
@@ -16,7 +16,7 @@ const modules = new Modules(..._modules)
 //// Tests ////
 
 it('throws if multiple instances of the same module exist in the parent', () => {
-    const module = Module.for(0)
+    const module = Module.data(0)
     expect(() => new Modules(module, module)).toThrow('Parent may only contain single reference of child')
 })
 
@@ -28,8 +28,8 @@ test('.modules', () => {
 it('sets parent on constructed modules', () => {
     expect(modules.modules.every(m => m.parent === modules))
 })
-
-it('parent is preserved on copy', () => {
+ 
+it('parent is preserved on copy', () => { 
     const m2 = copy(modules)
     expect(m2.modules.every(m => !_modules.includes(m) && m.parent === m2))
         .toBe(true)
@@ -43,7 +43,7 @@ describe('get()', () => {
 
     class Text<T extends string> extends Module<T> {
         get text(): T {
-            return this.state
+            return this.data
         }
         setText<Tx extends string>(text: Tx): Text<Tx> {
             return new Text(text)
@@ -80,8 +80,8 @@ test('descendents', () => {
 
     const modules = new Modules(
         new Modules(
-            Module.for(0),
-            Module.for(1)
+            Module.data(0),
+            Module.data(1)
         )
     )
 

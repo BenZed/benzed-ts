@@ -1,9 +1,9 @@
-import Module from '../module'
+import State from '../module'
 
 /**
  * Module is the only instance of it's kind on it's parent
  */
-export function isSingle(module: Module): void {
+export function isSingle(module: State): void {
 
     if (module.siblings.some(sibling => sibling instanceof module.constructor)) {
         throw new Error(
@@ -13,7 +13,7 @@ export function isSingle(module: Module): void {
 
 }
 
-export function isRootLevel(module: Module): void {
+export function isRootLevel(module: State): void {
     if (module.parent !== module.root)
         throw new Error(`${module.name} must be a root level module.`)
 }

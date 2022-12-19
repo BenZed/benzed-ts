@@ -2,11 +2,16 @@ export {
     AddModules,
     SwapModules,
     RemoveModule,
+    InsertModules,
     SetModule,
-    InsertModule,
     GetModule,
 } from './operations'
-
+  
 export * from './modules'
-
 export { default } from './modules'
+
+export * from './path'
+
+export * from './data'
+export * from './key-data'
+

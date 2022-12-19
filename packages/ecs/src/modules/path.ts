@@ -2,7 +2,7 @@ import { $$equals } from '@benzed/immutable'
 import { isString, KeysOf } from '@benzed/util'
 
 import { Module, ModuleArray } from '../module'
-import { Modules } from '../modules'
+import { Modules } from '.'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -54,10 +54,11 @@ class Path<P extends path = path> extends Module<P> {
 
     static validate<P extends path>(path: P): P {
 
+        if (
         // '/lower-dash-case-with-digits-000'
-        if (!path
-            .split('')
-            .every((char, i) => i === 0 ? char === '/' : /[a-z]|\d|-/.test(char))
+            !path
+                .split('')
+                .every((char, i) => i === 0 ? char === '/' : /[a-z]|\d|-/.test(char))
         )
             throw new Error(`${path} is not a valid path.`)
     
@@ -85,14 +86,15 @@ class Path<P extends path = path> extends Module<P> {
     }
 
     get path(): P {
-        return this.state
+        return this.data
     }
 
     getPath(): P {
         return this.path
     }
 
-    getPathFrom(ancestor: Module): path {
+    getRelativePath(ancestor: Module): path {
+
         this.assert('Must get path from a direct ancestor')
             .inParents(ancestor)
         
@@ -115,7 +117,7 @@ class Path<P extends path = path> extends Module<P> {
     }
  
     getPathFromRoot(): path {
-        return this.getPathFrom(this.root)
+        return this.getRelativePath(this.root)
     }
 
     //// Validation ////
