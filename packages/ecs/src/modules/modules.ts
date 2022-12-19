@@ -28,6 +28,7 @@ import {
     isSingle,
     isRootLevel
 } from './assertions'
+
 import { hasChildren } from '../find'
 
 /* eslint-disable 
