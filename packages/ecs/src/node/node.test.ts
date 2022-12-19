@@ -116,8 +116,33 @@ describe('NodeInterface', () => {
         const a1 = Node.from(Module.data('ace'))
         expect(a1.getData()).toEqual('ace')
 
-        const a2 = a1.setData('base')
+        const a2 = a1.set(0, data => data.setData('base'))
         expect(a2.getData()).toEqual('base')
+    })
+
+    // move me to key-data.test.ts
+    it('modules may declare parent-aware signatures', () => {
+
+        const node = Node.from(
+            Module.data('left', 0 as const),
+            Module.data('right', 1 as const)
+        )
+
+        const leftValue = node.getData('left')
+        // @ts-expect-error Bad signature
+        node.getData()
+        expect(leftValue).toEqual(0)
+
+        const leftModule = node.get(0)
+        expect(leftModule.getData()).toEqual(leftValue)
+
+        const leftRedundant = leftModule.getData('left')
+        expect(leftRedundant).toEqual(leftValue)
+
+        const rightValue = node.getData('right')
+        expect(rightValue).toEqual(1)
+        const rightModule = node.get(1)
+        expect(rightModule.getData()).toEqual(rightValue)
     })
 
 })
@@ -166,7 +191,6 @@ describe('operations', () => {
 
         expect(copy(n1.swap(0,1).modules)).toEqual([b,a,c])
         expect(copy(n1.swap(2,0).modules)).toEqual([c,b,a])
-
     })
 
     it('.remove()', () => {

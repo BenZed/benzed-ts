@@ -1,6 +1,6 @@
 import { copy } from '@benzed/immutable'
 
-import { Module } from '../module'
+import { Module, ModuleArray } from '../module'
 import { Modules } from './modules'
 
 //// Setup ////
@@ -11,13 +11,21 @@ const _modules = [
     Module.data(2)
 ]
 
-const modules = new Modules(..._modules)
+class TestModules<M extends ModuleArray> extends Modules<M> {
+
+    replace<Mx extends ModuleArray>(modules: Mx): TestModules<Mx> {
+        return new TestModules(...modules)
+    }
+
+}
+
+const modules = new TestModules(..._modules)
 
 //// Tests ////
 
 it('throws if multiple instances of the same module exist in the parent', () => {
     const module = Module.data(0)
-    expect(() => new Modules(module, module)).toThrow('Parent may only contain single reference of child')
+    expect(() => new TestModules(module, module)).toThrow('Parent may only contain single reference of child')
 })
 
 test('.modules', () => {
@@ -53,7 +61,7 @@ describe('get()', () => {
         }
     }
 
-    const n1 = new Modules(
+    const n1 = new TestModules(
         new Text('zero'),
         new Text('one'),
     )
@@ -78,8 +86,8 @@ test('children', () => {
 
 test('descendents', () => {
 
-    const modules = new Modules(
-        new Modules(
+    const modules = new TestModules(
+        new TestModules(
             Module.data(0),
             Module.data(1)
         )

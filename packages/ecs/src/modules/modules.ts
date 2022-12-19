@@ -10,7 +10,7 @@ import {
 
 } from '@benzed/util'
 
-import { Fill, MethodsOf } from '../types'
+import { Fill } from '../types'
 import Module, { ModuleArray } from '../module'
 
 import { 
@@ -37,12 +37,24 @@ import { hasChildren } from '../find'
 
 //// Types ////
 
+type _InheritableMethodKey<M extends Module, K extends keyof M> = M[K] extends Func 
+    ? ReturnType<M[K]> extends Module 
+        ? never 
+        : K 
+    : never
+
+type _InheritableMethods<M extends Module> = {
+
+    [K in keyof M as _InheritableMethodKey<M, K>]: M[K]
+
+}
+
 /**
  * A node's interface is comprised of public methods of it's modules.
  */
 type _InheritModuleMethods<M> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends Module 
-        ? Fill<MethodsOf<Mx>, _InheritModuleMethods<Mr>>
+        ? Fill<_InheritableMethods<Mx>, _InheritModuleMethods<Mr>>
         : _InheritModuleMethods<Mr>
     : {}
 
@@ -54,7 +66,7 @@ type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = Fill<I, _In
 
 //// Main ////
 
-class Modules<M extends ModuleArray = ModuleArray> 
+abstract class Modules<M extends ModuleArray = ModuleArray> 
     extends Module<M> 
     implements Iterable<M[number]> {
 
@@ -189,7 +201,13 @@ function wrapNodeInterfaceMethod(module: Module, descriptor: PropertyDescriptor)
         ? descriptor.value[$$wrapped] 
         : descriptor.value
 
-    const methodDeferred = (...args: unknown[]): unknown => method.apply(module, args)
+    const methodDeferred = (...input: unknown[]): unknown => {
+        const output = method.apply(module, input)
+        if (output instanceof Module) 
+            throw new Error('deffered usage of immutable methods not yet supported')
+        
+        return output
+    }
 
     return property.name(
         methodDeferred, 

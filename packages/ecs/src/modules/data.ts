@@ -1,11 +1,12 @@
-import { Module } from '../module'
+import { Module, ModuleArray } from '../module'
+import Modules from './modules'
 
 /**
  * I'm going to use this a lot.
  */
 export class Data<T> extends Module<T> {
 
-    setData<Tx>(data: Tx): Data<Tx>{
+    setData<Tx>(data: Tx): Data<Tx> {
         return new Data(data)
     }
 

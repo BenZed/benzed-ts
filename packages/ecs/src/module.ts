@@ -81,7 +81,7 @@ abstract class Module<D = unknown> implements CopyComparable {
      * Create a module with generic get/set state setters
      */
     static data<T>(data: T): Data<T> 
-    static data<K,T>(key: K, state: T): KeyData<K,T>
+    static data<K extends string,T>(key: K, state: T): KeyData<K,T>
     static data(...args: unknown[]): Module<unknown> {
         
         const $$none = Symbol('no-key-provided')

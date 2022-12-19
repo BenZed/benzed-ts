@@ -179,6 +179,10 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         )
     }
 
+    replace<Mx extends ModuleArray>(modules: Mx): Node<Mx> {
+        return Node.from(...modules) as Node<Mx>
+    }
+
 } as {
 
     is<N extends Node>(input: Module): input is N

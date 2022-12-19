@@ -1,5 +1,6 @@
 
 import { Data } from './data'
+import { KeyData } from './key-data'
 import { Node } from '../node'
 import { Module } from '../module'
 import { Modules } from './modules'
@@ -101,18 +102,18 @@ it('.getFromRoot()', () => {
 })
 
 it('must be the only path module in parent', () => {
-    expect(() => new Modules(
-        new Path('/good'),
-        new Path('/bad')
+    expect(() => Node.from(
+        Path.create('/good'),
+        Path.create('/bad')
     )).toThrow('Path cannot be placed with other Path modules')
 })
 
 it('all ancestors must have a path', () => {
 
-    expect(() => new Modules(
-        new Modules(
-            new Modules(
-                new Path('/uh-oh')
+    expect(() => Node.from(
+        Node.from(
+            Node.from(
+                Path.create('/uh-oh')
             )
         )
     )).toThrow('Every ancestor except the root must have a Path module')
@@ -204,6 +205,30 @@ it('.set() overwrites existing path', () => {
 
     expect(foo.numModules).toEqual(2)
     expect(foo.get(1).getPath()).toEqual('/foo')
+
+})
+
+it('.set() nested', () => {
+
+    const t1 = Node.from(
+        Module.data('root' as const),
+    ).set(
+        '/bar', 
+        Node.from(Module.data('country', 'Canada' as const))
+    )
+
+    const t2 = t1.set(
+        '/bar', 
+        node => node.set(1, data => data.setData('Spain' as const))
+    )
+
+    expectTypeOf(t2).toEqualTypeOf<Node<[
+        Data<'root'>,
+        Node<[
+            Path<'/bar'>,
+            KeyData<'country', 'Spain'>
+        ]>
+    ]>>()
 
 })
 
