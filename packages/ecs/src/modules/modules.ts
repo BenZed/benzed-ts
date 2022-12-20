@@ -59,12 +59,24 @@ type _InheritModuleMethods<M> = M extends [infer Mx, ...infer Mr]
         : _InheritModuleMethods<Mr>
     : {}
 
+type _FlattenModule<M> = M extends Modules<infer Mx> 
+    ? FlattenModules<Mx>
+    : M extends Module 
+        ? [M]
+        : []
+
 //// Definition ////
 
 type ModulesOf<I extends Modules<ModuleArray>> = I extends Modules<infer M> ? M : []
 
 type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = Fill<I, _InheritModuleMethods<M>>
 
+type FlattenModules<M> = M extends Modules<infer Mx> 
+    ? FlattenModules<Mx>
+    : M extends [infer Mx, ...infer Mr]
+        ? [..._FlattenModule<Mx>, ...FlattenModules<Mr>]
+        : []
+        
 //// Main ////
 
 abstract class Modules<M extends ModuleArray = ModuleArray> 
@@ -83,11 +95,11 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
         isRootLevel
     } as const
 
-    static flatten(modules: ModuleArray): ModuleArray {
+    static flatten<M extends ModuleArray>(modules: M): FlattenModules<M> {
         return modules.flatMap(m => hasChildren(m) 
             ? Modules.flatten(m.modules) 
             : m
-        )
+        ) as FlattenModules<M>
     }
 
     static applyInterface<M extends Modules<any>>(modules: M): M {
@@ -219,5 +231,6 @@ export default Modules
 export {
     Modules,
     ModulesOf,
-    ModulesInterface
+    ModulesInterface,
+    FlattenModules
 }
