@@ -1,8 +1,4 @@
-/* 
-    eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/prefer-readonly-parameter-types
-*/
+
 import { keysOf, isFunc } from '@benzed/util'
 
 import { isPrototypal, isReferable, Prototypal } from './util'
@@ -10,7 +6,7 @@ import { $$copy } from './symbols'
 
 //// Types ////
 
-type Refs = any[]
+type Refs = unknown[]
 
 interface Copyable {
     [$$copy]: (refs?: Refs) => this
@@ -40,7 +36,7 @@ function copyWithoutCircularRef<T>(value: T, refs: Refs): T {
 
 function copyObjectWithoutCircularRefs<T extends object>(value: T, refs: Refs = [value]): T {
 
-    const clone = {} as any
+    const clone = {} as T
 
     for (const key of keysOf(value)) {
 

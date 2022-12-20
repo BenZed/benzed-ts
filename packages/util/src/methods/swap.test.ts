@@ -40,3 +40,4 @@ it('keys must have same value type', () => {
     // @ts-expect-error This should not be allowed
     swap(obj, 'one', 'two')
 })
+

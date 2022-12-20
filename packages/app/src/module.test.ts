@@ -10,9 +10,7 @@ import { Service, ServiceModule } from './service'
 
 //// Setup ////
 
-class Test extends Module {
-
-}
+class Test extends Module { /**/ }
 
 //// Tests ////
 

@@ -3,6 +3,7 @@ import {
 
     Empty,
     Func, 
+    isObject, 
     keysOf, 
 
     nil,
@@ -170,7 +171,7 @@ const isFunc = (i: unknown): i is Func =>
     typeof i === 'function'
 
 const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } =>
-    !!i && $$callable in i
+    isObject(i) && $$callable in i
 
 const getCallable = (
     object: object, 

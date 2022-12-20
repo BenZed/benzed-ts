@@ -1,3 +1,4 @@
-export * from './component'
+export * from './module'
+export * from './modules'
 export * from './node'
-export * from './nodes'
+export { Node as default } from './node'

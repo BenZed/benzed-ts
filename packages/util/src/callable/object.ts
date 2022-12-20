@@ -100,7 +100,7 @@ const createCallableObject = <S extends BoundSignature<O>, O extends object>(
         ...target.descriptors,
         ...source?.descriptors,
         ...property.descriptorsOf(
-            ...property.prototypes(object, [Function.prototype, Object.prototype]),
+            ...property.prototypesOf(object, [Function.prototype, Object.prototype]),
             object
         ),
     }

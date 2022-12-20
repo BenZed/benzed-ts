@@ -163,19 +163,19 @@ watch(PACKAGES_DIR, {
     const contents = await fs.readFile(file, 'utf-8')
     if (tsFileContentCache[file] === contents) 
         return 
+    
+    if (testProcess.isRunning) 
+        return 
 
     tsFileContentCache[file] = contents
-    
-    if (!testProcess.isRunning) {
-        const onlyThisFile = file.endsWith('.test.ts')
 
-        await testProcess.run(
-            file, 
-            onlyThisFile 
-                ? path.basename(file) 
-                : ''
-        )
-    }
+    const onlyTestThisFile = file.endsWith('.test.ts')
+    await testProcess.run(
+        file, 
+        onlyTestThisFile 
+            ? path.basename(file) 
+            : ''
+    )
 
     if (!updateDependencyProcess.isRunning)
         await updateDependencyProcess.run(file)
