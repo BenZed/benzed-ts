@@ -1,6 +1,6 @@
 
 import { ServiceModule, FlattenModules, _ToService } from './service'
-import { AppModule, Modules } from './app-module'
+import { AppModule, AppModuleArray } from './app-module'
 import { Path } from './util/types'
 
 //// Eslint /////
@@ -14,7 +14,7 @@ import { Path } from './util/types'
 /**
  * An app is essentially just a Service without a path.
  */
-class App<M extends Modules = Modules> extends ServiceModule<M> {
+class App<M extends AppModuleArray = AppModuleArray> extends ServiceModule<M> {
 
     // Sealed Construction 
 
@@ -45,7 +45,7 @@ class App<M extends Modules = Modules> extends ServiceModule<M> {
         ) as App<[...M, ...FlattenModules<[Mx]>]>
     }
 
-    override useModules<Mx extends Modules>(
+    override useModules<Mx extends AppModuleArray>(
         ...modules: Mx
     ): App<[...M, ...FlattenModules<Mx>]> {
         return new App(

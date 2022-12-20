@@ -1,6 +1,7 @@
 
+import { Modules } from '@benzed/ecs'
 import { LoggerOptions, PartialOptional } from '@benzed/util'
-import { SettingsModule } from '../app-module'
+import { AppModule } from '../app-module'
 
 ////  ////
 
@@ -18,7 +19,7 @@ interface LoggerSettings extends Omit<LoggerOptions, 'header'> {
 
 //// Main ////
 
-class Logger extends SettingsModule<LoggerSettings> {
+class Logger extends AppModule<LoggerSettings> {
 
     static create(options: PartialOptional<LoggerSettings, 'cacheLength' | 'timeStamp'>): Logger {
         return new Logger({
@@ -39,7 +40,7 @@ class Logger extends SettingsModule<LoggerSettings> {
      */
     _pushLog = (...args: unknown[]): void => {
         this._logs.push(args)
-        while (this._logs.length > this.settings.cacheLength)
+        while (this._logs.length > this.data.cacheLength)
             this._logs.splice(0, 1)
     }
 
@@ -48,9 +49,9 @@ class Logger extends SettingsModule<LoggerSettings> {
         return this._logs
     }
 
-    override _validateModules(): void {
-        this._assertRoot()
-        this._assertSingle()
+    override validate(): void {
+        Modules.assert.isRootLevel(this)
+        Modules.assert.isSingle(this)
     }
 
 }

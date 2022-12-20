@@ -1,8 +1,5 @@
-import { nil } from '@benzed/util'
 
-import { App } from './app'
-import { Module, ExecutableModule } from './module'
-import { Service, ServiceModule } from './service'
+import { AppModule, ExecutableAppModule } from './app-module'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -10,7 +7,7 @@ import { Service, ServiceModule } from './service'
 
 //// Setup ////
 
-class Test extends Module { /**/ }
+class Test extends AppModule<void> { /**/ }
 
 //// Tests ////
 
@@ -47,109 +44,7 @@ it('.stop() cannot be called consecutively', async () => {
     expect.assertions(1)
 })
 
-it('.modules redirects to parent modules', () => {
-    const service = Service.create()
-    const m1 = new Test()
-
-    const s1 = service.useModule(m1)
-
-    const [m1c] = s1.modules
-    expect(m1c.modules).toBe(s1.modules)
-})
-
-it('.modules is empty on modules with no parent', () => {
-    const m1 = new Test()
-    expect(m1.modules).toEqual([])
-})
-
-it('.findModule()', () => {
-
-    const m1 = new Test()
-    const m2 = new Test()
-
-    const service = App.create()
-        .useModule(m1)
-        .useModule(m2)
-
-    const m1f = service.findModule(Module)
-    expect(m1f).toBeInstanceOf(Module)
-})
-
-it('.findModule() required param true', () => {
-
-    const m1 = new Test()
-
-    expect(() => m1.findModule(ServiceModule, true)).toThrow('is missing')
-})
-
-it('.findModule() required param false', () => {
-    const m1 = new Test()
-    expect(m1.findModule(Module)).toBe(nil)
-})
-
-it('.findModule() scope param "parents"', () => {
-
-    const s1 = Service
-        .create()
-        .useModule(new Test())
-
-    const s2 = s1.useService('/child', s1)
-    
-    const m = s2.modules[0].modules[0].findModule(Test, false, 'parents')
-    expect(m).toBe(s2.modules[0])
-})
-
-it('.findModule() scope param "children"', () => {
-
-    const s1 = Service
-        .create()
-        .useModule(new Test())
-
-    const s2 = Service.create().useService('/child', s1)
-    
-    const m = s2.findModule(Test, false, 'children')
-    expect(m).toBe(s2.modules[0].modules[0])
-})
-
-it('.findModule() predicate', () => {
-
-    const s1 = Service
-        .create()
-        .useModule(new Test())
-
-    const s2 = Service.create().useService('/child', s1)
-    
-    const m = s2.findModule(i => i instanceof Test, false, 'children')
-    expect(m).toBe(s2.modules[0].modules[0])
-})
-
-it('.hasModule()', () => {
-
-    const service = Service.create()
-    const m1 = new Test()
-
-    expect(service.hasModule(Module)).toBe(false)
-    expect(service.useModule(m1).hasModule(Module)).toBe(true)
-})
-
-it('.parent', () => {
-    
-    const app = App.create().useModule(new Module())
-    const service = app.modules[0]
-    expect(service.parent).toBe(app)
-
-})
-
-it('.root', () => {
-
-    const service = Service.create().useModule(new Module())
-
-    const app = App.create().useModule(service.useService('/eh', service))
-    const child = app.modules[0].modules[0]
-    expect(child.root).toBe(app)
-})
-
 it('callable module', () => {
-    const executable = new ExecutableModule((x: { foo: string }) => ({ ...x, count: 0 }))
+    const executable = new ExecutableAppModule((x: { foo: string }) => ({ ...x, count: 0 }), null)
     expect(executable({ foo: 'string' })).toEqual({ foo: 'string', count: 0 })
 })

@@ -6,7 +6,7 @@ import { $path, Path, UnPath } from './util/types'
 
 import { 
     AppModule, 
-    Modules,
+    AppModuleArray,
 } from './app-module'
 
 import { CommandModule } from './modules/command/command-module'
@@ -31,9 +31,9 @@ type _ServiceCommand<M extends AppModule, P extends string> =
             ? { [K in N as ToCamelCase<[P, N], '-'>]: M }
             : {}
 
-type _ServiceCommands<M extends Modules, P extends string> = M extends [infer Mx, ...infer Mr] 
+type _ServiceCommands<M extends AppModuleArray, P extends string> = M extends [infer Mx, ...infer Mr] 
     ? Mx extends AppModule 
-        ? Mr extends Modules 
+        ? Mr extends AppModuleArray 
             ? _ServiceCommand<Mx, P> & _ServiceCommands<Mr, P>
             : _ServiceCommand<Mx, P>
         : {}
@@ -42,7 +42,7 @@ type _ServiceCommands<M extends Modules, P extends string> = M extends [infer Mx
 type ServiceCommands<M> = Merge<[
     M extends ServiceModule<infer Mx> 
         ? _ServiceCommands<Mx, ''>
-        : M extends Modules 
+        : M extends AppModuleArray 
             ? _ServiceCommands<M, ''>
             : M extends AppModule 
                 ? _ServiceCommand<M, ''> 
@@ -54,16 +54,16 @@ type _ServiceAtPath<M, P extends string, R extends boolean> = M extends Service<
     : {}
 
 type _ServicesAtPaths<M, P extends string, R extends boolean> = M extends [infer Sx, ...infer Sr] 
-    ? Sr extends Modules
+    ? Sr extends AppModuleArray
         ? _ServiceAtPath<Sx, P, R> & _ServicesAtPaths<Sr, P, R>
         : _ServiceAtPath<Sx, P, R>
     : {}
 
-export type NestedPaths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', true>>
+export type NestedPaths<M extends AppModuleArray> = KeysOf<_ServicesAtPaths<M, '', true>>
 
-export type Paths<M extends Modules> = KeysOf<_ServicesAtPaths<M, '', false>>
+export type Paths<M extends AppModuleArray> = KeysOf<_ServicesAtPaths<M, '', false>>
 
-type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _ServicesAtPaths<M, '', true>[P]
+type ServiceAtNestedPath<M extends AppModuleArray, P extends NestedPaths<M>> = _ServicesAtPaths<M, '', true>[P]
 
 // type ServiceAtPath<M extends Modules, P extends Paths<M>> = _ServicesAtPaths<M, '', false>[P]
 
@@ -96,7 +96,7 @@ export type ModulesOf<S extends ServiceModule<any>> = S extends ServiceModule<in
 /**
  * Contains other modules, provides an interface for grouping and executing their commands.
  */
-export abstract class ServiceModule<M extends Modules = any> extends AppModule {
+export abstract class ServiceModule<M extends AppModuleArray = any> extends AppModule {
 
     private readonly _modules: M
     override get modules(): M {
@@ -140,7 +140,7 @@ export abstract class ServiceModule<M extends Modules = any> extends AppModule {
     abstract useModule<Mx extends AppModule>(module: Mx): unknown
 
     // abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
-    abstract useModules<Mx extends Modules>(...modules: Mx): unknown
+    abstract useModules<Mx extends AppModuleArray>(...modules: Mx): unknown
     
     getService<P extends NestedPaths<M>>(path: P): ServiceAtNestedPath<M, P> {
   
@@ -179,8 +179,8 @@ export abstract class ServiceModule<M extends Modules = any> extends AppModule {
     //// Helper ////
     
     protected _pushModule(
-        ...args: [path: Path, module: AppModule] | [module: AppModule] | Modules
-    ): Modules {
+        ...args: [path: Path, module: AppModule] | [module: AppModule] | AppModuleArray
+    ): AppModuleArray {
 
         const string = pluck(args, is.string).at(0) as string | undefined
         const path = string ? $path.validate(string) : nil
@@ -241,9 +241,9 @@ export abstract class ServiceModule<M extends Modules = any> extends AppModule {
         return this._commands
     }
 
-    private _getService(path: Path): Service<Path, Modules> | nil {
+    private _getService(path: Path): Service<Path, AppModuleArray> | nil {
   
-        const services = this.modules.filter((m): m is Service<Path, Modules> => m instanceof Service)
+        const services = this.modules.filter((m): m is Service<Path, AppModuleArray> => m instanceof Service)
         for (const service of services) {
             if (service.path === path)
                 return service   
@@ -264,7 +264,7 @@ export abstract class ServiceModule<M extends Modules = any> extends AppModule {
 /**
  * Service 
  */
-export class Service<P extends Path, M extends Modules = any> extends ServiceModule<M> {
+export class Service<P extends Path, M extends AppModuleArray = any> extends ServiceModule<M> {
 
     //// Sealed ////
 
@@ -272,7 +272,7 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
      * Create a service with a given path and set of modules
      * @internal
      */
-    static _create<Px extends Path, Mx extends Modules>(path: Px, modules: Mx): Service<Px, Mx> {
+    static _create<Px extends Path, Mx extends AppModuleArray>(path: Px, modules: Mx): Service<Px, Mx> {
         return new Service(path, modules)
     }
 
@@ -316,7 +316,7 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
         ) as Service<P, [...M, ...FlattenModules<[Mx]>]> 
     }
 
-    override useModules<Mx extends Modules>(
+    override useModules<Mx extends AppModuleArray>(
         ...modules: Mx
     ): Service<P, [...M, ...FlattenModules<Mx>]> {
         return Service._create(
