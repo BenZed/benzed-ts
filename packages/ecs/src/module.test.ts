@@ -1,11 +1,11 @@
 import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
 
-import { Module } from './module'
-
-import { describe, it, test, expect } from '@jest/globals'
 import { Finder } from './find'
+import { Module, ModuleArray } from './module'
 import { Node } from './node'
 import { Modules } from './modules'
+
+import { describe, it, test, expect } from '@jest/globals'
 
 //// Setup ////
 
@@ -17,6 +17,14 @@ class Rank<S extends string> extends Module<S> {
 
     getRank(): S {
         return this.data
+    }
+
+}
+
+class GenericModules<M extends ModuleArray> extends Modules<M> {
+
+    replace<Mx extends ModuleArray>(modules: Mx): GenericModules<Mx> {
+        return new GenericModules(...modules)
     }
 
 }
@@ -92,7 +100,7 @@ describe('relationships', () => {
             }
     
             const spy = new ModuleSpy(100)
-            const modules = new Modules(spy)
+            const modules = new GenericModules(spy)
     
             it('sets module parent', () => {
     
@@ -105,7 +113,7 @@ describe('relationships', () => {
             })
     
             it('throws if parent does not contain module', () => {
-                const liar = new Modules()
+                const liar = new GenericModules()
                 expect(() => new ModuleSpy(0)._setParent(liar)).toThrow('Parent invalid')
             })
         })
@@ -240,7 +248,7 @@ describe('validate()', () => {
         }
 
         const test = new ValidateTest()
-        void new Modules(test)
+        void new GenericModules(test)
 
         expect(called).toBe(true)
     })

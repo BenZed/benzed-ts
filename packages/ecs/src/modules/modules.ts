@@ -194,17 +194,13 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
 
 //// Helper ////
 
-const $$wrapped = Symbol('wrapped-node-interface-method')
-
 function wrapNodeInterfaceMethod(module: Module, descriptor: PropertyDescriptor): Func {
 
-    const method = $$wrapped in descriptor.value 
-        ? descriptor.value[$$wrapped] 
-        : descriptor.value
-
+    const method = descriptor.value 
     const methodDeferred = (...input: unknown[]): unknown => {
         const output = method.apply(module, input)
         if (output instanceof Module) 
+        // this shouldn't happen, as functions that return modules arn't inherited
             throw new Error('deffered usage of immutable methods not yet supported')
         
         return output

@@ -1,5 +1,4 @@
-import { Module, ModuleArray } from '../module'
-import Modules from './modules'
+import { Module } from '../module'
 
 /**
  * I'm going to use this a lot.

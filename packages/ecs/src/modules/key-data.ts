@@ -53,11 +53,9 @@ export class KeyData<K, D> extends Module<D> {
 
         return !key || key === this.key 
             ? this.data
-
             : this
                 .assert(`No data for key ${key}`)
                 .inSiblings((m): m is KeyData<K, D> => m instanceof KeyData && equals(m.key, key))
                 .data
     }
-
 }

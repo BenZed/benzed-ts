@@ -11,21 +11,21 @@ const _modules = [
     Module.data(2)
 ]
 
-class TestModules<M extends ModuleArray> extends Modules<M> {
+class GenericModules<M extends ModuleArray> extends Modules<M> {
 
-    replace<Mx extends ModuleArray>(modules: Mx): TestModules<Mx> {
-        return new TestModules(...modules)
+    replace<Mx extends ModuleArray>(modules: Mx): GenericModules<Mx> {
+        return new GenericModules(...modules)
     }
 
 }
 
-const modules = new TestModules(..._modules)
+const modules = new GenericModules(..._modules)
 
 //// Tests ////
 
 it('throws if multiple instances of the same module exist in the parent', () => {
     const module = Module.data(0)
-    expect(() => new TestModules(module, module)).toThrow('Parent may only contain single reference of child')
+    expect(() => new GenericModules(module, module)).toThrow('Parent may only contain single reference of child')
 })
 
 test('.modules', () => {
@@ -47,38 +47,6 @@ it('iterates modules', () => {
     expect([...modules]).toEqual(modules.modules)
 })
 
-describe('get()', () => {
-
-    class Text<T extends string> extends Module<T> {
-        get text(): T {
-            return this.data
-        }
-        setText<Tx extends string>(text: Tx): Text<Tx> {
-            return new Text(text)
-        }
-        getText(): T {
-            return this.text
-        }
-    }
-
-    const n1 = new TestModules(
-        new Text('zero'),
-        new Text('one'),
-    )
-
-    it('get node at index', () => {
-        const [ zero, one ] = n1.modules
-        expect(n1.get(0)).toEqual(zero)
-        expect(n1.get(1)).toEqual(one)
-    })
-
-    it('throws if index out of bounds', () => {
-        // @ts-expect-error invalid index
-        expect(() => n1.get(2)).toThrow('Invalid index')
-    })
-
-})
-
 test('children', () => {
     expect(modules.children).toEqual(modules.modules)
     expect([...modules.eachChild()]).toEqual(modules.modules)
@@ -86,8 +54,8 @@ test('children', () => {
 
 test('descendents', () => {
 
-    const modules = new TestModules(
-        new TestModules(
+    const modules = new GenericModules(
+        new GenericModules(
             Module.data(0),
             Module.data(1)
         )
