@@ -1,9 +1,8 @@
-
-import { wrap } from '@benzed/array'
+import { wrap } from '@benzed/array'       
 import { $$copy, unique } from '@benzed/immutable'
 import { callable, nil, toVoid, Logger, Transform } from '@benzed/util'
 
-import type { ServiceModule } from './service'
+import type { ServiceModule } from './service'    
 import type { Logger as LoggerModule } from './modules'
 
 import { $path, Path } from './util/types'
@@ -13,7 +12,7 @@ import { $path, Path } from './util/types'
     @typescript-eslint/ban-types
 */
 
-//// Constants ////
+//// Constants ////  
 
 /**
  * Allow the use of the .log api without breaking any modules in
@@ -23,11 +22,11 @@ const DUMMY_LOGGER = Logger.create({ onLog: toVoid })
 
 //// Types ////
 
-export type Modules = readonly Module[]
+export type Modules = readonly AppModule[]
 
-export type FindModuleGuard<M extends Module> = (input: Module) => input is M 
+export type FindModuleGuard<M extends AppModule> = (input: AppModule) => input is M 
 
-export type ModuleConstructor<M extends Module = Module> =
+export type ModuleConstructor<M extends AppModule = AppModule> =
      (new (...args: any[]) => M) | 
      (abstract new (...args: any[]) => M) | 
      { name: string, prototype: M }
@@ -45,7 +44,7 @@ export type FindModuleScope =
     )[]
 
 // TODO make this and SettingsModule abstract
-export class Module {
+export class AppModule {
 
     //// Module Interface ////
 
@@ -66,7 +65,7 @@ export class Module {
         if (!this._log) {
         
             const logger = this.findModule(
-                (m: Module): m is LoggerModule => m.name === 'Logger', 
+                (m: AppModule): m is LoggerModule => m.name === 'Logger', 
                 false, 
                 'parents'
             )
@@ -93,29 +92,29 @@ export class Module {
 
     // }
 
-    findModule<M extends Module, R extends boolean = false>(
+    findModule<M extends AppModule, R extends boolean = false>(
         type: FindModuleGuard<M>, 
         required?: R,
         scope?: FindModuleScope
     ): R extends true ? M : M | nil
 
-    findModule<M extends Module, R extends boolean = false>(
+    findModule<M extends AppModule, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required?: R,
         scope?: FindModuleScope
     ): R extends true ? M : M | nil 
     
     findModule(
-        type: FindModuleGuard<Module> | ModuleConstructor<Module>,
+        type: FindModuleGuard<AppModule> | ModuleConstructor<AppModule>,
         required?: boolean,
         scope?: FindModuleScope
-    ): Module | nil {
+    ): AppModule | nil {
         return this
             .findModules(type, required, scope)
             .at(0) 
     }
 
-    findModules<M extends Module, R extends boolean = false>(
+    findModules<M extends AppModule, R extends boolean = false>(
         type: ModuleConstructor<M>, 
         required?: R,
         scope?: FindModuleScope
@@ -140,7 +139,7 @@ export class Module {
         return modules
     }
 
-    eachModule<F extends (input: Module) => unknown>(f: F, scope: FindModuleScope = 'siblings'): ReturnType<F>[] {
+    eachModule<F extends (input: AppModule) => unknown>(f: F, scope: FindModuleScope = 'siblings'): ReturnType<F>[] {
         const scopes = wrap(scope).filter(unique) as unknown as Exclude<FindModuleScope, string>
 
         for (const scope of scopes) {
@@ -169,7 +168,7 @@ export class Module {
         return []
     }
 
-    hasModule<M extends Module>(type: ModuleConstructor<M>): boolean {
+    hasModule<M extends AppModule>(type: ModuleConstructor<M>): boolean {
         return !!this.findModule(type)
     }
 
@@ -188,7 +187,7 @@ export class Module {
      */
     get root(): ServiceModule {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let root: ServiceModule | Module = this
+        let root: ServiceModule | AppModule = this
         while (root._parent)
             root = root._parent
 
@@ -266,7 +265,7 @@ export class Module {
     /**
      * Module must have access to the given modules
      */
-    protected _assertRequired(type: ModuleConstructor<Module> | FindModuleGuard<Module>, scope?: FindModuleScope): void {
+    protected _assertRequired(type: ModuleConstructor<AppModule> | FindModuleGuard<AppModule>, scope?: FindModuleScope): void {
         if (!this.findModule(type, false, scope)) {
             throw new Error(
                 `${this.name} is missing required module ${type.name} in scope ${scope}`
@@ -277,7 +276,7 @@ export class Module {
     /**
      * Module must not be on the same service/app as the given modules
      */
-    protected _assertConflicting(type: ModuleConstructor<Module> | FindModuleGuard<Module>, scope?: FindModuleScope): void { 
+    protected _assertConflicting(type: ModuleConstructor<AppModule> | FindModuleGuard<AppModule>, scope?: FindModuleScope): void { 
         if (this.findModule(type, false, scope)) {
             throw new Error(
                 `${this.name} may not be used with conflicting module ${type.name} in scope ${scope}`
@@ -303,7 +302,7 @@ export class Module {
 
     // Helper 
 
-    private _eachAncestor<F extends (input: Module) => unknown>(f: F): ReturnType<F>[] {
+    private _eachAncestor<F extends (input: AppModule) => unknown>(f: F): ReturnType<F>[] {
         let ref = this._parent
 
         const results: ReturnType<F>[] = []
@@ -315,7 +314,7 @@ export class Module {
         return results
     }
 
-    private _eachDescendent<F extends (input: Module) => unknown>(f: F): ReturnType<F>[] {
+    private _eachDescendent<F extends (input: AppModule) => unknown>(f: F): ReturnType<F>[] {
         const results: ReturnType<F>[] = []
         
         for (const module of this.modules) {
@@ -357,7 +356,7 @@ export class Module {
 /**
  * A module with settings
  */
-export class SettingsModule<S extends object> extends Module {
+export class SettingsModule<S extends object> extends AppModule {
 
     get settings(): S {
         return this._settings
@@ -377,7 +376,7 @@ export class SettingsModule<S extends object> extends Module {
 
 //// Executable Module ////
 
-export interface ExecutableModule<I extends object, O extends object> extends Module, Transform<I,O> {
+export interface ExecutableModule<I extends object, O extends object> extends AppModule, Transform<I,O> {
     readonly execute: Transform<I,O>
 }
 
@@ -398,7 +397,7 @@ export const ExecutableModule: ExecutableModuleConstructor = callable(
     function (i: object): object {
         return this.execute(i)
     },
-    class extends Module {
+    class extends AppModule {
 
         constructor(
             readonly execute: Transform<object, object>,

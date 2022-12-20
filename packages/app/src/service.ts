@@ -5,9 +5,9 @@ import { capitalize, ToCamelCase, toCamelCase } from '@benzed/string'
 import { $path, Path, UnPath } from './util/types'
 
 import { 
-    Module, 
+    AppModule, 
     Modules,
-} from './module'
+} from './app-module'
 
 import { CommandModule } from './modules/command/command-module'
 import { Client } from './modules/connection/client'
@@ -24,7 +24,7 @@ import is from '@benzed/is'
 
 //// Commands Type ////
 
-type _ServiceCommand<M extends Module, P extends string> = 
+type _ServiceCommand<M extends AppModule, P extends string> = 
     M extends Service<infer Px, infer Mx> 
         ? _ServiceCommands<Mx, ToCamelCase<[P, UnPath<Px>]>>
         : M extends CommandModule<infer N, any, any> 
@@ -32,7 +32,7 @@ type _ServiceCommand<M extends Module, P extends string> =
             : {}
 
 type _ServiceCommands<M extends Modules, P extends string> = M extends [infer Mx, ...infer Mr] 
-    ? Mx extends Module 
+    ? Mx extends AppModule 
         ? Mr extends Modules 
             ? _ServiceCommand<Mx, P> & _ServiceCommands<Mr, P>
             : _ServiceCommand<Mx, P>
@@ -44,7 +44,7 @@ type ServiceCommands<M> = Merge<[
         ? _ServiceCommands<Mx, ''>
         : M extends Modules 
             ? _ServiceCommands<M, ''>
-            : M extends Module 
+            : M extends AppModule 
                 ? _ServiceCommand<M, ''> 
                 : never
 ]>
@@ -71,7 +71,7 @@ type ServiceAtNestedPath<M extends Modules, P extends NestedPaths<M>> = _Service
 
 type FlattenModule<M> = M extends ServiceModule<infer Mx> 
     ? FlattenModules<Mx>
-    : M extends Module 
+    : M extends AppModule 
         ? [M]
         : []
 
@@ -96,7 +96,7 @@ export type ModulesOf<S extends ServiceModule<any>> = S extends ServiceModule<in
 /**
  * Contains other modules, provides an interface for grouping and executing their commands.
  */
-export abstract class ServiceModule<M extends Modules = any> extends Module {
+export abstract class ServiceModule<M extends Modules = any> extends AppModule {
 
     private readonly _modules: M
     override get modules(): M {
@@ -137,7 +137,7 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     ): unknown
 
     // abstract useModule<Mx extends Module, I extends IndexesOf<M>, F extends (module: M[I]) => Mx>(index: I, updater: F): unknown
-    abstract useModule<Mx extends Module>(module: Mx): unknown
+    abstract useModule<Mx extends AppModule>(module: Mx): unknown
 
     // abstract useModules<Mx extends Modules, F extends (modules: M) => Mx>(updater: F): unknown
     abstract useModules<Mx extends Modules>(...modules: Mx): unknown
@@ -179,17 +179,17 @@ export abstract class ServiceModule<M extends Modules = any> extends Module {
     //// Helper ////
     
     protected _pushModule(
-        ...args: [path: Path, module: Module] | [module: Module] | Modules
+        ...args: [path: Path, module: AppModule] | [module: AppModule] | Modules
     ): Modules {
 
         const string = pluck(args, is.string).at(0) as string | undefined
         const path = string ? $path.validate(string) : nil
 
-        const inputModules = args as Module[]
+        const inputModules = args as AppModule[]
         if (inputModules.length === 0)
-            throw new Error(`${Module.name} not provided.`)
+            throw new Error(`${AppModule.name} not provided.`)
 
-        const newModules: Module[] = []
+        const newModules: AppModule[] = []
         for (const module of inputModules) {
             const isService = module instanceof ServiceModule<any>
 
@@ -307,7 +307,7 @@ export class Service<P extends Path, M extends Modules = any> extends ServiceMod
         ) as Service<P, [...M, _ToService<Px ,S>]> 
     }
 
-    override useModule<Mx extends Module>(
+    override useModule<Mx extends AppModule>(
         module: Mx
     ): Service<P, [...M, ...FlattenModules<[Mx]>]> {
         return Service._create(

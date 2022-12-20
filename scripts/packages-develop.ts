@@ -165,7 +165,7 @@ watch(PACKAGES_DIR, {
         return 
     
     if (testProcess.isRunning) 
-        return 
+        return
 
     tsFileContentCache[file] = contents
 

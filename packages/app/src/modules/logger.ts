@@ -1,6 +1,6 @@
 
 import { LoggerOptions, PartialOptional } from '@benzed/util'
-import { SettingsModule } from '../module'
+import { SettingsModule } from '../app-module'
 
 ////  ////
 

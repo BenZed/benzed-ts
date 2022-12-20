@@ -7,7 +7,7 @@ import {
 
 import { 
     SettingsModule 
-} from '../../module'
+} from '../../app-module'
 
 import { Command, RuntimeCommand } from '../command'
 

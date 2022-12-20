@@ -1,5 +1,5 @@
 
-import { SettingsModule } from '../../module'
+import { SettingsModule } from '../../app-module'
 
 /**
  * Base class for creating connections either to or from the server.

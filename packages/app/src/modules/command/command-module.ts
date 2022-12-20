@@ -6,7 +6,7 @@ import { RequestHandler } from '../../util'
 
 import CommandError from './command-error'
 
-import { ExecutableModule } from '../../module'
+import { ExecutableModule } from '../../app-module'
 import type { Client } from '../connection'
 
 //// Validation ////
