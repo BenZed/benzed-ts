@@ -1,4 +1,4 @@
-import { Module } from '../module'
+import { Module } from '../module/module'
 
 /**
  * I'm going to use this a lot.

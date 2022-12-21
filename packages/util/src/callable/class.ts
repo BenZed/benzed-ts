@@ -1,4 +1,5 @@
 import { property } from '../property'
+import { nil } from '../types'
 import { isFunc } from '../types/func'
 import createCallableObject, { BoundSignature, Callable, get$$Callable, GetSignature } from './object'
 
@@ -48,7 +49,11 @@ const isClass = (input: unknown): input is Class =>
     && input.prototype
     && Symbol.hasInstance in input
 
-//// Main ////
+const resolveInstance = (value: object): object => 
+    get$$Callable(value)?.object ?? value
+
+const isInstance = <T extends Class>(value: object, constructor: T): value is InstanceType<T> => 
+    resolveInstance(value) instanceof constructor
 
 /**
  * This syntax works in testing, but breaks after being transpiled in other packages.
@@ -70,7 +75,7 @@ function createCallableClass <
     class Callable extends Class {
 
         static [Symbol.hasInstance](value: object): boolean {
-            const instance = value && (get$$Callable(value)?.object ?? value)
+            const instance = resolveInstance(value)
             return super[Symbol.hasInstance](instance)
         }
 
@@ -98,5 +103,7 @@ export {
     CallableClass,
 
     Class,
-    isClass
+    isClass,
+    isInstance,
+    resolveInstance
 }

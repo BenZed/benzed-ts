@@ -19,12 +19,11 @@ interface ContextTransform<I = unknown, O = unknown, C = unknown> {
 
 type Transformer<T extends Func> = Iterable<T> & {
     readonly transforms: readonly Transform[]
-    
 } & T
 
 type InputOf<F extends Func> = F extends (input: infer I, ...args: any) => any ? I : unknown
 type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknown
-type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : unknown
+type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : void
 
 type ResolveAsyncOutput<I,O> = I extends Promise<any> 
     ? Promise<Awaited<O>>

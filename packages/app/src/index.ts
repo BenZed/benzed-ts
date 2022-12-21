@@ -1,5 +1,5 @@
 
-export { AppModule, AppModuleArray, SettingsModule } from './app-module'
+export { AppModule, AppModuleArray } from './app-module'
 export * from './modules'
 
 export { Service } from './service'

@@ -17,7 +17,7 @@ import {
 import {     
     Module, 
     ModuleArray, 
-} from '../module'
+} from '../module/module'
 
 import { 
     GetNodeAtPath, 
@@ -100,7 +100,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
 
     private constructor(...modules: M) {
         super(...modules)
-        Modules.applyInterface(this)
+        return Modules.applyInterface(this)
     }
 
     add<Mx extends readonly Module<any>[]>(...modules: Mx): Node<AddModules<M, Mx>> {

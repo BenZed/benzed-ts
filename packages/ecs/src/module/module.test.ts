@@ -1,9 +1,9 @@
 import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
 
-import { Finder } from './find'
+import { Finder } from '../find'
 import { Module, ModuleArray } from './module'
-import { Node } from './node'
-import { Modules } from './modules'
+import { Node } from '../node'
+import { Modules } from '../modules'
 
 import { describe, it, test, expect } from '@jest/globals'
 

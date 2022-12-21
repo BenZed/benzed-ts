@@ -6,7 +6,7 @@ import {
 
 } from '@benzed/util'
 
-import State, { ModuleArray } from '../module'
+import State, { ModuleArray } from '../module/module'
 
 //// SpliceModules ////
 

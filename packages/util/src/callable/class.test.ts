@@ -4,6 +4,9 @@ import { toNil } from '../types/nil'
 import { expectTypeOf } from 'expect-type'
 
 import { it, describe, expect } from '@jest/globals'
+import { get$$Callable } from './object'
+import property from '../property'
+import { Func, isFunc } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type
@@ -162,24 +165,31 @@ describe('instanceof', () => {
         }
     })
 
-    it('is not an instance of extended classes', () => {
+    it.only('is not an instance of extended classes', () => {
 
-        class Module {}
+        class Base {}
 
-        const CallableModule = createCallableClass(
+        class Extension extends Base {}
+
+        const Callable = createCallableClass(
             () => '',
-            Module,
+            Extension,
         )
-        expect(new Module() instanceof CallableModule).toBe(false)
 
+        console.log(...property.prototypesOf(Callable), Callable)
+
+        expect(new Extension() instanceof Callable).toBe(false)
+        
         // @ts-expect-error it's fine
-        class CallableModule2 extends CallableModule { }
-        class CallableModule3 extends CallableModule2 {}
+        class CallableII extends Callable {}
+        class CallableIII extends CallableII {}
 
-        for (const CallableModuleX of [CallableModule2, CallableModule3]) {
-            expect(new CallableModule() instanceof CallableModuleX).toBe(false)
-            expect(new CallableModuleX() instanceof CallableModule).toBe(true)
-            expect(new Module() instanceof CallableModuleX).toBe(false)
+        for (const Callable$ of [CallableII, CallableIII]) {
+            expect(new Callable() instanceof Callable$).toBe(false)
+            expect(new Callable$() instanceof Callable).toBe(true)
+            expect(new Extension() instanceof Callable$).toBe(false)
+            expect(new Extension() instanceof Base).toBe(true)
+            expect(new Callable$() instanceof Base).toBe(true)
         }
 
     })
@@ -198,11 +208,11 @@ describe('instanceof', () => {
                 getNestedInstance () {
                     return this.nestedInstance
                 }
-
             }
         )
     
         const instance = new InstanceTroll().getNestedInstance()
+    
         expect(instance).toBeInstanceOf(InstanceTroll)
     })
 

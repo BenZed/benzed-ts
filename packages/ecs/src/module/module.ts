@@ -5,18 +5,19 @@ import {
     $$equals, 
 
     $$copy,
-
     CopyComparable,
 
 } from '@benzed/immutable'
 
 import {
+    ContextTransform,
     isObject,
     isString,
     nil,
 } from '@benzed/util'
 
 import { 
+
     Finder, 
     FindModule, 
     FindFlag, 
@@ -25,13 +26,24 @@ import {
     HasModule, 
     FindInput,
     FindOutput
-} from './find'
+
+} from '../find'
 
 import type { 
+    
     Data,
-    KeyData, 
-    Modules 
-} from './modules'
+    
+    KeyData,
+
+    Execute,
+    ExecuteContext,
+
+    Path,
+    path,
+
+    Modules,
+
+} from '../modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -70,11 +82,19 @@ const _parents = new WeakMap<Module, nil | Modules>
 abstract class Module<D = unknown> implements CopyComparable {
 
     static get Data(): typeof Data {
-        return require('./modules').Data
+        return require('../modules').Data
     }
 
     static get KeyData(): typeof KeyData {
-        return require('./modules').KeyData
+        return require('../modules').KeyData
+    }
+
+    static get Execute(): typeof Execute {
+        return require('../modules').Execute
+    }
+
+    static get Path(): typeof Path {
+        return require('../modules').Path
     }
 
     /**
@@ -92,6 +112,16 @@ abstract class Module<D = unknown> implements CopyComparable {
         return key === $$none 
             ? new Data(value)
             : new KeyData(key, value)
+    }
+
+    static execute <I,O,C = void>(execute: ContextTransform<I, O, ExecuteContext<C>>): Execute<I, O, C> {
+        const { Execute } = this
+        return new Execute(execute)
+    }
+
+    static path <P extends path>(path: P): Path<P> {
+        const { Path } = this 
+        return new Path(path)
     }
 
     /**

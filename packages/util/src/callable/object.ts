@@ -1,4 +1,4 @@
-import { Func, Infer, nil } from '../types'
+import { Func, Infer, isFunc, isObject, nil } from '../types'
 import { property } from '../property'
 
 /* eslint-disable 
@@ -44,7 +44,10 @@ type Callable<S extends BoundSignature<O>, O extends object> =
 //// Context Helpers ////
 
 const get$$Callable = (object: any): $$Callable[typeof $$callable] | nil => 
-    $$callable in object ? object[$$callable] : nil
+    (isObject<any>(object) || isFunc(object)) && 
+    $$callable in object 
+        ? object[$$callable] 
+        : nil
 
 const get$$This = (object: any): unknown => object?.[$$this] 
 

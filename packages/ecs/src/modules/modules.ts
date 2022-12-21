@@ -7,11 +7,13 @@ import {
     
     keysOf, 
     property,
+    nil,
+    callable,
 
 } from '@benzed/util'
 
 import { Fill } from '../types'
-import Module, { ModuleArray } from '../module'
+import Module, { ModuleArray } from '../module/module'
 
 import { 
     addModules,
@@ -30,6 +32,7 @@ import {
 } from './assertions'
 
 import { hasChildren } from '../find'
+import { Data } from './data'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -65,11 +68,19 @@ type _FlattenModule<M> = M extends Modules<infer Mx>
         ? [M]
         : []
 
+type _CallableModule<M> = 
+    FlattenModules<M> extends [infer M1, ...infer Mr]
+        ? M1 extends Func
+            ? (...args: Parameters<M1>) => ReturnType<M1> 
+            : _CallableModule<Mr>
+        : (x: never) => never
+
 //// Definition ////
 
 type ModulesOf<I extends Modules<ModuleArray>> = I extends Modules<infer M> ? M : []
 
-type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = Fill<I, _InheritModuleMethods<M>>
+type ModulesInterface<M extends ModuleArray, I extends Modules<M>> = 
+    Fill<I, _InheritModuleMethods<M>> & _CallableModule<M>
 
 type FlattenModules<M> = M extends Modules<infer Mx> 
     ? FlattenModules<Mx>
@@ -105,15 +116,18 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
     static applyInterface<M extends Modules<any>>(modules: M): M {
 
         const { descriptorsOf, prototypesOf, define } = property
+
+        const blacklist = [Object.prototype, Module.prototype, Modules.prototype]
   
-        const modulesDescriptors = descriptorsOf(
-            ...prototypesOf(modules, [Object.prototype, Module.prototype, Modules.prototype])
+        const modulesDescriptors = descriptorsOf( 
+            ...prototypesOf(modules, blacklist)
         )
         const applyDescriptors: PropertyDescriptorMap = {}
- 
+        
+        let signature: Func | nil = nil
         for (const module of Modules.flatten(modules.modules)) {  
             
-            const descriptors = descriptorsOf(...prototypesOf(module, [Object.prototype, Module.prototype, Modules.prototype]))
+            const descriptors = descriptorsOf(...prototypesOf(module, blacklist))
             for (const key of keysOf(descriptors)) { 
                 const descriptor = descriptors[key]
 
@@ -129,13 +143,21 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
                     applyDescriptors[key] = {
                         ...descriptor,
                         enumerable: true,
-                        value: wrapNodeInterfaceMethod(module, descriptor)
+                        value: wrapInterfaceMethod(module, descriptor)
                     }
                 }
             }
+
+            if (isFunc(module) && !signature)
+                signature = module
         }
 
-        return define(modules, applyDescriptors)
+        define(modules, applyDescriptors)
+
+        return signature 
+            ? callable(wrapMethod(signature, signature), modules) as unknown as M 
+            : modules
+
     }
 
     /**
@@ -206,17 +228,24 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
 
 //// Helper ////
 
-function wrapNodeInterfaceMethod(module: Module, descriptor: PropertyDescriptor): Func {
-
-    const method = descriptor.value 
-    const methodDeferred = (...input: unknown[]): unknown => {
-        const output = method.apply(module, input)
-        if (output instanceof Module) 
+function wrapMethod(method: Func, thisArg: object): Func {
+    return (...input: unknown[]): unknown => {
+        const output = method.apply(thisArg, input)
+        if (callable.isInstance(output, Module as typeof Data)) {
         // this shouldn't happen, as functions that return modules arn't inherited
-            throw new Error('deffered usage of immutable methods not yet supported')
-        
+            throw new Error(
+                'deffered usage of immutable methods not yet supported'
+            )
+        }
+            
         return output
     }
+}
+
+function wrapInterfaceMethod(module: Module, descriptor: PropertyDescriptor): Func {
+
+    const method = descriptor.value 
+    const methodDeferred = wrapMethod(method, module)
 
     return property.name(
         methodDeferred, 

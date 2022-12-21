@@ -1,7 +1,7 @@
 import { $$equals } from '@benzed/immutable'
 import { isString, KeysOf } from '@benzed/util'
 
-import { Module, ModuleArray } from '../module'
+import { Module, ModuleArray } from '../module/module'
 import { Modules } from '.'
 
 /* eslint-disable 
@@ -75,10 +75,6 @@ class Path<P extends path = path> extends Module<P> {
         } catch {
             return false
         }
-    }
-
-    static create<Px extends path>(path: Px): Path<Px> {
-        return new Path(path)
     }
 
     constructor(path: P) {

@@ -2,7 +2,7 @@ import { Indexes, IndexesOf, isTruthy as isNotEmpty, nil } from '@benzed/util'
 
 import { Node } from '../node'
 
-import State, { ModuleArray } from '../module'
+import State, { ModuleArray } from '../module/module'
 import Modules, { 
     AddModules, 
     RemoveModule, 
@@ -103,7 +103,7 @@ export function setNodeAtPath(
             getNodeAtPath(modules, path as never)
         )
 
-    const newPath = Path.create(path)
+    const newPath = new Path(path)
 
     const outputNode = Node.from(
         newPath,  
@@ -135,7 +135,7 @@ export function removeNodeAtPath<
     path: P
 ): RemoveNodeAtPath<M,P> {
 
-    const keyPath = Path.create(path as path)
+    const keyPath = new Path(path as path)
     
     const index = modules.findIndex(node => node.find.inChildren(keyPath))
     if (index < 0)
@@ -159,12 +159,15 @@ export function getNodeAtPath(
     const paths = nestedPath
         .split('/')
         .filter(isNotEmpty)
-        .map(path => Path.create(`/${path}`))
+        .map(path => new Path(`/${path}`))
 
     let output: Modules | nil
     for (const path of paths) {
 
-        output = modules.find(module => module.find.inChildren(path)) as Modules | nil
+        output = modules.find(module => module
+            .find
+            .inChildren(path)
+        ) as Modules | nil
         if (!output)
             break
 
@@ -173,6 +176,7 @@ export function getNodeAtPath(
 
     if (!output)
         throw new Error(`Invalid path: ${nestedPath}`)
+
     return output
 }
 

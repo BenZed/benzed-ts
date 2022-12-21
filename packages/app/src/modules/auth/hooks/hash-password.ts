@@ -10,7 +10,7 @@ const hashPassword = memoize(<I extends { password?: string }>(): CommandHook<I,
 
         const { password } = input
 
-        const auth = cmd.findModule(Auth, true, 'parents')
+        const auth = cmd.find.inParents(Auth)
 
         const output = {
             ...input,

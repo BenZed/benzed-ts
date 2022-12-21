@@ -1,7 +1,7 @@
 import { equals } from '@benzed/immutable'
 import { IsIdentical } from '@benzed/util'
 
-import { Module, ModuleArray } from '../module'
+import { Module, ModuleArray } from '../module/module'
 import Modules from './modules'
 
 //// Another Helper Class ////
