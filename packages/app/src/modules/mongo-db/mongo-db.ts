@@ -1,23 +1,20 @@
 import { KeysOf, nil } from '@benzed/util'
+import { Modules } from '@benzed/ecs'
 
 import { 
     MongoClient as _MongoClient, 
     Db as _MongoDatabase,
 } from 'mongodb'
 
-import { 
-    SettingsModule 
-} from '../../app-module'
-
-import { Command, RuntimeCommand } from '../command'
+import { SchemaHook } from '../../util'
+import { AppModule } from '../../app-module'
 
 import { 
     $mongoDbSettings,
     MongoDbSettings 
 } from './mongo-db-settings'
 
-import MongoDbCollection, { Paginated, RecordQuery, Record, RecordOf } from './mongo-db-collection'
-import { SchemaHook } from '../../util'
+import MongoDbCollection from './mongo-db-collection'
 
 //// Eslint ////
 
@@ -39,47 +36,13 @@ type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCo
             : never 
         : never
 
-//// Record Commands ////
-
-type RecordCommands<T extends object> = [
-    Command<'get', { id: string }, Record<T>>,
-    Command<'find', RecordQuery<T>, Paginated<Record<T>>>,
-    Command<'create', T, Record<T>>,
-    Command<'update', { id: string } & Partial<T>, Record<T>>,
-    Command<'remove', { id: string }, Record<T>>
-]
-
 //// Mongodb Database ////
 
-class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSettings>> {
+class MongoDb<C extends Collections> extends AppModule<Required<MongoDbSettings>> {
 
     static readonly icon = '🗃️'
 
     // Static Create with Schema Validation
-
-    static createRecordCommands<T extends object>(collectionName: string): RecordCommands<T>
-    static createRecordCommands(collectionName: string): RecordCommands<object> {
-
-        const assertRecord = (id: string) => (record: Record<object> | null): Record<object> => {
-            if (!record)
-                throw new Error(`Collection ${collectionName} record ${id} could not be found.`)
-            return record
-        }
-
-        const records = <I extends object>(cmd: RuntimeCommand<I>): MongoDbCollection<object> => cmd
-            .findModule(MongoDb, true, 'parents')
-            .getCollection(collectionName)
-
-        // Commmands 
-
-        return [
-            Command.get(({ id }, cmd) => records(cmd).get(id).then(assertRecord(id))),
-            Command.find((query, cmd) => records(cmd).find(query)),
-            Command.create((data, cmd) => records(cmd).create(data)),
-            Command.update(({ id, ...data }, cmd) => records(cmd).update(id, data).then(assertRecord(id))),
-            Command.remove(({ id }, cmd) => records(cmd).remove(id).then(assertRecord(id)))
-        ]
-    }
 
     static create(settings: MongoDbSettings): MongoDb<{}> {
         return new MongoDb(
@@ -97,13 +60,6 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         super(settings)
     }
 
-    protected override get _copyParams(): unknown[] {
-        return [
-            this.settings,
-            this._collections
-        ]
-    }
-
     // Module Implementation
 
     private _mongoClient: _MongoClient | nil = nil
@@ -112,16 +68,16 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
     override async start(): Promise<void> {
 
         await super.start()
-        const { settings } = this
+        const { data } = this
 
-        const uri = settings.uri
-            .replaceAll('<port>', settings.port.toString())
-            .replaceAll('<user>', settings.user ?? '')
-            .replaceAll('<password>', settings.password ?? '')
-            .replaceAll('<database>', settings.database)
+        const uri = data.uri
+            .replaceAll('<port>', data.port.toString())
+            .replaceAll('<user>', data.user ?? '')
+            .replaceAll('<password>', data.password ?? '')
+            .replaceAll('<database>', data.database)
 
         this._mongoClient = await _MongoClient.connect(uri)
-        this._db = this._mongoClient.db(settings.database)
+        this._db = this._mongoClient.db(data.database)
 
         this.log`mongodb connected ${{ uri }}`
     }
@@ -140,8 +96,8 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         this.log`mongodb disconnected`
     }
 
-    override _validateModules(): void {
-        this._assertSingle()
+    override validate(): void {
+        Modules.assert.isSingle(this)
     }
 
     // Database Implementation
@@ -180,7 +136,7 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
         } as unknown as AddCollection<C, N, MongoDbCollection<T>>
 
         return new MongoDb(
-            this.settings,
+            this.data,
             collections
         )
     }
@@ -199,11 +155,6 @@ class MongoDb<C extends Collections> extends SettingsModule<Required<MongoDbSett
     async clearAllCollections(): Promise<void> {
         for (const name in this._collections) 
             await this.clearCollection(name)  
-    }
-
-    createRecordCommands<N extends KeysOf<C>>(collectionName: N): RecordCommands<RecordOf<C[N]>> 
-    createRecordCommands<T extends object>(collectionName: string): RecordCommands<T> {
-        return MongoDb.createRecordCommands<T>(collectionName)
     }
 
     //// Helper ////

@@ -1,7 +1,7 @@
+import { Node } from '@benzed/ecs'
 import { $ } from '@benzed/schema'
 import { through } from '@benzed/util'
 import { 
-    App, 
     Client, 
     Command, 
     CommandError, 
@@ -18,24 +18,23 @@ for (const clientWebSocket of [true, false]) {
 
             const foobar = $('foo', 'bar')
 
-            const app = App.create()
-                .useModules(
-                    Command.create('errorCodeTest', ({ code }: { code: number }) => {
-                        if (code < 400)
-                            return { success: code }
-                        throw new CommandError(
-                            code,
-                            `Testing error code: ${code}`
-                        )
-                    }, HttpMethod.Put),
+            const app = Node.from(
+                Command.create('errorCodeTest', ({ code }: { code: number }) => {
+                    if (code < 400)
+                        return { success: code }
+                    throw new CommandError(
+                        code,
+                        `Testing error code: ${code}`
+                    )
+                }, HttpMethod.Put),
 
-                    Command.create('validationErrorTest', { 
-                        option: foobar
-                    }, HttpMethod.Get)
-                )
+                Command.create('validationErrorTest', { 
+                    option: foobar
+                }, HttpMethod.Get)
+            )
 
-            const server = app.useModule(Server.create({ webSocket: serverWebSocket }))
-            const client = app.useModule(Client.create({ webSocket: clientWebSocket }))
+            const server = app.add(Server.create({ webSocket: serverWebSocket }))
+            const client = app.add(Client.create({ webSocket: clientWebSocket }))
 
             //// Setup ////
 
@@ -89,7 +88,7 @@ for (const clientWebSocket of [true, false]) {
 
             it('throws if command cannot be found, http/websocket', async () => {
 
-                const error = await client.getModule(Client, true)._execute(
+                const error = await client.assert(Client)._execute(
                     Command.create(
                         'nonExistantCommand',
                         {},
@@ -108,7 +107,7 @@ for (const clientWebSocket of [true, false]) {
             if (!serverWebSocket || !clientWebSocket) {
                 it('throws "method not allowed" if no command uses method', async () => {
                     
-                    const badMethod = await client.getModule(Client, true)._execute(
+                    const badMethod = await client.assert(Client)._execute(
                         Command.create(
                             'badMethodCommand',
                             {},

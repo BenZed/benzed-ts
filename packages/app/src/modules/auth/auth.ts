@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs'
 import { HttpCode, HttpMethod, RequestHandler } from '../../util'
 import { MongoDb, MongoDbCollection } from '../mongo-db'
 
-import { CommandModule } from '../command/command-module'
+import { CommandModule } from '../command/command-v2'
 import { CommandError } from '../command'
 
 //// Helper ////
@@ -77,15 +77,11 @@ class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToke
 
     static create(settings: AuthSettings = {}): Auth {
         return new Auth(
-            $authSettings.validate({
-                ...settings,
-            }) as Required<AuthSettings>
+            $authSettings.validate({ ...settings }) as Required<AuthSettings>
         )
     }
 
-    private constructor(
-        readonly settings: Required<AuthSettings>
-    ) {
+    private constructor(readonly settings: Required<AuthSettings>) {
         const name = 'authenticate'
         super(
             name,

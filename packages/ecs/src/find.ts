@@ -13,7 +13,14 @@ import type { Modules } from './modules'
 
 type ModuleConstructor = 
     (new (...args: any) => Module) | 
-    (abstract new (...args: any) => Module)
+    (abstract new (...args: any) => Module) | 
+    { [$$isModuleConstructor]: boolean, prototype: Module }
+
+type ModuleInstance<C extends ModuleConstructor> = C extends { [$$isModuleConstructor]: boolean, prototype: infer P }
+    ? P 
+    : C extends (new (...args: any) => infer M) | (abstract new (...args: any) => infer M)
+        ? M
+        : unknown
 
 type ModuleTypeGuard = TypeGuard<Module, Module>
 type ModulePredicate = (input: Module) => Module | nil
@@ -24,7 +31,7 @@ export type FindOutput<F> = F extends (input: Module) => infer Mx
         ? M 
         : Exclude<Mx, nil> 
     : F extends ModuleConstructor
-        ? InstanceType<F>
+        ? ModuleInstance<F>
         : F extends Module 
             ? F
             : Module<F>
@@ -184,15 +191,16 @@ function isModuleConstructor(input: FindInput): input is ModuleConstructor {
 }
 
 function toModulePredicate(input: FindInput): ModuleTypeGuard | ModulePredicate {
-    if (input instanceof Module) 
-        return (other => input[$$equals](other)) as ModuleTypeGuard
         
     if (isModuleConstructor(input)) {
         return (other => callable.isInstance(
             other, 
-            input as new () => Module
+            input
         )) as ModuleTypeGuard
     }
+
+    if (callable.isInstance(input, Module)) 
+        return (other => input[$$equals](other)) as ModuleTypeGuard
 
     if (isFunc(input))
         return input

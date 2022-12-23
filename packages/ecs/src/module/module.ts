@@ -1,12 +1,8 @@
-
 import { 
-
     equals, 
     $$equals, 
-
     $$copy,
     CopyComparable,
-
 } from '@benzed/immutable'
 
 import {
@@ -17,38 +13,28 @@ import {
 } from '@benzed/util'
 
 import { 
-
     Finder, 
     FindModule, 
     FindFlag, 
-    
     AssertModule, 
     HasModule, 
     FindInput,
     FindOutput
-
 } from '../find'
 
 import type { 
-    
     Data,
-    
     KeyData,
-
     Execute,
     ExecuteContext,
-
     Path,
     path,
-
     Modules,
-
 } from '../modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/no-this-alias,
-    @typescript-eslint/ban-types,
     @typescript-eslint/no-var-requires
 */
 
@@ -103,7 +89,7 @@ abstract class Module<D = unknown> implements CopyComparable {
     static data<T>(data: T): Data<T> 
     static data<K extends string,T>(key: K, state: T): KeyData<K,T>
     static data(...args: unknown[]): Module<unknown> {
-        
+
         const $$none = Symbol('no-key-provided')
 
         const [key, value] = args.length === 1 ? [$$none, ...args] : args
@@ -131,7 +117,7 @@ abstract class Module<D = unknown> implements CopyComparable {
      * - modules extended by callable
      * - function () {} typeguards
      */
-    protected static readonly [$$isModuleConstructor] = true
+    static readonly [$$isModuleConstructor] = true
 
     //// Data ////
     

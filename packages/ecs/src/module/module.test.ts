@@ -13,7 +13,7 @@ class Rank<S extends string> extends Module<S> {
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
-    }
+    } 
 
     getRank(): S {
         return this.data

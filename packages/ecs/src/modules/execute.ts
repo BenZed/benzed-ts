@@ -37,20 +37,22 @@ export class ExecuteContext<D> extends Module<D> {
 
 //// Executable Module ////
 
+export type ExecuteHook<I,O,C> = ContextTransform<I, O, ExecuteContext<C>>
+
 export interface Execute<I = unknown, O = unknown, C = void> extends 
     Module<ContextTransform<I, O, C>>, 
     ContextTransform<I, O, C> {
 
-    append<Ox>(execute: ContextTransform<Awaited<O>, Ox, C>): Execute<I, ResolveAsyncOutput<O, Ox>, C>
+    append<Ox>(hook: ExecuteHook<Awaited<O>, Ox, C>): Execute<I, ResolveAsyncOutput<O, Ox>, C>
 
-    prepend<Ix>(execute: ContextTransform<Ix, I, C>): Execute<Ix, ResolveAsyncOutput<Ix, O>, C>
+    prepend<Ix>(hook: ExecuteHook<Awaited<Ix>, I, C>): Execute<Ix, O, C>
 
 }
 
 //// Executable Module ////
 
 interface ExecuteConstructor {
-    new <I,O,C = void>(execute: ContextTransform<I, O, ExecuteContext<C>>): Execute<I, O, C>
+    new <I,O,C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C>
 }
 
 /**

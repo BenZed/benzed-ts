@@ -14,7 +14,7 @@ import { DEFAULT_MONGODB_PORT } from '../../util'
 
 interface MongoDbSettings extends Infer<typeof $mongoDbSettings>{}
 
-const $mongoDbSettings = $.shape({
+const $mongoDbSettings = $.shape({ 
 
     uri: $
         .string

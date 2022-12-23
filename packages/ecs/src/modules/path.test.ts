@@ -1,17 +1,18 @@
 
 import { Node } from '../node'
+import { Module } from '../module'
 import { Path, PathsOf, NestedPathsOf } from './path'
 
-import { it, expect } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
+
+import { it, expect } from '@jest/globals'
 
 //// Tests ////
 
 it('provides path metadata to nodes', () => {
 
     const n1 = Node
-        .from()
-        .add(Path.create('/place'))
+        .from(Module.path('/place'))
 
     expect(n1.getPath())
         .toEqual('/place')
@@ -21,31 +22,32 @@ it('provides path metadata to nodes', () => {
 })
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createTestNodeTree = () => Node
-    .from()
-    .add(
-        Node.from(  
-            Path.create('/foo')
+const createTestNodeTree = () => Node.from(
+    Node.from(  
+        Module.path('/foo')
+    ),
+
+    Node.from(
+        Module.path('/bar')
+    ),
+
+    Node.from( 
+        Module.path('/baz'),
+        Node.from(
+            Module.path('/nerd')
         ),
         Node.from(
-            Path.create('/bar')
-        ),
-        Node.from( 
-            Path.create('/baz'),
+            Module.path('/bone'),
             Node.from(
-                Path.create('/nerd')
-            ),
-            Node.from(
-                Path.create('/bone'),
-                Node.from(
-                    Path.create('/sass')
-                )
-            ),
-            Node.from(
-                Path.create('/ace'),
+                Module.path('/sass')
             )
-        )  
+        ),
+        Node.from(
+            Module.path('/ace'),
+        )
     )
+
+)
 
 it('identifiable nested paths', () => {
 
@@ -98,8 +100,8 @@ it('.getFromRoot()', () => {
 
 it('must be the only path module in parent', () => {
     expect(() => Node.from(
-        Path.create('/good'),
-        Path.create('/bad')
+        Module.path('/good'),
+        Module.path('/bad')
     )).toThrow('Path cannot be placed with other Path modules')
 })
 
@@ -108,8 +110,27 @@ it('all ancestors must have a path', () => {
     expect(() => Node.from(
         Node.from(
             Node.from(
-                Path.create('/uh-oh')
+                Module.path('/uh-oh')
             )
         )
     )).toThrow('Every ancestor except the root must have a Path module')
+})
+
+describe('Path.validate', () => {
+
+    it('validates paths', () => {
+        expect(Path.validate('ace')).toEqual('/ace')
+    })
+
+    it('paths cannot contain multiple consecutive /', () => {
+        expect(Path.validate('//ace')).toEqual('/ace')
+    })
+
+    it('handles only slashes', () => {
+        expect(Path.validate('///')).toEqual('/')
+    })
+
+    it('removes trailing slash', () => {
+        expect(Path.validate('/ace/')).toEqual('/ace')
+    })
 })

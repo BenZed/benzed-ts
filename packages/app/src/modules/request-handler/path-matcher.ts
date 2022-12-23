@@ -1,6 +1,7 @@
+import { Path, path } from '@benzed/ecs'
 import { memoize, nil } from '@benzed/util'
 
-import { $path, Path, UrlParamKeys } from '../types'
+import { UrlParamKeys } from '../../util'
 
 //// Types ////
 
@@ -11,15 +12,15 @@ import { $path, Path, UrlParamKeys } from '../types'
  * @param url Incoming url without query
  * @param data Data constructed from the request so far.
  */
-export type PathMatcher<T extends object> = (url: Path, data: Partial<T>) => T | Partial<T> | nil
+export type PathMatcher<T extends object> = (url: path, data: Partial<T>) => T | Partial<T> | nil
 
 //// Main ////
 
 /**
  * Creates a pather that matches an exact url
  */
-export const createStaticPathMatcher: <T extends object>(path: Path) => PathMatcher<T> = 
-    memoize(path => (url, data) => path === $path.validate(url) ? data : nil, 'createStaticPathMatcher')
+export const createStaticPathMatcher: <T extends object>(path: path) => PathMatcher<T> = 
+    memoize(path => (url, data) => path === Path.validate(url) ? data : nil, 'createStaticPathMatcher')
 
 /**
  * Create a pather from a template string that's interpolated by object keys.
@@ -35,9 +36,9 @@ export const createUrlParamPathMatcher = <T extends object>(
     if (urlSegments.some((seg, i) => seg.length === 0 && i !== urlSegments.length - 1))
         throw new Error('Params must be seperated by at least one character.')
 
-    return (url: Path, input: Partial<T>) => {
+    return (url: path, input: Partial<T>) => {
 
-        let remainingUrl: string = $path.validate(url)
+        let remainingUrl: string = Path.validate(url)
         const splitRemainingUrl = (index: number): string => {
             const segment = remainingUrl.substring(0, index)
             remainingUrl = remainingUrl.substring(index)

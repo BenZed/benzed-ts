@@ -1,6 +1,8 @@
 import $, { SchemaFor, Schematic } from '@benzed/schema'
 import { isFunc, isObject } from '@benzed/util'
 
+//// Schema Helpers ////
+
 type ShapeSchemaInput<T> = {
     [K in keyof T]: SchemaFor<T[K]>
 }
@@ -15,6 +17,8 @@ export const isSchematic = <T extends object> (input: unknown): input is SchemaH
 
 export const toSchematic = <T extends object> (input: SchemaHook<T>): Schematic<T> => 
     (isSchematic(input) ? input : $(input)) as Schematic<T>
+
+//// Schemas ////
 
 export const $port = $.integer.range({ 
     min: 1025, 

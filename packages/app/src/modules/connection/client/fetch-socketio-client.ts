@@ -36,13 +36,13 @@ export class FetchSocketIOClient extends Client {
 
     override async start(): Promise<void> {
         await super.start()
-        if (this.settings.webSocket)
+        if (this.data.webSocket)
             await this._startSocketIO()
     }
 
     override async stop(): Promise<void> {
         await super.stop()
-        if (this.settings.webSocket)
+        if (this.data.webSocket)
             await this._stopSocketIO()
     }
 
@@ -63,7 +63,7 @@ export class FetchSocketIOClient extends Client {
     
     private async _startSocketIO(): Promise<void> {
         
-        const { host, webSocket } = this.settings
+        const { host, webSocket } = this.data
             
         if (!this._io && webSocket) {
             this._io = io(host, { 
@@ -115,14 +115,14 @@ export class FetchSocketIOClient extends Client {
     }
 
     private async _executeFetchCommand(command: CommandModule<string, object, object>, cmdData: object): Promise<object> {
-        const { host } = this.settings
+        const { host } = this.data
 
         const { method, url, body, headers } = command
             .request
-            .from(cmdData)
+            .fromRequest(cmdData)
 
         const response = await fetch(
-            host + $path.validate(`${command.pathFromRoot}${url}`), 
+            host + $path.validate(`${command.getPathFromRoot()}${url}`), 
             { 
                 method,
                 body: body && JSON.stringify(body), 

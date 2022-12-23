@@ -1,10 +1,10 @@
-import { ObjectId } from 'mongodb'
+import type{ ObjectId } from 'mongodb'
 
 import match from '@benzed/match'
 import $, { Infer } from '@benzed/schema'
 import { io, omit, Pipe } from '@benzed/util'
 
-import { HttpMethod, RequestHandler } from '../../util'
+import { HttpMethod } from '../../util'
 import { Command, RuntimeCommand } from './command'
 
 import { it, expect, describe } from '@jest/globals'
@@ -72,21 +72,21 @@ describe('static builder pattern', () => {
             )
 
             expect(generic.name).toBe('killOrphans')
-            expect(generic.request.method).toBe(HttpMethod.Put)
+            expect(generic.httpMethod).toBe(HttpMethod.Put)
             expect(generic.request.from(todo)).toHaveProperty('url', '/orphans')
         })
 
         it('generic signature: name, execute, method', () => {
             const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
             expect(makeRed.name).toEqual('makeRed')
-            expect(makeRed.request.method).toEqual(HttpMethod.Options)
+            expect(makeRed.httpMethod).toEqual(HttpMethod.Options)
             expect(makeRed.request.from(todo)).toHaveProperty('url', '/make-red')
         })
 
         it('generic signature: name, execute', () => {
             const create = Command.create('create', $todo)
             expect(create.name).toEqual('create')
-            expect(create.request.method).toEqual(HttpMethod.Post)
+            expect(create.httpMethod).toEqual(HttpMethod.Post)
             expect(create.request.from(todo)).toHaveProperty('url', '/')
         })
     })
@@ -180,7 +180,7 @@ describe('instance builder pattern', () => {
         it('allows mutation of request handler', () => {
 
             const updateTodoWithNewReq = updateTodo
-                .useReq(
+                .setReq(
                     RequestHandler
                         .create(HttpMethod.Put, $todo)
                         .setUrl`/todos/${'id'}`
@@ -203,7 +203,7 @@ describe('instance builder pattern', () => {
         it('mutate signature', () => {
 
             const updateTodoWithNewReq = updateTodo
-                .useReq(req => req.setUrl`/todos/edit/${'id'}`)
+                .setReq(req => req.setUrl`/todos/edit/${'id'}`)
 
             expect(updateTodoWithNewReq.request.from({
                 id: 'great-todo', 

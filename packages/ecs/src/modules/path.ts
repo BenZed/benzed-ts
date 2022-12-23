@@ -1,4 +1,6 @@
 import { $$equals } from '@benzed/immutable'
+import $ from '@benzed/schema'
+
 import { isString, KeysOf } from '@benzed/util'
 
 import { Module, ModuleArray } from '../module/module'
@@ -52,18 +54,22 @@ type GetNodeAtPath<M extends ModuleArray, P extends PathsOf<M>> = _NodesAtPath<M
 
 class Path<P extends path = path> extends Module<P> {
 
-    static validate<P extends path>(path: P): P {
-
-        if (
-        // '/lower-dash-case-with-digits-000'
-            !path
-                .split('')
-                .every((char, i) => i === 0 ? char === '/' : /[a-z]|\d|-/.test(char))
+    static validate = ($.string
+        .trim()
+        .validates(
+            s => s.startsWith('/') ? s : `/${s}`, 
+            'Must start with a "/"'
         )
-            throw new Error(`${path} is not a valid path.`)
-    
-        return path
-    }
+        .validates(
+            s => s.replace(/\/+/g, '/'), 
+            'Must not have multiple consecutive "/"s'
+        ) 
+        .validates(
+            s => s.replace(/\/$/, '') || '/',
+            //                                                      ^ in case we just removed the last slash
+            'Must not end with a "/"'
+        )
+        .validate) as <P extends path>(i: string) => P
 
     static is(input: unknown): input is path {
         if (!isString(input))

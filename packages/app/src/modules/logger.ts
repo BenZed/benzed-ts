@@ -1,9 +1,13 @@
 
 import { Modules } from '@benzed/ecs'
-import { LoggerOptions, PartialOptional } from '@benzed/util'
+import { 
+    LoggerOptions, 
+    PartialOptional 
+} from '@benzed/util'
+
 import { AppModule } from '../app-module'
 
-////  ////
+//// Defaults ////
 
 const DEFAULT_CACHE_LENGTH = 1000
 
@@ -26,13 +30,7 @@ class Logger extends AppModule<LoggerSettings> {
             timeStamp: true,
             cacheLength: DEFAULT_CACHE_LENGTH,
             ...options
-        })
-    }
-
-    private constructor(
-        options: LoggerSettings
-    ) {
-        super(options)
+        })  
     }
 
     /**

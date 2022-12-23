@@ -1,7 +1,7 @@
-import is from '@benzed/is'
-import { memoize, omit } from '@benzed/util'
+import { Path, path } from '@benzed/ecs'
+import { isNumber, memoize, omit } from '@benzed/util'
 
-import { Path, $path, UrlParamKeys } from '../types'
+import { UrlParamKeys } from '../../util'
 
 //// Types ////
 
@@ -13,12 +13,12 @@ import { Path, $path, UrlParamKeys } from '../types'
  * If no data was used, data object will be returned without changes.
  */
 export type Pather<T extends object> = 
-    (data: T) => [ url: Path, dataWithoutUrlParams: T | Partial<T> ]
+    (data: T) => [ url: path, dataWithoutUrlParams: T | Partial<T> ]
 
 /**
  * Creates a pather that simply returns the given path
  */
-export const createStaticPather: <T extends object>(path: Path) => Pather<T> = 
+export const createStaticPather: <T extends object>(path: path) => Pather<T> = 
     memoize(path => data => [ path, data ], 'createStaticPather')
 
 /**
@@ -39,14 +39,14 @@ export const createUrlParamPather = <T extends object>(
         const urlParamValue = data[urlParamKey]
 
         // 0 is a an acceptable url param value, but '' or nil are not
-        if (is.number(urlParamValue) || urlParamValue)
+        if (isNumber(urlParamValue) || urlParamValue)
             url += urlParamValue
     }
 
     const output = omit(data, ...urlParamKeys as never[]) as object
 
     return [
-        $path.validate(url), 
+        Path.validate(url), 
         output
     ]
 }

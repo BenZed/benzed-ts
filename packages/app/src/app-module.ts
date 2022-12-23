@@ -1,7 +1,5 @@
 import { Module } from '@benzed/ecs'
-import { callable, nil, toVoid, Logger, Transform } from '@benzed/util'
-
-import type { Logger as LoggerModule } from './modules'
+import { nil, toVoid, Logger } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -18,17 +16,13 @@ const DUMMY_LOGGER = Logger.create({ onLog: toVoid })
 
 //// Types ////
 
-export type AppModuleArray = readonly AppModule[]
-
 // TODO make this and SettingsModule abstract
 export class AppModule<D = unknown> extends Module<D> {
 
     //// Module Interface ////
 
     private get _icon(): string {
-
         type Iconable = { icon?: string }
-
         return (this as Iconable)?.icon ?? 
             (this.constructor as Iconable)?.icon ?? ''
     }
@@ -36,10 +30,11 @@ export class AppModule<D = unknown> extends Module<D> {
     private _log: Logger | nil = nil
     get log(): Logger {
         if (!this._log) {
+
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const LoggerModule = require('./modules/logger').Logger
         
-            const logger = this.find.inParents(
-                (m: Module): m is LoggerModule => m.name === 'Logger', 
-            )
+            const logger = this.find.inAncestors(LoggerModule)
 
             this._log = logger 
                 ? Logger.create({
@@ -52,7 +47,6 @@ export class AppModule<D = unknown> extends Module<D> {
                 })
                 : DUMMY_LOGGER
         }
-
         return this._log
     }
 
@@ -93,36 +87,5 @@ export class AppModule<D = unknown> extends Module<D> {
             )
         }
     }
+
 }
-
-//// Executable Module ////
-
-export interface ExecutableAppModule<I extends object, O extends object, D> extends AppModule<D>, Transform<I,O> {
-    readonly execute: Transform<I,O>
-}
-
-//
-
-interface ExecutableAppModuleConstructor {
-    new<I extends object, O extends object, D>(
-        execute: Transform<I, O> | ((this: ExecutableAppModule<I,O,D>, input: I) => O),
-        data: D
-    ): ExecutableAppModule<I, O, D>
-}
-
-//// Executable Module ////
-
-export const ExecutableAppModule: ExecutableAppModuleConstructor = callable(
-    function (i: object): object {
-        return this.execute(i)
-    },
-    class extends AppModule {
-
-        constructor(
-            readonly execute: Transform<object, object>,
-            data: unknown
-        ) {
-            super(data)
-        }
-    }
-)

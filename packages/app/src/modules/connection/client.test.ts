@@ -7,8 +7,8 @@ import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
 
 //// Setup ////
 
-//
-for (const webSocket of [false, true]) {
+//  
+for (const webSocket of [false, true]) { 
 
     describe(`websocket: ${webSocket}`, () => {
         // const log: Command[] = []
@@ -49,6 +49,5 @@ for (const webSocket of [false, true]) {
         it('.stop()', () => {
             expect(stopErr).toEqual(undefined)
         })
-
     })
 }

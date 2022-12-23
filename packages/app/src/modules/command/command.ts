@@ -15,16 +15,16 @@ import {
     ContextTransform
 } from '@benzed/util'
 
-import CommandModule from './command-module'
+import CommandModule from './command-v2'
 
 import { 
     HttpMethod, 
     Path, 
-    RequestHandler, 
     SchemaHook, 
     toSchematic, 
     UrlParamKeys 
 } from '../../util'
+import { RequestHandler } from '../request-handler'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -244,7 +244,7 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Change the name of this command
      */
-    useName<Nx extends string>(name: Nx): Command<Nx, I, O> {
+    setName<Nx extends string>(name: Nx): Command<Nx, I, O> {
         return new Command(
             name,
             this._executeOnServer,
@@ -255,9 +255,9 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Update or change the existing request handler for this command
      */
-    useReq(update: (req: RequestHandler<I>) => RequestHandler<I>): Command<N, I, O>
-    useReq(reqHandler: RequestHandler<I>): Command<N, I, O> 
-    useReq(input: RequestHandler<I> | ((req: RequestHandler<I>) => RequestHandler<I>)): Command<N,I,O> {
+    setReq(update: (req: RequestHandler<I>) => RequestHandler<I>): Command<N, I, O>
+    setReq(reqHandler: RequestHandler<I>): Command<N, I, O> 
+    setReq(input: RequestHandler<I> | ((req: RequestHandler<I>) => RequestHandler<I>)): Command<N,I,O> {
 
         const handler = isFunc(input) 
             ? input(this.request) 
@@ -273,18 +273,18 @@ class Command<N extends string, I extends object, O extends object> extends Comm
     /**
      * Shortcut to useReq(req => req.setUrl)
      */
-    useUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<I>[]): Command<N,I,O> {
-        return this.useReq(r => r.setUrl(urlSegments, ...urlParamKeys))
+    setUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<I>[]): Command<N,I,O> {
+        return this.setReq(r => r.setUrl(urlSegments, ...urlParamKeys))
     }
 
     /**
      * Shortcut to useReq(req => req.setMethod)
      */
-    useMethod(method: HttpMethod): Command<N, I, O> {
-        return this.useReq(r => r.setMethod(method))
+    setHttpMethod(method: HttpMethod): Command<N, I, O> {
+        return this.setReq(r => r.setMethod(method))
     }
 
-    useValidate(validate: SchemaHook<I> | nil): Command<N, I, O> {
+    setValidate(validate: SchemaHook<I> | nil): Command<N, I, O> {
 
         const executeWithoutOldSchemaValidate = Pipe.from(
             ...this._executeOnServer

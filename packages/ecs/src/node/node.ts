@@ -1,9 +1,19 @@
 
 import { IndexesOf, isNumber } from '@benzed/util'
-import { 
 
+import {
+    Module,
+    ModuleArray,
+} from '../module'
+
+import { 
     Modules, 
     ModulesInterface,
+
+    path,
+    PathsOf, 
+    NestedPathsOf,
+    ToPath,
 
     AddModules,
     SwapModules,
@@ -11,22 +21,9 @@ import {
     SetModule,
     InsertModules,
     GetModule,
-
-} from '../modules'
-
-import {     
-    Module, 
-    ModuleArray, 
-} from '../module/module'
-
-import { 
     GetNodeAtPath, 
-    PathsOf, 
-    path,
-    NestedPathsOf,
-    GetNodeAtNestedPath,
-    ToPath
-} from '../modules/path'
+    GetNodeAtNestedPath
+} from '../modules'
 
 import { 
     getNodeAtPath, 
@@ -47,10 +44,13 @@ interface NodeInterface<M extends ModuleArray> extends Modules<M> {
     
     add<Mx extends ModuleArray>(...modules: Mx): Node<AddModules<M, Mx>>
 
-    insert<Mx extends ModuleArray, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>>
+    insert<Mx extends ModuleArray, I extends IndexesOf<M>>(
+        index: I,
+        ...modules: Mx
+    ): Node<InsertModules<M, I, Mx>>
 
-    // TODO: set at nested apth
-    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(
+    // TODO: set at nested path
+    set<I extends IndexesOf<M>, F extends (input: M[I]) => Module>(
         index: I, 
         initalizer: F
     ): Node<SetModule<M, I, ReturnType<F>>>
@@ -87,7 +87,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
     }
 
     static from<Mx extends ModuleArray>(...modules: Mx): Node<Mx> {
-        return new this(...modules) as Node<Mx>
+        return new this( ...modules ) as unknown as Node<Mx>
     }
 
     override get<I extends IndexesOf<M>>(index: I): GetModule<M,I>
@@ -139,6 +139,9 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         module: Mx
     ): Node<SetModule<M, I, Mx>>
 
+    /**
+     * @internal
+     */
     set(...args: unknown[]): unknown {
 
         const [ at, module ] = args 
@@ -183,6 +186,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         return Node.from(...modules) as Node<Mx>
     }
 
+    // Constructor Shape
 } as {
 
     is<N extends Node>(input: Module): input is N

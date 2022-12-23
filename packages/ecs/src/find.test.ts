@@ -2,10 +2,10 @@
 import { nil } from '@benzed/util'
 
 import { Finder } from './find'
-import State from './module'
+import { Module } from './module'
 import { Node } from './node'
 
-class Rank<S extends string> extends State<S> {
+class Rank<S extends string> extends Module<S> {
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
@@ -99,26 +99,38 @@ for (const scope of ['inDescendents', 'inChildren', 'inSiblings', 'inParents', '
 describe('callable signature', () => {
     it('in nodes, defaults to children', () => {
         const [ finder,,you ] = createFamilyTreeAndFinder()
-        expect(finder(State)).toEqual(you.modules.at(0))
+        expect(finder(Module)).toEqual(you.modules.at(0))
         expect(finder(Node.from())).toEqual(nil)
     })
     it('in modules, defaults to siblings', () => {
         const [,, you] = createFamilyTreeAndFinder()
         const youRank = you.get(0)
         const youRankFind = new Finder(youRank)
-        expect(youRankFind(State)).toEqual(youRank.siblings.at(0))
+        expect(youRankFind(Module)).toEqual(youRank.siblings.at(0))
+    })
+})
+
+describe('find via constructor', () => {
+
+    test('Module', () => {
+
+        const [finder,,you] = createFamilyTreeAndFinder()
+
+        const modules = finder.inParents(Module)
+        console.log(modules)
 
     })
+
 })
 
 it('require flag', () => {
     const [finder, tree, you] = createFamilyTreeAndFinder()
-    expect(() => finder.require.inAncestors(Node.from(State.data('cheese')))).toThrow('Could not find module')
+    expect(() => finder.require.inAncestors(Node.from(Module.data('cheese')))).toThrow('Could not find module')
     const root = finder.require.inAncestors(you.root)
     expect(root).toEqual(tree)
 })
 
 it('all flag', () => {
     const [ finder,,you ] = createFamilyTreeAndFinder()
-    expect(finder.all.inParents(State)).toEqual(you.parents)
+    expect(finder.all.inParents(Module)).toEqual(you.parents)
 })

@@ -1,16 +1,16 @@
-
-import { SettingsModule } from '../../app-module'
+import { Modules } from '@benzed/ecs'
+import { AppModule } from '../../app-module'
 
 /**
  * Base class for creating connections either to or from the server.
  */
-export abstract class Connection<O extends object> extends SettingsModule<O> {
+export abstract class Connection<O extends object> extends AppModule<O> {
 
     //// Module Implementation ////
 
-    override _validateModules(): void {
-        this._assertSingle()
-        this._assertRoot()
+    override validate(): void {
+        Modules.assert.isRootLevel(this)
+        Modules.assert.isSingle(this)
     }
 
 }

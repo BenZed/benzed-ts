@@ -1,36 +1,12 @@
-import $, { Schema } from '@benzed/schema'
+import { path } from '@benzed/ecs'
 
 import { HttpMethod } from './http-methods'
 import { Headers } from 'cross-fetch'
 
 /**
- * String starting with a slash, as in a path.
- */
-export type Path = `/${string}`
-
-/**
  * Remove the starting slash from a string, unpathing it.
  */
 export type UnPath<S extends string> = S extends `/${infer Sx}` ? Sx : S
-
-/**
- * Schema for path
- */
-export const $path = $.string
-    .trim()
-    .validates(
-        s => s.startsWith('/') ? s : `/${s}`, 
-        'Must start with a "/"'
-    )
-    .validates(
-        s => s.replace(/\/+/g, '/'), 
-        'Must not have multiple consecutive "/"s'
-    ) 
-    .validates(
-        s => s.replace(/\/$/, '') || '/',
-        //                                                      ^ in case we just removed the last slash
-        'Must not end with a "/"'
-    ) as Schema<Path, Path>
 
 /**
  * usable url param values
@@ -54,7 +30,7 @@ export type UrlParamKeys<T> = keyof UrlParams<T>
  */
 export interface Request {
     method: HttpMethod
-    url: Path
+    url: path
     body?: object
     headers?: Headers
 }

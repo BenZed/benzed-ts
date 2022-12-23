@@ -7,10 +7,8 @@ import { SchemaHook, toSchematic } from '../../util'
 //// Eslint ////
 
 /* eslint-disable
-
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
-
 */
 
 //// Types ////
