@@ -65,7 +65,7 @@ const _parents = new WeakMap<Module, nil | Modules>
 
 //// Definition ////
 
-abstract class Module<D = unknown> implements CopyComparable {
+class Module<D = unknown> implements CopyComparable {
 
     static get Data(): typeof Data {
         return require('../modules').Data

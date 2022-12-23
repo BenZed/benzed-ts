@@ -10,7 +10,7 @@ import { expectTypeOf } from 'expect-type'
 //// Setup ////
 
 const mongoDbEmpty = MongoDb
-    .create({ 
+    .create({
         database: 'test'
     })
 

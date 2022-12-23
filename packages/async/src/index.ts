@@ -1,4 +1,6 @@
 
+export * from './guarantee'
+
 export * from './seconds'
 
 export * from './milliseconds'

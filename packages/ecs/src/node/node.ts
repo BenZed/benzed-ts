@@ -50,7 +50,7 @@ interface NodeInterface<M extends ModuleArray> extends Modules<M> {
     ): Node<InsertModules<M, I, Mx>>
 
     // TODO: set at nested path
-    set<I extends IndexesOf<M>, F extends (input: M[I]) => Module>(
+    set<F extends (input: M[I]) => Module, I extends IndexesOf<M>>(
         index: I, 
         initalizer: F
     ): Node<SetModule<M, I, ReturnType<F>>>
@@ -139,9 +139,6 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         module: Mx
     ): Node<SetModule<M, I, Mx>>
 
-    /**
-     * @internal
-     */
     set(...args: unknown[]): unknown {
 
         const [ at, module ] = args 

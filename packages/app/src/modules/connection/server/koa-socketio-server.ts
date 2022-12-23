@@ -1,5 +1,5 @@
 import is from '@benzed/is'
-import { keysOf, nil, isNumber } from '@benzed/util'
+import { nil, isNumber } from '@benzed/util'
 import { unique } from '@benzed/array'
 
 import { createServer, Server as HttpServer } from 'http'
@@ -12,16 +12,16 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 
-import { Command, CommandError } from '../../command'
+import { CommandError } from '../../command'
 
 import { 
     WEBSOCKET_PATH, 
     Request, 
     Headers, 
-    Path, 
     HttpCode, 
     HttpMethod
 } from '../../../util'
+import { path } from '@benzed/ecs'
 
 //// Helper ////
 
@@ -46,7 +46,7 @@ function ctxToRequest(ctx: Context): Request {
     return {
         method: ctx.method as HttpMethod,
         headers: headers,
-        url: ctx.originalUrl as Path,
+        url: ctx.originalUrl as path,
         body: ctxBodyToObject(ctx)
     }
 }
@@ -74,10 +74,10 @@ export class KoaSocketIOServer extends Server {
         await super.start()
 
         const http = this._http ?? this._setupHttpServer()
-        if (!this._io && this.settings.webSocket)
+        if (!this._io && this.data.webSocket)
             this._setupSocketIOServer(http)
         
-        const { port } = this.settings
+        const { port } = this.data
     
         await new Promise<void>((resolve, reject) => {
             http.listen(port, resolve)
@@ -114,23 +114,18 @@ export class KoaSocketIOServer extends Server {
         const { url, ...req } = ctxToRequest(ctx)
 
         let matchMethod = false
-        for (const commandName of keysOf(this.root.commands)) {
-            const command = this._getCommand(commandName)
-            if (!command)
-                continue
-
-            if (command.request.method === req.method)
+        for (const command of this.getCommands()) {
+            if (command.httpMethod === req.method)
                 matchMethod = true
     
             const input = command
-                .request
-                .match({
+                .reqMatch({
                     ...req,
-                    url: url.replace(command.pathFromRoot, '') as Path
+                    url: url.replace(command.getPathFromRoot(), '') as path
                 })
 
             if (input) {
-                const result = await command.execute(input)
+                const result = await command(input)
                 return result
             }
         }
@@ -151,11 +146,6 @@ export class KoaSocketIOServer extends Server {
         }
     }
 
-    private _getCommand(name: string): Command<string, object, object> | nil {
-        const commands = this.root.commands
-        return commands[name as keyof typeof commands]
-    }
-
     // Initialization
 
     private _createKoa(): Koa {
@@ -163,7 +153,7 @@ export class KoaSocketIOServer extends Server {
         const koa = new Koa()
 
         const allowMethods: string[] = this.parent 
-            ? Object.values(this.root.commands).map(c => c.request.method).filter(unique)
+            ? this.getCommands().map(c => c.httpMethod).filter(unique)
             : Object.values(HttpMethod)
 
         // Standard Middleware
@@ -207,7 +197,7 @@ export class KoaSocketIOServer extends Server {
 
                 this.log`${socket.id} command: ${name} ${input}`
 
-                const command = this._getCommand(name)
+                const command = this.getCommand(name)
                 try {
                     if (!command) {
                         throw new CommandError(
@@ -216,7 +206,7 @@ export class KoaSocketIOServer extends Server {
                         )
                     }
 
-                    const output = await command.execute(input)
+                    const output = await command(input)
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)

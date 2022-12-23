@@ -94,12 +94,14 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
     extends Module<M> 
     implements Iterable<M[number]> {
 
-    static add = addModules
-    static insert = insertModules
-    static set = setModule
-    static remove = removeModule
-    static swap = swapModules
-    static get = getModule
+    static operate = {
+        add: addModules,
+        insert: insertModules,
+        set: setModule,
+        remove:removeModule,
+        swap: swapModules,
+        get: getModule
+    }
 
     static assert = {
         isSingle,
@@ -203,7 +205,7 @@ abstract class Modules<M extends ModuleArray = ModuleArray>
     //// Interface ////
 
     get<I extends IndexesOf<M>>(index: I): GetModule<M,I> {
-        return Modules.get(this.modules, index)  
+        return Modules.operate.get(this.modules, index)  
     }
 
     override validate(): void {

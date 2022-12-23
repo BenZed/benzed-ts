@@ -12,12 +12,15 @@ import { expectTypeOf } from 'expect-type'
 //// Setup ////
 
 class Text<T extends string> extends Module<T> {
+
     get text(): T {
         return this.data
     }
+
     setText<Tx extends string>(text: Tx): Text<Tx> {
         return new Text(text)
     }
+
     getText(): T {
         return this.text
     }
@@ -28,24 +31,24 @@ const createTestNodeTree = () => Node
     .from()
     .add(
         Node.from(  
-            Path.create('/foo')
+            new Path('/foo')
         ),
         Node.from(
-            Path.create('/bar')
+            new Path('/bar')
         ),
         Node.from( 
-            Path.create('/baz'),
+            new Path('/baz'),
             Node.from(
-                Path.create('/nerd')
+                new Path('/nerd')
             ),
             Node.from(
-                Path.create('/bone'),
+                new Path('/bone'),
                 Node.from(
-                    Path.create('/sass')
+                    new Path('/sass')
                 )
             ),
             Node.from(
-                Path.create('/ace'),
+                new Path('/ace'),
             )
         )  
     )
@@ -130,7 +133,7 @@ it('.set() overwrites existing path', () => {
     )
 
     const bar = Node.from(
-        Path.create('/bar'),
+        new Path('/bar'),
         Module.data('bar' as const)
     )
 
@@ -170,11 +173,11 @@ it('.remove() from a path', () => {
     const t1 = Node.from(
         Module.data(0 as const),
         Node.from(
-            Path.create('/one'), 
+            new Path('/one'), 
             Module.data(1 as const)
         ),
         Node.from(
-            Path.create('/two'),
+            new Path('/two'),
             Module.data(2 as const)
         )
     )

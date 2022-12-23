@@ -7,7 +7,7 @@ import {
 } from '@benzed/util'
     
 import { Module } from '../module'
-import Modules from './modules'
+import type Modules from './modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -44,14 +44,15 @@ export interface Execute<I = unknown, O = unknown, C = void> extends
     ContextTransform<I, O, C> {
 
     append<Ox>(hook: ExecuteHook<Awaited<O>, Ox, C>): Execute<I, ResolveAsyncOutput<O, Ox>, C>
-
-    prepend<Ix>(hook: ExecuteHook<Awaited<Ix>, I, C>): Execute<Ix, O, C>
+    prepend<Ix>(hook: ExecuteHook<Ix, I, C>): Execute<Ix, O, C>
 
 }
 
 //// Executable Module ////
 
-interface ExecuteConstructor {
+type ModuleConstructor = typeof Module
+
+interface ExecuteConstructor extends ModuleConstructor {
     new <I,O,C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C>
 }
 

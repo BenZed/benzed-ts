@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs'
 import { HttpCode, HttpMethod, RequestHandler } from '../../util'
 import { MongoDb, MongoDbCollection } from '../mongo-db'
 
-import { CommandModule } from '../command/command-v2'
+import { CommandModule } from '../command/command'
 import { CommandError } from '../command'
 
 //// Helper ////

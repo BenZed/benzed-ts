@@ -1,4 +1,4 @@
-import { callable, isFunc, isNil, nil, TypeGuard } from '@benzed/util'
+import { callable, Func, isFunc, isNil, nil, TypeGuard } from '@benzed/util'
 import { $$equals, equals } from '@benzed/immutable'
 
 import { Module, $$isModuleConstructor } from './module'
@@ -14,7 +14,7 @@ import type { Modules } from './modules'
 type ModuleConstructor = 
     (new (...args: any) => Module) | 
     (abstract new (...args: any) => Module) | 
-    { [$$isModuleConstructor]: boolean, prototype: Module }
+    (Func & { name: string, [$$isModuleConstructor]: boolean, prototype: Module })
 
 type ModuleInstance<C extends ModuleConstructor> = C extends { [$$isModuleConstructor]: boolean, prototype: infer P }
     ? P 
@@ -195,7 +195,7 @@ function toModulePredicate(input: FindInput): ModuleTypeGuard | ModulePredicate 
     if (isModuleConstructor(input)) {
         return (other => callable.isInstance(
             other, 
-            input
+            input as ModuleConstructor
         )) as ModuleTypeGuard
     }
 
@@ -206,7 +206,7 @@ function toModulePredicate(input: FindInput): ModuleTypeGuard | ModulePredicate 
         return input
         
     // basic state comparison
-    return other => equals(input, other.data) ? other : nil
+    return other => equals(input, other.value) ? other : nil
 } 
 
 function toModuleName({ name }: FindInput): string {

@@ -1,12 +1,11 @@
-import { KeysOf, nil } from '@benzed/util'
 import { Modules } from '@benzed/ecs'
+import { guarantee } from '@benzed/async'
 
 import { 
     MongoClient as _MongoClient, 
     Db as _MongoDatabase,
 } from 'mongodb'
 
-import { SchemaHook } from '../../util'
 import { AppModule } from '../../app-module'
 
 import { 
@@ -23,75 +22,63 @@ import MongoDbCollection from './mongo-db-collection'
     @typescript-eslint/ban-types
 */
 
-//// Collections ////
-
-type Collections = {
-    readonly [key: string]: MongoDbCollection<any>
-}
-
-type AddCollection<C extends Collections, N extends string, Cx extends MongoDbCollection<any>> = 
-    ({ [K in N | KeysOf<C>]: K extends N ? Cx : C[K] }) extends infer A 
-        ? A extends Collections 
-            ? A 
-            : never 
-        : never
-
 //// Mongodb Database ////
 
-class MongoDb<C extends Collections> extends AppModule<Required<MongoDbSettings>> {
+class MongoDb extends AppModule<Required<MongoDbSettings>> {
 
     static readonly icon = '🗃️'
 
     // Static Create with Schema Validation
 
-    static create(settings: MongoDbSettings): MongoDb<{}> {
+    static create(settings: MongoDbSettings): MongoDb {
         return new MongoDb(
             $mongoDbSettings.validate(
                 settings
-            ) as Required<MongoDbSettings>,
-            {}
+            ) as Required<MongoDbSettings>
         )
-    }
-
-    private constructor(
-        settings: Required<MongoDbSettings>,
-        private readonly _collections: C
-    ) {
-        super(settings)
     }
 
     // Module Implementation
 
-    private _mongoClient: _MongoClient | nil = nil
-    private _db: _MongoDatabase | nil = nil
-
-    override async start(): Promise<void> {
-
-        await super.start()
-        const { data } = this
-
+    private readonly _getClient = guarantee(async () => {
+        const { data } = this 
         const uri = data.uri
             .replaceAll('<port>', data.port.toString())
             .replaceAll('<user>', data.user ?? '')
             .replaceAll('<password>', data.password ?? '')
             .replaceAll('<database>', data.database)
 
-        this._mongoClient = await _MongoClient.connect(uri)
-        this._db = this._mongoClient.db(data.database)
+        const client = await _MongoClient.connect(uri)
 
         this.log`mongodb connected ${{ uri }}`
+
+        return client
+    })
+
+    /**
+     * @internal
+     */
+    get _database(): _MongoDatabase {
+        if (!this.isConnected)
+            throw new Error(`${this.name} is not connected`)
+
+        return this._getClient.resolved.db(this.data.database)
+    }
+
+    override async start(): Promise<void> {
+
+        await super.start()
+        await this._getClient()
+
     }
 
     override async stop(): Promise<void> {
         
         await super.stop()
-        if (!this._mongoClient) 
-            return 
 
-        await this._mongoClient.close()
-
-        this._mongoClient = nil
-        this._db = nil
+        if (this.isConnected)
+            this._getClient.resolved.close()
+        this._getClient.invoked = false
 
         this.log`mongodb disconnected`
     }
@@ -100,79 +87,16 @@ class MongoDb<C extends Collections> extends AppModule<Required<MongoDbSettings>
         Modules.assert.isSingle(this)
     }
 
-    // Database Implementation
-
-    get collections(): C {
-        return this._collections
-    }
-
-    getCollection<N extends KeysOf<C>>(name: N): C[N]
-    getCollection<T extends object>(name: string): MongoDbCollection<T> {
-
-        const collection = this._getCollection(name as KeysOf<C>)
-
-        this._assertConnected(this._db)
-
-        if (!collection.connected)
-            collection._connect(this._db.collection(name))
-
-        return collection
-    }
-
-    addCollection<N extends string, T extends object>(
-        name: N, 
-        schematic: SchemaHook<T>
-    ): MongoDb<AddCollection<C, N, MongoDbCollection<T>>> {
-
-        if (!name)
-            throw new Error('Collection name must not be empty.')
-
-        if (name in this._collections)
-            throw new Error(`Collection '${name}' already exists.`)
-
-        const collections = {
-            ...this._collections,
-            [name as N]: new MongoDbCollection<T>(schematic)
-        } as unknown as AddCollection<C, N, MongoDbCollection<T>>
-
-        return new MongoDb(
-            this.data,
-            collections
-        )
-    }
-
-    async clearCollection<N extends KeysOf<C>>(collectionName: N): Promise<void> {
-        this._assertStarted()
-        this._assertConnected(this._db)
-        this._assertCollection(collectionName)
-
-        const _mongoCollection = this._db.collection(collectionName)
-        await _mongoCollection.deleteMany({})
-
-        this.log`cleared collection ${collectionName}`
+    get isConnected(): boolean {
+        return this._getClient.isFulfilled
     }
 
     async clearAllCollections(): Promise<void> {
-        for (const name in this._collections) 
-            await this.clearCollection(name)  
-    }
+        this._assertStarted()
 
-    //// Helper ////
-
-    private _getCollection<N extends KeysOf<C>>(name: N): C[N]
-    private _getCollection<T extends object>(name: string): MongoDbCollection<T> {
-        this._assertCollection(name)
-        return this._collections[name]
-    }
-
-    private _assertCollection(name: string): void {
-        if (!this._collections[name])
-            throw new Error(`Collection '${name}' does not exist.`)
-    }
-
-    private _assertConnected(db: _MongoDatabase | nil): asserts db is _MongoDatabase {
-        if (!db)
-            throw new Error(`${this.name} not connecteed`)
+        const collections = this.find.all.inDescendents(MongoDbCollection)
+        for (const collection of collections)
+            await collection.clear()
     }
 
 }
