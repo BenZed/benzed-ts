@@ -1,4 +1,5 @@
 import { property } from '../property'
+import { isObject } from '../types'
 import { isFunc } from '../types/func'
 import createCallableObject, { BoundSignature, Callable, get$$Callable, GetSignature } from './object'
 
@@ -52,8 +53,11 @@ const isClass = (input: unknown): input is Class =>
 const resolveInstance = (value: object): object => 
     get$$Callable(value)?.object ?? value
 
-const isInstance = <T extends Function>(value: object, constructor: T): value is InstanceType<T> => 
-    resolveInstance(value) instanceof constructor
+function isInstance <T extends Class>(value: unknown, constructor: T): value is InstanceType<T> 
+function isInstance (value: unknown, constructor: Function): value is object { 
+    
+    return (isObject(value) || isFunc(value)) && resolveInstance(value) instanceof constructor
+}
 
 /**
  * This syntax works in testing, but breaks after being transpiled in other packages.

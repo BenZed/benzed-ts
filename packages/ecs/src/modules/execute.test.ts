@@ -5,6 +5,10 @@ import { Module } from '../module'
 import { Data } from './data'
 import { Node } from '../node'
 
+import { it, expect, test } from '@jest/globals'
+
+////  ////
+
 it('callable module that takes a transform method', () => {
     const x2 = new Execute((i: number) => i * 2)
     expect(x2(4)).toEqual(8)

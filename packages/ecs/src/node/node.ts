@@ -7,6 +7,7 @@ import {
 } from '../module'
 
 import { 
+
     Modules, 
     ModulesInterface,
 
@@ -23,6 +24,7 @@ import {
     GetModule,
     GetNodeAtPath, 
     GetNodeAtNestedPath
+
 } from '../modules'
 
 import { 
@@ -105,7 +107,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
 
     add<Mx extends readonly Module<any>[]>(...modules: Mx): Node<AddModules<M, Mx>> {
         return Node.from(
-            ...Modules.add(
+            ...Modules.operate.add(
                 this.modules, 
                 ...modules
             )
@@ -114,7 +116,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
 
     insert<I extends IndexesOf<M>, Mx extends ModuleArray>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>> {
         return Node.from(
-            ...Modules.insert(
+            ...Modules.operate.insert(
                 this.modules,
                 index,
                 ...modules
@@ -144,7 +146,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
         const [ at, module ] = args 
 
         const modules = isNumber(at)
-            ? Modules.set(
+            ? Modules.operate.set(
                 this.modules,
                 at as IndexesOf<M>,
                 module as any
@@ -163,7 +165,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
     remove(at: path | number): unknown {
 
         const modules = isNumber(at)
-            ? Modules.remove(this.modules, at as IndexesOf<M>)
+            ? Modules.operate.remove(this.modules, at as IndexesOf<M>)
             : removeNodeAtPath(this.modules, at as PathsOf<M>)
 
         return Node.from(...modules)
@@ -171,7 +173,7 @@ const Node = class <M extends ModuleArray> extends Modules<M> implements NodeInt
 
     swap<A extends IndexesOf<M>, B extends IndexesOf<M>>(fromIndex: A, toIndex: B): Node<SwapModules<M, A, B>> {
         return Node.from(
-            ...Modules.swap(
+            ...Modules.operate.swap(
                 this.modules,
                 fromIndex,
                 toIndex
