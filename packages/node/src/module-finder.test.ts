@@ -1,11 +1,11 @@
 
 import { nil } from '@benzed/util'
 
-import { Finder } from './finder'
-import { Module } from '../module'
-import { Node } from '../node'
+import { ModuleFinder } from './module-finder'
+import { Module } from './module'
+import { Node } from './node'
 
-class Rank<S extends string> extends Module<S> {
+class Rank<S extends string> extends Module {
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
@@ -60,7 +60,7 @@ const createFamilyTreeAndFinder = () => {
     )
 
     const you = tree.get(1).get(2)
-    const finder = new Finder(you)
+    const finder = new ModuleFinder(you)
 
     return [ finder, tree, you ] as const
 }
@@ -105,7 +105,7 @@ describe('callable signature', () => {
     it('in modules, defaults to siblings', () => {
         const [,, you] = createFamilyTreeAndFinder()
         const youRank = you.get(0)
-        const youRankFind = new Finder(youRank)
+        const youRankFind = new ModuleFinder(youRank)
         expect(youRankFind(Module)).toEqual(youRank.siblings.at(0))
     })
 })

@@ -1,121 +1,221 @@
 
 import { 
     callable,
+    IndexesOf,
     isString, 
+    iterate, 
+    KeysOf, 
+    keysOf, 
+    Mutable, 
     nil,
 } from '@benzed/util'
 
-import { isValidateable, Module } from './module'
+import { Module, Modules } from './module'
 
 import { 
-    AssertNode, 
-    Finder, 
+    AssertModule, 
+    ModuleFinder, 
     FindFlag, 
     FindInput, 
-    FindNode, 
+    FindModule, 
     FindOutput, 
-    HasNode 
-} from './find'
+    HasModule 
+} from './module-finder'
 
-import type { NodeArray, NodeSet } from './node-set'
-import type { NodeMap, NodeRecord } from './node-map'
+import { $$copy, $$equals, copy, CopyComparable, equals } from '@benzed/immutable'
+import { Validatable } from './validatable'
+
+import { 
+    addModules, 
+    AddModules, 
+    insertModules, 
+    InsertModules, 
+    removeModule, 
+    RemoveModule, 
+    setModule, 
+    SetModule,
+    swapModules, 
+    SwapModules,
+    setNode, 
+    SetNode, 
+    removeNode, 
+    RemoveNode,  
+} from './operations'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/no-var-requires,
+    @typescript-eslint/ban-types
 */
-//// Symbols ////
-
-export const $$isNodeConstructor = Symbol('is-node-constructor')
 
 //// Exports ////
 
-class Node<T = unknown> extends Module<T> {
+type Nodes = { readonly [key: string]: Node }
+
+class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatable implements CopyComparable {
 
     static isNode(input: unknown): input is Node {
-        return callable.isInstance(input, Node)
+        return callable.isInstance(input, Node as unknown as (new () => Node))
     }
 
-    static for(input: object): Node | nil {
-        return Module._parents.get(input)
-    }
+    constructor(nodes: N)
+    constructor(nodes: N, ...modules: M)
+    constructor(...modules: M)
+    constructor(args: [N] | M | [N, ...M]) {
 
-    static from<Tx extends NodeArray>(...nodes: Tx): NodeSet<Tx>
-    static from<Tx extends NodeRecord>(record: Tx): NodeMap<Tx>
-    static from<Tx>(value: Tx): Node<Tx> 
-    
-    static from(...values: unknown[]): unknown {
-        if (values.length === 0)
-            throw new Error('Node must have a value.')
+        super()
 
-        const { isNodeArray, NodeSet } = require('./node-set')
-        if (values.length > 1) 
-            return isNodeArray(values) ? new NodeSet(...values) : new Node(values)
+        const [nodes, ...modules] = Module.isModule(args[0])
+            ? [{}, ...args]
+            : args
 
-        const { isNodeRecord, NodeMap } = require('./node-map')
-        const [ value ] = values
-        return isNodeRecord(value) ? new NodeMap(value) : new Node(value)
-    }
+        this.nodes = nodes as N
+        this.modules = modules as unknown as M
 
-    static * eachChild(value: unknown): IterableIterator<Node> {
-        for (const ref of this._eachRef(value)) {
-            if (Node.isNode(ref))
-                yield ref
+        for (const name of keysOf(this.nodes)) {
+            const child = this.nodes[name] as Node
+            child._setParent(name, this)
         }
+
+        for (const module of this.modules)
+            (module as Module)._setNode(this)
+
     }
 
-    /**
-     * @internal 
-     */
-    static readonly [$$isNodeConstructor] = true as const
+    private _name: string = this.constructor.name
+    get name(): string {
+        return this._name
+    }
 
-    //// Construct ////
+    //// Operations ////
 
-    constructor(value: T) {
+    getNode<K extends KeysOf<N>>(name: K): N[K] {
+        return this.nodes[name]
+    }
 
-        super(value)
+    setNode<K extends string, Nx extends Node>(key: K, node: Nx): Node<M, SetNode<N, K, Nx>> 
+    setNode<K extends KeysOf<N>, F extends (input: N[K]) => Node>(key: K, update: F): Node<M, SetNode<N, K, ReturnType<F>>>
+    setNode(key: string, node: Node | ((current: Node) => Node)): Node {
+        return new Node(
+            setNode(this.nodes, key as KeysOf<N>, node as Node),
+            ...copy(this.modules)
+        )
+    }
 
-        for (const ref of Node._eachRef(this._value))
-            Module._setParent(ref, this)
+    removeNode<K extends KeysOf<N>>(key: K): Node<M, RemoveNode<N, K>> {
+        return new Node(
+            removeNode(this.nodes, key),
+            ...copy(this.modules)
+        ) 
+    }
 
+    getModule<I extends IndexesOf<M>>(index: I): M[I] {
+        return this.modules[index]
+    }
+
+    addModules<Mx extends Modules>(...modules: Mx): Node<AddModules<M, Mx>, N> {
+        return new Node(
+            this.nodes,
+            ...addModules(this.modules, ...modules)
+        )
+    }
+
+    setModule<
+        I extends IndexesOf<M>,
+        F extends ((input: M[I]) => Module)
+    >(index: I, update: F): Node<SetModule<M, I, ReturnType<F>>, N>
+    setModule<
+        I extends IndexesOf<M>,
+        Mx extends Module,
+    >(
+        index: I,
+        module: Mx
+    ): Node<SetModule<M, I, Mx>, N>
+    setModule(index: number, module: Module | ((input: Module) => Module)): Node {
+        return new Node(
+            this.nodes,
+            ...setModule(this.modules, index as IndexesOf<M>, module as Module)
+        )
+    }
+
+    insertModules<Mx extends Modules, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>, N> {
+        return new Node(
+            this.nodes,
+            ...insertModules(this.modules, index, ...modules)
+        )
+    }
+
+    swapModules<A extends IndexesOf<M>, B extends IndexesOf<M>>(indexA: A, indexB: B): Node<SwapModules<M,A,B>, N> {
+        return new Node(
+            this.nodes,
+            ...swapModules(this.modules, indexA, indexB)
+        )
+    }
+
+    removeModule<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>, N> {
+        return new Node(
+            this.nodes,
+            ...removeModule(this.modules, index)
+        )
     }
 
     //// Relationships ////
 
-    * eachSibling(): IterableIterator<Node> {
-        if (this.hasParent) {
-            for (const child of this.parent.eachChild()) {
-                if (child !== this)
-                    yield child
-            }
-        }
+    private _parent: Node | nil = nil
+    get parent(): Node {
+        if (!this._parent)
+            throw new Error(`${this.name} does not have a parent. Use .hasParent to check, first.`)
+
+        return this._parent
     }
-    get siblings(): Node[] {
-        return Array.from(this.eachSibling())
-    }
-    get numSiblings(): number {
-        return this.siblings.length
+    get hasParent(): boolean {
+        return !!this._parent
     }
 
+    /**
+     * @internal
+     */
+    _setParent(name: string, parent: Node): void {
+        if (this._parent)
+            throw new Error(`${this.name} is already parented`)
+
+        if (!parent.children.includes(this)) 
+            throw new Error(`${this.name} is not included in given parent\'s children.`)
+
+        this._name = name
+        this._parent = parent
+        this.validate()
+    }
+    
     * eachParent(): IterableIterator<Node> {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let current: Pick<Node, 'hasParent' | 'parent'> = this
+        let current: Node = this
         while (current.hasParent) {
             yield current.parent
             current = current.parent
         }
     }
+
     get parents(): Node[] {
         return Array.from(this.eachParent())
     }
+
     get numParents(): number {
         return this.parents.length
     }
 
+    get root(): Node {
+        return this.parents.at(-1) ?? this
+    }
+
+    get isRoot(): boolean {
+        return this === this.root
+    }
+
     * eachAncestor(): IterableIterator<Node> {
         for (const parent of this.eachParent()) {
-            yield parent
-            yield* parent.eachSibling()
+            if (parent.parent)
+                yield* parent.parent.eachChild()
+            else 
+                yield parent
         }
     }
     get ancestors(): Node[] {
@@ -124,29 +224,27 @@ class Node<T = unknown> extends Module<T> {
     get numAncestors(): number {
         return this.ancestors.length
     }
-    get root(): Node {
-        return this.parents.at(-1) ?? this
-    }
 
     * eachChild(): IterableIterator<Node> {
-        yield* Node.eachChild(this._value)
+        yield* iterate(this.children)
     }
 
+    readonly nodes: N
+
     get children(): Node[] {
-        return Array.from(this.eachChild())
+        return Array.from(iterate(this.nodes))
     }
     get numChildren(): number {
         return this.children.length
     }
     get hasChildren(): boolean {
-        return this.children.length === 0
+        return this.numChildren > 0
     }
 
     * eachDescendent(): IterableIterator<Node> {
         for (const child of this.eachChild()) {
             yield child
-            if (child instanceof Node)
-                yield* child.eachDescendent()
+            yield* child.eachDescendent()
         }
     }
     get descendents(): Node[] {
@@ -156,32 +254,27 @@ class Node<T = unknown> extends Module<T> {
         return this.descendents.length
     }
 
-    /**
-     * @internal
-     */
-    get _refs(): object[] {
-        return Array.from(Node._eachRef(this._value))
-    }
+    //// Modules ////
+    
+    readonly modules: M
 
-    //// Find ////
-
-    get find(): FindNode {
-        return new Finder(this)
+    get findModule(): FindModule {
+        return new ModuleFinder(this)
     }
-    get has(): HasNode {
-        return new Finder(this, FindFlag.Has)
+    get hasModule(): HasModule {
+        return new ModuleFinder(this, FindFlag.Has)
     }
-    assert<T extends FindInput>(input: T): FindOutput<T>
-    assert(error?: string): AssertNode
-    assert(input?: FindInput | string): FindOutput<FindInput> | AssertNode {
+    assertModule<T extends FindInput>(input: T): FindOutput<T>
+    assertModule(error?: string): AssertModule
+    assertModule(input?: FindInput | string): FindOutput<FindInput> | AssertModule {
 
         const isError = isString(input)
         const error = isError ? input : undefined
 
-        const finder = new Finder(this, FindFlag.Require, error)
+        const finder = new ModuleFinder(this, FindFlag.Require, error)
 
         const isFindInput = !isError && input
-        return (isFindInput ? finder(input) : finder) as FindOutput<FindInput> | AssertNode
+        return (isFindInput ? finder(input) : finder) as FindOutput<FindInput> | AssertModule
     }
     
     //// Validate ////
@@ -189,13 +282,32 @@ class Node<T = unknown> extends Module<T> {
     /**
      * Called when the module is parented.
      */
-    validate(): void { 
-        for (const ref of Module._eachRef(this._value)) {
-            if (isValidateable(ref))
-                ref.validate()
-        }
+    validate(): void {
+        for (const module of this.modules)
+            module.validate()
+
+        for (const child of this.eachChild())
+            child.validate()
     }
 
+    /// CopyComparable /// 
+
+    [$$copy](): this {
+
+        const Node = this.constructor as new (children: N, ...modules: M) => Node<M,N>
+
+        return new Node(
+            copy(this.nodes),
+            ...copy(this.modules)
+        ) as this
+    }
+
+    [$$equals](other: unknown): other is this {
+        return Node.isNode(other) && 
+            other.constructor === this.constructor && 
+            equals(other.modules, this.modules) && 
+            equals(other.children, this.children)
+    }
 }
 
 //// Exports ////
@@ -203,5 +315,6 @@ class Node<T = unknown> extends Module<T> {
 export default Node 
 
 export {
-    Node
+    Node,
+    Nodes
 }

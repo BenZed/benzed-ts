@@ -1,55 +1,23 @@
-import { nil } from '@benzed/util'
-import { Node } from './node'
 
-import { it, describe, expect } from '@jest/globals'
-import { NodeMap } from './node-map'
-import { NodeSet } from './node-set'
+import { it } from '@jest/globals'
+import { Module } from './module'
+
+import Node from './node'
 
 //// Tests ////
 
-describe('Node.from', () => {
+it('sets a node', () => {
 
-    it('wraps node around any value', () => {
-        const one = Node.from(1)
-        expect(one).toBeInstanceOf(Node)
-        expect(one).not.toBeInstanceOf(NodeMap)
-        expect(one).not.toBeInstanceOf(NodeSet)
-    })
+    const n1 = new Node()
 
-    class Foo {
+    const n2 = n1.setNode('cake', new Node())
 
-        get node(): Node<Foo> | nil {
-            return Node.for(this) as Node<Foo> | nil
-        }
+    const n3 = n2.setNode('card', new Node())
 
-        bar(): string {
-            return `${this.node?.name}!`
-        }
+    const n4 = n3.setNode('card', n => n.setNode('hey', new Node()))
+    const n5 = n4.setNode('card', n => n.setNode('hey', n => n.setNode('yo', new Node())))
 
-    }
-    
-    it('wraps node around any object', () => {
+    const n6 = n5.removeNode('cake')
 
-        const foo = new Foo()  
-        const node = Node.from(foo) 
-        expect(foo.node).toEqual(node)
-        expect(foo.bar()).toEqual('Node!')
-    
-        expect(node).toBeInstanceOf(Node)
-        expect(node).not.toBeInstanceOf(NodeMap)
-        expect(node).not.toBeInstanceOf(NodeSet)
-    })
-
-    it('wraps an array of objects', () => {
-
-        const arr = [ new Foo(), 'string', { some: 'object' } ] as const
-
-        const node = Node.from(arr)
-
-        const [ foo,, obj ] = arr    
- 
-        expect(foo.node).toEqual(node)
-        expect(Node.for(obj)).toEqual(node)
-    })
-
+    const n7 = n6.addModules(new Module('ace'))
 })
