@@ -16,15 +16,15 @@ type ModulePredicate = (input: Module) => Module | boolean
 
 export type FindInput = Module | ModulePredicate | ModuleTypeGuard | ModuleConstructor
 export type FindOutput<I> = 
-    I extends (input: Module) => infer M 
-        ? Exclude<M, nil>
-        : I extends TypeGuard<infer Mx, Module>   
-            ? Mx 
-            : I extends ModuleConstructor
-                ? InstanceType<I>
-                : I extends Module 
-                    ? I
-                    : never
+    I extends TypeGuard<infer Mx, Module>   
+        ? I extends (input: Module) => infer M 
+            ? Exclude<M, nil>
+            : Mx 
+        : I extends ModuleConstructor
+            ? InstanceType<I>
+            : I extends Module 
+                ? I
+                : never
 
 //// FindModule ////
 

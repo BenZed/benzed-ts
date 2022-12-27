@@ -167,18 +167,18 @@ export type SetModule<M extends Modules, I extends IndexesOf<M>, Mx>
 export function setModule<
     M extends Modules,
     I extends IndexesOf<M>,
-    F extends (input: M[I]) => Module
->(input: M, index: I, initializer: F): SetModule<M, I, ReturnType<F>>
-
-export function setModule<
-    M extends Modules,
-    I extends IndexesOf<M>,
     Mx extends Module,
 >(
     input: M,
     index: I,
     module: Mx
 ): SetModule<M, I, Mx> 
+
+export function setModule<
+    M extends Modules,
+    I extends IndexesOf<M>,
+    F extends (input: M[I]) => Module
+>(input: M, index: I, update: F): SetModule<M, I, ReturnType<F>>
 
 export function setModule(input: Modules, index: number, update: Module | ((current: Module) => Module)): Modules {
 

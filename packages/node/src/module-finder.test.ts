@@ -5,7 +5,7 @@ import { ModuleFinder } from './module-finder'
 import { Module } from './module'
 import { Node } from './node'
 
-class Rank<S extends string> extends Module {
+class Rank<S extends string> extends Module<S> {
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)

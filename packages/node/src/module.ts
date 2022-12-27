@@ -4,8 +4,11 @@ import { callable, isObject } from '@benzed/util'
 import { Node } from './node'
 import { Validatable } from './validatable'
 
+import type { Data, Execute, ExecuteHook, KeyData } from './modules'
+
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-var-requires
 */
 
 export const $$isModuleConstructor = Symbol('is-module-constructor')
@@ -15,6 +18,37 @@ export const $$isModuleConstructor = Symbol('is-module-constructor')
 export type Modules = readonly Module[]
 
 export class Module<T = unknown> extends Validatable implements CopyComparable {
+
+    static get Data(): typeof Data {
+        return require('./modules').Data
+    }
+
+    static get KeyData(): typeof KeyData {
+        return require('./modules').KeyData
+    }
+
+    static get Execute(): typeof Execute {
+        return require('./modules').Execute
+    }
+
+    /**
+     * Create a module with generic get/set state setters
+     */
+    static data<T>(data: T): Data<T> 
+    static data<K extends string,T>(key: K, state: T): KeyData<K,T>
+    static data(...args: unknown[]): Module<unknown> {
+
+        const { Data, KeyData } = Module
+
+        return args.length === 1
+            ? new Data(args[0])
+            : new KeyData(args[0], args[1])
+    }
+
+    static execute <I, O, C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C> {
+        const { Execute } = this
+        return new Execute(execute)
+    }
 
     /**
      * @internal

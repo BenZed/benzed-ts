@@ -6,7 +6,6 @@ import {
     iterate, 
     KeysOf, 
     keysOf, 
-    Mutable, 
     nil,
 } from '@benzed/util'
 
@@ -43,7 +42,8 @@ import {
 } from './operations'
 
 /* eslint-disable 
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/no-this-alias
 */
 
 //// Exports ////
@@ -52,23 +52,36 @@ type Nodes = { readonly [key: string]: Node }
 
 class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatable implements CopyComparable {
 
+    get name(): string {
+        return this.hasParent 
+            ? this.getPathFrom(this.parent)
+            : this.constructor.name
+    }
+
     static isNode(input: unknown): input is Node {
         return callable.isInstance(input, Node as unknown as (new () => Node))
     }
 
-    constructor(nodes: N)
-    constructor(nodes: N, ...modules: M)
-    constructor(...modules: M)
-    constructor(args: [N] | M | [N, ...M]) {
+    static create(): Node<[],{}> {
+        return new Node({})
+    } 
 
-        super()
+    static from<Nx extends Nodes>(nodes: Nx): Node<[], Nx>
+    static from<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx,Nx>
+    static from<Mx extends Modules>(...modules: Mx): Node<Mx, {}> 
+    static from(args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
 
         const [nodes, ...modules] = Module.isModule(args[0])
             ? [{}, ...args]
             : args
+        return new Node(nodes as Nodes, ...modules as Modules)
+    }
 
-        this.nodes = nodes as N
-        this.modules = modules as unknown as M
+    constructor(nodes: N, ...modules: M) {
+        super()
+
+        this.nodes = nodes
+        this.modules = modules
 
         for (const name of keysOf(this.nodes)) {
             const child = this.nodes[name] as Node
@@ -77,12 +90,6 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
 
         for (const module of this.modules)
             (module as Module)._setNode(this)
-
-    }
-
-    private _name: string = this.constructor.name
-    get name(): string {
-        return this._name
     }
 
     //// Operations ////
@@ -120,15 +127,15 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
 
     setModule<
         I extends IndexesOf<M>,
-        F extends ((input: M[I]) => Module)
-    >(index: I, update: F): Node<SetModule<M, I, ReturnType<F>>, N>
-    setModule<
-        I extends IndexesOf<M>,
         Mx extends Module,
     >(
         index: I,
         module: Mx
     ): Node<SetModule<M, I, Mx>, N>
+    setModule<
+        I extends IndexesOf<M>,
+        F extends ((input: M[I]) => Module)
+    >(index: I, update: F): Node<SetModule<M, I, ReturnType<F>>, N>
     setModule(index: number, module: Module | ((input: Module) => Module)): Node {
         return new Node(
             this.nodes,
@@ -162,7 +169,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     private _parent: Node | nil = nil
     get parent(): Node {
         if (!this._parent)
-            throw new Error(`${this.name} does not have a parent. Use .hasParent to check, first.`)
+            throw new Error(`${this.name} does not have a parent.`)
 
         return this._parent
     }
@@ -173,14 +180,13 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     /**
      * @internal
      */
-    _setParent(name: string, parent: Node): void {
+    _setParent(parent: Node): void {
         if (this._parent)
             throw new Error(`${this.name} is already parented`)
 
         if (!parent.children.includes(this)) 
             throw new Error(`${this.name} is not included in given parent\'s children.`)
 
-        this._name = name
         this._parent = parent
         this.validate()
     }
@@ -210,6 +216,36 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
         return this === this.root
     }
 
+    get path(): string {
+        return this.getPathFromRoot()
+    }
+
+    getPathFrom(ancestor: Node): string {
+
+        if (!this.parents.includes(ancestor))
+            throw new Error(`${this.name} is not a decendant of ${ancestor.name}`)
+
+        const path: string[] = []
+        let cursor: Node = this 
+        while (cursor.hasParent && cursor !== ancestor) {
+            const nodes = cursor.parent.nodes as Nodes
+            for (const key in keysOf(nodes)) {
+                if (nodes[key] === cursor) {
+                    path.push(key)
+                    break
+                }
+            }
+
+            cursor = cursor.parent
+        }
+
+        return path.reverse().join('/')
+    }
+
+    getPathFromRoot(): string {
+        return this.getPathFrom(this.root)
+    }
+    
     * eachAncestor(): IterableIterator<Node> {
         for (const parent of this.eachParent()) {
             if (parent.parent)
@@ -225,12 +261,11 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
         return this.ancestors.length
     }
 
+    readonly nodes: N
+
     * eachChild(): IterableIterator<Node> {
         yield* iterate(this.children)
     }
-
-    readonly nodes: N
-
     get children(): Node[] {
         return Array.from(iterate(this.nodes))
     }
@@ -293,13 +328,10 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     /// CopyComparable /// 
 
     [$$copy](): this {
-
-        const Node = this.constructor as new (children: N, ...modules: M) => Node<M,N>
-
         return new Node(
             copy(this.nodes),
             ...copy(this.modules)
-        ) as this
+        ) as Node<M,N> as this
     }
 
     [$$equals](other: unknown): other is this {
