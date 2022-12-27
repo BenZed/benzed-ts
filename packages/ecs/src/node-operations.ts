@@ -8,7 +8,7 @@ import {
     swap
 } from '@benzed/util'
 
-import type { Module, Modules } from './module'
+import type { Module, Modules } from './module/module'
 import type { Node, Nodes } from './node'
 
 //// Splice Modules ////

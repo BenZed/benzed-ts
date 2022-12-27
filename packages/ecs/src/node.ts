@@ -2,27 +2,24 @@
 import { 
     callable,
     IndexesOf,
-    isString, 
     iterate, 
     KeysOf, 
     keysOf, 
     nil,
 } from '@benzed/util'
 
-import { Module, Modules } from './module'
+import { Module, Modules } from './module/module'
 
 import { 
     AssertModule, 
     ModuleFinder, 
     FindFlag, 
-    FindInput, 
     FindModule, 
-    FindOutput, 
-    HasModule 
-} from './module-finder'
+    HasModule, 
+    FindModules
+} from './module/module-finder'
 
 import { $$copy, $$equals, copy, CopyComparable, equals } from '@benzed/immutable'
-import { Validatable } from './validatable'
 
 import { 
     addModules, 
@@ -39,7 +36,7 @@ import {
     SetNode, 
     removeNode, 
     RemoveNode,  
-} from './operations'
+} from './node-operations'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -50,7 +47,7 @@ import {
 
 type Nodes = { readonly [key: string]: Node }
 
-class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatable implements CopyComparable {
+class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyComparable {
 
     get name(): string {
         return this.hasParent 
@@ -69,7 +66,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     static from<Nx extends Nodes>(nodes: Nx): Node<[], Nx>
     static from<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx,Nx>
     static from<Mx extends Modules>(...modules: Mx): Node<Mx, {}> 
-    static from(args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
+    static from(...args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
 
         const [nodes, ...modules] = Module.isModule(args[0])
             ? [{}, ...args]
@@ -78,21 +75,70 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     }
 
     constructor(nodes: N, ...modules: M) {
-        super()
-
         this.nodes = nodes
+        for (const child of this.children) 
+            child._setParent(this)
+
         this.modules = modules
-
-        for (const name of keysOf(this.nodes)) {
-            const child = this.nodes[name] as Node
-            child._setParent(name, this)
-        }
-
         for (const module of this.modules)
-            (module as Module)._setNode(this)
+            module._setNode(this)
     }
 
     //// Operations ////
+
+    getModule<I extends IndexesOf<M>>(index: I): M[I] {
+        return this.modules[index]
+    }
+
+    addModule<Mx extends Module>(module: Mx): Node<AddModules<M, [Mx]>, N> {
+        return this.addModules(module)
+    }
+
+    addModules<Mx extends Modules>(...modules: Mx): Node<AddModules<M, Mx>, N> {
+        return this.setModules(...addModules(this.modules, ...modules))
+    }
+
+    setModule<
+        I extends IndexesOf<M>,
+        F extends ((input: M[I]) => Module)
+    >(index: I, update: F): Node<SetModule<M, I, ReturnType<F>>, N>
+    setModule<
+        I extends IndexesOf<M>,
+        Mx extends Module,
+    >(
+        index: I,
+        module: Mx
+    ): Node<SetModule<M, I, Mx>, N>
+    setModule(index: number, module: Module | ((input: Module) => Module)): Node {
+        return this.setModules(...setModule(this.modules, index as IndexesOf<M>, module as Module))
+    }
+
+    setModules<Mx extends Modules>(...modules: Mx): Node<Mx, N> {
+        return new Node(
+            this.nodes,
+            ...modules
+        )
+    }
+
+    insetModule<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): Node<InsertModules<M,I,[Mx]>,N> {
+        return this.insertModules(index, module)
+    }
+
+    insertModules<Mx extends Modules, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>, N> {
+        return this.setModules(...insertModules(this.modules, index, ...modules))
+    }
+
+    swapModules<A extends IndexesOf<M>, B extends IndexesOf<M>>(indexA: A, indexB: B): Node<SwapModules<M,A,B>, N> {
+        return this.setModules(...swapModules(this.modules, indexA, indexB))
+    }
+
+    removeModule<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>, N> {
+        return this.setModules(...removeModule(this.modules, index))
+    }
+
+    //// Relationships ////
+
+    readonly nodes: N
 
     getNode<K extends KeysOf<N>>(name: K): N[K] {
         return this.nodes[name]
@@ -101,70 +147,16 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     setNode<K extends string, Nx extends Node>(key: K, node: Nx): Node<M, SetNode<N, K, Nx>> 
     setNode<K extends KeysOf<N>, F extends (input: N[K]) => Node>(key: K, update: F): Node<M, SetNode<N, K, ReturnType<F>>>
     setNode(key: string, node: Node | ((current: Node) => Node)): Node {
-        return new Node(
-            setNode(this.nodes, key as KeysOf<N>, node as Node),
-            ...copy(this.modules)
-        )
+        return this.setNodes(setNode(this.nodes, key as KeysOf<N>, node as Node))
     }
 
     removeNode<K extends KeysOf<N>>(key: K): Node<M, RemoveNode<N, K>> {
-        return new Node(
-            removeNode(this.nodes, key),
-            ...copy(this.modules)
-        ) 
+        return this.setNodes(removeNode(this.nodes, key)) 
     }
 
-    getModule<I extends IndexesOf<M>>(index: I): M[I] {
-        return this.modules[index]
+    setNodes<Nx extends Nodes>(nodes: Nx): Node<M, Nx> {
+        return new Node(nodes, ...this.modules)
     }
-
-    addModules<Mx extends Modules>(...modules: Mx): Node<AddModules<M, Mx>, N> {
-        return new Node(
-            this.nodes,
-            ...addModules(this.modules, ...modules)
-        )
-    }
-
-    setModule<
-        I extends IndexesOf<M>,
-        Mx extends Module,
-    >(
-        index: I,
-        module: Mx
-    ): Node<SetModule<M, I, Mx>, N>
-    setModule<
-        I extends IndexesOf<M>,
-        F extends ((input: M[I]) => Module)
-    >(index: I, update: F): Node<SetModule<M, I, ReturnType<F>>, N>
-    setModule(index: number, module: Module | ((input: Module) => Module)): Node {
-        return new Node(
-            this.nodes,
-            ...setModule(this.modules, index as IndexesOf<M>, module as Module)
-        )
-    }
-
-    insertModules<Mx extends Modules, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>, N> {
-        return new Node(
-            this.nodes,
-            ...insertModules(this.modules, index, ...modules)
-        )
-    }
-
-    swapModules<A extends IndexesOf<M>, B extends IndexesOf<M>>(indexA: A, indexB: B): Node<SwapModules<M,A,B>, N> {
-        return new Node(
-            this.nodes,
-            ...swapModules(this.modules, indexA, indexB)
-        )
-    }
-
-    removeModule<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>, N> {
-        return new Node(
-            this.nodes,
-            ...removeModule(this.modules, index)
-        )
-    }
-
-    //// Relationships ////
 
     private _parent: Node | nil = nil
     get parent(): Node {
@@ -235,7 +227,6 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
                     break
                 }
             }
-
             cursor = cursor.parent
         }
 
@@ -260,8 +251,6 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     get numAncestors(): number {
         return this.ancestors.length
     }
-
-    readonly nodes: N
 
     * eachChild(): IterableIterator<Node> {
         yield* iterate(this.children)
@@ -296,20 +285,15 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     get findModule(): FindModule {
         return new ModuleFinder(this)
     }
+    get findModules(): FindModules{
+        return new ModuleFinder(this, FindFlag.All)
+    }
     get hasModule(): HasModule {
         return new ModuleFinder(this, FindFlag.Has)
     }
-    assertModule<T extends FindInput>(input: T): FindOutput<T>
-    assertModule(error?: string): AssertModule
-    assertModule(input?: FindInput | string): FindOutput<FindInput> | AssertModule {
+    get assertModule(): AssertModule {
+        return new ModuleFinder(this, FindFlag.Assert)
 
-        const isError = isString(input)
-        const error = isError ? input : undefined
-
-        const finder = new ModuleFinder(this, FindFlag.Require, error)
-
-        const isFindInput = !isError && input
-        return (isFindInput ? finder(input) : finder) as FindOutput<FindInput> | AssertModule
     }
     
     //// Validate ////
@@ -328,10 +312,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
     /// CopyComparable /// 
 
     [$$copy](): this {
-        return new Node(
-            copy(this.nodes),
-            ...copy(this.modules)
-        ) as Node<M,N> as this
+        return new Node(copy(this.nodes), ...copy(this.modules)) as Node<M,N> as this
     }
 
     [$$equals](other: unknown): other is this {
@@ -339,6 +320,10 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> extends Validatabl
             other.constructor === this.constructor && 
             equals(other.modules, this.modules) && 
             equals(other.children, this.children)
+    }
+
+    * [Symbol.iterator](): IterableIterator<Node> {
+        yield* this.children
     }
 }
 

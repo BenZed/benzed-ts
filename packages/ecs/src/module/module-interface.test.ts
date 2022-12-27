@@ -1,10 +1,10 @@
 
-import { Module } from '../module'
-import { Node } from './node'
+import { Module } from './module'
+import { Node } from '../node'
 
 import { expectTypeOf } from 'expect-type'
 
-import { describe, it } from '@jest/globals'
+import { it } from '@jest/globals'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -12,7 +12,7 @@ import { describe, it } from '@jest/globals'
 
 //// Tests ////
 
-describe('NodeInterface', () => {
+describe.skip('module-interface', () => {
 
     class Count extends Module<void> {
 
@@ -51,15 +51,19 @@ describe('NodeInterface', () => {
         }
     }
 
-    const node = Node.from(
-        new Count(10),
-        new BigCount(10n)
-    ) 
-
-    const [ count ] = node.modules
-
-    node.setCount(25)
+    let node: Node<[Count, BigCount]>
+    let count: Count
+    beforeAll(() => {
+        const node = Node.from(
+            new Count(10),
+            new BigCount(10n)
+        ) 
     
+        count = node.getModule(0)
+    
+        node.setCount(25)
+    })
+
     it('is defined by it\'s modules', () => {
         expect(count.getCount()).toEqual(25)
         expect(node.getCount()).toEqual(25)
@@ -87,7 +91,7 @@ describe('NodeInterface', () => {
     })
 
     it('does not include getters', () => {
-        //@ts-expect-error Not defined
+    //@ts-expect-error Not defined
         expect(node.count).toEqual(undefined)
     })
 

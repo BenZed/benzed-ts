@@ -1,7 +1,7 @@
-import { callable, isFunc, isNil, nil, TypeGuard } from '@benzed/util'
+import { callable, isFunc, nil, TypeGuard } from '@benzed/util'
 import { $$equals } from '@benzed/immutable'
 
-import Node from './node'
+import Node from '../node'
 import { $$isModuleConstructor, Module } from './module'
 
 /* eslint-disable 
@@ -17,21 +17,18 @@ type ModulePredicate = (input: Module) => Module | boolean
 export type FindInput = Module | ModulePredicate | ModuleTypeGuard | ModuleConstructor
 export type FindOutput<I> = 
     I extends TypeGuard<infer Mx, Module>   
-        ? I extends (input: Module) => infer M 
+        ? Mx 
+        : I extends (input: Module) => infer M 
             ? Exclude<M, nil>
-            : Mx 
-        : I extends ModuleConstructor
-            ? InstanceType<I>
-            : I extends Module 
-                ? I
-                : never
+            : I extends ModuleConstructor
+                ? InstanceType<I>
+                : I extends Module 
+                    ? I
+                    : never
 
 //// FindModule ////
 
 export interface FindModule {
-
-    get require(): AssertModule
-    get all(): FindModules
 
     <I extends FindInput>(input: I): FindOutput<I> | nil
     inDescendents<I extends FindInput>(input: I): FindOutput<I> | nil
@@ -59,59 +56,40 @@ export interface HasModule {
 //// AssertNode ////
 
 export interface AssertModule {
-    <I extends FindInput>(input: I): FindOutput<I>
-    inDescendents<I extends FindInput>(input: I): FindOutput<I>
-    inChildren<I extends FindInput>(input: I): FindOutput<I> 
-    inParents<I extends FindInput>(input: I): FindOutput<I>
-    inAncestors<I extends FindInput>(input: I): FindOutput<I>
+    <I extends FindInput>(input: I, error?: string): FindOutput<I>
+    inDescendents<I extends FindInput>(input: I, error?: string): FindOutput<I>
+    inChildren<I extends FindInput>(input: I, error?: string): FindOutput<I> 
+    inParents<I extends FindInput>(input: I, error?: string): FindOutput<I>
+    inAncestors<I extends FindInput>(input: I, error?: string): FindOutput<I>
 }
 
 //// Implementation ////
 
 export enum FindFlag {
-    Require,
-    Has,
-    All
+    Assert = 'assert',
+    Has = 'has',
+    All = 'all'
 }
 
 interface ModuleFinderConstructor {
-    new (node: Node, flag: FindFlag.Require, error?: string): AssertModule
-    new (node: Node, flag: FindFlag.Has, error?: string): HasModule
-    new (node: Node, flag: FindFlag.All, error?: string): FindModules
     new (node: Node): FindModule
+    new (node: Node, flag: FindFlag.All): FindModules
+    new (node: Node, flag: FindFlag.Assert): AssertModule
+    new (node: Node, flag: FindFlag.Has): HasModule
 }
 
 export const ModuleFinder = callable(
 
-    function find(input: FindInput) {
-        return this._find([this.node], input)
+    function find(input: FindInput, error?: string) {
+        return this._find([this.node], input, error)
     },
 
     class {
 
         constructor(
             readonly node: Node,
-            private readonly _flag?: FindFlag,
-            private readonly _error?: string
+            private readonly _flag?: FindFlag
         ) { }
-
-        get require(): FindModule {
-            this._assertNoFlag()
-            return new ModuleFinder(
-                this.node, 
-                FindFlag.Require, 
-                this._error
-            ) as FindModule
-        }
-
-        get all(): FindModules {
-            this._assertNoFlag()
-            return new ModuleFinder(
-                this.node,
-                FindFlag.All,
-                this._error
-            ) as FindModules
-        }
 
         inDescendents = (input: FindInput): unknown => this._find(
             this.node.eachDescendent(),
@@ -138,7 +116,7 @@ export const ModuleFinder = callable(
         /**
          * @internal
          */
-        _find(iterator: Iterable<Node>, input: FindInput): unknown {
+        _find(iterator: Iterable<Node>, input: FindInput, error?: string): unknown {
             const predicate = toModulePredicate(input)
 
             const output: Module[] = []
@@ -155,8 +133,8 @@ export const ModuleFinder = callable(
             }
 
             const has = output.length > 0
-            if (flag === FindFlag.Require && !has)
-                throw new Error(this._error ?? `Could not find module ${toModuleName(input)}`)
+            if (flag === FindFlag.Assert && !has)
+                throw new Error(error ?? `Could not find module ${toModuleName(input)}`)
 
             if (flag === FindFlag.Has)
                 return has
@@ -167,13 +145,8 @@ export const ModuleFinder = callable(
             return output.at(0)
         }
 
-        private _assertNoFlag(): void {
-            if (!isNil(this._flag) )
-                throw new Error(`Find has ${FindFlag[this._flag]}`)
-        }
-
     }, 
-    'Finder'
+    'ModuleFinder'
 ) as ModuleFinderConstructor
 
 //// Helper ////

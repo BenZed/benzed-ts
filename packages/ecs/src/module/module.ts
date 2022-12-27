@@ -1,71 +1,22 @@
-import { 
-    equals, 
-    $$equals, 
-    $$copy,
-    CopyComparable,
-} from '@benzed/immutable'
+import { $$copy, $$equals, CopyComparable, equals } from '@benzed/immutable'
+import { callable, isObject } from '@benzed/util'
 
-import {
-    ContextTransform,
-    isObject,
-    isString,
-    nil,
-} from '@benzed/util'
+import { Node } from '../node'
 
-import { 
-    Finder, 
-    FindModule, 
-    FindFlag, 
-    AssertModule, 
-    HasModule, 
-    FindInput,
-    FindOutput
-} from '../find'
-
-import type { 
-    Data,
-    KeyData,
-    Execute,
-    ExecuteContext,
-    Path,
-    path,
-    Modules,
-} from '../modules'
+import type { Data, Execute, ExecuteHook, KeyData } from '../modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/no-this-alias,
     @typescript-eslint/no-var-requires
 */
 
-//// Constants ////
+export const $$isModuleConstructor = Symbol('is-module-constructor')
 
-const $$isModuleConstructor = Symbol('is-module-constructor')
+//// Module ////
 
-//// Types ////
+export type Modules = readonly Module[]
 
-export type ModuleArray = readonly Module<any>[]
-
-//// Errors ////
-
-class InvalidParentError extends Error {
-    constructor(msg: string) {
-        super(`${msg}: ${Module.prototype._setParent.name} method should only be called internally.`)
-    }
-}
-
-//// Private ////
-
-/**
- * Parents are stored a weak map as opposed to private method for two reasons:
- * - to prevent Node from complaining about not fulfilling the contract of private methods (because of the ModuleInterface trickery)
- * - to allow any arbitrary deep-equal method to work on modules and nodes
- */
-const _parents = new WeakMap<Module, nil | Modules>
-
-//// Definition ////
-
-class Module<D = unknown> implements CopyComparable {
+export class Module<T = unknown> implements CopyComparable {
 
     static get Data(): typeof Data {
         return require('../modules').Data
@@ -79,10 +30,6 @@ class Module<D = unknown> implements CopyComparable {
         return require('../modules').Execute
     }
 
-    static get Path(): typeof Path {
-        return require('../modules').Path
-    }
-
     /**
      * Create a module with generic get/set state setters
      */
@@ -90,167 +37,63 @@ class Module<D = unknown> implements CopyComparable {
     static data<K extends string,T>(key: K, state: T): KeyData<K,T>
     static data(...args: unknown[]): Module<unknown> {
 
-        const $$none = Symbol('no-key-provided')
-
-        const [key, value] = args.length === 1 ? [$$none, ...args] : args
         const { Data, KeyData } = Module
 
-        return key === $$none 
-            ? new Data(value)
-            : new KeyData(key, value)
+        return args.length === 1
+            ? new Data(args[0])
+            : new KeyData(args[0], args[1])
     }
 
-    static execute <I,O,C = void>(execute: ContextTransform<I, O, ExecuteContext<C>>): Execute<I, O, C> {
+    static execute <I, O, C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C> {
         const { Execute } = this
         return new Execute(execute)
     }
 
-    static path <P extends path>(path: P): Path<P> {
-        const { Path } = this 
-        return new Path(path)
-    }
-
     /**
      * @internal
-     * Allows the find() method to differentiate between type guards and module constructors,
-     * ensuring edge cases:
-     * - modules extended by callable
-     * - function () {} typeguards
      */
     static readonly [$$isModuleConstructor] = true
 
-    //// Data ////
-    
-    constructor(readonly data: D) {}
+    static isModule(input: unknown): input is Module {
+        return callable.isInstance(input, Module as unknown as (new () => Module))
+    }
 
+    constructor(readonly data: T) {}
+    
     get name(): string {
         return this.constructor.name
     }
 
-    //// Relationships ////
-
-    get parent(): Modules {
-        const parent = _parents.get(this)
-        if (!parent)
-            throw new Error(`${this.name} does not have a parent. Use .hasParent() to check, first.`)
-
-        return parent
-    }
-
-    get hasParent(): boolean {
-        return _parents.has(this)
-    }
-
     /**
      * @internal
      */
-    _setParent(newParent: Modules): this {
-    
-        if (this.hasParent)
-            throw new InvalidParentError('Parent already set')
-   
-        const module = this as unknown as Module
+    static _refs = new WeakMap<Module, Node>
 
-        if (!newParent.modules.includes(module))
-            throw new InvalidParentError('Parent invalid')
+    //// Parents ////
     
-        if (newParent.modules.indexOf(module) !== newParent.modules.lastIndexOf(module))
-            throw new Error( 'Parent may only contain single reference of child')
-    
-        _parents.set(this, newParent)
+    get node(): Node {
+        const node = Module._refs.get(this)
+        if (!node)
+            throw new Error(`${this.name} does not have a node.`)
+
+        return node
+    }
+
+    get hasNode(): boolean {
+        return Module._refs.has(this)
+    }
+
+    _setNode(parent: Node): void {
+        if (this.hasNode)
+            throw new Error(`${this.name} is already parented`)
+
+        if (!parent.modules.includes(this))
+            throw new Error(`${this.name} is not included in given parent\'s children.`)
+
+        Module._refs.set(this, parent)
         this.validate()
-        return this
     }
 
-    /**
-     * @internal
-     */
-    _clearParent(): this {
-        return this.hasParent ? this[$$copy]() : this
-    } 
-
-    //// Relationships ////
-
-    * eachSibling(): IterableIterator<Module> {
-        if (this.hasParent) {
-            for (const child of this.parent.eachChild()) {
-                if (child !== this)
-                    yield child
-            }
-        }
-    }
-
-    get siblings(): ModuleArray {
-        return Array.from(this.eachSibling())
-    }
-
-    get numSiblings(): number {
-        return this.siblings.length
-    }
-
-    * eachParent(): IterableIterator<Modules> {
-        let current: Pick<Module, 'hasParent' | 'parent'> = this
-        while (current.hasParent) {
-            yield current.parent
-            current = current.parent
-        }
-    }
-
-    get parents(): Modules[] {
-        return Array.from(this.eachParent())
-    }
-
-    get numParents(): number {
-        return this.parents.length
-    }
-
-    * eachAncestor(): IterableIterator<Module | Modules> {
-        for (const parent of this.eachParent()) {
-            yield parent
-            yield* parent.eachSibling()
-        }
-    }
-
-    get ancestors(): (Module | Modules)[] {
-        return Array.from(this.eachAncestor())
-    } 
-
-    get numAncestors(): number {
-        return this.ancestors.length
-    }
-
-    get root(): Module | Modules {
-        return this.parents.at(-1) ?? this
-    }
-
-    //// Find interface ////
-
-    get find(): FindModule {
-        return new Finder(this)
-    }
-
-    get has(): HasModule {
-        return new Finder(this, FindFlag.Has) as HasModule
-    }
-
-    assert<T extends FindInput>(input: T): FindOutput<T>
-    assert(error?: string): AssertModule
-    assert(input?: FindInput | string): FindOutput<FindInput> | AssertModule {
-
-        const isError = isString(input)
-        const error = isError ? input : undefined
-
-        const finder = new Finder(this, FindFlag.Require, error)
-
-        const isFindInput = !isError && input
-        return (isFindInput ? finder(input) : finder) as FindOutput<FindInput> | AssertModule
-    }
-
-    //// Validate ////
-    
-    /**
-     * Called when the module is parented.
-     */
     validate(): void { /**/ }
 
     //// CopyComparable Interface ////
@@ -263,17 +106,8 @@ class Module<D = unknown> implements CopyComparable {
     }
 
     [$$copy](): this {
-        const Constructor = this.constructor as new (modules: D) => this
-        return new Constructor(this.data)
+        const Module = this.constructor as new (data: T) => this
+        return new Module(this.data)
     }
 
-}
-
-//// Exports ////
-
-export default Module 
-
-export {
-    Module,
-    $$isModuleConstructor
 }

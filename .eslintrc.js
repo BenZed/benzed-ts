@@ -46,6 +46,7 @@ module.exports = {
         '@typescript-eslint/no-duplicate-imports': 'error',
         '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
         '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
+        '@typescript-eslint/restrict-plus-operands': 'off', // this rule seems to frequently break
         '@typescript-eslint/member-delimiter-style': ['error', {
             'multiline': {
                 'delimiter': 'none',

@@ -1,8 +1,8 @@
 import { equals } from '@benzed/immutable'
 import { IsIdentical } from '@benzed/util'
 
-import { Module, ModuleArray } from '../module'
-import Modules from './modules'
+import { Module, Modules } from '../module'
+import type { Node, Nodes } from '../node'
 
 //// Another Helper Class ////
 
@@ -20,13 +20,13 @@ type _GetKeys<M> = M extends [infer M1, ...infer Mr]
         : _GetKeys<Mr>
     : []
 
-export type GetKeys<M extends { data: ModuleArray }> = M extends { data: infer Mx } 
+export type GetKeys<M extends { modules: Modules }> = M extends { data: infer Mx } 
     ? _GetKeys<Mx>[number]
     : never
 
-export type GetData<M, K> = M extends ModuleArray
+export type GetData<M, K> = M extends Modules
     ? _GetKeyData<M, K>
-    : M extends Modules<infer Mm> 
+    : M extends Node<infer Mm, Nodes>
         ? _GetKeyData<Mm, K>
         : never
 
@@ -41,7 +41,7 @@ export class KeyData<K, D> extends Module<D> {
     }
     
     // signature for parent
-    getData<M extends { data: ModuleArray }>(this: M, key: GetKeys<M>): GetData<M, K> 
+    getData<M extends { modules: Modules }>(this: M, key: GetKeys<M>): GetData<M, K> 
     
     // signature fors module
     getData<T extends { key: K }>(this: T): T
@@ -51,11 +51,15 @@ export class KeyData<K, D> extends Module<D> {
 
         const [key] = args 
 
-        return !key || key === this.key 
+        const data = !key || key === this.key 
             ? this.data
             : this
-                .assert(`No data for key ${key}`)
-                .inSiblings((m): m is KeyData<K, D> => m instanceof KeyData && equals(m.key, key))
-                .data
+                .node
+                .assertModule(
+                    (m): m is KeyData<K, D> => m instanceof KeyData && equals(m.key, key),
+                    `No data for key ${key}`
+                )
+
+        return data
     }
 }

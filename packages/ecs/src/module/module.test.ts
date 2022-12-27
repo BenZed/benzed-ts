@@ -1,9 +1,8 @@
 import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
 
-import { Finder } from '../find'
-import { Module, ModuleArray } from './module'
+import { ModuleFinder } from './module-finder'
+import { Module } from './module'
 import { Node } from '../node'
-import { Modules } from '../modules'
 
 import { describe, it, test, expect } from '@jest/globals'
 
@@ -21,53 +20,32 @@ class Rank<S extends string> extends Module<S> {
 
 }
 
-class GenericModules<M extends ModuleArray> extends Modules<M> {
-
-    replace<Mx extends ModuleArray>(modules: Mx): GenericModules<Mx> {
-        return new GenericModules(...modules)
-    }
-
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFamilyTree = () => {
     
-    const tree = Node.from(
-        Node.from(
-            Rank.of('uncle')
-        ),
-        Node.from(
-            Rank.of('mom'),
-            Node.from(
-                Rank.of('brother'),
-            ),
-            Node.from(
-                Rank.of('you'),
-                Node.from(
-                    Rank.of('son')
+    const tree = Node.from({
+        uncle: Node.from(Rank.of('uncle')),
+        mom: Node.from(
+            {
+                you: Node.from(
+                    {
+                        son: Node.from(
+                            Rank.of('son')
+                        )
+                    },
+                    Rank.of('you'),
                 ),
-                Node.from(
-                    Rank.of('daughter'),
-                    Node.from(
-                        Rank.of('grandson')
-                    )
-                )
-            ),
-            Node.from(
-                Rank.of('sister'),
-                Node.from(
-                    Rank.of('neice'),
-                ),
-                Node.from(
-                    Rank.of('nephew')
-                )
-            )
-        ),
-        Node.from(
-            Rank.of('uncle')
+                sister: Node.from({
+                    neice: Node.from(Rank.of('neice')),
+                    nephew: Node.from(Rank.of('nephew'))
+                }, 
+                Rank.of('sister'))
+            },
+            Rank.of('mom')
         )
-    )
-    const you = tree.get(1).get(2)
+    })
+
+    const you = tree.getNode('mom').getNode('you')
     return [tree, you] as const
 }
 //// Tests ////
@@ -76,59 +54,46 @@ describe('relationships', () => {
 
     describe('.parent', () => {
 
-        const child = Module.data('hey' as const)
-        const parent = Node.from(child)
+        const module = Module.data('hey' as const)
+        const node = Node.from(module)
     
         it('gets module parent', () => {
-            expect(parent.modules).toContain(child)
-            expect(child.parent).toBe(parent)
+            expect(node.modules).toContain(module)
+            expect(module.node).toBe(node)
         })
 
         it('throws if no parent', () => {
-            expect(() => Module.data(0).parent).toThrow('does not have a parent')
+            expect(() => Module.data(0).node).toThrow('does not have a parent')
         })
     
         describe('_setParent(parent?) @internal', () => {
     
-            const parents: Module[] = [] 
+            const parents: Node[] = [] 
     
             class ModuleSpy extends Module<number> {
-                override _setParent(parent: Modules): this {
-                    parents.push(parent)
-                    return super._setParent(parent)
+                override _setNode(node: Node): void {
+                    parents.push(node)
+                    super._setNode(node)
                 }
             }
     
             const spy = new ModuleSpy(100)
-            const modules = new GenericModules(spy)
+            const node = Node.from(spy)
     
             it('sets module parent', () => {
     
-                expect(modules.modules).toContain(spy)
-                expect(parents).toContain(modules)
+                expect(node.modules).toContain(spy)
+                expect(parents).toContain(node)
             })
     
             it('throws if parent has already been set', () => {
-                expect(() => spy._setParent(modules)).toThrow('Parent already set')
+                expect(() => spy._setNode(node)).toThrow('Parent already set')
             })
     
             it('throws if parent does not contain module', () => {
-                const liar = new GenericModules()
-                expect(() => new ModuleSpy(0)._setParent(liar)).toThrow('Parent invalid')
+                const liar = Node.create()
+                expect(() => new ModuleSpy(0)._setNode(liar)).toThrow('Parent invalid')
             })
-        })
-    })
-
-    describe('.siblings', () => {
-        const [, you ] = createFamilyTree()
-        it('contains all parent children except this node', () => {
-            expect(you.siblings).toEqual(you.parent.children.filter(c => c !== you))
-        })
-        it('eachSibling() iterator', () => {
-            expect([...you.eachSibling()]).toEqual(you.siblings)
-        })
-        it('numSiblings', () => {
-            expect(you.numSiblings).toEqual(you.siblings.length)
         })
     })
 
@@ -148,10 +113,10 @@ describe('relationships', () => {
     })
 
     describe('.ancestors', () => {
-        const [ ,you ] = createFamilyTree()
+        const [ you ] = createFamilyTree()
 
         it('contains all ancestors up to root', () => {
-            expect(you.ancestors).toEqual([ you.parent, ...you.parent.siblings, you.parent.parent ])
+            expect(you.ancestors).toEqual([ you.parent.parent, ...you.parent.children ])
         })
 
         it('eachAncestor() iterator', () => {
@@ -179,32 +144,33 @@ test('.find', () => {
 
     const [, you] = createFamilyTree()
 
-    const find = you.find
-    expect(find).toBeInstanceOf(Finder)
+    const find = you.findModule
+    expect(find).toBeInstanceOf(ModuleFinder)
 
-    const mom = you.find.inSiblings(Rank.of('mom'))
-    expect(mom).toEqual(you.siblings[0])
+    const mom = you.findModule.inAncestors(Rank.of('mom'))
+    expect(mom).toEqual(you.parent.children[0])
 })
 
 test('.has', () => {
     const [, you] = createFamilyTree()
-    expect(you.has).toBeInstanceOf(Finder)
+    expect(you.hasModule).toBeInstanceOf(ModuleFinder)
 
-    expect(you.has(Node.from(
+    expect(you.hasModule(
         Rank.of('son')
-    ))).toBe(true)
+    )).toBe(true)
 })
 
 test('.assert', () => {
 
     const [ , you ] = createFamilyTree()
 
-    expect(you.assert()).toBeInstanceOf(Finder)
-    expect(() => you.assert(Rank.of('none'))).toThrow('Could not find')
+    expect(you.assertModule).toBeInstanceOf(ModuleFinder)
+    expect(() => you.assertModule(Rank.of('none'))).toThrow('Could not find')
     expect(() => you
-        .assert('Rank<"steve"> is required!')
+        .assertModule
         .inChildren(
-            Rank.of('steve')
+            Rank.of('steve'), 
+            'Rank<"steve"> is required!'
         )
     ).toThrow('Rank<"steve"> is required!')
 })
@@ -248,7 +214,7 @@ describe('validate()', () => {
         }
 
         const test = new ValidateTest()
-        void new GenericModules(test)
+        void Node.from(test)
 
         expect(called).toBe(true)
     })
