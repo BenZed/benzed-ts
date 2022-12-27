@@ -8,6 +8,14 @@ import {
     nil,
 } from '@benzed/util'
 
+import { 
+    $$copy, 
+    $$equals, 
+    copy,
+    equals, 
+    CopyComparable 
+} from '@benzed/immutable'
+
 import { Module, Modules } from './module/module'
 
 import { 
@@ -18,8 +26,6 @@ import {
     HasModule, 
     FindModules
 } from './module/module-finder'
-
-import { $$copy, $$equals, copy, CopyComparable, equals } from '@benzed/immutable'
 
 import { 
     addModules, 
@@ -95,7 +101,9 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     }
 
     addModules<Mx extends Modules>(...modules: Mx): Node<AddModules<M, Mx>, N> {
-        return this.setModules(...addModules(this.modules, ...modules))
+        return this.setModules(
+            ...addModules(this.modules, ...modules)
+        )
     }
 
     setModule<
@@ -110,7 +118,9 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         module: Mx
     ): Node<SetModule<M, I, Mx>, N>
     setModule(index: number, module: Module | ((input: Module) => Module)): Node {
-        return this.setModules(...setModule(this.modules, index as IndexesOf<M>, module as Module))
+        return this.setModules(
+            ...setModule(this.modules, index as IndexesOf<M>, module as Module)
+        )
     }
 
     setModules<Mx extends Modules>(...modules: Mx): Node<Mx, N> {
@@ -125,23 +135,32 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     }
 
     insertModules<Mx extends Modules, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>, N> {
-        return this.setModules(...insertModules(this.modules, index, ...modules))
+        return this.setModules(
+            ...insertModules(this.modules, index, ...modules)
+        )
     }
 
     swapModules<A extends IndexesOf<M>, B extends IndexesOf<M>>(indexA: A, indexB: B): Node<SwapModules<M,A,B>, N> {
-        return this.setModules(...swapModules(this.modules, indexA, indexB))
+        return this.setModules(
+            ...swapModules(this.modules, indexA, indexB)
+        )
     }
 
     removeModule<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>, N> {
-        return this.setModules(...removeModule(this.modules, index))
+        return this.setModules(
+            ...removeModule(this.modules, index)
+        )
     }
 
     //// Relationships ////
 
     readonly nodes: N
 
-    getNode<K extends KeysOf<N>>(name: K): N[K] {
-        return this.nodes[name]
+    getNode<K extends KeysOf<N>>(path: K): N[K] {
+        if (!(path in this.nodes))
+            throw new Error(`Invalid path: ${path}`)
+
+        return this.nodes[path]
     }
 
     setNode<K extends string, Nx extends Node>(key: K, node: Nx): Node<M, SetNode<N, K, Nx>> 
@@ -155,7 +174,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     }
 
     setNodes<Nx extends Nodes>(nodes: Nx): Node<M, Nx> {
-        return new Node(nodes, ...this.modules)
+        return new Node(nodes, ...copy(this.modules))
     }
 
     private _parent: Node | nil = nil

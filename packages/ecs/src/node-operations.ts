@@ -1,5 +1,5 @@
 
-import { copy } from '@benzed/immutable/src'
+import { copy } from '@benzed/immutable'
 import { 
     Indexes, 
     IndexesOf, 
@@ -45,7 +45,7 @@ type SpliceModules<
  * @internal
  */
 export function spliceModules(input: Modules, index: number, deleteCount: number, ...insert: Module[]): Modules {
-    const output = [...input]
+    const output = copy(input) as Module[]
     
     output.splice(index, deleteCount, ...insert)
 
@@ -70,7 +70,7 @@ export function addModules<
     ...additional: B
 ): AddModules<A,B> {
     return [
-        ...existing,
+        ...copy(existing),
         ...additional
     ]
 }
@@ -95,7 +95,7 @@ export function insertModules<
     return spliceModules(
         input, 
         index, 0, 
-        ...modules
+        ...copy(modules)
     ) as InsertModules<M,I,Mx>
 }
 
@@ -136,7 +136,7 @@ export function swapModules<
     indexB: B
 ): SwapModules<M,A,B> {
 
-    const output = [...input] as Modules
+    const output = copy(input) as Modules
     swap(output, indexA as number, indexB)
 
     return output as SwapModules<M,A,B>
@@ -210,7 +210,7 @@ export function setNode(nodes: Nodes, key: string, node: Node | ((current: Node)
 
     const newNodes = {
         ...copy(nodes),
-        [key]: node
+        [key]: 'parent' in node ? node : node(nodes[key])
     } as Nodes
 
     return newNodes
@@ -224,9 +224,7 @@ export type RemoveNode<N extends Nodes, K extends KeysOf<N>> = {
 
 export function removeNode<N extends Nodes, K extends KeysOf<N>>(nodes: N, key: K): RemoveNode<N, K>
 export function removeNode(nodes: Nodes, key: string): Nodes {
-
     const newNodes = copy(nodes)
     delete (newNodes as Mutable<Nodes>)[key]
-
     return newNodes
 }

@@ -1,14 +1,14 @@
 
 import { copy, equals } from '@benzed/immutable'
+import { it, expect } from '@jest/globals'
 
 import { KeyData, Data } from './modules'
 import { Module } from './module'
 import { Node } from './node'
 
-import { it, expect } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
 
-/* eslint-disable 
+/* eslint-disable  
     @typescript-eslint/ban-types
 */
 
@@ -45,54 +45,44 @@ const createTestNodeTree = () => Node
 
 //// Tests ////
 
-it('.get() throws on bad paths', () => {
+it('.getNode() throws on bad paths', () => {
     const n1 = createTestNodeTree()
     // @ts-expect-error Bad Path
     expect(() => n1.getNode('badName')).toThrow('Invalid path: badName')
 })
 
-it('.set() node from a path', () => { 
+it('.setNode() node from a path', () => { 
 
     const n1 = Node.from(Module.data(0 as const))
     const n2 = n1.setNode('bar', Node.from(Module.data(1 as const)))
-    expect(n2.getModule(0).getData()).toEqual(0)
 
     type N2 = Node<[Data<0>], {
         bar: Node<[Data<1>], {}>
     }>
 
     expectTypeOf(n2).toMatchTypeOf<N2>()
-    expect(n2.modules).toHaveLength(2)
+    expect(n2.modules).toHaveLength(1)
+    expect(n2.children).toHaveLength(1)
 })
 
-it('.set() an existing node', () => {
+it('.setNode() an existing node', () => {
 
-    const ace = Node.from(
-        Module.data('ace' as const)
-    )
-    expect(ace.getModule(0).getData()).toEqual('ace')
+    const ace = Node.from(Module.data('ace' as const))
+    const base = Node.from(Module.data('base' as const))
 
-    const base = Node.from(  
-        Module.data('base' as const)
-    )
-    expect(base.getModule(0).getData()).toEqual('base')
-
-    const n1 = Node.from().setNode('state', ace)
-    expect(n1.getNode('state').getModule(0).getData()).toEqual('ace')
+    const n1 = Node.create().setNode('state', ace)
+    expect(n1.children).toHaveLength(1) 
     expect(n1.nodes.state.modules[0].data).toEqual('ace')
+    expect(n1.getNode('state').getModule(0).getData()).toEqual('ace')
 
     const n2 = n1.setNode('state', base)
-
+    expect(n2.children).toHaveLength(1) 
     expect(n2.nodes.state.modules[0].data).toEqual('base')
-    // @ts-expect-error bad index
-    expect(() => n2.get(1)).toThrow('Invalid')
-
-    expect(n2.modules).toHaveLength(1) 
-    expect(n2.nodes.state.modules[0].data).toEqual('base')
+    expect(n2.getNode('state').getModule(0).getData()).toEqual('base')
 
 })
 
-it('.set() nested', () => {
+it('.setNode() nested', () => {
 
     const t1 = Node.from(
         Module.data('root' as const),
@@ -112,7 +102,7 @@ it('.set() nested', () => {
 
 })
 
-it('.remove() from a path', () => {
+it('.removeNode() from a path', () => {
 
     const t1 = Node.from({
         one: Node.from(Module.data(1 as const)), 
@@ -130,7 +120,7 @@ it('.remove() from a path', () => {
     expect(t2.nodes).toHaveProperty('two', t2.getNode('two'))
 })
 
-it('.add()', () => {
+it('.addModules()', () => {
 
     const n1 = Node
         .from(
@@ -160,7 +150,7 @@ it('.add()', () => {
     >()
 })
 
-it('.swap()', () => {
+it('.swapModules()', () => {
 
     const n1 = Node.from(
         new Text('A'),
@@ -179,7 +169,7 @@ it('.swap()', () => {
     expect(copy(n3.modules)).toEqual([c,b,a])
 })
 
-it('.remove()', () => {
+it('.removeModule()', () => {
 
     const n1 = Node.from(
         new Text('A'),  
@@ -191,7 +181,7 @@ it('.remove()', () => {
     expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>]>>()
 })
 
-it('.set()', () => {
+it('.setModule()', () => {
 
     const n1 = Node.from(
         new Text('A'),
@@ -208,7 +198,7 @@ it('.set()', () => {
     expectTypeOf(n2).toEqualTypeOf<N2>(n2)
 })
     
-it('.set() with function', () => {
+it('.setModule() with function', () => {
 
     const n1 = Node
         .from(new Text('A'))
@@ -223,7 +213,7 @@ it('.set() with function', () => {
     expectTypeOf(n1).toEqualTypeOf<N1>()
 })
 
-it('.insert()', () => {
+it('.insertModules()', () => {
 
     const n1 = Node.from(
         new Text('Ace'),
