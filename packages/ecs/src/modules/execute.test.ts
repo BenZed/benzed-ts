@@ -34,7 +34,7 @@ it('context has access to module interface', () => {
                 ) 
             )
         },
-        Module.data(0 as const)
+        Module.data(0 as const)  
     )
 
     const data = node.nodes.zero.getModule(1)(1)
@@ -64,10 +64,8 @@ test('append()', () => {
 })
 
 test('promises resolve before next execution', () => {
-
     const x2 = Module.execute((i: number) => Promise.resolve(i * 2))
     const x4 = x2.append(i => i * 2)
-
     return expect(x4(1)).resolves.toBe(4)
 })
 
