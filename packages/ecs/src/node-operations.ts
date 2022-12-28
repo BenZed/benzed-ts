@@ -7,9 +7,10 @@ import {
     Mutable, 
     swap
 } from '@benzed/util'
+import { NestedPathsOf } from './module'
 
 import type { Module, Modules } from './module/module'
-import type { Node, Nodes } from './node'
+import { Node, Nodes } from './node'
 
 //// Splice Modules ////
 
@@ -201,17 +202,30 @@ export function setNode<N extends Nodes, K extends string, Nx extends Node>(
     key: K, 
     node: Nx
 ): SetNode<N, K, Nx>
-export function setNode<N extends Nodes, K extends KeysOf<N>, F extends (input: N[K]) => Node>(
+export function setNode<N extends Nodes, K extends NestedPathsOf<N>, F extends (input: N[K]) => Node>(
     nodes: N, 
     key: K, 
     update: F
 ): SetNode<N, K, ReturnType<F>>
-export function setNode(nodes: Nodes, key: string, node: Node | ((current: Node) => Node)): Nodes {
+export function setNode(nodes: Nodes, key: string, nodeOrUpdate: Node | ((current: Node) => Node)): Nodes {
 
-    const newNodes = {
-        ...copy(nodes),
-        [key]: 'parent' in node ? node : node(nodes[key])
-    } as Nodes
+    const paths = key.split('/').reverse()
+
+    const newNodes = copy(nodes)
+    let currNodes = newNodes as Mutable<Nodes>
+
+    while (paths.length > 0) {
+        const path = paths.pop() as string
+        currNodes[path] ??= new Node({})
+
+        const isLastPath = paths.length === 0
+        if (isLastPath) {
+            currNodes[path] = 'parent' in nodeOrUpdate 
+                ? nodeOrUpdate 
+                : nodeOrUpdate(currNodes[path])
+        } else 
+            currNodes = currNodes[path].nodes
+    }
 
     return newNodes
 }

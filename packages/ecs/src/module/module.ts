@@ -95,7 +95,6 @@ export class Module<T = unknown> implements CopyComparable {
             throw new Error(`${this} is not included in ${node}'s modules.`)
 
         Module._refs.set(this, node)
-        this.validate()
     }
 
     validate(): void { /**/ }

@@ -45,6 +45,20 @@ const createTestNodeTree = () => Node
 
 //// Tests ////
 
+it('getNode()', () => {
+    const root = createTestNodeTree()
+    const grandParent = root.getNode('grandParent')
+
+    expectTypeOf(grandParent).toEqualTypeOf(root.nodes.grandParent)
+    expect(grandParent).toEqual(root.nodes.grandParent)
+})
+
+it('getNode() nested path', () => {
+    const root = createTestNodeTree()
+    const you = root.getNode('grandParent/parent/you')
+    expect(you).toEqual(root.nodes.grandParent.nodes.parent.nodes.you)
+})
+
 it('.getNode() throws on bad paths', () => {
     const n1 = createTestNodeTree()
     // @ts-expect-error Bad Path
@@ -82,24 +96,47 @@ it('.setNode() an existing node', () => {
 
 })
 
-it('.setNode() nested', () => {
+it('.setNode() nested path', () => {
 
-    const t1 = Node.from(
-        Module.data('root' as const),
-    ).setNode(
-        'bar', 
-        Node.from(Module.data('country', 'Canada' as const))
-    )
+    const root = Node.from({
+        parent: Node.from({
+            child: Node.from(Module.data(0 as const))
+        })
+    })
 
-    const t2 = t1.setNode(
-        'bar', 
-        node => node.setModule(0, data => data.setData('Spain' as const))
-    )
-
-    expectTypeOf(t2).toEqualTypeOf<Node<[Data<'root'>], {
-        bar: Node<[KeyData<'country', 'Spain'>], {}>
+    // overwrite with node
+    const update1 = Node.from(Module.data(1 as const))
+    const root1 = root.setNode('parent/child', update1)
+    expect(root1.nodes.parent.nodes.child).toEqual(update1)
+    type Root1 = typeof root1
+    expectTypeOf<Root1>().toMatchTypeOf<Node<[], {
+        parent: Node<[], {
+            child: Node<[Data<1>], {}>
+        }>
     }>>()
 
+    // overwrite with update function
+    const update2 = Node.from(Module.data(2 as const))
+    const root2 = root1.setNode('parent/child', child => child.setModule(0, data => data.setData(data.data + 1 as 2)))
+    expect(root2.nodes.parent.nodes.child).toEqual(update2)
+    type Root2= typeof root2
+    expectTypeOf<Root2>().toMatchTypeOf<Node<[], {
+        parent: Node<[], {
+            child: Node<[Data<2>], {}>
+        }>
+    }>>()
+
+    // set nested new node
+    const update3 = Node.from(Module.data(3 as const))
+    const root3 = root2.setNode('parent/child2', update3)
+    expect(root3.nodes.parent.nodes.child2).toEqual(update3)
+    type Root3= typeof root3
+    expectTypeOf<Root3>().toMatchTypeOf<Node<[], {
+        parent: Node<[], {
+            child: Node<[Data<2>], {}>
+            child2: Node<[Data<3>], {}>
+        }>
+    }>>()
 })
 
 it('.removeNode() from a path', () => {

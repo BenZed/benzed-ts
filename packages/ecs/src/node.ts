@@ -3,9 +3,8 @@ import {
     callable,
     IndexesOf,
     iterate, 
-    KeysOf, 
-    keysOf, 
-    nil,
+    keysOf,
+    nil, 
 } from '@benzed/util'
 
 import { 
@@ -39,10 +38,17 @@ import {
     swapModules, 
     SwapModules,
     setNode, 
-    SetNode, 
+    // SetNode, 
     removeNode, 
     RemoveNode,  
 } from './node-operations'
+
+import { 
+    GetNodeAtNestedPath,
+    NestedPathsOf, 
+    PathsOf, 
+    SetNodeAtNestedPath
+} from './module'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -51,7 +57,7 @@ import {
 
 //// Exports ////
 
-type Nodes = { readonly [key: string]: Node }
+type Nodes = { readonly [key: string]: Node<Modules, Nodes> }
 
 class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyComparable {
 
@@ -88,6 +94,8 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         this.modules = modules
         for (const module of this.modules)
             module._setNode(this)
+
+        this.validate()
     }
 
     //// Operations ////
@@ -156,20 +164,27 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
 
     readonly nodes: N
 
-    getNode<K extends KeysOf<N>>(path: K): N[K] {
-        if (!(path in this.nodes))
+    getNode<K extends NestedPathsOf<N>>(path: K): GetNodeAtNestedPath<N,K> {
+
+        const paths = path.split('/')
+
+        const node = paths.reduce<Node<Modules, Nodes> | nil>((n, p) => n?.nodes[p], this)
+        if (!node)
             throw new Error(`Invalid path: ${path}`)
-
-        return this.nodes[path]
+        
+        return node as GetNodeAtNestedPath<N,K>
     }
 
-    setNode<K extends string, Nx extends Node>(key: K, node: Nx): Node<M, SetNode<N, K, Nx>> 
-    setNode<K extends KeysOf<N>, F extends (input: N[K]) => Node>(key: K, update: F): Node<M, SetNode<N, K, ReturnType<F>>>
+    setNode<K extends string, Nx extends Node>(key: K, node: Nx): Node<M, SetNodeAtNestedPath<N, K, Nx>> 
+    setNode<K extends NestedPathsOf<N>, F extends (input: GetNodeAtNestedPath<N, K>) => Node<Modules,Nodes>>(
+        key: K, 
+        update: F
+    ): Node<M, SetNodeAtNestedPath<N, K, ReturnType<F>>>
     setNode(key: string, node: Node | ((current: Node) => Node)): Node {
-        return this.setNodes(setNode(this.nodes, key as KeysOf<N>, node as Node))
+        return this.setNodes(setNode(this.nodes, key as PathsOf<N>, node as Node))
     }
 
-    removeNode<K extends KeysOf<N>>(key: K): Node<M, RemoveNode<N, K>> {
+    removeNode<K extends PathsOf<N>>(key: K): Node<M, RemoveNode<N, K>> {
         return this.setNodes(removeNode(this.nodes, key)) 
     }
 
@@ -177,7 +192,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         return new Node(nodes, ...copy(this.modules))
     }
 
-    get parent(): Node {
+    get parent(): Node<Modules, Nodes> {
         const parent = Module._refs.get(this)
         if (!parent)
             throw new Error(`${this.name} does not have a parent.`)
@@ -203,7 +218,6 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
             throw new Error(`${this} is not included in given parent\'s children.`)
 
         Module._refs.set(this, parent)
-        this.validate()
     }
     
     * eachParent(): IterableIterator<Node> {
@@ -238,16 +252,16 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     getPathFrom(ancestor: Node): string {
 
         if (!this.parents.includes(ancestor))
-            throw new Error(`${this.name} is not a decendant of ${ancestor.name}`)
+            throw new Error(`${this.name} is not a descendant of ${ancestor.name}`)
 
         const path: string[] = []
 
         let cursor: Node = this
         while (cursor.hasParent && cursor !== ancestor) {
             const nodes = cursor.parent.nodes as Nodes
-            for (const key in keysOf(nodes)) {
-                if (nodes[key] === cursor) {
-                    path.push(key)
+            for (const name of keysOf(nodes)) {
+                if (nodes[name] === cursor) {
+                    path.push(name)
                     break
                 }
             }
