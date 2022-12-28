@@ -3,6 +3,8 @@ import { copy } from '@benzed/immutable'
 import { Module } from './module/module'
 import Node from './node'
 
+import { it, test, expect } from '@jest/globals'
+
 //// Setup ////
 
 const modules = [
@@ -12,7 +14,7 @@ const modules = [
 ] as const
 
 const children = [
-    Node.create(),
+    Node.create(), 
     Node.create(),
     Node.from({
         three: Node.from({
@@ -29,16 +31,18 @@ const node = Node.from({
 
 //// Tests ////
 
-it('throws if multiple instances of the same module exist in the parent', () => {
-    expect(() => node.addModule(node.modules[0])).toThrow('Parent may only contain single reference of child')
+it('throws if multiple instances of the same module exist in the node', () => { 
+    expect(() => Node.from(modules[0], modules[0]))  
+        .toThrow(`${Node.name} may only have a single reference of a module.`)
 })
 
-test('.modules', () => {
-    expect(node.modules.every((m,i) => m === modules[i])).toBe(true)
+test('.modules', () => {  
+    expect(node.modules.every((m,i) => m === modules[i]))
+        .toBe(true)
 })
 
 it('sets node on constructed modules', () => {
-    expect(node.modules.every(m => m.node === node))
+    expect(node.modules.every(m => m.node === node)) 
 })
  
 it('parent is preserved on copy', () => { 
@@ -48,7 +52,7 @@ it('parent is preserved on copy', () => {
 })
 
 it('iterates child nodes', () => {
-    expect([...node]).toEqual(children)
+    expect([...node]).toEqual(children) 
 })
 
 test('children', () => {
@@ -56,7 +60,7 @@ test('children', () => {
     expect([...node.eachChild()]).toEqual(children)
 })
 
-test('descendents', () => {
+test('descendents', () => { 
 
     const descendents = [...children, children[2].nodes.three, children[2].nodes.three.nodes.four] as const
 
@@ -67,10 +71,11 @@ test('descendents', () => {
 
 test('ancestors', () => {
 
-    const node4 = node.nodes.two.nodes.three.nodes.four
+    const node3 = node.nodes.two.nodes.three
+    const node4 = node3.nodes.four
 
-    const ancestors = [...children, children[2].nodes.three] as const
+    const ancestors = [node3, ...children, node] as const
 
     expect(node4.ancestors).toEqual(ancestors)
     expect(Array.from(node4.eachAncestor())).toEqual(ancestors)
-})
+}) 

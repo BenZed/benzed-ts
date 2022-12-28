@@ -8,11 +8,11 @@ import { describe, it, test, expect } from '@jest/globals'
 
 //// Setup ////
 
-class Rank<S extends string> extends Module<S> {
+class Rank<S extends string> extends Module<S> {  
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
-    } 
+    }
 
     getRank(): S {
         return this.data
@@ -140,7 +140,7 @@ describe('relationships', () => {
     })
 })
 
-test('.find', () => {
+test.only('.find', () => {
 
     const [, you] = createFamilyTree()
 
@@ -155,9 +155,7 @@ test('.has', () => {
     const [, you] = createFamilyTree()
     expect(you.hasModule).toBeInstanceOf(ModuleFinder)
 
-    expect(you.hasModule(
-        Rank.of('son')
-    )).toBe(true)
+    expect(you.hasModule(Rank.of('son'))).toBe(true)
 })
 
 test('.assert', () => {

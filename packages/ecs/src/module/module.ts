@@ -67,7 +67,7 @@ export class Module<T = unknown> implements CopyComparable {
     /**
      * @internal
      */
-    static _refs = new WeakMap<Module, Node>
+    static _refs = new WeakMap<Module | Node, Node>
 
     //// Parents ////
     
@@ -83,18 +83,26 @@ export class Module<T = unknown> implements CopyComparable {
         return Module._refs.has(this)
     }
 
-    _setNode(parent: Node): void {
+    _setNode(node: Node): void {
+
+        if (node.modules.indexOf(this) !== node.modules.lastIndexOf(this))
+            throw new Error(`${node} may only have a single reference of a module.`)
+
         if (this.hasNode)
-            throw new Error(`${this.name} is already parented`)
+            throw new Error(`${this} already has a ${Node.name}`)
 
-        if (!parent.modules.includes(this))
-            throw new Error(`${this.name} is not included in given parent\'s children.`)
+        if (!node.modules.includes(this))
+            throw new Error(`${this} is not included in ${node}'s modules.`)
 
-        Module._refs.set(this, parent)
+        Module._refs.set(this, node)
         this.validate()
     }
 
     validate(): void { /**/ }
+
+    toString(): string {
+        return this.constructor.name
+    }
 
     //// CopyComparable Interface ////
 

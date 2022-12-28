@@ -50,7 +50,7 @@ const createTree = () => {
 
 it('identifiable nested paths', () => {
 
-    const [, node] = createTree()
+    const [,node] = createTree()
 
     type N1Modules = typeof node.modules
 
@@ -67,8 +67,8 @@ it('identifiable nested paths', () => {
     | '/baz/bone/sass'  
     | '/baz/ace' 
     >()
-})  
-     
+})
+
 it('.getPathFrom()', () => {   
     const [,you] = createTree()
 
@@ -76,29 +76,33 @@ it('.getPathFrom()', () => {
     expect(output).toEqual('you')
     expect(output).toEqual(you.name)
 })
-    
+
 it('.getFromRoot()', () => {   
     const [,you] = createTree()
-    
     expect(you.getPathFromRoot()).toEqual('mom/you')
     expect(you.nodes.son.getPathFromRoot()).toEqual('mom/you/son')
 })
 
 describe('$path.validate', () => {
-    
+
     it('validates paths', () => {
-        expect($path.validate('ace')).toEqual('/ace')
+        expect($path.validate('ace'))
+            .toEqual('/ace')
     })
-    
+
     it('paths cannot contain multiple consecutive /', () => {
-        expect($path.validate('//ace')).toEqual('/ace')
+        expect($path.validate('//ace'))
+            .toEqual('/ace')
     })
-    
+
     it('handles only slashes', () => {
-        expect($path.validate('///')).toEqual('/')
+        expect($path.validate('///'))
+            .toEqual('/')
     })
-    
+
     it('removes trailing slash', () => {
-        expect($path.validate('/ace/')).toEqual('/ace')
+        expect($path.validate('/ace/'))
+            .toEqual('/ace')
     })
+
 })

@@ -34,7 +34,7 @@ module.exports = {
         '@typescript-eslint/quotes': ['error', 'single'],
         '@typescript-eslint/indent': ['error', 4],
         '@typescript-eslint/no-extra-parens': 'warn',
-        '@typescript-eslint/restrict-plus-operands': 'error',
+        '@typescript-eslint/restrict-plus-operands': 'off', // this rule seems to frequently break
         '@typescript-eslint/no-unused-expressions': ['error', { allowTaggedTemplates: true }],
         '@typescript-eslint/no-unused-vars': ['warn', { args: 'all', argsIgnorePattern: '^_' }],
         '@typescript-eslint/return-await': 'error',
@@ -44,9 +44,9 @@ module.exports = {
         '@typescript-eslint/no-empty-interface': 'off',
         '@typescript-eslint/unified-signatures': 'off',
         '@typescript-eslint/no-duplicate-imports': 'error',
+        '@typescript-eslint/no-this-alias': 'off', // I don't have a problem with 'this' aliasing.
         '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
         '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
-        '@typescript-eslint/restrict-plus-operands': 'off', // this rule seems to frequently break
         '@typescript-eslint/member-delimiter-style': ['error', {
             'multiline': {
                 'delimiter': 'none',

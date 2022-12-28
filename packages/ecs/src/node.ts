@@ -125,7 +125,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
 
     setModules<Mx extends Modules>(...modules: Mx): Node<Mx, N> {
         return new Node(
-            this.nodes,
+            copy(this.nodes),
             ...modules
         )
     }
@@ -177,28 +177,32 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         return new Node(nodes, ...copy(this.modules))
     }
 
-    private _parent: Node | nil = nil
     get parent(): Node {
-        if (!this._parent)
+        const parent = Module._refs.get(this)
+        if (!parent)
             throw new Error(`${this.name} does not have a parent.`)
 
-        return this._parent
+        return parent
     }
     get hasParent(): boolean {
-        return !!this._parent
+        return Module._refs.has(this)
     }
 
     /**
      * @internal
      */
     _setParent(parent: Node): void {
-        if (this._parent)
-            throw new Error(`${this.name} is already parented`)
+
+        if (parent.children.indexOf(this) !== parent.children.lastIndexOf(this)) 
+            throw new Error(`${parent} may only have a single reference of ${this}`)
+
+        if (this.hasParent)
+            throw new Error(`${this} is already parented`)
 
         if (!parent.children.includes(this)) 
-            throw new Error(`${this.name} is not included in given parent\'s children.`)
+            throw new Error(`${this} is not included in given parent\'s children.`)
 
-        this._parent = parent
+        Module._refs.set(this, parent)
         this.validate()
     }
     
@@ -237,7 +241,8 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
             throw new Error(`${this.name} is not a decendant of ${ancestor.name}`)
 
         const path: string[] = []
-        let cursor: Node = this 
+
+        let cursor: Node = this
         while (cursor.hasParent && cursor !== ancestor) {
             const nodes = cursor.parent.nodes as Nodes
             for (const key in keysOf(nodes)) {
@@ -258,7 +263,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     
     * eachAncestor(): IterableIterator<Node> {
         for (const parent of this.eachParent()) {
-            if (parent.parent)
+            if (parent.hasParent)
                 yield* parent.parent.eachChild()
             else 
                 yield parent
@@ -328,6 +333,12 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
             child.validate()
     }
 
+    //// Stringify ////
+
+    toString(): string {
+        return !this.name || this.name === Node.name ? Node.name : Node.name + ` "${this.name}"`
+    }
+    
     /// CopyComparable /// 
 
     [$$copy](): this {
