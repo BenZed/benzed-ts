@@ -7,8 +7,9 @@ import { InputOf, OutputOf, through } from '@benzed/util'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { $path, HttpCode, WEBSOCKET_PATH } from '../../../util'
-import { CommandError, CommandModule } from '../../../modules'
+import { HttpCode, WEBSOCKET_PATH } from '../../../util'
+import { Command, CommandError } from '../../../modules'
+import { Path } from '@benzed/ecs'
 
 //// Eslint ////
 
@@ -36,19 +37,19 @@ export class FetchSocketIOClient extends Client {
 
     override async start(): Promise<void> {
         await super.start()
-        if (this.settings.webSocket)
+        if (this.data.webSocket)
             await this._startSocketIO()
     }
 
     override async stop(): Promise<void> {
         await super.stop()
-        if (this.settings.webSocket)
+        if (this.data.webSocket)
             await this._stopSocketIO()
     }
 
     // Connection Implementation 
 
-    _execute<C extends CommandModule<string, any, any>>(
+    _execute<C extends Command<string, any, any>>(
         command: C,
         data: InputOf<C>
     ): OutputOf<C> {
@@ -63,7 +64,7 @@ export class FetchSocketIOClient extends Client {
     
     private async _startSocketIO(): Promise<void> {
         
-        const { host, webSocket } = this.settings
+        const { host, webSocket } = this.data
             
         if (!this._io && webSocket) {
             this._io = io(host, { 
@@ -99,7 +100,7 @@ export class FetchSocketIOClient extends Client {
         this.log`disconnected from server`
     }
 
-    private _executeSocketIOCommand(command: CommandModule<string, object, object>, data: object): Promise<object> {
+    private _executeSocketIOCommand(command: Command<string, object, object>, data: object): Promise<object> {
         const io = this._io as Socket 
 
         const rootName = this._getCommandRootName(command)
@@ -114,15 +115,13 @@ export class FetchSocketIOClient extends Client {
         })
     }
 
-    private async _executeFetchCommand(command: CommandModule<string, object, object>, cmdData: object): Promise<object> {
-        const { host } = this.settings
+    private async _executeFetchCommand(command: Command<string, object, object>, cmdData: object): Promise<object> {
+        const { host } = this.data
 
-        const { method, url, body, headers } = command
-            .request
-            .from(cmdData)
+        const { method, url, body, headers } = command.reqFromData(cmdData)
 
         const response = await fetch(
-            host + $path.validate(`${command.pathFromRoot}${url}`), 
+            host + Path.validate(`${command.getPathFromRoot()}${url}`), 
             { 
                 method,
                 body: body && JSON.stringify(body), 
@@ -147,12 +146,12 @@ export class FetchSocketIOClient extends Client {
         return response.json()
     }
     
-    private _getCommandRootName(command: CommandModule<string, object, object>): string {
+    private _getCommandRootName(command: Command<string, object, object>): string {
 
-        const path = command.pathFromRoot
+        const path = command.getPathFromRoot()
 
         return path.length > 1
-            ? toCamelCase(command.pathFromRoot, '/') + capitalize(command.name)
+            ? toCamelCase(path, '/') + capitalize(command.name)
             : command.name
     }
 

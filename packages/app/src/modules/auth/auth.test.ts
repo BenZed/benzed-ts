@@ -2,10 +2,7 @@ import $ from '@benzed/schema'
 import { through } from '@benzed/util'
 
 import { Auth } from './auth'
-import { App } from '../../app'
-import { Service } from '../../service'
 import { MongoDb, Record } from '../mongo-db'
-import { hashPassword } from './hooks'
 
 import { 
     it, 
@@ -14,7 +11,10 @@ import {
     beforeAll, 
     afterAll 
 } from '@jest/globals'
+
 import { HttpCode } from '../../util'
+
+import { Node } from '@benzed/ecs'
 
 //// Tests ////
 
@@ -76,9 +76,10 @@ describe('Authentication', () => {
         password: string
     }
 
-    const mongoDb = MongoDb.create({ 
-        database: 'test-1' 
-    }).addCollection<'users', User>(
+    const mongoDb = MongoDb
+        .create({ 
+            database: 'test-1' 
+        }).addCollection<'users', User>(
         'users', 
         $({
             email: $.string,
@@ -86,23 +87,16 @@ describe('Authentication', () => {
         })
     )
 
-    const [ get, find, create, update, remove ] = mongoDb.createRecordCommands('users')
+    const userService = Node.from(
+        /** get collection commands **/
+    )
 
-    const userService = Service
-        .create()
-        .useModules(
-            get,
-            find,
-            create.usePreHook(hashPassword()),
-            update.usePreHook(hashPassword()),
-            remove
+    const app = Node
+        .from(
+            mongoDb,
+            Auth.create()
         )
-
-    const app = App
-        .create()
-        .useModule(mongoDb)
-        .useModule(Auth.create())
-        .useService('/users', userService)
+        .set('/users', userService)
 
     const CREDS = {
         email: 'user@email.com',
@@ -111,7 +105,7 @@ describe('Authentication', () => {
 
     beforeAll(() => app.start())
     beforeAll(() => app
-        .findModule(MongoDb, true)
+        .assert(MongoDb)
         .clearAllCollections()
     )
 
@@ -121,13 +115,13 @@ describe('Authentication', () => {
     })
 
     afterAll(() => app
-        .findModule(MongoDb, true)
+        .assert(MongoDb)
         .clearAllCollections()
     )
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {
-        const auth = app.findModule(Auth, true)
+        const auth = app.assert(Auth)
         const result = await auth.execute(CREDS)
         const { accessToken } = result ?? {}
 
@@ -135,7 +129,7 @@ describe('Authentication', () => {
     })
 
     it('throws on invalid credentials', async () => {
-        const auth = app.findModule(Auth, true)
+        const auth = app.assert(Auth)
         const result = await auth.execute({ 
             email: 'hacker@email.com', 
             password: 'not-today-you-scallywag'

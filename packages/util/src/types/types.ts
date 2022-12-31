@@ -90,6 +90,10 @@ export type AsMutable<T> = {
 
 }
 
+export type Mutable<T> = {
+    -readonly [K in keyof T as K]: T[K]
+}
+
 export type AsReadonly<T> = {
     [K in keyof T as 
     IsIdentical<{ [_ in K]: T[K] }, { -readonly [_ in K]: T[K] }> extends true 

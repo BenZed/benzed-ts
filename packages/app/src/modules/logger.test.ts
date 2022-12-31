@@ -1,9 +1,8 @@
 import { toVoid } from '@benzed/util'
-
-import { Module } from '../module'
-import { App } from '../app'
+import { Node } from '@benzed/ecs'
 
 import { Logger } from './logger'
+import { AppModule } from '../app-module'
 
 //// Setup ////
 
@@ -12,17 +11,19 @@ const testLogger = Logger.create({
     cacheLength: 6
 })
 
-class Icon extends Module {
-    static readonly icon = '@' 
+class Icon extends AppModule<void> {
+    static readonly icon = '@'  
 }
 
-class NoIcon extends Module {}
+class NoIcon extends AppModule<void> {}
 
-const app = App
-    .create()
-    .useModule(testLogger)
-    .useModule(new Icon())
-    .useModule(new NoIcon())
+const logTest = Node.from(
+    testLogger,
+    Node.from(
+        new Icon(),
+        new NoIcon()
+    )
+)
 
 //// Tests ////
 
@@ -30,31 +31,31 @@ const timestamp = expect.any(String)
 
 let logger: Logger
 let icon: Icon
-let noIcon: NoIcon
-beforeAll(() => app.start())
+let noIcon: NoIcon   
 
 beforeAll(() => {
-    logger = app.findModule(Logger, true)
-    logger.log`This should be omitted`
+    logger = logTest.find.require(Logger)
+    logger.log`This should be omitted` 
 
-    noIcon = app.findModule(NoIcon, true)
+    noIcon = logTest.find.require.inDescendents(NoIcon)
     noIcon.log.info`Info`
     noIcon.log.warn`Warn`
     noIcon.log.error`Error`
     
-    icon = app.findModule(Icon, true)
+    icon = logTest.find.require.inDescendents(Icon)
     icon.log.info`Info`
     icon.log.warn`Warn`
     icon.log.error`Error`
-
 })
 
-afterAll(() => app.stop())
+it('fills log array', () => {  
+    expect(logger.logs).toHaveLength(6)  
+})
 
 it('takes input of any module\'s log method', () => {
     expect(logger.logs[0]).toEqual([timestamp, 'Info'])
 })
-
+ 
 it('adds warn icon', () => {
     expect(logger.logs[1]).toEqual([timestamp, '⚠️', 'Warn'])
 })

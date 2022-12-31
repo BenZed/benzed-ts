@@ -6,8 +6,8 @@ import {
     ResolveAsyncOutput,
 } from '@benzed/util'
     
-import { Module } from '../module'
-import Modules from './modules'
+import { Module } from '../module/module'
+import type Node from '../node'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -18,39 +18,44 @@ import Modules from './modules'
 
 export class ExecuteContext<D> extends Module<D> {
 
-    constructor(private readonly _ref: { hasParent: boolean, parent: Modules }, data: D) {
+    constructor(private readonly _ref: { hasNode: boolean, node: Node }, data: D) {
         super(data)
     }
 
-    // override the parent properties so the context gets 
+    // override the node properties so the context gets 
     // all the benefits of being in the tree without actually
     // being in the tree.
-    override get hasParent() : boolean {
-        return this._ref.hasParent
+    override get hasNode() : boolean {
+        return this._ref.hasNode
     }
 
-    override get parent(): Modules {
-        return this._ref.parent
+    override get node(): Node {
+        return this._ref.node
     }
 
 }
 
 //// Executable Module ////
 
-export interface Execute<I = unknown, O = unknown, C = void> extends 
-    Module<ContextTransform<I, O, C>>, 
-    ContextTransform<I, O, C> {
+export type ExecuteHook<I,O,D> = ContextTransform<I, O, ExecuteContext<D>>
 
-    append<Ox>(execute: ContextTransform<Awaited<O>, Ox, C>): Execute<I, ResolveAsyncOutput<O, Ox>, C>
+export interface Execute<I = unknown, O = unknown, D = void> extends 
+    Module<ContextTransform<I, O, D>>, 
+    ContextTransform<I, O, D> {
 
-    prepend<Ix>(execute: ContextTransform<Ix, I, C>): Execute<Ix, ResolveAsyncOutput<Ix, O>, C>
+    execute(input: I, data: D): O
+
+    append<Ox>(hook: ExecuteHook<Awaited<O>, Ox, D>): Execute<I, ResolveAsyncOutput<O, Ox>, D>
+    prepend<Ix>(hook: ExecuteHook<Ix, I, D>): Execute<Ix, O, D>
 
 }
 
 //// Executable Module ////
 
-interface ExecuteConstructor {
-    new <I,O,C = void>(execute: ContextTransform<I, O, ExecuteContext<C>>): Execute<I, O, C>
+type ModuleConstructor = typeof Module
+
+interface ExecuteConstructor extends ModuleConstructor {
+    new <I,O,C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C>
 }
 
 /**
@@ -59,10 +64,14 @@ interface ExecuteConstructor {
  */
 export const Execute: ExecuteConstructor = callable(
     function (input: any, data: any): any {
-        const ctx = new ExecuteContext(this, data)
-        return this.data(input, ctx)
+        return this.execute(input, data)
     },
     class extends Module<Func> {
+
+        execute(input: any, data: any): any {
+            const ctx = new ExecuteContext(this, data)
+            return this.data(input, ctx)
+        }
 
         append(execute: ContextTransform<any,any,any>): Execute<any, any, any> {
             return new Execute(Pipe.from(this.data).to(execute))

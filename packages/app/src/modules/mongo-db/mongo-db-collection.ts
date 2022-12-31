@@ -1,16 +1,17 @@
 import { Schematic } from '@benzed/schema'
 import { nil } from '@benzed/util'
 
+import { AppModule } from '../../app-module'
+
 import { Collection as _MongoCollection, ObjectId } from 'mongodb'
 import { SchemaHook, toSchematic } from '../../util'
+import { MongoDb } from './mongo-db'
 
 //// Eslint ////
 
 /* eslint-disable
-
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
-
 */
 
 //// Types ////
@@ -32,44 +33,45 @@ type RecordQuery<T extends object> = {
     [K in keyof T]?: T[K]
 }
 
-type RecordOf<C extends MongoDbCollection<any>> = C extends MongoDbCollection<infer R> ? R : object
+type RecordOf<C extends MongoDbCollection<string, object>> = C extends MongoDbCollection<string, infer R> ? R : object
 
 //// Collection ////
 
-class MongoDbCollection<T extends object> {
+class MongoDbCollection<N extends string, T extends object> extends AppModule<{ name: N, schema: Schematic<T>}> {
 
-    readonly _schema: Schematic<T>
-    constructor(
-        schematic: SchemaHook<T>
-    ) { 
-        this._schema = toSchematic(schematic)
+    override get name(): N {
+        return this.data.name
     }
 
-    /**
-     * @internal
-     * Connect this wrapper to an actual mongo db coollection
-     */
-    _connect(
-        mongoCollection: _MongoCollection
-    ): void {
-        this._mongoCollection = mongoCollection
+    getName(): N {
+        return this.name
+    }
+
+    setName<Nx extends string>(name: Nx): MongoDbCollection<Nx, T> {
+        this._assertStopped()
+        return new MongoDbCollection(name, this.data.schema)
+    }
+
+    constructor(name: N, schema: SchemaHook<T>) {
+        super({
+            name, 
+            schema: toSchematic(schema)
+        })
+    }
+
+    get db(): MongoDb {
+        return this.assert().inAncestors(MongoDb)
+    }
+
+    isConnected(): boolean {
+        return this.db.isConnected
     }
 
     /**
      * @internal
      */
     get _collection(): _MongoCollection {
-        if (!this._mongoCollection)
-            throw new Error('Not yet connected')
-        return this._mongoCollection
-    }
-    private _mongoCollection: _MongoCollection | nil = nil
-    
-    /**
-     * Is this collection connected?
-     */
-    get connected(): boolean {
-        return !!this._mongoCollection
+        return this.db._database.collection(this.data.name)
     }
 
     /**
@@ -90,7 +92,7 @@ class MongoDbCollection<T extends object> {
     /**
      * Find records in the collection
      */
-    async find(query: RecordQuery<T>): Promise<Paginated<Record<T>>> {
+    async query(query: RecordQuery<T>): Promise<Paginated<Record<T>>> {
 
         const records: Record<T>[] = []
         const total = await this
@@ -113,12 +115,25 @@ class MongoDbCollection<T extends object> {
         }
     }
 
+    get schema(): Schematic<T> {
+        return this.data.schema
+    }
+
+    getSchema(): Schematic<T> {
+        return this.schema
+    }
+
+    setSchema<Tx extends object>(schema: SchemaHook<Tx>): MongoDbCollection<N, Tx> {
+        this._assertStopped()
+        return new MongoDbCollection(this.name, toSchematic(schema))
+    }
+
     /**
      * Create a record in the collection
      */
     async create(data: T): Promise<Record<T>> {
 
-        const createData = this._schema.validate(data)
+        const createData = this.schema.validate(data)
 
         const { insertedId: objectId } = await this
             ._collection
@@ -142,7 +157,7 @@ class MongoDbCollection<T extends object> {
         const { _id, ...existing } = record
 
         const updateData = this
-            ._schema
+            .schema
             .validate({ ...existing, ...data })
 
         await this
@@ -160,15 +175,20 @@ class MongoDbCollection<T extends object> {
      * Remove a record from the collection
      */
     async remove(id: Id): Promise<Record<T> | nil> {
-
         const record = await this.get(id)
         if (record) {
             await this._collection.deleteOne({
                 _id: new ObjectId(id)
             })
         }
-
         return record
+    }
+
+    /**
+     * Clear all records in a collection
+     */
+    async clear(): Promise<void> {
+        await this._collection.deleteMany({})
     }
 
 }

@@ -1,5 +1,5 @@
 
-import { AppModule, ExecutableAppModule } from './app-module'
+import { AppModule } from './app-module'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -42,9 +42,4 @@ it('.stop() cannot be called consecutively', async () => {
         expect(e.message).toContain(`${test.name} has not been started`)
     }
     expect.assertions(1)
-})
-
-it('callable module', () => {
-    const executable = new ExecutableAppModule((x: { foo: string }) => ({ ...x, count: 0 }), null)
-    expect(executable({ foo: 'string' })).toEqual({ foo: 'string', count: 0 })
 })

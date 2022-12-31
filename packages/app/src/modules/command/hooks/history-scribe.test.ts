@@ -7,13 +7,12 @@ import {
 
 import { MongoDb, Record } from '../../mongo-db'
 import { Client, Server } from '../../connection'
-import { Service } from '../../../service'
-import { App } from '../../../app'
 
 import Command from '../command'
 import CommandError from '../command-error'
 
 import { HttpCode } from '../../../util'
+import { Node } from '@benzed/ecs'
 
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type
@@ -41,54 +40,48 @@ const db = MongoDb
     .create({ database: 'history-scribe-test' })
     .addCollection<'trees', Tree>('trees', $tree)
 
-const trees = Service
-    .create()
-    .useModules(
+const trees = Node.from(
 
-        Command.create((data: TreeData, cmd) => {
-            const trees = cmd
-                .findModule<typeof db, true>(MongoDb, true, 'parents')
-                .getCollection('trees')
+    Command.create((data: TreeData, cmd) => {
+        const trees = cmd
+            .assert()
+            .inAncestors(db)
+            .getCollection('trees')
 
-            const dataWithHistory = HistoryScribe
-                .create<TreeData, string>(data)
-                .compile()
+        const dataWithHistory = HistoryScribe.create(data, '')
 
-            return trees.create(dataWithHistory)
-        }),
+        return trees.create(dataWithHistory)
+    }),
 
-        Command.update(async ({ id, ...data }: { id: string } & Partial<TreeData>, cmd) => {
+    Command.update(async ({ id, ...data }: { id: string } & Partial<TreeData>, cmd) => {
 
-            const trees = cmd
-                .findModule<typeof db, true>(MongoDb, true, 'parents')
-                .getCollection('trees')
+        const trees = cmd
+            .assert()
+            .inAncestors(db)
+            .getCollection('trees')
 
-            const existing = await trees.get(id)
-            if (!existing)
-                throw new CommandError(HttpCode.NotFound, `Tree with id ${id} could not be found.`)
+        const existing = await trees.get(id)
+        if (!existing)
+            throw new CommandError(HttpCode.NotFound, `Tree with id ${id} could not be found.`)
 
-            const updatedData = HistoryScribe
-                .from(existing.history)
-                .update(data)
-                .compile()
+        const updatedData = HistoryScribe.update(existing, data)
 
-            return trees.update(id, updatedData) as Promise<Record<Tree>>
-        })
+        return trees.update(id, updatedData) as Promise<Record<Tree>>
+    })
 
-    )
+)
 
-const app = App
-    .create()
-    .useModule(db)
-    .useService('/trees', trees)
+const app = Node
+    .from(db)
+    .set('/trees', trees)
 
-const client = app.useModule(Client.create())
-const server = app.useModule(Server.create())
+const client = app.add(Client.create())
+const server = app.add(Server.create())
 
 //// Setup ////
 
 beforeAll(() => server.start())
-beforeAll(() => server.findModule(MongoDb, true).clearAllCollections())
+beforeAll(() => server.find.require(MongoDb).clearAllCollections())
 beforeAll(() => client.start())
 
 afterAll(() => client.stop())
@@ -98,7 +91,7 @@ afterAll(() => server.stop())
 
 test('get command', async () => {
     
-    const trees = client.getService('/trees')
+    const trees = client.get('/trees')
 
     const newTree = await trees.commands.create({
         leaves: 100,

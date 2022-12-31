@@ -8,10 +8,10 @@ import {
 
 import { MongoDb } from './mongo-db'
 
-import { io } from '@benzed/util'
+import { io, nil } from '@benzed/util'
 import $, { Infer } from '@benzed/schema'
 
-//// Setup //// 
+//// Setup ////
 
 interface Todo extends Infer<typeof $todo> {}
 const $todo = $({ 
@@ -26,10 +26,10 @@ const mongoDb = MongoDb
 beforeAll(() => mongoDb.start())
 
 let id: Id
-let getResult: Record<Todo> | null
+let getResult: Record<Todo> | nil
 let createResult: Record<Todo>
-let updateResult: Record<Todo> | null
-let removeResult: Record<Todo> | null
+let updateResult: Record<Todo> | nil
+let removeResult: Record<Todo> | nil
 let findResult: Paginated<Todo>
 let todos: MongoDbCollection<Todo>
 beforeAll(async () => {
@@ -78,10 +78,10 @@ it('.get()', () => {
 
 })
 
-it('.get() returns null if there was no record to get', async () => {
+it('.get() returns nil if there was no record to get', async () => {
 
     // should no longer exist in collection, it's been deleted
-    expect(await todos.get(id)).toEqual(null)
+    expect(await todos.get(id)).toEqual(nil)
 
 })
 
@@ -113,10 +113,10 @@ it('.update() data validated', async () => {
     expect(err).toHaveProperty('message', 'description must be a string')
 })
 
-it('.update() returns null if there was no record to update', async () => {
+it('.update() returns nil if there was no record to update', async () => {
 
     // should no longer exist in collection, it's been deleted
-    expect(await todos.update(id, { completed: false })).toEqual(null)
+    expect(await todos.update(id, { completed: false })).toEqual(nil)
 
 })
 
@@ -128,10 +128,10 @@ it('.remove()', () => {
 
 })
 
-it('.remove() returns null if there is nothing to remove', async () => {
+it('.remove() returns nil if there is nothing to remove', async () => {
 
     // should no longer exist in collection, it's been deleted
-    expect(await todos.remove(id)).toEqual(null)
+    expect(await todos.remove(id)).toEqual(nil)
 
 })
 
@@ -151,10 +151,10 @@ it('.get()', () => {
 
 })
 
-it('.get() returns null if there was no record to get', async () => {
+it('.get() returns nil if there was no record to get', async () => {
 
     // should no longer exist in collection, it's been deleted
-    expect(await todos.get(id)).toEqual(null)
+    expect(await todos.get(id)).toEqual(nil)
 
 })
 
@@ -166,10 +166,10 @@ it('.update()', () => {
 
 })
 
-it('.update() returns null if there was no record to update', async () => {
+it('.update() returns nil if there was no record to update', async () => {
 
     // should no longer exist in collection, it's been deleted
-    expect(await todos.update(id, { completed: false })).toEqual(null)
+    expect(await todos.update(id, { completed: false })).toEqual(nil)
 
 })
 
@@ -180,9 +180,9 @@ it('.remove()', () => {
 
 })
 
-it('.remove() returns null if there is nothing to remove', async () => {
+it('.remove() returns nil if there is nothing to remove', async () => {
 
     // should no longer exist in collection, it's been deleted
-    expect(await todos.remove(id)).toEqual(null)
+    expect(await todos.remove(id)).toEqual(nil)
 
 })
