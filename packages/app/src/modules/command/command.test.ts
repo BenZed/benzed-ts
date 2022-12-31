@@ -1,12 +1,13 @@
+import { Node } from '@benzed/ecs'
 import $ from '@benzed/schema'
-import { nil } from '@benzed/util'
+import { nil, omit } from '@benzed/util'
 
 import { HttpMethod } from '../../util'
 import Command from './command'
 
 it('is sealed', () => {
     // @ts-expect-error Sealed 
-    void class extends Command<object> {}
+    void class extends Command<object> {}  
 })
 
 for (const [name, method] of Object.entries(HttpMethod)) {
@@ -460,3 +461,51 @@ describe('req.match()', () => {
     })
 })
 
+describe('.appendHook()', () => {
+
+    it('append a hook method, changing the command output', () => {
+
+        const getRecord = Command
+            .get({ id: $.string })
+            .appendHook(data => ({ ...data, found: true }))
+            .appendHook(data => ({ ...data, timestamp: new Date() }))
+            .appendHook(omit('id'))
+
+        const record = getRecord({ id: '0' }, {})
+        expect(record).toEqual({ 
+            found: true, 
+            timestamp: expect.any(Date) 
+        })
+    })
+})
+
+describe('validation', () => {
+
+    it('must not be on a node with other commands', () => {
+        expect(() => Node.create(
+            Command.get({}),
+            Command.post({})
+        )).toThrow('cannot be placed with other Command modules')
+    })
+
+    it('May not be nested', () => {
+        expect(() => 
+            Node.create()
+        )
+    })
+
+})
+
+test('name', () => {
+
+    const Get = Command.get({ id: $.string }, d => ({ ...d, record: true }))
+
+    const node = Node.create({
+        get: Node.create(Get)
+    })
+
+    const get = node.module.inDescendents(Get)
+    expect(get.name).toEqual('get')
+    expect(get.node.getPathFromRoot()).toEqual('get') 
+
+})

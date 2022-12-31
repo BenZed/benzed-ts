@@ -76,9 +76,10 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     static create<Mx extends Modules>(...modules: Mx): Node<Mx, {}> 
     static create(...args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
 
-        const [nodes, ...modules] = Module.isModule(args[0])
+        const [nodes, ...modules] = args.length === 0 || Module.isModule(args[0])
             ? [{}, ...args]
             : args
+
         return new Node(nodes as Nodes, ...modules as Modules)
     }
 
@@ -327,7 +328,13 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     }
     get assertModule(): AssertModule {
         return new ModuleFinder(this, FindFlag.Assert)
+    }
 
+    /**
+     * Alias for assertModule & moduleInterface
+     */
+    get module(): AssertModule {
+        return new ModuleFinder(this, FindFlag.Assert)
     }
     
     //// Validate ////

@@ -4,6 +4,8 @@ import { callable, nil } from '@benzed/util'
 import { AppModule } from '../../app-module'
 import { Command } from '../command'
 
+//// Types ////
+
 /**
  * Base class for creating connections either to or from the server.
  */
@@ -21,7 +23,9 @@ export abstract class Connection<O extends object> extends AppModule<O> {
             .node
             .root
             .findModules
-            .inDescendents((m): m is Command => callable.isInstance(m, Command))
+            .inDescendents((m): m is Command => 
+                callable.isInstance(m, Command)
+            )
         return commands
     }
 

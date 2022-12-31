@@ -31,6 +31,17 @@ const node = Node.create({
 
 //// Tests ////
 
+describe('create', () => {
+
+    it('creates nodes', () => {
+        const node = Node.create()
+        expect(node).toBeInstanceOf(Node)
+        expect(node.nodes).toEqual({}) 
+        expect(node.modules).toEqual([])
+    })
+
+})
+
 it('throws if multiple instances of the same module exist in the node', () => { 
     expect(() => Node.create(modules[0], modules[0]))  
         .toThrow(`${Node.name} may only have a single reference of a module.`)

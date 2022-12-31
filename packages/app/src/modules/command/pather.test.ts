@@ -11,7 +11,7 @@ describe(`${createStaticPather.name}()`, () => {
     })
 
     it('must be a path', () => {
-        // @ts-expect-error must be a path
+        // @ts-expect-error must be a path 
         createStaticPather('')
     })
  

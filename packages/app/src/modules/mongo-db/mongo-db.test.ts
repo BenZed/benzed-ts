@@ -5,13 +5,11 @@ import { MongoDb } from './mongo-db'
 
 //// Setup ////
 
-const mongoDb = Node.create(
-    MongoDb.create({ database: 'test' })
-)
+const mongoDb = MongoDb.create({ database: 'test' })
 
-beforeAll(() => mongoDb.assertModule(MongoDb).start())
+beforeAll(() => mongoDb.start())
 
-afterAll(() => mongoDb.assertModule(MongoDb).stop())
+afterAll(() => mongoDb.stop())
 
 //// Tests ////
  
@@ -21,7 +19,7 @@ it('is sealed', () => {
 })
 
 it('create()', () => {
-    expect(mongoDb.findModule(MongoDb)).toBeInstanceOf(MongoDb)
+    expect(mongoDb).toBeInstanceOf(MongoDb)
 })
 
 describe('module validation', () => {

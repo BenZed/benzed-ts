@@ -7,6 +7,7 @@ import {
 } from '@benzed/util'
     
 import { Module } from '../module/module'
+import { AssertModule } from '../module/module-finder'
 import Node from '../node'
 
 /* eslint-disable 
@@ -16,17 +17,19 @@ import Node from '../node'
 
 //// Helper ////
 
-type ExecuteContext = { get node(): Node, get hasNode(): boolean }
+type ExecuteRef = { 
+    get node(): Node
+    get hasNode(): boolean
+    get module(): AssertModule 
+}
 
 type ExecuteInput<I> = { input: I }
 
-type ExecuteContextData<I, D extends object | void> = D extends void 
-    ? ExecuteContext & ExecuteInput<I>
-    : ExecuteContext & ExecuteInput<I> & D
+export type ExecuteContext<I, D extends object | void> = ExecuteRef & ExecuteInput<I> & D
 
 //// Executable Module ////
 
-export type ExecuteHook<I,O,D extends object | void> = ContextTransform<I, O, ExecuteContextData<I, D>>
+export type ExecuteHook<I,O,D extends object | void> = ContextTransform<I, O, ExecuteContext<I, D>>
 
 export interface Execute<I = unknown, O = unknown, D extends object | void = void> extends Module<ExecuteHook<I, O, D>>, ContextTransform<I, O, D> {
     execute(input: I, data: D): O
@@ -56,12 +59,15 @@ export const Execute: ExecuteConstructor = callable(
 
             const module = this
 
-            const ctx: ExecuteContextData<any,any> = {
+            const ctx: ExecuteContext<any,any> = {
                 get node() {
                     return module.node
                 },
                 get hasNode() {
                     return module.hasNode
+                },
+                get module() {
+                    return module.node.assertModule
                 },
                 input,
                 ...data

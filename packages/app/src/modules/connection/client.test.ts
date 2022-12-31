@@ -10,9 +10,9 @@ import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
 //  
 for (const webSocket of [false, true]) {
 
-    describe(`websocket: ${webSocket}`, () => { 
+    describe(`websocket: ${webSocket}`, () => {  
         // const log: Command[] = []
- 
+  
         let server: Server
         beforeAll(async () => { 
             server = Server.create({ webSocket })

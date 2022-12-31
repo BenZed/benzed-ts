@@ -31,6 +31,8 @@ import {
     stringify as toQueryString
 } from 'query-string'
 
+import commandList from './command-list'
+
 //// Eslint ////
 
 /* eslint-disable 
@@ -73,6 +75,8 @@ interface CommandHook<I extends object = object, O extends object = object> exte
 //// Main ////
 
 class Command<H extends HttpMethod = HttpMethod, I extends object = object, O extends object = object> extends Execute<I, O, CommandContext> {
+
+    static list = commandList
 
     static create<Hx extends HttpMethod, Ix extends object>(method: Hx, schema: SchemaHook<Ix>): Command<Hx, Ix, Ix>
 
@@ -153,9 +157,8 @@ class Command<H extends HttpMethod = HttpMethod, I extends object = object, O ex
 
     override validate(): void {
         Module.assert.isSingle(this)
-
-        if (this.node === this.node.root)
-            throw new Error(`${Command.name} modules should not be placed on the root node.`)
+        if (this.node.hasModule.inParents(Command))
+            throw new Error(`${Command.name} module cannot be a child of other ${Command.name} nodes.`)
     }
 
     //// Handler Implementation ////

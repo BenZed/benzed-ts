@@ -19,6 +19,16 @@ it('provide arbitrary data to context', () => {
     multiply(2, { by: 5 })
 })
 
+it('no void context type error', () => {
+
+    const inc = new Execute((i: number) => i + 1)
+
+    expect(inc(1)).toEqual(2)
+    
+    const diff = inc.appendHook((i, ctx) => i - ctx.input)
+    expect(diff(2)).toEqual(1)
+})
+
 it('context has access to module interface', () => {
 
     const node = Node.create( 

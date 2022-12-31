@@ -31,7 +31,7 @@ class Text<T extends string> extends Module<T> {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createTestNodeTree = () => Node
-    .from({
+    .create({
         grandParent: Node.create({
             parent: Node.create({
                 you: Node.create({
@@ -85,6 +85,7 @@ it('.setNode() an existing node', () => {
     const base = Node.create(Module.data('base' as const))
 
     const n1 = Node.create().setNode('state', ace)
+ 
     expect(n1.children).toHaveLength(1) 
     expect(n1.nodes.state.modules[0].data).toEqual('ace')
     expect(n1.getNode('state').getModule(0).getData()).toEqual('ace')
@@ -160,7 +161,7 @@ it('.removeNode() from a path', () => {
 it('.addModules()', () => {
 
     const n1 = Node
-        .from(
+        .create(
             new Text('1st'),
             new Text('2nd')
         )
@@ -238,7 +239,7 @@ it('.setModule()', () => {
 it('.setModule() with function', () => {
 
     const n1 = Node
-        .from(new Text('A'))
+        .create(new Text('A'))
         .setModule(
             0,
             text => text.setText('A!'),

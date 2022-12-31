@@ -3,7 +3,7 @@ import { Node } from '@benzed/ecs'
 import { through } from '@benzed/util'
 
 import { Auth } from './auth'
-import { MongoDb, Record } from '../mongo-db'
+import { MongoDb, MongoDbCollection, Record } from '../mongo-db'
 
 import { 
     it, 
@@ -14,6 +14,7 @@ import {
 } from '@jest/globals'
 
 import { HttpCode } from '../../util'
+import { Command } from '../command'
 
 //// Tests ////
 
@@ -75,27 +76,29 @@ describe('Authentication', () => {
         password: string
     }
 
-    const mongoDb = MongoDb
+    const database = MongoDb
         .create({ 
             database: 'test-1' 
-        }).addCollection<'users', User>(
-        'users', 
-        $({
+        })
+        
+    const userCollection = MongoDbCollection
+        .create('users', {
             email: $.string,
             password: $.string
         })
-    )
-
-    const userService = Node.create(
-        /** get collection commands **/
-    )
+ 
+    const userService = Node.create({
+        get: Node.create(
+            Command.get({ id: $.string }, ({ id }, ctx) => ctx.module.inParents(userCollection).get(id))
+        )
+    })
 
     const app = Node
-        .from(
-            mongoDb,
+        .create(
+            database,
             Auth.create()
         )
-        .set('/users', userService)
+        .setNode('users', userService)
 
     const CREDS = {
         email: 'user@email.com',
@@ -104,7 +107,7 @@ describe('Authentication', () => {
 
     beforeAll(() => app.start())
     beforeAll(() => app
-        .assert(MongoDb)
+        .module(MongoDb)
         .clearAllCollections()
     )
 

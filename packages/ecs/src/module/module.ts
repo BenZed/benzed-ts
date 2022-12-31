@@ -38,7 +38,7 @@ export class Module<T = unknown> implements CopyComparable {
         return new Data(data)
     }
 
-    static execute <I, O, C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C> {
+    static execute <I, O, C extends object | void = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C> {
         const { Execute } = this
         return new Execute(execute)
     }
