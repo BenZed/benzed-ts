@@ -1,7 +1,7 @@
 import is from '@benzed/is'
 import { $$copy } from '@benzed/immutable'
 import { Schematic } from '@benzed/schema'
-import { Execute, ExecuteHook } from '@benzed/ecs'
+import { Execute, ExecuteHook, Module } from '@benzed/ecs'
 import { isEmpty, nil, KeysOf, Func, Pipe, ResolveAsyncOutput } from '@benzed/util'
 
 import {
@@ -149,6 +149,13 @@ class Command<H extends HttpMethod = HttpMethod, I extends object = object, O ex
     override [$$copy](): this {
         const Constructor = this.constructor as (new (settings: object, transform: Func) => this)
         return new Constructor(this.settings, this.data)
+    }
+
+    override validate(): void {
+        Module.assert.isSingle(this)
+
+        if (this.node === this.node.root)
+            throw new Error(`${Command.name} modules should not be placed on the root node.`)
     }
 
     //// Handler Implementation ////

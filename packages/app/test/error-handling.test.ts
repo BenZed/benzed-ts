@@ -18,6 +18,7 @@ for (const clientWebSocket of [true, false]) {
             const foobar = $('foo', 'bar')
 
             const app = Node.create(
+
                 Command.put({ code: $.number }, ({ code }: { code: number }) => {
                     if (code < 400)
                         return { success: code }
@@ -30,6 +31,7 @@ for (const clientWebSocket of [true, false]) {
                 Command.get({ 
                     option: foobar
                 })
+        
             )
 
             const server = app.addModule(Server.create({ webSocket: serverWebSocket }))
@@ -105,7 +107,7 @@ for (const clientWebSocket of [true, false]) {
                     const badMethod = await client.assertModule(Client)._execute(
                         Command.post({}),
                         {},
-                    )//.catch(through)
+                    ).catch(through)
 
                     expect(badMethod).toHaveProperty('code', HttpCode.MethodNotAllowed)
                     expect(badMethod).toHaveProperty('name', 'MethodNotAllowed')
