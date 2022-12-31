@@ -3,4 +3,3 @@ export { default } from './node'
 
 export * from './module/module'
 export * from './modules'
-export * from './path'

@@ -2,7 +2,7 @@
 import { copy, equals } from '@benzed/immutable'
 import { it, expect } from '@jest/globals'
 
-import { KeyData, Data } from './modules'
+import { Data } from './modules'
 import { Module } from './module'
 import { Node } from './node'
 

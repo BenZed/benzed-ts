@@ -63,7 +63,7 @@ describe('relationships', () => {
         })
 
         it('throws if no parent', () => {
-            expect(() => Module.data(0).node).toThrow('does not have a parent')
+            expect(() => Module.data(0).node).toThrow('does not have a node')
         })
     
         describe('_setParent(parent?) @internal', () => {
@@ -87,12 +87,12 @@ describe('relationships', () => {
             })
     
             it('throws if parent has already been set', () => {
-                expect(() => spy._setNode(node)).toThrow('Parent already set')
+                expect(() => spy._setNode(node)).toThrow('already has a node')
             })
     
             it('throws if parent does not contain module', () => {
                 const liar = Node.create()
-                expect(() => new ModuleSpy(0)._setNode(liar)).toThrow('Parent invalid')
+                expect(() => new ModuleSpy(0)._setNode(liar)).toThrow('is not included in Node\'s modules')
             })
         })
     })
@@ -113,10 +113,13 @@ describe('relationships', () => {
     })
 
     describe('.ancestors', () => {
-        const [ you ] = createFamilyTree()
+        const [ ,you ] = createFamilyTree()
 
         it('contains all ancestors up to root', () => {
-            expect(you.ancestors).toEqual([ you.parent.parent, ...you.parent.children ])
+            const ancestors = [ ...you.parent.parent.children, you.parent.parent ]
+
+            expect(you.ancestors).toHaveLength(ancestors.length)
+            expect(you.ancestors.every(a => ancestors.includes(a))).toBe(true)
         })
 
         it('eachAncestor() iterator', () => {
@@ -140,7 +143,7 @@ describe('relationships', () => {
     })
 })
 
-test.only('.find', () => {
+test('.find', () => {
 
     const [, you] = createFamilyTree()
 
@@ -148,14 +151,14 @@ test.only('.find', () => {
     expect(find).toBeInstanceOf(ModuleFinder)
 
     const mom = you.findModule.inAncestors(Rank.of('mom'))
-    expect(mom).toEqual(you.parent.children[0])
+    expect(mom).toEqual(you.parent.modules[0])
 })
 
 test('.has', () => {
     const [, you] = createFamilyTree()
     expect(you.hasModule).toBeInstanceOf(ModuleFinder)
 
-    expect(you.hasModule(Rank.of('son'))).toBe(true)
+    expect(you.hasModule.inChildren(Rank.of('son'))).toBe(true)
 })
 
 test('.assert', () => {

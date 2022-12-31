@@ -41,13 +41,7 @@ it('context has access to module interface', () => {
     expect(data).toEqual(Module.data(1))
 })
 
-it.skip('gives parent node a callable signature', () => {
-    const x2 = Node.from(Module.execute((i: number) => i * 2))
-    // @ts-expect-error Not yet callable
-    expect(x2(2)).toEqual(4)
-})
-
-test('append()', () => {
+test('append()', () => {   
 
     const n1 = Node.from(
         Module.data([] as string[]),

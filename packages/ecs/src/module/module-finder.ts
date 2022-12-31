@@ -91,31 +91,35 @@ export const ModuleFinder = callable(
             private readonly _flag?: FindFlag
         ) { }
 
-        inDescendents(input: FindInput): unknown {
+        inDescendents(input: FindInput, error?: string): unknown {
             return this._find(
                 this.node.eachDescendent(),
                 input,
+                error
             )
         }
 
-        inChildren(input: FindInput): unknown {
+        inChildren(input: FindInput, error?: string): unknown {
             return this._find(
                 this.node.eachChild(),
                 input,
+                error
             )
         }
 
-        inParents(input: FindInput): unknown {
+        inParents(input: FindInput, error?: string): unknown {
             return this._find(
                 this.node.eachParent(),
                 input,
+                error
             )
         }
 
-        inAncestors(input: FindInput): unknown {
+        inAncestors(input: FindInput, error?: string): unknown {
             return this._find(
                 this.node.eachAncestor(),
                 input,
+                error
             )
         }
 

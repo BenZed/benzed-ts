@@ -3,7 +3,7 @@ import { callable, isObject } from '@benzed/util'
 
 import { Node } from '../node'
 
-import type { Data, Execute, ExecuteHook, KeyData } from '../modules'
+import type { Data, Execute, ExecuteHook } from '../modules'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -22,10 +22,6 @@ export class Module<T = unknown> implements CopyComparable {
         return require('../modules').Data
     }
 
-    static get KeyData(): typeof KeyData {
-        return require('../modules').KeyData
-    }
-
     static get Execute(): typeof Execute {
         return require('../modules').Execute
     }
@@ -33,15 +29,9 @@ export class Module<T = unknown> implements CopyComparable {
     /**
      * Create a module with generic get/set state setters
      */
-    static data<T>(data: T): Data<T> 
-    static data<K extends string,T>(key: K, state: T): KeyData<K,T>
-    static data(...args: unknown[]): Module<unknown> {
-
-        const { Data, KeyData } = Module
-
-        return args.length === 1
-            ? new Data(args[0])
-            : new KeyData(args[0], args[1])
+    static data<T>(data: T): Data<T> {
+        const { Data } = Module
+        return new Data(data)
     }
 
     static execute <I, O, C = void>(execute: ExecuteHook<I,O,C>): Execute<I, O, C> {
@@ -89,7 +79,7 @@ export class Module<T = unknown> implements CopyComparable {
             throw new Error(`${node} may only have a single reference of a module.`)
 
         if (this.hasNode)
-            throw new Error(`${this} already has a ${Node.name}`)
+            throw new Error(`${this} already has a node`)
 
         if (!node.modules.includes(this))
             throw new Error(`${this} is not included in ${node}'s modules.`)

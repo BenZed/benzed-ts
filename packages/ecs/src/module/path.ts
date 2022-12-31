@@ -1,8 +1,9 @@
 import $ from '@benzed/schema'
-
 import type { Empty, KeysOf } from '@benzed/util'
-import type { Node, Nodes } from '../node'
+
 import type { Modules } from '../module'
+
+import type { Node, Nodes } from '../node'
 import { SetNode } from '../node-operations'
 
 /* eslint-disable 

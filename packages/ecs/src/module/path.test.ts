@@ -16,7 +16,7 @@ import { Empty } from '@benzed/util'
 
 //// Setup ////
 
-class Rank<S extends string> extends Module<S> {
+class Rank<S extends string> extends Module<S> {  
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
