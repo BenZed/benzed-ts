@@ -1,12 +1,10 @@
 import { Module} from '@benzed/ecs'
-import { guarantee } from '@benzed/async'
+import { Guarantee } from '@benzed/async'
 
 import { 
     MongoClient as _MongoClient, 
     Db as _MongoDatabase,
 } from 'mongodb'
-
-import { AppModule } from '../../app-module'
 
 import { 
     $mongoDbSettings,
@@ -14,6 +12,8 @@ import {
 } from './mongo-db-settings'
 
 import MongoDbCollection from './mongo-db-collection'
+
+import { AppModule } from '../../app-module'
 
 //// Eslint ////
 
@@ -32,15 +32,13 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
 
     static create(settings: MongoDbSettings): MongoDb {
         return new MongoDb(
-            $mongoDbSettings.validate(
-                settings
-            ) as Required<MongoDbSettings>
+            $mongoDbSettings.validate(settings) as Required<MongoDbSettings>
         )
     }
 
     // Module Implementation
 
-    private readonly _getClient = guarantee(async () => {
+    private readonly _connect = new Guarantee(async () => {
         const { data } = this 
         const uri = data.uri
             .replaceAll('<port>', data.port.toString())
@@ -62,23 +60,22 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
         if (!this.isConnected)
             throw new Error(`${this.name} is not connected`)
 
-        return this._getClient.resolved.db(this.data.database)
+        return this._connect.value.db(this.data.database)
     }
 
     override async start(): Promise<void> {
-
         await super.start()
-        await this._getClient()
-
+        await this._connect()
     }
 
     override async stop(): Promise<void> {
         
         await super.stop()
 
-        if (this.isConnected)
-            this._getClient.resolved.close()
-        this._getClient.invoked = false
+        const client = await this._connect()
+        client.close()
+    
+        this._connect.reset()
 
         this.log`mongodb disconnected`
     }
@@ -88,7 +85,7 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
     }
 
     get isConnected(): boolean {
-        return this._getClient.isFulfilled
+        return this._connect.isFulfilled
     }
 
     async clearAllCollections(): Promise<void> {

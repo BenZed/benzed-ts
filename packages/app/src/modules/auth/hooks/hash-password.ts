@@ -1,6 +1,6 @@
 import { memoize, nil } from '@benzed/util'
 
-import { CommandHook } from '../../command'
+import { CommandHook } from '../../_old_command'
 import Auth from '../auth'
 
 //// Main ////

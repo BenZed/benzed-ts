@@ -2,13 +2,12 @@
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
 
-import { $path } from '@benzed/ecs'
 import { capitalize, toCamelCase } from '@benzed/string'
-import { InputOf, OutputOf, through } from '@benzed/util'
+import { InputOf, nil, OutputOf, through } from '@benzed/util'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { HttpCode, WEBSOCKET_PATH } from '../../../util'
+import { $path, HttpCode, WEBSOCKET_PATH } from '../../../util'
 import { Command, CommandError } from '../../../modules'
 
 //// Eslint ////
@@ -31,7 +30,7 @@ export class FetchSocketIOClient extends Client {
         ) 
     }
 
-    _io: Socket | null = null
+    _io: Socket | nil = nil
 
     // Module Implementation
 
@@ -49,7 +48,7 @@ export class FetchSocketIOClient extends Client {
 
     // Connection Implementation 
 
-    _execute<C extends Command<string, any, any>>(
+    _execute<C extends Command>(
         command: C,
         data: InputOf<C>
     ): OutputOf<C> {
@@ -100,7 +99,7 @@ export class FetchSocketIOClient extends Client {
         this.log`disconnected from server`
     }
 
-    private _executeSocketIOCommand(command: Command<string, object, object>, data: object): Promise<object> {
+    private _executeSocketIOCommand(command: Command, data: object): Promise<object> {
         const io = this._io as Socket 
 
         const rootName = this._getCommandRootName(command)
@@ -115,13 +114,13 @@ export class FetchSocketIOClient extends Client {
         })
     }
 
-    private async _executeFetchCommand(command: Command<string, object, object>, cmdData: object): Promise<object> {
+    private async _executeFetchCommand(command: Command, cmdData: object): Promise<object> {
         const { host } = this.data
 
-        const { method, url, body, headers } = command.reqFromData(cmdData)
+        const { method, url, body, headers } = command.toRequest(cmdData)
 
         const response = await fetch(
-            host + $path.validate(`${command.getPathFromRoot()}${url}`), 
+            host + $path.validate(`${command.node.getPathFromRoot()}${url}`), 
             { 
                 method,
                 body: body && JSON.stringify(body), 
@@ -146,9 +145,9 @@ export class FetchSocketIOClient extends Client {
         return response.json()
     }
     
-    private _getCommandRootName(command: Command<string, object, object>): string {
+    private _getCommandRootName(command: Command): string {
 
-        const path = command.getPathFromRoot()
+        const path = command.node.getPathFromRoot()
 
         return path.length > 1
             ? toCamelCase(path, '/') + capitalize(command.name)

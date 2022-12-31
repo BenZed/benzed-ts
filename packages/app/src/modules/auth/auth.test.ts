@@ -1,4 +1,5 @@
 import $ from '@benzed/schema'
+import { Node } from '@benzed/ecs'
 import { through } from '@benzed/util'
 
 import { Auth } from './auth'
@@ -13,8 +14,6 @@ import {
 } from '@jest/globals'
 
 import { HttpCode } from '../../util'
-
-import { Node } from '@benzed/ecs'
 
 //// Tests ////
 
@@ -87,7 +86,7 @@ describe('Authentication', () => {
         })
     )
 
-    const userService = Node.from(
+    const userService = Node.create(
         /** get collection commands **/
     )
 

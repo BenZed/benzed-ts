@@ -1,3 +1,5 @@
-export * from './command-error'
 export * from './command'
-export * from './hooks'
+export * from './command-error'
+
+export { Pather } from './pather'
+export { PathMatcher } from './path-matcher'

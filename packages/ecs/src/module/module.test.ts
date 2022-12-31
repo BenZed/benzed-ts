@@ -23,21 +23,21 @@ class Rank<S extends string> extends Module<S> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFamilyTree = () => {
     
-    const tree = Node.from({
-        uncle: Node.from(Rank.of('uncle')),
-        mom: Node.from(
+    const tree = Node.create({
+        uncle: Node.create(Rank.of('uncle')),
+        mom: Node.create(
             {
-                you: Node.from(
+                you: Node.create(
                     {
-                        son: Node.from(
+                        son: Node.create(
                             Rank.of('son')
                         )
                     },
                     Rank.of('you'),
                 ),
-                sister: Node.from({
-                    neice: Node.from(Rank.of('neice')),
-                    nephew: Node.from(Rank.of('nephew'))
+                sister: Node.create({
+                    neice: Node.create(Rank.of('neice')),
+                    nephew: Node.create(Rank.of('nephew'))
                 }, 
                 Rank.of('sister'))
             },
@@ -55,7 +55,7 @@ describe('relationships', () => {
     describe('.parent', () => {
 
         const module = Module.data('hey' as const)
-        const node = Node.from(module)
+        const node = Node.create(module)
     
         it('gets module parent', () => {
             expect(node.modules).toContain(module)
@@ -78,7 +78,7 @@ describe('relationships', () => {
             }
     
             const spy = new ModuleSpy(100)
-            const node = Node.from(spy)
+            const node = Node.create(spy)
     
             it('sets module parent', () => {
     
@@ -215,7 +215,7 @@ describe('validate()', () => {
         }
 
         const test = new ValidateTest()
-        void Node.from(test)
+        void Node.create(test)
 
         expect(called).toBe(true)
     })

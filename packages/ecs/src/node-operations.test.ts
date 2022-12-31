@@ -32,10 +32,10 @@ class Text<T extends string> extends Module<T> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createTestNodeTree = () => Node
     .from({
-        grandParent: Node.from({
-            parent: Node.from({
-                you: Node.from({
-                    child: Node.from({
+        grandParent: Node.create({
+            parent: Node.create({
+                you: Node.create({
+                    child: Node.create({
                         grandChild: Node.create()
                     })
                 })
@@ -67,8 +67,8 @@ it('.getNode() throws on bad paths', () => {
 
 it('.setNode() node from a path', () => { 
 
-    const n1 = Node.from(Module.data(0 as const))
-    const n2 = n1.setNode('bar', Node.from(Module.data(1 as const)))
+    const n1 = Node.create(Module.data(0 as const))
+    const n2 = n1.setNode('bar', Node.create(Module.data(1 as const)))
 
     type N2 = Node<[Data<0>], {
         bar: Node<[Data<1>], {}>
@@ -81,8 +81,8 @@ it('.setNode() node from a path', () => {
 
 it('.setNode() an existing node', () => {
 
-    const ace = Node.from(Module.data('ace' as const))
-    const base = Node.from(Module.data('base' as const))
+    const ace = Node.create(Module.data('ace' as const))
+    const base = Node.create(Module.data('base' as const))
 
     const n1 = Node.create().setNode('state', ace)
     expect(n1.children).toHaveLength(1) 
@@ -98,14 +98,14 @@ it('.setNode() an existing node', () => {
 
 it('.setNode() nested path', () => {
 
-    const root = Node.from({
-        parent: Node.from({
-            child: Node.from(Module.data(0 as const))
+    const root = Node.create({
+        parent: Node.create({
+            child: Node.create(Module.data(0 as const))
         })
     })
 
     // overwrite with node
-    const update1 = Node.from(Module.data(1 as const))
+    const update1 = Node.create(Module.data(1 as const))
     const root1 = root.setNode('parent/child', update1)
     expect(root1.nodes.parent.nodes.child).toEqual(update1)
     type Root1 = typeof root1
@@ -116,7 +116,7 @@ it('.setNode() nested path', () => {
     }>>()
 
     // overwrite with update function
-    const update2 = Node.from(Module.data(2 as const))
+    const update2 = Node.create(Module.data(2 as const))
     const root2 = root1.setNode('parent/child', child => child.setModule(0, data => data.setData(data.data + 1 as 2)))
     expect(root2.nodes.parent.nodes.child).toEqual(update2)
     type Root2= typeof root2
@@ -127,7 +127,7 @@ it('.setNode() nested path', () => {
     }>>()
 
     // set nested new node
-    const update3 = Node.from(Module.data(3 as const))
+    const update3 = Node.create(Module.data(3 as const))
     const root3 = root2.setNode('parent/child2', update3)
     expect(root3.nodes.parent.nodes.child2).toEqual(update3)
     type Root3= typeof root3
@@ -141,9 +141,9 @@ it('.setNode() nested path', () => {
 
 it('.removeNode() from a path', () => {
 
-    const t1 = Node.from({
-        one: Node.from(Module.data(1 as const)), 
-        two: Node.from(Module.data(2 as const))
+    const t1 = Node.create({
+        one: Node.create(Module.data(1 as const)), 
+        two: Node.create(Module.data(2 as const))
     })
 
     const t2 = t1.removeNode('one') 
@@ -189,7 +189,7 @@ it('.addModules()', () => {
 
 it('.swapModules()', () => {
 
-    const n1 = Node.from(
+    const n1 = Node.create(
         new Text('A'),
         new Text('B'),
         new Text('C')
@@ -208,7 +208,7 @@ it('.swapModules()', () => {
 
 it('.removeModule()', () => {
 
-    const n1 = Node.from(
+    const n1 = Node.create(
         new Text('A'),  
         new Text('B')
     )
@@ -220,7 +220,7 @@ it('.removeModule()', () => {
 
 it('.setModule()', () => {
 
-    const n1 = Node.from(
+    const n1 = Node.create(
         new Text('A'),
         new Text('B')
     )
@@ -252,7 +252,7 @@ it('.setModule() with function', () => {
 
 it('.insertModules()', () => {
 
-    const n1 = Node.from(
+    const n1 = Node.create(
         new Text('Ace'),
         new Text('Case')
     )

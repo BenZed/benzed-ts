@@ -43,6 +43,8 @@ export interface FindModules {
     inChildren<I extends FindInput>(input: I): FindOutput<I>[]
     inParents<I extends FindInput>(input: I): FindOutput<I>[]
     inAncestors<I extends FindInput>(input: I): FindOutput<I>[]
+    inAnyNode<I extends FindInput>(input: I): FindOutput<I>[]
+
 }
 
 export interface HasModule {
@@ -51,6 +53,7 @@ export interface HasModule {
     inChildren<I extends FindInput>(input: I): boolean
     inParents<I extends FindInput>(input: I): boolean
     inAncestors<I extends FindInput>(input: I): boolean
+
 }
 
 //// AssertNode ////

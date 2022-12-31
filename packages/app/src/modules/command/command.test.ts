@@ -1,260 +1,462 @@
-import { ObjectId } from 'mongodb'
-
-import $, { Infer } from '@benzed/schema'
-import { io, omit, Pipe } from '@benzed/util'
-import { match } from '@benzed/match'
-import { ExecuteContext } from '@benzed/ecs'
-
-import { Command, CommandContext } from './command'
-
-import { RequestHandler } from '../request-handler'
-import { Name } from './name'
+import $ from '@benzed/schema'
+import { nil } from '@benzed/util'
 
 import { HttpMethod } from '../../util'
-import { it, expect, describe } from '@jest/globals'
-
-import { expectTypeOf } from 'expect-type'
-
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
-
-// interface TodoData extends Infer<typeof $todoData> {}
-const $todoData = $({ 
-    completed: $.boolean,
-    description: $.string
-})
-
-interface TodoId extends Infer<typeof $todoId> {}
-const $todoId = $({
-    id: $.string
-})
-
-// interface Todo extends Infer<typeof $todo> {}
-const $todo = $({
-    ...$todoId.$,
-    ...$todoData.$
-})
+import Command from './command'
 
 it('is sealed', () => {
-    // @ts-expect-error Sealed
-    void class extends Command<'bad', object, object> {}
+    // @ts-expect-error Sealed 
+    void class extends Command<object> {}
 })
 
-it('is strongly typed', () => {
+for (const [name, method] of Object.entries(HttpMethod)) {
 
-    const getTodo = Command.create('getTodo', $todoId)
-
-    type GetTodoTypes = typeof getTodo extends Command<infer N, infer I, infer O> 
-        ? { name: N, input: I, output: O}
-        : never
-
-    expectTypeOf<GetTodoTypes>().toMatchTypeOf<{
-        name: 'getTodo'
-        input: TodoId
-        output: TodoId
-    }>()
-
-})
-
-describe('.create()', () => { 
-
-    const todo = { completed: true, id: 'string', description: 'Hey'}
-        
-    it('generic signature: name, execute, method, path', () => {
-        const generic = Command.create(
-            'killOrphans',
-            $todo,  
-            HttpMethod.Put,
-            '/orphans'
-        )
-
-        expect(generic.name).toBe('killOrphans')
-        expect(generic.httpMethod).toBe(HttpMethod.Put)
-        expect(generic.reqFromData(todo)).toHaveProperty('url', '/orphans')
-    })
-
-    it('generic signature: name, execute, method', () => {
-        const makeRed = Command.create('makeRed', $todo, HttpMethod.Options)
-        expect(makeRed.name).toEqual('makeRed')
-        expect(makeRed.httpMethod).toEqual(HttpMethod.Options)
-        expect(makeRed.reqFromData(todo)).toHaveProperty('url', '/make-red')
-    })
-
-    it('generic signature: name, execute', () => {
-        const create = Command.create('create', $todo)
-        expect(create.name).toEqual('create')
-        expect(create.httpMethod).toEqual(HttpMethod.Post)
-        expect(create.reqFromData(todo)).toHaveProperty('url', '/')
-    })
-
-})
-
-describe('.appendHook()', () => { 
-
-    it('append a hook method, changing the commands output', async () => {
-
-        const id = new ObjectId()
-        const getTodo = Command.create($todoData)
-        const dispatchTodo = getTodo
-            // add id
-            .appendHook(data => ({ ...data, id: id.toString() }))
-            // set created timestamp
-            .appendHook(data => ({ ...data, created: new Date() }))
-            // remove complete
-            .appendHook(omit('completed'))
-
-        const todo = await dispatchTodo({
-            completed: false, 
-            description: 'Pipe commands around' 
+    const req = Command.create(method, {})
+    describe(`${Command.name}.create(${name})`, () => {
+        it(`created with ${name}`, () => {
+            expect(req.method)
+                .toEqual(method)
         })
-
-        expect(todo.id).toBe(id.toString())
-        expect(todo.created).toBeInstanceOf(Date)
-    })
-
-    it('has access to partial module interface', async () => {
-
-        const getTodo = Command
-            .create('get', $todoId, HttpMethod.Get)
-            .appendHook(Pipe.convert(function (todo) {
-
-                expectTypeOf<typeof this>().toMatchTypeOf<ExecuteContext<CommandContext>>()
-
-                expect(this.find(RequestHandler)?.method).toEqual(HttpMethod.Get)
-                expect(this.find(Name)?.getName()).toEqual('get')
-                return todo
-            }))
-
-        const todo = await getTodo({ id: '0' })
-        expect(todo).toEqual({ id: '0' })
-
-        expect.assertions(3)
-    })
-})
- 
-for (const name of ['create', 'get', 'find', 'delete', 'remove', 'patch', 'update', 'options'] as const) {
-    describe(`.${name}()`, () => {
-
-        const [method] = match(name)
-            .case('create', HttpMethod.Post)
-            .case('get', HttpMethod.Get)
-            .case('find', HttpMethod.Get)
-            .case('delete', HttpMethod.Delete)
-            .case ('remove', HttpMethod.Delete)
-            .case('patch', HttpMethod.Patch)
-            .case('update', HttpMethod.Put)
-            .case('options', HttpMethod.Options)
-
-        const cmd = (Command as any)[name](io) as Command<typeof name, object, object>
-
-        it(`name == ${name}`, () => {
-            expect(cmd.name).toEqual(name)
-        })
-
-        it(`method == ${method}`, () => {
-            expect(cmd.httpMethod).toEqual(method)
-        })
-
-        it('url == "/"', () => {
-            expect(cmd.reqFromData({})).toHaveProperty('url', '/')
+        it(`method ${name} in req.create() `, () => {
+            expect(req.toRequest({}))
+                .toHaveProperty('method', method)
         })
     })
 }
 
-describe('useReq', () => {
+describe('create methods', () => {
 
-    const updateTodo = Command.create('update', $todo, HttpMethod.Patch)
+    it('Command.create()', () => {
+        const request = Command
+            .create(HttpMethod.Get, {})
+            .toRequest({})
+        expect(request)
+            .toHaveProperty('url', '/')
+    })
 
-    it('allows mutation of request handler', () => {
+    it('Command.get()', () => {
+        const get = Command.get({})
+        expect(get.method).toEqual(HttpMethod.Get)
+    })
 
-        const updateTodoWithNewReq = updateTodo
-            .setReq(
-                RequestHandler
-                    .create(HttpMethod.Put, $todo)
-                    .setUrl`/todos/${'id'}`
-            ) 
+    it('Command.post()', () => {
+        const post = Command.post({})
+        expect(post.method).toEqual(HttpMethod.Post)
+    })
 
-        const req = updateTodoWithNewReq.reqFromData({ 
-            id: 'first-todo-ever', 
-            completed: false, 
-            description: 'I will not complete this'
-        })
+    it('Command.put()', () => {
+        const put = Command.put({})
+        expect(put.method).toEqual(HttpMethod.Put)
+    })
 
-        expect(req).toEqual({
-            method: HttpMethod.Put,
-            body: { completed: false, description: 'I will not complete this' },
-            url: '/todos/first-todo-ever'
-        })
+    it('Command.patch()', () => {
+        const patch = Command.patch({})
+        expect(patch.method).toEqual(HttpMethod.Patch)
+    })
+
+    it('Command.delete()', () => {
+        const del = Command.delete({})
+        expect(del.method).toEqual(HttpMethod.Delete)
+    })
+
+})
+
+describe('req.setUrl()', () => {
+
+    const req = Command
+        .create(HttpMethod.Get, {})
+        .setUrl('/target') 
+
+    it('url with string', () => {
+
+        expect(
+            req.toRequest({}))
+            .toEqual({
+                method: HttpMethod.Get,
+                url: '/target',
+                headers: nil,
+                body: nil
+            })
 
     })
 
-    it('mutate signature', () => {
+    describe('url`/with/${"params"}`', () => {
 
-        const updateTodoWithNewReq = updateTodo
-            .setReq(req => req.setUrl`/todos/edit/${'id'}`)
+        it('params are typesafe', () => {
 
-        expect(updateTodoWithNewReq.reqFromData({
-            id: 'great-todo', 
-            completed: false, 
-            description: 'Do the thing'
-        })).toEqual({
-            method: HttpMethod.Patch,
-            body: { completed: false, description:'Do the thing' },
-            url: '/todos/edit/great-todo'
+            Command.create(HttpMethod.Delete, { ace: $.string })
+                .setUrl`/orphans/${'ace'}`
+
+            // @ts-expect-error 'bar' not in input
+            Command.create(HttpMethod.Delete, { foo: $.string }).setUrl`/orphans/${'bar'}`
+
+            // @ts-expect-error string/number's no objects or bools
+            Command.create(HttpMethod.Post, { base: $.boolean }).setUrl`/orphans/${'base'}`
+
+            Command.create(HttpMethod.Get, { case: $.string.optional })
+                .setUrl`/orphans/${'case'}` // optional properties are also ok
+        })
+
+        it('url param', () => {
+            const req = Command
+                .create(HttpMethod.Get, { id: $.string })
+                .setUrl`/target/${'id'}`
+
+            const { url, body, method } = req.toRequest({ id: 'hello' })
+            expect(method).toBe(HttpMethod.Get)
+            expect(body).toBeUndefined()
+            expect(url).toEqual('/target/hello')
+        })
+
+        const $query = $({ name: $.string.optional, size: $.string.optional })
+
+        const req = Command
+            .create(HttpMethod.Get, { id: $.string.optional, age: $.number.optional, query: $query.optional })
+            .setQueryKey('query')
+            .setUrl`/clothing-by-age/${'age'}/${'id'}`
+
+        it('2 url param', () => {
+            expect(
+                req.toRequest({ id: 'shirts', age: 34, query: nil })
+            ).toEqual({
+                method: HttpMethod.Get,
+                body: nil,
+                url: '/clothing-by-age/34/shirts'
+            })
+        })
+
+        it('1 url & query param', () => {
+            expect(
+                req.toRequest({ id: 'shirts', age: nil, query: { name: 'joe' } })
+            ).toEqual({
+                method: HttpMethod.Get,
+                body: nil,
+                url: '/clothing-by-age/shirts?name=joe'
+            })
+        })
+
+        it('2 url and 2 query param', () => {
+            expect(
+                req.toRequest({ id: 'shirts', query: { name: 'acer', size: 'large' }, age: 30 })
+            ).toEqual({
+                method: HttpMethod.Get,
+                body: nil,
+                url: '/clothing-by-age/30/shirts?name=acer&size=large'
+            })
+        })
+
+        it('2 query param', () => {
+            expect(
+                req.toRequest({ id: nil, age: nil, query: { name: 'hey', size: 'large' } })
+            ).toEqual({
+                method: HttpMethod.Get,
+                body: nil,
+                url: '/clothing-by-age?name=hey&size=large'
+            })
+        })
+
+        it('method is preserved', () => {
+            expect(
+
+                Command.create(HttpMethod.Options, {})
+                    .setUrl`/cake`
+                    .method
+
+            ).toBe(HttpMethod.Options)
+        })
+    })
+
+    describe('url with pather function', () => {
+        it('allows custom pathing', () => {
+            const req = Command
+                .create(HttpMethod.Get, { id: $.string, query: $.object.optional })
+                .setQueryKey('query')
+                .setUrl(
+                    data => {
+                        const { id, ...rest } = data
+
+                        return [
+                            id === 'admin'
+                                ? '/admin-portal'
+                                : `/users/${id}`, rest 
+                        ]
+                    }, 
+                    (url, data) => {
+                        if (url === '/admin-portal')
+                            return { ...data, id: 'admin' }
+                        else if (url.startsWith('/users/'))
+                            return { ...data, id: url.replace('/users/', '')}
+                        return nil
+                    })
+
+            expect(req.toRequest({ id: 'monkey ', query: nil })).toEqual({
+                method: HttpMethod.Get,
+                url: '/users/monkey'
+            })
+
+            expect(req.toRequest({ id: '1293', query: { hello: 'darkness', my: 'old', friend: true }})).toEqual({
+                method: HttpMethod.Get,
+                url: '/users/1293?friend=true&hello=darkness&my=old'
+            })
+
+            expect(req.setMethod(HttpMethod.Delete).toRequest({ id: 'cheese', query: { front: 'bottoms', price: 100 }})).toEqual({
+                method: HttpMethod.Delete,
+                body: {},
+                url: '/users/cheese?front=bottoms&price=100'
+            })
+
+            expect(req.setMethod(HttpMethod.Post).toRequest({ id: 'admin', query: { cake: 1, tare: true, soke: 'cimm' }})).toEqual({
+                method: HttpMethod.Post,
+                body: {},
+                url: '/admin-portal?cake=1&soke=cimm&tare=true'
+            }) 
         })
     })
 })
 
-describe('name', () => {
+describe('req.setMethod()', () => {
 
-    it('must be camelCased', () => {
-        expect(() => Command.create('holy-mackarel', $todo))
-            .toThrow('must be in camelCase')
+    it('returns a new request handler with a different method', () => {
+        const req = Command.create(HttpMethod.Get, {})
+        expect(req.method).toEqual(HttpMethod.Get)
+        expect(req.setMethod(HttpMethod.Options).method).toEqual(HttpMethod.Options)
     })
 
-    it('is typed', () => {
-        const killOrphans = Command.create('killOrphans', $todo)
-        type KillOrphans = typeof killOrphans
-        type KillOrphansName = KillOrphans extends Command<infer N, any, any> ? N : never 
-        expectTypeOf<KillOrphansName>().toEqualTypeOf<'killOrphans'>()
+    it('pather is preserved', () => {
+        const req = Command.create(HttpMethod.Get, {})
+            .setUrl('/cake')
+            .setMethod(HttpMethod.Patch)
+            .toRequest({})
+        expect(req.url).toEqual('/cake')
     })
 })
 
-describe('hook instead of schema', () => {
+describe('req.linkHeaders()', () => {
 
-    it('allows non-validated commands to be created', async () => {
+    const req = Command.create(HttpMethod.Post, { accessToken: $.string.optional })
+        .setUrl`/authenticate`
+        .setHeaderLink(
+            (headers, data) => {
 
-        const cmd = Command.create(
-            'get', 
-            (i: { input: string }) => ({ ...i, foo: 'bar' }),
-            HttpMethod.Get,
-            '/'
-        )
+                const { accessToken, ...rest } = data
+                if (accessToken)
+                    headers.set('authorization', `Bearer: ${accessToken}`)
 
-        expect(await cmd({ input: 'hello' })).toEqual({ 
-            foo: 'bar', 
-            input: 'hello' 
+                return rest
+            },
+            (headers, data) => {
+
+                const accessToken = headers.get('authorization') ?? nil
+                return accessToken 
+                    ? {
+                        ...data,
+                        accessToken: accessToken.replace('Bearer: ', '')
+                    }
+                    : nil
+            }
+        ) 
+
+    const headersWithToken = (): Headers => {
+        const headers = new Headers()
+        headers.set('authorization', 'Bearer: token')
+        return headers
+    }
+
+    it('matches requests with correct headers', () => {
+
+        const output = req.matchRequest({
+            method: HttpMethod.Post,
+            url: '/authenticate',
+            headers: headersWithToken()
         })
 
-        expect(cmd.reqFromData({ input: 'x' })).toEqual({ 
-            url: '/?input=x',
+        expect(output).toEqual({ accessToken: 'token' })
+    })
+
+    it('doesn\'t match requests with headers missing', () => {
+        const output = req.matchRequest({
+            method: HttpMethod.Post,
+            url: '/authenticate'
+        })
+        expect(output).toBe(nil)
+    })
+
+    it('creates requests with headers', () => {
+
+        const { body, headers } = req.toRequest({ accessToken: 'token'})
+       
+        expect(body).toEqual({}) 
+
+        const accessToken = headers?.get('authorization')
+        expect(accessToken).toEqual('Bearer: token')
+    })
+
+    it('headers are not created with invalid values', () => {
+
+        // @ts-expect-error Invalid data
+        const { body, headers } = req.toRequest({ })
+       
+        expect(body).toEqual({})
+        expect(headers).toEqual(nil)
+    })
+})
+
+describe('req.match()', () => {
+
+    const getTodo = Command.get({ id: $.string.optional })
+        .setUrl`/todos/${'id'}`
+
+    it('returns data in positive matches', () => {
+
+        expect(
+            getTodo.matchRequest({
+                method: HttpMethod.Get,
+                url: '/todos/1',
+            })
+        ).toEqual({ id: '1' })
+
+        expect(
+            getTodo.matchRequest({
+                method: HttpMethod.Get,
+                url: '/todos',
+            })
+        ).toEqual({ id: nil })
+    })
+
+    it('returns nil on negative matches', () => {
+        expect(getTodo.matchRequest({ method: HttpMethod.Post, url: '/todos/100' })).toEqual(nil)
+        expect(getTodo.matchRequest({ method: HttpMethod.Get, url: '/users/100' })).toEqual(nil)
+        expect(getTodo.matchRequest({ method: HttpMethod.Get, url: '/todo' })).toEqual(nil)
+    })
+
+    describe('with schema', () => {
+
+        const $employeeData = $({ email: $.string, name: $.string, age: $.number.range('>=', 18), department: $.string })
+
+        const $employee = $({
+            id: $.string,
+            ...$employeeData.$,
+        })
+
+        const createEmployee = Command
+            .create(HttpMethod.Post, $employeeData)
+            .setUrl`/user/${'department'}`
+
+        const updateEmployee = Command
+            .create(HttpMethod.Put, $employee)
+            .setUrl`/user/${'department'}/${'id'}`
+
+        it('uses schema to ensure match valid', () => {
+
+            const employeeData = createEmployee.matchRequest({
+                method: HttpMethod.Post,
+                url: '/user/art',
+                body: {
+                    email: 'person@email.com',
+                    name: 'John Person',
+                    age: 20
+                }
+            })
+
+            expect(employeeData).toEqual({
+                department: 'art',
+                email: 'person@email.com',
+                name: 'John Person',
+                age: 20
+            })
+        })
+
+        it('allows requests with missing url parameters to be non-matched', () => {
+            expect(
+
+                updateEmployee.matchRequest({
+                    method: HttpMethod.Put,
+                    url: '/user/admin',
+                    body: {
+                        age: 21,
+                        name: 'Ace Man',
+                        email: 'ace@admin.com'
+                    }
+                })
+
+            ).toEqual(nil)
+
+            expect(
+
+                updateEmployee.matchRequest({
+                    method: HttpMethod.Put,
+                    url: '/user/admin/ace',
+                    body: {
+                        age: 21,
+                        name: 'Ace Man',
+                        email: 'ace@admin.com'
+                    }
+                })
+
+            ).toEqual({
+
+                id: 'ace',
+                age: 21,
+                name: 'Ace Man',
+                email: 'ace@admin.com',
+                department: 'admin'
+
+            })
+
+            expect(
+
+                createEmployee.matchRequest({
+                    method: HttpMethod.Post,
+                    url: '/user',
+                    body: {
+                        age: 21,
+                        name: 'Ace Man',
+                        email: 'ace@admin.com'
+                    }
+                })
+
+            ).toEqual(nil)
+        })
+
+        it('does not throw validation errors, rather a nil non match', () => {
+            expect(
+
+                createEmployee.matchRequest({
+                    method: HttpMethod.Post,
+                    url: '/user/film',
+                    body: {
+                        email: 'carey@film.com',
+                        age: 15, // Too young! No match.
+                        name: 'Carey Carey'
+                    }
+                })
+
+            ).toEqual(nil)
+        })
+    })
+
+    it('handles queries', () => {
+
+        const findGangster = Command.create(
+            HttpMethod.Get, 
+            $({
+                gang: $.string,
+                query: $({
+                    name: $.string.optional,
+                    members: $.number.optional
+                }).optional
+            })
+        ).setUrl`/gang/${'gang'}`
+
+        const data = findGangster.matchRequest({
             method: HttpMethod.Get,
+            url: '/gang/crips?name=joe&members=1'
+        })
+
+        expect(data).toEqual({
+            gang: 'crips',
+            query: { name: 'joe', members: 1 }
         })
     })
 })
 
-describe('shape schema input', () => {
-
-    it('allows slightly nicer validation syntax', async () => {
-
-        const cmd1 = Command.create({
-            x: $.number,
-            y: $.number
-        })
-        
-        const cmd = cmd1.appendHook(({ x,y }) => ({ magnitude:  Math.sqrt(x ** 2 + y ** 2)}))
-        expect(await cmd({ x: 0, y: 10 })).toEqual({ magnitude: 10 })
-    })
-
-})

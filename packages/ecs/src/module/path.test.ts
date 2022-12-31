@@ -1,11 +1,10 @@
-import { it, describe, expect } from '@jest/globals'
+import { it, expect } from '@jest/globals'
 
 import { Node } from '../node'
 import { Module } from './module'
 import { 
     NestedPathsOf, 
     PathsOf, 
-    $path, 
     GetNodeAtPath,
     GetNodeAtNestedPath,
     SetNodeAtNestedPath 
@@ -16,7 +15,7 @@ import { Empty } from '@benzed/util'
 
 //// Setup ////
 
-class Rank<S extends string> extends Module<S> {  
+class Rank<S extends string> extends Module<S> { 
 
     static of<Sx extends string>(rank: Sx): Rank<Sx> {
         return new Rank(rank)
@@ -31,21 +30,21 @@ class Rank<S extends string> extends Module<S> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createTree = () => {
     
-    const tree = Node.from({
-        uncle: Node.from(Rank.of('uncle')),
-        mom: Node.from(
+    const tree = Node.create({
+        uncle: Node.create(Rank.of('uncle')),
+        mom: Node.create(
             {
-                you: Node.from(
+                you: Node.create(
                     {
-                        son: Node.from(
+                        son: Node.create(
                             Rank.of('son')
                         )
                     },
                     Rank.of('you'),
                 ),
-                sister: Node.from({
-                    neice: Node.from(Rank.of('neice')),
-                    nephew: Node.from(Rank.of('nephew'))
+                sister: Node.create({
+                    neice: Node.create(Rank.of('neice')),
+                    nephew: Node.create(Rank.of('nephew'))
                 }, 
                 Rank.of('sister'))
             },
@@ -144,28 +143,4 @@ it('SetNodesAtNestedPath', () => {
             }>
         }>
     }>()
-})
-
-describe('$path.validate', () => {
- 
-    it('validates paths', () => {
-        expect($path.validate('ace'))
-            .toEqual('ace')
-    })
-
-    it('paths cannot contain multiple consecutive /', () => {
-        expect($path.validate('//ace'))
-            .toEqual('ace')
-    })
-
-    it('handles only slashes', () => {
-        expect($path.validate('///'))
-            .toEqual('') 
-    })
-
-    it('removes trailing slash', () => {
-        expect($path.validate('ace/'))
-            .toEqual('ace')
-    })
-
 })

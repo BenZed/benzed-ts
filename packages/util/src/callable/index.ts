@@ -28,7 +28,7 @@ function callable<S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S,
     constructor: C,
     name?: string,
-): CallableClass<GetSignature<S,InstanceType<C>>, C>
+): CallableClass<GetSignature<S, InstanceType<C>>, C>
 
 function callable<S extends BoundSignature<O>, O extends object>(
     signature: S,

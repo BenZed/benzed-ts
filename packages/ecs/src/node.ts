@@ -71,14 +71,10 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         return callable.isInstance(input, Node as unknown as (new () => Node))
     }
 
-    static create(): Node<[],{}> {
-        return new Node({})
-    } 
-
-    static from<Nx extends Nodes>(nodes: Nx): Node<[], Nx>
-    static from<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx,Nx>
-    static from<Mx extends Modules>(...modules: Mx): Node<Mx, {}> 
-    static from(...args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
+    static create<Nx extends Nodes>(nodes: Nx): Node<[], Nx>
+    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx,Nx>
+    static create<Mx extends Modules>(...modules: Mx): Node<Mx, {}> 
+    static create(...args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
 
         const [nodes, ...modules] = Module.isModule(args[0])
             ? [{}, ...args]

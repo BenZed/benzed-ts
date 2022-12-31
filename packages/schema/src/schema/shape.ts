@@ -22,6 +22,7 @@ import {
 import { is } from '@benzed/is'
 import { Compile } from '@benzed/util'
 import { push } from '@benzed/immutable'
+
 import { DefaultValidatorSettings } from '../validator/default'
 
 /* eslint-disable 
@@ -129,10 +130,8 @@ class ShapeSchema<
             }
             return output as O
         }
-
         return super.default(defaultValue)
     }
-
 }
 
 interface ShapeSchema<

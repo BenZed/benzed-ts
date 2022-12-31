@@ -37,7 +37,11 @@ type RecordOf<C extends MongoDbCollection<string, object>> = C extends MongoDbCo
 
 //// Collection ////
 
-class MongoDbCollection<N extends string, T extends object> extends AppModule<{ name: N, schema: Schematic<T>}> {
+class MongoDbCollection<N extends string, T extends object> extends AppModule<{ name: N, schema: Schematic<T> }> {
+
+    static create<Nx extends string, Tx extends object>(name: Nx, schema: SchemaHook<Tx>): MongoDbCollection<Nx,Tx> {
+        return new MongoDbCollection(name, schema)
+    }
 
     override get name(): N {
         return this.data.name
@@ -92,7 +96,7 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
     /**
      * Find records in the collection
      */
-    async query(query: RecordQuery<T>): Promise<Paginated<Record<T>>> {
+    async find(query: RecordQuery<T>): Promise<Paginated<Record<T>>> {
 
         const records: Record<T>[] = []
         const total = await this

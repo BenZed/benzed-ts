@@ -16,14 +16,14 @@ const modules = [
 const children = [
     Node.create(), 
     Node.create(),
-    Node.from({
-        three: Node.from({
+    Node.create({
+        three: Node.create({
             four: Node.create()
         })
     })
 ] as const
 
-const node = Node.from({
+const node = Node.create({
     zero: children[0],
     one: children[1],
     two: children[2]
@@ -32,7 +32,7 @@ const node = Node.from({
 //// Tests ////
 
 it('throws if multiple instances of the same module exist in the node', () => { 
-    expect(() => Node.from(modules[0], modules[0]))  
+    expect(() => Node.create(modules[0], modules[0]))  
         .toThrow(`${Node.name} may only have a single reference of a module.`)
 })
 

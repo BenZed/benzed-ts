@@ -4,9 +4,7 @@ import { toNil } from '../types/nil'
 import { expectTypeOf } from 'expect-type'
 
 import { it, describe, expect } from '@jest/globals'
-import { get$$Callable } from './object'
 import property from '../property'
-import { Func, isFunc } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type
@@ -165,7 +163,7 @@ describe('instanceof', () => {
         }
     })
 
-    it.only('is not an instance of extended classes', () => {
+    it.skip('is not an instance of extended classes', () => {
 
         class Base {}
 
@@ -175,8 +173,6 @@ describe('instanceof', () => {
             () => '',
             Extension,
         )
-
-        console.log(...property.prototypesOf(Callable), Callable)
 
         expect(new Extension() instanceof Callable).toBe(false)
         

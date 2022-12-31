@@ -12,16 +12,15 @@ import { Server as IOServer } from 'socket.io'
 
 import Server, { $serverSettings, ServerSettings } from './server'
 
-import { CommandError } from '../../command'
-
 import { 
     WEBSOCKET_PATH, 
     Request, 
     Headers, 
     HttpCode, 
-    HttpMethod
+    HttpMethod,
+    path
 } from '../../../util'
-import { path } from '@benzed/ecs'
+import { CommandError } from '../../command'
 
 //// Helper ////
 
@@ -115,17 +114,17 @@ export class KoaSocketIOServer extends Server {
 
         let matchMethod = false
         for (const command of this.getCommands()) {
-            if (command.httpMethod === req.method)
+            if (command.method === req.method)
                 matchMethod = true
     
             const input = command
-                .reqMatch({
+                .matchRequest({
                     ...req,
-                    url: url.replace(command.getPathFromRoot(), '') as path
+                    url: url.replace(command.node.getPathFromRoot(), '') as path
                 })
 
             if (input) {
-                const result = await command(input)
+                const result = await Promise.resolve(command(input, {}))
                 return result
             }
         }
@@ -152,8 +151,8 @@ export class KoaSocketIOServer extends Server {
 
         const koa = new Koa()
 
-        const allowMethods: string[] = this.parent 
-            ? this.getCommands().map(c => c.httpMethod).filter(unique)
+        const allowMethods: string[] = this.hasNode 
+            ? this.getCommands().map(c => c.method).filter(unique)
             : Object.values(HttpMethod)
 
         // Standard Middleware
@@ -206,7 +205,7 @@ export class KoaSocketIOServer extends Server {
                         )
                     }
 
-                    const output = await command(input)
+                    const output = await Promise.resolve(command(input, {}))
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)

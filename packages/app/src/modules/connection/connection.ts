@@ -16,16 +16,16 @@ export abstract class Connection<O extends object> extends AppModule<O> {
         Module.assert.isSingle(this)
     }
 
-    getCommands(): Command<string, object, object> [] {
+    getCommands(): Command[] {
         const commands = this
             .node
             .root
-            .findModule
-            .inDescendents((m): m is Command<string,object,object> => callable.isInstance(m, Command))
+            .findModules
+            .inDescendents((m): m is Command => callable.isInstance(m, Command))
         return commands
     }
 
-    getCommand(name: string): Command<string, object, object> | nil {
+    getCommand(name: string): Command | nil {
         return this.getCommands()?.find(c => c.name === name)
     }
 

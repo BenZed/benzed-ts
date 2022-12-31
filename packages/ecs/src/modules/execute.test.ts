@@ -1,9 +1,10 @@
-import { isArray, isString } from '@benzed/util'
+import { isArray, isString, ResolveAsyncOutput } from '@benzed/util'
 import { it, expect, test } from '@jest/globals'
 
-import { Execute, ExecuteContext } from './execute'
-import { Module } from '../module'
 import { Data } from './data'
+import { Execute, ExecuteHook } from './execute'
+
+import { Module } from '../module'
 import { Node } from '../node'
 
 //// Tests ////
@@ -14,17 +15,17 @@ it('callable module that takes a transform method', () => {
 })
 
 it('provide arbitrary data to context', () => {
-    const multiply = new Execute((i: number, ctx: { data: number }) => i * ctx.data)
-    multiply(2, 5)
+    const multiply = new Execute((i: number, ctx: { by: number }) => i * ctx.by)
+    multiply(2, { by: 5 })
 })
 
 it('context has access to module interface', () => {
 
-    const node = Node.from( 
+    const node = Node.create( 
         {
-            zero: Node.from(
+            zero: Node.create(
                 Module.data(1 as const),
-                Module.execute((i: number, ctx: ExecuteContext<void>) => ctx
+                Module.execute((i: number, ctx) => ctx
                     .node
                     .root
                     .assertModule
@@ -41,11 +42,11 @@ it('context has access to module interface', () => {
     expect(data).toEqual(Module.data(1))
 })
 
-test('append()', () => {   
+test('append()', () => {
 
-    const n1 = Node.from(
+    const n1 = Node.create(
         Module.data([] as string[]),
-        Module.execute((i: string, ctx: ExecuteContext<void>) => ctx
+        Module.execute((i: string, ctx) => ctx
             .node
             .assertModule((m): m is Data<string[]> => isArray(m.data, isString))
             .data
@@ -53,24 +54,58 @@ test('append()', () => {
         )
     )
 
-    const n2 = n1.setModule(1, exec => exec.append(i => `data has string: ${i}`))
+    const n2 = n1.setModule(1, exec => exec.appendHook(i => `data has string: ${i}`))
     expect(n2.getModule(1)('fun')).toEqual('data has string: false')
 })
 
 test('promises resolve before next execution', () => {
     const x2 = Module.execute((i: number) => Promise.resolve(i * 2))
-    const x4 = x2.append(i => i * 2)
+    const x4 = x2.appendHook(i => i * 2)
     return expect(x4(1)).resolves.toBe(4)
 })
 
 test('prepend()', () => {
     const x10 = Module.execute((i: number) => i * 10)
-    const strToX10 = x10.prepend((i: string) => parseInt(i))
+    const strToX10 = x10.prependHook((i: string) => parseInt(i))
     expect(strToX10('10')).toEqual(100)
 })
 
 test('.find as Module', () => {
-    const shout = Node.from(Module.execute((i: string) => i + '!'))
+    const shout = Node.create(Module.execute((i: string) => i + '!'))
     const [exec] = shout.findModules(Module)
     expect(exec).toBeInstanceOf(Execute)
+})
+
+test('extendable', () => {
+
+    interface By {
+        by: number
+    }
+
+    class Multiply<I,O> extends Execute<I, O, By> {
+
+        appendHook<Ox>(hook: ExecuteHook<Awaited<O>, Ox, By>): Multiply<I, ResolveAsyncOutput<O, Ox>> {
+            return super.appendHook(hook)
+        }
+
+        prependHook<Ix>(hook: ExecuteHook<Ix, I, By>): Multiply<Ix, O> {
+            return super.prependHook(hook)
+        }
+    }
+
+    const x = new Multiply((i: number, ctx) => i * ctx.by)
+    expect(x(5, { by: 2 })).toEqual(10)
+
+    const xr = x.appendHook((o, ctx) => `${ctx.input} x ${ctx.by} equals ${o}`)
+
+    expect(xr(10, { by: 2 })).toEqual('10 x 2 equals 20')
+})
+
+it('ctx is mutable', () => {
+
+    const exec = new Execute((i: string, ctx: { history: string[] }) => ctx.history.push(i) ?? i)
+        .appendHook((_, ctx) => ctx.history.length)
+
+    expect(exec('ace', { history: [] })).toEqual(1)
+
 })

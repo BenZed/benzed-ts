@@ -1,15 +1,15 @@
 import { is } from '@benzed/is'
+import { Module } from '@benzed/ecs'
 import $, { Infer, SchemaFor } from '@benzed/schema'
 import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-import { HttpCode, HttpMethod, RequestHandler } from '../../util'
 import { MongoDb, MongoDbCollection } from '../mongo-db'
-
-import { CommandModule } from '../command/command'
-import { CommandError } from '../command'
+import { Command, CommandError } from '../command'
+import { AppModule } from '../../app-module'
+import { HttpCode } from '../../util'
 
 //// Helper ////
 
@@ -47,8 +47,24 @@ interface AccessToken {
 
 //// Handler ////
 
-const authRequestHandler = RequestHandler
-    .create(HttpMethod.Put, $credentials)
+const authenticate = Command
+    .put($credentials, async (credentials, ctx) => {
+
+        const auth = ctx.node.assertModule.inAncestors(Auth as unknown as new () => Auth)
+
+        const password = await auth.hashPassword(credentials.password)
+
+        const { records } = await auth.collection.find({ email: credentials.email })
+
+        const [ entity ] = records
+        if (!entity || await bcrypt.compare(password, entity.password))
+            throw new CommandError(HttpCode.Unauthorized, 'Invalid credentials.')
+
+        const accessToken = await auth.createAccessToken({ _id: entity._id, })
+        
+        const output: AccessToken = { accessToken }
+        return output
+    })
     .addHeaderLink(
         (head, { email, password, ...rest }) => {
             const credentials = toBase64(`${email}:${password}`)
@@ -73,7 +89,7 @@ const authRequestHandler = RequestHandler
 
 //// Module ////
 
-class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToken>> {
+class Auth extends AppModule<AuthSettings> {
 
     static create(settings: AuthSettings = {}): Auth {
         return new Auth(
@@ -82,15 +98,7 @@ class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToke
     }
 
     private constructor(readonly settings: Required<AuthSettings>) {
-        const name = 'authenticate'
-        super(
-            name,
-            authRequestHandler.setUrl(`/${name}`)
-        )
-    }
-
-    protected override get _copyParams(): unknown[] {
-        return [this.settings]
+        super(settings)
     }
 
     //// State ////
@@ -101,12 +109,12 @@ class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToke
     get accessToken(): string {
         return this._accessToken ?? ''
     }
-    private _accessToken: string | nil = nil // TODO serialize this
+    private readonly _accessToken: string | nil = nil // TODO serialize this
 
     //// Module Interface ////
 
-    override _validateModules(): void {
-        this._assertSingle()
+    override validate(): void {
+        Module.assert.isSingle(this)
     }
 
     get collection(): MongoDbCollection<Credentials> {
@@ -134,17 +142,6 @@ class Auth extends CommandModule<'authenticate', Credentials, Promise<AccessToke
             throw new CommandError(HttpCode.Unauthorized, 'Invalid credentials.')
 
         const accessToken = await this.createAccessToken({ _id: entity._id, })
-        return { accessToken }
-    }
-
-    protected override async _executeOnClient(
-        credentials: Credentials
-    ): Promise<AccessToken> {
-        const { accessToken } = await super._executeOnClient(credentials)
-
-        if (this.parent?.root.client)
-            this._accessToken = accessToken
-
         return { accessToken }
     }
 

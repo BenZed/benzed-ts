@@ -17,9 +17,9 @@ class Icon extends AppModule<void> {
 
 class NoIcon extends AppModule<void> {}
 
-const logTest = Node.from(
+const logTest = Node.create(
     {
-        loggers: Node.from(
+        loggers: Node.create(
             new Icon(),
             new NoIcon()
         )

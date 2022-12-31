@@ -1,7 +1,6 @@
-import { $path, path } from '@benzed/ecs'
 import { isNumber, memoize, omit } from '@benzed/util'
 
-import { UrlParamKeys } from '../../util'
+import { UrlParamKeys, $path, path } from '../../util'
 
 //// Types ////
 

@@ -6,7 +6,6 @@ import {
     Command, 
     CommandError, 
     HttpCode, 
-    HttpMethod, 
     Server 
 } from '../src'
 
@@ -18,31 +17,31 @@ for (const clientWebSocket of [true, false]) {
 
             const foobar = $('foo', 'bar')
 
-            const app = Node.from(
-                Command.create('errorCodeTest', ({ code }: { code: number }) => {
+            const app = Node.create(
+                Command.put({ code: $.number }, ({ code }: { code: number }) => {
                     if (code < 400)
                         return { success: code }
                     throw new CommandError(
                         code,
                         `Testing error code: ${code}`
                     )
-                }, HttpMethod.Put),
+                }),
 
-                Command.create('validationErrorTest', { 
+                Command.get({ 
                     option: foobar
-                }, HttpMethod.Get)
+                })
             )
 
-            const server = app.add(Server.create({ webSocket: serverWebSocket }))
-            const client = app.add(Client.create({ webSocket: clientWebSocket }))
+            const server = app.addModule(Server.create({ webSocket: serverWebSocket }))
+            const client = app.addModule(Client.create({ webSocket: clientWebSocket }))
 
             //// Setup ////
 
-            beforeAll(() => server.start())
-            beforeAll(() => client.start())
+            beforeAll(() => server.assertModule(Server).start())
+            beforeAll(() => client.assertModule(Client).start())
  
-            afterAll(() => client.stop())
-            afterAll(() => server.stop())
+            afterAll(() => client.assertModule(Client).stop())
+            afterAll(() => server.assertModule(Server).stop())
 
             //// Tests ////
 
@@ -88,12 +87,8 @@ for (const clientWebSocket of [true, false]) {
 
             it('throws if command cannot be found, http/websocket', async () => {
 
-                const error = await client.assert(Client)._execute(
-                    Command.create(
-                        'nonExistantCommand',
-                        {},
-                        HttpMethod.Put
-                    ),
+                const error = await client.assertModule(Client)._execute(
+                    Command.put({}),
                     {},
                 ).catch(through)
 
@@ -107,14 +102,10 @@ for (const clientWebSocket of [true, false]) {
             if (!serverWebSocket || !clientWebSocket) {
                 it('throws "method not allowed" if no command uses method', async () => {
                     
-                    const badMethod = await client.assert(Client)._execute(
-                        Command.create(
-                            'badMethodCommand',
-                            {},
-                            HttpMethod.Post
-                        ),
+                    const badMethod = await client.assertModule(Client)._execute(
+                        Command.post({}),
                         {},
-                    ).catch(through)
+                    )//.catch(through)
 
                     expect(badMethod).toHaveProperty('code', HttpCode.MethodNotAllowed)
                     expect(badMethod).toHaveProperty('name', 'MethodNotAllowed')

@@ -5,11 +5,11 @@ import {
     Id, 
     Paginated,
 } from './mongo-db-collection'
-
 import { MongoDb } from './mongo-db'
 
 import { io, nil } from '@benzed/util'
 import $, { Infer } from '@benzed/schema'
+import { Node } from '@benzed/ecs'
 
 //// Setup ////
 
@@ -19,11 +19,19 @@ const $todo = $({
     description: $.string 
 })
 
-const mongoDb = MongoDb
-    .create({ database: 'app-ecs-test' })
-    .addCollection<'todos', Todo>('todos', $todo)
+const mongoDb = MongoDb.create({ database: 'app-ecs-test' })
 
-beforeAll(() => mongoDb.start())
+const todos = MongoDbCollection.create('todos', $todo)
+
+const node = Node
+    .create(
+        {
+            collections: Node.create(todos)
+        },
+        mongoDb
+    )
+
+beforeAll(() => node.assertModule(MongoDb).start())
 
 let id: Id
 let getResult: Record<Todo> | nil
@@ -31,12 +39,10 @@ let createResult: Record<Todo>
 let updateResult: Record<Todo> | nil
 let removeResult: Record<Todo> | nil
 let findResult: Paginated<Todo>
-let todos: MongoDbCollection<Todo>
 beforeAll(async () => {
 
-    await mongoDb.clearAllCollections()
+    await node.assertModule(MongoDb).clearAllCollections()
 
-    todos = mongoDb.getCollection('todos')
     createResult = await todos.create({ 
         completed: false, 
         description: 'build an app'
@@ -49,11 +55,11 @@ beforeAll(async () => {
     removeResult = await todos.remove(id)
 })
 
-afterAll(() => mongoDb.stop())
+afterAll(() => node.assertModule(MongoDb).stop())
 
 //// Tests ////
 
-it('.create()', () => {
+it('.create()', () => {  
 
     expect(typeof createResult._id).toBe('string')
     expect(createResult).toHaveProperty('completed', false)

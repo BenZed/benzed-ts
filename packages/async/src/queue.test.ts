@@ -10,11 +10,8 @@ jest.setTimeout(500)
 it('executes a series of tasks in order', async () => {
 
     const queue = new Queue<string>()
-
     const task = (): Promise<string> => Promise.resolve('complete')
-
     const item = queue.add(task)
-
     await queue.complete()
 
     expect(item.result?.value).toEqual('complete')

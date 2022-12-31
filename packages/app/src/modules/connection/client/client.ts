@@ -2,8 +2,8 @@ import $, { Infer } from '@benzed/schema'
 import { InputOf, OutputOf } from '@benzed/util'
 
 import Connection from '../connection'
-import { CommandModule } from '../../../modules'
 import { DEFAULT_SERVER_PORT } from '../../../util'
+import { Command } from '../../command'
 
 //// Types ////
 
@@ -33,7 +33,7 @@ abstract class Client extends Connection<Required<ClientSettings>> {
      * @internal
      * Execute a command with the given name and data
      */
-    abstract _execute<C extends CommandModule<string, object, object>>(
+    abstract _execute<C extends Command>(
         command: C,
         data: InputOf<C>
     ): OutputOf<C>

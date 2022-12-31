@@ -1,13 +1,14 @@
 import $, { SchemaFor, Schematic } from '@benzed/schema'
 import { isFunc, isObject } from '@benzed/util'
+import { path } from './types'
 
 //// Schema Helpers ////
 
 type ShapeSchemaInput<T> = {
-    [K in keyof T]: SchemaFor<T[K]>
-}
+    [K in keyof T]: Schematic<T[K]>
+} 
 
-export type SchemaHook<T extends object> = Schematic<T> | ShapeSchemaInput<T>
+export type SchemaHook<T extends object = object> = Schematic<T> | ShapeSchemaInput<T>
 
 export const isSchematic = <T extends object> (input: unknown): input is SchemaHook<T> => 
     isObject<Partial<Schematic<T>>>(input) && 
@@ -26,3 +27,19 @@ export const $port = $.integer.range({
     max: 65536
 })
 
+export const $path = $.string
+    .trim()
+    .validates(
+        s => s.startsWith('/') ? s : '/' + s,
+        'Must start with a "/"'
+    )
+    .validates(
+        s => s.replace(/\/+/g, '/'), 
+        'Must not have multiple consecutive "/"s'
+    ) 
+    .validates(
+        s => s.replace(/\/$/, '') || '/',
+        //                                                      ^ in case we just removed the only slash
+        'Must not end with a "/"'
+    ) as SchemaFor<path>
+    

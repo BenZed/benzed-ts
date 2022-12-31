@@ -1,6 +1,7 @@
-
-import { HttpMethod } from './http-methods'
 import { Headers } from 'cross-fetch'
+import { HttpMethod } from './http-methods'
+
+export type path = `/${string}`
 
 /**
  * usable url param values
