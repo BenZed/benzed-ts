@@ -1,11 +1,11 @@
-import { Module } from './module/module'
+import { Module } from './module'
 
 /**
  * Module is the only instance of it's kind on it's parent
  */
 export function isSingle(module: Module): void {
 
-    if (module.node.findModule(module.constructor as new () => Module)) {
+    if (module.node.findModules(module.constructor as new () => Module).length !== 1) {
         throw new Error(
             `${module.name} cannot be placed with other ${module.name} modules.`
         )
@@ -13,6 +13,6 @@ export function isSingle(module: Module): void {
 }
 
 export function isRootLevel(module: Module): void {
-    if (module.node.parent !== module.node.root)
+    if (module.node.hasParent)
         throw new Error(`${module.name} must be a root level module.`)
 }

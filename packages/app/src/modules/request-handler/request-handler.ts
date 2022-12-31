@@ -1,7 +1,7 @@
-import { isEmpty, nil, KeysOf } from '@benzed/util'
-import { Schematic } from '@benzed/schema'
-import { Module, path, Path } from '@benzed/ecs'
 import is from '@benzed/is'
+import { Schematic } from '@benzed/schema'
+import { $path, Module, path } from '@benzed/ecs'
+import { isEmpty, nil, KeysOf } from '@benzed/util'
 
 import {
     createStaticPather,
@@ -105,7 +105,7 @@ class RequestHandler<T extends object> extends Module<RequestHandlerSettings<T>>
         return {
             method,
             body: dataWithoutQuery,
-            url: Path.validate(isEmpty(query) ? url : url + '?' + toQueryString(query)),
+            url: $path.validate(isEmpty(query) ? url : url + '?' + toQueryString(query)),
             headers
         }
     }
@@ -127,7 +127,7 @@ class RequestHandler<T extends object> extends Module<RequestHandlerSettings<T>>
             ? { [queryKey]: query, ...body } 
             : { ...query, ...body }
 
-        const pathedData = path.match(Path.validate(url), data)
+        const pathedData = path.match($path.validate(url), data)
         if (!pathedData)
             return nil
 

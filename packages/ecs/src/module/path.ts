@@ -1,4 +1,4 @@
-import $ from '@benzed/schema'
+import $, { SchemaFor } from '@benzed/schema'
 import type { Empty, KeysOf } from '@benzed/util'
 
 import type { Modules } from '../module'
@@ -49,7 +49,9 @@ type GetNodeAtNestedPath<N extends Nodes, P extends NestedPathsOf<N>> =
 type SetNodeAtNestedPath<N extends Nodes, P extends string, Nx extends Node<Modules, Nodes>> = 
     _SetNodeAtNestedPath<N, P, Nx>
 
-//// Main ////
+//// TODO Move me? ////
+
+type path = `/${string}`
 
 const $path = $.string
     .trim()
@@ -65,13 +67,14 @@ const $path = $.string
         s => s.replace(/\/$/, ''),
         //                                                      ^ in case we just removed the last slash
         'Must not end with a "/"'
-    )
+    ) as SchemaFor<path>
 
 //// Exports ////
 
 export default $path
 
 export {
+    path,
     $path,
     PathsOf,
     NestedPathsOf,

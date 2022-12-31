@@ -1,4 +1,4 @@
-import { Path, path } from '@benzed/ecs'
+import { $path, path } from '@benzed/ecs'
 import { isNumber, memoize, omit } from '@benzed/util'
 
 import { UrlParamKeys } from '../../util'
@@ -46,7 +46,7 @@ export const createUrlParamPather = <T extends object>(
     const output = omit(data, ...urlParamKeys as never[]) as object
 
     return [
-        Path.validate(url), 
+        $path.validate(url), 
         output
     ]
 }

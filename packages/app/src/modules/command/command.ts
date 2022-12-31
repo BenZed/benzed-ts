@@ -2,15 +2,14 @@ import { pluck } from '@benzed/array'
 import { ToAsync } from '@benzed/async'
 import { Schematic } from '@benzed/schema'
 import { toDashCase } from '@benzed/string'
-import { Execute, ExecuteHook, Modules, Path, path } from '@benzed/ecs'
+import { Execute, ExecuteHook, Module, Node, path } from '@benzed/ecs'
 
 import { 
-    nil,
     isObject,
     isFunc,  
     isString,
-    ResolveAsyncOutput,
-    callable
+
+    nil
 } from '@benzed/util'
 
 import { 
@@ -22,20 +21,22 @@ import {
 } from '../../util'
 
 import { RequestHandler } from '../request-handler'
+import { AppModule } from '../../app-module'
 
 /* eslint-disable 
-    @typescript-eslint/explicit-function-return-type
+    @typescript-eslint/explicit-function-return-type,
+    @typescript-eslint/ban-types
 */
 
 //// Type ////
 
-type CommandContext = {
-    user?: object
-}
+type CommandContext = { user?: object }
 
 type CommandHook<I,O> = ExecuteHook<I, O, CommandContext>
 
 type CommandExecute<I,O> = Execute<I, O, CommandContext>
+
+type CommandNode<H extends HttpMethod, I extends object, O extends object> = Node<[Command<H,I,O>, RequestHandler<I>, CommandExecute<I,O>], {}>
 
 //// Helper ////
 
@@ -46,131 +47,75 @@ const toSchematicAndValidate = <T extends object>(input: SchemaHook<T>): [Schema
 
 //// Command ////
 
-interface Command<
-    N extends string, 
-    I extends object, 
-    O extends object
-> extends Modules<[Path<`/${N}`>, RequestHandler<I>, CommandExecute<I,O>]> {
+interface Command<H extends HttpMethod, I extends object, O extends object> extends Module<H> {
 
-    (input: I): ToAsync<O>
+    get method(): H 
+    get execute(): CommandExecute<I, O>
+    get request(): RequestHandler<I>
 
-    get name(): N
-
-    /**
-     * Change the name of this command
-     */
-    setName<Nx extends string>(name: Nx): Command<Nx, I, O>
-
-    getPath(): `/${N}`
-    getPathFromRoot(): path
-
-    //// Request Shortcuts ////
-
-    /**
-     * Update or change the existing request handler for this command
-     */
-    setReq(update: (req: RequestHandler<I>) => RequestHandler<I>): Command<N, I, O>
-    setReq(req: RequestHandler<I>): Command<N, I, O> 
-
-    /**
-     * Shortcut to useReq(req => req.setUrl)
-     */
-    setUrl(
-        urlSegments: TemplateStringsArray, 
-        ...urlParamKeys: UrlParamKeys<I>[]
-    ): Command<N,I,O>
-
-    /**
-     * Shortcut to useReq(req => req.setMethod)
-     */
-    setHttpMethod(method: HttpMethod): Command<N, I, O> 
-    get httpMethod(): HttpMethod 
-    reqFromData(data: I): Request
-    reqMatch(req: Request): I | nil 
-
-    //// Execute Shortcuts ////
-
-    appendHook<Ox extends object>(hook: CommandHook<Awaited<O>, Ox>): Command<N, I, ResolveAsyncOutput<O, Ox>>
-    prependHook<Ix extends object>(hook: CommandHook<Awaited<Ix>, I>): Command<N, Ix, O> 
 }
 
 //// CommandConstructor ////
 
-type ModulesConstructor = typeof Modules
+interface CommandConstructor extends AppModule {
 
-interface CommandConstructor extends ModulesConstructor {
-
-    create<Nx extends string, Ix extends object, Ox extends object>(
-        name: Nx,
+    create<H extends HttpMethod, Ix extends object, Ox extends object>(
+        method: H,
         execute: CommandHook<Ix, Ox>,
-        method?: HttpMethod,
         path?: path
-    ): Command<Nx, Ix, Ox>
+    ): Command<H, Ix, Ox>
 
-    create<Nx extends string, Ix extends object>(
-        name: Nx,
+    create<H extends HttpMethod, Ix extends object>(
+        method: H,
         schematic: SchemaHook<Ix>,
-        method?: HttpMethod,
         path?: path
-    ): Command<Nx, Ix, Ix>
+    ): Command<H, Ix, Ix>
 
     /**
-     * Convience method for defining a POST command named 'create'
+     * Convience method for defining a POST command named HttpMethod.Post
      */
-    create<Ix extends object, Ox extends object>(
-        execute: CommandHook<Ix, Ox>,
-    ): Command<'create', Ix, Ox>
-    create<Ix extends object>(
-        schematic: SchemaHook<Ix>,
-    ): Command<'create', Ix, Ix>
+    create<I extends object, O extends object>(
+        execute: CommandHook<I, O>,
+    ): Command<HttpMethod.Post, I, O>
+    create<I extends object>(
+        schematic: SchemaHook<I>,
+    ): Command<HttpMethod.Post, I, I>
 
-    from<Nx extends string, Ix extends object, Ox extends object>(
-        path: Path<`/${Nx}`>,
+    from<H extends HttpMethod, Ix extends object, Ox extends object>(
         request: RequestHandler<Ix>,
         execute: CommandExecute<Ix,Ox>
-    ): Command<Nx,Ix,Ox>
+    ): Command<H,Ix,Ox>
 
     /**
-     * Create a new GET command named 'get'
+     * Create a new POST command
      */
-    get<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'get', Ix, Ox>
-    get<Ix extends object>(validate: SchemaHook<Ix>): Command<'get', Ix, Ix>
+    post<I extends object, Ox extends object>(execute: CommandHook<I,Ox>): Command<HttpMethod.Post, I, Ox>
+    post<I extends object>(validate: SchemaHook<I>): Command<HttpMethod.Post, I, I>
 
     /**
-     * Create a new GET command named 'find'
+     * Create a new GET command 
      */
-    find<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'find', Ix, Ox>
-    find<Ix extends object>(validate: SchemaHook<Ix>): Command<'find', Ix, Ix>
+    get<I extends object, Ox extends object>(execute: CommandHook<I,Ox>): Command<HttpMethod.Get, I, Ox>
+    get<I extends object>(validate: SchemaHook<I>): Command<HttpMethod.Get, I, I>
 
     /**
-     * Create a new DELETE command named 'delete'
+     * Create a new DELETE commanD
      */
-    delete<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'delete', Ix, Ox>
-    delete<Ix extends object>(validate: SchemaHook<Ix>): Command<'delete', Ix, Ix>
+    delete<I extends object, Ox extends object>(execute: CommandHook<I,Ox>): Command<HttpMethod.Delete, I, Ox>
+    delete<I extends object>(validate: SchemaHook<I>): Command<HttpMethod.Delete, I, I>
 
     /**
-     * Create a new DELETE command named 'remove'
+     * Create a new PATCH command
      */
-    remove<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'remove', Ix, Ox>
-    remove<Ix extends object>(validate: SchemaHook<Ix>): Command<'remove', Ix, Ix>
+    patch<I extends object, Ox extends object>(execute: CommandHook<I,Ox>): Command<HttpMethod.Patch, I, Ox>
+    patch<I extends object>(validate: SchemaHook<I>): Command<HttpMethod.Patch, I, I>
 
     /**
-     * Create a new PATCH command named 'patch'
+     * Create a new PUT command
      */
-    patch<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'patch', Ix, Ox>
-    patch<Ix extends object>(validate: SchemaHook<Ix>): Command<'patch', Ix, Ix>
+    put<I extends object, Ox extends object>(execute: CommandHook<I,Ox>): Command<HttpMethod.Put, I, Ox>
+    put<I extends object>(validate: SchemaHook<I>): Command<HttpMethod.Put, I, I>
 
-    /**
-     * Create a new PUT command named 'update'
-     */
-    update<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'update', Ix, Ox>
-    update<Ix extends object>(validate: SchemaHook<Ix>): Command<'update', Ix, Ix>
-
-    /**
-     * Create a new OPTIONS command named 'options'
-     */
-    options<Ix extends object, Ox extends object>(execute: CommandHook<Ix,Ox>): Command<'options', Ix, Ox>
-    options<Ix extends object>(validate: SchemaHook<Ix>): Command<'options', Ix, Ix>
 }
 
 //// Command ////
@@ -204,13 +149,13 @@ const Command = callable(
                 : [nil, cmdOrValidate]
         
             const [
-                name = 'create', 
+                name = HttpMethod.Post, 
                 method = HttpMethod.Post, 
-                url = name === 'create' ? '/' : `/${toDashCase(name)}`
+                url = name === HttpMethod.Post ? '/' : `/${toDashCase(name)}`
             ] = (
                 isNamed
                     ? args
-                    : ['create', ...args]
+                    : [HttpMethod.Post, ...args]
             ) as [string | nil, HttpMethod | nil, path | nil]
 
             return _Command.from(
@@ -225,32 +170,28 @@ const Command = callable(
             )
         } 
 
-        static get(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('get', input, HttpMethod.Get, '/') 
+        static post(input: SchemaHook<object> | CommandHook<object,object>) {
+            return this.create(HttpMethod.Get, input, HttpMethod.Get, '/') 
         }
 
-        static find(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('find', input, HttpMethod.Get, '/')
+        static get(input: SchemaHook<object> | CommandHook<object,object>) {
+            return this.create(HttpMethod.Get, input, HttpMethod.Get, '/') 
         }
 
         static delete(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('delete', input, HttpMethod.Delete, '/')
-        }
-
-        static remove(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('remove', input, HttpMethod.Delete, '/')
+            return this.create(HttpMethod.Delete, input, HttpMethod.Delete, '/')
         }
 
         static patch(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('patch', input, HttpMethod.Patch, '/')
+            return this.create(HttpMethod.Patch, input, HttpMethod.Patch, '/')
         }
 
-        static update(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('update', input, HttpMethod.Put, '/')
+        static put(input: SchemaHook<object> | CommandHook<object,object>) {
+            return this.create(HttpMethod.Put, input, HttpMethod.Put, '/')
         }
 
         static options(input: SchemaHook<object> | CommandHook<object,object>) {
-            return this.create('options', input, HttpMethod.Options, '/')
+            return this.create(HttpMethod.Options, input, HttpMethod.Options, '/')
         }
 
         //// Sealed ////
@@ -258,27 +199,6 @@ const Command = callable(
         override get name(): string {
             const [ path ] = this.modules
             return path.path.replace('/', '')
-        }
-
-        //// Name/Path Shortcuts ////
-
-        setName(name: string): unknown {
-            const [, handler, execute] = this.modules
-            return _Command.from(
-                new Path(`/${name}`),
-                handler,
-                execute
-            )
-        }
-
-        getPath(): path {
-            const [ path ] = this.modules
-            return path.path
-        }
-
-        getPathFromRoot(): path {
-            const [ path ] = this.modules
-            return path.getPathFromRoot()
         }
 
         //// Request Shortcuts ////

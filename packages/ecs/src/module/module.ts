@@ -3,6 +3,8 @@ import { callable, isObject } from '@benzed/util'
 
 import { Node } from '../node'
 
+import * as assert from './assertions'
+
 import type { Data, Execute, ExecuteHook } from '../modules'
 
 /* eslint-disable 
@@ -17,6 +19,8 @@ export const $$isModuleConstructor = Symbol('is-module-constructor')
 export type Modules = readonly Module[]
 
 export class Module<T = unknown> implements CopyComparable {
+
+    static assert = assert
 
     static get Data(): typeof Data {
         return require('../modules').Data

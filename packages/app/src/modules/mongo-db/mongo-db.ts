@@ -1,4 +1,4 @@
-import { Modules } from '@benzed/ecs'
+import { Module} from '@benzed/ecs'
 import { guarantee } from '@benzed/async'
 
 import { 
@@ -84,7 +84,7 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
     }
 
     override validate(): void {
-        Modules.assert.isSingle(this)
+        Module.assert.isSingle(this)
     }
 
     get isConnected(): boolean {
@@ -94,7 +94,7 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
     async clearAllCollections(): Promise<void> {
         this._assertStarted()
 
-        const collections = this.find.all.inDescendents(MongoDbCollection)
+        const collections = this.node.findModules.inDescendents(MongoDbCollection)
         for (const collection of collections)
             await collection.clear()
     }

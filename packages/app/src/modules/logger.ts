@@ -1,9 +1,6 @@
 
-import { Modules } from '@benzed/ecs'
-import { 
-    LoggerOptions, 
-    PartialOptional 
-} from '@benzed/util'
+import { Module } from '@benzed/ecs'
+import { LoggerOptions, PartialOptional } from '@benzed/util'
 
 import { AppModule } from '../app-module'
 
@@ -48,8 +45,8 @@ class Logger extends AppModule<LoggerSettings> {
     }
 
     override validate(): void {
-        Modules.assert.isRootLevel(this)
-        Modules.assert.isSingle(this)
+        Module.assert.isRootLevel(this)
+        Module.assert.isSingle(this)
     }
 
 }

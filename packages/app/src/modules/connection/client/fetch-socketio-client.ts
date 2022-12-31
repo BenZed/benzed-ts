@@ -2,6 +2,7 @@
 import { fetch } from 'cross-fetch'
 import { io, Socket } from 'socket.io-client'
 
+import { $path } from '@benzed/ecs'
 import { capitalize, toCamelCase } from '@benzed/string'
 import { InputOf, OutputOf, through } from '@benzed/util'
 
@@ -9,7 +10,6 @@ import Client, { $clientSettings, ClientSettings } from './client'
 
 import { HttpCode, WEBSOCKET_PATH } from '../../../util'
 import { Command, CommandError } from '../../../modules'
-import { Path } from '@benzed/ecs'
 
 //// Eslint ////
 
@@ -121,7 +121,7 @@ export class FetchSocketIOClient extends Client {
         const { method, url, body, headers } = command.reqFromData(cmdData)
 
         const response = await fetch(
-            host + Path.validate(`${command.getPathFromRoot()}${url}`), 
+            host + $path.validate(`${command.getPathFromRoot()}${url}`), 
             { 
                 method,
                 body: body && JSON.stringify(body), 

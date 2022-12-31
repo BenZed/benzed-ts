@@ -18,11 +18,13 @@ class Icon extends AppModule<void> {
 class NoIcon extends AppModule<void> {}
 
 const logTest = Node.from(
-    testLogger,
-    Node.from(
-        new Icon(),
-        new NoIcon()
-    )
+    {
+        loggers: Node.from(
+            new Icon(),
+            new NoIcon()
+        )
+    },
+    testLogger
 )
 
 //// Tests ////
@@ -34,15 +36,15 @@ let icon: Icon
 let noIcon: NoIcon   
 
 beforeAll(() => {
-    logger = logTest.find.require(Logger)
+    logger = logTest.assertModule(Logger)
     logger.log`This should be omitted` 
 
-    noIcon = logTest.find.require.inDescendents(NoIcon)
+    noIcon = logTest.assertModule.inDescendents(NoIcon)
     noIcon.log.info`Info`
     noIcon.log.warn`Warn`
     noIcon.log.error`Error`
     
-    icon = logTest.find.require.inDescendents(Icon)
+    icon = logTest.assertModule.inDescendents(Icon)
     icon.log.info`Info`
     icon.log.warn`Warn`
     icon.log.error`Error`

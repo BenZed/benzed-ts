@@ -7,7 +7,7 @@ import { AppModule } from './app-module'
 
 //// Setup ////
 
-class Test extends AppModule<void> { /**/ }
+class Test extends AppModule<void> { /**/ }  
 
 //// Tests ////
 

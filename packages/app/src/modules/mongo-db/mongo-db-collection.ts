@@ -60,7 +60,7 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
     }
 
     get db(): MongoDb {
-        return this.assert().inAncestors(MongoDb)
+        return this.node.assertModule.inAncestors(MongoDb)
     }
 
     isConnected(): boolean {

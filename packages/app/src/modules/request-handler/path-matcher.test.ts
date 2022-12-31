@@ -1,6 +1,5 @@
 import { nil } from '@benzed/util'
 import { createStaticPathMatcher, createUrlParamPathMatcher } from './path-matcher'
-
 import { describe, it, expect } from '@jest/globals'
 
 describe(`${createStaticPathMatcher.name}()`, () => {
