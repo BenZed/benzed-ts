@@ -15,7 +15,10 @@ import {
     CopyComparable 
 } from '@benzed/immutable'
 
-import { Module, Modules } from './module/module'
+import { 
+    Module, 
+    Modules,
+} from '../module'
 
 import { 
     AssertModule, 
@@ -24,7 +27,7 @@ import {
     FindModule, 
     HasModule, 
     FindModules
-} from './module/module-finder'
+} from '../module/module-finder'
 
 import { 
     addModules, 
@@ -41,14 +44,14 @@ import {
     // SetNode, 
     removeNode, 
     RemoveNode,  
-} from './node-operations'
+} from './operations'
 
 import { 
     GetNodeAtNestedPath,
     NestedPathsOf, 
     PathsOf, 
     SetNodeAtNestedPath
-} from './module'
+} from './path'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,

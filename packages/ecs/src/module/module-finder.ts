@@ -1,7 +1,7 @@
 import { callable, isFunc, nil, TypeGuard } from '@benzed/util'
 import { $$equals } from '@benzed/immutable'
 
-import Node from '../node'
+import { Node } from '../node'
 import { $$isModuleConstructor, Module } from './module'
 
 /* eslint-disable 

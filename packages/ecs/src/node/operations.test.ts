@@ -2,9 +2,9 @@
 import { copy, equals } from '@benzed/immutable'
 import { it, expect } from '@jest/globals'
 
-import { Data } from './modules'
-import { Module } from './module'
-import { Node } from './node'
+import { Data } from '../modules'
+import { Module } from '../module'
+import { Node } from '.'
 
 import { expectTypeOf } from 'expect-type'
 

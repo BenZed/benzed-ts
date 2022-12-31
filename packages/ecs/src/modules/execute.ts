@@ -8,7 +8,7 @@ import {
     
 import { Module } from '../module/module'
 import { AssertModule } from '../module/module-finder'
-import Node from '../node'
+import { Node } from '../node'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

@@ -7,10 +7,11 @@ import {
     Mutable, 
     swap
 } from '@benzed/util'
-import { NestedPathsOf } from './module'
 
-import type { Module, Modules } from './module/module'
+import type { Module, Modules } from '../module'
 import { Node, Nodes } from './node'
+
+import { NestedPathsOf } from './path'
 
 //// Splice Modules ////
 

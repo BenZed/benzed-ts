@@ -1,7 +1,7 @@
 import { it, expect } from '@jest/globals'
 
-import { Node } from '../node'
-import { Module } from './module'
+import { Node } from '.'
+import { Module } from '../module/module'
 import { 
     NestedPathsOf, 
     PathsOf, 

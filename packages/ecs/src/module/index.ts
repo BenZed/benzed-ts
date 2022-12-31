@@ -6,4 +6,3 @@ export {
 } from './module-finder'
 
 export * from './module'
-export * from './path'

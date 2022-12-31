@@ -1,6 +1,6 @@
 import { copy } from '@benzed/immutable'
 
-import { Module } from './module/module'
+import { Module } from '../module/module'
 import Node from './node'
 
 import { it, test, expect } from '@jest/globals'
