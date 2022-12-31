@@ -36,7 +36,14 @@ const tsFileContentCache: Record<string,string> = {}
 
 //// Processes ////
 
-const testProcess = new PackageSpawnProcess('test:dev', 'npm', 'run', 'test:dev')
+const testProcess = new PackageSpawnProcess(
+    'test:dev',
+    '../../node_modules/.bin/jest', 
+    '--run-in-band',
+    '--verbose',
+    '--force-exit',
+    '--detect-open-handles'
+)
 
 const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) => {
 
@@ -169,12 +176,17 @@ watch(PACKAGES_DIR, {
 
     tsFileContentCache[file] = contents
 
-    const onlyTestThisFile = file.endsWith('.test.ts')
+    const isTestFile = file.endsWith('.test.ts')
+    const isPackageIndex = file.endsWith('src/index.ts')
+    const onlyTestThisFile = isTestFile
+    const testAllFiles = !onlyTestThisFile && isPackageIndex
     await testProcess.run(
         file, 
         onlyTestThisFile 
             ? path.basename(file) 
-            : ''
+            : testAllFiles 
+                ? '--all'
+                : '--only-changed'
     )
 
     if (!updateDependencyProcess.isRunning)
