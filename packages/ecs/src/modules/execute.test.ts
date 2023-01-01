@@ -25,7 +25,7 @@ it('no void context type error', () => {
 
     expect(inc(1)).toEqual(2)
     
-    const diff = inc.appendHook((i, ctx) => i - ctx.input)
+    const diff = Execute.append(inc, (i, ctx) => i - ctx.input)
     expect(diff(2)).toEqual(1)
 })
 
@@ -65,20 +65,20 @@ test('append()', () => {
         )
     )
 
-    const n2 = n1.setModule(1, exec => exec.appendHook(i => `data has string: ${i}`))
+    const n2 = n1.setModule(1, exec => Execute.append(exec, i => `data has string: ${i}`))
 
     expect(n2.modules[1]('fun')).toEqual('data has string: false')
 })
 
 test('promises resolve before next execution', () => {
     const x2 = Module.execute((i: number) => Promise.resolve(i * 2))
-    const x4 = x2.appendHook(i => i * 2)
+    const x4 = Execute.append(x2, i => i * 2)
     return expect(x4(1)).resolves.toBe(4)
 })
 
 test('prepend()', () => {
     const x10 = Module.execute((i: number) => i * 10)
-    const strToX10 = x10.prependHook((i: string) => parseInt(i))
+    const strToX10 = Execute.prepend(x10, (i: string) => parseInt(i))
     expect(strToX10('10')).toEqual(100)
 })
 
@@ -96,28 +96,27 @@ test('extendable', () => {
 
     class Multiply<I,O> extends Execute<I, O, By> {
 
-        appendHook<Ox>(hook: ExecuteHook<Awaited<O>, Ox, By>): Multiply<I, ResolveAsyncOutput<O, Ox>> {
-            return super.appendHook(hook)
+        append<Ox>(hook: ExecuteHook<Awaited<O>, Ox, By>): Multiply<I, ResolveAsyncOutput<O, Ox>> {
+            return Execute.append(this, hook) as Multiply<I, ResolveAsyncOutput<O, Ox>>
         }
 
-        prependHook<Ix>(hook: ExecuteHook<Ix, I, By>): Multiply<Ix, O> {
-            return super.prependHook(hook)
+        prepend<Ix>(hook: ExecuteHook<Ix, I, By>): Multiply<Ix, O> {
+            return Execute.prepend(this, hook) as Multiply<Ix, O>
         }
     }
 
     const x = new Multiply((i: number, ctx) => i * ctx.by)
     expect(x(5, { by: 2 })).toEqual(10)
+    expect(x).toBeInstanceOf(Multiply)
 
-    const xr = x.appendHook((o, ctx) => `${ctx.input} x ${ctx.by} equals ${o}`)
-
+    const xr = x.append((o, ctx) => `${ctx.input} x ${ctx.by} equals ${o}`)
     expect(xr(10, { by: 2 })).toEqual('10 x 2 equals 20')
+    expect(xr).toBeInstanceOf(Multiply)
 })
 
 it('ctx is mutable', () => {
-
     const exec = new Execute((i: string, ctx: { history: string[] }) => ctx.history.push(i) ?? i)
-        .appendHook((_, ctx) => ctx.history.length)
-
-    expect(exec('ace', { history: [] })).toEqual(1)
+    const mExec = Execute.append(exec, (_, ctx) => ctx.history.length)
+    expect(mExec('ace', { history: [] })).toEqual(1)
 
 })

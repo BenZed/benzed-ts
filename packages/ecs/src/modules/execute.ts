@@ -33,8 +33,7 @@ export type ExecuteHook<I,O,D extends object | void> = ContextTransform<I, O, Ex
 
 export interface Execute<I = unknown, O = unknown, D extends object | void = void> extends Module<ExecuteHook<I, O, D>>, ContextTransform<I, O, D> {
     execute(input: I, data: D): O
-    appendHook<Ox>(hook: ExecuteHook<Awaited<O>, Ox, D>): Execute<I, ResolveAsyncOutput<O, Ox>, D>
-    prependHook<Ix>(hook: ExecuteHook<Ix, I, D>): Execute<Ix, O, D>
+
 }
 
 //// Executable Module ////
@@ -42,7 +41,19 @@ export interface Execute<I = unknown, O = unknown, D extends object | void = voi
 type ModuleConstructor = typeof Module
 
 interface ExecuteConstructor extends ModuleConstructor {
+
     new <I,O,D extends object | void = void>(execute: ExecuteHook<I,O,D>): Execute<I, O, D>
+
+    append<I,O,D extends object | void, Ox>(
+        execute: Execute<I,O,D>, 
+        hook: ExecuteHook<Awaited<O>, Ox, D>
+    ): Execute<I, ResolveAsyncOutput<O, Ox>, D>
+
+    prepend<I,O,D extends object | void, Ix>(
+        execute: Execute<I,O,D>, 
+        hook: ExecuteHook<Ix, I, D>
+    ): Execute<Ix, O, D>
+
 }
 
 /**
@@ -54,6 +65,16 @@ export const Execute: ExecuteConstructor = callable(
         return this.execute(input, data)
     },
     class extends Module<Func> {
+
+        static append(execute: Execute<any,any,any>, hook: ContextTransform<any,any,any>): Execute<any, any, any> {
+            const Execute = execute.constructor as new(func: Func) => Execute<any,any,any>
+            return new Execute(Pipe.from(execute.data).to(hook))
+        }
+
+        static prepend(execute: Execute<any,any,any>, hook: ContextTransform<any,any,any>): Execute<any, any, any> {
+            const Execute = execute.constructor as new(func: Func) => Execute<any,any,any>
+            return new Execute(Pipe.from(hook).to(execute.data))
+        }
 
         execute(input: any, data: any): any {
 
@@ -76,14 +97,6 @@ export const Execute: ExecuteConstructor = callable(
             const { data: transform } = module
 
             return transform.call(ctx, input, ctx)
-        }
-
-        appendHook(execute: ContextTransform<any,any,any>): Execute<any, any, any> {
-            return new Execute(Pipe.from(this.data).to(execute))
-        }
-
-        prependHook(execute: ContextTransform<any,any,any>): Execute<any, any, any> {
-            return new Execute(Pipe.from(execute).to(this.data))
         }
 
     },
