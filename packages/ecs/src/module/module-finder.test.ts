@@ -23,7 +23,7 @@ class Rank<S extends string> extends Module<S> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFamilyTreeAndFinder = (flag?: FindFlag) => {
 
-    const node = Node.Builder.create.bind(Node)
+    const node = Node.build.bind(Node)
     const rank = Rank.of.bind(Rank) 
     
     const tree = node({

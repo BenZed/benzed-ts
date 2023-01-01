@@ -31,7 +31,7 @@ it('no void context type error', () => {
 
 it('context has access to module interface', () => {
 
-    const zero = Node.Builder.create(
+    const zero = Node.build(
         Module.data(1 as const),
         Module.execute((i: number, ctx) => ctx
             .node
@@ -43,7 +43,7 @@ it('context has access to module interface', () => {
         ) 
     )
 
-    const node = Node.Builder.create( 
+    const node = Node.build( 
         {
             zero
         },
@@ -57,7 +57,7 @@ it('context has access to module interface', () => {
 
 test('append()', () => {
 
-    const n1 = Node.Builder.create(
+    const n1 = Node.build(
         Module.data([] as string[]),
         Module.execute((i: string, ctx) => ctx
             .node
@@ -85,7 +85,7 @@ test('prepend()', () => {
 })
 
 test('.find as Module', () => {
-    const shout = Node.Builder.create(Module.execute((i: string) => i + '!'))
+    const shout = Node.build(Module.execute((i: string) => i + '!'))
     const [exec] = shout.findModules(Module)
     expect(exec).toBeInstanceOf(Execute)
 })

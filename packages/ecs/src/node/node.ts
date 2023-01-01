@@ -1,7 +1,6 @@
 
 import { 
     callable,
-    isRecord,
     iterate, 
     keysOf,
     nil,
@@ -48,6 +47,13 @@ type Nodes = { readonly [key: string]: Node<Modules, Nodes> }
 
 class Node<M extends Modules = any, N extends Nodes = any> implements CopyComparable {
 
+    static build<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx, Nx>
+    static build<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}>
+    static build(...args: unknown[]): unknown {
+        const NodeBuilder = require('./node-builder').NodeBuilder
+        return new NodeBuilder(...this._sortConstructorParams(args, Module, Node))
+    }
+
     /**
      * Given an array of unknown values, receive an array of nodes and modules.
      * @internal
@@ -76,10 +82,6 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
 
     static isNode(input: unknown): input is Node {
         return callable.isInstance(input, Node as unknown as (new () => Node))
-    }
-
-    static get Builder(): typeof NodeBuilder {
-        return require('./node-builder').NodeBuilder
     }
 
     static set = setNode

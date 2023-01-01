@@ -18,7 +18,7 @@ class Bar extends Module<void> {
     }
 }
 
-const node = Node.Builder.create(
+const node = Node.build(
     Module.data(1 as const), 
     Module.data('string' as const), 
     new Foo

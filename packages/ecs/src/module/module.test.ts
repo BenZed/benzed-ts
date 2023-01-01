@@ -22,29 +22,29 @@ class Rank<S extends string> extends Module<S> {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createFamilyTreeWithModules = () => {
 
-    const uncle = Node.Builder.create(Rank.of('uncle'))
+    const uncle = Node.build(Rank.of('uncle'))
 
-    const son = Node.Builder.create(
+    const son = Node.build(
         Rank.of('son')
     )
 
-    const you = Node.Builder.create(
+    const you = Node.build(
         {
             son
         },
         Rank.of('you'),
     )
 
-    const neice = Node.Builder.create(Rank.of('neice'))
-    const nephew = Node.Builder.create(Rank.of('nephew'))
+    const neice = Node.build(Rank.of('neice'))
+    const nephew = Node.build(Rank.of('nephew'))
 
-    const sister = Node.Builder.create({
+    const sister = Node.build({
         neice,
         nephew
     }, 
     Rank.of('sister'))
 
-    const mom = Node.Builder.create(
+    const mom = Node.build(
         {
             you,
             sister
@@ -52,7 +52,7 @@ const createFamilyTreeWithModules = () => {
         Rank.of('mom')
     )
 
-    const tree = Node.Builder.create({
+    const tree = Node.build({
         uncle,
         mom
     })
@@ -67,7 +67,7 @@ describe('relationships', () => {
     describe('.parent', () => {
 
         const module = Module.data('hey' as const)
-        const node = Node.Builder.create(module)
+        const node = Node.build(module)
     
         it('gets module parent', () => {
             expect(node.modules).toContain(module)
@@ -90,7 +90,7 @@ describe('relationships', () => {
             }
     
             const spy = new ModuleSpy(100)
-            const node = Node.Builder.create(spy)
+            const node = Node.build(spy)
     
             it('sets module parent', () => {
     
@@ -103,7 +103,7 @@ describe('relationships', () => {
             })
     
             it('throws if parent does not contain module', () => {
-                const liar = Node.Builder.create()
+                const liar = Node.build()
                 expect(() => new ModuleSpy(0)._setNode(liar)).toThrow('is not included in Node\'s modules')
             })
         })
@@ -227,7 +227,7 @@ describe('validate()', () => {
         }
 
         const test = new ValidateTest()
-        void Node.Builder.create(test)
+        void Node.build(test)
 
         expect(called).toBe(true)
     })

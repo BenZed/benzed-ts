@@ -50,52 +50,51 @@ class Rank<S extends string> extends Module<S> {
 
 const createFamilyTree = () => {
     
-    const grandChild = Node.Builder.create()
+    const grandChild = Node.build()
 
-    const child = Node.Builder.create({
+    const child = Node.build({
         grandChild
     })
 
-    const you = Node.Builder.create({
+    const you = Node.build({
         child
     })
 
-    const parent = Node.Builder.create({
+    const parent = Node.build({
         you
     })
 
-    const grandParent = Node.Builder.create({
+    const grandParent = Node.build({
         parent
     })
 
-    return Node.Builder
-        .create({ grandParent })
+    return Node.build({ grandParent })
 }
 
 const createFamilyTreeWithModules = () => {
 
-    const uncle = Node.Builder.create(Rank.of('uncle'))
+    const uncle = Node.build(Rank.of('uncle'))
 
-    const son = Node.Builder.create(
+    const son = Node.build(
         Rank.of('son')
     )
 
-    const you = Node.Builder.create(
+    const you = Node.build(
         {
             son
         },
         Rank.of('you'),
     )
 
-    const neice = Node.Builder.create(Rank.of('neice'))
-    const nephew = Node.Builder.create(Rank.of('nephew'))
-    const sister = Node.Builder.create({
+    const neice = Node.build(Rank.of('neice'))
+    const nephew = Node.build(Rank.of('nephew'))
+    const sister = Node.build({
         neice,
         nephew
     }, 
     Rank.of('sister'))
 
-    const mom = Node.Builder.create(
+    const mom = Node.build(
         {
             you,
             sister
@@ -103,7 +102,7 @@ const createFamilyTreeWithModules = () => {
         Rank.of('mom')
     )
 
-    const tree = Node.Builder.create({
+    const tree = Node.build({
         uncle,
         mom
     })
@@ -189,9 +188,9 @@ it('.getNode() throws on bad paths', () => {
 
 it('.setNode() node from a path', () => { 
 
-    const bar = Node.Builder.create(Module.data(1 as const))
+    const bar = Node.build(Module.data(1 as const))
 
-    const n1 = Node.Builder.create(Module.data(0 as const))
+    const n1 = Node.build(Module.data(0 as const))
     const n2 = n1.setNode('bar', bar)
 
     type N2 = Node<[Data<0>], {
@@ -205,10 +204,10 @@ it('.setNode() node from a path', () => {
 
 it('.setNode() an existing node', () => {
 
-    const ace = Node.Builder.create(Module.data('ace' as const))
-    const base = Node.Builder.create(Module.data('base' as const))
+    const ace = Node.build(Module.data('ace' as const))
+    const base = Node.build(Module.data('base' as const))
 
-    const n1 = Node.Builder.create().setNode('state', ace)
+    const n1 = Node.build().setNode('state', ace)
  
     expect(n1.children).toHaveLength(1) 
     expect(n1.nodes.state.modules[0].data).toEqual('ace')
@@ -223,12 +222,12 @@ it('.setNode() an existing node', () => {
 
 it('.setNode() nested path', () => {
 
-    const child = Node.Builder.create({})
-    const parent = Node.Builder.create({ child })
-    const root = Node.Builder.create({ parent })
+    const child = Node.build({})
+    const parent = Node.build({ child })
+    const root = Node.build({ parent })
 
     // overwrite with node
-    const update1 = Node.Builder.create(Module.data(1 as const))
+    const update1 = Node.build(Module.data(1 as const))
     const root1 = root.setNode('parent/child', update1)
     expect(root1.nodes.parent.nodes.child).toEqual(update1)
     type Root1 = typeof root1
@@ -239,7 +238,7 @@ it('.setNode() nested path', () => {
     }>>()
 
     // overwrite with update function
-    const update2 = Node.Builder.create(
+    const update2 = Node.build(
         Module.data(2 as const)
     )
 
@@ -258,7 +257,7 @@ it('.setNode() nested path', () => {
     }>>()
 
     // set nested new node
-    const update3 = Node.Builder.create(Module.data(3 as const))
+    const update3 = Node.build(Module.data(3 as const))
     const root3 = root2.setNode('parent/child2', update3)
     expect(root3.nodes.parent.nodes.child2).toEqual(update3)
     type Root3= typeof root3
@@ -272,10 +271,10 @@ it('.setNode() nested path', () => {
 
 it('.removeNode() from a path', () => {
 
-    const one = Node.Builder.create(Module.data(1 as const))
-    const two = Node.Builder.create(Module.data(2 as const))
+    const one = Node.build(Module.data(1 as const))
+    const two = Node.build(Module.data(2 as const))
 
-    const t1 = Node.Builder.create({
+    const t1 = Node.build({
         one, 
         two
     })
@@ -292,11 +291,10 @@ it('.removeNode() from a path', () => {
 
 it('.addModules()', () => {
 
-    const n1 = Node.Builder
-        .create(
-            new Text('1st'),
-            new Text('2nd')
-        )
+    const n1 = Node.build(
+        new Text('1st'),
+        new Text('2nd')
+    )
 
     const n2 = n1.addModule(
         new Text('3rd')
@@ -322,7 +320,7 @@ it('.addModules()', () => {
 
 it('.swapModules()', () => {
 
-    const n1 = Node.Builder.create(
+    const n1 = Node.build(
         new Text('A'),
         new Text('B'),
         new Text('C')
@@ -341,7 +339,7 @@ it('.swapModules()', () => {
 
 it('.removeModule()', () => {
 
-    const n1 = Node.Builder.create(
+    const n1 = Node.build(
         new Text('A'),  
         new Text('B')
     )
@@ -353,7 +351,7 @@ it('.removeModule()', () => {
 
 it('.setModule()', () => {
 
-    const n1 = Node.Builder.create(
+    const n1 = Node.build(
         new Text('A'),
         new Text('B')
     )
@@ -370,8 +368,7 @@ it('.setModule()', () => {
     
 it('.setModule() with function', () => {
 
-    const n1 = Node.Builder
-        .create(new Text('A'))
+    const n1 = Node.build(new Text('A'))
         .setModule(
             0,
             text => text.setText('A!'),
@@ -385,7 +382,7 @@ it('.setModule() with function', () => {
 
 it('.insertModules()', () => {
 
-    const n1 = Node.Builder.create(
+    const n1 = Node.build(
         new Text('Ace'),
         new Text('Case')
     )
@@ -434,7 +431,7 @@ it('SetNodeAtNestedPath', () => {
 
 it('SetNodeBuilderAtPath', () => {
 
-    const empty = Node.Builder.create()
+    const empty = Node.build()
     type EmptyNodes = typeof empty.nodes 
 
     type EmptyNodesSet = SetNodeBuilderAtPath<EmptyNodes, 'foo/bar/baz', Node<[Module<1>]>>
