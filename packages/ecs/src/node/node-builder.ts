@@ -25,7 +25,8 @@ import {
 } from '../module'
 
 /* eslint-disable 
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Helper Types ////
@@ -55,7 +56,7 @@ export type SetNodeBuilderAtPath<
 /**
  * A node with the full set of Node operations as member methods, for convenience.
  */
-class NodeBuilder<M extends Modules = Modules, N extends Nodes = {}> extends Node<M,N> {
+class NodeBuilder<M extends Modules = any, N extends Nodes = any> extends Node<M,N> {
 
     //// Module Build Interface ////
 
@@ -91,7 +92,7 @@ class NodeBuilder<M extends Modules = Modules, N extends Nodes = {}> extends Nod
         return new NodeBuilder(
             copy(this.nodes),
             ...modules
-        )
+        ) as unknown as NodeBuilder<Mx, N>
     }
 
     insetModule<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): NodeBuilder<InsertModules<M,I,[Mx]>,N> {
@@ -144,7 +145,7 @@ class NodeBuilder<M extends Modules = Modules, N extends Nodes = {}> extends Nod
     }
 
     setNodes<Nx extends Nodes>(nodes: Nx): NodeBuilder<M, Nx> {
-        return new NodeBuilder(nodes, ...copy(this.modules))
+        return new NodeBuilder(nodes, ...copy(this.modules)) as unknown as NodeBuilder<M, Nx>
     }
     
 }

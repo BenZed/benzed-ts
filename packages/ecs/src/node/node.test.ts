@@ -14,11 +14,11 @@ const modules = [
 ] as const
 
 const children = [
-    Node.create(), 
-    Node.create(),
+    Node.create({}), 
+    Node.create({}),
     Node.create({
         three: Node.create({
-            four: Node.create()
+            four: Node.create({})
         })
     })
 ] as const
@@ -32,14 +32,12 @@ const node = Node.create({
 //// Tests ////
 
 describe('create', () => {
-
     it('creates nodes', () => {
         const node = Node.create()
         expect(node).toBeInstanceOf(Node)
         expect(node.nodes).toEqual({}) 
         expect(node.modules).toEqual([])
     })
-
 })
 
 it('throws if multiple instances of the same module exist in the node', () => { 

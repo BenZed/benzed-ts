@@ -1,10 +1,9 @@
 import { $$copy, $$equals, copy, equals } from '@benzed/immutable'
+import { describe, it, test, expect } from '@jest/globals'
 
 import { ModuleFinder } from './module-finder'
 import { Module } from './module'
 import { Node } from '../node'
-
-import { describe, it, test, expect } from '@jest/globals'
 
 //// Setup ////
 

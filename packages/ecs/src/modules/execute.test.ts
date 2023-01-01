@@ -118,5 +118,4 @@ it('ctx is mutable', () => {
     const exec = new Execute((i: string, ctx: { history: string[] }) => ctx.history.push(i) ?? i)
     const mExec = Execute.append(exec, (_, ctx) => ctx.history.length)
     expect(mExec('ace', { history: [] })).toEqual(1)
-
 })

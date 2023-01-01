@@ -31,9 +31,11 @@ import {
 import { GetNodeAtPath, NestedPathsOf, removeNode, setNode } from './operations'
 
 import type NodeBuilder from './node-builder'
+import ModuleInterface from '../module/module-interface'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
+    @typescript-eslint/no-explicit-any,
     @typescript-eslint/no-this-alias,
     @typescript-eslint/no-var-requires
 */
@@ -42,7 +44,7 @@ import type NodeBuilder from './node-builder'
 
 type Nodes = { readonly [key: string]: Node<Modules, Nodes> }
 
-class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyComparable {
+class Node<M extends Modules = any, N extends Nodes = any> implements CopyComparable {
 
     get name(): string {
         return this.hasParent 
@@ -59,9 +61,9 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     }
 
     static create<Nx extends Nodes>(nodes: Nx): NodeBuilder<[], Nx>
-    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx,Nx>
-    static create<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}> 
-    static create(...args: [Nodes] | Modules | [Nodes, ...Modules]): NodeBuilder {
+    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx, Nx>
+    static create<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}>
+    static create(...args: unknown[]): unknown {
 
         const [nodes, ...modules] = args.length === 0 || Module.isModule(args[0])
             ? [{}, ...args]
@@ -93,7 +95,7 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
 
         const paths = path.split('/')
 
-        const node = paths.reduce<Node<Modules, Nodes> | nil>((n, p) => n?.nodes[p], this)
+        const node = paths.reduce<Node | nil>((n, p) => n?.nodes[p], this as Node)
         if (!node)
             throw new Error(`No node at path: ${path}`)
         
@@ -241,11 +243,8 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         return new ModuleFinder(this, FindFlag.Assert)
     }
 
-    /**
-     * Alias for assertModule & moduleInterface
-     */
-    get module(): AssertModule {
-        return new ModuleFinder(this, FindFlag.Assert)
+    get module(): ModuleInterface<M> {
+        return new ModuleInterface(this)
     }
     
     //// Validate ////
