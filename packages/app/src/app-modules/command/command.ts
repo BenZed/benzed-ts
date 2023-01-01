@@ -313,14 +313,12 @@ class Command<H extends HttpMethod = HttpMethod, I extends object = object, O ex
         }, this.data)
     }
 
-    // @ts-expect-error "Signatures are not compatible", but they are.
-    override appendHook<Ox extends object>(hook: CommandHook<Awaited<O>, Ox>): Command<H, I, ResolveAsyncOutput<O, Ox>> {
-        return super.appendHook(hook) as Command<H, I, ResolveAsyncOutput<O, Ox>>
+    appendHook<Ox extends object>(hook: CommandHook<Awaited<O>, Ox>): Command<H, I, ResolveAsyncOutput<O, Ox>> {
+        return Execute.append(this, hook) as Command<H, I, ResolveAsyncOutput<O, Ox>>
     }
 
-    // @ts-expect-error "Signatures are not compatible", but they are.
-    override prependHook<Ix extends object>(hook: CommandHook<Ix, I>): Command<H, Ix, O> {
-        return super.prependHook(hook) as Command<H, Ix, O> 
+    prependHook<Ix extends object>(hook: CommandHook<Ix, I>): Command<H, Ix, O> {
+        return Execute.prepend(this, hook) as Command<H, Ix, O> 
     }
 
     //// Helper ////

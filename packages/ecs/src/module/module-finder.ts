@@ -35,6 +35,7 @@ export interface FindModule {
     inChildren<I extends FindInput>(input: I): FindOutput<I> | nil
     inParents<I extends FindInput>(input: I): FindOutput<I> | nil
     inAncestors<I extends FindInput>(input: I): FindOutput<I> | nil
+    inTree<I extends FindInput>(input: I): FindOutput<I> | nil
 }
 
 export interface FindModules {
@@ -43,6 +44,7 @@ export interface FindModules {
     inChildren<I extends FindInput>(input: I): FindOutput<I>[]
     inParents<I extends FindInput>(input: I): FindOutput<I>[]
     inAncestors<I extends FindInput>(input: I): FindOutput<I>[]
+    inTree<I extends FindInput>(input: I): FindOutput<I>[]
 }
 
 export interface HasModule {
@@ -51,6 +53,7 @@ export interface HasModule {
     inChildren<I extends FindInput>(input: I): boolean
     inParents<I extends FindInput>(input: I): boolean
     inAncestors<I extends FindInput>(input: I): boolean
+    inTree<I extends FindInput>(input: I): boolean
 }
 
 //// AssertNode ////
@@ -61,6 +64,7 @@ export interface AssertModule {
     inChildren<I extends FindInput>(input: I, error?: string): FindOutput<I> 
     inParents<I extends FindInput>(input: I, error?: string): FindOutput<I>
     inAncestors<I extends FindInput>(input: I, error?: string): FindOutput<I>
+    inTree<I extends FindInput>(input: I, error?: string): FindOutput<I>
 }
 
 //// Implementation ////
@@ -123,7 +127,20 @@ export const ModuleFinder = callable(
             )
         }
 
+        inTree(input: FindInput, error?: string): unknown {
+            return this._find(
+                this.eachNode(),
+                input,
+                error
+            )
+        }
+
         //// Helper ////
+
+        * eachNode(): IterableIterator<Node> {
+            yield this.node.root
+            yield* this.node.root.eachDescendent()
+        }
 
         /**
          * @internal

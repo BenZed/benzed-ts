@@ -10,7 +10,7 @@ import Command from './command'
 
 type _Command = Command<any,any,any>
 
-export type _OmitEmptyValues<T> = Infer<{
+type _OmitEmptyValues<T> = Infer<{
     [K in keyof T as T[K] extends Empty ? never : K]: T[K]
 }>
 

@@ -253,7 +253,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     get findModule(): FindModule {
         return new ModuleFinder(this)
     }
-    get findModules(): FindModules{
+    get findModules(): FindModules {
         return new ModuleFinder(this, FindFlag.All)
     }
     get hasModule(): HasModule {

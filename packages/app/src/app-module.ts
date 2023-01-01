@@ -33,7 +33,7 @@ export class AppModule<D = unknown> extends Module<D> {
         if (!this._log) {
 
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const LoggerModule = require('./modules/logger').Logger
+            const LoggerModule = require('./app-modules/logger').Logger
         
             const logger = this.hasNode && this.node.findModule.inAncestors(LoggerModule)
 
