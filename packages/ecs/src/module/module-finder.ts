@@ -1,7 +1,7 @@
 import { callable, isFunc, nil, TypeGuard } from '@benzed/util'
 import { $$equals } from '@benzed/immutable'
 
-import { Node } from '../node'
+import type { Node } from '../node'
 import { $$isModuleConstructor, Module } from './module'
 
 /* eslint-disable 
@@ -193,7 +193,7 @@ function toModuleName({ name }: FindInput): string {
 
     // assume anonymous typeguard
     if (!name)
-        return Node.name
+        return Module.name
 
     return name
 }

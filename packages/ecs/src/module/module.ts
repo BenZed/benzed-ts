@@ -1,11 +1,19 @@
 import { $$copy, $$equals, CopyComparable, equals } from '@benzed/immutable'
 import { callable, isObject } from '@benzed/util'
 
-import { Node } from '../node'
+import type { Node } from '../node'
 
 import * as assert from './assertions'
 
 import type { Data, Execute, ExecuteHook } from '../modules'
+
+import {
+    addModules, 
+    insertModules, 
+    removeModule, 
+    setModule, 
+    swapModules, 
+} from './operations'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -21,6 +29,12 @@ export type Modules = readonly Module[]
 export class Module<T = unknown> implements CopyComparable {
 
     static assert = assert
+
+    static add = addModules
+    static insert = insertModules
+    static remove = removeModule
+    static set = setModule
+    static swap = swapModules
 
     static get Data(): typeof Data {
         return require('../modules').Data

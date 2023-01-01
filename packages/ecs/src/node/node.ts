@@ -1,10 +1,9 @@
 
 import { 
     callable,
-    IndexesOf,
     iterate, 
     keysOf,
-    nil, 
+    nil,
 } from '@benzed/util'
 
 import { 
@@ -29,33 +28,14 @@ import {
     FindModules
 } from '../module/module-finder'
 
-import { 
-    addModules, 
-    AddModules, 
-    insertModules, 
-    InsertModules, 
-    removeModule, 
-    RemoveModule, 
-    setModule, 
-    SetModule,
-    swapModules, 
-    SwapModules,
-    setNode, 
-    // SetNode, 
-    removeNode, 
-    RemoveNode,  
-} from './operations'
+import { GetNodeAtPath, NestedPathsOf, removeNode, setNode } from './operations'
 
-import { 
-    GetNodeAtNestedPath,
-    NestedPathsOf, 
-    PathsOf, 
-    SetNodeAtNestedPath
-} from './path'
+import type NodeBuilder from './node-builder'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
-    @typescript-eslint/no-this-alias
+    @typescript-eslint/no-this-alias,
+    @typescript-eslint/no-var-requires
 */
 
 //// Exports ////
@@ -67,24 +47,31 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     get name(): string {
         return this.hasParent 
             ? this.getPathFrom(this.parent)
-            : this.constructor.name
+            : Node.name
     }
 
     static isNode(input: unknown): input is Node {
         return callable.isInstance(input, Node as unknown as (new () => Node))
     }
 
-    static create<Nx extends Nodes>(nodes: Nx): Node<[], Nx>
-    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx,Nx>
-    static create<Mx extends Modules>(...modules: Mx): Node<Mx, {}> 
-    static create(...args: [Nodes] | Modules | [Nodes, ...Modules]): Node {
+    static get Builder(): typeof NodeBuilder {
+        return require('./node-builder').NodeBuilder
+    }
+
+    static create<Nx extends Nodes>(nodes: Nx): NodeBuilder<[], Nx>
+    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx,Nx>
+    static create<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}> 
+    static create(...args: [Nodes] | Modules | [Nodes, ...Modules]): NodeBuilder {
 
         const [nodes, ...modules] = args.length === 0 || Module.isModule(args[0])
             ? [{}, ...args]
             : args
 
-        return new Node(nodes as Nodes, ...modules as Modules)
+        return new this.Builder(nodes as Nodes, ...modules as Modules)
     }
+
+    static set = setNode
+    static remove = removeNode
 
     constructor(nodes: N, ...modules: M) {
         this.nodes = nodes
@@ -98,98 +85,19 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
         this.validate()
     }
 
-    //// Operations ////
-
-    getModule<I extends IndexesOf<M>>(index: I): M[I] {
-        return this.modules[index]
-    }
-
-    addModule<Mx extends Module>(module: Mx): Node<AddModules<M, [Mx]>, N> {
-        return this.addModules(module)
-    }
-
-    addModules<Mx extends Modules>(...modules: Mx): Node<AddModules<M, Mx>, N> {
-        return this.setModules(
-            ...addModules(this.modules, ...modules)
-        )
-    }
-
-    setModule<
-        I extends IndexesOf<M>,
-        F extends ((input: M[I]) => Module)
-    >(index: I, update: F): Node<SetModule<M, I, ReturnType<F>>, N>
-    setModule<
-        I extends IndexesOf<M>,
-        Mx extends Module,
-    >(
-        index: I,
-        module: Mx
-    ): Node<SetModule<M, I, Mx>, N>
-    setModule(index: number, module: Module | ((input: Module) => Module)): Node {
-        return this.setModules(
-            ...setModule(this.modules, index as IndexesOf<M>, module as Module)
-        )
-    }
-
-    setModules<Mx extends Modules>(...modules: Mx): Node<Mx, N> {
-        return new Node(
-            copy(this.nodes),
-            ...modules
-        )
-    }
-
-    insetModule<Mx extends Module, I extends IndexesOf<M>>(index: I, module: Mx): Node<InsertModules<M,I,[Mx]>,N> {
-        return this.insertModules(index, module)
-    }
-
-    insertModules<Mx extends Modules, I extends IndexesOf<M>>(index: I, ...modules: Mx): Node<InsertModules<M, I, Mx>, N> {
-        return this.setModules(
-            ...insertModules(this.modules, index, ...modules)
-        )
-    }
-
-    swapModules<A extends IndexesOf<M>, B extends IndexesOf<M>>(indexA: A, indexB: B): Node<SwapModules<M,A,B>, N> {
-        return this.setModules(
-            ...swapModules(this.modules, indexA, indexB)
-        )
-    }
-
-    removeModule<I extends IndexesOf<M>>(index: I): Node<RemoveModule<M, I>, N> {
-        return this.setModules(
-            ...removeModule(this.modules, index)
-        )
-    }
-
     //// Relationships ////
 
     readonly nodes: N
 
-    getNode<K extends NestedPathsOf<N>>(path: K): GetNodeAtNestedPath<N,K> {
+    getNode<K extends NestedPathsOf<N>>(path: K): GetNodeAtPath<N,K> {
 
         const paths = path.split('/')
 
         const node = paths.reduce<Node<Modules, Nodes> | nil>((n, p) => n?.nodes[p], this)
         if (!node)
-            throw new Error(`Invalid path: ${path}`)
+            throw new Error(`No node at path: ${path}`)
         
-        return node as GetNodeAtNestedPath<N,K>
-    }
-
-    setNode<K extends string, Nx extends Node>(key: K, node: Nx): Node<M, SetNodeAtNestedPath<N, K, Nx>> 
-    setNode<K extends NestedPathsOf<N>, F extends (input: GetNodeAtNestedPath<N, K>) => Node<Modules,Nodes>>(
-        key: K, 
-        update: F
-    ): Node<M, SetNodeAtNestedPath<N, K, ReturnType<F>>>
-    setNode(key: string, node: Node | ((current: Node) => Node)): Node {
-        return this.setNodes(setNode(this.nodes, key as PathsOf<N>, node as Node))
-    }
-
-    removeNode<K extends PathsOf<N>>(key: K): Node<M, RemoveNode<N, K>> {
-        return this.setNodes(removeNode(this.nodes, key)) 
-    }
-
-    setNodes<Nx extends Nodes>(nodes: Nx): Node<M, Nx> {
-        return new Node(nodes, ...copy(this.modules))
+        return node as GetNodeAtPath<N,K>
     }
 
     get parent(): Node<Modules, Nodes> {
@@ -362,7 +270,8 @@ class Node<M extends Modules = Modules, N extends Nodes = {}> implements CopyCom
     /// CopyComparable /// 
 
     [$$copy](): this {
-        return new Node(copy(this.nodes), ...copy(this.modules)) as Node<M,N> as this
+        const NodeConstructor = this.constructor as new (nodes: Nodes, ...modules: Modules) => this
+        return new NodeConstructor(copy(this.nodes), ...copy(this.modules)) as Node<M,N> as this
     }
 
     [$$equals](other: unknown): other is this {

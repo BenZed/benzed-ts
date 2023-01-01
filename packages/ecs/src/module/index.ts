@@ -1,3 +1,6 @@
+
+export * from './module'
+
 export { 
     AssertModule, 
     HasModule, 
@@ -5,4 +8,10 @@ export {
     FindModules
 } from './module-finder'
 
-export * from './module'
+export {
+    AddModules, 
+    InsertModules, 
+    RemoveModule, 
+    SetModule,
+    SwapModules,
+} from './operations'

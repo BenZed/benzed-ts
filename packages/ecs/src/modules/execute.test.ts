@@ -48,8 +48,9 @@ it('context has access to module interface', () => {
         Module.data(0 as const)  
     )
 
-    const data = node.nodes.zero.getModule(1)(1)
-    expect(data).toEqual(Module.data(1))
+    const [ , execute ] = node.nodes.zero.modules
+
+    expect(execute(1)).toEqual(Module.data(1))
 })
 
 test('append()', () => {
@@ -65,7 +66,8 @@ test('append()', () => {
     )
 
     const n2 = n1.setModule(1, exec => exec.appendHook(i => `data has string: ${i}`))
-    expect(n2.getModule(1)('fun')).toEqual('data has string: false')
+
+    expect(n2.modules[1]('fun')).toEqual('data has string: false')
 })
 
 test('promises resolve before next execution', () => {

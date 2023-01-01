@@ -1,15 +1,20 @@
 
 import { copy, equals } from '@benzed/immutable'
+import { Empty } from '@benzed/util'
+
 import { it, expect } from '@jest/globals'
 
 import { Data } from '../modules'
 import { Module } from '../module'
-import { Node } from '.'
+import { NodeBuilder as Node, SetNodeBuilderAtPath } from './node-builder'
+
+import { GetNodeAtPath, NestedPathsOf, PathsOf } from './operations'
 
 import { expectTypeOf } from 'expect-type'
 
 /* eslint-disable  
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/explicit-function-return-type
 */
 
 //// Setup ////
@@ -29,8 +34,21 @@ class Text<T extends string> extends Module<T> {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createTestNodeTree = () => Node
+//// Setup ////
+
+class Rank<S extends string> extends Module<S> { 
+
+    static of<Sx extends string>(rank: Sx): Rank<Sx> {
+        return new Rank(rank)
+    } 
+
+    getRank(): S {
+        return this.data
+    }
+
+}
+
+const createFamilyTree = () => Node
     .create({
         grandParent: Node.create({
             parent: Node.create({
@@ -43,10 +61,92 @@ const createTestNodeTree = () => Node
         })
     })
 
+const createFamilyTreeWithModules = () => {
+    
+    const tree = Node.create({
+        uncle: Node.create(Rank.of('uncle')),
+        mom: Node.create(
+            {
+                you: Node.create(
+                    {
+                        son: Node.create(
+                            Rank.of('son')
+                        )
+                    },
+                    Rank.of('you'),
+                ),
+                sister: Node.create({
+                    neice: Node.create(Rank.of('neice')),
+                    nephew: Node.create(Rank.of('nephew'))
+                }, 
+                Rank.of('sister'))
+            },
+            Rank.of('mom')
+        )
+    })
+
+    const you = tree.getNode('mom').getNode('you')
+    return [tree, you] as const
+}
+
 //// Tests ////
 
+it('identifiable nested paths', () => {
+
+    const [root,] = createFamilyTreeWithModules()
+
+    type Root = typeof root
+    type RootPaths = PathsOf<Root['nodes']>
+
+    expectTypeOf<RootPaths>().toEqualTypeOf<'uncle' | 'mom'>()
+    
+    type RootNestedPaths = NestedPathsOf<Root['nodes']>
+    expectTypeOf<RootNestedPaths>().toEqualTypeOf<
+    | 'uncle'
+    | 'mom'
+    | 'mom/you'
+    | 'mom/you/son' 
+    | 'mom/sister'
+    | 'mom/sister/neice'
+    | 'mom/sister/nephew'
+    >()
+})
+
+it('.getPathFrom()', () => { 
+    const [,you] = createFamilyTreeWithModules()
+
+    expect(you.parent.nodes.you).toBe(you) 
+
+    expect(you.getPathFrom(you.parent)).toEqual('you')
+    expect(you.getPathFrom(you.parent)).toEqual(you.name)
+    expect(you.nodes.son.getPathFrom(you.parent)).toEqual('you/son')
+})
+
+it('.getFromRoot()', () => {   
+    const [,you] = createFamilyTreeWithModules()
+    expect(you.getPathFromRoot()).toEqual('mom/you')
+    expect(you.nodes.son.getPathFromRoot()).toEqual('mom/you/son')
+})
+
+it('GetNodeAtPath', () => {
+
+    const [root] = createFamilyTreeWithModules()
+    type Root = typeof root
+    type Uncle = GetNodeAtPath<Root['nodes'], 'uncle'>
+    expectTypeOf<Uncle>().toEqualTypeOf<Node<[Rank<'uncle'>], Empty>>
+})
+
+it('GetNodeAtNestedPath', () => {
+
+    const [root] = createFamilyTreeWithModules()
+    type Root = typeof root
+    type You = GetNodeAtPath<Root['nodes'], 'mom/you'>
+
+    expectTypeOf<You>().toEqualTypeOf<Node<[Rank<'uncle'>], Empty>>
+})
+
 it('getNode()', () => {
-    const root = createTestNodeTree()
+    const root = createFamilyTree()
     const grandParent = root.getNode('grandParent')
 
     expectTypeOf(grandParent).toEqualTypeOf(root.nodes.grandParent)
@@ -54,15 +154,15 @@ it('getNode()', () => {
 })
 
 it('getNode() nested path', () => {
-    const root = createTestNodeTree()
+    const root = createFamilyTree()
     const you = root.getNode('grandParent/parent/you')
     expect(you).toEqual(root.nodes.grandParent.nodes.parent.nodes.you)
 })
 
 it('.getNode() throws on bad paths', () => {
-    const n1 = createTestNodeTree()
+    const n1 = createFamilyTree()
     // @ts-expect-error Bad Path
-    expect(() => n1.getNode('badName')).toThrow('Invalid path: badName')
+    expect(() => n1.getNode('badName')).toThrow('No node at path: badName')
 })
 
 it('.setNode() node from a path', () => { 
@@ -88,12 +188,12 @@ it('.setNode() an existing node', () => {
  
     expect(n1.children).toHaveLength(1) 
     expect(n1.nodes.state.modules[0].data).toEqual('ace')
-    expect(n1.getNode('state').getModule(0).getData()).toEqual('ace')
+    expect(n1.getNode('state').modules[0].getData()).toEqual('ace')
 
     const n2 = n1.setNode('state', base)
     expect(n2.children).toHaveLength(1) 
     expect(n2.nodes.state.modules[0].data).toEqual('base')
-    expect(n2.getNode('state').getModule(0).getData()).toEqual('base')
+    expect(n2.getNode('state').modules[0].getData()).toEqual('base')
 
 })
 
@@ -278,4 +378,39 @@ it('.insertModules()', () => {
         Text<'Ace'>,
         Text<'Case'>
     ]>>()
+})
+
+it('SetNodeAtNestedPath', () => {
+
+    const [root] = createFamilyTreeWithModules()
+
+    type RootNodes = typeof root.nodes
+    type RootNodesSet = SetNodeBuilderAtPath<RootNodes, 'mom/you', Node<[Module<0>]>>
+
+    expectTypeOf<RootNodesSet>().toMatchTypeOf<{
+        uncle: Node<[Rank<'uncle'>], Empty>
+        mom: Node<[Rank<'mom'>], {
+            you: Node<[Module<0>], Empty>
+            sister: Node<[Rank<'sister'>], {
+                neice: Node<[Rank<'neice'>], Empty>
+                nephew: Node<[Rank<'nephew'>], Empty>
+            }>
+        }>
+    }>()
+
+})
+
+it('SetNodeBuilderAtPath', () => {
+
+    const empty = Node.create()
+    type EmptyNodes = typeof empty.nodes 
+
+    type EmptyNodesSet = SetNodeBuilderAtPath<EmptyNodes, 'foo/bar/baz', Node<[Module<1>]>>
+    expectTypeOf<EmptyNodesSet>().toMatchTypeOf< {
+        foo: Node<[], {
+            bar: Node<[], {
+                baz: Node<[Module<1>], Empty>
+            }>
+        }>
+    }>()
 })
