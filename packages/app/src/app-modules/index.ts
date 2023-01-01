@@ -1,4 +1,4 @@
-export { Node, Nodes, Modules, GetNodeAtNestedPath } from '@benzed/ecs'
+export { Node, Nodes, Modules, GetNodeAtPath } from '@benzed/ecs'
 
 export * from './connection'
 export * from './mongo-db'

@@ -8,7 +8,7 @@ import { InputOf, nil, OutputOf, through } from '@benzed/util'
 import Client, { $clientSettings, ClientSettings } from './client'
 
 import { $path, HttpCode, WEBSOCKET_PATH } from '../../../util'
-import { Command, CommandError } from '../../../modules'
+import { Command, CommandError } from '../..'
 
 //// Eslint ////
 

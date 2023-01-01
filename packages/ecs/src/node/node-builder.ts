@@ -58,6 +58,12 @@ export type SetNodeBuilderAtPath<
  */
 class NodeBuilder<M extends Modules = any, N extends Nodes = any> extends Node<M,N> {
 
+    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx, Nx>
+    static create<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}>
+    static create(...args: unknown[]): unknown {
+        return new NodeBuilder(...this._sortConstructorParams(args, Module, Node))
+    }
+
     //// Module Build Interface ////
 
     addModule<Mx extends Module>(module: Mx): NodeBuilder<AddModules<M, [Mx]>, N> {

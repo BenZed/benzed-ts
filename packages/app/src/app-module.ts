@@ -16,7 +16,8 @@ const DUMMY_LOGGER = Logger.create({ onLog: toVoid })
 
 //// Types ////
 
-// TODO make this and SettingsModule abstract
+export type AppModules = readonly AppModule[]
+
 export class AppModule<D = unknown> extends Module<D> {
 
     //// Module Interface ////
@@ -87,5 +88,4 @@ export class AppModule<D = unknown> extends Module<D> {
             )
         }
     }
-
 }

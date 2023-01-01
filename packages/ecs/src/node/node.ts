@@ -1,6 +1,7 @@
 
 import { 
     callable,
+    isRecord,
     iterate, 
     keysOf,
     nil,
@@ -32,6 +33,7 @@ import { GetNodeAtPath, NestedPathsOf, removeNode, setNode } from './operations'
 
 import type NodeBuilder from './node-builder'
 import ModuleInterface from '../module/module-interface'
+import { pluck } from '@benzed/array'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -46,10 +48,30 @@ type Nodes = { readonly [key: string]: Node<Modules, Nodes> }
 
 class Node<M extends Modules = any, N extends Nodes = any> implements CopyComparable {
 
-    get name(): string {
-        return this.hasParent 
-            ? this.getPathFrom(this.parent)
-            : Node.name
+    /**
+     * Given an array of unknown values, receive an array of nodes and modules.
+     * @internal
+     */
+    static _sortConstructorParams<
+        M extends typeof Module = typeof Module, 
+        N extends typeof Node = typeof Node
+    >(
+        params: unknown[], 
+        ModuleConstructor?: M, 
+        NodeConstructor?: N
+    ): [ { [key: string]: InstanceType<N> }, ...readonly InstanceType<M>[]] {
+
+        const modules = pluck(
+            params, 
+            (p): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
+        )
+
+        const [nodes = {}] = pluck(
+            params, 
+            (p): p is { [key: string]: InstanceType<N> } => callable.isInstance(p, NodeConstructor ?? Node as N)
+        )
+    
+        return [nodes, ...modules]
     }
 
     static isNode(input: unknown): input is Node {
@@ -60,21 +82,11 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
         return require('./node-builder').NodeBuilder
     }
 
-    static create<Nx extends Nodes>(nodes: Nx): NodeBuilder<[], Nx>
-    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx, Nx>
-    static create<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}>
-    static create(...args: unknown[]): unknown {
-
-        const [nodes, ...modules] = args.length === 0 || Module.isModule(args[0])
-            ? [{}, ...args]
-            : args
-
-        return new this.Builder(nodes as Nodes, ...modules as Modules)
-    }
-
     static set = setNode
     static remove = removeNode
 
+    //// Constructor ////
+    
     constructor(nodes: N, ...modules: M) {
         this.nodes = nodes
         for (const child of this.children) 
@@ -87,6 +99,12 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
         this.validate()
     }
 
+    get name(): string {
+        return this.hasParent 
+            ? this.getPathFrom(this.parent)
+            : Node.name
+    }
+    
     //// Relationships ////
 
     readonly nodes: N

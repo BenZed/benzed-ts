@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { nil } from '@benzed/util'
+import { nil, TypeGuard } from '@benzed/util'
 
 //// Shortcuts ////
 
 const { splice } = Array.prototype
 
 //// Types ////
-
-type TypeGuard<I, O extends I = I> = 
-    (item: I, index: number, input: ArrayLike<I>) => 
-        item is O
 
 type Predicate<T> = (
     (item: T, index: number, input: ArrayLike<T>) => boolean
@@ -27,7 +23,7 @@ type Predicate<T> = (
  */
 function pluck<I, O extends I>(
     input: ArrayLike<I>,
-    typeguard: TypeGuard<I, O>,
+    typeguard: TypeGuard<O, I>,
     count?: number
 ): O[]
 

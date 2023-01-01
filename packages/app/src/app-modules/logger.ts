@@ -1,6 +1,10 @@
 
 import { Module } from '@benzed/ecs'
-import { LoggerOptions, PartialOptional } from '@benzed/util'
+
+import { 
+    LoggerOptions, 
+    PartialOptional 
+} from '@benzed/util'
 
 import { AppModule } from '../app-module'
 
