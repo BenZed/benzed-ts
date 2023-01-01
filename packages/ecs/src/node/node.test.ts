@@ -13,17 +13,21 @@ const modules = [
     Module.data(2 as const)
 ] as const
 
+const four = Node.Builder.create({})
+
+const three = Node.Builder.create({
+    four
+})
+
 const children = [
-    Node.create({}), 
-    Node.create({}),
-    Node.create({
-        three: Node.create({
-            four: Node.create({})
-        })
+    Node.Builder.create({}), 
+    Node.Builder.create({}),
+    Node.Builder.create({
+        three
     })
 ] as const
 
-const node = Node.create({
+const node = Node.Builder.create({
     zero: children[0],
     one: children[1],
     two: children[2]
@@ -33,7 +37,7 @@ const node = Node.create({
 
 describe('create', () => {
     it('creates nodes', () => {
-        const node = Node.create()
+        const node = Node.Builder.create()
         expect(node).toBeInstanceOf(Node)
         expect(node.nodes).toEqual({}) 
         expect(node.modules).toEqual([])
@@ -41,7 +45,7 @@ describe('create', () => {
 })
 
 it('throws if multiple instances of the same module exist in the node', () => { 
-    expect(() => Node.create(modules[0], modules[0]))  
+    expect(() => Node.Builder.create(modules[0], modules[0]))  
         .toThrow(`${Node.name} may only have a single reference of a module.`)
 })
 

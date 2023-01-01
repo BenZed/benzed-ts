@@ -20,33 +20,46 @@ class Rank<S extends string> extends Module<S> {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createFamilyTree = () => {
-    
-    const tree = Node.create({
-        uncle: Node.create(Rank.of('uncle')),
-        mom: Node.create(
-            {
-                you: Node.create(
-                    {
-                        son: Node.create(
-                            Rank.of('son')
-                        )
-                    },
-                    Rank.of('you'),
-                ),
-                sister: Node.create({
-                    neice: Node.create(Rank.of('neice')),
-                    nephew: Node.create(Rank.of('nephew'))
-                }, 
-                Rank.of('sister'))
-            },
-            Rank.of('mom')
-        )
+const createFamilyTreeWithModules = () => {
+
+    const uncle = Node.Builder.create(Rank.of('uncle'))
+
+    const son = Node.Builder.create(
+        Rank.of('son')
+    )
+
+    const you = Node.Builder.create(
+        {
+            son
+        },
+        Rank.of('you'),
+    )
+
+    const neice = Node.Builder.create(Rank.of('neice'))
+    const nephew = Node.Builder.create(Rank.of('nephew'))
+
+    const sister = Node.Builder.create({
+        neice,
+        nephew
+    }, 
+    Rank.of('sister'))
+
+    const mom = Node.Builder.create(
+        {
+            you,
+            sister
+        },
+        Rank.of('mom')
+    )
+
+    const tree = Node.Builder.create({
+        uncle,
+        mom
     })
 
-    const you = tree.getNode('mom').getNode('you')
-    return [tree, you] as const
+    return [tree, tree.getNode('mom').getNode('you')] as const
 }
+
 //// Tests ////
 
 describe('relationships', () => {
@@ -54,7 +67,7 @@ describe('relationships', () => {
     describe('.parent', () => {
 
         const module = Module.data('hey' as const)
-        const node = Node.create(module)
+        const node = Node.Builder.create(module)
     
         it('gets module parent', () => {
             expect(node.modules).toContain(module)
@@ -77,7 +90,7 @@ describe('relationships', () => {
             }
     
             const spy = new ModuleSpy(100)
-            const node = Node.create(spy)
+            const node = Node.Builder.create(spy)
     
             it('sets module parent', () => {
     
@@ -90,14 +103,14 @@ describe('relationships', () => {
             })
     
             it('throws if parent does not contain module', () => {
-                const liar = Node.create()
+                const liar = Node.Builder.create()
                 expect(() => new ModuleSpy(0)._setNode(liar)).toThrow('is not included in Node\'s modules')
             })
         })
     })
 
     describe('.parents', () => {
-        const [ , you ] = createFamilyTree()
+        const [ , you ] = createFamilyTreeWithModules()
 
         it('contains all direct descendents to root', () => {
             expect(you.parents).toEqual([you.parent, you.parent.parent])
@@ -112,7 +125,7 @@ describe('relationships', () => {
     })
 
     describe('.ancestors', () => {
-        const [ ,you ] = createFamilyTree()
+        const [ ,you ] = createFamilyTreeWithModules()
 
         it('contains all ancestors up to root', () => {
             const ancestors = [ ...you.parent.parent.children, you.parent.parent ]
@@ -130,7 +143,7 @@ describe('relationships', () => {
     })
 
     describe('.root', () => {
-        const [ tree, you ] = createFamilyTree()
+        const [ tree, you ] = createFamilyTreeWithModules()
 
         it('contains root node', () => {
             expect(you.root).toEqual(tree)
@@ -144,7 +157,7 @@ describe('relationships', () => {
 
 test('.find', () => {
 
-    const [, you] = createFamilyTree()
+    const [, you] = createFamilyTreeWithModules()
 
     const find = you.findModule
     expect(find).toBeInstanceOf(ModuleFinder)
@@ -154,7 +167,7 @@ test('.find', () => {
 })
 
 test('.has', () => {
-    const [, you] = createFamilyTree()
+    const [, you] = createFamilyTreeWithModules()
     expect(you.hasModule).toBeInstanceOf(ModuleFinder)
 
     expect(you.hasModule.inChildren(Rank.of('son'))).toBe(true)
@@ -162,7 +175,7 @@ test('.has', () => {
 
 test('.assert', () => {
 
-    const [ , you ] = createFamilyTree()
+    const [ , you ] = createFamilyTreeWithModules()
 
     expect(you.assertModule).toBeInstanceOf(ModuleFinder)
     expect(() => you.assertModule(Rank.of('none'))).toThrow('Could not find')
@@ -214,7 +227,7 @@ describe('validate()', () => {
         }
 
         const test = new ValidateTest()
-        void Node.create(test)
+        void Node.Builder.create(test)
 
         expect(called).toBe(true)
     })

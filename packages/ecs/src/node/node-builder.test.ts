@@ -48,45 +48,67 @@ class Rank<S extends string> extends Module<S> {
 
 }
 
-const createFamilyTree = () => Node
-    .create({
-        grandParent: Node.create({
-            parent: Node.create({
-                you: Node.create({
-                    child: Node.create({
-                        grandChild: Node.create()
-                    })
-                })
-            })
-        })
+const createFamilyTree = () => {
+    
+    const grandChild = Node.Builder.create()
+
+    const child = Node.Builder.create({
+        grandChild
     })
+
+    const you = Node.Builder.create({
+        child
+    })
+
+    const parent = Node.Builder.create({
+        you
+    })
+
+    const grandParent = Node.Builder.create({
+        parent
+    })
+
+    return Node.Builder
+        .create({ grandParent })
+}
 
 const createFamilyTreeWithModules = () => {
-    
-    const tree = Node.create({
-        uncle: Node.create(Rank.of('uncle')),
-        mom: Node.create(
-            {
-                you: Node.create(
-                    {
-                        son: Node.create(
-                            Rank.of('son')
-                        )
-                    },
-                    Rank.of('you'),
-                ),
-                sister: Node.create({
-                    neice: Node.create(Rank.of('neice')),
-                    nephew: Node.create(Rank.of('nephew'))
-                }, 
-                Rank.of('sister'))
-            },
-            Rank.of('mom')
-        )
+
+    const uncle = Node.Builder.create(Rank.of('uncle'))
+
+    const son = Node.Builder.create(
+        Rank.of('son')
+    )
+
+    const you = Node.Builder.create(
+        {
+            son
+        },
+        Rank.of('you'),
+    )
+
+    const neice = Node.Builder.create(Rank.of('neice'))
+    const nephew = Node.Builder.create(Rank.of('nephew'))
+    const sister = Node.Builder.create({
+        neice,
+        nephew
+    }, 
+    Rank.of('sister'))
+
+    const mom = Node.Builder.create(
+        {
+            you,
+            sister
+        },
+        Rank.of('mom')
+    )
+
+    const tree = Node.Builder.create({
+        uncle,
+        mom
     })
 
-    const you = tree.getNode('mom').getNode('you')
-    return [tree, you] as const
+    return [tree, tree.getNode('mom').getNode('you')] as const
 }
 
 //// Tests ////
@@ -167,8 +189,10 @@ it('.getNode() throws on bad paths', () => {
 
 it('.setNode() node from a path', () => { 
 
-    const n1 = Node.create(Module.data(0 as const))
-    const n2 = n1.setNode('bar', Node.create(Module.data(1 as const)))
+    const bar = Node.Builder.create(Module.data(1 as const))
+
+    const n1 = Node.Builder.create(Module.data(0 as const))
+    const n2 = n1.setNode('bar', bar)
 
     type N2 = Node<[Data<0>], {
         bar: Node<[Data<1>], {}>
@@ -181,10 +205,10 @@ it('.setNode() node from a path', () => {
 
 it('.setNode() an existing node', () => {
 
-    const ace = Node.create(Module.data('ace' as const))
-    const base = Node.create(Module.data('base' as const))
+    const ace = Node.Builder.create(Module.data('ace' as const))
+    const base = Node.Builder.create(Module.data('base' as const))
 
-    const n1 = Node.create().setNode('state', ace)
+    const n1 = Node.Builder.create().setNode('state', ace)
  
     expect(n1.children).toHaveLength(1) 
     expect(n1.nodes.state.modules[0].data).toEqual('ace')
@@ -199,14 +223,12 @@ it('.setNode() an existing node', () => {
 
 it('.setNode() nested path', () => {
 
-    const root = Node.create({
-        parent: Node.create({
-            child: Node.create(Module.data(0 as const))
-        })
-    })
+    const child = Node.Builder.create({})
+    const parent = Node.Builder.create({ child })
+    const root = Node.Builder.create({ parent })
 
     // overwrite with node
-    const update1 = Node.create(Module.data(1 as const))
+    const update1 = Node.Builder.create(Module.data(1 as const))
     const root1 = root.setNode('parent/child', update1)
     expect(root1.nodes.parent.nodes.child).toEqual(update1)
     type Root1 = typeof root1
@@ -217,10 +239,18 @@ it('.setNode() nested path', () => {
     }>>()
 
     // overwrite with update function
-    const update2 = Node.create(Module.data(2 as const))
-    const root2 = root1.setNode('parent/child', child => child.setModule(0, data => data.setData(data.data + 1 as 2)))
+    const update2 = Node.Builder.create(
+        Module.data(2 as const)
+    )
+
+    const root2 = root1.setNode('parent/child', 
+        child => child.setModule(0, 
+            data => data.setData(data.data + 1 as 2)
+        )
+    )
+
     expect(root2.nodes.parent.nodes.child).toEqual(update2)
-    type Root2= typeof root2
+    type Root2 = typeof root2
     expectTypeOf<Root2>().toMatchTypeOf<Node<[], {
         parent: Node<[], {
             child: Node<[Data<2>], {}>
@@ -228,7 +258,7 @@ it('.setNode() nested path', () => {
     }>>()
 
     // set nested new node
-    const update3 = Node.create(Module.data(3 as const))
+    const update3 = Node.Builder.create(Module.data(3 as const))
     const root3 = root2.setNode('parent/child2', update3)
     expect(root3.nodes.parent.nodes.child2).toEqual(update3)
     type Root3= typeof root3
@@ -242,17 +272,19 @@ it('.setNode() nested path', () => {
 
 it('.removeNode() from a path', () => {
 
-    const t1 = Node.create({
-        one: Node.create(Module.data(1 as const)), 
-        two: Node.create(Module.data(2 as const))
+    const one = Node.Builder.create(Module.data(1 as const))
+    const two = Node.Builder.create(Module.data(2 as const))
+
+    const t1 = Node.Builder.create({
+        one, 
+        two
     })
 
     const t2 = t1.removeNode('one') 
-    interface T2 extends Node<[], {
-        two: Node<[Data<2>], {}>
-    }> {}
 
-    expectTypeOf(t2).toEqualTypeOf<T2>()
+    expectTypeOf(t2.nodes).toEqualTypeOf<{
+        two: Node<[Data<2>], {}>
+    }>()
 
     expect(t2.nodes).not.toHaveProperty('one')
     expect(t2.nodes).toHaveProperty('two', t2.getNode('two'))
@@ -260,7 +292,7 @@ it('.removeNode() from a path', () => {
 
 it('.addModules()', () => {
 
-    const n1 = Node
+    const n1 = Node.Builder
         .create(
             new Text('1st'),
             new Text('2nd')
@@ -284,13 +316,13 @@ it('.addModules()', () => {
         Text<'3rd'>,
         Text<'4th'>,
         Text<'5th'>,
-    ]>
+    ], {}>
     >()
 })
 
 it('.swapModules()', () => {
 
-    const n1 = Node.create(
+    const n1 = Node.Builder.create(
         new Text('A'),
         new Text('B'),
         new Text('C')
@@ -299,29 +331,29 @@ it('.swapModules()', () => {
     const [a,b,c] = copy(n1.modules)
 
     const n2 = n1.swapModules(0,1)
-    expectTypeOf(n2).toEqualTypeOf<Node<[Text<'B'>, Text<'A'>, Text<'C'>]>>()
+    expectTypeOf(n2).toEqualTypeOf<Node<[Text<'B'>, Text<'A'>, Text<'C'>], {}>>()
     expect(copy(n2.modules)).toEqual([b,a,c])
 
     const n3 = n1.swapModules(2,0)
-    expectTypeOf(n3).toEqualTypeOf<Node<[Text<'C'>, Text<'B'>, Text<'A'>]>>()
+    expectTypeOf(n3).toEqualTypeOf<Node<[Text<'C'>, Text<'B'>, Text<'A'>], {}>>()
     expect(copy(n3.modules)).toEqual([c,b,a])
 })
 
 it('.removeModule()', () => {
 
-    const n1 = Node.create(
+    const n1 = Node.Builder.create(
         new Text('A'),  
         new Text('B')
     )
 
     const n2 = n1.removeModule(1) 
     expect(n2.modules).toHaveLength(1)
-    expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>]>>()
+    expectTypeOf(n2).toEqualTypeOf<Node<[Text<'A'>], {}>>()
 })
 
 it('.setModule()', () => {
 
-    const n1 = Node.create(
+    const n1 = Node.Builder.create(
         new Text('A'),
         new Text('B')
     )
@@ -331,14 +363,14 @@ it('.setModule()', () => {
         new Text('Ax'),
     )
 
-    type N2 = Node<[Text<'Ax'>, Text<'B'>]>
+    type N2Modules = [Text<'Ax'>, Text<'B'>]
     expect(n2.modules).toHaveLength(2)
-    expectTypeOf(n2).toEqualTypeOf<N2>(n2)
+    expectTypeOf(n2.modules).toEqualTypeOf<N2Modules>()
 })
     
 it('.setModule() with function', () => {
 
-    const n1 = Node
+    const n1 = Node.Builder
         .create(new Text('A'))
         .setModule(
             0,
@@ -346,14 +378,14 @@ it('.setModule() with function', () => {
         )
 
     expect(n1.modules[0].getText()).toEqual('A!')  
-    type N1 = Node<[ Text<'A!'> ]>
+    type N1Modules = [ Text<'A!'> ]
     
-    expectTypeOf(n1).toEqualTypeOf<N1>()
+    expectTypeOf(n1.modules).toEqualTypeOf<N1Modules>()
 })
 
 it('.insertModules()', () => {
 
-    const n1 = Node.create(
+    const n1 = Node.Builder.create(
         new Text('Ace'),
         new Text('Case')
     )
@@ -368,7 +400,7 @@ it('.insertModules()', () => {
         Text<'Ace'>,
         Text<'Base'>,
         Text<'Case'>
-    ]>>()
+    ], {}>>()
 
     const n3 = n1.insertModules(0, new Text('Dame'), new Text('Edam'))
     expect(n3.modules).toHaveLength(4)
@@ -377,7 +409,7 @@ it('.insertModules()', () => {
         Text<'Edam'>,
         Text<'Ace'>,
         Text<'Case'>
-    ]>>()
+    ], {}>>()
 })
 
 it('SetNodeAtNestedPath', () => {
@@ -402,7 +434,7 @@ it('SetNodeAtNestedPath', () => {
 
 it('SetNodeBuilderAtPath', () => {
 
-    const empty = Node.create()
+    const empty = Node.Builder.create()
     type EmptyNodes = typeof empty.nodes 
 
     type EmptyNodesSet = SetNodeBuilderAtPath<EmptyNodes, 'foo/bar/baz', Node<[Module<1>]>>

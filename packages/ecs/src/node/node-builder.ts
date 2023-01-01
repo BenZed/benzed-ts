@@ -126,7 +126,7 @@ class NodeBuilder<M extends Modules = any, N extends Nodes = any> extends Node<M
     //// Node Build Interface ////
     
     setNode<K extends string, Nx extends Node>(key: K, node: Nx): NodeBuilder<M, SetNodeBuilderAtPath<N, K, Nx>> 
-    setNode<K extends NestedPathsOf<N>, F extends (input: GetNodeAtPath<N, K>) => NodeBuilder<Modules,Nodes>>(
+    setNode<K extends NestedPathsOf<N>, F extends (input: GetNodeAtPath<N, K>) => NodeBuilder>(
         key: K, 
         update: F
     ): NodeBuilder<M, SetNodeBuilderAtPath<N, K, ReturnType<F>>>
