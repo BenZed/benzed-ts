@@ -91,14 +91,8 @@ describe('Authentication', () => {
     const userCommands = {
         get,
         find,
-        create: Node.build(create).setModule(
-            0,
-            cmd => cmd.prependHook(hashPassword())
-        ),
-        update: Node.build(update).setModule(
-            0,
-            cmd => cmd.prependHook(hashPassword())
-        ),
+        create: create.prependHook(hashPassword()),
+        update: update.prependHook(hashPassword()),
         remove
     }
 

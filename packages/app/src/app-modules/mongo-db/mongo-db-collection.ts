@@ -1,5 +1,4 @@
 import { $, Schematic } from '@benzed/schema'
-import { Node } from '@benzed/ecs'
 import { nil } from '@benzed/util'
 
 import { AppModule } from '../../app-module'
@@ -41,15 +40,11 @@ type IdInput = { readonly id: Id }
 
 type MongoDbCollectionCommands<T extends object> = {
 
-    get: Node<[Command<HttpMethod.Get, IdInput, Promise<Record<T>>>], {}>
-
-    find: Node<[Command<HttpMethod.Get, RecordQuery<T>, Promise<Paginated<T>>>], {}>
-
-    create: Node<[Command<HttpMethod.Post, T, Promise<Record<T>>>], {}>
-
-    update: Node<[Command<HttpMethod.Patch, IdInput & Partial<T>, Promise<Record<T>>>], {}>
-
-    remove: Node<[Command<HttpMethod.Delete, IdInput, Promise<Record<T>>>], {}>
+    get: Command<HttpMethod.Get, IdInput, Promise<Record<T>>>
+    find: Command<HttpMethod.Get, RecordQuery<T>, Promise<Paginated<T>>>
+    create: Command<HttpMethod.Post, T, Promise<Record<T>>>
+    update: Command<HttpMethod.Patch, IdInput & Partial<T>, Promise<Record<T>>>
+    remove: Command<HttpMethod.Delete, IdInput, Promise<Record<T>>>
 
 }
 
@@ -171,25 +166,15 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
             return input
         } 
 
-        const get = Node.create(
-            Command.get($id, ({ id }) => this.get(id).then(assertRecord(id)))
-        )
+        const get = Command.get($id, ({ id }) => this.get(id).then(assertRecord(id)))
 
-        const find = Node.create(
-            Command.get($query, query => this.find(query))
-        )
+        const find = Command.get($query, query => this.find(query))
 
-        const create = Node.create(
-            Command.post($create, data => this.create(data))
-        )
+        const create = Command.post($create, data => this.create(data))
 
-        const update = Node.create(
-            Command.patch($update, ({ id }) => this.get(id).then(assertRecord(id)))
-        )
+        const update = Command.patch($update, ({ id }) => this.get(id).then(assertRecord(id)))
 
-        const remove = Node.create(
-            Command.delete($id, ({ id }) => this.remove(id).then(assertRecord(id)))
-        )
+        const remove = Command.delete($id, ({ id }) => this.remove(id).then(assertRecord(id)))
 
         return {
             get,
