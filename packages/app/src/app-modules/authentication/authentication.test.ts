@@ -59,7 +59,6 @@ it('optional verfication validator', async () => {
     const payloadOut1 = await auth.verifyAccessToken(token1, payloadSchema)
     expect(payloadOut1).toEqual(payloadIn1)
 
-    // 
     const token2 = await auth.createAccessToken({ badPayload: true })
     const token2Error = await auth.verifyAccessToken(token2, payloadSchema.assert).catch(through)
     expect(token2Error).toHaveProperty('name', 'ValidationError')
@@ -75,7 +74,7 @@ describe('Authentication', () => {
     //// App Modules ////
 
     const mongodb = MongoDb.create({ 
-        database: 'test-1' 
+        database: 'test-1'
     })
 
     const authentication = Authentication.create()

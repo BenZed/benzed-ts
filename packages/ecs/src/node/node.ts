@@ -1,6 +1,7 @@
 
 import { 
     callable,
+    isRecord,
     iterate, 
     keysOf,
     nil,
@@ -43,12 +44,23 @@ import { pluck } from '@benzed/array'
 
 //// Exports ////
 
-type Nodes = { readonly [key: string]: Node<Modules, Nodes> }
+type Nodes = { readonly [key: string]: Node }
+
+type NodesOf<N extends Node> = N extends Node<any, infer Nx> ? Nx : {}
+
+type ModulesOf<N extends Node> = N extends Node<infer M, any> ? M : []
 
 class Node<M extends Modules = any, N extends Nodes = any> implements CopyComparable {
 
+    static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx, Nx>
+    static create<Mx extends Modules>(...modules: Mx): Node<Mx, {}>
+    static create(...args: unknown[]): unknown {
+        return new Node(...this._sortConstructorParams(args, Module, Node))
+    }
+
     static build<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx, Nx>
     static build<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, {}>
+    static build<Nx extends Node>(node: Nx): NodeBuilder<ModulesOf<Nx>, NodesOf<Nx>>
     static build(...args: unknown[]): unknown {
         const NodeBuilder = require('./node-builder').NodeBuilder
         return new NodeBuilder(...this._sortConstructorParams(args, Module, Node))
@@ -67,15 +79,24 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
         NodeConstructor?: N
     ): [ { [key: string]: InstanceType<N> }, ...readonly InstanceType<M>[]] {
 
-        const modules = pluck(
-            params, 
-            (p): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
-        )
+        const isNode = Node.isNode(params[0]) && params.length === 1
 
-        const [nodes = {}] = pluck(
-            params, 
-            (p): p is { [key: string]: InstanceType<N> } => callable.isInstance(p, NodeConstructor ?? Node as N)
-        )
+        const modules = isNode 
+            ? (params[0] as Node).modules 
+            : pluck(
+                params, 
+                (p): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
+            )
+
+        const [nodes = {}] = isNode 
+            ? [(params[0] as Node).nodes] 
+            : pluck(
+                params, 
+                (param): param is Record<string, InstanceType<N>> => isRecord(
+                    param, 
+                    (node): node is InstanceType<N> => callable.isInstance(node, NodeConstructor ?? Node as N)
+                )
+            )
     
         return [nodes, ...modules]
     }
@@ -311,5 +332,7 @@ export default Node
 
 export {
     Node,
-    Nodes
+    Nodes,
+    NodesOf,
+    ModulesOf
 }

@@ -1,5 +1,5 @@
 import { callable, isFunc, nil, TypeGuard } from '@benzed/util'
-import { $$equals } from '@benzed/immutable'
+import { $$copy, $$equals, copy } from '@benzed/immutable'
 
 import type { Node } from '../node'
 import { $$isModuleConstructor, Module } from './module'
@@ -31,40 +31,44 @@ export type FindOutput<I> =
 export interface FindModule {
 
     <I extends FindInput>(input: I): FindOutput<I> | nil
-    inDescendents<I extends FindInput>(input: I): FindOutput<I> | nil
-    inChildren<I extends FindInput>(input: I): FindOutput<I> | nil
-    inParents<I extends FindInput>(input: I): FindOutput<I> | nil
-    inAncestors<I extends FindInput>(input: I): FindOutput<I> | nil
-    inTree<I extends FindInput>(input: I): FindOutput<I> | nil
+    or: FindModule
+    inSelf: FindModule
+    inDescendents: FindModule
+    inChildren: FindModule
+    inParents: FindModule
+    inAncestors: FindModule
 }
 
 export interface FindModules {
     <I extends FindInput>(input: I): FindOutput<I>[]
-    inDescendents<I extends FindInput>(input: I): FindOutput<I>[]
-    inChildren<I extends FindInput>(input: I): FindOutput<I>[]
-    inParents<I extends FindInput>(input: I): FindOutput<I>[]
-    inAncestors<I extends FindInput>(input: I): FindOutput<I>[]
-    inTree<I extends FindInput>(input: I): FindOutput<I>[]
+    or: FindModules
+    inSelf: FindModules
+    inDescendents: FindModules
+    inChildren: FindModules
+    inParents: FindModules
+    inAncestors: FindModules
 }
 
 export interface HasModule {
     <I extends FindInput>(input: I): boolean
-    inDescendents<I extends FindInput>(input: I): boolean
-    inChildren<I extends FindInput>(input: I): boolean
-    inParents<I extends FindInput>(input: I): boolean
-    inAncestors<I extends FindInput>(input: I): boolean
-    inTree<I extends FindInput>(input: I): boolean
+    or: HasModule
+    inSelf: HasModule
+    inDescendents: HasModule
+    inChildren: HasModule
+    inParents: HasModule
+    inAncestors: HasModule
 }
 
 //// AssertNode ////
 
 export interface AssertModule {
     <I extends FindInput>(input: I, error?: string): FindOutput<I>
-    inDescendents<I extends FindInput>(input: I, error?: string): FindOutput<I>
-    inChildren<I extends FindInput>(input: I, error?: string): FindOutput<I> 
-    inParents<I extends FindInput>(input: I, error?: string): FindOutput<I>
-    inAncestors<I extends FindInput>(input: I, error?: string): FindOutput<I>
-    inTree<I extends FindInput>(input: I, error?: string): FindOutput<I>
+    or: AssertModule
+    inSelf: AssertModule
+    inDescendents: AssertModule
+    inChildren: AssertModule
+    inParents: AssertModule
+    inAncestors: AssertModule
 }
 
 //// Implementation ////
@@ -85,7 +89,7 @@ interface ModuleFinderConstructor {
 export const ModuleFinder = callable(
 
     function find(input: FindInput, error?: string) {
-        return this._find([this.node], input, error)
+        return this._find(input, error)
     },
 
     class {
@@ -93,75 +97,63 @@ export const ModuleFinder = callable(
         constructor(
             readonly node: Node,
             private readonly _flag?: FindFlag
-        ) { }
-
-        inDescendents(input: FindInput, error?: string): unknown {
-            return this._find(
-                this.node.eachDescendent(),
-                input,
-                error
-            )
+        ) { 
+            this._iterators = [[node]]
         }
 
-        inChildren(input: FindInput, error?: string): unknown {
-            return this._find(
-                this.node.eachChild(),
-                input,
-                error
-            )
+        //// Interface ////
+
+        get or(): this {
+            this._iteratorMergeOnIncrement = true 
+            return this
         }
 
-        inParents(input: FindInput, error?: string): unknown {
-            return this._find(
-                this.node.eachParent(),
-                input,
-                error
-            )
+        get inSelf(): this {
+            return this._iteratorIncrement([this.node])
         }
 
-        inAncestors(input: FindInput, error?: string): unknown {
-            return this._find(
-                this.node.eachAncestor(),
-                input,
-                error
-            )
+        get inDescendents(): this {
+            return this._iteratorIncrement(this.node.eachDescendent())
         }
 
-        inTree(input: FindInput, error?: string): unknown {
-            return this._find(
-                this.eachNode(),
-                input,
-                error
-            )
+        get inChildren(): this{
+            return this._iteratorIncrement(this.node.eachChild())
+        }
+
+        get inParents(): this {
+            return this._iteratorIncrement(this.node.eachParent())
+        }
+
+        get inAncestors(): this {
+            return this._iteratorIncrement(this.node.eachAncestor())
         }
 
         //// Helper ////
 
-        * eachNode(): IterableIterator<Node> {
-            yield this.node.root
-            yield* this.node.root.eachDescendent()
-        }
-
         /**
          * @internal
          */
-        _find(iterator: Iterable<Node>, input: FindInput, error?: string): unknown {
+        _find(input: FindInput, error?: string): unknown {
             const predicate = toModulePredicate(input)
 
-            const output: Module[] = []
+            const found: Module[] = []
             const { _flag: flag } = this
 
-            nodes: for (const node of iterator) {
-                for (const module of node.modules) {
-                    const pass = predicate(module)
-                    if (pass)
-                        output.push(Module.isModule(pass) ? pass : module)
-                    if (pass && flag !== FindFlag.All)
-                        break nodes
+            iterators: for (const iterator of this._iterators) {
+                for (const node of iterator) {
+                    for (const module of node.modules) {
+                        if (found.includes(module))
+                            continue
+                        const pass = predicate(module)
+                        if (pass)
+                            found.push(Module.isModule(pass) ? pass : module)
+                        if (pass && flag !== FindFlag.All)
+                            break iterators
+                    }
                 }
             }
 
-            const has = output.length > 0
+            const has = found.length > 0
             if (flag === FindFlag.Assert && !has)
                 throw new Error(error ?? `Could not find module ${toModuleName(input)}`)
 
@@ -169,9 +161,31 @@ export const ModuleFinder = callable(
                 return has
 
             if (flag === FindFlag.All)
-                return output
+                return found
 
-            return output.at(0)
+            return found.at(0)
+        }
+
+        //// Iterators ////
+        
+        private readonly _iterators: Iterable<Node>[]
+        private _iteratorMergeOnIncrement = false
+        private _iteratorIncrement(iterator: Iterable<Node>): this {
+            const next = copy(this)
+            next._iterators.length = 0 
+
+            if (this._iteratorMergeOnIncrement)
+                next._iterators.push(...this._iterators)
+        
+            next._iterators.push(iterator)
+            return next
+        }
+
+        //// Copy ////
+
+        [$$copy](): this {
+            const Constructor = this.constructor as new (node: Node, flag?: FindFlag) => this
+            return new Constructor(this.node, this._flag)
         }
 
     }, 

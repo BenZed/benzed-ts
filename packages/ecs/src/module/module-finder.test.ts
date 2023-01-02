@@ -104,7 +104,7 @@ describe('callable signature', () => {
         const youRankFind = new ModuleFinder(you)
         expect(youRankFind(Module)).toEqual(youRank)
     })
-})
+}) 
 
 describe('find via constructor', () => {
     test('Module', () => {
@@ -120,6 +120,14 @@ it('require flag', () => {
 })
 
 it('all flag', () => {
-    const [ finder,,you ] = createFamilyTreeAndFinder(FindFlag.All)
+    const [ finder, , you ] = createFamilyTreeAndFinder(FindFlag.All)
     expect(finder.inParents(Module)).toEqual(you.parents.flatMap((p: Node) => p.findModule(Module)))
+})
+
+it('or clause', () => {
+    const [finder,,you] = createFamilyTreeAndFinder(FindFlag.All)
+    expect(finder.inParents.or.inChildren(Module)).toEqual([
+        ...you.parents.map((n: Node) => n.modules),
+        ...you.children.map((n: Node) => n.modules)
+    ].flat())
 })
