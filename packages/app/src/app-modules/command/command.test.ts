@@ -504,8 +504,16 @@ test('name', () => {
         get: Node.create(Get)
     })
 
-    const get = node.module.inDescendents(Get)
+    const get = node.assertModule.inDescendents(Get)
     expect(get.name).toEqual('get')
     expect(get.node.getPathFromRoot()).toEqual('get') 
+
+})
+
+it('copy', () => {
+
+    const node = Node.create(Command.get({}))
+
+    expect(node.module(0).node).toBe(node)
 
 })

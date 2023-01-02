@@ -22,12 +22,12 @@ class Service<M extends Modules = any, N extends Nodes = any> extends Node<M, N>
     }
 
     async start(): Promise<void> {
-        for (const appModule of this.findModules.inTree(AppModule))
+        for (const appModule of this.root.findModules.inSelf.or.inDescendents(AppModule))
             await appModule.start()
     }
 
     async stop(): Promise<void> {
-        for (const appModule of this.findModules.inTree(AppModule))
+        for (const appModule of this.root.findModules.inSelf.or.inDescendents(AppModule))
             await appModule.stop()
     }
 

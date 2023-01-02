@@ -38,9 +38,9 @@ type _ModulesMethods<M extends Modules, I = Indexes<M>> = I extends [infer I1, .
 //// Types ////
 
 type ModuleInterface<M extends Modules> =   
-(<I extends FindInput>(find: I) => FindOutput<I>) & 
-(<I extends IndexesOf<M>>(index: I) => M[I]) & 
-_ModulesMethods<M>
+    (<I extends FindInput>(find: I) => FindOutput<I>) & 
+    (<I extends IndexesOf<M>>(index: I) => M[I]) & 
+    _ModulesMethods<M>
 
 interface ModuleInterfaceConstructor {
     new <M extends Modules>(node: Node<M, Nodes>): ModuleInterface<M>
@@ -95,9 +95,9 @@ const ModuleInterface = callable(
                     
                     const { value, ...descriptor } = descriptors[key]
 
+                    const isMethod = isFunc(value)
                     const isPrivate = key.startsWith('_')
                     const isAlreadyDefined = key in applyDescriptors || key in modulesDescriptors
-                    const isMethod = isFunc(value)
                     
                     if (!isPrivate && !isAlreadyDefined && isMethod) {
 
@@ -111,7 +111,8 @@ const ModuleInterface = callable(
             }
             define(this, applyDescriptors)
         }
-    }
+    },
+    'ModuleInterface'
 ) as ModuleInterfaceConstructor
 
 //// Exports ////

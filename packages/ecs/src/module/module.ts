@@ -96,11 +96,11 @@ export class Module<T = unknown> implements CopyComparable {
         if (node.modules.indexOf(this) !== node.modules.lastIndexOf(this))
             throw new Error(`${node} may only have a single reference of a module.`)
 
-        if (this.hasNode)
-            throw new Error(`${this} already has a node`)
-
         if (!node.modules.includes(this))
             throw new Error(`${this} is not included in ${node}'s modules.`)
+
+        if (this.hasNode)
+            throw new Error(`${this} already has a node`)
 
         Module._refs.set(this, node)
     }

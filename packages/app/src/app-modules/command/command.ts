@@ -151,8 +151,8 @@ class Command<H extends HttpMethod = HttpMethod, I extends object = object, O ex
     }
 
     override [$$copy](): this {
-        const Constructor = this.constructor as (new (settings: object, transform: Func) => this)
-        return new Constructor(this.settings, this.data)
+        const Command = this.constructor as (new (settings: object, transform: Func) => this)
+        return new Command(this.settings, this.data)
     }
 
     override validate(): void {
@@ -314,11 +314,11 @@ class Command<H extends HttpMethod = HttpMethod, I extends object = object, O ex
     }
 
     appendHook<Ox extends object>(hook: CommandHook<Awaited<O>, Ox>): Command<H, I, ResolveAsyncOutput<O, Ox>> {
-        return Execute.append(this, hook) as Command<H, I, ResolveAsyncOutput<O, Ox>>
+        return new Command(this.settings, Pipe.from(this.data).to(hook as Func))
     }
 
     prependHook<Ix extends object>(hook: CommandHook<Ix, I>): Command<H, Ix, O> {
-        return Execute.prepend(this, hook) as Command<H, Ix, O> 
+        return new Command(this.settings as any, Pipe.from(hook).to(this.data as Func))
     }
 
     //// Helper ////
@@ -363,5 +363,12 @@ class Command<H extends HttpMethod = HttpMethod, I extends object = object, O ex
 export default Command
 
 export {
-    Command
+    Command,
+    CommandHook,
+    CommandContext,
+    CommandSettings,
+
+    QueryKey,
+    Headerer,
+    HeaderMatch
 }

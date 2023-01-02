@@ -36,7 +36,7 @@ const authenticate = Command
 
         const Auth = require('./authentication').Authentication as typeof Authentication
 
-        const auth = ctx.node.assertModule.inAncestors(Auth)
+        const auth = ctx.node.assertModule.inSelf.or.inAncestors(Auth)
 
         const password = await auth.hashPassword(credentials.password)
 

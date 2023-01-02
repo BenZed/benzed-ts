@@ -1,5 +1,5 @@
 
-import { keysOf, isFunc } from '@benzed/util'
+import { keysOf, isFunc, indexesOf } from '@benzed/util'
 
 import { isPrototypal, isReferable, Prototypal } from './util'
 import { $$copy } from './symbols'
@@ -51,9 +51,9 @@ function copyArrayWithoutCircularRefs<T>(value: readonly T[], refs: Refs = [valu
 
     const clone = new (value.constructor as ArrayConstructor)(value.length)
 
-    for (let i = 0; i < value.length; i++) {
-        if (!hasCircularRef(value[i], refs))
-            clone[i] = copyWithoutCircularRef(value[i], refs)
+    for (const index of indexesOf(value)) {
+        if (!hasCircularRef(value[index], refs))
+            clone[index] = copyWithoutCircularRef(value[index], refs)
     }
 
     return clone
@@ -71,7 +71,7 @@ function copyWithImplementation<T>(value: T, refs?: Refs): T {
         return copyObjectWithoutCircularRefs(value, refs)
 
     throw new Error(
-        `${value.constructor?.name || 'value'} does not implement CopyableF`
+        `${value.constructor?.name || 'value'} does not implement Copyable`
     )
 }
 

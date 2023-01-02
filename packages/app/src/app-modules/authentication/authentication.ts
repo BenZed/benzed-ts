@@ -5,13 +5,13 @@ import { nil, omit } from '@benzed/util'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-import { MongoDbCollection } from '../mongo-db'
 import { AppModule } from '../../app-module'
-import { HttpCode } from '../../util'
+import { Service } from '../../service'
+import { MongoDbCollection } from '../mongo-db'
 import { CommandError } from '../command'
-
 import { authenticate, AuthenticateCommand, Credentials } from './authenticate'
-import Service from '../../service'
+
+import { HttpCode } from '../../util'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -76,8 +76,9 @@ class Authentication extends AppModule<AuthSettings> {
 
         const collection = this
             .node
+            .root
             .assertModule
-            .inAncestors((m): m is MongoDbCollection<string, Credentials> => 
+            .inDescendents((m): m is MongoDbCollection<string, Credentials> => 
                 m instanceof MongoDbCollection && 
                 m.name === this.settings.collection
             )

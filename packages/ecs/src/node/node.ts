@@ -15,6 +15,8 @@ import {
     CopyComparable 
 } from '@benzed/immutable'
 
+import { pluck } from '@benzed/array'
+
 import { 
     Module, 
     Modules,
@@ -33,7 +35,6 @@ import { GetNodeAtPath, NestedPathsOf, removeNode, setNode } from './operations'
 
 import type NodeBuilder from './node-builder'
 import ModuleInterface from '../module/module-interface'
-import { pluck } from '@benzed/array'
 
 /* eslint-disable 
     @typescript-eslint/ban-types,
@@ -79,29 +80,27 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
         NodeConstructor?: N
     ): [ { [key: string]: InstanceType<N> }, ...readonly InstanceType<M>[]] {
 
-        const isNode = Node.isNode(params[0]) && params.length === 1
+        const node = Node.isNode(params[0]) 
+            ? params[0]
+            : nil
 
-        const modules = isNode 
-            ? (params[0] as Node).modules 
-            : pluck(
-                params, 
-                (p): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
-            )
+        const modules = pluck(
+            node ? copy(node.modules) : params, 
+            (p): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
+        )
 
-        const [nodes = {}] = isNode 
-            ? [(params[0] as Node).nodes] 
-            : pluck(
-                params, 
-                (param): param is Record<string, InstanceType<N>> => isRecord(
-                    param, 
-                    (node): node is InstanceType<N> => callable.isInstance(node, NodeConstructor ?? Node as N)
-                )
+        const [nodes = {}] = pluck(
+            node ? copy([node.nodes]) : params, 
+            (p): p is Record<string, InstanceType<N>> => isRecord(
+                p, 
+                (n): n is InstanceType<N> => callable.isInstance(n, NodeConstructor ?? Node as N)
             )
+        )
     
         return [nodes, ...modules]
     }
 
-    static isNode(input: unknown): input is Node {
+    static isNode(input: unknown): input is Node<Modules, Nodes> {
         return callable.isInstance(input, Node as unknown as (new () => Node))
     }
 
@@ -242,10 +241,10 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     }
 
     * eachChild(): IterableIterator<Node> {
-        yield* iterate(this.children)
+        yield* iterate(this.nodes)
     }
     get children(): Node[] {
-        return Array.from(iterate(this.nodes))
+        return Array.from(this.eachChild())
     }
     get numChildren(): number {
         return this.children.length
@@ -311,7 +310,11 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
 
     [$$copy](): this {
         const NodeConstructor = this.constructor as new (nodes: Nodes, ...modules: Modules) => this
-        return new NodeConstructor(copy(this.nodes), ...copy(this.modules)) as Node<M,N> as this
+
+        const nodes = copy(this.nodes)
+        const modules = copy(this.modules)
+
+        return new NodeConstructor(nodes, ...modules) as Node<M,N> as this
     }
 
     [$$equals](other: unknown): other is this {

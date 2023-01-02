@@ -1,4 +1,5 @@
 import $ from '@benzed/schema'
+import { Node } from '@benzed/ecs'
 import { through } from '@benzed/util'
 
 import { Service } from '../../service'
@@ -16,6 +17,7 @@ import {
 } from '@jest/globals'
 
 import { HttpCode } from '../../util'
+import { hashPassword } from './hooks'
 
 //// Tests ////
 
@@ -26,7 +28,7 @@ it('static .create()', () => {
 
 it('creates access tokens', async () => {
 
-    const auth = Authentication.create({})
+    const auth = Authentication.create({})  
 
     const token = await auth.createAccessToken({ foo: 'bar' })
 
@@ -79,16 +81,32 @@ describe('Authentication', () => {
 
     const authentication = Authentication.create()
 
-    const users = mongodb.createCollection('users', {
+    const users = mongodb.createCollection<'users', User>('users', {
         email: $.string,
         password: $.string
     })
+ 
+    const { get, find, create, update, remove } = users.createCommands()
+
+    const userCommands = {
+        get,
+        find,
+        create: Node.build(create).setModule(
+            0,
+            cmd => cmd.prependHook(hashPassword())
+        ),
+        update: Node.build(update).setModule(
+            0,
+            cmd => cmd.prependHook(hashPassword())
+        ),
+        remove
+    }
 
     //// App ////
 
     const app = App.create({
 
-        users: Service.create(users.createCommands()),
+        users: Service.create(userCommands),
 
         auth: Service.create(
             {
@@ -108,19 +126,24 @@ describe('Authentication', () => {
         password: 'password'
     }
 
-    beforeAll(() => app.start())
+    beforeAll(() => app.start()) 
     beforeAll(() => app
-        .module(MongoDb)
+        .assertModule
+        .inDescendents(MongoDb)
         .clearAllCollections()
     )
 
     let user: Record<User>
-    beforeAll(async () => {
-        user = await app.commands.users.create(CREDS, {})
+    beforeAll(async () => { 
+        user = await app
+            .commands
+            .users 
+            .create(CREDS, {})
     })
 
     afterAll(() => app
-        .module(MongoDb)
+        .assertModule
+        .inDescendents(MongoDb)
         .clearAllCollections()
     )
     afterAll(() => app.stop())
