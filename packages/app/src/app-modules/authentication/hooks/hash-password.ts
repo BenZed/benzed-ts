@@ -1,7 +1,7 @@
 import { memoize, nil } from '@benzed/util'
 
 import { CommandHook } from '../../_old_command'
-import Auth from '../auth'
+import Authentication from '../authentication'
 
 //// Main ////
 
@@ -10,7 +10,7 @@ const hashPassword = memoize(<I extends { password?: string }>(): CommandHook<I,
 
         const { password } = input
 
-        const auth = cmd.find.inParents(Auth)
+        const auth = cmd.module.inParents(Authentication)
 
         const output = {
             ...input,

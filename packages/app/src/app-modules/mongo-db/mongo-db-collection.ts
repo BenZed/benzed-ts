@@ -1,11 +1,13 @@
-import { Schematic } from '@benzed/schema'
+import { $, Schematic } from '@benzed/schema'
+import { Node } from '@benzed/ecs'
 import { nil } from '@benzed/util'
 
 import { AppModule } from '../../app-module'
 
 import { Collection as _MongoCollection, ObjectId } from 'mongodb'
-import { SchemaHook, toSchematic } from '../../util'
+import { SchemaHook, toSchematic, HttpMethod, HttpCode } from '../../util'
 import { MongoDb } from './mongo-db'
+import { Command, CommandError } from '../command'
 
 //// Eslint ////
 
@@ -35,25 +37,28 @@ type RecordQuery<T extends object> = {
 
 type RecordOf<C extends MongoDbCollection<string, object>> = C extends MongoDbCollection<string, infer R> ? R : object
 
+type IdInput = { readonly id: Id }
+
+type MongoDbCollectionCommands<T extends object> = {
+
+    get: Node<[Command<HttpMethod.Get, IdInput, Promise<Record<T>>>], {}>
+
+    find: Node<[Command<HttpMethod.Get, RecordQuery<T>, Promise<Paginated<T>>>], {}>
+
+    create: Node<[Command<HttpMethod.Post, T, Promise<Record<T>>>], {}>
+
+    update: Node<[Command<HttpMethod.Patch, IdInput & Partial<T>, Promise<Record<T>>>], {}>
+
+    remove: Node<[Command<HttpMethod.Delete, IdInput, Promise<Record<T>>>], {}>
+
+}
+
 //// Collection ////
 
 class MongoDbCollection<N extends string, T extends object> extends AppModule<{ name: N, schema: Schematic<T> }> {
 
     static create<Nx extends string, Tx extends object>(name: Nx, schema: SchemaHook<Tx>): MongoDbCollection<Nx,Tx> {
         return new MongoDbCollection(name, schema)
-    }
-
-    override get name(): N {
-        return this.data.name
-    }
-
-    getName(): N {
-        return this.name
-    }
-
-    setName<Nx extends string>(name: Nx): MongoDbCollection<Nx, T> {
-        this._assertStopped()
-        return new MongoDbCollection(name, this.data.schema)
     }
 
     constructor(name: N, schema: SchemaHook<T>) {
@@ -83,6 +88,9 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
      */
     async get(id: Id): Promise<Record<T> | nil> {
 
+        if (!ObjectId.isValid(id))
+            throw new Error(`${id} is not a valid object-id.`)
+
         const record = await this
             ._collection
             .findOne(new ObjectId(id)) ?? nil
@@ -96,7 +104,7 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
     /**
      * Find records in the collection
      */
-    async find(query: RecordQuery<T>): Promise<Paginated<Record<T>>> {
+    async find(query: RecordQuery<T>): Promise<Paginated<T>> {
 
         const records: Record<T>[] = []
         const total = await this
@@ -119,6 +127,21 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
         }
     }
 
+    //// Builder ////
+    
+    override get name(): N {
+        return this.data.name
+    }
+
+    getName(): N {
+        return this.name
+    }
+
+    setName<Nx extends string>(name: Nx): MongoDbCollection<Nx, T> {
+        this._assertStopped()
+        return new MongoDbCollection(name, this.schema)
+    }
+
     get schema(): Schematic<T> {
         return this.data.schema
     }
@@ -130,6 +153,51 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
     setSchema<Tx extends object>(schema: SchemaHook<Tx>): MongoDbCollection<N, Tx> {
         this._assertStopped()
         return new MongoDbCollection(this.name, toSchematic(schema))
+    }
+
+    createCommands(): MongoDbCollectionCommands<T> {
+
+        // We don't actually need to compose schematics because the collection methods + mongodb validate the input anyway
+        const $id = $.unknown as Schematic<IdInput>
+        const $query = $.unknown as Schematic<RecordQuery<T>>
+        const $update = $.unknown as Schematic<IdInput & Partial<T>>
+        const $create = this.schema
+
+        //// Stuff ////
+
+        const assertRecord = (id: Id) => (input: Record<T> | nil): Record<T> => {
+            if (!input)
+                throw new CommandError(HttpCode.NotFound, `No ${this.name} record for id ${id} could be found`)
+            return input
+        } 
+
+        const get = Node.create(
+            Command.get($id, ({ id }) => this.get(id).then(assertRecord(id)))
+        )
+
+        const find = Node.create(
+            Command.get($query, query => this.find(query))
+        )
+
+        const create = Node.create(
+            Command.post($create, data => this.create(data))
+        )
+
+        const update = Node.create(
+            Command.patch($update, ({ id }) => this.get(id).then(assertRecord(id)))
+        )
+
+        const remove = Node.create(
+            Command.delete($id, ({ id }) => this.remove(id).then(assertRecord(id)))
+        )
+
+        return {
+            get,
+            find,
+            create,
+            update,
+            remove,
+        }
     }
 
     /**

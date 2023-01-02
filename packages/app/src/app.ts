@@ -1,37 +1,36 @@
-import { AddModules, Module, Modules, Nodes } from '@benzed/ecs'
 
-import { AppModule, AppModules } from './app-module'
 import { Client, Server } from './app-modules'
-
 import Service from './service'
 
-//// Type ////
+//// Types ////
 
 type Services = {
-    [key: string]: Service<Modules, Nodes>
+    [key: string]: Service
 }
 
 //// Main ////
 
-class App<M extends readonly AppModule[], S extends Services> extends Service<M,S> {
+class App<M extends [Client] | [Server] | [], S extends Services> extends Service<M,S> {
 
-    static override create<Sx extends Services, Mx extends AppModules>(nodes: Sx, ...modules: Mx): App<Mx,Sx>
-    static override create<Sx extends Services, Mx extends AppModules>(...modules: Mx): App<Mx,Sx>
-    static override create(...args: unknown[]): unknown {
-        return new App(...this._sortConstructorParams(args, AppModule, Service))
+    static override create<Sx extends Services>(services: Sx): App<[],Sx> {
+        return new App(services)
     }
 
-    asClient(): App<AddModules<M, [Client]>, S> {
-        return App.create(
+    get services(): S {
+        return this.nodes
+    }
+
+    asClient(): App<[Client], S> {
+        return new App(
             this.nodes, 
-            ...Module.add(this.modules, Client.create())
+            Client.create()
         )
     }
 
-    asServer(): App<AddModules<M, [Server]>, S> {
-        return App.create(
+    asServer(): App<[Server], S> {
+        return new App(
             this.nodes, 
-            ...Module.add(this.modules, Server.create())
+            Server.create()
         )
     }
 

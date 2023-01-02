@@ -1,15 +1,21 @@
-import { is } from '@benzed/is'
 import { Module } from '@benzed/ecs'
-import $, { Infer, SchemaFor } from '@benzed/schema'
-import { fromBase64, nil, omit, toBase64 } from '@benzed/util'
+import $, { Infer } from '@benzed/schema'
+import { nil, omit } from '@benzed/util'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-import { MongoDb, MongoDbCollection } from '../mongo-db'
-import { Command, CommandError } from '../command'
+import { MongoDbCollection } from '../mongo-db'
 import { AppModule } from '../../app-module'
 import { HttpCode } from '../../util'
+import { CommandError } from '../command'
+
+import { authenticate, AuthenticateCommand, Credentials } from './authenticate'
+import Service from '../../service'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Helper ////
 
@@ -19,6 +25,7 @@ const DEFAULT_PASSWORD_SALT_ROUNDS = 10
 //// Settings ////
 
 interface AuthSettings extends Infer<typeof $authSettings> {}
+
 const $authSettings = $({
     secret: $.string.optional.default(DEFAULT_SECRET),
     collection: $.string.optional.default('users'),
@@ -31,77 +38,25 @@ type AssertPayload<T extends object> =
     | ((input: object) => asserts input is T)
     | { assert: (input: object) => asserts input is T }
 
-interface Credentials {
-    readonly email: string 
-    readonly password: string
-}
-
-const $credentials: SchemaFor<Credentials> = $({
-    email: $.string,
-    password: $.string
-})
-
 interface AccessToken {
     accessToken: string
 }
 
-//// Handler ////
-
-const authenticate = Command
-    .put($credentials, async (credentials, ctx) => {
-
-        const auth = ctx.node.assertModule.inAncestors(Auth as unknown as new () => Auth)
-
-        const password = await auth.hashPassword(credentials.password)
-
-        const { records } = await auth.collection.find({ email: credentials.email })
-
-        const [ entity ] = records
-        if (!entity || await bcrypt.compare(password, entity.password))
-            throw new CommandError(HttpCode.Unauthorized, 'Invalid credentials.')
-
-        const accessToken = await auth.createAccessToken({ _id: entity._id, })
-        
-        const output: AccessToken = { accessToken }
-        return output
-    })
-    .addHeaderLink(
-        (head, { email, password, ...rest }) => {
-            const credentials = toBase64(`${email}:${password}`)
-            head.set('authorization', `Basic ${credentials}`)
-            return rest
-        },
-        (headers, data) => {
-
-            const auth = headers?.get('authorization')
-            if (!auth)
-                return nil 
-    
-            const [email, password] = fromBase64(auth.replace('Basic ', ''))
-                .split(':') 
-            
-            if (!is.string(email) || !is.string(password))
-                return nil
-
-            return { ...data, email, password }
-        }
-    )
-
 //// Module ////
 
-class Auth extends AppModule<AuthSettings> {
+class Authentication extends AppModule<AuthSettings> {
 
-    static create(settings: AuthSettings = {}): Auth {
-        return new Auth(
+    static create(settings: AuthSettings = {}): Authentication {
+        return new Authentication(
             $authSettings.validate({ ...settings }) as Required<AuthSettings>
         )
     }
 
-    private constructor(readonly settings: Required<AuthSettings>) {
-        super(settings)
-    }
-
     //// State ////
+
+    get settings(): Required<AuthSettings> {
+        return this.data as Required<AuthSettings>
+    }
     
     /**
      * Access token if authenticated on the client
@@ -117,13 +72,16 @@ class Auth extends AppModule<AuthSettings> {
         Module.assert.isSingle(this)
     }
 
-    get collection(): MongoDbCollection<Credentials> {
-        type C = typeof this.settings.collection
+    get collection(): MongoDbCollection<string, Credentials> {
 
-        const database = this
-            .findModule<MongoDb<{ [K in C]: MongoDbCollection<Credentials> }>, true>(MongoDb, true)
+        const collection = this
+            .node
+            .assertModule
+            .inAncestors((m): m is MongoDbCollection<string, Credentials> => 
+                m instanceof MongoDbCollection && 
+                m.name === this.settings.collection
+            )
 
-        const collection = database.getCollection(this.settings.collection)
         return collection
     }
     
@@ -197,14 +155,17 @@ class Auth extends AppModule<AuthSettings> {
         const { saltRounds } = this.settings
         return bcrypt.hash(password, saltRounds)
     }
+
+    createCommand(): Service<[AuthenticateCommand],{}> {
+        return Service.create(authenticate)
+    }
 }
 
 //// Exports ////
 
-export default Auth
+export default Authentication
 
 export {
-    Auth,
-    Credentials as AuthCredentials,
-    AccessToken
+    Authentication,
+    AccessToken,
 }

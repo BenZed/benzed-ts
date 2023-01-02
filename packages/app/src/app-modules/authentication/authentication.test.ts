@@ -1,36 +1,32 @@
 import $ from '@benzed/schema'
-import { Node } from '@benzed/ecs'
 import { through } from '@benzed/util'
 
-import { Auth } from './auth'
-import { MongoDb, MongoDbCollection, Record } from '../mongo-db'
+import { Service } from '../../service'
+import { App } from '../../app'
 
-import { 
-    it, 
-    expect, 
-    describe, 
-    beforeAll, 
-    afterAll 
+import { Authentication } from './authentication'
+import { MongoDb, Record } from '../mongo-db'
+
+import {
+    it,
+    expect,
+    describe,
+    beforeAll,
+    afterAll
 } from '@jest/globals'
 
 import { HttpCode } from '../../util'
-import { Command } from '../command'
 
 //// Tests ////
 
-it('is sealed', () => {
-    // @ts-expect-error Sealed
-    void class extends Auth {}
-})
-
 it('static .create()', () => {
-    const auth = Auth.create({})
-    expect(auth).toBeInstanceOf(Auth)
+    const auth = Authentication.create({})
+    expect(auth).toBeInstanceOf(Authentication)
 })
 
 it('creates access tokens', async () => {
 
-    const auth = Auth.create({})
+    const auth = Authentication.create({})
 
     const token = await auth.createAccessToken({ foo: 'bar' })
 
@@ -40,7 +36,7 @@ it('creates access tokens', async () => {
 
 it('verifies access tokens', async () => {
 
-    const auth = Auth.create({})
+    const auth = Authentication.create({})
 
     const payload = { foo: 'Cake' }
     const token = await auth.createAccessToken(payload)
@@ -51,7 +47,7 @@ it('verifies access tokens', async () => {
 
 it('optional verfication validator', async () => {
 
-    const auth = Auth.create({})
+    const auth = Authentication.create({})
 
     const payloadIn1 = { email: 'name@email.com', password: 'password' }
     const payloadSchema = $({
@@ -76,29 +72,37 @@ describe('Authentication', () => {
         password: string
     }
 
-    const database = MongoDb
-        .create({ 
-            database: 'test-1' 
-        })
-        
-    const userCollection = MongoDbCollection
-        .create('users', {
-            email: $.string,
-            password: $.string
-        })
- 
-    const userService = Node.create({
-        get: Node.create(
-            Command.get({ id: $.string }, ({ id }, ctx) => ctx.module.inParents(userCollection).get(id))
-        )
+    //// App Modules ////
+
+    const mongodb = MongoDb.create({ 
+        database: 'test-1' 
     })
 
-    const app = Node
-        .create(
-            database,
-            Auth.create()
+    const authentication = Authentication.create()
+
+    const users = mongodb.createCollection('users', {
+        email: $.string,
+        password: $.string
+    })
+
+    //// App ////
+
+    const app = App.create({
+
+        users: Service.create(users.createCommands()),
+
+        auth: Service.create(
+            {
+                login: authentication.createCommand()
+            },
+            authentication
+        ),
+
+        database: Service.create(
+            mongodb,
+            users
         )
-        .setNode('users', userService)
+    })  
 
     const CREDS = {
         email: 'user@email.com',
@@ -113,29 +117,27 @@ describe('Authentication', () => {
 
     let user: Record<User>
     beforeAll(async () => {
-        user = await app.commands.usersCreate(CREDS)
+        user = await app.commands.users.create(CREDS, {})
     })
 
     afterAll(() => app
-        .assert(MongoDb)
+        .module(MongoDb)
         .clearAllCollections()
     )
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {
-        const auth = app.assert(Auth)
-        const result = await auth.execute(CREDS)
+        const result = await app.commands.auth.login(CREDS, {})
         const { accessToken } = result ?? {}
 
         expect(typeof accessToken).toBe('string')
     })
 
     it('throws on invalid credentials', async () => {
-        const auth = app.assert(Auth)
-        const result = await auth.execute({ 
+        const result = await app.commands.auth.login({  
             email: 'hacker@email.com', 
             password: 'not-today-you-scallywag'
-        }).catch(through)
+        }, {}).catch(through)
 
         expect(result).toHaveProperty('code', HttpCode.Unauthorized)
         expect(result).toHaveProperty('message', 'Invalid credentials.')

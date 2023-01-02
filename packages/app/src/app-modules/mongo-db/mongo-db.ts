@@ -14,6 +14,7 @@ import {
 import MongoDbCollection from './mongo-db-collection'
 
 import { AppModule } from '../../app-module'
+import { SchemaHook } from '../../util'
 
 //// Eslint ////
 
@@ -86,6 +87,10 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
 
     get isConnected(): boolean {
         return this._connect.isFulfilled
+    }
+
+    createCollection<N extends string, T extends object>(name: N, schema: SchemaHook<T>): MongoDbCollection<N,T> {
+        return new MongoDbCollection(name, schema)
     }
 
     async clearAllCollections(): Promise<void> {
