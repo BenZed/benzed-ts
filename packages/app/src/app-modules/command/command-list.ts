@@ -1,5 +1,5 @@
-import { Modules, Node, Nodes } from '@benzed/ecs'
-import { Empty, Infer, isEmpty, KeysOf } from '@benzed/util'
+import { Node, Nodes } from '@benzed/ecs'
+import { Empty, Infer, isEmpty, iterate, KeysOf } from '@benzed/util'
 import Command from './command'
 
 /* eslint-disable 
@@ -14,46 +14,37 @@ type _OmitEmptyValues<T> = Infer<{
     [K in keyof T as T[K] extends Empty ? never : K]: T[K]
 }>
 
-type _CommandsOfNodes<N extends Nodes> = _OmitEmptyValues<{
-    [K in KeysOf<N>]: N[K] extends Node<infer M, infer Nx> 
-        ? _CommandList<M, Nx>
-        : never
+type _CommandsInNodes<N extends Nodes> = _OmitEmptyValues<{
+    [K in KeysOf<N>]: N[K] extends _Command
+        ? N[K]
+        : N[K] extends Node<any, infer Nx> 
+            ? _CommandsInNodes<Nx>
+            : never
 }>
 
-type _CommandInModules<M> = M extends [infer M1, ...infer Mx]
-    ? M1 extends _Command
-        ? M1
-        : _CommandInModules<Mx>
-    : never
-
-type _CommandList<M extends Modules, N extends Nodes> = 
-    _CommandInModules<M> extends never
-        ? _CommandsOfNodes<N>
-        : _CommandInModules<M>
-    
 //// Types ////
 
-type CommandList<M extends Modules, N extends Nodes> = 
-    _CommandList<M,N>
+type CommandList<N extends Nodes> = 
+    _CommandsInNodes<N>
 
 //// Main ////
 
 /**
  * Create a typesafe list of commands of a node
  */
-function commandList<M extends Modules, N extends Nodes>(
-    node: Node<M,N>
-): CommandList<M,N> {
+function commandList<N extends Nodes>(
+    node: { nodes: N }
+): CommandList<N> {
 
     const commands: Record<string, unknown> = {}
 
-    for (const child of node) {
-        const command: unknown = child.findModule(Command) ?? commandList(child)
+    for (const child of iterate(node.nodes)) {
+        const command = Command.isCommand(child) ? child : commandList(child)
         if (!isEmpty(command))
             commands[child.name] = command
     }
 
-    return commands as CommandList<M,N>
+    return commands as CommandList<N>
 }
 
 //// Exports ////

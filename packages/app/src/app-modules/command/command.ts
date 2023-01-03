@@ -12,6 +12,7 @@ import {
     SchemaHook,
     toSchematic,
 } from '../../util'
+import commandList, { CommandList } from './command-list'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -86,6 +87,8 @@ interface CommandCreateWithMethod {
 type NodeConstructor = typeof Node
 interface CommandConstructor extends NodeConstructor {
 
+    list: typeof commandList
+
     isCommand<I extends Json, O extends Json, C extends Provide>(
         input: unknown
     ): input is Command<I,O,C>
@@ -119,6 +122,8 @@ const Command = callable(
         static isCommand(input: unknown): input is Command {
             return callable.isInstance(input, _Command)
         }
+
+        static list = commandList
 
         static override create(
             method: HttpMethod, 
