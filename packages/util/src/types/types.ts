@@ -5,10 +5,17 @@ import { Merge } from './merge'
     @typescript-eslint/no-explicit-any,
 */
 
+export type JsonPrimitive = null | string | number | boolean
+
+export type JsonArray = Json[] | readonly Json[]
+
 export type Json =
-    null | string | number | boolean |
-    Json[] |
-    { [k: string]: Json }
+    | { [k: string]: Json }
+    | { readonly [k: string]: Json }
+    | JsonArray
+    | JsonPrimitive
+
+export type JsonObject = Record<string, Json>
 
 /**
  * Make specific keys of a type required
