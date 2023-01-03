@@ -13,8 +13,12 @@ export type IndexesOf<A extends array> = {
     [K in keyof A]: StringToNumber<K>
 }[number]
 
-export type IndexValue<A extends ArrayLike<unknown>> = 
-    A extends ArrayLike<infer V> ? V : unknown
+export type IndexValue<A extends ArrayLike<unknown> | array> = 
+    A extends Array<infer Vx> | Readonly<Array<infer Vx>>  
+        ? Vx
+        : A extends ArrayLike<infer Vxx>    
+            ? Vxx 
+            : unknown
 
 /**
  * Get the first element of an array type

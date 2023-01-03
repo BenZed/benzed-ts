@@ -25,7 +25,7 @@ type Predicate<T> = (
 
 function pluck<
     A extends ArrayLike<unknown>,
-    F extends Predicate<IndexValue<A>> | TypeGuard<unknown>
+    F extends TypeGuard<unknown> | Predicate<IndexValue<A>>
 >(
     input: A,
     fitler: F,
@@ -38,13 +38,13 @@ function pluck<I, O extends I>(
     count?: number
 ): O[]
 
-//// Optionally bindable ////
-
 function pluck<T>(
     input: ArrayLike<T>,
     predicateFilter: Predicate<T>,
     count?: number
 ): T[]
+
+//// Optionally bindable ////
 
 function pluck<
     A extends ArrayLike<unknown>,
@@ -66,12 +66,17 @@ function pluck<T>(
     predicateFilter: Predicate<T>,
     count?: number
 ): T[]
+
 function pluck(
     this: unknown,
     ...args: unknown[]
 ): unknown[] {
 
-    const [ input, predicate, maxToRemove ] = (args.length <= 1 ? [this, ...args] : args) as [ArrayLike<unknown>, Predicate<unknown>, number | nil ]
+    const [ input, predicate, maxToRemove ] = (
+        args.length <= 1 
+            ? [this, ...args] 
+            : args
+    ) as [ArrayLike<unknown>, Predicate<unknown>, number | nil ]
 
     let count = maxToRemove ?? input.length
 

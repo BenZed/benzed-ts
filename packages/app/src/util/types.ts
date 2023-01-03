@@ -1,3 +1,5 @@
+import { JsonRecord as Json } from '@benzed/util'
+
 import { Headers } from 'cross-fetch'
 import { HttpMethod } from './http-methods'
 
@@ -26,10 +28,11 @@ export type UrlParamKeys<T> = keyof UrlParams<T>
 export interface Request {
     method: HttpMethod
     url: string
-    body?: object
+    body?: Json
     headers?: Headers
 }
 
 export {
-    Headers
+    Headers,
+    Json
 }

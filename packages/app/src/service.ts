@@ -14,14 +14,15 @@ class Service<M extends Modules = any, N extends Nodes = any> extends Node<M, N>
     static override create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Service<Mx,Nx>
     static override create<Nx extends Nodes, Mx extends Modules>(...modules: Mx): Service<Mx,Nx>
     static override create(...args: unknown[]): unknown {
-        return new Service(...Node._sortConstructorParams(args))
+        return new Service(...this._sortConstructorParams(args))
     }
 
-    get commands(): CommandList<M,N> {
+    get commands(): CommandList<N> {
         return Command.list(this)
     }
 
     async start(): Promise<void> {
+
         for (const appModule of this.root.findModules.inSelf.or.inDescendents(AppModule))
             await appModule.start()
     }
