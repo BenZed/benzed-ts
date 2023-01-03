@@ -7,16 +7,16 @@ import { App } from '../../app'
 import { Authentication } from './authentication'
 import { MongoDb, Record } from '../mongo-db'
 
-import {
-    it,
+import { 
+    it, 
     expect,
     describe,
     beforeAll,
-    afterAll
+    afterAll  
 } from '@jest/globals'
 
-import { HttpCode } from '../../util'
 import { hashPassword } from './hooks'
+import { HttpCode } from '../../util'
 
 //// Tests ////
 
@@ -34,8 +34,8 @@ it('creates access tokens', async () => {
     expect(typeof token).toEqual('string')
     expect(token.length).toBeGreaterThan(0)
 })
-
-it('verifies access tokens', async () => {
+  
+it('verifies access tokens', async () => { 
 
     const auth = Authentication.create({})
 
@@ -67,7 +67,7 @@ it('optional verfication validator', async () => {
 
 describe('Authentication', () => {
 
-    interface User {
+    type User = {
         email: string
         password: string
     }
@@ -78,7 +78,7 @@ describe('Authentication', () => {
         database: 'test-1'
     })
 
-    const authentication = Authentication.create()
+    const authentication = Authentication.create()  
 
     const users = mongodb.createCollection<'users', User>('users', {
         email: $.string,
@@ -90,14 +90,14 @@ describe('Authentication', () => {
     const userCommands = {
         get,
         find,
-        create: create.prependHook(hashPassword()),
+        create: create.prependHook(hashPassword()), 
         update: update.prependHook(hashPassword()),
         remove
     }
 
     //// App ////
 
-    const app = App.create({
+    const app = App.create({   
 
         users: Service.create(userCommands),
 
@@ -105,17 +105,17 @@ describe('Authentication', () => {
             {
                 login: authentication.createCommand()
             },
-            authentication
-        ),
+            authentication 
+        ),   
 
         database: Service.create(
             mongodb,
             users
         )
-    })  
+    })
 
-    const CREDS = {
-        email: 'user@email.com',
+    const CREDS = { 
+        email: 'user@email.com', 
         password: 'password'
     }
 
@@ -123,15 +123,16 @@ describe('Authentication', () => {
     beforeAll(() => app
         .assertModule
         .inDescendents(MongoDb)
-        .clearAllCollections()
+        .clearAllCollections() 
     )
 
     let user: Record<User>
-    beforeAll(async () => { 
+    beforeAll(async () => {
+  
         user = await app
             .commands
-            .users 
-            .create(CREDS, {})
+            .users
+            .create(CREDS)
     })
 
     afterAll(() => app
@@ -142,7 +143,8 @@ describe('Authentication', () => {
     afterAll(() => app.stop())
 
     it('authenticate with email/pass', async () => {
-        const result = await app.commands.auth.login(CREDS, {})
+
+        const result = await app.commands.auth.login(CREDS)
         const { accessToken } = result ?? {}
 
         expect(typeof accessToken).toBe('string')
@@ -152,7 +154,7 @@ describe('Authentication', () => {
         const result = await app.commands.auth.login({  
             email: 'hacker@email.com', 
             password: 'not-today-you-scallywag'
-        }, {}).catch(through)
+        }).catch(through)
 
         expect(result).toHaveProperty('code', HttpCode.Unauthorized)
         expect(result).toHaveProperty('message', 'Invalid credentials.')

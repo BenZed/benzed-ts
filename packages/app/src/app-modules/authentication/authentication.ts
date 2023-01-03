@@ -1,17 +1,16 @@
 import { Module } from '@benzed/ecs'
 import $, { Infer } from '@benzed/schema'
 import { nil, omit } from '@benzed/util'
+import { copy } from '@benzed/immutable'
 
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
-import { AppModule } from '../../app-module'
-import { Service } from '../../service'
-import { MongoDbCollection } from '../mongo-db'
-import { CommandError } from '../command'
-import { authenticate, AuthenticateCommand, Credentials } from './authenticate'
-
 import { HttpCode } from '../../util'
+import { AppModule } from '../../app-module'
+import { CommandError } from '../command'
+import { MongoDbCollection } from '../mongo-db'
+import { authenticate, AuthenticateCommand, Credentials } from './authenticate'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -38,7 +37,7 @@ type AssertPayload<T extends object> =
     | ((input: object) => asserts input is T)
     | { assert: (input: object) => asserts input is T }
 
-interface AccessToken {
+type AccessToken = {
     accessToken: string
 }
 
@@ -157,8 +156,8 @@ class Authentication extends AppModule<AuthSettings> {
         return bcrypt.hash(password, saltRounds)
     }
 
-    createCommand(): Service<[AuthenticateCommand],{}> {
-        return Service.create(authenticate)
+    createCommand(): AuthenticateCommand {
+        return copy(authenticate)
     }
 }
 

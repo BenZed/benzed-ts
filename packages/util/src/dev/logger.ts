@@ -184,9 +184,6 @@ const Logger = callable(
 
             const { status } = this as (typeof this & { status: Icon })
 
-            if (strings.includes('Uh Oh'))
-                console.log(this)
-
             const outputs: unknown[] = []
             for (let i = 0; i < strings.length; i++) {
                 const string = strings[i]

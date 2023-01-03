@@ -1,4 +1,4 @@
-import { isEmpty, nil, KeysOf, isFunc, isString, JsonObject as Json, isJson } from '@benzed/util'
+import { isEmpty, nil, KeysOf, isFunc, isString, isJson } from '@benzed/util'
 import { Schematic } from '@benzed/schema'
 import { Module } from '@benzed/ecs'
 
@@ -15,6 +15,7 @@ import {
 } from './path-matcher'
 
 import {
+    Json,
     Request,
     HttpMethod,
     UrlParamKeys,

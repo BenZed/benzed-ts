@@ -1,4 +1,4 @@
-import { JsonObject as Json, memoize, nil } from '@benzed/util'
+import { JsonRecord as Json, memoize, nil } from '@benzed/util'
 
 import { $path, path, UrlParamKeys } from '../../util'
 

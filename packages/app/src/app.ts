@@ -1,5 +1,6 @@
 
-import { Client, Server } from './app-modules'
+import { copy } from '@benzed/immutable'
+import { Client, ClientSettings, Server, ServerSettings } from './app-modules'
 import Service from './service'
 
 //// Types ////
@@ -20,20 +21,19 @@ class App<M extends [Client] | [Server] | [], S extends Services> extends Servic
         return this.nodes
     }
 
-    asClient(): App<[Client], S> {
+    asClient(settings: ClientSettings): App<[Client], S> {
         return new App(
-            this.nodes, 
-            Client.create()
+            copy(this.nodes), 
+            Client.create(settings)
         )
     }
 
-    asServer(): App<[Server], S> {
+    asServer(settings: ServerSettings): App<[Server], S> {
         return new App(
-            this.nodes, 
-            Server.create()
+            copy(this.nodes), 
+            Server.create(settings)
         )
     }
-
 }
 
 //// Exports ////

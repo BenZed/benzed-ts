@@ -1,23 +1,24 @@
-import { callable, isFunc, JsonObject as Json, Pipe, through } from '@benzed/util'
+import { callable, isFunc, Pipe, through } from '@benzed/util'
 import { Async, ToAsync, FromAsync, toAsync } from '@benzed/async'
-import { Execute, ExecuteHook, Node } from '@benzed/ecs'
+import { Module, Execute, ExecuteHook, Node, Nodes } from '@benzed/ecs'
 import { Schematic } from '@benzed/schema'
 import { copy } from '@benzed/immutable'
 import { pluck } from '@benzed/array'
 
 import { RequestHandler } from '../request-handler'
+import commandList from './command-list'
 
 import {
     HttpMethod,
     SchemaHook,
     toSchematic,
+    Json
 } from '../../util'
-import commandList, { CommandList } from './command-list'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
 */
-
+ 
 //// Types ////
 
 interface Provide {}
@@ -120,7 +121,7 @@ const Command = callable(
     class _Command extends Node<[RequestHandler, _CommandExecute], {}> {
 
         static isCommand(input: unknown): input is Command {
-            return callable.isInstance(input, _Command)
+            return callable.isInstance(input, Command)
         }
 
         static list = commandList
@@ -142,12 +143,12 @@ const Command = callable(
         private static _create(
             handler: RequestHandler,
             execute: _CommandExecute
-        ): Command {
+        ): Command { 
             return new Command(
                 {},
                 handler,
                 execute
-            ) as Command
+            ) as unknown as Command
         }
 
         static get(schema: SchemaHook<Json>, hook?: Hook): Command {
@@ -164,6 +165,21 @@ const Command = callable(
         }
         static delete(schema: SchemaHook<Json>, hook?: Hook): Command {
             return this.create(HttpMethod.Delete, schema, hook)
+        }
+
+        //// Constructr ////
+        
+        constructor(nodes: Nodes, ...modules: [RequestHandler<Json>, _CommandExecute]) {
+            super(nodes, ...modules)
+        }
+
+        override validate(): void {
+            super.validate()
+
+            // HACK: Fix refs that are broken as a result of the callable instance wrapping.
+            for (const module of this.modules) 
+                Module._refs.set(module, this)
+
         }
 
         //// Request Handler Shorcuts ////
@@ -232,7 +248,8 @@ const Command = callable(
                 )
         }
 
-    }
+    },
+    'Command'
 ) as CommandConstructor
 
 //// Exports ////

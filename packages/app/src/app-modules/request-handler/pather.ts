@@ -1,4 +1,4 @@
-import { isNumber, memoize, omit, JsonObject as Json } from '@benzed/util'
+import { isNumber, memoize, omit, JsonRecord as Json } from '@benzed/util'
 
 import { $path, path, UrlParamKeys } from '../../util'
 

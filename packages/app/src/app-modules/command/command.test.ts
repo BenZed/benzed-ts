@@ -1,5 +1,6 @@
+
 import { $ } from '@benzed/schema'
-import { Module } from '@benzed/ecs'
+import { Module, Node } from '@benzed/ecs'
 import { toAsync } from '@benzed/async'
 import { keysOf, isPromise, through } from '@benzed/util'
 
@@ -12,7 +13,11 @@ import { Command, CommandProvisions } from './command'
 
 import { expectTypeOf } from 'expect-type'
 
-//// Tests ////
+//// Tests ////  
+
+it('is a node', () => {
+    expect(Node.isNode(new Command({}))).toBe(true)
+})
 
 describe('create methods', () => {
 

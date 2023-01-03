@@ -1,12 +1,13 @@
-import { Node } from '@benzed/ecs'
 import { $ } from '@benzed/schema'
 import { through } from '@benzed/util'
 import { 
+    App,
     Client, 
     Command, 
     CommandError, 
     HttpCode, 
-    Server 
+    Server, 
+    Service
 } from '../src'
 
 for (const clientWebSocket of [true, false]) {
@@ -17,25 +18,24 @@ for (const clientWebSocket of [true, false]) {
 
             const foobar = $('foo', 'bar')
 
-            const app = Node.create(
-
-                Command.put({ code: $.number }, ({ code }: { code: number }) => {
-                    if (code < 400)
-                        return { success: code }
-                    throw new CommandError(
-                        code,
-                        `Testing error code: ${code}`
-                    )
-                }),
-
-                Command.get({ 
-                    option: foobar
+            const app = App.create({
+                test: Service.create({
+                    error: Command.put({ code: $.number }, ({ code }: { code: number }) => {
+                        if (code < 400)
+                            return { success: code }
+                        throw new CommandError(
+                            code,
+                            `Testing error code: ${code}`
+                        )
+                    }),
+                    get: Command.get({
+                        option: foobar
+                    })
                 })
-        
-            )
+            })
 
-            const server = app.addModule(Server.create({ webSocket: serverWebSocket }))
-            const client = app.addModule(Client.create({ webSocket: clientWebSocket }))
+            const server = app.asServer({ webSocket: serverWebSocket })
+            const client = app.asClient({ webSocket: clientWebSocket })
 
             //// Setup ////
 
@@ -49,7 +49,7 @@ for (const clientWebSocket of [true, false]) {
 
             const errorTest = async (code: HttpCode): Promise<unknown> => {
                 try {
-                    await client.commands.errorCodeTest({ code })
+                    await client.commands.test.error({ code })
                 } catch(e) {
                     return e
                 }

@@ -2,7 +2,7 @@
 import { 
     callable,
     isRecord,
-    generate, 
+    iterate, 
     keysOf,
     nil,
 } from '@benzed/util'
@@ -15,7 +15,7 @@ import {
     CopyComparable 
 } from '@benzed/immutable'
 
-import { IndexValue, pluck } from '@benzed/array'
+import { pluck } from '@benzed/array'
 
 import { 
     Module, 
@@ -110,6 +110,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     //// Constructor ////
     
     constructor(nodes: N, ...modules: M) {
+
         this.nodes = nodes
         for (const child of this.eachChild())
             child._setParent(this)
@@ -118,7 +119,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
         for (const module of this.modules)
             module._setNode(this)
 
-        this.validate()
+        this.validate() 
     }
 
     get name(): string {
@@ -241,7 +242,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     }
 
     * eachChild(): IterableIterator<Node> {
-        yield* generate(this.nodes)
+        yield* iterate(this.nodes)
     }
     get children(): Node[] {
         return Array.from(this.eachChild())

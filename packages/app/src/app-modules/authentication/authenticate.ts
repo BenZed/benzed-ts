@@ -1,5 +1,5 @@
 import { fromBase64, isString, nil, toBase64 } from '@benzed/util'
-import { $, SchemaFor } from '@benzed/schema'
+import { $ } from '@benzed/schema'
 
 import bcrypt from 'bcryptjs'
 
@@ -15,14 +15,14 @@ import type { AccessToken, Authentication} from './authentication'
 
 //// Types ////
 
-interface Credentials {
+type Credentials = {
     readonly email: string 
     readonly password: string
 }
 
 //// Schemas ////
 
-const $credentials: SchemaFor<Credentials> = $({
+const $credentials = $({
     email: $.string,
     password: $.string
 })
@@ -51,7 +51,7 @@ const authenticate = Command
         const output: AccessToken = { accessToken }
         return output
     })
-    .addHeaderLink(
+    .setReq(req => req.addHeaderLink(
         (head, { email, password, ...rest }) => {
             const credentials = toBase64(`${email}:${password}`)
             head.set('authorization', `Basic ${credentials}`)
@@ -71,7 +71,7 @@ const authenticate = Command
 
             return { ...data, email, password }
         }
-    )
+    ))
 
 //// Exports ////
 

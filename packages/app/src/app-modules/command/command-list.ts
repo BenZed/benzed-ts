@@ -1,5 +1,6 @@
 import { Node, Nodes } from '@benzed/ecs'
 import { Empty, Infer, isEmpty, iterate, KeysOf } from '@benzed/util'
+
 import Command from './command'
 
 /* eslint-disable 

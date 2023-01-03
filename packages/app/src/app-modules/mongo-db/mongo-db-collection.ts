@@ -4,7 +4,7 @@ import { nil } from '@benzed/util'
 import { AppModule } from '../../app-module'
 
 import { Collection as _MongoCollection, ObjectId } from 'mongodb'
-import { SchemaHook, toSchematic, HttpMethod, HttpCode } from '../../util'
+import { SchemaHook, toSchematic, HttpCode, Json } from '../../util'
 import { MongoDb } from './mongo-db'
 import { Command, CommandError } from '../command'
 
@@ -21,38 +21,40 @@ type Id = string
 
 type WithId = { _id: Id }
 
-type Record<T extends object> = T & WithId
+type Record<T extends Json> = T & WithId
 
-type Paginated<T extends object> = {
+type Paginated<T extends Json> = {
     total: number
     records: Record<T>[]
     // skip: number
     // limit: number
 }
 
-type RecordQuery<T extends object> = {
+type RecordQuery<T extends Json> = {
     [K in keyof T]?: T[K]
 }
 
-type RecordOf<C extends MongoDbCollection<string, object>> = C extends MongoDbCollection<string, infer R> ? R : object
+type RecordOf<C extends MongoDbCollection<string, Json>> = C extends MongoDbCollection<string, infer R> 
+    ? R 
+    : Json
 
 type IdInput = { readonly id: Id }
 
-type MongoDbCollectionCommands<T extends object> = {
+type MongoDbCollectionCommands<T extends Json> = {
 
-    get: Command<HttpMethod.Get, IdInput, Promise<Record<T>>>
-    find: Command<HttpMethod.Get, RecordQuery<T>, Promise<Paginated<T>>>
-    create: Command<HttpMethod.Post, T, Promise<Record<T>>>
-    update: Command<HttpMethod.Patch, IdInput & Partial<T>, Promise<Record<T>>>
-    remove: Command<HttpMethod.Delete, IdInput, Promise<Record<T>>>
+    get: Command<IdInput, Record<T>>
+    find: Command<RecordQuery<T>, Paginated<T>>
+    create: Command<T, Record<T>>
+    update: Command<IdInput & Partial<T>, Record<T>>
+    remove: Command<IdInput, Record<T>>
 
 }
 
 //// Collection ////
 
-class MongoDbCollection<N extends string, T extends object> extends AppModule<{ name: N, schema: Schematic<T> }> {
+class MongoDbCollection<N extends string, T extends Json> extends AppModule<{ name: N, schema: Schematic<T> }> {
 
-    static create<Nx extends string, Tx extends object>(name: Nx, schema: SchemaHook<Tx>): MongoDbCollection<Nx,Tx> {
+    static create<Nx extends string, Tx extends Json>(name: Nx, schema: SchemaHook<Tx>): MongoDbCollection<Nx,Tx> {
         return new MongoDbCollection(name, schema)
     }
 
@@ -145,7 +147,7 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
         return this.schema
     }
 
-    setSchema<Tx extends object>(schema: SchemaHook<Tx>): MongoDbCollection<N, Tx> {
+    setSchema<Tx extends Json>(schema: SchemaHook<Tx>): MongoDbCollection<N, Tx> {
         this._assertStopped()
         return new MongoDbCollection(this.name, toSchematic(schema))
     }
@@ -182,7 +184,7 @@ class MongoDbCollection<N extends string, T extends object> extends AppModule<{ 
             create,
             update,
             remove,
-        }
+        } as MongoDbCollectionCommands<T>
     }
 
     /**

@@ -91,7 +91,7 @@ export const Execute: ExecuteConstructor = callable(
                 ...data
             }
 
-            const { data: transform } = module
+            const { data: transform } = this
 
             return transform.call(ctx, input, ctx)
         }

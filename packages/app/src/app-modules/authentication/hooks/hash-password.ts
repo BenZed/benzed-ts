@@ -7,8 +7,8 @@ import Authentication from '../authentication'
 
 const hashPassword = memoize(<T extends { password?: string }>(): CommandHook<T, T> => 
     (input, ctx) => {
-
-        const { password } = input
+ 
+        const { password } = input 
 
         const auth = ctx.node.assertModule.inSelf.or.inAncestors(Authentication)
 
