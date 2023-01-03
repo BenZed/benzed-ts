@@ -35,7 +35,7 @@ export class AppModule<D = unknown> extends Module<D> {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const LoggerModule = require('./app-modules/logger').Logger
         
-            const logger = this.hasNode && this.node.findModule.inAncestors(LoggerModule)
+            const logger = this.hasNode && this.node.findModule.inSelf.or.inAncestors(LoggerModule)
 
             this._log = logger 
                 ? Logger.create({
@@ -51,7 +51,7 @@ export class AppModule<D = unknown> extends Module<D> {
         return this._log
     }
 
-    //// Lifecycle Hooks ////
+    //// Runtime ////
 
     /**
      * True if this module has been started, false otherwise.

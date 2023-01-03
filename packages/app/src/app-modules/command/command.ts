@@ -1,362 +1,234 @@
-import is from '@benzed/is'
-import { $$copy } from '@benzed/immutable'
+import { callable, isFunc, JsonObject as Json, Pipe, through } from '@benzed/util'
+import { Async, ToAsync, FromAsync, toAsync } from '@benzed/async'
+import { Execute, ExecuteHook, Node } from '@benzed/ecs'
 import { Schematic } from '@benzed/schema'
-import { Execute, ExecuteHook, Module } from '@benzed/ecs'
-import { isEmpty, nil, KeysOf, Func, Pipe, ResolveAsyncOutput } from '@benzed/util'
+import { copy } from '@benzed/immutable'
+import { pluck } from '@benzed/array'
+
+import { RequestHandler } from '../request-handler'
 
 import {
-    createStaticPather,
-    createUrlParamPather,
-    Pather 
-} from './pather'
-
-import {
-    createStaticPathMatcher,
-    createUrlParamPathMatcher,
-    PathMatcher
-} from './path-matcher'
-
-import {
-    Request,
     HttpMethod,
-    UrlParamKeys,
     SchemaHook,
     toSchematic,
-    $path,
-    path,
 } from '../../util'
 
-import {
-    parse as fromQueryString,
-    stringify as toQueryString
-} from 'query-string'
-
-import commandList from './command-list'
-
-//// Eslint ////
-
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/ban-types
 */
 
 //// Types ////
 
-type Headerer<I extends object> = (headers: Headers, data: Partial<I>) => Partial<I>
+interface Provide {}
 
-type HeaderMatch<I extends object> = (headers: Headers, data: Partial<I>) => Partial<I> | nil
+interface Hook< 
+    I extends Json = Json, 
+    O extends Json | Async<Json> = Json,
+    C extends Provide = Provide
+> extends ExecuteHook<I, O, C> {}
 
-/**
- * Keys that can be used to store/retreive query object.
- */
-type QueryKey<I extends object> = keyof {
-    [K in KeysOf<I> as I[K] extends object | nil ? K : never]: K
-}
+interface Command<
+    I extends Json = Json, 
+    O extends Json = Json, 
+    C extends Provide = Provide
+> 
+    extends Node<[RequestHandler<I>, Execute<I, ToAsync<O>, C>], {}> {
 
-type CommandSettings<H extends HttpMethod, I extends object> = {
-    method: H
-    path: {
-        to: Pather<I>
-        match: PathMatcher<I>
-    }
-    header: {
-        to: Headerer<I>[]
-        match: HeaderMatch<I>[]
-    }
-    schema?: Schematic<I>
-    queryKey?: QueryKey<I>
-}
+    (input: I): Async<O>
 
-interface CommandContext {
-    user?: object
-}
+    get req(): RequestHandler<I>
+    setReq(
+        reqOrUpdate: RequestHandler<I> | ((req: RequestHandler<I>) => RequestHandler<I>)
+    ): Command<I, O, C>
+    
+    get method(): HttpMethod
+    setMethod(method: HttpMethod): Command<I, O, C>
+    
+    get schema(): Schematic<I> 
+    setSchema(schema: SchemaHook<I>): Command<I, O, C>
 
-interface CommandHook<I extends object = object, O extends object = object> extends ExecuteHook<I, O, CommandContext> {}
+    get execute(): Execute<I, O, C>
 
-//// Main ////
+    appendHook<Ox extends Json>(
+        hook: Hook<O, Ox | Async<Ox>, C>
+    ): Command<I, Ox, C>
 
-class Command<H extends HttpMethod = HttpMethod, I extends object = object, O extends object = object> extends Execute<I, O, CommandContext> {
+    prependHook(hook: Hook<I, I | Async<I>, C>): Command<I, O, C>
 
-    static list = commandList
-
-    static create<Hx extends HttpMethod, Ix extends object>(method: Hx, schema: SchemaHook<Ix>): Command<Hx, Ix, Ix>
-
-    static create<Hx extends HttpMethod, Ix extends object, Ox extends object>(
-        method: Hx, 
+    prependHook<Ix extends Json>(
         schema: SchemaHook<Ix>, 
-        hook: CommandHook<Ix, Ox>
-    ): Command<Hx, Ix, Ox>
+        hook: Hook<Ix, I | Async<I>, C>
+    ): Command<Ix, O, C>
 
-    static create(method: HttpMethod, schema: SchemaHook, hook?: CommandHook): Command {
-
-        const schematic = toSchematic(schema)
-
-        //                       wtf? by default we're doing a hacky check to see
-        //                       if there is a query object schema on the given schema
-        const queryKey = '$' in ((schematic as any)?.$?.query ?? {})
-            ? 'query' as QueryKey<object>
-            : nil
-
-        const execute = hook ? Pipe.from(schematic.validate).to(hook) : Pipe.from(schematic.validate)
-            
-        return new Command({
-            method, 
-            path: {
-                to: createStaticPather('/'),
-                match: createStaticPathMatcher('/')
-            },
-            header: {
-                to: [],
-                match: []
-            },
-            schema: schematic,
-            queryKey
-        }, execute)
-    }
-
-    static get<Ix extends object>(schema: SchemaHook<Ix>): Command<HttpMethod.Get, Ix, Ix>
-    static get<Ix extends object, Ox extends object>(schema: SchemaHook<Ix>, hook: CommandHook<Ix, Ox>): Command<HttpMethod.Get, Ix, Ox>
-    static get(schema: SchemaHook, hook?: CommandHook): Command<HttpMethod.Get> {
-        return this.create(HttpMethod.Get, schema, hook as CommandHook)
-    }
-
-    static post<Ix extends object>(schema: SchemaHook<Ix>): Command<HttpMethod.Post, Ix, Ix>
-    static post<Ix extends object, Ox extends object>(schema: SchemaHook<Ix>, hook: CommandHook<Ix, Ox>): Command<HttpMethod.Post, Ix, Ox>
-    static post(schema: SchemaHook, hook?: CommandHook): Command<HttpMethod.Post> {
-        return this.create(HttpMethod.Post, schema, hook as CommandHook)
-    }
-
-    static put<Ix extends object>(schema: SchemaHook<Ix>): Command<HttpMethod.Put, Ix, Ix>
-    static put<Ix extends object, Ox extends object>(schema: SchemaHook<Ix>, hook: CommandHook<Ix, Ox>): Command<HttpMethod.Put, Ix, Ox>
-    static put(schema: SchemaHook, hook?: CommandHook): Command<HttpMethod.Put> {
-        return this.create(HttpMethod.Put, schema, hook as CommandHook)
-    }
-
-    static patch<Ix extends object>(schema: SchemaHook<Ix>): Command<HttpMethod.Patch, Ix, Ix>
-    static patch<Ix extends object, Ox extends object>(schema: SchemaHook<Ix>, hook: CommandHook<Ix, Ox>): Command<HttpMethod.Patch, Ix, Ox>
-    static patch(schema: SchemaHook, hook?: CommandHook): Command<HttpMethod.Patch> {
-        return this.create(HttpMethod.Patch, schema, hook as CommandHook)
-    }
-
-    static delete<Ix extends object>(schema: SchemaHook<Ix>): Command<HttpMethod.Delete, Ix, Ix>
-    static delete<Ix extends object, Ox extends object>(schema: SchemaHook<Ix>, hook: CommandHook<Ix, Ox>): Command<HttpMethod.Delete, Ix, Ox>
-    static delete(schema: SchemaHook, hook?: CommandHook): Command<HttpMethod.Delete> {
-        return this.create(HttpMethod.Delete, schema, hook as CommandHook)
-    }
-
-    constructor(
-        readonly settings: CommandSettings<H,I>,
-        execute: CommandHook<I,O>
-    ) { 
-        super(execute)
-    }
-
-    override [$$copy](): this {
-        const Command = this.constructor as (new (settings: object, transform: Func) => this)
-        return new Command(this.settings, this.data)
-    }
-
-    override validate(): void {
-        Module.assert.isSingle(this)
-        if (this.node.hasModule.inParents(Command))
-            throw new Error(`${Command.name} module cannot be a child of other ${Command.name} nodes.`)
-    }
-
-    //// Handler Implementation ////
-    
-    toRequest(data: I): Request {
-        const { method, path, schema } = this.settings
-        const [ url, dataWithoutParams ] = path.to(schema?.validate(data) ?? data)
-        const [ headers, dataWithoutHeaders ] = this._addHeaders(dataWithoutParams)
-        const [ query, dataWithoutQuery ] = this._resolveQuery(dataWithoutHeaders)
-
-        return {
-            method,
-            body: dataWithoutQuery,
-            url: $path.validate(isEmpty(query) ? url : url + '?' + toQueryString(query)),
-            headers
-        }
-    }
-
-    matchRequest(req: Request): I | nil {
-
-        const { method, queryKey, path, schema, header } = this.settings
-        if (method !== req.method)
-            return nil
-
-        const { headers = new Headers(), url: urlWithQuery, body = {}} = req
-
-        const [ url, queryString ] = urlWithQuery.split('?')
-
-        const query = queryString ? fromQueryString(queryString) : nil
-
-        const data: object = queryKey 
-            ? { [queryKey]: query, ...body } 
-            : { ...query, ...body }
-
-        const pathedData = path.match($path.validate(url), data)
-        if (!pathedData)
-            return nil
-
-        const headedData = header.match.reduce<Partial<I> | nil>((data, matcher) => data && matcher(headers, data), pathedData)
-        if (!headedData)
-            return nil
-    
-        try {
-            return schema?.validate(headedData) ?? headedData as I
-        } catch {
-            return nil
-        }
-    }
-
-    //// Builder Methods ////
-
-    /**
-     * Provide a url as a tempate string, where interpolated object keys will fill in url parameters
-     */
-    setUrl(urlSegments: TemplateStringsArray, ...urlParamKeys: UrlParamKeys<I>[]): Command<H,I,O> 
-        
-    /**
-     * Provide a simple static path
-     */
-    setUrl(path: path): Command<H,I,O> 
-
-    /**
-     * Provider pather functions for creating/parsing paths
-     */
-    setUrl(to: Pather<I>, match: PathMatcher<I>): Command<H,I,O> 
-
-    setUrl(
-        ...args: 
-        [path] | 
-        [Pather<I>, PathMatcher<I>] | 
-        [TemplateStringsArray, ...UrlParamKeys<I>[]]
-    ): Command<H,I,O> {
-
-        let to: Pather<I> 
-        let match: PathMatcher<I>
-        if (is.function(args[0]) && is.function(args[1])) {
-            to = args[0]
-            match = args[1]
-
-        } else if (is.string(args[0])) {
-            to = createStaticPather(args[0])
-            match = createStaticPathMatcher(args[0])
-
-        } else {
-            const [ segments, ...paramKeys ] = args as [ TemplateStringsArray, ...UrlParamKeys<I>[] ]
-            to = createUrlParamPather(segments, ...paramKeys)
-            match = createUrlParamPathMatcher(segments, ...paramKeys)
-        }
-
-        return new Command({
-            ...this.settings,
-            path: { to, match },
-        }, this.data)
-    }
-
-    get method(): HttpMethod {
-        return this.settings.method
-    }
-
-    get queryKey(): QueryKey<I> | nil {
-        return this.settings.queryKey
-    }
-
-    /**
-     * Changes the method of this command
-     */
-    setMethod<Hx extends HttpMethod>(method: Hx): Command<Hx,I,O> {
-        return new Command<Hx, I, O>({ ...this.settings, method }, this.data)
-    }
-
-    /**
-     * Sets the schema for this command
-     */
-    setSchema(schema: Schematic<I> | nil): Command<H,I,O> {
-        return new Command({ ...this.settings, schema }, this.data)
-    }
-
-    /**
-     * Adds methods that manipulate headers
-     */
-    addHeaderLink(to: Headerer<I>, match: HeaderMatch<I>): Command<H,I,O> {
-        const { header } = this.settings
-        return new Command({
-            ...this.settings,
-            header: {
-                to: [...header.to, to],
-                match: [...header.match, match]
-            }
-        }, this.data)
-    }
-
-    /**
-     * Over writes the current header links
-     */
-    setHeaderLink(to: Headerer<I>, match: HeaderMatch<I>): Command<H,I,O> {
-        return new Command({
-            ...this.settings,
-            header: {
-                to: [to],
-                match: [match]
-            }
-        }, this.data)
-    }
-
-    /**
-     * Provide an object 
-     */
-    setQueryKey(queryKey: QueryKey<I> | nil): Command<H,I,O> {
-        return new Command({
-            ...this.settings,
-            queryKey
-        }, this.data)
-    }
-
-    appendHook<Ox extends object>(hook: CommandHook<Awaited<O>, Ox>): Command<H, I, ResolveAsyncOutput<O, Ox>> {
-        return new Command(this.settings, Pipe.from(this.data).to(hook as Func))
-    }
-
-    prependHook<Ix extends object>(hook: CommandHook<Ix, I>): Command<H, Ix, O> {
-        return new Command(this.settings as any, Pipe.from(hook).to(this.data as Func))
-    }
-
-    //// Helper ////
-    
-    private _addHeaders(inputData: I | Partial<I>): [ Headers | nil, Partial<I> ] {
-
-        const { header: headerers } = this.settings
-
-        const headers = new Headers()
-        const outputData = headerers.to.reduce((data, to) => to(headers, data), inputData)
-
-        // only supply headers if some have been added
-        let num = 0 
-        headers.forEach(() => num++)
-        const outputHeaders = num === 0 ? nil : headers
-        
-        return [ outputHeaders, outputData ]
-    }
-
-    private _resolveQuery(data: Partial<I>): [ query: object, dataWithoutQuery: Partial<I> | nil ] {
-
-        let query: Record<string, unknown> = {}
-        let dataWithoutQuery: Partial<I> | nil = { ...data }
-
-        const queryKey = this.settings.queryKey as keyof typeof dataWithoutQuery
-        if (queryKey && queryKey in dataWithoutQuery) {
-            query = dataWithoutQuery[queryKey] ?? {}
-            delete dataWithoutQuery[queryKey]
-        }
-
-        if (this.settings.method === HttpMethod.Get) { 
-            query = { ...query, ...dataWithoutQuery }
-            dataWithoutQuery = nil
-        }
-
-        return [ query, dataWithoutQuery ]
-    }
 }
+
+interface CommandCreate {
+    <Ix extends Json>(
+        method: HttpMethod, 
+        schema: SchemaHook<Ix>
+    ): Command<Ix, Ix>
+
+    <Ix extends Json, Ox extends Json | Async<Json>, Cx extends Provide>(
+        method: HttpMethod, 
+        schema: SchemaHook<Ix>, 
+        hook: Hook<Ix, Ox, Cx>
+    ): Command<Ix, FromAsync<Ox>, Cx>
+}
+
+interface CommandCreateWithMethod {
+    <Ix extends Json>(schema: SchemaHook<Ix>): Command<Ix, Ix>
+    <Ix extends Json, Ox extends Json | Async<Json>, Cx extends Provide>(
+        schema: SchemaHook<Ix>, 
+        hook: Hook<Ix, Ox, Cx>
+    ): Command<Ix, FromAsync<Ox>, Cx>
+}
+
+type NodeConstructor = typeof Node
+interface CommandConstructor extends NodeConstructor {
+
+    isCommand<I extends Json, O extends Json, C extends Provide>(
+        input: unknown
+    ): input is Command<I,O,C>
+    
+    create: CommandCreate
+    get: CommandCreateWithMethod
+    post: CommandCreateWithMethod
+    patch: CommandCreateWithMethod
+    put: CommandCreateWithMethod
+    delete: CommandCreateWithMethod
+
+}
+
+//// Implementation ////
+
+type _CommandExecute = Execute<Json, Json | Async<Json>, Provide>
+
+const Command = callable(
+    function (json: Json): Async<Json> {
+        // TODO handle provisions
+        const ctx = {}
+
+        const input = this.schema.validate(json)
+
+        const output = this.execute(input, ctx)
+    
+        return toAsync(output)
+    }, 
+    class _Command extends Node<[RequestHandler, _CommandExecute], {}> {
+
+        static isCommand(input: unknown): input is Command {
+            return callable.isInstance(input, _Command)
+        }
+
+        static override create(
+            method: HttpMethod, 
+            schema: SchemaHook<Json>, 
+            hook: Hook<Json, Json, Provide> = through
+        ): Command {
+
+            const schematic = toSchematic(schema)
+
+            return _Command._create(
+                RequestHandler.create(method, schematic), 
+                new Execute(hook)
+            )
+        }
+
+        private static _create(
+            handler: RequestHandler,
+            execute: _CommandExecute
+        ): Command {
+            return new Command(
+                {},
+                handler,
+                execute
+            ) as Command
+        }
+
+        static get(schema: SchemaHook<Json>, hook?: Hook): Command {
+            return this.create(HttpMethod.Get, schema, hook)
+        }
+        static post(schema: SchemaHook<Json>, hook?: Hook): Command {
+            return this.create(HttpMethod.Post, schema, hook)
+        }
+        static put(schema: SchemaHook<Json>, hook?: Hook): Command {
+            return this.create(HttpMethod.Put, schema, hook)
+        }
+        static patch(schema: SchemaHook<Json>, hook?: Hook): Command {
+            return this.create(HttpMethod.Patch, schema, hook)
+        }
+        static delete(schema: SchemaHook<Json>, hook?: Hook): Command {
+            return this.create(HttpMethod.Delete, schema, hook)
+        }
+
+        //// Request Handler Shorcuts ////
+        
+        get req(): RequestHandler {
+            return this.module(0)
+        }
+        setReq(reqOrUpdate: RequestHandler | ((req: RequestHandler) => RequestHandler)): Command {
+            const newReq = reqOrUpdate instanceof RequestHandler 
+                ? reqOrUpdate 
+                : reqOrUpdate(this.req)
+            return _Command._create(newReq, copy(this.execute))
+        }
+
+        get method(): HttpMethod {
+            return this.req.method
+        }
+        setMethod(method: HttpMethod): Command {
+            return this.setReq(req => req.setMethod(method))
+        }
+    
+        get schema(): Schematic<Json> {
+            return this.req.schema
+        }
+        setSchema(schema: SchemaHook<Json>): Command {
+            return this.setReq(req => req.setSchema(schema))
+        }
+    
+        //// Execute Shortcuts ////
+    
+        get execute(): _CommandExecute {
+            return this.module(1)
+        }
+
+        private _setExecute(execute: _CommandExecute): Command {
+            return _Command._create(copy(this.req), execute)
+        }
+    
+        appendHook(
+            hook: Hook<Json, Json, Provide>
+        ): Command {
+            return this._setExecute(
+                Execute.append(this.execute, hook)
+            )
+        }
+    
+        prependHook(
+            ...args: [Hook<Json, Json, Provide>] | [Schematic<Json>, Hook<Json, Json, Provide>]
+        ): Command {
+
+            const [hook = through] = pluck(args, isFunc)
+            const [schema] = args as Schematic<Json>[]
+
+            return schema 
+                ? this
+                    .setSchema(schema)
+                    .prependHook(
+                        // prevent behaviour changes in future hooks
+                        // by leaving the input data shape unchanged from 
+                        // their perspective
+                        Pipe.from(hook).to(this.schema.validate)
+                    )
+                
+                : this._setExecute(
+                    Execute.prepend(this.execute, hook)
+                )
+        }
+
+    }
+) as CommandConstructor
 
 //// Exports ////
 
@@ -364,11 +236,6 @@ export default Command
 
 export {
     Command,
-    CommandHook,
-    CommandContext,
-    CommandSettings,
-
-    QueryKey,
-    Headerer,
-    HeaderMatch
+    Hook as CommandHook,
+    Provide as CommandProvisions,
 }

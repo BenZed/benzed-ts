@@ -1,4 +1,5 @@
 import callable from '../callable'
+import { through } from '../methods'
 import { Func, indexesOf, isPromise } from '../types'
 
 /* eslint-disable 
@@ -162,7 +163,7 @@ const Pipe = callable(
         readonly transforms: readonly Transform[]
 
         constructor(...transforms: Transform[]) {
-            this.transforms = Pipe.flatten(transforms)
+            this.transforms = Pipe.flatten(transforms).filter(t => t !== through)
         }
 
         to(this: Pipe, transform: Transform): Pipe {

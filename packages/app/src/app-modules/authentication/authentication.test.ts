@@ -1,5 +1,4 @@
 import $ from '@benzed/schema'
-import { Node } from '@benzed/ecs'
 import { through } from '@benzed/util'
 
 import { Service } from '../../service'
