@@ -66,7 +66,10 @@ class NodeBuilder<M extends Modules = any, N extends Nodes = any> extends Node<M
 
     addModules<Mx extends Modules>(...modules: Mx): NodeBuilder<AddModules<M, Mx>, N> {
         return this.setModules(
-            ...Module.add(this.modules, ...modules)
+            ...Module.add(
+                this.modules, 
+                ...modules
+            )
         )
     }
 

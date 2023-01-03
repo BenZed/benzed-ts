@@ -2,7 +2,7 @@
 import { 
     callable,
     isRecord,
-    iterate, 
+    generate, 
     keysOf,
     nil,
 } from '@benzed/util'
@@ -15,7 +15,7 @@ import {
     CopyComparable 
 } from '@benzed/immutable'
 
-import { pluck } from '@benzed/array'
+import { IndexValue, pluck } from '@benzed/array'
 
 import { 
     Module, 
@@ -56,7 +56,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     static create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Node<Mx, Nx>
     static create<Mx extends Modules>(...modules: Mx): Node<Mx, {}>
     static create(...args: unknown[]): unknown {
-        return new Node(...this._sortConstructorParams(args, Module, Node))
+        return new Node(...this._sortConstructorParams(args))
     }
 
     static build<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): NodeBuilder<Mx, Nx>
@@ -64,7 +64,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     static build<Nx extends Node>(node: Nx): NodeBuilder<ModulesOf<Nx>, NodesOf<Nx>>
     static build(...args: unknown[]): unknown {
         const NodeBuilder = require('./node-builder').NodeBuilder
-        return new NodeBuilder(...this._sortConstructorParams(args, Module, Node))
+        return new NodeBuilder(...this._sortConstructorParams(args))
     }
 
     /**
@@ -86,12 +86,12 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
 
         const modules = pluck(
             node ? copy(node.modules) : params, 
-            (p): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
+            (p: unknown): p is InstanceType<M> => callable.isInstance(p, ModuleConstructor ?? Module as M)
         )
 
         const [nodes = {}] = pluck(
             node ? copy([node.nodes]) : params, 
-            (p): p is Record<string, InstanceType<N>> => isRecord(
+            (p: unknown): p is Record<string, InstanceType<N>> => isRecord(
                 p, 
                 (n): n is InstanceType<N> => callable.isInstance(n, NodeConstructor ?? Node as N)
             )
@@ -111,7 +111,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     
     constructor(nodes: N, ...modules: M) {
         this.nodes = nodes
-        for (const child of this.children) 
+        for (const child of this.eachChild())
             child._setParent(this)
 
         this.modules = modules
@@ -241,7 +241,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     }
 
     * eachChild(): IterableIterator<Node> {
-        yield* iterate(this.nodes)
+        yield* generate(this.nodes)
     }
     get children(): Node[] {
         return Array.from(this.eachChild())

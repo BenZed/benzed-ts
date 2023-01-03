@@ -64,7 +64,7 @@ const createFamilyTreeWithModules = () => {
 
 describe('relationships', () => {
 
-    describe('.parent', () => {
+    describe('.parent', () => { 
 
         const module = Module.data('hey' as const)
         const node = Node.build(module)
