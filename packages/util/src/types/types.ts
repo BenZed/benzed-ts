@@ -1,5 +1,6 @@
 import { Func } from './func'
 import { Merge } from './merge'
+import { nil } from './nil'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -9,13 +10,14 @@ export type JsonPrimitive = null | string | number | boolean
 
 export type JsonArray = Json[] | readonly Json[]
 
+export type JsonObject = 
+    | { [k: string]: Json | nil }
+    | { readonly [k: string]: Json | nil }
+    
 export type Json =
-    | { [k: string]: Json }
-    | { readonly [k: string]: Json }
-    | JsonArray
     | JsonPrimitive
-
-export type JsonObject = Record<string, Json>
+    | JsonArray
+    | JsonObject
 
 /**
  * Make specific keys of a type required
