@@ -1,4 +1,4 @@
-import { isString } from '@benzed/util'
+import { isRecord, isString } from '@benzed/util'
 import pluck from './pluck'
 
 import { expectTypeOf } from 'expect-type'
@@ -18,13 +18,16 @@ it('returns results to new array', () => {
     expect(even).toEqual([2, 4, 6, 8])
 })
 
-it('callback takes value, index, array args', () => {
+it('predicate takes value, index, array args', () => {
     const arr = ['zero']
 
     pluck(arr, (v,i,a) => {
         expect(v).toEqual('zero')
         expect(i).toEqual(0)
         expect(a).toEqual(arr)
+        expectTypeOf(v).toEqualTypeOf<string>()
+        expectTypeOf(i).toEqualTypeOf<number>()
+        expectTypeOf(a).toEqualTypeOf<ArrayLike<string>>()
         return true
     })
 })
@@ -54,13 +57,27 @@ describe('count', () => {
     })
 })
 
-it('optionally allows type guards', () => {
+describe('typeguard filter', () => {
 
-    const arr = [0, 1, 2, 3, 'four', 'five', 'six']
+    test('arrays/array-likes', () => {
 
-    const strings = pluck(arr, isString)
+        const arr = [0, 1, 2, 3, 'four', 'five', 'six']
+    
+        const strings = pluck(arr, isString)
+        expectTypeOf(strings).toEqualTypeOf<string[]>()
+    
+    })
+    
+    it('read-only arrays', () => {
+    
+        const arr = [{ foo: 'string' }, { foo: 'bar' }, { bar: 0 }] as const
 
-    expectTypeOf(strings).toEqualTypeOf<string[]>()
+        const isFoo = (i: unknown): i is { foo: string } => 
+            isRecord(i, isString)
+
+        const foos = pluck(arr, isFoo)
+        expect(foos).toHaveLength(2)
+        expectTypeOf(foos).toMatchTypeOf<{ foo: string }[]>()
+    })
 
 })
-

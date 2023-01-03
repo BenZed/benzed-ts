@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { nil, TypeGuard } from '@benzed/util'
+import { IndexValue } from './types'
 
 //// Shortcuts ////
 
@@ -21,24 +22,50 @@ type Predicate<T> = (
  * const even = pluck([1, 2, 3, 4], v => v % 2 === 0) // [2,4], [1,3]
  * ```
  */
+
+function pluck<
+    A extends ArrayLike<unknown>,
+    F extends Predicate<IndexValue<A>> | TypeGuard<unknown>
+>(
+    input: A,
+    fitler: F,
+    count?: number
+): F extends TypeGuard<infer O> ? O[] : IndexValue<A>[]
+
 function pluck<I, O extends I>(
     input: ArrayLike<I>,
-    typeguard: TypeGuard<O, I>,
+    typeGuardFilter: TypeGuard<O, I>,
+    count?: number
+): O[]
+
+//// Optionally bindable ////
+
+function pluck<T>(
+    input: ArrayLike<T>,
+    predicateFilter: Predicate<T>,
+    count?: number
+): T[]
+
+function pluck<
+    A extends ArrayLike<unknown>,
+    F extends Predicate<IndexValue<A>> | TypeGuard<unknown>
+>(
+    this: A,
+    fitler: F,
+    count?: number
+): F extends TypeGuard<infer O> ? O[] : IndexValue<A>[]
+
+function pluck<I, O extends I>(
+    this: ArrayLike<I>,
+    typeGuardFilter: TypeGuard<O, I>,
     count?: number
 ): O[]
 
 function pluck<T>(
-    input: ArrayLike<T>,
-    predicate: Predicate<T>,
-    count?: number
-): T[]
-
-function pluck<T>(
     this: ArrayLike<T>,
-    predicate: Predicate<T>,
+    predicateFilter: Predicate<T>,
     count?: number
 ): T[]
-
 function pluck(
     this: unknown,
     ...args: unknown[]

@@ -5,7 +5,7 @@ import { path } from './types'
 
 //// Schema Helpers ////
 
-type ShapeSchemaInput<T> = {
+type ShapeSchemaInput<T extends object> = {
     [K in keyof T]: Schematic<T[K]>
 } 
 
