@@ -25,6 +25,8 @@ export const asNil = <T>(input: T) => (input == null ? nil : input) as T extends
  */
 export const isNil = (input: unknown): input is nil => input === nil
 
+export const isNotNil = (input: unknown) => !isNil(input)
+
 /**
  * Returns nil
  */

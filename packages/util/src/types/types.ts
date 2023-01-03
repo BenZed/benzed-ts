@@ -10,14 +10,12 @@ export type JsonPrimitive = null | string | number | boolean
 
 export type JsonArray = Json[] | readonly Json[]
 
-export type JsonObject = 
-    | { [k: string]: Json | nil }
-    | { readonly [k: string]: Json | nil }
+export type JsonRecord = { [k: string]: Json | nil } | { readonly [k: string]: Json | nil }
     
 export type Json =
     | JsonPrimitive
     | JsonArray
-    | JsonObject
+    | JsonRecord
 
 /**
  * Make specific keys of a type required

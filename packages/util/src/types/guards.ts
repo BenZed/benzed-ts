@@ -1,7 +1,7 @@
 import { indexesOf, keysOf } from '../types/keys-of'
 import { isBoolean, isNumber, isString } from './primitive'
 import { Func, isFunc, TypeGuard } from './func'
-import { Json, JsonArray, JsonObject, JsonPrimitive } from './types'
+import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
@@ -81,7 +81,7 @@ export const isAsync = isPromise
 export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
     isString(input) || isNumber(input) || isBoolean(input) || input === null
 
-export const isJsonObject = (input: unknown): input is JsonObject => 
+export const isJsonObject = (input: unknown): input is JsonRecord => 
     isRecord(input, isJson)
 
 export const isJsonArray = (input: unknown): input is JsonArray => 

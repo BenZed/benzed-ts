@@ -1,6 +1,5 @@
-import { Sort } from 'mongodb'
 import { Transform } from './classes/pipe'
-import { isFunc, isNumber, isString, isSymbol, TypeGuard } from './types'
+import { isFunc, isNumber, isString, isSymbol } from './types'
 
 //// Types ////
 
@@ -34,7 +33,7 @@ const byTransform: <T>(transform: ByTransform<T>) => Sorter<T> =
  */
 type ByKey<T> = keyof SortableValues<T> extends infer K ? symbol | string extends K ? never : K : never
 
-const byKey: <T>(key: ByKey<T>) => Sorter<T> = key => byTransform(v => v[key])
+const byKey: <T>(key: ByKey<T>) => Sorter<T> = key => byTransform(v => v[key] as Sortable)
 
 type ByTransformOrKey<T> = ByKey<T> | ByTransform<T>
 const toSorter = <T>(option: ByTransformOrKey<T>): Sorter<T> => {

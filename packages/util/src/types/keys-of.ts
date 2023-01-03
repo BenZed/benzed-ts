@@ -103,7 +103,7 @@ export type Indexes<A extends unknown[] | readonly unknown[]> = {
     [K in keyof A]: ToNumber<K>
 }
 
-type Indexable = ArrayLike<unknown> | unknown[]
+type Indexable = ArrayLike<unknown> | unknown[] | readonly unknown[]
 
 /*
  * If provided a tuple time, get a union of numeric index literals

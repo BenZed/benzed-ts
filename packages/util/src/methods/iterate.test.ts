@@ -60,5 +60,30 @@ describe('iterate()', () => {
 
         expect([...iterate(str)]).toEqual(['f', 'o', 'o'])
     })
+  
+})
+
+describe('with each function', () => {
+    it('maps', () => {
+        const output = iterate(iterate(1, [2], [3,4,5]), n => n * 2)
+        expect(output).toEqual([2, 4, 6, 8, 10])
+    })
+
+    it('async', async () => {
+        const orderResolved: number[] = []
+
+        const output = iterate(
+            [25,75,50,0], 
+            n => new Promise<void>(r => setTimeout(() => {
+                orderResolved.push(n)
+                r()
+            }, n)) 
+        )
+
+        expect(output).toBeInstanceOf(Promise)
+        await output
+    
+        expect(orderResolved).toEqual([25,75,50,0])
+    })
 
 })
