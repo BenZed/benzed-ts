@@ -1,4 +1,5 @@
 import { Node, Nodes, Modules } from '@benzed/ecs'
+import { copy } from '@benzed/immutable'
 
 import { AppModule } from './app-module'
 import { Command, CommandList } from './app-modules'
@@ -23,13 +24,17 @@ class Service<M extends Modules = any, N extends Nodes = any> extends Node<M, N>
 
     async start(): Promise<void> {
 
-        for (const appModule of this.root.findModules.inSelf.or.inDescendents(AppModule))
+        for (const appModule of this.findModules.inTree(AppModule))
             await appModule.start()
     }
 
     async stop(): Promise<void> {
-        for (const appModule of this.root.findModules.inSelf.or.inDescendents(AppModule))
+        for (const appModule of this.findModules.inTree(AppModule))
             await appModule.stop()
+    }
+
+    setModules<Mx extends Modules>(...modules: Mx): Service<Mx, N> {
+        return new Service(this.nodes, ...modules) as unknown as Service<Mx,N>
     }
 
 }

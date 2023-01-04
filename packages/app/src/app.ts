@@ -1,12 +1,15 @@
 
-import { copy } from '@benzed/immutable'
-import { Client, ClientSettings, Server, ServerSettings } from './app-modules'
+import { Client, ClientSettings, Command, Server, ServerSettings } from './app-modules'
 import Service from './service'
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// Types ////
 
 type Services = {
-    [key: string]: Service
+    [key: string]: Service | Command<any,any,any>
 }
 
 //// Main ////
@@ -23,14 +26,14 @@ class App<M extends [Client] | [Server] | [], S extends Services> extends Servic
 
     asClient(settings: ClientSettings): App<[Client], S> {
         return new App(
-            copy(this.nodes), 
+            this.nodes, 
             Client.create(settings)
         )
     }
 
     asServer(settings: ServerSettings): App<[Server], S> {
         return new App(
-            copy(this.nodes), 
+            this.nodes, 
             Server.create(settings)
         )
     }

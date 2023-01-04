@@ -191,7 +191,7 @@ const Command = callable(
             const newReq = reqOrUpdate instanceof RequestHandler 
                 ? reqOrUpdate 
                 : reqOrUpdate(this.req)
-            return _Command._create(newReq, copy(this.execute))
+            return _Command._create(newReq, this.execute)
         }
 
         get method(): HttpMethod {
@@ -215,7 +215,7 @@ const Command = callable(
         }
 
         private _setExecute(execute: _CommandExecute): Command {
-            return _Command._create(copy(this.req), execute)
+            return _Command._create(this.req, execute)
         }
     
         appendHook(

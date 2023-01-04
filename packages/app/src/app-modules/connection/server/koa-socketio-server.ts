@@ -1,5 +1,4 @@
-import is from '@benzed/is'
-import { nil, isNumber } from '@benzed/util'
+import { nil, isNumber, isJson, isString } from '@benzed/util'
 import { unique } from '@benzed/array'
 
 import { createServer, Server as HttpServer } from 'http'
@@ -18,18 +17,19 @@ import {
     Headers, 
     HttpCode, 
     HttpMethod,
-    path
+    path,
+    Json
 } from '../../../util'
 import { CommandError } from '../../command'
 
 //// Helper ////
 
-function ctxBodyToObject(ctx: Context): Record<string, unknown> {
+function ctxBodyToObject(ctx: Context): Json {
 
-    if (is.object<Record<string, unknown>>(ctx.request.body))   
+    if (isJson.Object(ctx.request.body))   
         return ctx.request.body
 
-    if (is.string(ctx.request.body)) 
+    if (isString(ctx.request.body)) 
         return JSON.parse(ctx.request.body)
 
     return {}
@@ -117,14 +117,13 @@ export class KoaSocketIOServer extends Server {
             if (command.method === req.method)
                 matchMethod = true
     
-            const input = command
-                .matchRequest({
-                    ...req,
-                    url: url.replace(command.node.getPathFromRoot(), '') as path
-                })
+            const input = command.req.match({
+                ...req,
+                url: url.replace(command.getPathFromRoot(), '') as path
+            })
 
             if (input) {
-                const result = await Promise.resolve(command(input, {}))
+                const result = await Promise.resolve(command(input))
                 return result
             }
         }
@@ -192,7 +191,7 @@ export class KoaSocketIOServer extends Server {
             this.log`${socket.id} connected`
 
             // Handle commands from socket
-            socket.on('command', async (name: string, input: object, reply) => {
+            socket.on('command', async (name: string, input: Json, reply) => {
 
                 this.log`${socket.id} command: ${name} ${input}`
 
@@ -205,7 +204,7 @@ export class KoaSocketIOServer extends Server {
                         )
                     }
 
-                    const output = await Promise.resolve(command(input, {}))
+                    const output = await Promise.resolve(command(input))
 
                     this.log`${socket.id} reply: ${output}`
                     reply(null, output)

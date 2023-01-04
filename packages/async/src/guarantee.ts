@@ -99,7 +99,7 @@ const Guarantee = callable(
             return this._state.status === 'resolved'
         }
         get isRejected(): boolean {
-            return this._state.status === 'resolved'
+            return this._state.status === 'rejected'
         }
         get isFulfilled(): boolean {
             return this.isRejected || this.isResolved

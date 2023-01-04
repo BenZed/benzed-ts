@@ -11,8 +11,8 @@ describe('uri', () => {
 
     it('must include <database> tag', () => {
         expect(() => $mongoDbSettings.validate({ database: 'test', uri: 'mongodb://localhost:<port>'}))
-            .toThrow('<database> tag required')
-    })
+            .toThrow('<database> tag required')  
+    })  
 })
 
 describe('database', () => {

@@ -115,7 +115,7 @@ describe('Authentication', () => {
     })
 
     const CREDS = { 
-        email: 'user@email.com', 
+        email: 'user@email.com',
         password: 'password'
     }
 
@@ -144,7 +144,7 @@ describe('Authentication', () => {
 
     it('authenticate with email/pass', async () => {
 
-        const result = await app.commands.auth.login(CREDS)
+        const result = await app.commands.auth.login(CREDS) 
         const { accessToken } = result ?? {}
 
         expect(typeof accessToken).toBe('string')

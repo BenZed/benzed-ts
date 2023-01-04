@@ -2,7 +2,7 @@ import { through } from '@benzed/util'
 import { Guarantee } from './guarantee'
 import milliseconds from './milliseconds'
 
-it('returns a callable object', async () => {
+it('returns a callable object', async () => { 
 
     const guarantee = new Guarantee(async () => {
         await milliseconds(50)

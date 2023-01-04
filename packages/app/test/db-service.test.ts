@@ -1,54 +1,45 @@
 import $ from '@benzed/schema'
-import { Empty } from '@benzed/util'
 
-import { App, Command, Service, Client, Server, MongoDb } from '../src'
+import { App, Command, Service, MongoDb } from '../src'
 
 import { HttpMethod } from '../src/util'
 
-//// Build App ////
+//// Setup ////  
 
-const mongoDb = MongoDb
-    .create({ database: 'db-test' })
-    .addCollection('todos', $({
-        completed: $.boolean,
-        description: $.string
-    }))
+const $empty = $({})
 
-const getDbSettings = Command
-    .create(
-        'getDatabaseSettings', 
-        (_: Empty, cmd) => cmd.getModule(MongoDb, true).settings,
-        HttpMethod.Get        
-    )
+//// Database ////
 
-const todoCmds = mongoDb.createRecordCommands('todos')
+const mongodb = MongoDb 
+    .create({ database: 'db-test' }) 
 
-const todoService = Service
-    .create()
-    .useModules(...todoCmds)
+const getSettings = Command
+    .get($empty, (_, ctx) => ctx.node.assertModule.inAncestors(mongodb).data)
+    .setReq(req => req.setUrl`/settings`)
 
-const app = App
-    .create()
-    .useModules(
-        mongoDb,
-        getDbSettings
-    )
-    .useService('/todos', todoService.useService('/orders', todoService))
-    .useService('/orders', todoService)
+const todosCollection = mongodb
+    .createCollection('todos', { completed: $.boolean, description: $.string })
 
-//// Server & Client ////
+//// Services ////
+
+const database = Service.create({ getSettings }).setModules(mongodb, todosCollection)
+
+const todos = Service.create(todosCollection.createCommands()) 
+ 
+//// App ////
+
+const app = App.create({ 
+    database, 
+    todos
+})
+
+//// Server & Client ////   
     
-const server = app
-    .useModule(
-        Server.create()
-    )
+const server = app.asServer({}) 
 
-const client = app
-    .useModule(
-        Client.create({ webSocket: false })
-    )
+const client = app.asClient({})
 
-beforeAll(() => server.start())
+beforeAll(() => server.start()) 
 beforeAll(() => client.start())
 afterAll(() => client.stop())
 afterAll(() => server.stop())
@@ -56,27 +47,25 @@ afterAll(() => server.stop())
 // We're going to do an exhaustive query test here
 it('mongo db app connects to a database', async () => {
 
-    const { getDatabaseSettings } = client.commands
+    const { getSettings } = client.commands.database
 
-    expect(getDatabaseSettings.request.from({}))
-        .toEqual({
-            method: HttpMethod.Get,
-            url: '/get-database-settings', 
-        })
+    expect(getSettings.req.fromData({})).toEqual({
+        method: HttpMethod.Get,
+        url: '/settings', 
+    })
 
-    const settings = await getDatabaseSettings({})
+    const settings = await getSettings({})
 
-    const db = app.getModule(MongoDb, true)
-
-    expect(settings)
-        .toEqual(db.settings)
+    expect(mongodb.data).toEqual(settings)
 })
 
 it('send client command from nested service', async () => {
+    console.log(server.nodes.database.modules[0].isConnected)
+    console.log(client.nodes.database.modules[0].isConnected)
 
-    const nestedOrderService = client.getService('/todos/orders')  
-  
-    const { _id, ...rest } = await nestedOrderService
+    const { _id, ...rest } = await client
+        .services
+        .todos
         .commands
         .create({
             completed: false,

@@ -8,7 +8,7 @@ import { expectTypeOf } from 'expect-type'
 //// Setup ////
 
 const service = Node.create({
-    get: Command.get({ id: $.string }),
+    get: Command.get({ id: $.string }),  
     find: Command.get({ query: $.record($.string) }),
     update: Command.patch({ id: $.string, data: $.record($.string) }),
     create: Command.post({ data: $.record($.string) }),

@@ -14,7 +14,7 @@ import {
 import MongoDbCollection from './mongo-db-collection'
 
 import { AppModule } from '../../app-module'
-import { SchemaHook } from '../../util'
+import { Json, SchemaHook } from '../../util'
 
 //// Eslint ////
 
@@ -59,6 +59,8 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
      */
     get _database(): _MongoDatabase {
         if (!this.isConnected)
+            console.log(this._connect)
+        if (!this.isConnected)
             throw new Error(`${this.name} is not connected`)
 
         return this._connect.value.db(this.data.database)
@@ -73,11 +75,12 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
         
         await super.stop()
 
-        const client = await this._connect()
-        client.close()
+        if (!this._connect.isIdle) {
+            const client = await this._connect()
+            client.close()
+        }
     
         this._connect.reset()
-
         this.log`mongodb disconnected`
     }
 
@@ -89,16 +92,20 @@ class MongoDb extends AppModule<Required<MongoDbSettings>> {
         return this._connect.isFulfilled
     }
 
-    createCollection<N extends string, T extends object>(name: N, schema: SchemaHook<T>): MongoDbCollection<N,T> {
-        return new MongoDbCollection(name, schema)
+    createCollection<N extends string, T extends Json>(
+        name: N, 
+        schema: SchemaHook<T>
+    ): MongoDbCollection<N,T> {
+        return MongoDbCollection.create(name, schema)
     }
 
     async clearAllCollections(): Promise<void> {
-        this._assertStarted()
+        this._assertStarted()  
 
-        const collections = this.node.findModules.inDescendents(MongoDbCollection)
-        for (const collection of collections)
+        const collections = this.node.findModules.inSelf.or.inDescendents(MongoDbCollection)
+        for (const collection of collections) 
             await collection.clear()
+        
     }
 
 }

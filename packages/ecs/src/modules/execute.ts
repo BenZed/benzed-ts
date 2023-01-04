@@ -7,6 +7,7 @@ import {
 } from '@benzed/util'
     
 import { Module } from '../module/module'
+import { AssertModule } from '../module/module-finder'
 import { Node } from '../node'
 
 /* eslint-disable 
@@ -19,6 +20,8 @@ import { Node } from '../node'
 type ExecuteRef = {
     get node(): Node
     get hasNode(): boolean
+
+    get find(): AssertModule
 }
 
 type ExecuteInput<I> = { 
@@ -86,6 +89,10 @@ export const Execute: ExecuteConstructor = callable(
                 },
                 get hasNode() {
                     return module.hasNode
+                },
+
+                get find() {
+                    return module.node.assertModule.inTree
                 },
                 input,
                 ...data

@@ -11,7 +11,7 @@ import { RequestHandler } from '../request-handler'
 
 import { Command, CommandProvisions } from './command'
 
-import { expectTypeOf } from 'expect-type'
+import { expectTypeOf } from 'expect-type'  
 
 //// Tests ////  
 

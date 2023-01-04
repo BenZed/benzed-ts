@@ -1,9 +1,8 @@
 import { $ } from '@benzed/schema'
 
-import { Client, Server, Command } from '../src'
+import { Command, App } from '../src'
 
 import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
-import { Node } from '@benzed/ecs'
 
 //// Setup //// 
 
@@ -17,26 +16,26 @@ const subtract = math.appendHook(({ a, b }) => ({ result: a - b }))
 const divide = math.appendHook(({ a, b }) => ({ result: a / b }))
 const multiply = math.appendHook(({ a, b }) => ({ result: a * b }))
 
-const calculator = Node.create({
-    add: Node.create(add),
-    subtract: Node.create(subtract),
-    divide: Node.create(divide),
-    multiply: Node.create(multiply)
+const calculator = App.create({
+    add,
+    subtract,
+    divide,
+    multiply 
 })
 
 for (const webSocketClient of [true, false]) {
     for (const webSocketServer of [true, false]) { 
 
         describe(`websocket ${webSocketClient ? 'enabled' : 'disabled'} on client, ${webSocketServer ? 'enabled' : 'disabled'} on server`, () => {
-            const server = calculator.addModule(Server.create({ webSocket: webSocketServer }))
-            const client = calculator.addModule(Client.create({ webSocket: webSocketClient }))
+            const server = calculator.asServer({ webSocket: webSocketServer })
+            const client = calculator.asClient({ webSocket: webSocketClient })
             // 
   
-            beforeAll(() => server.module(Server).start())
-            beforeAll(() => client.module(Client).start())
+            beforeAll(() => server.start())
+            beforeAll(() => client.start())
             
-            afterAll(() => client.module(Client).stop())
-            afterAll(() => server.module(Server).stop())
+            afterAll(() => client.stop())
+            afterAll(() => server.stop())
 
             //// Tests //// 
         

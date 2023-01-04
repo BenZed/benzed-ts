@@ -2,11 +2,12 @@ import { $, Schematic } from '@benzed/schema'
 import { nil } from '@benzed/util'
 
 import { AppModule } from '../../app-module'
-
-import { Collection as _MongoCollection, ObjectId } from 'mongodb'
-import { SchemaHook, toSchematic, HttpCode, Json } from '../../util'
 import { MongoDb } from './mongo-db'
 import { Command, CommandError } from '../command'
+
+import { SchemaHook, toSchematic, HttpCode, Json } from '../../util'
+
+import { Collection as _MongoCollection, ObjectId } from 'mongodb'
 
 //// Eslint ////
 
@@ -54,15 +55,15 @@ type MongoDbCollectionCommands<T extends Json> = {
 
 class MongoDbCollection<N extends string, T extends Json> extends AppModule<{ name: N, schema: Schematic<T> }> {
 
-    static create<Nx extends string, Tx extends Json>(name: Nx, schema: SchemaHook<Tx>): MongoDbCollection<Nx,Tx> {
-        return new MongoDbCollection(name, schema)
+    static create<Nx extends string, Tx extends Json>( 
+        name: Nx, 
+        schema: SchemaHook<Tx>
+    ): MongoDbCollection<Nx,Tx> { 
+        return new MongoDbCollection({ name, schema: toSchematic(schema) })
     }
 
-    constructor(name: N, schema: SchemaHook<T>) {
-        super({
-            name, 
-            schema: toSchematic(schema)
-        })
+    constructor(data: { name: N, schema: Schematic<T> }) {
+        super(data) 
     }
 
     get db(): MongoDb {
@@ -136,7 +137,10 @@ class MongoDbCollection<N extends string, T extends Json> extends AppModule<{ na
 
     setName<Nx extends string>(name: Nx): MongoDbCollection<Nx, T> {
         this._assertStopped()
-        return new MongoDbCollection(name, this.schema)
+        return new MongoDbCollection({
+            ...this.data,
+            name
+        })
     }
 
     get schema(): Schematic<T> {
@@ -149,7 +153,10 @@ class MongoDbCollection<N extends string, T extends Json> extends AppModule<{ na
 
     setSchema<Tx extends Json>(schema: SchemaHook<Tx>): MongoDbCollection<N, Tx> {
         this._assertStopped()
-        return new MongoDbCollection(this.name, toSchematic(schema))
+        return new MongoDbCollection({
+            ...this.data,
+            schema: toSchematic(schema)
+        })
     }
 
     createCommands(): MongoDbCollectionCommands<T> {
@@ -168,15 +175,15 @@ class MongoDbCollection<N extends string, T extends Json> extends AppModule<{ na
             return input
         } 
 
-        const get = Command.get($id, ({ id }) => this.get(id).then(assertRecord(id)))
+        const get = Command.get($id, ({ id }, ctx) => ctx.find(this).get(id).then(assertRecord(id)))
 
-        const find = Command.get($query, query => this.find(query))
+        const find = Command.get($query, (query, ctx) => ctx.find(this).find(query))
 
-        const create = Command.post($create, data => this.create(data))
+        const create = Command.post($create, (data, ctx) => ctx.find(this).create(data))
 
-        const update = Command.patch($update, ({ id }) => this.get(id).then(assertRecord(id)))
+        const update = Command.patch($update, ({ id }, ctx) => ctx.find(this).get(id).then(assertRecord(id)))
 
-        const remove = Command.delete($id, ({ id }) => this.remove(id).then(assertRecord(id)))
+        const remove = Command.delete($id, ({ id }, ctx) => ctx.find(this).remove(id).then(assertRecord(id)))
 
         return {
             get,

@@ -42,7 +42,8 @@ const testProcess = new PackageSpawnProcess(
     '--run-in-band',
     '--verbose',
     '--force-exit',
-    '--detect-open-handles'
+    '--detect-open-handles',
+    '--bail'
 )
 
 const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) => {

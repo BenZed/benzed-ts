@@ -10,7 +10,7 @@ import { NodeBuilder as Node, SetNodeBuilderAtPath } from './node-builder'
 
 import { GetNodeAtPath, NestedPathsOf, PathsOf } from './operations'
 
-import { expectTypeOf } from 'expect-type'
+import { expectTypeOf } from 'expect-type' 
 
 /* eslint-disable  
     @typescript-eslint/ban-types,

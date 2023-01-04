@@ -7,7 +7,7 @@ import { InputOf, nil, OutputOf, through } from '@benzed/util'
 
 import Client, { $clientSettings, ClientSettings } from './client'
 
-import { $path, HttpCode, WEBSOCKET_PATH } from '../../../util'
+import { $path, HttpCode, Json, WEBSOCKET_PATH } from '../../../util'
 import { Command, CommandError } from '../..'
 
 //// Eslint ////
@@ -99,13 +99,13 @@ export class FetchSocketIOClient extends Client {
         this.log`disconnected from server`
     }
 
-    private _executeSocketIOCommand(command: Command, data: object): Promise<object> {
+    private _executeSocketIOCommand(command: Command, data: Json): Promise<Json> {
         const io = this._io as Socket 
 
         const rootName = this._getCommandRootName(command)
 
-        return new Promise<object>((resolve, reject) => {
-            io.emit('command', rootName, data, (err: null, result: object) => {
+        return new Promise<Json>((resolve, reject) => {
+            io.emit('command', rootName, data, (err: null, result: Json) => {
                 if (err)
                     reject(CommandError.from(err))
                 else 
@@ -114,13 +114,13 @@ export class FetchSocketIOClient extends Client {
         })
     }
 
-    private async _executeFetchCommand(command: Command, cmdData: object): Promise<object> {
+    private async _executeFetchCommand(command: Command, cmdData: Json): Promise<Json> {
         const { host } = this.data
 
-        const { method, url, body, headers } = command.toRequest(cmdData)
+        const { method, url, body, headers } = command.req.fromData(cmdData)
 
         const response = await fetch(
-            host + $path.validate(`${command.node.getPathFromRoot()}${url}`), 
+            host + $path.validate(`${command.getPathFromRoot()}${url}`), 
             { 
                 method,
                 body: body && JSON.stringify(body), 
@@ -147,7 +147,7 @@ export class FetchSocketIOClient extends Client {
     
     private _getCommandRootName(command: Command): string {
 
-        const path = command.node.getPathFromRoot()
+        const path = command.getPathFromRoot()
 
         return path.length > 1
             ? toCamelCase(path, '/') + capitalize(command.name)

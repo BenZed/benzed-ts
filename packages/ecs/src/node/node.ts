@@ -111,11 +111,11 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
     
     constructor(nodes: N, ...modules: M) {
 
-        this.nodes = nodes
+        this.nodes = copy(nodes)
         for (const child of this.eachChild())
             child._setParent(this)
 
-        this.modules = modules
+        this.modules = copy(modules)
         for (const module of this.modules)
             module._setNode(this)
 
@@ -311,11 +311,7 @@ class Node<M extends Modules = any, N extends Nodes = any> implements CopyCompar
 
     [$$copy](): this {
         const NodeConstructor = this.constructor as new (nodes: Nodes, ...modules: Modules) => this
-
-        const nodes = copy(this.nodes)
-        const modules = copy(this.modules)
-
-        return new NodeConstructor(nodes, ...modules) as Node<M,N> as this
+        return new NodeConstructor(this.nodes, ...this.modules) as Node<M,N> as this
     }
 
     [$$equals](other: unknown): other is this {

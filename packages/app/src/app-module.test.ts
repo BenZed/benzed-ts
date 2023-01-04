@@ -7,9 +7,9 @@ import { AppModule } from './app-module'
 
 //// Setup ////
 
-class Test extends AppModule<void> { /**/ }  
+class Test extends AppModule<void> { /**/ }
 
-//// Tests ////
+//// Tests ////  
 
 it('.start() cannot be called consecutively', async () => {
     const test = new Test()

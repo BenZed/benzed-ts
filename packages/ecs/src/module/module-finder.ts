@@ -37,6 +37,7 @@ export interface FindModule {
     inChildren: FindModule
     inParents: FindModule
     inAncestors: FindModule
+    inTree: FindModule
 }
 
 export interface FindModules {
@@ -47,6 +48,7 @@ export interface FindModules {
     inChildren: FindModules
     inParents: FindModules
     inAncestors: FindModules
+    inTree: FindModules
 }
 
 export interface HasModule {
@@ -56,7 +58,8 @@ export interface HasModule {
     inDescendents: HasModule
     inChildren: HasModule
     inParents: HasModule
-    inAncestors: HasModule
+    inAncestors: FindModules
+    inTree: FindModules
 }
 
 //// AssertNode ////
@@ -69,6 +72,7 @@ export interface AssertModule {
     inChildren: AssertModule
     inParents: AssertModule
     inAncestors: AssertModule
+    inTree: AssertModule
 }
 
 //// Implementation ////
@@ -128,6 +132,10 @@ export const ModuleFinder = callable(
             return this._iteratorIncrement(this.node.eachAncestor())
         }
 
+        get inTree(): this {
+            return this._iteratorIncrement(this.node.root, this.node.root.eachDescendent())
+        }
+
         //// Helper ////
 
         /**
@@ -142,8 +150,10 @@ export const ModuleFinder = callable(
             iterators: for (const iterator of this._iterators) {
                 for (const node of iterator) {
                     for (const module of node.modules) {
+
                         if (found.includes(module))
                             continue
+
                         const pass = predicate(module)
                         if (pass)
                             found.push(Module.isModule(pass) ? pass : module)
@@ -154,8 +164,11 @@ export const ModuleFinder = callable(
             }
 
             const has = found.length > 0
-            if (flag === FindFlag.Assert && !has)
-                throw new Error(error ?? `Could not find module ${toModuleName(input)}`)
+            if (flag === FindFlag.Assert && !has) {
+                throw new Error(
+                    error ?? `Node ${this.node.getPathFromRoot()} Could not find module ${toModuleName(input)}`
+                )
+            }
 
             if (flag === FindFlag.Has)
                 return has
@@ -170,14 +183,14 @@ export const ModuleFinder = callable(
         
         private readonly _iterators: Iterable<Node>[]
         private _iteratorMergeOnIncrement = false
-        private _iteratorIncrement(iterator: Iterable<Node>): this {
+        private _iteratorIncrement(...iterators: Iterable<Node>[]): this {
             const next = copy(this)
             next._iterators.length = 0 
 
             if (this._iteratorMergeOnIncrement)
                 next._iterators.push(...this._iterators)
         
-            next._iterators.push(iterator)
+            next._iterators.push(...iterators)
             return next
         }
 

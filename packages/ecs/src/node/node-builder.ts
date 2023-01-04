@@ -93,7 +93,7 @@ class NodeBuilder<M extends Modules = any, N extends Nodes = any> extends Node<M
 
     setModules<Mx extends Modules>(...modules: Mx): NodeBuilder<Mx, N> {
         return new NodeBuilder(
-            copy(this.nodes),
+            this.nodes,
             ...modules
         ) as unknown as NodeBuilder<Mx, N>
     }
@@ -148,7 +148,7 @@ class NodeBuilder<M extends Modules = any, N extends Nodes = any> extends Node<M
     }
 
     setNodes<Nx extends Nodes>(nodes: Nx): NodeBuilder<M, Nx> {
-        return new NodeBuilder(nodes, ...copy(this.modules)) as unknown as NodeBuilder<M, Nx>
+        return new NodeBuilder(nodes, ...this.modules) as unknown as NodeBuilder<M, Nx>
     }
     
 }
