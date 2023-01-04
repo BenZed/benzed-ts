@@ -18,6 +18,7 @@ import createCallableClass, {
     CallableClass,
     isInstance,
     resolveInstance,
+    $$constructor,
 } from './class'
 
 import type { Func } from '../types'
@@ -74,6 +75,8 @@ callable.transferContext = transfer$$This
 callable.isInstance = isInstance
 
 callable.resolveInstance = resolveInstance
+
+callable.$$constructor = $$constructor
 
 //// Exports ////
 

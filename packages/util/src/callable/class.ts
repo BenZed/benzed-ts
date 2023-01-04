@@ -9,6 +9,8 @@ import createCallableObject, { BoundSignature, Callable, get$$Callable, GetSigna
     @typescript-eslint/restrict-plus-operands
 */
 
+const $$constructor = Symbol('construct-callable-instance')
+
 //// Types ////
 
 interface Class {
@@ -85,10 +87,15 @@ function createCallableClass <
 
         constructor(...args: any[]) {
             super(...args)
-            return createCallableInstance(
+            const callable = createCallableInstance(
                 signature,
                 this as InstanceType<C>,
             )
+
+            if ($$constructor in callable && isFunc(callable[$$constructor]))
+                callable[$$constructor](...args)
+
+            return callable
         }
     }
 
@@ -109,5 +116,6 @@ export {
     Class,
     isClass,
     isInstance,
-    resolveInstance
+    resolveInstance,
+    $$constructor
 }
