@@ -4,6 +4,8 @@ import { Assert, schema } from './schema'
 
 import { expectTypeOf } from 'expect-type'
 
+import { describe, it, expect } from '@jest/globals'
+
 //// Setup ////
 
 const isString = (i: unknown): i is string => typeof i === 'string'
@@ -19,7 +21,7 @@ const $password = $string
     .asserts(i => i.length >= 8, 'must have 8 characters or more')
     .asserts(i => !!i.match(/[A-Z]/), 'must have a capital character.')
 
-//// Tests ////
+//// Tests //// 
     
 describe('schema()', () => {
 
@@ -122,7 +124,7 @@ describe('Copyable', () => {
 
     it('can be immutably copied', () => {
         const $stringCopy = copy($string)
-        expect($stringCopy).not.toEqual($string)
+        expect($stringCopy).not.toBe($string)
     })
 
 })

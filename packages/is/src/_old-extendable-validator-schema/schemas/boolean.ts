@@ -31,14 +31,6 @@ const boolean: BooleanSchema = typeSchema({
 
 })
 
-function constructable<F extends (...args: any[]) => any>(f: F): new (...args: Parameters<F>) => ReturnType<F> {
-    return function (...args: Parameters<F>): ReturnType<F> {
-        return f(...args)
-    } as any
-}
-
-const BooleanSchema = constructable(() => boolean)
-
 //// Exports ////
 
 export default boolean

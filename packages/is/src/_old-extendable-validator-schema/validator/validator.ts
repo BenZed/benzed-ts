@@ -1,5 +1,5 @@
 import { equals, extend } from '@benzed/immutable'
-import { Empty, isFunction, Merge } from '@benzed/util'
+import { Empty, isFunc, Merge } from '@benzed/util'
 
 import { ValidationError } from './error'
 import { ValidateContext, ValidateOptions } from './context'
@@ -74,7 +74,7 @@ function validate(
         : equals(transformed, output)
     
     if (!isValid) {
-        const msg = isFunction(this.error)
+        const msg = isFunc(this.error)
             ? this.error(output, ctx) 
             : this.error ?? 'Validation failed.'
         

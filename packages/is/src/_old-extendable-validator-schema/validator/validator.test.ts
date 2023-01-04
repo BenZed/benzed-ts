@@ -1,4 +1,4 @@
-import { nil } from '@benzed/util/lib'
+import { nil } from '@benzed/util'
 import { validator } from './validator'
 
 const $string = validator({
