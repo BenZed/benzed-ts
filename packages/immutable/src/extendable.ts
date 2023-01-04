@@ -320,7 +320,10 @@ function extendable(this: object | void, extension: object): object {
  * @param source 
  * @param target 
  */
-function extend<A extends Extension<object>, B extends Extension<object>>(
+function extend<
+    A extends Extension<object>, 
+    B extends Extension<object>
+>(
     source: A, 
     target: B
 ): Extend<ToExtendable<A>, ToExtendable<B>> {
