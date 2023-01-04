@@ -42,7 +42,7 @@ async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentRes
     await renderer.complete()
 
     return items.map(({ error, setting }) => ({
-        error: error && pick(error, `message`, `name`),
+        error: error && pick(error, 'message', 'name'),
         setting
     }))
 }
@@ -109,7 +109,7 @@ class RenderAgent implements RenderAgentData {
     //// To Json ////
     
     toJSON(): RenderAgentData {
-        return pick(this, `_id`, `files`)
+        return pick(this, '_id', 'files')
     }
 
     //// Helper ////
@@ -121,7 +121,7 @@ class RenderAgent implements RenderAgentData {
             source: fs.createReadStream(
                 getFsFilePath(
                     file,
-                    `./storage/test/files`
+                    './storage/test/files'
                 )
             ),
             // TEMP
@@ -130,7 +130,7 @@ class RenderAgent implements RenderAgentData {
                     path.dirname(
                         getFsFilePath(
                             file,
-                            `./storage/test/files`
+                            './storage/test/files'
                         )
                     ),
                     RENDER_DIR_NAME,
@@ -149,14 +149,14 @@ class RenderAgent implements RenderAgentData {
         return new Promise((resolve, reject) => {
 
             socket.emit(
-                `render`, 
+                'render', 
                 file, 
                 (data: RenderAgentResult[]) => resolve(data)
             )
             
-            socket.once(`disconnect`, () => 
+            socket.once('disconnect', () => 
                 reject(
-                    new Error(`client disconnected`)
+                    new Error('client disconnected')
                 )
             )
         })

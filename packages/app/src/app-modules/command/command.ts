@@ -2,7 +2,6 @@ import { callable, isFunc, Pipe, through } from '@benzed/util'
 import { Async, ToAsync, FromAsync, toAsync } from '@benzed/async'
 import { Module, Execute, ExecuteHook, Node, Nodes } from '@benzed/ecs'
 import { Schematic } from '@benzed/schema'
-import { copy } from '@benzed/immutable'
 import { pluck } from '@benzed/array'
 
 import { RequestHandler } from '../request-handler'
@@ -238,8 +237,7 @@ const Command = callable(
                     .setSchema(schema)
                     .prependHook(
                         // prevent behaviour changes in future hooks
-                        // by leaving the input data shape unchanged from 
-                        // their perspective
+                        // by leaving the validation they've had in place
                         Pipe.from(hook).to(this.schema.validate)
                     )
                 

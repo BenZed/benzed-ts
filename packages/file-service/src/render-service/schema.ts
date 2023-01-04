@@ -11,7 +11,7 @@ export const $renderServiceConfig = $({
     
     path: $fileServiceConfig.$.path,
 
-    channel: $.string.length(`>`, 0),
+    channel: $.string.length('>', 0),
     
     renderer: $rendererConfig
 

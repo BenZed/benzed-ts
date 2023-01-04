@@ -3,6 +3,13 @@ import { $ } from '@benzed/schema'
 import { Command, App } from '../src'
 
 import { it, expect, describe, beforeAll, afterAll } from '@jest/globals'
+import { Module } from '@benzed/ecs'
+
+//// Modules ////
+
+class State extends Module<void> {
+
+}
 
 //// Setup //// 
 
@@ -20,7 +27,7 @@ const calculator = App.create({
     add,
     subtract,
     divide,
-    multiply 
+    multiply
 })
 
 for (const webSocketClient of [true, false]) {
@@ -46,7 +53,7 @@ for (const webSocketClient of [true, false]) {
                 [ { name: 'subtract', a: 10, b: 10 }, { result: 0 } ],
                 [ { name: 'multiply', a: 10, b: 10 }, { result: 100 } ]
 
-            ] as const) { 
+            ] as const) {
 
                 it(`calculator ${name} test ${JSON.stringify(data)} should result in ${JSON.stringify(output)}`, async () => {
                     const result = await client.commands[name](data)

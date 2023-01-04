@@ -16,7 +16,7 @@ const DUMMY_LOGGER = Logger.create({ onLog: toVoid })
 
 //// Types ////
 
-export type AppModules = readonly AppModule[]
+export type AppModules = readonly AppModule[] 
 
 export class AppModule<D = unknown> extends Module<D> {
 
