@@ -1,7 +1,27 @@
-import createCallableObject, { bind$$This, Callable, BoundSignature, get$$This, transfer$$This, GetSignature, GetObjects } from './object'
-import createCallableClass, { isClass, Class, CallableClass } from './class'
+import createCallableObject, { 
 
-import type { Func} from '../types'
+    BoundSignature, 
+    GetSignature, 
+    GetObjects,
+    
+    Callable,
+
+    bind$$This, 
+    get$$This, 
+    transfer$$This, 
+
+} from './object'
+
+import createCallableClass, { 
+    isClass, 
+    Class, 
+    CallableClass,
+    isInstance,
+    resolveInstance,
+    $$constructor,
+} from './class'
+
+import type { Func } from '../types'
 
 //// Main ////
 
@@ -9,7 +29,7 @@ function callable<S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S,
     constructor: C,
     name?: string,
-): CallableClass<GetSignature<S,InstanceType<C>>, C>
+): CallableClass<GetSignature<S, InstanceType<C>>, C>
 
 function callable<S extends BoundSignature<O>, O extends object>(
     signature: S,
@@ -52,11 +72,17 @@ callable.bindContext = bind$$This
  */
 callable.transferContext = transfer$$This
 
+callable.isInstance = isInstance
+
+callable.resolveInstance = resolveInstance
+
+callable.$$constructor = $$constructor
+
 //// Exports ////
 
 export default callable
 
 export {
     callable,
-    Callable
+    Callable,
 }

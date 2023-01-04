@@ -1,12 +1,11 @@
-import { nil } from './nil'
+import { isNil, nil } from './nil'
 import { keysOf } from './keys-of'
-import { Infer } from './types'
 
 //// Type ////
 
-type Defined<T extends object> = Infer<{
+type Defined<T extends object> = {
     [K in keyof T as T[K] extends undefined ? never : K]: T[K]
-}>
+}
 
 //// Main ////
 
@@ -22,7 +21,9 @@ function defined<T extends object>(input: T): Defined<T> {
     }
             
     return output as Defined<T>
-}       
+}
+
+const isDefined = <T>(input: T): input is Exclude<T, nil> => !isNil(input)
 
 //// Exports ////
 
@@ -30,5 +31,6 @@ export default defined
 
 export {
     defined,
+    isDefined,
     Defined
 }

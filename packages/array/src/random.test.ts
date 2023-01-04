@@ -10,7 +10,7 @@ function expectEqualOccurances<T>(
 ): void {
 
     const results: T[] = []
-    for (let i = 0; i < count; i++)
+    for (let i = 0; i < count; i++) 
         results.push(random(input))
 
     const average = count / values.length
@@ -76,4 +76,17 @@ it('gives a random element in a map', () => {
 
 it('returns undefined on empty arrays', () => {
     expect(random([])).toEqual(undefined)
+})
+
+it('optionally bindable', () => {
+    const arrlike = {
+        length: 5,
+        0: 'a',
+        1: 'b',
+        2: 'c',
+        random
+    }
+
+    const output = arrlike.random()
+    expect(Array.from(arrlike)).toContain(output)
 })

@@ -1,102 +1,78 @@
-import { Schematic } from '@benzed/schema'
+import $ from '@benzed/schema'
 
-import { Service } from '../src/service'
-
-import { App } from '../src/app'
-import { Command } from '../src/command'
-import { 
-    Client, 
-    Server, 
-    Record,
-
-    WithId,
-    MongoDb
-} from '../src/modules'
+import { App, Command, Service, MongoDb } from '../src'
 
 import { HttpMethod } from '../src/util'
 
-//// Build App ////
+//// Setup ////  
 
-const dummySchematic = <I extends object>(): Schematic<I> => ({ 
-    validate: i => i as I, 
-    is: (i): i is I => true, 
-    assert: i => void i
+const $empty = $({})
+
+//// Database ////
+
+const mongodb = MongoDb 
+    .create({ database: 'db-test' }) 
+
+const getSettings = Command
+    .get($empty, (_, ctx) => ctx.node.assertModule.inAncestors(mongodb).data)
+    .setReq(req => req.setUrl`/settings`)
+
+const todosCollection = mongodb
+    .createCollection('todos', { completed: $.boolean, description: $.string })
+
+//// Services ////
+
+const database = Service.create({ getSettings }).setModules(mongodb, todosCollection)
+
+const todos = Service.create(todosCollection.createCommands()) 
+ 
+//// App ////
+
+const app = App.create({ 
+    database, 
+    todos
 })
 
-const crudService = Service
-    .create()
-    .useModules(
-        Command.create(dummySchematic<object>()),
-        Command.get(dummySchematic<WithId>()),
-        Command.remove(dummySchematic<WithId>()),
-    )
-
-const app = App
-    .create()
-    .useModules(
-        MongoDb.create({ database: 'db-test' }),
-        Command
-            .create(
-                'getDatabaseSettings', 
-                dummySchematic<object>(), 
-                HttpMethod.Get
-            )
-            .useHook(function() {
-                const db = this.getModule(MongoDb, true)
-                return db.settings
-            })
-    )
-    .useService('/todos', crudService.useService('/orders', crudService))
-    .useService('/orders', crudService)
-
-//// Server & Client ////
+//// Server & Client ////   
     
-const server = app
-    .useModule(
-        Server.create()
-    )
+const server = app.asServer({}) 
 
-const client = app
-    .useModule(
-        Client.create({ webSocket: false })
-    )
+const client = app.asClient({})
 
-beforeAll(() => server.start())
-
+beforeAll(() => server.start()) 
 beforeAll(() => client.start())
-
+afterAll(() => client.stop())
 afterAll(() => server.stop())
 
 // We're going to do an exhaustive query test here
 it('mongo db app connects to a database', async () => {
 
-    const { getDatabaseSettings } = client.commands
+    const { getSettings } = client.commands.database
 
-    expect(getDatabaseSettings.toRequest({}))
-        .toEqual({
-            method: HttpMethod.Get,
-            url: '/get-database-settings',
-        })
+    expect(getSettings.req.fromData({})).toEqual({
+        method: HttpMethod.Get,
+        url: '/settings', 
+    })
 
-    const settings = await getDatabaseSettings.execute({})
+    const settings = await getSettings({})
 
-    expect(settings)
-        .toEqual(app.modules[0].settings)
+    expect(mongodb.data).toEqual(settings)
 })
 
-it.skip('send client command from nested service', async () => {
+it('send client command from nested service', async () => {
+    console.log(server.nodes.database.modules[0].isConnected)
+    console.log(client.nodes.database.modules[0].isConnected)
 
-    const nestedOrderService = client.modules[2].modules[3]
-
-    const { _id, ...rest } = await nestedOrderService
+    const { _id, ...rest } = await client
+        .services
+        .todos
         .commands
-        .create
-        .execute({ 
-            some: 'data', 
-            goes: 'here'
-        }) as Record<object>
+        .create({
+            completed: false,
+            description: 'Nested orders' 
+        }) 
 
-    expect(rest).toEqual({ some: 'data', goes: 'here' })
+    expect(rest).toEqual({ completed: false, description: 'Nested orders' })
     expect(_id).toBeTruthy()
 
 })

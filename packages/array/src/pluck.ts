@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { nil, TypeGuard } from '@benzed/util'
+import { IndexValue } from './types'
+
 //// Shortcuts ////
 
 const { splice } = Array.prototype
 
 //// Types ////
-
-type TypeGuard<I, O extends I = I> = 
-    (item: I, index: number, input: ArrayLike<I>) => 
-        item is O
 
 type Predicate<T> = (
     (item: T, index: number, input: ArrayLike<T>) => boolean
@@ -23,23 +22,63 @@ type Predicate<T> = (
  * const even = pluck([1, 2, 3, 4], v => v % 2 === 0) // [2,4], [1,3]
  * ```
  */
+
+function pluck<
+    A extends ArrayLike<unknown>,
+    F extends TypeGuard<unknown> | Predicate<IndexValue<A>>
+>(
+    input: A,
+    fitler: F,
+    count?: number
+): F extends TypeGuard<infer O> ? O[] : IndexValue<A>[]
+
 function pluck<I, O extends I>(
     input: ArrayLike<I>,
-    typeguard: TypeGuard<I, O>,
+    typeGuardFilter: TypeGuard<O, I>,
     count?: number
 ): O[]
 
 function pluck<T>(
     input: ArrayLike<T>,
-    predicate: Predicate<T>,
+    predicateFilter: Predicate<T>,
     count?: number
-): T[] 
+): T[]
+
+//// Optionally bindable ////
+
+function pluck<
+    A extends ArrayLike<unknown>,
+    F extends Predicate<IndexValue<A>> | TypeGuard<unknown>
+>(
+    this: A,
+    fitler: F,
+    count?: number
+): F extends TypeGuard<infer O> ? O[] : IndexValue<A>[]
+
+function pluck<I, O extends I>(
+    this: ArrayLike<I>,
+    typeGuardFilter: TypeGuard<O, I>,
+    count?: number
+): O[]
+
+function pluck<T>(
+    this: ArrayLike<T>,
+    predicateFilter: Predicate<T>,
+    count?: number
+): T[]
 
 function pluck(
-    input: ArrayLike<unknown>,
-    predicate: Predicate<unknown>,
-    count = input.length
+    this: unknown,
+    ...args: unknown[]
 ): unknown[] {
+
+    const [ input, predicate, maxToRemove ] = (
+        args.length <= 1 
+            ? [this, ...args] 
+            : args
+    ) as [ArrayLike<unknown>, Predicate<unknown>, number | nil ]
+
+    let count = maxToRemove ?? input.length
 
     const results: unknown[] = []
     const indexes: number[] = []

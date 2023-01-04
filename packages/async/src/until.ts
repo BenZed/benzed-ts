@@ -1,5 +1,4 @@
-
-import { isFunction, isNumber, isObject, isString } from '@benzed/util'
+import { isFunc, isObject, isNumber, isString } from '@benzed/util'
 
 import milliseconds from './milliseconds'
 
@@ -44,11 +43,11 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
     let timeoutMsg = DEFAULT_TIMEOUT_MSG
 
     // Find timeoutMsg
-    if (isFunction(a1) || isString(a1))
+    if (isFunc(a1) || isString(a1))
         timeoutMsg = a1
-    else if (isFunction(a2) || isString(a2))
+    else if (isFunc(a2) || isString(a2))
         timeoutMsg = a2
-    else if (isFunction(a3) || isFunction(a3))
+    else if (isFunc(a3) || isFunc(a3))
         timeoutMsg = a3
 
     // Find interval & timeout
@@ -94,7 +93,7 @@ async function until(
 
         elapsed = Date.now() - start
         if (elapsed >= timeout) {
-            const message = isFunction(timeoutMsg) ? timeoutMsg(timeout) : timeoutMsg
+            const message = isFunc(timeoutMsg) ? timeoutMsg(timeout) : timeoutMsg
             throw new Error(message)
         }
     }

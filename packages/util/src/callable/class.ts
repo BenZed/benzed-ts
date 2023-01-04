@@ -1,11 +1,15 @@
 import { property } from '../property'
+import { isObject } from '../types'
 import { isFunc } from '../types/func'
-import createCallableObject, { BoundSignature, Callable, GetSignature } from './object'
+import createCallableObject, { BoundSignature, Callable, get$$Callable, GetSignature } from './object'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types,
     @typescript-eslint/restrict-plus-operands
 */
+
+const $$constructor = Symbol('construct-callable-instance')
 
 //// Types ////
 
@@ -21,11 +25,7 @@ type CallableClass<S extends BoundSignature<InstanceType<C>>, C extends Class> =
     
 const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C extends Class>(
     signature: S, 
-    instance: InstanceType<C>,
-    name: string = signature.name || 
-        // PascalCase to camelCase
-        instance.constructor.name.charAt(0).toLowerCase() +
-        instance.constructor.name.slice(1),
+    instance: InstanceType<C>
 ): Callable<S, InstanceType<C>> => {
 
     const callable = createCallableObject(
@@ -37,12 +37,6 @@ const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C ext
     return property(
         callable, 
         { 
-
-            name: { 
-                value: name,
-                configurable: true 
-            },
-
             constructor: {
                 value: instance.constructor,
                 writable: true,
@@ -50,7 +44,7 @@ const createCallableInstance = <S extends BoundSignature<InstanceType<C>>, C ext
                 configurable: true,
             }
         }
-    )
+    ) as Callable<S, InstanceType<C>>
 }
 
 const isClass = (input: unknown): input is Class => 
@@ -58,7 +52,14 @@ const isClass = (input: unknown): input is Class =>
     && input.prototype
     && Symbol.hasInstance in input
 
-//// Main ////
+const resolveInstance = (value: object): object => 
+    get$$Callable(value)?.object ?? value
+
+function isInstance <T extends Class>(value: unknown, constructor: T): value is InstanceType<T> 
+function isInstance (value: unknown, constructor: Function): value is object { 
+    
+    return (isObject(value) || isFunc(value)) && resolveInstance(value) instanceof constructor
+}
 
 /**
  * This syntax works in testing, but breaks after being transpiled in other packages.
@@ -80,16 +81,21 @@ function createCallableClass <
     class Callable extends Class {
 
         static [Symbol.hasInstance](value: object): boolean {
-            return !!value?.constructor && property.prototypes(value.constructor).includes(Class)
+            const instance = resolveInstance(value)
+            return super[Symbol.hasInstance](instance)
         }
 
         constructor(...args: any[]) {
             super(...args)
-            return createCallableInstance(
+            const callable = createCallableInstance(
                 signature,
                 this as InstanceType<C>,
-                name,
             )
+
+            if ($$constructor in callable && isFunc(callable[$$constructor]))
+                callable[$$constructor](...args)
+
+            return callable
         }
     }
 
@@ -108,5 +114,8 @@ export {
     CallableClass,
 
     Class,
-    isClass
+    isClass,
+    isInstance,
+    resolveInstance,
+    $$constructor
 }

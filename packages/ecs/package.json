@@ -1,14 +1,13 @@
 {
     "name": "@benzed/ecs",
-    "description": "Type oriented immutable entity component system",
+    "description": "Immutable type safe entity component system data structure",
     "main": "./src",
     "private": true,
     "version": "0.9.0",
     "scripts": {
-        "test": "jest --runInBand --all",
-        "test:dev": "jest --runInBand -o --verbose --watch",
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --verbose",
         "build": "npm run lint && npm run tsc",
-        "build:dev": "npm run tsc -- -w",
         "lint": "eslint src/**/*.ts --fix",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
@@ -23,9 +22,9 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/array": "^3.2.1",
         "@benzed/util": "^3.9.1",
-        "@benzed/is": "^3.1.2"
+        "@benzed/immutable": "^3.1.3",
+        "@benzed/array": "^3.2.3"
     },
     "peerDependencies": {},
     "devDependencies": {}

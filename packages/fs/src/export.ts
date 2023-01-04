@@ -1,6 +1,5 @@
 export {
 
-    readdir as readDir,
     mkdir as makeDir,
     rmdir as removeDir,
     rm as removeFile,
@@ -29,6 +28,7 @@ export {
 
 export * from './exists'
 export * from './ensure-dir'
+export * from './read-dir'
 export * from './read-json'
 export * from './write-json'
 export * from './types'

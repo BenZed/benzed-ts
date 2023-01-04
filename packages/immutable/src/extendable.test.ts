@@ -6,6 +6,9 @@ import { copy } from './copy'
 
 import { expectTypeOf } from 'expect-type'
 import { $$callable } from './symbols'
+
+import { it, expect } from '@jest/globals'
+
 //// Tests ////
 
 it('adds an extend method to functions or objects', () => {

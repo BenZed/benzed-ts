@@ -1,64 +1,46 @@
 
-import { ServiceModule, FlattenModules, ToService } from './service'
-import { Module, Modules } from './module'
-import { Path } from './util/types'
-
-//// Eslint ////
+import { Client, ClientSettings, Command, Server, ServerSettings } from './app-modules'
+import Service from './service'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
 
-//// App ////
+//// Types ////
 
-/**
- * An app is essentially just a Service without a path. 
- */
-class App<M extends Modules = Modules> extends ServiceModule<M> {
-
-    // Sealed Construction 
-
-    static create(): App<[]> {
-        return new App([])
-    }
-
-    private constructor(modules: M) {
-        super(modules)
-    }
-  
-    // Use Interface
-
-    override useService<Px extends Path, S extends ServiceModule<any>>(
-        path: Px,
-        module: S
-    ): App<[...M, ToService<Px ,S>]> {
-        return new App(
-            this._pushModule(path, module)
-        ) as App<[...M, ToService<Px ,S>]>
-    }
-
-    override useModule<Mx extends Module>(
-        module: Mx
-    ): App<[...M, ...FlattenModules<[Mx]>]> {
-        return new App(
-            this._pushModule(module)
-        ) as App<[...M, ...FlattenModules<[Mx]>]>
-    }
-
-    override useModules<Mx extends Modules>(
-        ...modules: Mx
-    ): App<[...M, ...FlattenModules<Mx>]> {
-        return new App(
-            this._pushModule(...modules)
-        ) as App<[...M, ...FlattenModules<Mx>]>
-    }
-
+type Services = {
+    [key: string]: Service | Command<any,any,any>
 }
 
-//// Export ////
+//// Main ////
 
-export default App 
+class App<M extends [Client] | [Server] | [], S extends Services> extends Service<M,S> {
 
-export {
-    App
+    static override create<Sx extends Services>(services: Sx): App<[],Sx> {
+        return new App(services)
+    }
+
+    get services(): S {
+        return this.nodes
+    }
+
+    asClient(settings: ClientSettings): App<[Client], S> {
+        return new App(
+            this.nodes, 
+            Client.create(settings)
+        )
+    }
+
+    asServer(settings: ServerSettings): App<[Server], S> {
+        return new App(
+            this.nodes, 
+            Server.create(settings)
+        )
+    }
 }
+
+//// Exports ////
+
+export default App
+
+export { App }

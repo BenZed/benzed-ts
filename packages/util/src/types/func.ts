@@ -4,6 +4,10 @@
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
 
+export type TypeGuardOutput<T extends TypeGuard<unknown>> = T extends TypeGuard<infer O>    
+    ? O
+    : unknown
+
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
 
 export type Func = (...args: any) => any 

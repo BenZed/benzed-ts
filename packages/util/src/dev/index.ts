@@ -1,8 +1,6 @@
 export * from './benchmark'
 
 export {
-    createLogger,
-
     Logger,
     isLogger,
 
@@ -17,3 +15,5 @@ export {
     AnsiOptions
 
 } from './ansi'
+
+export * from './override'

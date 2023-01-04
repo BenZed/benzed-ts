@@ -1,16 +1,19 @@
 import { indexesOf, keysOf } from '../types/keys-of'
-import { isNumber, isString } from './primitive'
+import { isBoolean, isNumber, isString } from './primitive'
 import { Func, isFunc, TypeGuard } from './func'
+import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
-export const isObject = <T extends object = object>(i: unknown): i is T => typeof i === 'object' && i !== null
+export const isObject = <T extends object = object>(
+    i: unknown
+): i is T => typeof i === 'object' && i !== null
 
 export const isArray = <T = unknown>(
     i: unknown, 
     ofType?: TypeGuard<T>
 ): i is T[] => 
-    Array.isArray(i) && (!ofType || i.every(ofType)) 
+    Array.isArray(i) && (!ofType || i.every(ofType))
 
 export const isArrayLike = <T = unknown>(
     i: unknown, 
@@ -70,3 +73,23 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
 export const isPromise = <T>(input: unknown): input is Promise<T> => 
     input instanceof Promise
+
+export const isAsync = isPromise
+
+//// Json ////
+    
+export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
+    isString(input) || isNumber(input) || isBoolean(input) || input === null
+
+export const isJsonObject = (input: unknown): input is JsonRecord => 
+    isRecord(input, isJson)
+
+export const isJsonArray = (input: unknown): input is JsonArray => 
+    isArray(input, isJson)
+
+export const isJson = (input: unknown): input is Json => 
+    isJsonPrimitive(input) || isJsonArray(input) || isJsonObject(input)
+
+isJson.Array = isJsonArray
+isJson.Object = isJsonObject
+isJson.Primitive = isJsonPrimitive

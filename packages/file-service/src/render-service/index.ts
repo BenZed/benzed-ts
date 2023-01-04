@@ -20,7 +20,7 @@ import { FeathersFileService } from '../files-service/middleware/util'
 //// Helper ////
 
 function getSocketIOServer(app: MongoDBApplication): Promise<Server> {
-    return new Promise((resolve, reject) => app.once(`listen`, () => {
+    return new Promise((resolve, reject) => app.once('listen', () => {
         const { io } = app as { io?: Server }
 
         if (io)
@@ -28,7 +28,7 @@ function getSocketIOServer(app: MongoDBApplication): Promise<Server> {
         else {
             void app.teardown()
             reject(
-                new Error(`render service requires app be configured with socket.io`)
+                new Error('render service requires app be configured with socket.io')
             )
         }
     }))
@@ -80,7 +80,7 @@ function setupRenderService<A extends MongoDBApplication>(
     render.hooks({
         around: {
             all: auth 
-                ? [ authenticate(`jwt`) ] 
+                ? [ authenticate('jwt') ] 
                 : [],
 
             create: [ joinChannel(channel) ]

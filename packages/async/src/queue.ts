@@ -1,5 +1,4 @@
-
-import { EventEmitter, isObject, LinkedList, isInteger, isArray } from '@benzed/util'
+import { EventEmitter, isArray, isInteger, isObject, LinkedList } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'

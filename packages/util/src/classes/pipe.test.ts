@@ -2,6 +2,8 @@ import { Pipe, ContextPipe } from './pipe'
 
 import { expectTypeOf } from 'expect-type'
 
+import { it, describe, expect } from '@jest/globals'
+
 /* eslint-disable 
     @typescript-eslint/restrict-plus-operands
 */

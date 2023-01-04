@@ -5,6 +5,8 @@
     @typescript-eslint/indent
 */
 
+import { isFunc, isObject } from '@benzed/util'
+
 //// Prototypal ////
 
 export type Prototypal = { prototype: unknown }
@@ -14,11 +16,7 @@ export function isPrototypal(input: unknown): input is Prototypal {
 
 export type Referable<T = unknown> = Record<string | symbol | number, T>
 export function isReferable<T>(value: unknown): value is Referable<T> {
-    if (value === null)
-        return false
-
-    const type = typeof value
-    return type === 'object' || type === 'function'
+    return isObject(value) || isFunc(value)
 }
 
 //// Mutable ////

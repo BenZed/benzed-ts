@@ -1,4 +1,4 @@
-import { Func, io } from '@benzed/util'
+import { io } from '@benzed/util'
 
 import { 
     AssertValidTransformValidator,

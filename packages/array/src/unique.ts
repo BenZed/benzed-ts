@@ -2,8 +2,6 @@
 
 const { splice, findIndex } = Array.prototype
 
-//// Helper ////
-
 //// Main ////
 
 /**

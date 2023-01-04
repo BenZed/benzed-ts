@@ -16,7 +16,7 @@ import setupMongoDB, { $mongoDBConfig } from './setup-mongo-db'
 import { configure } from '../util'
 import { $port } from '../schemas'
 
-import { createLogger, Logger } from '@benzed/util'
+import { Logger } from '@benzed/util'
 import { $, Infer, SchemaFor } from '@benzed/schema'
 
 /* eslint-disable 
@@ -62,7 +62,7 @@ function applyMongoAddons<S, C extends MongoDBApplicationConfig>(
         return (process.env.NODE_ENV ?? 'development') as Env
     }
 
-    const log = createLogger({
+    const log = Logger.create({
         header: '⚙️',
         timeStamp: true,
         onLog: mode() === 'test'

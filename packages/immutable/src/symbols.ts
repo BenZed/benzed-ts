@@ -11,6 +11,4 @@ export const $$equals = Symbol('==')
  * be un-nested and reused in future extensions.
  */
 export const $$callable = Symbol('extended-call-signature')
-export const $$circular = Symbol('circular-reference')
-export const $$excluded = Symbol('value-should-not-be-included-in-copy')
 

@@ -1,3 +1,3 @@
-export * from './component'
 export * from './node'
-export * from './nodes'
+export * from './module'
+export * from './modules' 

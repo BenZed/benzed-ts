@@ -3,6 +3,9 @@ import { toNil } from '../types/nil'
 
 import { expectTypeOf } from 'expect-type'
 
+import { it, describe, expect } from '@jest/globals'
+import property from '../property'
+
 /* eslint-disable 
     @typescript-eslint/explicit-function-return-type
 */
@@ -147,33 +150,68 @@ it('gets all properties on prototype chain', () => {
     expect(count4.constructor).toBe(Count4)
 })
 
-it('instanceof', () => {
-    const v2 = new Vector(1,1)
-    expect(v2).toBeInstanceOf(Vector)
+describe('instanceof', () => {
 
-    // making sure other values don't break the Symbol.hasInstance method
-    for (const notInstance of [undefined, null, {}, toNil, class{}]) {
-        expect(() => notInstance instanceof Vector).not.toThrow(Vector)
-        expect(notInstance).not.toBeInstanceOf(Vector)
-    }
-
-    // In case someone is a smartass
-    const InstanceTroll = createCallableClass(
-        toNil,
-        class Troll {
-            
-            nestedInstance: unknown
-            constructor() {
-                this.nestedInstance = this 
-            }
-            getNestedInstance () {
-                return this.nestedInstance
-            }
+    it('is instanceof created class', () => {
+        const v2 = new Vector(1,1)
+        expect(v2).toBeInstanceOf(Vector)
+    
+        // making sure other values don't break the Symbol.hasInstance method
+        for (const notInstance of [undefined, null, {}, toNil, class{}]) {
+            expect(() => notInstance instanceof Vector).not.toThrow(Vector)
+            expect(notInstance).not.toBeInstanceOf(Vector)
         }
-    )
+    })
 
-    const instance = new InstanceTroll().getNestedInstance()
-    expect(instance).toBeInstanceOf(InstanceTroll)
+    it.skip('is not an instance of extended classes', () => {
+
+        class Base {}
+
+        class Extension extends Base {}
+
+        const Callable = createCallableClass(
+            () => '',
+            Extension,
+        )
+
+        expect(new Extension() instanceof Callable).toBe(false)
+        
+        // @ts-expect-error it's fine
+        class CallableII extends Callable {}
+        class CallableIII extends CallableII {}
+
+        for (const Callable$ of [CallableII, CallableIII]) {
+            expect(new Callable() instanceof Callable$).toBe(false)
+            expect(new Callable$() instanceof Callable).toBe(true)
+            expect(new Extension() instanceof Callable$).toBe(false)
+            expect(new Extension() instanceof Base).toBe(true)
+            expect(new Callable$() instanceof Base).toBe(true)
+        }
+
+    })
+
+    it('in case someone is being a smartass', () => {
+        // In case someone is a smartass
+        const InstanceTroll = createCallableClass(
+            toNil,
+            class Troll {
+                nestedInstance: unknown
+
+                constructor() {
+                    this.nestedInstance = this 
+                }
+
+                getNestedInstance () {
+                    return this.nestedInstance
+                }
+            }
+        )
+    
+        const instance = new InstanceTroll().getNestedInstance()
+    
+        expect(instance).toBeInstanceOf(InstanceTroll)
+    })
+
 })
 
 it('handles property definition conflicts', () => {
@@ -209,7 +247,7 @@ it('does not alter input method', () => {
     const foo2 = new Foo()
 
     expect(foo2).not.toEqual(foo)
-    expect(foo2.name).toEqual(foo.name)
+    expect(foo.name).toEqual('foo')
 
     expect(foo).not.toHaveProperty('bar')
 })
@@ -245,7 +283,6 @@ it('can be extended', () => {
     expect(Repeater.create('fool')(3)).toEqual('fool'.repeat(3))
 
     class X2Repeater extends Repeater {
-
         constructor(value: string) {
             super(value.repeat(2))
         }
@@ -324,9 +361,25 @@ describe('name option', () => {
     it('uses "Callable" on anonymous classes', () => {
         const Bar = createCallableClass(
             () => 'bar',
-            class Bar {}
+            class {}
         )
         expect(Bar.name).toBe('Callable')
     })
 
+    it('does not overwrite name of instnace', () => {
+
+        const Foo = createCallableClass(
+            () => 'foo',
+            class {
+                get name () {
+                    return this._name
+                }
+                constructor(private readonly _name: string) {}
+            },
+            'Foo'
+        )
+
+        const foo = new Foo('ace')
+        expect(foo.name).toEqual('ace')
+    })
 })

@@ -20,6 +20,10 @@ const count = (iterator: Iterator<unknown>): number => {
 
 export type KeysOf<T> = Extract<keyof T, string>
 
+export type KeysOfType<T,V> = keyof {
+    [K in keyof T as T[K] extends V ? K : never]: never
+} extends infer Tk extends keyof T ? Tk : never
+
 /**
  * Iteration of enumerable string keys on any number of objects
  */
@@ -95,11 +99,11 @@ type IndexesOfOptionsSignature =
     [reverse: boolean, start: number, end: number, step: number ] | 
     [ Partial<IndexesOfOptions>]
 
-type Indexes<A extends unknown[] | readonly unknown[]> = {
+export type Indexes<A extends unknown[] | readonly unknown[]> = {
     [K in keyof A]: ToNumber<K>
 }
 
-type Indexable = ArrayLike<unknown> | unknown[]
+type Indexable = ArrayLike<unknown> | unknown[] | readonly unknown[]
 
 /*
  * If provided a tuple time, get a union of numeric index literals

@@ -1,4 +1,4 @@
-import { Func, Infer, nil } from '../types'
+import { Func, Infer, isFunc, isObject, nil } from '../types'
 import { property } from '../property'
 
 /* eslint-disable 
@@ -16,6 +16,7 @@ const $$callable = Symbol('callable-signature-object-descriptors')
 interface $$Callable {
     [$$callable]: {
         signature: Func
+        object: object
         descriptors: PropertyDescriptorMap
     }
 }
@@ -42,21 +43,24 @@ type Callable<S extends BoundSignature<O>, O extends object> =
 
 //// Context Helpers ////
 
-const get$$Callable = (object: Partial<$$Callable>): $$Callable[typeof $$callable] | nil => 
-    $$callable in object ? object[$$callable] : nil
+const get$$Callable = (object: any): $$Callable[typeof $$callable] | nil => 
+    (isObject<any>(object) || isFunc(object)) && 
+    $$callable in object 
+        ? object[$$callable] 
+        : nil
 
-const get$$This = (object: Partial<$$This>): unknown => object?.[$$this] 
+const get$$This = (object: any): unknown => object?.[$$this] 
 
-const bind$$This = (object: Partial<$$This>, ctx: unknown): unknown => 
+const bind$$This = (object: any, ctx: unknown): unknown => 
     property(object, $$this, { value: ctx, writable: false, configurable: true, enumerable: false })
 
-const set$$This = (object: Partial<$$This>, ctx: unknown): unknown => {
+const set$$This = (object: any, ctx: unknown): unknown => {
     return transfer$$This({ [$$this]: ctx }, object)
 }
 
 const transfer$$This = (
-    from: Partial<$$This>, 
-    to: Partial<$$This>
+    from: any, 
+    to: any
 ): typeof to => {
     
     const transferContext = property.descriptorOf(from, $$this)
@@ -99,7 +103,7 @@ const createCallableObject = <S extends BoundSignature<O>, O extends object>(
         ...target.descriptors,
         ...source?.descriptors,
         ...property.descriptorsOf(
-            ...property.prototypes(object, [Function.prototype, Object.prototype]),
+            ...property.prototypesOf(object, [Function.prototype, Object.prototype]),
             object
         ),
     }
@@ -110,7 +114,7 @@ const createCallableObject = <S extends BoundSignature<O>, O extends object>(
         {
             ...target.descriptors,
             [$$callable]: {
-                value: { ...target },
+                value: { ...target, object: source?.object ?? object },
                 writable: false,
                 enumerable: false,
                 configurable: false
@@ -133,6 +137,7 @@ export {
 
     $$callable,
     $$Callable,
+    get$$Callable,
 
     $$This,
     get$$This,

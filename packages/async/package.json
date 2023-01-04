@@ -4,11 +4,10 @@
     "main": "./src",
     "description": "Asyncronous and Promise-related tools, classes and helpers",
     "scripts": {
-        "test": "jest --runInBand --all",
-        "test:dev": "jest --runInBand -o --verbose --watch",
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --verbose",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
-        "build:dev": "npm run tsc -- -w",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
@@ -22,8 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/array": "^3.2.1",
-        "@benzed/is": "^3.1.2",
+        "@benzed/array": "^3.2.3",
         "@benzed/util": "^3.9.1"
     }
 }

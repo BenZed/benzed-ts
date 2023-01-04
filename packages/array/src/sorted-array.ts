@@ -196,7 +196,6 @@ export default SortedArray
 export {
     ascending,
     descending,
-
     isSortedArray
 }
 

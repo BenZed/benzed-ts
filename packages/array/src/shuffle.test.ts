@@ -15,7 +15,7 @@ function dechancify<T>(doFunc: () => ArrayLike<T>, testFunc: (input: ArrayLike<T
         try {
             testFunc(result)
             passes++
-        } catch (err) { } // eslint-disable-line
+        } catch { }
     }
 
     expect(passes).toBeGreaterThanOrEqual(THRESHOLD)
@@ -52,7 +52,25 @@ it('returns input mutated', () => {
     expect(shuffle(array)).toEqual(array)
 })
 
-it('work on buffers', () => {
+it('work on buffers', () => { 
     const buffer = Buffer.from(array)
     expect(() => shuffle(buffer)).not.toThrow()
+})
+
+it('optionally bindable', () => {
+    const arrayLike = {
+        length: 6,
+        0: 'a',
+        1: 'b',
+        2: 'c',
+        3: 'd',
+        4: 'e',
+        5: 'f',
+        shuffle
+    }
+
+    dechancify(
+        () => ({ ...arrayLike }.shuffle()), 
+        output => expect(output).not.toEqual(arrayLike)
+    )
 })

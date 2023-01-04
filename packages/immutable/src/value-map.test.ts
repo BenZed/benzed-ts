@@ -41,7 +41,6 @@ class CustomId {
 }
 
 // Data
-////************************************************************************////
 
 /* eslint-disable no-multi-spaces */
 const pairs: [unknown, unknown][] = [

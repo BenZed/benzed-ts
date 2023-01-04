@@ -3,6 +3,7 @@ import {
 
     Empty,
     Func, 
+    isObject, 
     keysOf, 
 
     nil,
@@ -259,7 +260,7 @@ const applyDescriptors = (
 }
 
 const isExtendedCallSignature = (i: unknown): i is { [$$callable]: Func } =>
-    !!i && $$callable in i
+    isObject(i) && $$callable in i
 
 const getCallable = (
     object: object, 

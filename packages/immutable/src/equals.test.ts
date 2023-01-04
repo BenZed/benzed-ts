@@ -2,6 +2,8 @@ import equals from './equals'
 import { inspect } from 'util'
 import { $$equals } from './symbols'
 
+import { describe, it, expect } from '@jest/globals'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 describe('equals()', () => {
