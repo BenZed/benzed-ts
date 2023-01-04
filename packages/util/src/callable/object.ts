@@ -92,7 +92,7 @@ const createCallableObject = <S extends BoundSignature<O>, O extends object>(
     const target = get$$Callable(signature as Partial<$$Callable>) ?? { signature, descriptors: nil }
     const source = get$$Callable(object)
 
-    // create calling function
+    // create instance as method
     const callable = function (this: unknown, ...args: Parameters<S>): ReturnType<S> {
         set$$This(callable as Partial<$$This>, this)
         return target.signature.apply(callable as O, args)
