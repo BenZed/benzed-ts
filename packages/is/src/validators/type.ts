@@ -1,9 +1,10 @@
-import { nil, pass, } from '@benzed/util'
+import { applyResolver, isNil, isNotNil, Pipe, through, } from '@benzed/util'
 
 import { 
     ValidatorContext,
     Validator, 
-    ValidatorSettings 
+    ValidatorSettings,
+    ValidatorTypeGuard
 } from '../validator'
 
 //// Types ////
@@ -23,19 +24,32 @@ interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, '
     /**
      * Name of the type
      */
-    type: string
+    readonly type: string
 
     /**
      * Default cast method for this type
      */
-    cast?: Cast<T>
+    readonly cast?: Cast<T>
 
     /**
      * Method for setting this type's default value
      */
-    default?: Default<T>
+    readonly default?: Default<T>
 
 }
+
+//// Helpers ////
+
+const applyDefault = <T>(toDefault: Default<T> = through as Default<T>) => 
+    (i: unknown, ctx: ValidatorContext<unknown>) => 
+        isNil(i) ? toDefault(ctx) : i
+
+const applyCast = <T>(cast: Cast<T> = through, is: ValidatorTypeGuard<unknown, T> = isNotNil) => 
+    (i: unknown, ctx: ValidatorContext<unknown>) => cast 
+        ? applyResolver(is(i, ctx), isValid => isValid ? i : cast(i, ctx))
+        : i
+
+////  ////
 
 class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSettings<T> {
 
@@ -54,25 +68,22 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
      */
     readonly default?: Default<T>
 
-    constructor({ assert = pass, error, type, cast, default: _default }: TypeValidatorSettings<T>) {
+    constructor({ type, default: toDefault, is, cast, error = `Must be type ${type}`, ...rest }: TypeValidatorSettings<T>) {
+
+        const maybeAsyncTransform = Pipe
+            .from(applyDefault(toDefault))
+            .to(applyCast(cast, is))
+
         super({
-            transform: (input: unknown, ctx: ValidatorContext<unknown>): unknown | T => {
-    
-                if (input === nil && this.default)
-                    input = this.default(ctx)
-            
-                if (!this.assert?.(input, ctx) && this.cast)
-                    input = this.cast(input, ctx)
-            
-                return input
-            },
-            assert,
-            error
+            ...rest,
+            error,
+            is,
+            transform: maybeAsyncTransform
         })
 
         this.type = type
         this.cast = cast
-        this.default = _default
+        this.default = toDefault
     }
 
 }
