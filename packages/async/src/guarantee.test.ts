@@ -2,6 +2,8 @@ import { through } from '@benzed/util'
 import { Guarantee } from './guarantee'
 import milliseconds from './milliseconds'
 
+import { expectTypeOf } from 'expect-type'
+
 it('returns a callable object', async () => { 
 
     const guarantee = new Guarantee(async () => {
@@ -30,12 +32,32 @@ it('multiple invocations result in the same promise', async () => {
 it('throws on errors', async () => {
 
     const guarantee = new Guarantee(async () => {
-        await milliseconds(10)
+        await milliseconds(10) 
         throw new Error('Damage!')
     })
 
     const result = await guarantee().catch(through)
 
     expect(result).toHaveProperty('message', 'Damage!')
+
+})
+
+it('typesafe state methods', () => { 
+
+    const guarantee = new Guarantee(() => 0)
+    if (guarantee.isIdle()) 
+        expectTypeOf(guarantee.state).toEqualTypeOf<{ status: 'idle' }>()
+
+    if (guarantee.isPending()) 
+        expectTypeOf(guarantee.state).toEqualTypeOf<{ status: 'pending', promise: Promise<0>}>
+
+    if (guarantee.isRejected()) 
+        expectTypeOf(guarantee.state).toEqualTypeOf<{ status: 'pending', promise: Promise<0>}>
+    
+    if (guarantee.isResolved()) 
+        expectTypeOf(guarantee.state).toEqualTypeOf<{ status: 'pending', promise: Promise<0>}>
+    
+    if (guarantee.isFulfilled()) 
+        expectTypeOf(guarantee.state).toEqualTypeOf<{ status: 'pending', promise: Promise<0>}>
 
 })
