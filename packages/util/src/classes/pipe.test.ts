@@ -138,17 +138,17 @@ describe('context', () => {
 
         const i5 = i1.to<string>(i => `${i}`)
         expectTypeOf(i5).toEqualTypeOf<ContextPipe<number, string, { count: number }>>()
-    })
+    }) 
 
     it('converted methods require a context', () => {
 
-        const hasX = Pipe.convert(function (this: number[], x: number) {
+        const hasX = Pipe.convert(function hasX(this: number[], x: number) {
             return this.includes(x) 
                 ? true 
-                : false
+                : false  
         })
-    
-        // @ts-expect-error No context
+
+        // @ts-expect-error No context 
         expect(() => hasX(0)).toThrow('includes')
         expect(hasX(0, [0])).toBe(true)
         expect(hasX.call([0], 0)).toEqual(true)
@@ -163,23 +163,24 @@ describe('binding', () => {
 
         const x2 = Pipe.convert(function (this: { by: number }, input: number): number {
             return input * this.by
-        })
+        })  
 
         const x2b = x2.bind({ by: 10 } as const)
+        expect(x2b).toHaveProperty('bound', { ctx: { by: 10 } })
+
         expect(x2b(20)).toEqual(200)
     })
 
-    it('.bind() creates a bound pipe from a regular pipe', () => {
+    it('.bind() creates a bound pipe from a regular pipe', () => {  
         const x2 = Pipe.from((i: string) => parseInt(i))
-        const x2$ = x2.bind({ by: 10 })
 
-        const x10 = x2$.to((i, ctx) => i * ctx.by)
+        const x10 = x2.to((i: number, ctx: { by: number}) => i * ctx.by).bind({ by: 10 })
 
         expect(x10('10')).toEqual(100)
-    })
+    }) 
 })
 
-it.only('creating a pipe out of multiple pipes flattens the transforms', () => {
+it('creating a pipe out of multiple pipes flattens the transforms', () => {
     const m1 = Pipe.from(x2, x2)
     const m2 = Pipe.from(x2, x2)
 
@@ -291,7 +292,7 @@ describe('promises', () => {
 
         expect(await toNextCtxPipe(10, { by: 100 })).toEqual(20000)
     })
-    
+ 
     it('async to bound', async () => {
         const toBound = async
             .bind({ foo: 'string' })

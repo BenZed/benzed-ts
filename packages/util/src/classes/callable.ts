@@ -1,7 +1,7 @@
 
 import { iterate } from '../methods'
 import property from '../property'
-import { Func, Infer, isFunc, isSymbol, keysOf, merge, omit, symbolsOf } from '../types'
+import { Func, Infer, isFunc, } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -49,24 +49,19 @@ interface Callable extends CallableConstructor {
  */
 const Callable = class {
 
-    private static _allDescriptors(object: object): PropertyDescriptorMap {
+    private static _allDescriptors(target: object, source: object): void {
 
         const descriptors: PropertyDescriptorMap = {}
 
-        for (const prototype of [object, ...property.prototypesOf(object, [Object.prototype, Function.prototype])]) {
-            for (const keyOrSymbol of [
-                ...property.keysOf(prototype),
-                ...property.symbolsOf(prototype)
-            ]) {
+        for (const prototype of [source, ...property.prototypesOf(source, [Object.prototype, Function.prototype])]) {
+            for (const keyOrSymbol of iterate<string | symbol>(property.keysOf(prototype), property.symbolsOf(prototype))) {
                 const descriptor = property.descriptorOf(prototype, keyOrSymbol)
-                if (isSymbol(keyOrSymbol))  
-                    console.log(keyOrSymbol, descriptor)
                 if (descriptor)
                     descriptors[keyOrSymbol] = descriptor
             }
         }
 
-        return descriptors
+        property.define(target, descriptors)
     }
 
     static create(signature: Func, template: object): object {
@@ -78,18 +73,10 @@ const Callable = class {
             return signature.apply(this ?? callable, args)
         }
 
-        const signatureDescriptors = this._allDescriptors(signature)
-        const templateDescriptors = this._allDescriptors(template)
+        this._allDescriptors(callable, signature)
+        this._allDescriptors(callable, template)
 
-        const callableDescriptors = omit(
-            merge(
-                signatureDescriptors,
-                templateDescriptors
-            ), 
-            'prototype'
-        )
-
-        return property.define(callable, callableDescriptors)
+        return callable
     }
 
     static [Symbol.hasInstance](instance: unknown): boolean {

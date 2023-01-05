@@ -1,6 +1,6 @@
 import { expectTypeOf } from 'expect-type'
-import { toVoid } from '../methods'
 import property from '../property'
+import { toVoid } from '../methods'
 import { Falsy, Func } from '../types'
 import { Callable } from './callable'
 
@@ -14,20 +14,20 @@ it('create instances with call signatures', () => {
     class Formatter<S extends string> extends Callable<(i: string) => S> { }
 
     const format = new Formatter(i => `${i}!` as `${string}!`)
-    const hi = format('hi')
+    const hi = format('hi') 
     expect(hi).toEqual('hi!')
 })
 
 it('instances have instance properties', () => {
     class Multiply extends Callable<(i: number) => number> {
         constructor(public by: number) {
-            super(i => i * this.by)
+            super(i => i * this.by) 
         }
     }
 
     const x2 = new Multiply(2)
     expect(x2.by).toBe(2)
-    expect(x2(2)).toEqual(4)
+    expect(x2(2)).toEqual(4) 
 
     x2.by = 5
     expect(x2(5)).toEqual(25)
@@ -35,7 +35,7 @@ it('instances have instance properties', () => {
 
 it('keeps getters, setters and instance instance methods', () => {
 
-    class Value<T> extends Callable<() => T> {
+    class Value<T> extends Callable<() => T> {   
 
         get value(): T {
             return this._value
@@ -93,27 +93,23 @@ it('keeps getters, setters and instance instance methods', () => {
 
 })
 
-it.only('gets symbolic properties', () => { 
+it('gets symbolic properties', () => {  
  
-    const $$true = Symbol('unique')  
-    class Symbolic extends Callable<() => void> {
+    const $$true = Symbol('unique')
+    class Symbolic extends Callable<() => void> { 
  
-        [$$true] = true;  
+        [$$true] = true;   
 
         *[Symbol.iterator](): IterableIterator<symbol> {
             yield $$true
         } 
  
-        constructor() {  
+        constructor() {
             super(toVoid)
         }
-    }
+    } 
 
-    const symbolic = new Symbolic()
-
-    console.log(property.descriptorsOf(symbolic))
-    console.log(symbolic, Symbolic) 
-
+    const symbolic = new Symbolic() 
     expect([...symbolic]).toEqual([$$true])
 
 })
