@@ -1,4 +1,4 @@
-import { RangeValidator, RangeValidatorSignature, RangeSettingsSignature, toRangeSettings } from '../validators/range'
+import { RangeValidator, RangeValidatorSignature, RangeSettingsSignature, toRangeSettings } from '../../validators/range'
 import { typeSchema, TypeSchema } from './type'
 
 //// Type ////

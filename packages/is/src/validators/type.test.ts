@@ -1,12 +1,12 @@
 
-import { nil, returns } from '@benzed/util'
+import { isNumber, nil, returns } from '@benzed/util'
 
-import { typeSchema } from './type'
+import { TypeValidator } from './type'
 
 //// Setup ////
 
-const $number = typeSchema({
-    assert: (i): i is number => typeof i === 'number',
+const $number = new TypeValidator({
+    assert: isNumber,
     type: 'number'
 })
 

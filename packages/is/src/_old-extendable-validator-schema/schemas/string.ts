@@ -1,7 +1,7 @@
 import { toCamelCase, capitalize, toDashCase } from '@benzed/string'
 import { chain } from '@benzed/util'
 
-import { ErrorMessage } from '../validator'
+import { ErrorMessage } from '../../validator'
 import { typeSchema, TypeSchema } from './type'
 
 //// Symbols ////

@@ -1,6 +1,6 @@
 import { extend } from '@benzed/immutable'
 import { schema, Schema } from '../schema'
-import { Validator } from '../validator'
+import { Validator } from '../../validator'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

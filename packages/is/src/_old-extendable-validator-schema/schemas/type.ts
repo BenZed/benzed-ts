@@ -1,4 +1,4 @@
-import { isFunction, isNil, nil, returns } from '@benzed/util'
+import { isFunc, isNil, nil, returns } from '@benzed/util'
 
 import { 
     schema, 
@@ -11,7 +11,7 @@ import {
     
     Validator, 
     ValidatorSettings 
-} from '../validator'
+} from '../../validator'
 
 //// Symbols ////
 
@@ -48,8 +48,6 @@ interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, '
 
 }
 
-interface TypeValidator<T> extends Validator<unknown, T>, TypeValidatorSettings<T> {}
-
 interface TypeSchema<T> extends Schema<T> {
 
     /**
@@ -82,60 +80,64 @@ interface TypeSchema<T> extends Schema<T> {
 
 //// Schema ////
 
-const typeValidator: TypeValidator<unknown> = new Validator({
+// const typeValidator: TypeValidator<unknown> = new Validator({
 
-    transform(input: unknown, ctx: ValidateContext): unknown {
+//     transform(input: unknown, ctx: ValidateContext): unknown {
     
-        if (input === nil && this.default)
-            input = this.default(ctx)
+//         if (input === nil && this.default)
+//             input = this.default(ctx)
     
-        if (!this.assert(input, ctx) && this.cast)
-            input = this.cast(input, ctx)
+//         if (!this.assert(input, ctx) && this.cast)
+//             input = this.cast(input, ctx)
     
-        return input
-    },
+//         return input
+//     },
     
-    assert(_input: unknown, _ctx: ValidateContext): _input is unknown {
-        return true
-    },
+//     assert(_input: unknown, _ctx: ValidateContext): _input is unknown {
+//         return true
+//     },
     
-    error(): string {
-        return `must be type ${this.type}`
-    },
+//     error(): string {
+//         return `must be type ${this.type}`
+//     },
 
-    type: 'unknown', 
+//     type: 'unknown', 
 
-    default: undefined as Default<unknown> | nil,
+//     default: undefined as Default<unknown> | nil,
 
-    cast: undefined as Cast<unknown> | nil
+//     cast: undefined as Cast<unknown> | nil
 
-})
+// })
 
-const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend({ 
+class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSettings<T> {
+
+}
+
+// const typeSchematic: TypeSchema<unknown> = schema(typeValidator, $$type).extend({ 
     
-    //// Instance Methods ////
+//     //// Instance Methods ////
 
-    cast(this: TypeSchema<unknown>, cast: Cast<unknown> | nil): TypeSchema<unknown> {
-        return typeSchema({ cast }, this)
-    },
+//     cast(this: TypeSchema<unknown>, cast: Cast<unknown> | nil): TypeSchema<unknown> {
+//         return typeSchema({ cast }, this)
+//     },
 
-    default(this: TypeSchema<unknown>, _default: unknown | Default<unknown> | nil): TypeSchema<unknown> {
-        return typeSchema({ 
-            default: isNil(_default) || isFunction(_default)
-                ? _default as nil | Default<unknown>
-                : returns(_default)
-        }, this)
-    },
+//     default(this: TypeSchema<unknown>, _default: unknown | Default<unknown> | nil): TypeSchema<unknown> {
+//         return typeSchema({ 
+//             default: isNil(_default) || isFunc(_default)
+//                 ? _default as nil | Default<unknown>
+//                 : returns(_default)
+//         }, this)
+//     },
 
-    typeName(this: TypeSchema<unknown>, type: string): TypeSchema<unknown> {
-        return typeSchema({ type }, this)
-    },
+//     typeName(this: TypeSchema<unknown>, type: string): TypeSchema<unknown> {
+//         return typeSchema({ type }, this)
+//     },
 
-    error(this: TypeSchema<unknown>, error: string | ErrorMessage<unknown>): TypeSchema<unknown> {
-        return typeSchema({ error }, this)
-    }
+//     error(this: TypeSchema<unknown>, error: string | ErrorMessage<unknown>): TypeSchema<unknown> {
+//         return typeSchema({ error }, this)
+//     }
 
-})
+// })
 
 //// Interface ////
 

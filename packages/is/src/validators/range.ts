@@ -1,11 +1,6 @@
-import { isFunction, isObject, nil } from '@benzed/util'
-import { extend, Extended } from '@benzed/immutable'
+import { Callable, isFunc, isObject, nil } from '@benzed/util'
 
 import { Validate, ValidateContext, ValidateOptions, ValidationError } from '../validator'
-
-/* eslint-disable 
-    @typescript-eslint/no-this-alias
-*/
 
 //// Internal Types ////
 
@@ -40,7 +35,10 @@ type RangeSettings = UnarySettings | BinarySettings
 function toRangeSettings(signature: RangeSettingsSignature): RangeSettings {
     const [ a1, a2, a3 ] = signature
 
-    if (isObject<RangeSettings>(a1) || isFunction<RangeValidator>(a1))
+    if (a1 instanceof RangeValidator)
+        return a1.settings
+
+    if (isObject<RangeSettings>(a1))
         return a1
     
     if (isUnaryComparator(a1))
@@ -68,15 +66,6 @@ interface RangeValidatorSignature<R> {
     (min: number, max: number): R
     (equals: number): R
 }
-interface RangeValidatorConstructor {
-    new (settings: RangeSettings): RangeValidator
-    new (min: number, comparator: BinaryComparator, max: number):RangeValidator
-    new (comparator: UnaryComparator, value: number): RangeValidator
-    new (min: number, max: number): RangeValidator
-    new (equals: number): RangeValidator
-}
-
-type RangeValidator = Validate<unknown, number> & RangeSettings
 
 //// Operators ////
 
@@ -108,41 +97,50 @@ const binary = {
     }
 }
 
-//// Details ////
-
-function range(this: RangeSettings, input: number, ctx?: ValidateOptions): number {
-
-    const context: ValidateContext<number> = { path: [], transform: true, ...ctx, input }
-
-    const settings = this
-    const isUnary = 'value' in settings
-    
-    const pass = isUnary
-        ? unary.compare[settings.comparator](input, settings.value)
-        : binary.compare[settings.comparator](input, settings.min, settings.max)
-
-    if (!pass) {
-        const detail = isUnary 
-            ? unary.detail[settings.comparator](settings.value)
-            : binary.detail[settings.comparator](settings.min, settings.max)
-
-        throw new ValidationError(
-            input, 
-            context, 
-            isFunction(this.error) 
-                ? this.error(input, detail, context) 
-                : this.error ?? `must be ${detail}`
-        )
-    }
-
-    return input
-}
-
 //// Exports ////
 
-const RangeValidator = function RangeValidator(...args: RangeSettingsSignature): RangeValidator {
-    return extend(range, toRangeSettings(args)) as Extended<Validate<unknown, number>, RangeSettings>
-} as unknown as RangeValidatorConstructor
+class RangeValidator extends Callable<Validate<number>> {
+
+    settings: RangeSettings
+
+    constructor (settings: RangeSettings)
+    constructor (min: number, comparator: BinaryComparator, max: number)
+    constructor (comparator: UnaryComparator, value: number)
+    constructor (min: number, max: number)
+    constructor (equals: number) 
+    constructor (...args: RangeSettingsSignature) {
+
+        super((input: number, ctx?: ValidateOptions): number => {
+
+            const context: ValidateContext<number> = { path: [], transform: true, ...ctx, input }
+        
+            const settings = this.settings
+            const isUnary = 'value' in settings
+            
+            const pass = isUnary
+                ? unary.compare[settings.comparator](input, settings.value)
+                : binary.compare[settings.comparator](input, settings.min, settings.max)
+        
+            if (!pass) {
+                const detail = isUnary 
+                    ? unary.detail[settings.comparator](settings.value)
+                    : binary.detail[settings.comparator](settings.min, settings.max)
+        
+                throw new ValidationError(
+                    input, 
+                    context, 
+                    isFunc(this.settings.error) 
+                        ? this.settings.error(input, detail, context) 
+                        : this.settings.error ?? `must be ${detail}`
+                )
+            }
+        
+            return input
+        })
+
+        this.settings = toRangeSettings(args)
+    }
+}
 
 export default RangeValidator 
 

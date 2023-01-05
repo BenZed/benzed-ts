@@ -1,4 +1,3 @@
-import { extendable, extend } from '@benzed/immutable'
 import { nil } from '@benzed/util'
 
 import { 
@@ -10,17 +9,13 @@ import {
     
     Validator, 
     ValidateOptions 
-} from '../validator'
+} from '../../validator'
 
 //// Type ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Symbol ////
-
-const $$id = Symbol('validator-identifier')
 
 //// Types ////
 
@@ -39,7 +34,7 @@ interface AddValidatorOptions {
     name?: string
 }
 
-interface Schema<T = unknown> extends Validate<unknown, T> {
+class Schema<T = unknown> extends Validate<unknown, T> {
 
     is(input: unknown): input is T
 
