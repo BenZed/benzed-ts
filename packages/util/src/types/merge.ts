@@ -9,7 +9,16 @@ export type Intersect<T extends unknown[] | readonly unknown[]> = T extends [inf
 /**
  * Combine a number of objects.
  */
-export const intersect: <A extends readonly object[]> (...objects: A) => Intersect<A> = Object.assign
+export const intersect = <A extends readonly object[]> (...objects: A): Intersect<A> => {
+
+    const [target, ...sources] = objects
+    for (const source of sources) {
+        const descriptors = Object.getOwnPropertyDescriptors(source)
+        Object.defineProperties(target, descriptors)
+    }
+
+    return target as Intersect<A>
+}
 
 type Combine<T> = T extends infer O 
     ? {

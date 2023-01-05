@@ -17,7 +17,7 @@ import applyResolver from './apply-resovler'
 
 //// Types ////
 
-type Iter<T> = ArrayLike<T> | Iterable<T> | Record<string | number, T>
+type Iter<T> = Iterable<T> | ArrayLike<T> | Record<string | number, T>
 
 //// Main ////
 
@@ -40,7 +40,7 @@ function* generate<T>(...values: (Iter<T> | T)[]): Generator<T> {
     }
 }
 
-type Iterated<T, E extends (item: T) => unknown> = 
+type Iterated<T, E extends (item: T, stop: () => T | void) => unknown> = 
     ResolveAsyncOutput<
     ReturnType<E>,
     Awaited<ReturnType<E>> extends void 
@@ -48,6 +48,11 @@ type Iterated<T, E extends (item: T) => unknown> =
         : Awaited<ReturnType<E>>[]
     >
 
+function iterate<T, E extends (item: T, stop: () => T | void) => unknown>(
+    iterable: Iter<T>,
+    each: E
+): Iterated<T, E>
+    
 function iterate<T>(
     iterable: Iter<T>
 ): Generator<T>
@@ -55,11 +60,6 @@ function iterate<T>(
 function iterate<T>(
     ...values: (T | Iter<T>)[]
 ): Generator<T>
-
-function iterate<T, E extends (item: T) => unknown>(
-    iterable: Iter<T>,
-    each: E
-): Iterated<T, E>
 
 function iterate(...values: unknown[]): unknown {
     const eachIndex = values.findIndex(isFunc)
@@ -77,7 +77,7 @@ function iterate(...values: unknown[]): unknown {
         const generator = generate(value)
         let iterator = generator.next()
         while (!iterator.done) {
-            const output = each(iterator.value)
+            const output = each(iterator.value, generator.return)
 
             const result = applyResolver(output, resolved => {
                 if (isNotNil(resolved))

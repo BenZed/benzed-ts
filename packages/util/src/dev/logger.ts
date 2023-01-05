@@ -1,6 +1,6 @@
 import ansi from './ansi'
 import { inspect } from 'util'
-import callable from '../callable'
+import { Callable } from '../classes'
 import { nil } from '../types'
 
 /* eslint-disable 
@@ -115,115 +115,110 @@ function isLogger(input: unknown): input is Logger {
         (input as Logger).info === input
 }
 
-function log(this: { options: LoggerOptions, info: Log }, strings: TemplateStringsArray, ...params: unknown[]): void {
-    return this.info(strings, ...params)
-}
-
 //// Main ////
 
-const Logger = callable(
+const Logger = class extends Callable<(strings: readonly string[], ...params: unknown[]) => void> {
 
-    log, 
-    class {
+    static is = isLogger 
 
-        static is = isLogger 
+    static override create(options: Partial<LoggerOptions>): Logger {
+        return new this({
+            header: '',
+            onLog: console.log.bind(console),
+            timeStamp: true,
+            ...options
+        })
+    }
 
-        static create(options: Partial<LoggerOptions>): Logger {
-            return new this({
-                header: '',
-                onLog: console.log.bind(console),
-                timeStamp: true,
-                ...options
-            }) as unknown as Logger
-        }
+    constructor(
+        readonly options: LoggerOptions
+    ) {
+        super((strings, ...params) => this.info(strings, ...params))
+    }
 
-        constructor(
-            readonly options: LoggerOptions
-        ) {}
+    private _lastTimeStamp = ''
 
-        private _lastTimeStamp = ''
+    private _error: Log | nil = nil
+    get error(): Log {
+        const _this = this
+        return this._error ??= _this.info.bind({
+            get options(): LoggerOptions {
+                return _this.options
+            },
+            get _lastTimeStamp(): string {
+                return _this._lastTimeStamp
+            },
+            set _lastTimeStamp(value: string) {
+                _this._lastTimeStamp = value
+            },
+            status: ERR_ICON
+        })
+    }
 
-        private _error: Log | nil = nil
-        get error(): Log {
-            const _this = this
-            return this._error ??= _this.info.bind({
-                get options(): LoggerOptions {
-                    return _this.options
-                },
-                get _lastTimeStamp(): string {
-                    return _this._lastTimeStamp
-                },
-                set _lastTimeStamp(value: string) {
-                    _this._lastTimeStamp = value
-                },
-                status: ERR_ICON
-            })
-        }
+    private _warn: Log | nil = nil
+    get warn(): Log {
+        const _this = this
+        return this._warn ??= this.info.bind({
+            get options(): LoggerOptions {
+                return _this.options
+            },
+            get _lastTimeStamp(): string {
+                return _this._lastTimeStamp
+            },
+            set _lastTimeStamp(value: string) {
+                _this._lastTimeStamp = value
+            },
+            status: WARN_ICON
+        })
+    }
 
-        private _warn: Log | nil = nil
-        get warn(): Log {
-            const _this = this
-            return this._warn ??= this.info.bind({
-                get options(): LoggerOptions {
-                    return _this.options
-                },
-                get _lastTimeStamp(): string {
-                    return _this._lastTimeStamp
-                },
-                set _lastTimeStamp(value: string) {
-                    _this._lastTimeStamp = value
-                },
-                status: WARN_ICON
-            })
-        }
+    info(
+        strings: readonly string[],
+        ...inputs: unknown[]
+    ): void {
 
-        info(
-            strings: TemplateStringsArray,
-            ...inputs: unknown[]
-        ): void {
+        const { status } = this as (typeof this & { status: Icon })
 
-            const { status } = this as (typeof this & { status: Icon })
+        const outputs: unknown[] = []
+        for (let i = 0; i < strings.length; i++) {
+            const string = strings[i]
 
-            const outputs: unknown[] = []
-            for (let i = 0; i < strings.length; i++) {
-                const string = strings[i]
-
-                outputs.push(string)
-                if (i in inputs) {
-                    outputs.push(
-                        typeof inputs[i] === 'string'
-                            ? inputs[i]
-                            : inspect(inputs[i], false, INPECT_DEPTH, true)
-                    )
-                }
-            }
-
-            const prefix: string[] = []
-
-            if (this.options.header)
-                prefix.push(this.options.header)
-
-            if (this.options.timeStamp) {
-                const timeStamp = createTimeStamp(new Date())
-
-                prefix.push(
-                    colorTimeStamp(
-                        timeStamp,
-                        this._lastTimeStamp,
-                        status
-                    )
+            outputs.push(string)
+            if (i in inputs) {
+                outputs.push(
+                    typeof inputs[i] === 'string'
+                        ? inputs[i]
+                        : inspect(inputs[i], false, INPECT_DEPTH, true)
                 )
-
-                this._lastTimeStamp = timeStamp
             }
-
-            if (status)
-                prefix.push(status)
-
-            this.options.onLog?.(...prefix, outputs.join(''))
         }
 
-    }) as LoggerConstructor 
+        const prefix: string[] = []
+
+        if (this.options.header)
+            prefix.push(this.options.header)
+
+        if (this.options.timeStamp) {
+            const timeStamp = createTimeStamp(new Date())
+
+            prefix.push(
+                colorTimeStamp(
+                    timeStamp,
+                    this._lastTimeStamp,
+                    status
+                )
+            )
+
+            this._lastTimeStamp = timeStamp
+        }
+
+        if (status)
+            prefix.push(status)
+
+        this.options.onLog?.(...prefix, outputs.join(''))
+    }
+
+} as LoggerConstructor 
 
 //// Exports ////
 
