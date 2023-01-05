@@ -2,14 +2,14 @@ import { RangeValidator } from './range'
 
 describe('unary comparators', () => {
 
-    it('== creates an equal-to validator', () => {
+    it('== creates an equal-to validator', () => { 
         const equalTo10 = new RangeValidator('==', 10)
 
         expect(equalTo10(10)).toBe(10)
         expect(() => equalTo10(9)).toThrow('must be equal 10')
     })
 
-    it('<= creates a less-than-or-equal-to validator', () => {
+    it('<= creates a less-than-or-equal-to validator', () => { 
         const lessThanOrEqualTo5 = new RangeValidator({ comparator: '<=', value: 5 })
         expect(lessThanOrEqualTo5(4)).toBe(4)
         expect(() => lessThanOrEqualTo5(6)).toThrow('must be equal or below 5')

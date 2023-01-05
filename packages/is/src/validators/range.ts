@@ -17,7 +17,6 @@ type RangeErrorMessage = (value: number, detail: string, ctx: ValidatorContext<n
 interface UnarySettings {
     readonly comparator: UnaryComparator
     readonly value: number
-
     readonly error?: string | RangeErrorMessage
 }
 
@@ -25,7 +24,6 @@ interface BinarySettings {
     readonly comparator: BinaryComparator
     readonly min: number
     readonly max: number
-
     readonly error?: string | RangeErrorMessage
 }
 
@@ -36,7 +34,7 @@ function toRangeSettings(signature: RangeSettingsSignature): RangeSettings {
     const [ a1, a2, a3 ] = signature
 
     if (a1 instanceof RangeValidator)
-        return a1.settings
+        return { ...a1.range, error: a1.error } as RangeSettings
 
     if (isObject<RangeSettings>(a1))
         return a1
@@ -99,9 +97,10 @@ const binary = {
 
 //// Exports ////
 
-class RangeValidator extends Callable<Validate<number>> {
+class RangeValidator extends Validate<number> {
 
-    settings: RangeSettings
+    readonly range: Omit<RangeSettings, 'error'>
+    readonly error?: RangeSettings['error']
 
     constructor (settings: RangeSettings)
     constructor (min: number, comparator: BinaryComparator, max: number)
@@ -114,7 +113,7 @@ class RangeValidator extends Callable<Validate<number>> {
 
             const context: ValidatorContext<number> = { path: [], transform: true, ...ctx, input }
         
-            const settings = this.settings
+            const settings = this.range as RangeSettings
             const isUnary = 'value' in settings
             
             const pass = isUnary
@@ -127,18 +126,20 @@ class RangeValidator extends Callable<Validate<number>> {
                     : binary.detail[settings.comparator](settings.min, settings.max)
         
                 throw new ValidationError(
-                    input, 
                     context, 
-                    isFunc(this.settings.error) 
-                        ? this.settings.error(input, detail, context) 
-                        : this.settings.error ?? `must be ${detail}`
+                    isFunc(this.error) 
+                        ? this.error(input, detail, context) 
+                        : this.error ?? `must be ${detail}`
                 )
             }
         
             return input
         })
 
-        this.settings = toRangeSettings(args)
+        const { error, ...settings } = toRangeSettings(args)
+
+        this.range = settings
+        this.error = error
     }
 }
 
