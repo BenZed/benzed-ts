@@ -58,6 +58,10 @@ function priorityFind(this: unknown, ...args: unknown[]): unknown {
         : nil
 }
 
+//// Extend ////
+
+priorityFind.index = priorityFindIndex
+
 //// Exports ////
 
 export default priorityFind
