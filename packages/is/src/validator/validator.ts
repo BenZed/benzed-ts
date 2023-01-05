@@ -1,72 +1,79 @@
+import { applyResolver, ContextTransform, Pipe, through as noTransformation } from '@benzed/util'
 import { equals } from '@benzed/immutable'
-import { Callable, isFunc } from '@benzed/util'
 
-import { ValidationError } from './error'
-import { ValidateContext, ValidateOptions } from './context'
+import { Validate, ValidateOptions } from './validate'
+import { ValidationErrorMessage, ValidationError } from './error'
 
 //// Types ////
 
-interface ErrorMessage<T> {
-    (value: T, ctx: ValidateContext<T>): string
+interface ValidatorContext<T> extends Required<ValidateOptions> {
+    readonly input: T
+    transformed?: T
 }
 
-interface Validate<I, O extends I = I> {
-    (input: I, ctx?: ValidateOptions): O
+type ValidatorTypeGuard<I, O extends I = I> = 
+    ((input: I, ctx: ValidatorContext<I>) => input is O) | ContextTransform<I, boolean, ValidatorContext<I>>
+
+type ValidatorTransform<I, O extends I = I> = ContextTransform<I, I | O, ValidatorContext<I>>
+
+interface ValidatorSettings<I, O extends I = I> {
+
+    is?: ValidatorTypeGuard<I, O>
+
+    transform?: ValidatorTransform<I, O>
+
+    error?: string | ValidationErrorMessage<I>
+
 }
 
-interface ValidatorSettings<I, O extends I> {
+//// Helper ////
 
-    error?: string | ErrorMessage<I>
+const isEqualTransformed: ValidatorTypeGuard<unknown> = (i, ctx) => equals(i, ctx.transformed)
 
-    assert?: 
-    ((input: I, ctx: ValidateContext<I>) => input is O) | 
-    ((input: I, ctx: ValidateContext<I>) => boolean)
+const applyTransform = <I>(transform: ValidatorTransform<I> = noTransformation) => 
+    (ctx: ValidatorContext<I>) => applyResolver(
+        transform(ctx.input, ctx), 
+        transformed => ({ 
+            ...ctx, 
+            transformed, 
+            output: ctx.transform 
+                ? transformed as I 
+                : ctx.input 
+        })
+    )
 
-    transform?: (input: I, ctx: ValidateContext<I>) => I | O
+const applyValidate = <I, O extends I>(
+    is: ValidatorTypeGuard<I,O> = isEqualTransformed, 
+    error: string | ValidationErrorMessage<I> = 'Validation Failed.' 
+) => 
+    (ctx: ValidatorContext<I> & { output: I | O }) => applyResolver(
+        is(ctx.output as O, ctx), 
+        isValid => isValid ? ctx.output : ValidationError.throw(ctx, error)
+    )
 
-}
-
-interface Validator<I, O extends I> extends Validate<I, O>, ValidatorSettings<I, O> {}
+const createCtx = <I>(input: I, options?: ValidateOptions): ValidatorContext<I> => 
+    ({ transform: true, path: [], input, ...options })
 
 //// Main ////
 
-class Validator<I, O extends I> extends Callable<Validate<I,O>> implements ValidatorSettings<I, O> {
+class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I, O> {
 
-    constructor({ transform, assert, error }: ValidatorSettings<I,O>) {
+    error?: string | ValidationErrorMessage<I>
 
-        super((input: I, options?: ValidateOptions): O => {
+    transform?: ValidatorTransform<I, O>
 
-            const ctx = {
-                transform: true,
-                path: [],
-                input,
-                ...options,
-            }
-        
-            const transformed = (ctx.transform || !this.assert) && this.transform 
-                ? this.transform(input, ctx) 
-                : input 
-        
-            const output = ctx.transform 
-                ? transformed 
-                : input 
-        
-            const isValid = this.assert 
-                ? this.assert(output, ctx) 
-                : equals(transformed, output)
-            
-            if (!isValid) {
-                const msg = isFunc(this.error)
-                    ? this.error(output, ctx) 
-                    : this.error ?? 'Validation failed.'
-                
-                throw new ValidationError(output, ctx, msg)
-            }
-        
-            return output as O
-        })
+    is?: ValidatorTypeGuard<I, O>
 
-        this.assert = assert
+    constructor({ is, transform, error }: ValidatorSettings<I,O>) {
+
+        // The types arn't set up to handle async validation yet, but when the time comes.
+        const maybeAsyncValidate = Pipe
+            .from(applyTransform(transform))
+            .to(applyValidate(is, error))
+
+        super((input, options = {}) => maybeAsyncValidate(createCtx(input, options)) as O)
+
+        this.is = is
         this.transform = transform
         this.error = error
     }
@@ -77,12 +84,12 @@ class Validator<I, O extends I> extends Callable<Validate<I,O>> implements Valid
 export default Validator 
 
 export {
-
-    Validate,
     Validator,
     ValidatorSettings,
+    ValidatorTransform,
+    ValidatorTypeGuard,
 
-    ValidateOptions,
-    ValidateContext,
+    ValidatorContext,
+    createCtx as createValidatorContext
 
 }

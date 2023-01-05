@@ -1,7 +1,7 @@
 import { toCamelCase, capitalize, toDashCase } from '@benzed/string'
 import { chain } from '@benzed/util'
 
-import { ErrorMessage } from '../../validator'
+import { ValidationErrorMessage } from '../../validator'
 import { typeSchema, TypeSchema } from './type'
 
 //// Symbols ////
@@ -22,25 +22,25 @@ const trim = (i: string):string => i.trim()
 
 interface StringSchema<S extends string> extends TypeSchema<S> {
 
-    trim(error?: string | ErrorMessage<string>): this
+    trim(error?: string | ValidationErrorMessage<string>): this
 
-    upperCase(error?: string | ErrorMessage<string>): this
+    upperCase(error?: string | ValidationErrorMessage<string>): this
 
-    lowerCase(error?: string | ErrorMessage<string>): this
+    lowerCase(error?: string | ValidationErrorMessage<string>): this
 
-    dashCase(error?: string | ErrorMessage<string>): this
+    dashCase(error?: string | ValidationErrorMessage<string>): this
 
-    camelCase(error?: string | ErrorMessage<string>): this
+    camelCase(error?: string | ValidationErrorMessage<string>): this
 
-    pascalCase(error?: string | ErrorMessage<string>): this
+    pascalCase(error?: string | ValidationErrorMessage<string>): this
 
-    capitalize(error?: string | ErrorMessage<string>): this
+    capitalize(error?: string | ValidationErrorMessage<string>): this
 
-    startsWith(value: string, error?: string | ErrorMessage<string>): this
+    startsWith(value: string, error?: string | ValidationErrorMessage<string>): this
 
-    endsWith(value: string, error?: string | ErrorMessage<string>): this
+    endsWith(value: string, error?: string | ValidationErrorMessage<string>): this
 
-    contains(value: string, error?: string | ErrorMessage<string>): this
+    contains(value: string, error?: string | ValidationErrorMessage<string>): this
 
 }
 
@@ -67,7 +67,7 @@ const string: StringSchema<string> = typeSchema({
 
 }).extend({
 
-    trim(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    trim(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             trim,
             error ?? 'must not have whitespace at beginning or end',
@@ -75,7 +75,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    upperCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    upperCase(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             toUpperCase,
             error ?? 'must be UPPERCASE',
@@ -83,7 +83,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    lowerCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    lowerCase(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             toLowerCase,
             error ?? 'must be lowercase',
@@ -91,7 +91,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    dashCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    dashCase(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             toDashCase,
             error ?? 'must be dash-case',
@@ -99,7 +99,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    camelCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    camelCase(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             toCamelCase,
             error ?? 'must be camelCase',
@@ -107,7 +107,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    pascalCase(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    pascalCase(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             toPascalCase,
             error ?? 'must be PascalCase',
@@ -115,7 +115,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    capitalize(this: StringSchema<string>, error?: string | ErrorMessage<string>) {
+    capitalize(this: StringSchema<string>, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             capitalize,
             error ?? 'must be Capitalized',
@@ -123,7 +123,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    startsWith(this: StringSchema<string>, start: string, error?: string | ErrorMessage<string>) {
+    startsWith(this: StringSchema<string>, start: string, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             i => i.startsWith(start) ? i : start + i, 
             error ?? `must start with "${start}"`,
@@ -131,7 +131,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    endsWith(this: StringSchema<string>, end: string, error?: string | ErrorMessage<string>) {
+    endsWith(this: StringSchema<string>, end: string, error?: string | ValidationErrorMessage<string>) {
         return this.transforms(
             i => i.endsWith(end) ? i : i + end, 
             error ?? `must end with "${end}"`,
@@ -139,7 +139,7 @@ const string: StringSchema<string> = typeSchema({
         )
     },
 
-    contains(this: StringSchema<string>, value: string, error?: string | ErrorMessage<string>) {
+    contains(this: StringSchema<string>, value: string, error?: string | ValidationErrorMessage<string>) {
         return this.asserts(
             i => i.includes(value), 
             error ?? `must contain value "${value}"`,

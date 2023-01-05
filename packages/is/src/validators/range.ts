@@ -1,6 +1,6 @@
 import { Callable, isFunc, isObject, nil } from '@benzed/util'
 
-import { Validate, ValidateContext, ValidateOptions, ValidationError } from '../validator'
+import { Validate, ValidatorContext, ValidateOptions, ValidationError } from '../validator'
 
 //// Internal Types ////
 
@@ -12,7 +12,7 @@ const UNARY_COMPARATORS = ['>=', '>', '==', '<', '<='] as const
 type UnaryComparator = typeof UNARY_COMPARATORS[number]
 const isUnaryComparator = (i: unknown): i is UnaryComparator => UNARY_COMPARATORS.includes(i as UnaryComparator)
 
-type RangeErrorMessage = (value: number, detail: string, ctx: ValidateContext<number>) => string
+type RangeErrorMessage = (value: number, detail: string, ctx: ValidatorContext<number>) => string
 
 interface UnarySettings {
     readonly comparator: UnaryComparator
@@ -112,7 +112,7 @@ class RangeValidator extends Callable<Validate<number>> {
 
         super((input: number, ctx?: ValidateOptions): number => {
 
-            const context: ValidateContext<number> = { path: [], transform: true, ...ctx, input }
+            const context: ValidatorContext<number> = { path: [], transform: true, ...ctx, input }
         
             const settings = this.settings
             const isUnary = 'value' in settings

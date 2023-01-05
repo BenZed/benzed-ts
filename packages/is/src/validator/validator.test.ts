@@ -1,14 +1,15 @@
-import { nil } from '@benzed/util'
-import { validator } from './validator'
+import { asNil, isObject, isString } from '@benzed/util'
+import { Validator } from './validator'
 
-const $string = validator({
+const $string = new Validator({
     error: 'must be a string',
-    transform: i => typeof i !== 'object' && i !== nil ? `${i}` : i,
-    assert: (i): i is string => typeof i === 'string'
+    transform: i => asNil(i) && !isObject(i) ? `${i}` : i,
+    is: isString 
 })
 
-describe(`${validator.name}()`, () => {
-    it('options.assert', () => {
+describe(`${Validator.name}()`, () => {
+
+    it('options.is', () => {
         expect($string('hey')).toEqual('hey')
         expect(() => $string({})).toThrow('must be a string')
     })
@@ -22,5 +23,6 @@ describe(`${validator.name}()`, () => {
     it('options.error', () => {
         expect(() => $string(null)).toThrow('must be a string')
     })
+
 })
 

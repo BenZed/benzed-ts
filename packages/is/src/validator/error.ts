@@ -1,22 +1,23 @@
 
-import { ValidateContext } from './context'
+import { isFunc } from '@benzed/util/src'
+import { ValidatorContext } from './validator'
 
 //// Types ////
 
-export class ValidationError<V = unknown> extends Error {
+export class ValidationError<T = unknown> extends Error {
 
-    override name = 'ValidationError'
+    static throw<I>(ctx: ValidatorContext<I>, error: string | ValidationErrorMessage<I>): never {
+        throw new ValidationError(ctx, isFunc(error) ? error(ctx) : error)
+    }
 
     constructor(
-        readonly value: V,
-        readonly ctx: ValidateContext<V>,
+        readonly ctx: ValidatorContext<T>,
         msg: string
     ) {
-
         super(`${ctx.path.join('\/')} ${msg}`.trim())
     }
 
 }
 
-export type ErrorMessage<V = unknown> = (value: V, ctx: ValidateContext<V>) => string
+export type ValidationErrorMessage<T = unknown> = (ctx: ValidatorContext<T>) => string
 

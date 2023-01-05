@@ -4,10 +4,10 @@ import {
     schema, 
     Schema,
     ValidateContext 
-} from '../schema'
+} from '../../schema'
 
 import { 
-    ErrorMessage, 
+    ValidationErrorMessage, 
     
     Validator, 
     ValidatorSettings 
@@ -74,7 +74,7 @@ interface TypeSchema<T> extends Schema<T> {
     /**
      * Change the thrown error
      */
-    error(error: string | ErrorMessage<T>): this
+    error(error: string | ValidationErrorMessage<T>): this
          
 }
 
