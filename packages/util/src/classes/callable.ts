@@ -103,5 +103,6 @@ const Callable = class {
 export default Callable
 
 export {
-    Callable
+    Callable,
+    CallableObject
 }
