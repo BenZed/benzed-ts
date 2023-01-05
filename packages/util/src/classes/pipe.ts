@@ -1,10 +1,11 @@
-import callable from '../callable'
+import { Callable } from '../classes'
 import { through } from '../methods'
 import { Func, indexesOf, isPromise } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
+
 //// Types ////
 
 /**
@@ -133,57 +134,61 @@ function applyTransforms(
 
 //// Main ////
 
-const Pipe = callable(
-    function transform(x: unknown, ctx?: unknown): unknown {
-        return applyTransforms(
-            x, 
-            callable.getContext(this as Pipe) ?? ctx, 
-            this.transforms,
-            0
+const Pipe = (class extends Callable<Func> {
+
+    static flatten(transforms: Transform[]): Transform[] {
+        return transforms.flatMap(transform => transform instanceof this 
+            ? transform.transforms 
+            : transform
         )
-    }, class {
+    }
 
-        static flatten(transforms: Transform[]): Transform[] {
-            return transforms.flatMap(transform => transform instanceof this 
-                ? transform.transforms 
-                : transform
-            )
-        }
+    static from(...transform: (Transform | ContextTransform)[]): Pipe | ContextPipe {
+        return new this(...transform as Transform[]) as Pipe | ContextPipe
+    }
 
-        static from(...transform: (Transform | ContextTransform)[]): Pipe | ContextPipe {
-            return new this(...transform as Transform[]) as Pipe | ContextPipe
-        }
+    static convert(transform: (this: unknown, input: unknown) => unknown): ContextPipe {
+        if ('prototype' in transform === false)
+            throw new Error('Must convert a prototypal function')
+        return this.from(transform)
+    }
 
-        static convert(transform: (this: unknown, input: unknown) => unknown): ContextPipe {
-            if ('prototype' in transform === false)
-                throw new Error('Must convert a prototypal function')
-            return this.from(transform)
-        }
+    readonly transforms: readonly Transform[]
 
-        readonly transforms: readonly Transform[]
+    constructor(...transforms: Transform[]) {
 
-        constructor(...transforms: Transform[]) {
-            this.transforms = Pipe.flatten(transforms).filter(t => t !== through)
-        }
+        super(
+            function transform(this: unknown, input: unknown, ctx?: unknown): unknown {
+                return applyTransforms(
+                    input, 
+                    this ?? ctx,
+                    pipe.transforms,
+                    0
+                )
+            }
+        )
 
-        to(this: Pipe, transform: Transform): Pipe {
-            return callable.transferContext(this, Pipe.from(this, transform)) as Pipe
-        }
+        this.transforms = Pipe.flatten(transforms).filter(t => t !== through)
+        const pipe = this
 
-        from(this: Pipe, transform: Transform): Pipe {
-            return callable.transferContext(this, Pipe.from(transform, this)) as Pipe
-        }
+    }
 
-        bind(this: Pipe, ctx: unknown): Pipe {
-            const bound = callable.bindContext(Pipe.from(this), ctx) as Pipe
-            return bound
-        }
+    to(this: Pipe, transform: Transform): Pipe {
+        return Pipe.from(this, transform)
+    }
 
-        *[Symbol.iterator](this: Pipe): Iterator<Transform> {
-            yield* this.transforms
-        }
-    },
-    'Pipe'
+    from(this: Pipe, transform: Transform): Pipe {
+        return Pipe.from(transform, this)
+    }
+
+    override bind(this: Pipe, ctx: unknown): Pipe {
+        return Pipe.from(this.bind(ctx))
+    }
+
+    *[Symbol.iterator](this: Pipe): Iterator<Transform> {
+        yield* this.transforms
+    }
+}
 ) as PipeConstructor
 
 //// Exports ////

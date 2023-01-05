@@ -1,6 +1,7 @@
 
+import { iterate } from '../methods'
 import property from '../property'
-import { Func, Infer, isFunc, merge, omit } from '../types'
+import { Func, Infer, isFunc, isSymbol, keysOf, merge, omit, symbolsOf } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -49,10 +50,23 @@ interface Callable extends CallableConstructor {
 const Callable = class {
 
     private static _allDescriptors(object: object): PropertyDescriptorMap {
-        return property.descriptorsOf(
-            object,
-            ...property.prototypesOf(object, [Object.prototype, Function.prototype])
-        )
+
+        const descriptors: PropertyDescriptorMap = {}
+
+        for (const prototype of [object, ...property.prototypesOf(object, [Object.prototype, Function.prototype])]) {
+            for (const keyOrSymbol of [
+                ...property.keysOf(prototype),
+                ...property.symbolsOf(prototype)
+            ]) {
+                const descriptor = property.descriptorOf(prototype, keyOrSymbol)
+                if (isSymbol(keyOrSymbol))  
+                    console.log(keyOrSymbol, descriptor)
+                if (descriptor)
+                    descriptors[keyOrSymbol] = descriptor
+            }
+        }
+
+        return descriptors
     }
 
     static create(signature: Func, template: object): object {

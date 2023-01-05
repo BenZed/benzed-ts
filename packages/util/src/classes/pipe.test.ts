@@ -28,7 +28,7 @@ it('create a pipe with primitive context', () => {
 
 it('multiple transforms must have the same type', () => {
     // @ts-expect-error mismatching input type
-    void Pipe.from(x2, parseInt)
+    void Pipe.from(x2, parseInt) 
 })
 
 describe('context', () => {
@@ -179,7 +179,7 @@ describe('binding', () => {
     })
 })
 
-it('creating a pipe out of multiple pipes flattens the transforms', () => {
+it.only('creating a pipe out of multiple pipes flattens the transforms', () => {
     const m1 = Pipe.from(x2, x2)
     const m2 = Pipe.from(x2, x2)
 

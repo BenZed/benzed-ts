@@ -17,7 +17,7 @@ import applyResolver from './apply-resovler'
 
 //// Types ////
 
-type Iter<T> = ArrayLike<T> | Iterable<T> | Record<string | number, T>
+type Iter<T> = Iterable<T> | ArrayLike<T> | Record<string | number, T>
 
 //// Main ////
 

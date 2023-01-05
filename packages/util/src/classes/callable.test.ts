@@ -1,4 +1,6 @@
 import { expectTypeOf } from 'expect-type'
+import { toVoid } from '../methods'
+import property from '../property'
 import { Falsy, Func } from '../types'
 import { Callable } from './callable'
 
@@ -88,6 +90,31 @@ it('keeps getters, setters and instance instance methods', () => {
 
     expect(arrayValue.getValue()).toEqual([5])
     expect(arrayValue.unwrap()).toEqual(5)
+
+})
+
+it.only('gets symbolic properties', () => { 
+ 
+    const $$true = Symbol('unique')  
+    class Symbolic extends Callable<() => void> {
+ 
+        [$$true] = true;  
+
+        *[Symbol.iterator](): IterableIterator<symbol> {
+            yield $$true
+        } 
+ 
+        constructor() {  
+            super(toVoid)
+        }
+    }
+
+    const symbolic = new Symbolic()
+
+    console.log(property.descriptorsOf(symbolic))
+    console.log(symbolic, Symbolic) 
+
+    expect([...symbolic]).toEqual([$$true])
 
 })
 
