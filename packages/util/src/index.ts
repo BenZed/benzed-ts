@@ -1,5 +1,4 @@
 export * from './classes'
-export * from './callable'
 export * from './conversion'
 export * from './dev'
 export * from './methods'
