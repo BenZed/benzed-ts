@@ -1,5 +1,5 @@
 import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
-import { isFunc, isObject, Mutable, nil, Pipe } from '@benzed/util'
+import { isFunc, isObject, Mutable, nil, Pipe, through as dummyValidatorForCopying } from '@benzed/util'
 
 import { 
     ValidationErrorMessage, 
@@ -68,9 +68,9 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
     //// Helper ////
 
     protected _copyWithValidators(...validators: Validate<unknown>[]): this {
-        const Constructor = this.constructor as new (input: Validate<unknown>) => this
+        const SchemaConstructor = this.constructor as new (input: Validate<unknown>) => this
         
-        const clone = new Constructor(this.validate);
+        const clone = new SchemaConstructor(dummyValidatorForCopying);
         (clone as Mutable<Schema>).validate = validators.length === 1 
             ? validators[0] 
             : Pipe.from(...validators)

@@ -1,64 +1,53 @@
-import { extend } from '@benzed/immutable'
-import { schema, Schema } from '../../schema'
-import { Validator } from '../../validator'
+import { Schema } from '../schema'
+import { ValidationErrorMessage, Validator, ValidatorSettings } from '../validator'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-//// Symbols ////
-
-const $$enum = Symbol('enum-validator')
-
 //// Types ////
 
 type Enumerable = string | number | boolean | null | bigint
 
-interface EnumSchema<T extends Enumerable> extends Schema<T> {
-    get options(): T[]
-}
-
-interface EnumValidator<T extends readonly Enumerable[]> extends Validator<unknown, T[number]> {
-    options: T
-}
-
 //// Setup ////
 
-const enumValidator = new Validator({
+class EnumValidator<T extends readonly Enumerable[]> extends Validator<unknown, T[number]> {
 
-    options: [] as any[],
+    readonly options: T
 
-    assert(input: unknown): boolean {
-        return this.options.includes(input)
-    },
+    constructor(...options: T) {
+        super({
+            error: () => this.options.length >= 1 
+                ? `must be one of ${this.options.slice(0, -1).join(', ')} or ${this.options.at(-1)}`
+                : `must be ${this.options.at(0) ?? 'nil'}`,
 
-    error(this: EnumSchema<any>) {
+            is: (input: unknown) => this.options.includes(input as T[number]),
+        })
 
-        const { options } = this
+        this.options = options
+    }
+}
 
-        return options.length >= 1 
-            ? `must be one of ${options.slice(0, -1).join(', ')} or ${options.at(-1)}`
-            : `must be ${options.at(0)}`
+class EnumSchema<T extends readonly Enumerable[]> extends Schema<T[number]> {
+
+    constructor(...options: T) {
+        super(new EnumValidator(...options))
     }
 
-})
-
-const enumSchematic: EnumSchema<any> = schema(enumValidator, $$enum).extend({
-
-    get options() {
-        return this
-            .getValidator<EnumValidator<any>>($$enum)
-            ?.options ?? []
+    get options(): T {
+        return (this._getValidator(EnumValidator<T>)?.options ?? []) as T
     }
 
-} as EnumSchema<any>)
+    error(error: string | ValidationErrorMessage<unknown>): this {
+        return this._setValidator(EnumValidator, v => v.applySettings({ error }))
+    }
+
+}
 
 //// Exports ////
 
-export function enumSchema<T extends readonly Enumerable[]>(...options: T): EnumSchema<T[number]> {
+export default EnumSchema
 
-    const enumValidate = extend(enumValidator, { options })
-
-    return enumSchematic.validates(enumValidate, $$enum)
-
+export {
+    EnumSchema
 }
