@@ -17,9 +17,9 @@ class Schematic<
     I = unknown 
 > extends Callable<TypeGuard<O, I>> implements SchematicMethods<O,I> {
 
-    is: TypeGuard<O,I>
-    assert: TypeAssertion<O,I>
-    validate: Validate<I, O>
+    readonly is: TypeGuard<O,I>
+    readonly assert: TypeAssertion<O,I>
+    readonly validate: Validate<I, O>
 
     constructor(validate: Validate<I,O>) {
 

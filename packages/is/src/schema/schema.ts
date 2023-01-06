@@ -1,5 +1,5 @@
-import { $$copy, $$equals, Comparable, Copyable, equals, push, splice } from '@benzed/immutable'
-import { isFunc, isNumber, nil, Pipe } from '@benzed/util'
+import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
+import { isFunc, isObject, Mutable, nil, Pipe } from '@benzed/util'
 
 import { 
     ValidationErrorMessage, 
@@ -33,58 +33,88 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
     constructor(validate: Validate<unknown, T>)
     constructor(settings: ValidatorSettings<unknown, T>)
     constructor(input: Validate<unknown, T> | ValidatorSettings<unknown, T>) {
-        super(Pipe.from(isFunc(input) ? input: new Validator(input)))
+        super(isFunc(input) ? input : new Validator(input))
     }
     
     get validators(): Validate<unknown>[] {
-        return Array.from(this)
+        return Array.from(this) 
     }
 
     validates(
-        settings: ValidatorSettings<T>,
-        id?: number | string | symbol
+        input: Validate<T> | ValidatorSettings<T>
     ): this {
 
-        const index = id === nil 
-            ? -1 
-            : this.validators.findIndex((v, i) => v.id === id || i === id)
-
-        const validate = new Validator(settings)
-        if (!isNumber(id))
-            validate.id = id
-
-        const validators = index in this.validators 
-            ? splice(this.validators, index, 1, validate)
-            : push(this.validators, validate)
-
-        return this._copyWithValidators(validators)
+        const validate = isObject<ValidatorSettings<T>>(input) ? new Validator(input) : input
+        
+        return validate.constructor === Validator || validate.constructor === Validate  
+            ? this._addValidator(validate)
+            : this._setValidator(validate.constructor as typeof Validate, () => validate as Validate<unknown>)
     }
 
     asserts(
         isValid: ValidatorTypeGuard<T>, 
-        error?: string | ValidationErrorMessage<T>,
-        id?: number | string | symbol
+        error?: string | ValidationErrorMessage<T>
     ): this {
-        return this.validates({ is: isValid, error }, id)
+        return this.validates({ is: isValid, error })
     }
 
     transforms(
         transform: ValidatorTransform<T>,
-        error?: string | ValidationErrorMessage<T>,
-        id?: number | string | symbol
+        error?: string | ValidationErrorMessage<T>
     ): this {
-        return this.validates({ transform, error }, id)
+        return this.validates({ transform, error })
     }
 
-    //// Copy/Comparable ////
+    //// Helper ////
 
-    private _copyWithValidators(validators: Validate<unknown>[]): this {
-        const Constructor = this.constructor as new (input: Validate<unknown, T>) => this
-        return new Constructor(Pipe.from(...validators) as Validate<unknown, T>)
+    protected _copyWithValidators(...validators: Validate<unknown>[]): this {
+        const Constructor = this.constructor as new (input: Validate<unknown>) => this
+        
+        const clone = new Constructor(this.validate);
+        (clone as Mutable<Schema>).validate = validators.length === 1 
+            ? validators[0] 
+            : Pipe.from(...validators)
+
+        return clone
+    }
+
+    protected _getValidator<V extends Validate<unknown>>(Constructor: new (...args: any) => V): V | nil {
+        return this.validators.find((v): v is V => v instanceof Constructor)
+    }
+
+    protected _hasValidator(Constructor: new (...args: any) => Validate<unknown>): boolean {
+        return this._getValidator(Constructor) !== nil
+    }
+
+    protected _addValidator(validator: Validate<unknown>): this {
+        return this._copyWithValidators(...this.validators, validator)
+    }
+
+    protected _setValidator<V extends Validate<unknown>>(
+        Constructor: (new (...args: any) => V),
+        update: (input: V) => Validate<unknown>,
+    ): this {
+
+        const oldValidator = this._getValidator(Constructor)
+        if (!oldValidator)
+            throw new Error(`${Constructor.name} validator missing`)
+
+        const newValidator = update(oldValidator as V)
+
+        const newValidators = this.validators.map(validator => 
+            validator === oldValidator 
+                ? newValidator 
+                : validator
+        )
+
+        const clone = this._copyWithValidators(...newValidators)
+        return clone
     }
     
+    //// Copy/Comparable ////
+
     [$$copy](): this {
-        return this._copyWithValidators(this.validators)
+        return this._copyWithValidators(...this.validators)
     }
 
     [$$equals](other: unknown): other is this {
@@ -96,7 +126,11 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
     //// Iterable ////
     
     *[Symbol.iterator](): IterableIterator<Validate<unknown>> {
-        const validators = this.validate instanceof Pipe ? this.validate as Pipe : [this.validate]
+
+        const validators: Iterable<Validate<unknown>> = this.validate instanceof Pipe 
+            ? this.validate as Pipe 
+            : [this.validate]
+
         for (const validator of validators)
             yield validator
     }

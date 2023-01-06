@@ -1,5 +1,5 @@
 
-import { Callable, nil } from '@benzed/util'
+import { Callable } from '@benzed/util'
 
 //// Types ////
 
@@ -11,9 +11,7 @@ interface ValidateOptions {
 
 }
 
-class Validate<I, O extends I | Promise<I>= I> extends Callable<(input: I, options?: ValidateOptions) => O> { 
-    id?: string | symbol = nil
-}
+class Validate<I, O extends I | Promise<I>= I> extends Callable<(input: I, options?: ValidateOptions) => O> { }
 
 //// Exports ////
 

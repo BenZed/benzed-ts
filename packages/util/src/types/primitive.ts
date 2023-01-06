@@ -28,7 +28,7 @@ export const isPrimitive = (i: unknown): i is Primitive =>
     isNumber(i) || 
     isBoolean(i) || 
     isBigInt(i) || 
-    isNil(asNil(i))
+    isNil(i)
 
 //// Symbol ////
     

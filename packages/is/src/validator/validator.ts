@@ -1,5 +1,5 @@
+import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
 import { applyResolver, ContextTransform, Pipe, through as noTransformation } from '@benzed/util'
-import { equals } from '@benzed/immutable'
 
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
@@ -12,7 +12,8 @@ interface ValidatorContext<T> extends Required<ValidateOptions> {
 }
 
 type ValidatorTypeGuard<I, O extends I = I> = 
-    ((input: I, ctx: ValidatorContext<I>) => input is O) | ContextTransform<I, boolean, ValidatorContext<I>>
+    ((input: I, ctx: ValidatorContext<I>) => input is O) | 
+    ContextTransform<I, boolean, ValidatorContext<I>>
 
 type ValidatorTransform<I, O extends I = I> = ContextTransform<I, I | O, ValidatorContext<I>>
 
@@ -56,7 +57,7 @@ const createCtx = <I>(input: I, options?: ValidateOptions): ValidatorContext<I> 
 
 //// Main ////
 
-class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I, O> {
+class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I, O>, Copyable, Comparable {
 
     error?: string | ValidationErrorMessage<I>
 
@@ -76,6 +77,22 @@ class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorS
         this.is = is
         this.transform = transform
         this.error = error
+    }
+
+    applySettings<S extends ValidatorSettings<I,O>>(settings: S): this {
+        const Constructor = this.constructor as new (settings: ValidatorSettings<I,O>) => this
+        const copy = new Constructor({ ...settings })
+        return copy
+    }
+
+    [$$copy](): this {
+        return this.applySettings({ ...this })
+    }
+
+    [$$equals](other: unknown): other is this {
+        return other instanceof Validator &&
+             other.constructor === this.constructor && 
+             equals({ ...this }, { ...other })
     }
 }
 

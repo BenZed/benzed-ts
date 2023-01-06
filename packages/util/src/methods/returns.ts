@@ -1,16 +1,28 @@
+import { isObject } from '../types/guards'
 
 //// Implementation ////
 
 /**
  * get a memoized method that returns the given input
  */
-export function returns<T>(value: T): () => T {
-    if (!returns.cache.has(value))
-        returns.cache.set(value, () => value)
+export function returns<T>(input: T): () => T {
 
-    return returns.cache.get(value)
+    const cache = isObject(input) 
+        ? returns.cache.objects 
+        : returns.cache.primitives
+
+    const value = input as object
+
+    if (!cache.has(value))
+        cache.set(value, () => input)
+
+    return cache.get(value)
 }
-returns.cache = new Map()
+
+returns.cache = {
+    objects: new WeakMap(),
+    primitives: new Map()
+}
 
 //// Shortcuts ////
 

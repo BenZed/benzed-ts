@@ -11,20 +11,17 @@ import { isNaN } from './primitive'
  */
 export type nil = undefined
 
-/**
- * Result of a nil expression for use or application
- */
 export const nil = undefined
 
 /**
- * Remove the other 'non-value' values in favour of nil.
+ * Returns nil if the given input is nil, null or NaN, otherwise it returns the input value.
  */
 export const asNil = <T>(input: T) => (input == null || isNaN(input) ? nil : input) as T extends null | nil ? nil : T 
 
 /**
- * Returns true if a value is nil
+ * Returns true if a value is nil, null or NaN
  */
-export const isNil = (input: unknown): input is nil => input === nil
+export const isNil = (input: unknown): input is nil => asNil(input) === nil
 
 export const isNotNil = (input: unknown) => !isNil(input)
 

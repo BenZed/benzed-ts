@@ -5,7 +5,7 @@ import { TypeValidator } from './type'
 
 //// Setup ////
 
-const $number = new TypeValidator({ 
+const isNum = new TypeValidator({ 
     is: isNumber,
     type: 'number'
 })
@@ -13,11 +13,11 @@ const $number = new TypeValidator({
 //// Tests ////
 
 it('creates validator for a specific type', () => {
-    expect($number(10)).toEqual(10)
+    expect(isNum(10)).toEqual(10)
 })
 
 it('throws with type name', () => {
-    expect(() => $number('sup')).toThrow('Must be type number')
+    expect(() => isNum('sup')).toThrow('Must be type number')
 })
 
 describe('cast' , () => {
@@ -26,12 +26,12 @@ describe('cast' , () => {
 
     it('allows for data to be casted', () => {
 
-        const $serializedNumber = new TypeValidator({
-            ...$number,
+        const isSerializedNumber = new TypeValidator({
+            ...isNum,
             cast: fromString
         })
 
-        expect($serializedNumber('100'))
+        expect(isSerializedNumber('100'))
             .toEqual(100)
 
     })
@@ -40,13 +40,13 @@ describe('cast' , () => {
 
 describe('default', () => {
 
-    const $zero = new TypeValidator({
-        ...$number,
+    const isZero = new TypeValidator({
+        ...isNum,
         default: returns(0)
     })
 
     it('allows a default value to be set in case of nil', () => {
-        expect($zero(nil)).toEqual(0)
+        expect(isZero(nil)).toEqual(0)
     })
 
 })

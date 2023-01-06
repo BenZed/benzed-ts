@@ -1,4 +1,5 @@
-import { applyResolver, isNil, isNotNil, Pipe, through, } from '@benzed/util'
+import { applyResolver, nil, Pipe, through, toNil } from '@benzed/util'
+import { fail } from 'assert'
 
 import { 
     ValidatorContext,
@@ -17,7 +18,7 @@ import {
  /**
   * Method that provides a default value, if the input was undefined or null
   */
- type Default<T> = (ctx: ValidatorContext<unknown>) => T
+ type Default<T> = (ctx: ValidatorContext<unknown>) => T | nil
 
 interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, 'transform'> {
 
@@ -40,14 +41,12 @@ interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, '
 
 //// Helpers ////
 
-const applyDefault = <T>(toDefault: Default<T> = through as Default<T>) => 
+const applyDefault = <T>(toDefault: Default<T> = toNil) => 
     (i: unknown, ctx: ValidatorContext<unknown>) => 
-        isNil(i) ? toDefault(ctx) : i
+        i === nil ? toDefault(ctx) : i
 
-const applyCast = <T>(cast: Cast<T> = through, is: ValidatorTypeGuard<unknown, T> = isNotNil) => 
-    (i: unknown, ctx: ValidatorContext<unknown>) => cast 
-        ? applyResolver(is(i, ctx), isValid => isValid ? i : cast(i, ctx))
-        : i
+const applyCast = <T>(cast: Cast<T> = through, is: ValidatorTypeGuard<unknown, T> = fail) => 
+    (i: unknown, ctx: ValidatorContext<unknown>) => applyResolver(is(i, ctx), isValid => isValid ? i : cast(i, ctx))
 
 ////  ////
 
@@ -68,7 +67,9 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
      */
     readonly default?: Default<T>
 
-    constructor({ type, default: toDefault, is, cast, error = `Must be type ${type}`, ...rest }: TypeValidatorSettings<T>) {
+    constructor(settings: TypeValidatorSettings<T>) {
+
+        const { type, default: toDefault, is, cast, error = `Must be type ${type}`, ...rest } = settings
 
         const maybeAsyncTransform = Pipe
             .from(applyDefault(toDefault))
@@ -84,6 +85,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
         this.type = type
         this.cast = cast
         this.default = toDefault
+
     }
 
 }
@@ -92,5 +94,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
 
 export {
     TypeValidator,
-    TypeValidatorSettings
+    TypeValidatorSettings,
+    Cast as TypeValidatorCast,
+    Default as TypeValidatorDefault
 }
