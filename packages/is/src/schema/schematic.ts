@@ -17,14 +17,28 @@ class Schematic<
     I = unknown 
 > extends Callable<TypeGuard<O, I>> implements SchematicMethods<O,I> {
 
-    is: TypeGuard<O, I>
-    assert: TypeAssertion<O, I>
+    is: TypeGuard<O,I>
+    assert: TypeAssertion<O,I>
     validate: Validate<I, O>
 
-    constructor({ is, assert, validate }: SchematicMethods<O,I>) {
+    constructor(validate: Validate<I,O>) {
+
+        const is = (i: I): i is O => {
+            try {
+                void this.assert(i)
+                return true
+            } catch {
+                return false
+            }
+        }
+
+        const assert = (i: I): asserts i is O => 
+            void this.validate(i, { transform: false }) 
+
         super(is)
+
         this.is = is 
-        this.assert = assert 
+        this.assert = assert
         this.validate = validate
     }
 

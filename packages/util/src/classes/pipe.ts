@@ -82,7 +82,8 @@ interface BoundPipe<I = unknown, O = unknown, C = unknown> extends Transformer<T
     apply(ctx: C, input: [I]): O
 }
 
-interface PipeConstructor {
+type CallableConstructor = typeof Callable
+interface PipeConstructor extends CallableConstructor {
 
     /**
      * Given a number of transforms, get a flattened array of just transforms 

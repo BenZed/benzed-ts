@@ -5,7 +5,7 @@ import { TypeValidator } from './type'
 
 //// Setup ////
 
-const $number = new TypeValidator({
+const $number = new TypeValidator({ 
     is: isNumber,
     type: 'number'
 })

@@ -1,21 +1,20 @@
 import { copy } from '@benzed/immutable'
 
-import { Assert, schema } from './schema'
+import { Assert, Schema } from './schema'
 
 import { expectTypeOf } from 'expect-type'
 
 import { describe, it, expect } from '@jest/globals'
+import { isString } from '@benzed/util'
 
 //// Setup ////
 
-const isString = (i: unknown): i is string => typeof i === 'string'
-
-const $string = schema({ assert: isString, error: 'must be type string' })
+const $string = new Schema({ is: isString, error: 'must be type string' })
 
 const $lowerCaseString = $string.transforms(
     i => i.toLowerCase(), 
     'Must be lowercase.'
-)
+) 
 
 const $password = $string
     .asserts(i => i.length >= 8, 'must have 8 characters or more')
@@ -26,10 +25,10 @@ const $password = $string
 describe('schema()', () => {
 
     it('schema() type signature', () => {
-        expect($string('ace'))
+        expect($string.validate('ace'))
             .toEqual('ace')
 
-        expect(() => $string(100))
+        expect(() => $string.validate(100))
             .toThrow('must be type string')
     })
 
@@ -37,12 +36,12 @@ describe('schema()', () => {
         const $shout = $string
             .transforms(s => `${s}!`.replace(/!+$/, '!'))
 
-        expect(() => $shout('Ace', { transform: false }))
+        expect(() => $shout.validate('Ace', { transform: false }))
             .toThrow('Validation failed')
     })
 
     it('context.path', () => {
-        expect(() => $string(100, { path: ['ace']}))
+        expect(() => $string.validate(100, { path: ['ace']}))
             .toThrow('ace must be type string')
     })
 })
@@ -50,12 +49,12 @@ describe('schema()', () => {
 describe('transforms()', () => {
 
     it('appends a transform validator', () => {
-        expect($lowerCaseString('Foo')).toEqual('foo')
+        expect($lowerCaseString.validate('Foo')).toEqual('foo')
     })
 
     it('is immutable', () => {
         expect($lowerCaseString).not.toBe($string)
-        expect($string('Foo')).toEqual('Foo')
+        expect($string.validate('Foo')).toEqual('Foo')
     })
 
     it('error method', () => {
@@ -65,9 +64,9 @@ describe('transforms()', () => {
             i => `${i} requires a slash`
         )
 
-        expect($path('sup')).toEqual('/sup')
+        expect($path.validate('sup')).toEqual('/sup')
 
-        expect(() => $path('ace-of-base', { transform: false }))
+        expect(() => $path.validate('ace-of-base', { transform: false }))
             .toThrow('ace-of-base requires a slash')
     })
 })
@@ -75,8 +74,8 @@ describe('transforms()', () => {
 describe('asserts()', () => {
 
     it('appends assert validators', () => {
-        expect(() => $password('a')).toThrow('must have 8 characters or more')
-        expect(() => $password('abcdefgh')).toThrow('must have a capital character.')
+        expect(() => $password.validate('a')).toThrow('must have 8 characters or more')
+        expect(() => $password.validate ('abcdefgh')).toThrow('must have a capital character.')
     })
 
     it('is immutable', () => {

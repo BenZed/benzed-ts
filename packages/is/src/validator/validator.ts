@@ -37,14 +37,14 @@ const applyTransform = <I>(transform: ValidatorTransform<I> = noTransformation) 
             ...ctx, 
             transformed, 
             output: ctx.transform 
-                ? transformed as I 
+                ? transformed as I
                 : ctx.input 
         })
     )
 
 const applyValidate = <I, O extends I>(
     is: ValidatorTypeGuard<I,O> = isEqualTransformed, 
-    error: string | ValidationErrorMessage<I> = 'Validation Failed.' 
+    error: string | ValidationErrorMessage<I> = 'Validation failed.' 
 ) => 
     (ctx: ValidatorContext<I> & { output: I | O }) => applyResolver(
         is(ctx.output as O, ctx), 

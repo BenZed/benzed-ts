@@ -2,7 +2,7 @@ import { RangeValidator } from './range'
 
 describe('unary comparators', () => {
 
-    it('== creates an equal-to validator', () => { 
+    it('== creates an equal-to validator', () => {  
         const equalTo10 = new RangeValidator('==', 10)
 
         expect(equalTo10(10)).toBe(10)

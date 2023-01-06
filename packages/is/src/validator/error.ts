@@ -1,5 +1,5 @@
 
-import { isFunc } from '@benzed/util/src'
+import { isFunc } from '@benzed/util'
 import { ValidatorContext } from './validator'
 
 //// Types ////
@@ -7,7 +7,10 @@ import { ValidatorContext } from './validator'
 export class ValidationError<T = unknown> extends Error {
 
     static throw<I>(ctx: ValidatorContext<I>, error: string | ValidationErrorMessage<I>): never {
-        throw new ValidationError(ctx, isFunc(error) ? error(ctx) : error)
+        throw new ValidationError(ctx, isFunc(error) 
+            ? error(ctx.transformed ?? ctx.input, ctx) 
+            : error
+        )
     }
 
     constructor(
@@ -19,5 +22,5 @@ export class ValidationError<T = unknown> extends Error {
 
 }
 
-export type ValidationErrorMessage<T = unknown> = (ctx: ValidatorContext<T>) => string
+export type ValidationErrorMessage<T = unknown> = (output: T, ctx: ValidatorContext<T>) => string
 
