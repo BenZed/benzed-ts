@@ -446,3 +446,22 @@ describe('Callable.create on generic objects', () => {
     })
 
 })
+
+it('retereive signature', () => {
+
+    class Bar extends Callable<() => void> {}
+
+    const bar = new Bar(toVoid)
+
+    expect(Callable.signatureOf(bar)).toEqual(toVoid)
+})
+
+it('retereive template', () => {
+
+    const template = {}
+
+    const noop = Callable.create(toVoid, template)
+
+    expect(Callable.templateOf(noop)).toEqual(template)
+    expect(() => Callable.templateOf(parseInt)).toThrow('not a callable')
+})
