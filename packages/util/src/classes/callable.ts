@@ -1,11 +1,15 @@
 
 import { iterate } from '../methods'
 import property from '../property'
-import { Func, Infer, isFunc, } from '../types'
+import { Func, Infer, isFunc, isObject, } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
+
+//// Symbol ////
+
+const $$retreiveSignature = Symbol('retreive-signature-from-callable-param')
 
 //// Helper Types ////
 
@@ -24,6 +28,9 @@ type CallableObject<F extends Func, T> = Infer<F & _RemoveSignature<T>>
 
 interface Callable extends CallableConstructor {
 
+    signatureOf<F extends Func>(callable: F): F
+
+    templateOf<F extends Func>(callable: F): object
     /**
      * Create an object with a call signature.
      * @param signature Method
@@ -64,13 +71,37 @@ const Callable = class {
         property.define(target, descriptors)
     }
 
+    static signatureOf(callable: Func): Func {
+
+        const result = callable($$retreiveSignature)
+        const signature = result?.signature
+        
+        if (!isFunc(signature))
+            throw new Error('Input method is not a callable object.')
+
+        return signature
+    }
+
+    static templateOf(callable: Func): object {
+
+        const result = callable($$retreiveSignature)
+        const template = result?.template
+        
+        if (!isObject(template))
+            throw new Error('Input method is not a callable object.')
+
+        return template
+    }
+
     static create(signature: Func, template: object): object {
 
         const callable = function (
             this: unknown, 
             ...args: unknown[]
         ): unknown {
-            return signature.apply(this ?? callable, args)
+            return args[0] === $$retreiveSignature 
+                ? { signature, template }
+                : signature.apply(this ?? callable, args)
         }
 
         this._allDescriptors(callable, signature)
