@@ -1,4 +1,4 @@
-import { Callable, isFunc, isObject, nil } from '@benzed/util'
+import { isFunc, isObject, nil } from '@benzed/util'
 
 import { Validate, ValidatorContext, ValidateOptions, ValidationError } from '../validator'
 

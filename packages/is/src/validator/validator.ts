@@ -1,8 +1,12 @@
 import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
-import { applyResolver, ContextTransform, Pipe, through as noTransformation } from '@benzed/util'
+import { applyResolver, ContextTransform, defined, Func, isString, Pipe, Transform } from '@benzed/util'
 
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
+
+//// Shorcuts ////
+
+const { assign } = Object 
 
 //// Types ////
 
@@ -29,60 +33,62 @@ interface ValidatorSettings<I, O extends I = I> {
 
 //// Helper ////
 
-const isEqualTransformed: ValidatorTypeGuard<unknown> = (i, ctx) => equals(i, ctx.transformed)
+function createCtx<I, O extends I = I>(this: Validator<I,O>, input: I, options: ValidateOptions): ValidatorContext<I> {
+    return { transform: true, path: [], input, ...options }
+}
 
-const applyTransform = <I>(transform: ValidatorTransform<I> = noTransformation) => 
-    (ctx: ValidatorContext<I>) => applyResolver(
-        transform(ctx.input, ctx), 
+function applyCtxTransform<I, O extends I>(this: Validator<I, O>, ctx: ValidatorContext<I>): ValidatorContext<I> & { output: I | O } {
+    return applyResolver(
+        this.transform(ctx.input, ctx), 
         transformed => ({ 
             ...ctx, 
             transformed, 
             output: ctx.transform 
                 ? transformed as I
                 : ctx.input 
-        })
-    )
+        }) 
+    ) as ValidatorContext<I> & { output: I | O }
+}
 
-const applyValidate = <I, O extends I>(
-    is: ValidatorTypeGuard<I,O> = isEqualTransformed, 
-    error: string | ValidationErrorMessage<I> = 'Validation failed.' 
-) => 
-    (ctx: ValidatorContext<I> & { output: I | O }) => applyResolver(
-        is(ctx.output as O, ctx), 
-        isValid => isValid ? ctx.output : ValidationError.throw(ctx, error)
-    )
+function applyCtxValidate<I, O extends I = I>(this: Validator<I,O>, ctx: ValidatorContext<I> & { output: I | O }): O {
+    return applyResolver(
+        this.is(ctx.output as I, ctx), 
+        isValid => isValid ? ctx.output : ValidationError.throw(ctx, this.error)
+    ) as O
+}
 
-const createCtx = <I>(input: I, options?: ValidateOptions): ValidatorContext<I> => 
-    ({ transform: true, path: [], input, ...options })
+const validate = Pipe.from(createCtx as Transform<unknown, ValidatorContext<unknown>>)
+    .to(applyCtxTransform)
+    .to(applyCtxValidate)
 
 //// Main ////
 
-class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I, O>, Copyable, Comparable {
+abstract class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I, O>, Copyable, Comparable {
 
-    error?: string | ValidationErrorMessage<I>
-
-    transform?: ValidatorTransform<I, O>
-
-    is?: ValidatorTypeGuard<I, O>
-
-    constructor({ is, transform, error }: ValidatorSettings<I,O>) {
-
-        // The types arn't set up to handle async validation yet, but when the time comes.
-        const maybeAsyncValidate = Pipe
-            .from(applyTransform(transform))
-            .to(applyValidate(is, error))
-
-        super((input, options = {}) => maybeAsyncValidate(createCtx(input, options)) as O)
-
-        this.is = is
-        this.transform = transform
-        this.error = error
+    static from<Ix,Ox extends Ix>(settings: ValidatorSettings<Ix,Ox>, type?: string | symbol): Validator<Ix,Ox> {
+        return new CustomValidator(settings, type)
     }
+
+    transform(i: I, ctx: ValidatorContext<I>): I | O {
+        ctx.transformed = i
+        return i
+    }
+
+    is(i: I, ctx: ValidatorContext<I>): i is O {
+        return equals(i, ctx.transformed)
+    }
+    
+    readonly error = 'Validation failed.'
+
+    constructor() {
+        super((i, ctx) => this.validate(i, ctx))
+    }
+
+    validate = validate.bind(this) as Func as Validator<I,O>
 
     applySettings<S extends ValidatorSettings<I,O>>(settings: S): this {
         const Constructor = this.constructor as new (settings: ValidatorSettings<I,O>) => this
-        const copy = new Constructor({ ...settings })
-        return copy
+        return new Constructor({ ...settings })
     }
 
     [$$copy](): this {
@@ -93,6 +99,29 @@ class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorS
         return other instanceof Validator &&
              other.constructor === this.constructor && 
              equals({ ...this }, { ...other })
+    }
+}
+
+const $$type = Symbol('custom-validator-type-match-identifier')
+interface CustomValidatorSettings<I,O extends I> extends ValidatorSettings<I,O> {
+    [$$type]: symbol | string
+}
+class CustomValidator<I,O extends I = I> extends Validator<I, O> implements CustomValidatorSettings<I,O> {
+
+    override get name(): string {
+        return isString(this[$$type]) ? this[$$type] : this.constructor.name
+    }
+
+    [$$type]: string | symbol
+
+    constructor(settings: ValidatorSettings<I,O>, type?: string | symbol) {
+        super()
+        assign(this, defined(settings))
+        this[$$type] = type ?? this.constructor.name
+    }
+
+    isType(validator: Validate<I,O>): validator is this {
+        return $$type in validator ? validator[$$type] === this[$$type] : false
     }
 }
 

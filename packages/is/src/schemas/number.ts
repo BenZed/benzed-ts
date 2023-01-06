@@ -1,5 +1,7 @@
-import { RangeValidator, RangeValidatorSignature, RangeSettingsSignature, toRangeSettings } from '../../validators/range'
+import { RangeValidator, RangeValidatorSignature, RangeSettingsSignature, toRangeSettings } from '../validators/range'
+import Schema from '../schema/schema'
 import { typeSchema, TypeSchema } from './type'
+import { isNumber } from '@benzed/util'
 
 //// Type ////
 
@@ -9,15 +11,20 @@ interface NumberSchema extends TypeSchema<number> {
 
 //// Boolean ////
 
-const number: NumberSchema = typeSchema({
+class NumberSchema extends Schema<number> {
 
-    type: 'number',
+    constructor() {
+        super({
+            type: 'number',
+            is: isNumber
+        })
+    }
 
-    assert(input: unknown): input is number {
+    is(input: unknown): input is number {
         return typeof input === 'number' && 
             !Number.isNaN(input) && 
             Number.isFinite(input)
-    },
+    }
 
     cast(value: unknown): unknown {
 
@@ -30,17 +37,7 @@ const number: NumberSchema = typeSchema({
         return value
     }
 
-}).extend({
-
-    range(this: NumberSchema, ...args: RangeSettingsSignature) {
-
-        const settings = toRangeSettings(args)
-
-        return this.validates(new RangeValidator(settings), settings.comparator)
-
-    }
-
-})
+}
 
 //// Exports ////
 
