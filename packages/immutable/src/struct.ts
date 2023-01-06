@@ -6,15 +6,30 @@ import { $$copy, $$equals } from './symbols'
 
 class Struct<T> implements Copyable, Comparable {
     
-    constructor(protected readonly _state: T) {}
+    constructor(protected _state: T) {}
 
     protected _setState(state: T): this {
-        const Construct = this.constructor as new (state: T) => this
-        return new Construct(state)
+        this._state = state
+        return this
     }
 
+    //// Copyable ////
+
+    copy(): this {
+        return this[$$copy]()
+    }
+    
     [$$copy](): this {
-        return this._setState(copy(this._state))
+        const struct = Object.create(this.constructor.prototype) as this
+        const state = copy(this._state)
+        
+        return struct._setState(state)
+    }
+
+    //// Comparable ////
+
+    equals(other: unknown): other is this {
+        return this[$$equals](other)
     }
 
     [$$equals](other: unknown): other is this {

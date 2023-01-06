@@ -1,5 +1,4 @@
 import { expectTypeOf } from 'expect-type'
-import property from '../property'
 import { toVoid } from '../methods'
 import { Falsy, Func } from '../types'
 import { Callable } from './callable'
