@@ -130,7 +130,9 @@ abstract class ValueMap<K, V> implements Map<K,V> {
         yield* this.entries()
     }
 
-    [Symbol.toStringTag] = 'ValueMap'
+    get [Symbol.toStringTag](): 'ValueMap' {
+        return 'ValueMap'
+    }
 
 }
 
