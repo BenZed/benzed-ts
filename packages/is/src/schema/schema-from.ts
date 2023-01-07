@@ -1,22 +1,17 @@
-import { isPrimitive } from '@benzed/util'
+import { isFunc, isPrimitive } from '@benzed/util'
+
 import { Schema } from './schema'
 
 import { 
     IsEnum,
-    IsEnumInput
+    IsEnumInput,
+    IsInstance,
+    IsInstanceInput
 } from './schemas'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Temp ////
-
-//// Types ////
-
-// TODO Make me
-export type IsInstanceInput = new (...args: any) => any | (abstract new (...args: any) => any)
-export type IsInstance<C extends IsInstanceInput> = Schema<InstanceType<C>>
 
 /**
  * Convenience method 
@@ -31,15 +26,18 @@ interface SchemaFrom {
 
 const schemaFrom = ((...args: unknown[]) => {
 
+    const isSingle = args.length === 1
+
     if (args.every(isPrimitive))
         return new IsEnum(...args)
 
-    if (args.length === 1 && args[0] instanceof Schema)
-        return args[0]
+    if (args.every(arg => arg instanceof Schema))
+        return isSingle ? args[0] : new IsTuple(...args)
 
-    return (): Schema<any> => {
-        throw new Error('not yet implemented')
-    }
+    if (isSingle && isFunc(args[0]))
+        return new IsInstance(args[0] as unknown as IsInstanceInput)
+
+    throw new Error('Invalid Signature')
 
 }) as SchemaFrom
 
