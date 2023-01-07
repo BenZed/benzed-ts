@@ -1,4 +1,7 @@
-import Schema from '../schema'
+import { Callable } from '@benzed/util'
+
+import { Schema } from '../schema'
+import { IsEnumInput } from './is-type'
 
 import { type Or } from './or'
 
@@ -6,6 +9,22 @@ import { type Or } from './or'
     @typescript-eslint/no-var-requires
 */
 //// Main ////
+
+const ChainableSchemaFactory = Callable
+
+interface ChainableSchemaFactoryInterface {
+
+    get string(): unknown
+
+    get boolean(): unknown
+
+    get number(): unknown
+
+    enum<E extends IsEnumInput>(
+        ...options: E
+    ): unknown
+
+}
 
 /**
  * Schema for chaining schemas into unions or intersections, as well as
@@ -27,5 +46,7 @@ abstract class ChainableSchema<T> extends Schema<T> {
 export default ChainableSchema
 
 export {
-    ChainableSchema
+    ChainableSchema,
+    ChainableSchemaFactory,
+    ChainableSchemaFactoryInterface
 }

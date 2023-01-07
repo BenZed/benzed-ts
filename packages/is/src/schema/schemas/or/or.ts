@@ -1,17 +1,19 @@
-import { Callable, Infer } from '@benzed/util'
+import { Infer } from '@benzed/util'
 
 import {
     IsBoolean, 
     IsNumber, 
     IsString, 
     IsEnum, 
-    IsEnumInput
+    IsEnumInput,
+    IsInstanceInput,
+    IsInstance
 } from '../is-type'
 
 import Schema from '../../schema'
 
-import { IsInstanceInput, IsInstance, schemaFrom } from '../../schema-from'
 import { IsUnion, IsUnionFlatten } from './is-union'
+import { ChainableSchemaFactory, ChainableSchemaFactoryInterface } from '../chainable-schema'
 
 //// Eslint ////
 
@@ -36,11 +38,13 @@ type ToIsUnion<S extends Schema, T extends Schema> =
 
 //// Or ////
 
-class Or<S extends Schema> extends Callable<IsUnionFrom<S>> {
+class Or<S extends Schema> 
+    extends ChainableSchemaFactory<IsUnionFrom<S>> 
+    implements ChainableSchemaFactoryInterface {
 
     constructor(readonly from: S) {
         super((...args: Parameters<IsUnionFrom<S>>) => 
-            this._toIsUnion(schemaFrom(...args)) as any
+            this._toIsUnion(Schema.from(...args)) as any
         )
     }
 
@@ -56,6 +60,12 @@ class Or<S extends Schema> extends Callable<IsUnionFrom<S>> {
 
     get number(): ToIsUnion<S, IsNumber> {
         return this._toIsUnion(new IsNumber)
+    }
+
+    enum<E extends IsEnumInput>(
+        ...options: E
+    ): ToIsUnion<S, IsEnum<E>> {
+        return this._toIsUnion(new IsEnum(...options))
     }
 
     //// Helper ////

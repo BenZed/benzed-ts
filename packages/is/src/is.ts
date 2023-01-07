@@ -1,4 +1,5 @@
-import { Callable } from '@benzed/util'
+import { ChainableSchemaFactory, ChainableSchemaFactoryInterface } from './schema/schemas/chainable-schema'
+
 import { 
     IsBoolean, 
     IsEnum, 
@@ -13,7 +14,8 @@ import {
 
 //// Main ////
 
-class Is extends Callable<SchemaFrom> {
+class Is extends ChainableSchemaFactory<SchemaFrom> 
+    implements ChainableSchemaFactoryInterface {
 
     constructor() {
         super(Schema.from)
