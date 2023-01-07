@@ -1,6 +1,6 @@
 import { isNumber, through } from '@benzed/util'
 
-import IsType from './is-type'
+import IsPrimitive from './is-primitive'
 
 import { 
     RangeSettingsSignature, 
@@ -24,7 +24,7 @@ const toNumber = (value: unknown): unknown => {
 
 //// Boolean ////
 
-class IsNumber extends IsType<number> {
+class IsNumber extends IsPrimitive<number> {
 
     constructor() {
         super({

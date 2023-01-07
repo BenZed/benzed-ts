@@ -1,5 +1,5 @@
 
-import { IsType } from './is-type'
+import IsPrimitive from './is-primitive'
 
 import { isBoolean, isNil } from '@benzed/util'
 
@@ -17,7 +17,7 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
 
 //// Boolean ////
 
-class IsBoolean extends IsType<boolean> {
+class IsBoolean extends IsPrimitive<boolean> {
     constructor() {
         super({
             type: 'boolean',

@@ -2,7 +2,8 @@ import { capitalize } from '@benzed/string'
 import { isString } from '@benzed/util'
 
 import { ValidationErrorMessage } from '../../../validator'
-import { IsType } from './is-type'
+
+import IsPrimitive from './is-primitive'
 
 //// Symbols ////
 
@@ -13,7 +14,7 @@ const $$end = Symbol('ends-with-validator')
 
 //// Boolean ////
 
-class IsString extends IsType<string> {
+class IsString extends IsPrimitive<string> {
 
     constructor() {
         super({
