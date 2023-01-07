@@ -102,11 +102,11 @@ class RangeValidator extends Validate<number> {
     readonly range: Omit<RangeSettings, 'error'>
     readonly error?: RangeSettings['error']
 
-    constructor (settings: RangeSettings)
-    constructor (min: number, comparator: BinaryComparator, max: number)
-    constructor (comparator: UnaryComparator, value: number)
-    constructor (min: number, max: number)
-    constructor (equals: number) 
+    constructor(settings: RangeSettings)
+    constructor(min: number, comparator: BinaryComparator, max: number)
+    constructor(comparator: UnaryComparator, value: number)
+    constructor(min: number, max: number)
+    constructor(equals: number) 
     constructor (...args: RangeSettingsSignature) {
 
         super((input: number, ctx?: ValidateOptions): number => {

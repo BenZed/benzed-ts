@@ -10,7 +10,7 @@ import {
 
 //// Helper ////
 
-const castToNumber = (value: unknown): unknown => {
+const toNumber = (value: unknown): unknown => {
 
     if (typeof value === 'string') {
         const parsed = parseFloat(value)
@@ -29,7 +29,7 @@ class NumberSchema extends TypeSchema<number> {
         super({
             type: 'number',
             is: isNumber,
-            cast: castToNumber
+            cast: toNumber
         })
     }
 
