@@ -1,53 +1,97 @@
-import { Callable } from '@benzed/util'
-import Schema from '../schema/schema'
+import { Callable, Infer } from '@benzed/util'
+
+import Schema, { Schemas, TypeOf, TypesOf } from '../schema/schema'
+
 import BooleanSchema from './boolean'
+import NumberSchema from './number'
+import ChainableSchema from './chainable-schema'
+
+import { StringSchema } from './string'
 
 ////  ////
 
-// // Move me
-// class Schemata<A extends unknown[], S extends Schema> extends Callable<(...args: A) => S> {
-
-// }
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Main ////
 
-interface ToOrSchema<F extends Schema> {
-    <T extends Schema>(to: T): OrSchema<[T,F]>
+interface ChainOrSchema<S extends Schema> {
+    <T extends Schema>(to: T): ToOrSchema<S, T>
 }
 
-type TypeOf<S extends Schema> = S extends Schema<infer T> ? T : unknown 
+type ToOrSchema<S extends Schema, T extends Schema> = 
+    Infer<OrSchema<TypesOf<[...FlattenOrSchema<S>, T]>>>
 
-type TypesOf<S extends Schema[]> = S extends [infer S1, ...infer Sr]
-    ? S1 extends Schema<infer T1> 
-        ? Sr extends Schema[]
-            ? [T1, ...TypesOf<Sr>]
-            : [T1]
-        : Sr extends Schema[]
-            ? TypesOf<Sr>
-            : []
-    : []
+type FlattenOrSchema<S extends Schema> = S extends OrSchema<infer Sx> 
+    ? Schemas<Sx>
+    : [S]
 
-class OrSchema<S extends Schema[]> extends Schema<TypesOf<S>[number]>{
+class OrSchema<T extends unknown[]> extends ChainableSchema<T[number]>{
 
-    schemas: S 
+    static flatten<S extends Schema>(schema: S): FlattenOrSchema<S> {
+        return (schema instanceof OrSchema
+            ? schema.types
+            : [schema]) as FlattenOrSchema<S>
+    }
 
-    constructor(...schemas: S) {
-        super(() => {
-            throw new Error('not yet implemented')
+    readonly types: Schemas<T>
+
+    constructor(...types: Schemas<T>) {
+        super((i, options) => {
+            const schemas = this.types as Schema<unknown>[]
+    
+            for (const schema of this.types as Schema[]) {
+                if (schema.is(i))
+                    return i
+            }
+
+            const errors: Error[] = []
+            for (const schema of schemas) {
+                try {
+                    return schema.validate(i, options)
+                } catch (e) {
+                    errors.push(e as Error)
+                }
+            }
+
+            // TODO validationErrors need to support arrays and maps of errors
+            throw new Error(`Multiple Or Schema Errors: ${errors.map(e => e.message)}`)
         })
-        this.schemas = schemas
+        this.types = types
     }
-
 }
 
-class OrSchemata<F extends Schema> extends Callable<ToOrSchema<F>> {
+class OrSchemata<S extends Schema> extends Callable<ChainOrSchema<S>> {
 
-    constructor(readonly fromSchema: F) {
-        super(toSchema => new OrSchema(this.fromSchema, toSchema))
+    constructor(readonly from: S) {
+        super(to => this._toOrSchema(to))
     }
 
-    get boolean(): BooleanSchema {
-        return new BooleanSchema()
+    get boolean(): ToOrSchema<S, BooleanSchema> {
+        return this._toOrSchema(new BooleanSchema)
+    }
+
+    get string(): ToOrSchema<S, StringSchema> {
+        return this._toOrSchema(new StringSchema)
+    }
+
+    get number(): ToOrSchema<S, NumberSchema> {
+        return this._toOrSchema(new NumberSchema)
+    }
+
+    //// Helper ////
+    
+    private _toOrSchema<T extends Schema>(to: T): ToOrSchema<S, T> {
+
+        type Types = TypesOf<[...FlattenOrSchema<S>, T]>
+
+        const schemas = [
+            ...OrSchema.flatten(this.from),
+            to
+        ] as Schema<unknown>[] as Schemas<Types>
+
+        return new OrSchema(...schemas)
     }
     
 }
@@ -57,5 +101,6 @@ class OrSchemata<F extends Schema> extends Callable<ToOrSchema<F>> {
 export default OrSchemata
 
 export {
-    OrSchemata
+    OrSchemata,
+    OrSchema
 }

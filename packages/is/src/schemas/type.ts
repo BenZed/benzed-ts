@@ -11,11 +11,11 @@ import {
     TypeValidatorDefault 
 } from '../validators'
 
-import SchemaChain from './schema-chain'
+import ChainableSchema from './chainable-schema'
 
 //// Types ////
 
-class TypeSchema<T> extends SchemaChain<T> {
+class TypeSchema<T> extends ChainableSchema<T> {
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 

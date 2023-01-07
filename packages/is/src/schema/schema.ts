@@ -26,13 +26,23 @@ import type { schemaFrom } from './schema-from'
 
 //// Types ////
 
-type Infer<S extends Schema<any>> = S extends Schema<infer T> ? T : unknown
+type TypeOf<S extends Schema> = S extends Schema<infer T> ? T : unknown 
 
-type Assert<T> = T extends Schema<infer Tx> 
-    ? Assert<Tx> 
-    : (input: unknown) => asserts input is T
+type TypesOf<S extends Schema[]> = S extends [infer S1, ...infer Sr]
+    ? S1 extends Schema<infer T1> 
+        ? Sr extends Schema[]
+            ? [T1, ...TypesOf<Sr>]
+            : [T1]
+        : Sr extends Schema[]
+            ? TypesOf<Sr>
+            : []
+    : []
 
-class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
+type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
+    ? [Schema<T1>, ...Schemas<Tr>]
+    : []
+
+class Schema<T = any> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
 
     static get from(): typeof schemaFrom {
         return require('./schema-from').schemaFrom
@@ -164,7 +174,8 @@ export default Schema
 
 export {
     Schema,
+    Schemas,
 
-    Infer,
-    Assert
+    TypeOf,
+    TypesOf
 }
