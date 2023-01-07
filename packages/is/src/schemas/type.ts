@@ -1,10 +1,6 @@
 import { isFunc, isNil, nil, returns } from '@benzed/util'
 
 import { 
-    Schema,
-} from '../schema/schema'
-
-import { 
     ValidationErrorMessage,
 } from '../validator'
 
@@ -15,9 +11,11 @@ import {
     TypeValidatorDefault 
 } from '../validators'
 
+import SchemaChain from './schema-chain'
+
 //// Types ////
 
-class TypeSchema<T> extends Schema<T> {
+class TypeSchema<T> extends SchemaChain<T> {
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 

@@ -31,3 +31,14 @@ test('enum()', () => {
     expect(is.enum(-1, 0, 1)).toBeInstanceOf(EnumSchema)
     expectTypeOf(is.enum(-1, 0, 1)).toEqualTypeOf<EnumSchema<[-1,0,1]>>()
 })
+
+//// Examples ////
+
+it('string or boolean', () => {
+
+    const isStringOrBool = is.string.or.boolean
+
+    expect(isStringOrBool('10')).toEqual(true)
+    expect(isStringOrBool(10)).toEqual(true)
+    expectTypeOf(isStringOrBool).toEqualTypeOf<OrSchema<[string, boolean]>>()
+})

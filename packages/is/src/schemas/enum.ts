@@ -1,6 +1,6 @@
 import { Primitive } from '@benzed/util'
-import { Schema } from '../schema/schema'
 import { ValidationErrorMessage, Validator } from '../validator'
+import SchemaChain from './schema-chain'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -14,7 +14,7 @@ type EnumSchemaInput = Primitive[]
 
 //// Setup ////
 
-class EnumSchema<T extends EnumSchemaInput> extends Schema<T[number]> {
+class EnumSchema<T extends EnumSchemaInput> extends SchemaChain<T[number]> {
 
     readonly options: T
 
