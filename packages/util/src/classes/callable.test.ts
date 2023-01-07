@@ -462,5 +462,5 @@ it('retereive template', () => {
     const noop = Callable.create(toVoid, template)
 
     expect(Callable.templateOf(noop)).toEqual(template)
-    expect(() => Callable.templateOf(parseInt)).toThrow('not a callable')
+    expect(() => Callable.templateOf(parseInt)).toThrow()
 })

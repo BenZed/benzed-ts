@@ -2,7 +2,7 @@ import { isFunc, isNil, nil, returns } from '@benzed/util'
 
 import { 
     Schema,
-} from '../schema'
+} from '../schema/schema'
 
 import { 
     ValidationErrorMessage,

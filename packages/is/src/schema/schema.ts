@@ -15,11 +15,13 @@ import {
 } from '../validator'
 
 import Schematic from './schematic'
+import type { schemaFrom } from './schema-from'
 
 //// Type ////
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-var-requires
 */
 
 //// Types ////
@@ -31,6 +33,10 @@ type Assert<T> = T extends Schema<infer Tx>
     : (input: unknown) => asserts input is T
 
 class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
+
+    static get from(): typeof schemaFrom {
+        return require('./schema-from').schemaFrom
+    }
 
     constructor(validate: Validate<unknown, T>)
     constructor(settings: ValidatorSettings<unknown, T>)

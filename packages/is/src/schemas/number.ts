@@ -1,6 +1,12 @@
 import { isNumber, through } from '@benzed/util'
 import TypeSchema from './type'
-import { RangeSettingsSignature, RangeValidator, RangeValidatorSignature, toRangeSettings } from '../validators'
+
+import { 
+    RangeSettingsSignature, 
+    RangeValidator,
+    RangeValidatorSignature,
+    toRangeSettings 
+} from '../validators'
 
 //// Helper ////
 

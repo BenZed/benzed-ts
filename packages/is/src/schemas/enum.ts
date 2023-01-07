@@ -1,4 +1,5 @@
-import { Schema } from '../schema'
+import { Primitive } from '@benzed/util'
+import { Schema } from '../schema/schema'
 import { ValidationErrorMessage, Validator } from '../validator'
 
 /* eslint-disable 
@@ -9,28 +10,11 @@ const $$enum = Symbol('enum-validator')
 
 //// Types ////
 
-type Enumerable = string | number | boolean | null | bigint
+type EnumSchemaInput = Primitive[]
 
 //// Setup ////
 
-class EnumValidator<T extends readonly Enumerable[]> extends Validator<unknown, T[number]> {
-
-    readonly options: T
-
-    constructor(...options: T) {
-        super({
-            error: () => this.options.length >= 1 
-                ? `must be one of ${this.options.slice(0, -1).join(', ')} or ${this.options.at(-1)}`
-                : `must be ${this.options.at(0) ?? 'nil'}`,
-
-            is: (input: unknown) => this.options.includes(input as T[number]),
-        })
-
-        this.options = options
-    }
-}
-
-class EnumSchema<T extends readonly Enumerable[]> extends Schema<T[number]> {
+class EnumSchema<T extends EnumSchemaInput> extends Schema<T[number]> {
 
     readonly options: T
 
@@ -58,5 +42,6 @@ class EnumSchema<T extends readonly Enumerable[]> extends Schema<T[number]> {
 export default EnumSchema
 
 export {
-    EnumSchema
+    EnumSchema,
+    EnumSchemaInput
 }
