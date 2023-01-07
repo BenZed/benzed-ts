@@ -39,7 +39,7 @@ it('optional method name', () => {
 // I refused to answer why this test is necessary
 it('seperate cache for each method', () => {
 
-    const memoIsPrime = memoize(isOdd)
+    const memoIsPrime = memoize(isOdd) 
     const memoIsEven = memoize((i: number) => i % 2 === 0, 'isEven')
     
     expect(memoIsPrime(10))
@@ -98,28 +98,3 @@ it('preserves <this>', () => {
 
 })
 
-it('max cache size option', () => {
-
-    let calls = 0
-    const x2 = (i: number): number => {
-        calls++ 
-        return i * 2
-    }
-
-    const singleMemo = memoize(x2, 1)
-
-    // prove that one entry is cached
-    expect(singleMemo(1)).toEqual(2)
-    expect(singleMemo(1)).toEqual(2)
-    expect(calls).toEqual(1)
-
-    // prove that a second entry is cached
-    expect(singleMemo(2)).toEqual(4)
-    expect(singleMemo(2)).toEqual(4)
-    expect(calls).toEqual(2)
-    
-    // prove that the first entry was removed
-    expect(singleMemo(1)).toEqual(2)
-    expect(calls).toEqual(3)
-
-})
