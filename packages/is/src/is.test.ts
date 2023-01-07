@@ -2,11 +2,11 @@ import { Callable } from '@benzed/util'
 import { Is } from './is'
 import { Schema } from './schema'
 import { 
-    BooleanSchema, 
-    EnumSchema, 
-    NumberSchema, 
-    StringSchema,
-    OrSchema
+    IsBoolean, 
+    IsEnum, 
+    IsNumber, 
+    IsString,
+    IsUnion
 } from './schemas'
 
 import { expectTypeOf } from 'expect-type'
@@ -22,20 +22,20 @@ test('schema.from siganture', () => {
 })
 
 test('string', () => {
-    expect(is.string).toBeInstanceOf(StringSchema)
+    expect(is.string).toBeInstanceOf(IsString)
 })
 
 test('boolean', () => {
-    expect(is.boolean).toBeInstanceOf(BooleanSchema)
+    expect(is.boolean).toBeInstanceOf(IsBoolean)
 })
 
 test('number', () => {
-    expect(is.number).toBeInstanceOf(NumberSchema)
+    expect(is.number).toBeInstanceOf(IsNumber)
 })
 
 test('enum()', () => {
-    expect(is.enum(-1, 0, 1)).toBeInstanceOf(EnumSchema)
-    expectTypeOf(is.enum(-1, 0, 1)).toEqualTypeOf<EnumSchema<[-1,0,1]>>()
+    expect(is.enum(-1, 0, 1)).toBeInstanceOf(IsEnum)
+    expectTypeOf(is.enum(-1, 0, 1)).toEqualTypeOf<IsEnum<[-1,0,1]>>()
 })
 
 //// Examples ////
@@ -46,5 +46,5 @@ it('string or boolean', () => {
 
     expect(isStringBoolOrNumber('10')).toEqual(true)
     expect(isStringBoolOrNumber(10)).toEqual(true)
-    expectTypeOf(isStringBoolOrNumber).toMatchTypeOf<OrSchema<[string, boolean, number]>>()
+    expectTypeOf(isStringBoolOrNumber).toMatchTypeOf<IsUnion<[string, boolean, number]>>()
 })

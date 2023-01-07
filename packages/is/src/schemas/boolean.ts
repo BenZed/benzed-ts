@@ -1,5 +1,5 @@
 import { isBoolean, isNil } from '@benzed/util'
-import { TypeSchema } from './type'
+import { IsType } from './type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -13,13 +13,9 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
         ? true 
         : input
 
-//// Types ////
-
-interface BooleanSchema extends TypeSchema<boolean> {}
-
 //// Boolean ////
 
-class BooleanSchema extends TypeSchema<boolean> {
+class IsBoolean extends IsType<boolean> {
     constructor() {
         super({
             type: 'boolean',
@@ -31,8 +27,8 @@ class BooleanSchema extends TypeSchema<boolean> {
 
 //// Exports ////
 
-export default BooleanSchema
+export default IsBoolean
 
 export {
-    BooleanSchema
+    IsBoolean
 }

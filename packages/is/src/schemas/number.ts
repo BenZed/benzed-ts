@@ -1,5 +1,5 @@
 import { isNumber, through } from '@benzed/util'
-import TypeSchema from './type'
+import IsType from './type'
 
 import { 
     RangeSettingsSignature, 
@@ -23,7 +23,7 @@ const toNumber = (value: unknown): unknown => {
 
 //// Boolean ////
 
-class NumberSchema extends TypeSchema<number> {
+class IsNumber extends IsType<number> {
 
     constructor() {
         super({
@@ -50,8 +50,8 @@ class NumberSchema extends TypeSchema<number> {
 
 //// Exports ////
 
-export default NumberSchema
+export default IsNumber
 
 export {
-    NumberSchema
+    IsNumber
 }

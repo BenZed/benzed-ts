@@ -1,5 +1,5 @@
 import Schema from '../schema/schema'
-import type OrSchemata from './or'
+import type Or from './or'
 
 /* eslint-disable 
     @typescript-eslint/no-var-requires
@@ -8,9 +8,9 @@ import type OrSchemata from './or'
 
 class ChainableSchema<T> extends Schema<T> {
 
-    get or(): OrSchemata<this> {
-        const Or = require('./or').OrSchemata as typeof OrSchemata
-        return new Or(this)
+    get or(): Or<this> {
+        const _Or = require('./or').Or as typeof Or
+        return new _Or(this)
     }
 
     // get and(): AndSchemata<this> {}

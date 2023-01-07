@@ -1,38 +1,47 @@
-import { Callable, Infer } from '@benzed/util'
+import { Callable, Infer, TypesOf } from '@benzed/util'
 
-import Schema, { Schemas, TypeOf, TypesOf } from '../schema/schema'
+import Schema, { Schemas } from '../schema/schema'
 
-import BooleanSchema from './boolean'
-import NumberSchema from './number'
+import IsBoolean from './boolean'
+import IsNumber from './number'
 import ChainableSchema from './chainable-schema'
 
-import { StringSchema } from './string'
+import { IsString } from './string'
+import { IsInstanceInput, IsInstance, schemaFrom } from '../schema/schema-from'
+import IsEnum, { IsEnumInput } from './enum'
 
-////  ////
+//// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-//// Main ////
+//// Types ////
 
-interface ChainOrSchema<S extends Schema> {
-    <T extends Schema>(to: T): ToOrSchema<S, T>
-}
-
-type ToOrSchema<S extends Schema, T extends Schema> = 
-    Infer<OrSchema<TypesOf<[...FlattenOrSchema<S>, T]>>>
-
-type FlattenOrSchema<S extends Schema> = S extends OrSchema<infer Sx> 
+type FlattenUnion<S extends Schema> = S extends IsUnion<infer Sx> 
     ? Schemas<Sx>
     : [S]
 
-class OrSchema<T extends unknown[]> extends ChainableSchema<T[number]>{
+interface IsUnionFrom<S extends Schema> {
+    <T extends IsInstanceInput>(type: T): ToIsUnion<S, IsInstance<T>>
+    <T extends IsEnumInput>(...options: T): ToIsUnion<S, IsEnum<T>>
+    <T extends Schema>(schema: T): ToIsUnion<S, T>
+    // tuple shortcut 
+    // shape shortcut
+}
 
-    static flatten<S extends Schema>(schema: S): FlattenOrSchema<S> {
-        return (schema instanceof OrSchema
+//// ToIsUnion ////
+
+type ToIsUnion<S extends Schema, T extends Schema> = 
+    Infer<IsUnion<TypesOf<[...FlattenUnion<S>, ...FlattenUnion<T>]>>>
+
+class IsUnion<T extends unknown[]> extends ChainableSchema<T[number]>{
+
+    static flatten<S extends Schema>(schema: S): FlattenUnion<S> {
+        return (schema instanceof IsUnion
             ? schema.types
-            : [schema]) as FlattenOrSchema<S>
+            : [schema]
+        ) as FlattenUnion<S>
     }
 
     readonly types: Schemas<T>
@@ -62,45 +71,51 @@ class OrSchema<T extends unknown[]> extends ChainableSchema<T[number]>{
     }
 }
 
-class OrSchemata<S extends Schema> extends Callable<ChainOrSchema<S>> {
+//// Or ////
+
+class Or<S extends Schema> extends Callable<IsUnionFrom<S>> {
 
     constructor(readonly from: S) {
-        super(to => this._toOrSchema(to))
+        super((...args: Parameters<IsUnionFrom<S>>) => 
+            this._toIsUnion(schemaFrom(...args)) as any
+        )
     }
 
-    get boolean(): ToOrSchema<S, BooleanSchema> {
-        return this._toOrSchema(new BooleanSchema)
+    //// Chain ////
+    
+    get boolean(): ToIsUnion<S, IsBoolean> {
+        return this._toIsUnion(new IsBoolean)
     }
 
-    get string(): ToOrSchema<S, StringSchema> {
-        return this._toOrSchema(new StringSchema)
+    get string(): ToIsUnion<S, IsString> {
+        return this._toIsUnion(new IsString)
     }
 
-    get number(): ToOrSchema<S, NumberSchema> {
-        return this._toOrSchema(new NumberSchema)
+    get number(): ToIsUnion<S, IsNumber> {
+        return this._toIsUnion(new IsNumber)
     }
 
     //// Helper ////
     
-    private _toOrSchema<T extends Schema>(to: T): ToOrSchema<S, T> {
+    private _toIsUnion<T extends Schema>(to: T): ToIsUnion<S, T> {
 
-        type Types = TypesOf<[...FlattenOrSchema<S>, T]>
+        type Types = TypesOf<[...FlattenUnion<S>, ...FlattenUnion<T>]>
 
         const schemas = [
-            ...OrSchema.flatten(this.from),
-            to
+            ...IsUnion.flatten(this.from),
+            ...IsUnion.flatten(to)
         ] as Schema<unknown>[] as Schemas<Types>
 
-        return new OrSchema(...schemas)
+        return new IsUnion(...schemas)
     }
     
 }
 
 //// Exports ////
 
-export default OrSchemata
+export default Or
 
 export {
-    OrSchemata,
-    OrSchema
+    Or,
+    IsUnion
 }

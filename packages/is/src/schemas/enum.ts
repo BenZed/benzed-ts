@@ -10,11 +10,11 @@ const $$enum = Symbol('enum-validator')
 
 //// Types ////
 
-type EnumSchemaInput = Primitive[]
+type IsEnumInput = Primitive[]
 
 //// Setup ////
 
-class EnumSchema<T extends EnumSchemaInput> extends ChainableSchema<T[number]> {
+class IsEnum<T extends IsEnumInput> extends ChainableSchema<T[number]> {
 
     readonly options: T
 
@@ -39,9 +39,9 @@ class EnumSchema<T extends EnumSchemaInput> extends ChainableSchema<T[number]> {
 
 //// Exports ////
 
-export default EnumSchema
+export default IsEnum
 
 export {
-    EnumSchema,
-    EnumSchemaInput
+    IsEnum,
+    IsEnumInput
 }

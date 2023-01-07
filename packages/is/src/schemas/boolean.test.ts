@@ -1,9 +1,9 @@
 import { nil } from '@benzed/util'
-import { BooleanSchema } from './boolean'
+import { IsBoolean } from './boolean'
 
 //// Tests ////
 
-const isBoolean = new BooleanSchema()  
+const isBoolean = new IsBoolean()  
 
 it('validates booleans', () => {
     expect(isBoolean.validate(true)).toEqual(true)

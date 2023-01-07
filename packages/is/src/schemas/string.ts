@@ -2,7 +2,7 @@ import { capitalize } from '@benzed/string'
 import { isString } from '@benzed/util'
 
 import { ValidationErrorMessage } from '../validator'
-import { TypeSchema } from './type'
+import { IsType } from './type'
 
 //// Symbols ////
 
@@ -13,7 +13,7 @@ const $$end = Symbol('ends-with-validator')
 
 //// Boolean ////
 
-class StringSchema extends TypeSchema<string> {
+class IsString extends IsType<string> {
 
     constructor() {
         super({
@@ -77,11 +77,10 @@ class StringSchema extends TypeSchema<string> {
             `contains-${value}`
         )
     }
-
 }
 
 //// Exports ////
 
 export {
-    StringSchema
+    IsString
 }

@@ -15,7 +15,7 @@ import ChainableSchema from './chainable-schema'
 
 //// Types ////
 
-class TypeSchema<T> extends ChainableSchema<T> {
+class IsType<T> extends ChainableSchema<T> {
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 
@@ -70,7 +70,7 @@ class TypeSchema<T> extends ChainableSchema<T> {
 
 //// Exports ////
 
-export default TypeSchema
+export default IsType
 export {
-    TypeSchema
+    IsType
 }

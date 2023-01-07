@@ -1,5 +1,5 @@
 import { Callable } from '@benzed/util'
-import { BooleanSchema, EnumSchema, EnumSchemaInput, NumberSchema, StringSchema } from './schemas'
+import { IsBoolean, IsEnum, IsEnumInput, IsNumber, IsString } from './schemas'
 
 import { Schema, SchemaFrom } from './schema'
 
@@ -15,16 +15,16 @@ class Is extends Callable<SchemaFrom> {
         super(Schema.from)
     }
 
-    string = new StringSchema()
+    string = new IsString()
 
-    boolean = new BooleanSchema()
+    boolean = new IsBoolean()
 
-    number = new NumberSchema()
+    number = new IsNumber()
 
-    enum<E extends EnumSchemaInput>(
+    enum<E extends IsEnumInput>(
         ...options: E
-    ): EnumSchema<E> {
-        return new EnumSchema(...options)
+    ): IsEnum<E> {
+        return new IsEnum(...options)
     }
 
 }

@@ -26,18 +26,6 @@ import type { schemaFrom } from './schema-from'
 
 //// Types ////
 
-type TypeOf<S extends Schema> = S extends Schema<infer T> ? T : unknown 
-
-type TypesOf<S extends Schema[]> = S extends [infer S1, ...infer Sr]
-    ? S1 extends Schema<infer T1> 
-        ? Sr extends Schema[]
-            ? [T1, ...TypesOf<Sr>]
-            : [T1]
-        : Sr extends Schema[]
-            ? TypesOf<Sr>
-            : []
-    : []
-
 type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
     ? [Schema<T1>, ...Schemas<Tr>]
     : []
@@ -174,8 +162,5 @@ export default Schema
 
 export {
     Schema,
-    Schemas,
-
-    TypeOf,
-    TypesOf
+    Schemas
 }

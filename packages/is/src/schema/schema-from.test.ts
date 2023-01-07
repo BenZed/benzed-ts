@@ -1,6 +1,6 @@
 import { schemaFrom } from './schema-from'
 
-import { EnumSchema } from '../schemas'
+import { IsEnum } from '../schemas'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -9,6 +9,6 @@ import { expectTypeOf } from 'expect-type'
 test('enum signature', () => {
     const emotions = schemaFrom('happy', 'sad')
 
-    expect(emotions).toBeInstanceOf(EnumSchema)
-    expectTypeOf(emotions).toEqualTypeOf<EnumSchema<['happy', 'sad']>>()
+    expect(emotions).toBeInstanceOf(IsEnum)
+    expectTypeOf(emotions).toEqualTypeOf<IsEnum<['happy', 'sad']>>()
 })
