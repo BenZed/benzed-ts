@@ -1,11 +1,30 @@
-import { IsBoolean } from './is-type'
 
-import Or from './or'
+import { isNil } from '@benzed/util'
+import { ValidationError } from '../../validator'
+import { ChainableSchema } from './chainable-schema'
+import { Or } from './or'
 
-it ('SchemaChain', () => {
+//// Setup ////
 
-    const booleanOr = new OrSchemata(new IsBoolean())
+class IsVoid extends ChainableSchema<void> {
 
-    const isBooleanOrString = booleanOr.string.or.number
+    constructor() {
+        super((i, ctx)=> isNil(i) ? ValidationError.throw({ ...ctx, input: i, transform: false, path: [] }, 'Must be void') : i)
+    }
+    
+}
 
+const isVoid = new IsVoid()
+
+//// Tests ////
+
+it('is abstact', () => {
+    // @ts-expect-error abstract
+    void new ChainableSchema()
 })
+
+it('has or method', () => {
+    expect(isVoid.or).toBeInstanceOf(Or)
+})
+
+it.todo('has and method')

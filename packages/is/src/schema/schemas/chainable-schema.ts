@@ -1,13 +1,17 @@
 import Schema from '../schema'
 
-import type Or from './or'
+import { type Or } from './or'
 
 /* eslint-disable 
     @typescript-eslint/no-var-requires
 */
 //// Main ////
 
-class ChainableSchema<T> extends Schema<T> {
+/**
+ * Schema for chaining schemas into unions or intersections, as well as
+ * nesting flag schemas
+ */
+abstract class ChainableSchema<T> extends Schema<T> {
 
     get or(): Or<this> {
         const _Or = require('./or').Or as typeof Or

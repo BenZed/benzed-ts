@@ -1,5 +1,5 @@
 import { Or, IsUnion } from './or'
-import { IsString, IsBoolean, IsNumber, IsEnum } from './is-type'
+import { IsString, IsBoolean, IsNumber, IsEnum } from '../is-type'
 
 import { isString, TypeOf } from '@benzed/util'
 
