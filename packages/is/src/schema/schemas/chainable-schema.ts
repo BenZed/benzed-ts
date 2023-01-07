@@ -1,4 +1,4 @@
-import Schema from '../schema/schema'
+import Schema from '../schema'
 
 import type Or from './or'
 

@@ -1,13 +1,16 @@
+
 import { Callable } from '@benzed/util'
+
 import { Is } from './is'
-import { Schema } from './schema'
+
 import { 
+    Schema,
     IsBoolean, 
     IsEnum, 
     IsNumber, 
     IsString,
     IsUnion
-} from './schemas'
+} from './schema'
 
 import { expectTypeOf } from 'expect-type'
 

@@ -1,11 +1,12 @@
-import IsBoolean from './boolean'
 import { Or, IsUnion } from './or'
-
-import { expectTypeOf } from 'expect-type'
+import { IsString } from './string'
+import IsBoolean from './boolean'
 import IsNumber from './number'
 import IsEnum from './enum'
-import { IsString } from './string'
+
 import { isString, TypeOf } from '@benzed/util'
+
+import { expectTypeOf } from 'expect-type'
 
 const $booleanOr = new Or(new IsBoolean())
 const isBooleanOrString = $booleanOr.string

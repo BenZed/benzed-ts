@@ -1,13 +1,11 @@
 import { Callable } from '@benzed/util'
-import { IsBoolean, IsEnum, IsEnumInput, IsNumber, IsString } from './schemas'
+import { IsBoolean, IsEnum, IsEnumInput, IsNumber, IsString } from './schema/schemas'
 
 import { Schema, SchemaFrom } from './schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Type ////
 
 //// Main ////
 
@@ -31,10 +29,15 @@ class Is extends Callable<SchemaFrom> {
 
 }
 
+//// Default ////
+
+const is = new Is()
+
 //// Exports ////
 
 export default Is
 
 export {
-    Is
+    Is,
+    is
 }

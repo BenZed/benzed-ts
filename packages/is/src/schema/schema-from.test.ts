@@ -1,6 +1,6 @@
 import { schemaFrom } from './schema-from'
 
-import { IsEnum } from '../schemas'
+import { IsEnum } from './schemas'
 
 import { expectTypeOf } from 'expect-type'
 

@@ -4,7 +4,7 @@ import { Schema } from './schema'
 import { 
     IsEnum,
     IsEnumInput
-} from '../schemas'
+} from './schemas'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

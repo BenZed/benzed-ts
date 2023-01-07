@@ -2,14 +2,14 @@ import { isFunc, isNil, nil, returns } from '@benzed/util'
 
 import { 
     ValidationErrorMessage,
-} from '../validator'
+} from '../../validator'
 
 import {
     TypeValidator,
     TypeValidatorSettings,
     TypeValidatorCast,
     TypeValidatorDefault 
-} from '../validator/validators'
+} from '../../validator/validators'
 
 import ChainableSchema from './chainable-schema'
 
