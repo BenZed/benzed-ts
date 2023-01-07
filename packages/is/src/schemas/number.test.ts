@@ -1,23 +1,25 @@
-import number from './number'
+import NumberSchema from './number'
 
+const isNumber = new NumberSchema()
+ 
 it('validates number values', () => {
 
-    expect(number.validate(100))
+    expect(isNumber.validate(100))
         .toEqual(100)
 
-    expect(number.validate(100))
+    expect(isNumber.validate(100))
         .toEqual(100)
-
+ 
 })
 
 it('does not allow NaN', () => {
-    expect(() => number.validate(NaN))
-        .toThrow('must be type number')
+    expect(() => isNumber.validate(NaN))
+        .toThrow('Must be type number')
 })
 
 it('does not allow Infinity', () => {
-    expect(() => number.validate(Infinity))
-        .toThrow('must be type number')
+    expect(() => isNumber.finite.validate(Infinity))
+        .toThrow('Must be finite')
 })
 
 it('casts strings to numbers', () => {
@@ -27,9 +29,9 @@ it('casts strings to numbers', () => {
         '1000',
         ' 123.123e',
         '-1230',
-        '32.402a31'
+        '32.402a31' 
     ]) {
-        expect(number.validate(n))
+        expect(isNumber.validate(n))
             .toEqual(parseFloat(n))
     }
 })
@@ -38,35 +40,35 @@ describe('range()', () => {
 
     it('creates an instance of the schema with a range validator', () => {
 
-        const $twoToTen = number.range(2, 10)
+        const $twoToTen = isNumber.range(2, 10)
 
         expect($twoToTen.validate(2)).toEqual(2)
         expect(() => $twoToTen.validate(0))
-            .toThrow('must be between 2 and 10')
+            .toThrow('Must be between 2 and 10')
     })
 
     it('range() shortcut args', () => {
 
         const range5to10s = [
-            number.range(5, 10),
-            number.range(5, '..', 10),
-            number.range({ min: 5, max: 10, comparator: '..' }),
+            isNumber.range(5, 10),
+            isNumber.range(5, '..', 10),
+            isNumber.range({ min: 5, max: 10, comparator: '..' }),
         ]
 
         for (const range5to10 of range5to10s) {
             expect(range5to10.validate(5)).toBe(5)
             expect(range5to10.validate(7)).toBe(7)
-            expect(() => range5to10.validate(10)).toThrow('must be between 5 and 10')
+            expect(() => range5to10.validate(10)).toThrow('Must be between 5 and 10')
         }
-    })
+    }) 
 
     it('== shortcut', () => {
-        const equals2 = number.range(2)
+        const equals2 = isNumber.range(2)
         expect(equals2.validate(2)).toEqual(2)
         expect(() => equals2.validate(1))
-            .toThrow('must be equal 2')
+            .toThrow('Must be equal 2')
         expect(() => equals2.validate(3))
-            .toThrow('must be equal 2')
+            .toThrow('Must be equal 2')
     })
 })
 

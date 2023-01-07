@@ -6,7 +6,6 @@ import {
 
 import { 
     ValidationErrorMessage,
-    Validate, 
 } from '../validator'
 
 import {
@@ -63,9 +62,9 @@ class TypeSchema<T> extends Schema<T> {
     }
 
     protected _setTypeValidator(settings: Partial<TypeValidatorSettings<T>>): this {
-        return this._setValidator(
+        return this._setValidatorByType(
             TypeValidator, 
-            t => t.applySettings({ ...t, ...settings })
+            t => new TypeValidator({ ...(t as TypeValidatorSettings<T>), ...settings })
         )
     }
          

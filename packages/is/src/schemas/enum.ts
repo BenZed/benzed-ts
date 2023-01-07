@@ -1,9 +1,11 @@
 import { Schema } from '../schema'
-import { ValidationErrorMessage, Validator, ValidatorSettings } from '../validator'
+import { ValidationErrorMessage, Validator } from '../validator'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
+
+const $$enum = Symbol('enum-validator')
 
 //// Types ////
 
@@ -30,16 +32,23 @@ class EnumValidator<T extends readonly Enumerable[]> extends Validator<unknown, 
 
 class EnumSchema<T extends readonly Enumerable[]> extends Schema<T[number]> {
 
-    constructor(...options: T) {
-        super(new EnumValidator(...options))
-    }
+    readonly options: T
 
-    get options(): T {
-        return (this._getValidator(EnumValidator<T>)?.options ?? []) as T
+    constructor(...options: T) {
+        super({
+            error: () => this.options.length >= 1 
+                ? `must be one of ${this.options.slice(0, -1).join(', ')} or ${this.options.at(-1)}`
+                : `must be ${this.options.at(0) ?? 'nil'}`,
+
+            is: (input: unknown) => this.options.includes(input as T[number]),
+            id: $$enum
+        })
+
+        this.options = options
     }
 
     error(error: string | ValidationErrorMessage<unknown>): this {
-        return this._setValidator(EnumValidator, v => v.applySettings({ error }))
+        return this._setValidatorById($$enum, enumV => new Validator({ ...enumV, error }))
     }
 
 }

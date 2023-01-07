@@ -57,12 +57,12 @@ type RangeSettingsSignature =
     [number, number] | 
     [number]
 
-interface RangeValidatorSignature<R> {
-    (settings: RangeSettings): R
-    (min: number, comparator: BinaryComparator, max: number): R
-    (comparator: UnaryComparator, value: number): R
-    (min: number, max: number): R
-    (equals: number): R
+interface RangeValidatorSignature<T> {
+    (settings: RangeSettings): T
+    (min: number, comparator: BinaryComparator, max: number): T
+    (comparator: UnaryComparator, value: number): T
+    (min: number, max: number): T
+    (equals: number): T
 }
 
 //// Operators ////
@@ -129,7 +129,7 @@ class RangeValidator extends Validate<number> {
                     context, 
                     isFunc(this.error) 
                         ? this.error(input, detail, context) 
-                        : this.error ?? `must be ${detail}`
+                        : this.error ?? `Must be ${detail}`
                 )
             }
         

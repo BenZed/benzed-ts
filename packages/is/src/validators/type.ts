@@ -1,11 +1,10 @@
-import { applyResolver, nil, Pipe, through, toNil } from '@benzed/util'
-import { fail } from 'assert'
+import { nil } from '@benzed/util'
 
 import { 
     ValidatorContext,
     Validator, 
+    ValidatorTypeGuard,
     ValidatorSettings,
-    ValidatorTypeGuard
 } from '../validator'
 
 //// Types ////
@@ -20,12 +19,14 @@ import {
   */
  type Default<T> = (ctx: ValidatorContext<unknown>) => T | nil
 
-interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, 'transform'> {
+interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, 'transform' | 'is'> {
 
     /**
      * Name of the type
      */
     readonly type: string
+
+    readonly is: ValidatorTypeGuard<unknown, T>
 
     /**
      * Default cast method for this type
@@ -39,16 +40,7 @@ interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, '
 
 }
 
-//// Helpers ////
-
-const applyDefault = <T>(toDefault: Default<T> = toNil) => 
-    (i: unknown, ctx: ValidatorContext<unknown>) => 
-        i === nil ? toDefault(ctx) : i
-
-const applyCast = <T>(cast: Cast<T> = through, is: ValidatorTypeGuard<unknown, T> = fail) => 
-    (i: unknown, ctx: ValidatorContext<unknown>) => applyResolver(is(i, ctx), isValid => isValid ? i : cast(i, ctx))
-
-////  ////
+//// Validator ////
 
 class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSettings<T> {
 
@@ -69,25 +61,29 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
 
     constructor(settings: TypeValidatorSettings<T>) {
 
-        const { type, default: toDefault, is, cast, error = `Must be type ${type}`, ...rest } = settings
-
-        const maybeAsyncTransform = Pipe
-            .from(applyDefault(toDefault))
-            .to(applyCast(cast, is))
-
+        const { type, default: toDefault, cast, error = `Must be type ${type}`, ...rest } = settings
+ 
         super({
-            ...rest,
             error,
-            is,
-            transform: maybeAsyncTransform
+            ...rest
         })
 
         this.type = type
         this.cast = cast
         this.default = toDefault
+        this.transform = (i, ctx) => {
 
+            // apply default
+            if (i === nil && this.default)  
+                i = this.default(ctx)
+
+            // apply cast
+            if (!this.is(i, ctx) && this.cast)
+                i = this.cast(i, ctx)
+            
+            return i
+        }
     }
-
 }
 
 //// Exports ////

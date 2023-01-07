@@ -33,9 +33,11 @@ class Struct<T> implements Copyable, Comparable {
     }
 
     [$$equals](other: unknown): other is this {
-        return other instanceof Struct && 
+        return (
+            other instanceof Struct && 
             other.constructor === this.constructor && 
             equals(other._state, this._state)
+        )
     }
 
 }

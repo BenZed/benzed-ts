@@ -11,7 +11,7 @@ interface ValidateOptions {
 
 }
 
-class Validate<I, O extends I | Promise<I>= I> extends Callable<(input: I, options?: ValidateOptions) => O> { }
+class Validate<I, O extends I = I> extends Callable<(input: I, options?: ValidateOptions) => O> { }
 
 //// Exports ////
 

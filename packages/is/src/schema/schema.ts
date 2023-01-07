@@ -1,5 +1,6 @@
 import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
-import { isFunc, isObject, Mutable, nil, Pipe, through as dummyValidatorForCopying } from '@benzed/util'
+import { isString, isSymbol, Mutable, nil, Pipe, TypeGuard } from '@benzed/util'
+import { pluck } from '@benzed/array'
 
 import { 
     ValidationErrorMessage, 
@@ -9,7 +10,8 @@ import {
     
     Validator, 
     ValidatorTypeGuard,
-    ValidatorTransform
+    ValidatorTransform,
+    ValidatorPredicate
 } from '../validator'
 
 import Schematic from './schematic'
@@ -33,7 +35,7 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
     constructor(validate: Validate<unknown, T>)
     constructor(settings: ValidatorSettings<unknown, T>)
     constructor(input: Validate<unknown, T> | ValidatorSettings<unknown, T>) {
-        super(isFunc(input) ? input : new Validator(input))
+        super(Validator.from(input))
     }
     
     get validators(): Validate<unknown>[] {
@@ -44,71 +46,85 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
         input: Validate<T> | ValidatorSettings<T>
     ): this {
 
-        const validate = isObject<ValidatorSettings<T>>(input) ? new Validator(input) : input
-        
-        return validate.constructor === Validator || validate.constructor === Validate  
-            ? this._addValidator(validate)
-            : this._setValidator(validate.constructor as typeof Validate, () => validate as Validate<unknown>)
+        const validate = Validator.from(input)
+        return 'id' in validate && (isString(validate.id) || isSymbol(validate.id))
+            ? this._setValidatorById(validate.id, () => validate)
+            : this._addValidator(validate)
     }
 
     asserts(
-        isValid: ValidatorTypeGuard<T>, 
-        error?: string | ValidationErrorMessage<T>
+        isValid: ValidatorTypeGuard<T> | ValidatorPredicate<T>, 
+        error?: string | ValidationErrorMessage<T>,
+        id?: string | symbol
     ): this {
-        return this.validates({ is: isValid, error })
+        return this.validates({ is: isValid, error, id })
     }
 
     transforms(
         transform: ValidatorTransform<T>,
-        error?: string | ValidationErrorMessage<T>
+        error?: string | ValidationErrorMessage<T>,
+        id?: string | symbol
     ): this {
-        return this.validates({ transform, error })
+        return this.validates({ transform, error, id })
     }
 
     //// Helper ////
 
     protected _copyWithValidators(...validators: Validate<unknown>[]): this {
-        const SchemaConstructor = this.constructor as new (input: Validate<unknown>) => this
+
+        const Constructor = this.constructor as new (...params: any) => this
         
-        const clone = new SchemaConstructor(dummyValidatorForCopying);
-        (clone as Mutable<Schema>).validate = validators.length === 1 
-            ? validators[0] 
-            : Pipe.from(...validators)
+        const clone = new Constructor();
+
+        (clone as Mutable<Schema>).validate = Validator.from(...validators)
 
         return clone
     }
 
-    protected _getValidator<V extends Validate<unknown>>(Constructor: new (...args: any) => V): V | nil {
-        return this.validators.find((v): v is V => v instanceof Constructor)
+    protected _addValidator(validator: Validate<T>): this {
+        return this._copyWithValidators(...this.validators, validator as Validator<unknown>)
     }
 
-    protected _hasValidator(Constructor: new (...args: any) => Validate<unknown>): boolean {
-        return this._getValidator(Constructor) !== nil
+    protected _addValidatorShortcut(): this {
+        return this
     }
 
-    protected _addValidator(validator: Validate<unknown>): this {
-        return this._copyWithValidators(...this.validators, validator)
+    protected _setValidatorByType<C extends new (...args: any) => Validate<any>>(
+        Constructor: C,
+        update: (input: InstanceType<C> | nil) => InstanceType<C>,
+    ): this {
+        if (([Validator, Validate] as unknown[]).includes(Constructor))
+            throw new Error(`Must be an extension of ${Validator.name}`)
+    
+        return this._upsertValidator(
+            (i): i is InstanceType<C> => i instanceof Constructor, 
+            update as (previous?: Validate<unknown>) => InstanceType<C>
+        )
     }
 
-    protected _setValidator<V extends Validate<unknown>>(
-        Constructor: (new (...args: any) => V),
-        update: (input: V) => Validate<unknown>,
+    protected _setValidatorById(
+        id: string | symbol,
+        update: (previous?: Validate<any>) => Validate<any>
+    ): this {
+        return this._upsertValidator(
+            (v): v is Validate<any> => 'id' in v && v.id === id,
+            update
+        )
+    }
+
+    private _upsertValidator(
+        find: TypeGuard<Validate<any>, Validate<any>>,
+        update: (previous?: Validate<any>) => Validate<any>
     ): this {
 
-        const oldValidator = this._getValidator(Constructor)
-        if (!oldValidator)
-            throw new Error(`${Constructor.name} validator missing`)
+        const newValidators = [...this.validators]
 
-        const newValidator = update(oldValidator as V)
+        const oldValidator = pluck(newValidators, find, 1).at(0)
 
-        const newValidators = this.validators.map(validator => 
-            validator === oldValidator 
-                ? newValidator 
-                : validator
-        )
+        const newValidator = update(oldValidator)
 
-        const clone = this._copyWithValidators(...newValidators)
-        return clone
+        return this._copyWithValidators(...newValidators, newValidator)
+
     }
     
     //// Copy/Comparable ////

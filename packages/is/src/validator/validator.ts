@@ -1,8 +1,15 @@
-import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
-import { applyResolver, ContextTransform, defined, Func, isString, Pipe, Transform } from '@benzed/util'
+
+import {
+    ContextTransform,
+    defined, 
+    isFunc, 
+    Pipe,
+    through as noTransform
+} from '@benzed/util'
 
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
+import { equals } from '@benzed/immutable'
 
 //// Shorcuts ////
 
@@ -16,113 +23,72 @@ interface ValidatorContext<T> extends Required<ValidateOptions> {
 }
 
 type ValidatorTypeGuard<I, O extends I = I> = 
-    ((input: I, ctx: ValidatorContext<I>) => input is O) | 
-    ContextTransform<I, boolean, ValidatorContext<I>>
+    ((input: I, ctx: ValidatorContext<I>) => input is O)
 
-type ValidatorTransform<I, O extends I = I> = ContextTransform<I, I | O, ValidatorContext<I>>
+type ValidatorPredicate<I> = ContextTransform<I, boolean, ValidatorContext<I>>
+
+type ValidatorTransform<I, O extends I = I> = 
+    ContextTransform<I, I | O, ValidatorContext<I>>
 
 interface ValidatorSettings<I, O extends I = I> {
 
-    is?: ValidatorTypeGuard<I, O>
+    is?: ValidatorTypeGuard<I, O> | ValidatorPredicate<I>
 
     transform?: ValidatorTransform<I, O>
 
     error?: string | ValidationErrorMessage<I>
 
+    id?: string | symbol
+
 }
 
-//// Helper ////
+//// Helpers ////
 
-function createCtx<I, O extends I = I>(this: Validator<I,O>, input: I, options: ValidateOptions): ValidatorContext<I> {
-    return { transform: true, path: [], input, ...options }
-}
-
-function applyCtxTransform<I, O extends I>(this: Validator<I, O>, ctx: ValidatorContext<I>): ValidatorContext<I> & { output: I | O } {
-    return applyResolver(
-        this.transform(ctx.input, ctx), 
-        transformed => ({ 
-            ...ctx, 
-            transformed, 
-            output: ctx.transform 
-                ? transformed as I
-                : ctx.input 
-        }) 
-    ) as ValidatorContext<I> & { output: I | O }
-}
-
-function applyCtxValidate<I, O extends I = I>(this: Validator<I,O>, ctx: ValidatorContext<I> & { output: I | O }): O {
-    return applyResolver(
-        this.is(ctx.output as I, ctx), 
-        isValid => isValid ? ctx.output : ValidationError.throw(ctx, this.error)
-    ) as O
-}
-
-const validate = Pipe.from(createCtx as Transform<unknown, ValidatorContext<unknown>>)
-    .to(applyCtxTransform)
-    .to(applyCtxValidate)
+const isTransformEqual = <I>(input: I, ctx: ValidatorContext<I>): boolean => 
+    equals(input, ctx.transformed)
 
 //// Main ////
 
-abstract class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I, O>, Copyable, Comparable {
+class Validator<I, O extends I = I> extends Validate<I, O> implements Required<ValidatorSettings<I,O>> {
 
-    static from<Ix,Ox extends Ix>(settings: ValidatorSettings<Ix,Ox>, type?: string | symbol): Validator<Ix,Ox> {
-        return new CustomValidator(settings, type)
-    }
+    static from<Ix,Ox>(...input: (Validate<Ix,Ox> | ValidatorSettings<Ix,Ox>)[]): Validate<Ix,Ox> {
 
-    transform(i: I, ctx: ValidatorContext<I>): I | O {
-        ctx.transformed = i
-        return i
-    }
-
-    is(i: I, ctx: ValidatorContext<I>): i is O {
-        return equals(i, ctx.transformed)
-    }
+        const validators = input.map(v => isFunc(v) ? v : new Validator(v))
+        const validator = validators.length === 1 
+            ? validators[0] 
+            : Pipe.from(...validators)
     
-    readonly error = 'Validation failed.'
+        return validator
+    }
 
-    constructor() {
+    is: ValidatorTypeGuard<I,O> = this.is ?? isTransformEqual
+
+    transform: ValidatorTransform<I,O> = this.transform ?? noTransform
+
+    error: string | ValidationErrorMessage<I> = this.error ?? 'Validation failed.'
+
+    constructor(settings: ValidatorSettings<I,O>) {
         super((i, ctx) => this.validate(i, ctx))
-    }
-
-    validate = validate.bind(this) as Func as Validator<I,O>
-
-    applySettings<S extends ValidatorSettings<I,O>>(settings: S): this {
-        const Constructor = this.constructor as new (settings: ValidatorSettings<I,O>) => this
-        return new Constructor({ ...settings })
-    }
-
-    [$$copy](): this {
-        return this.applySettings({ ...this })
-    }
-
-    [$$equals](other: unknown): other is this {
-        return other instanceof Validator &&
-             other.constructor === this.constructor && 
-             equals({ ...this }, { ...other })
-    }
-}
-
-const $$type = Symbol('custom-validator-type-match-identifier')
-interface CustomValidatorSettings<I,O extends I> extends ValidatorSettings<I,O> {
-    [$$type]: symbol | string
-}
-class CustomValidator<I,O extends I = I> extends Validator<I, O> implements CustomValidatorSettings<I,O> {
-
-    override get name(): string {
-        return isString(this[$$type]) ? this[$$type] : this.constructor.name
-    }
-
-    [$$type]: string | symbol
-
-    constructor(settings: ValidatorSettings<I,O>, type?: string | symbol) {
-        super()
         assign(this, defined(settings))
-        this[$$type] = type ?? this.constructor.name
+
+        this.validate = this.validate.bind(this)
     }
 
-    isType(validator: Validate<I,O>): validator is this {
-        return $$type in validator ? validator[$$type] === this[$$type] : false
+    validate(input: I, options: ValidateOptions): O {
+
+        const ctx: ValidatorContext<I> = { transform: true, path: [], input, ...options }
+
+        ctx.transformed = this.transform(ctx.input, ctx)
+
+        const output = ctx.transform ? ctx.transformed : ctx.input 
+
+        const isValid = this.is(output, ctx)
+        if (!isValid)
+            ValidationError.throw(ctx, this.error)
+
+        return output
     }
+
 }
 
 //// Exports ////
@@ -134,6 +100,7 @@ export {
     ValidatorSettings,
     ValidatorTransform,
     ValidatorTypeGuard,
+    ValidatorPredicate,
 
     ValidatorContext,
     createCtx as createValidatorContext

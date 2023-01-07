@@ -4,15 +4,15 @@ const traffic = new EnumSchema('green', 'red', 'yellow')
 
 it('validates a union of primitives', () => {
     expect(traffic.validate('green')).toEqual('green')
-})
-
-it('throws on bad options', () => {
+})   
+ 
+it('throws on bad options', () => { 
     expect(() => traffic.validate('blue')).toThrow('must be one of green, red or yellow')
 })
 
 it('supports bools, numbers, strings, null', () => {
     const enums = new EnumSchema(true, false, 0, 1, 'string', null)
-    for (const value of [true, false, 0, 1, 'string', null])
+    for (const value of [true, false, 0, 1, 'string', null]) 
         expect(enums.validate(value)).toEqual(value)
 })
 

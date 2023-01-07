@@ -1,27 +1,28 @@
-import { string } from './string'
+import { StringSchema } from './string'
+
+const isString = new StringSchema()
 
 it('validates strings', () => {
-    expect(string('foo')).toEqual('foo')
+    expect(isString.validate('foo')).toEqual('foo')
 })
 
 it('trim()', () => {
-
-    const $string = string
-        .trim()
-
-    expect($string(' ace ')).toEqual('ace')
-    expect(() => $string.assert(' ace ')).toThrow('must not have whitespace')
+ 
+    const isTrimmedString = isString.trim
+    expect(isTrimmedString.validate(' ace ')).toEqual('ace')
+    expect(() => isTrimmedString.assert(' ace ')).toThrow('must not begin or end with')
 })
 
 it('upperCase()', () => {
-
-    const $string = string.trim()
-        .upperCase()
+ 
+    const isWeirdString = isString
+        .trim
+        .upperCase
         .startsWith('ace')
-        .endsWith('base')
-        .contains('cunt')
-        .contains('fart')
+        .endsWith('base')  
+        .includes('case')
+        .includes('face')
 
-    console.log($string)
+    expect(isWeirdString.validate).toHaveProperty('transforms')
 
 })

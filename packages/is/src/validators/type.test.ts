@@ -5,7 +5,7 @@ import { TypeValidator } from './type'
 
 //// Setup ////
 
-const isNum = new TypeValidator({ 
+const isNum = new TypeValidator({  
     is: isNumber,
     type: 'number'
 })
@@ -22,18 +22,20 @@ it('throws with type name', () => {
 
 describe('cast' , () => {
 
-    const fromString = (i: unknown): unknown => typeof i === 'string' ? parseFloat(i) : i
+    const fromString = (i: unknown): unknown => typeof i === 'string' 
+        ? parseFloat(i) 
+        : i
 
     it('allows for data to be casted', () => {
 
         const isSerializedNumber = new TypeValidator({
             ...isNum,
             cast: fromString
-        })
+        }) 
 
         expect(isSerializedNumber('100'))
             .toEqual(100)
-
+ 
     })
 
 })
