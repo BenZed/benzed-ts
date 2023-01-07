@@ -1,8 +1,8 @@
 import { Primitive } from '@benzed/util'
 
-import { ValidationErrorMessage, Validator } from '../../validator'
+import { ValidationErrorMessage, Validator } from '../../../validator'
 
-import ChainableSchema from './chainable-schema'
+import ChainableSchema from '../chainable-schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

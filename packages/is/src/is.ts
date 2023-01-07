@@ -1,11 +1,15 @@
 import { Callable } from '@benzed/util'
-import { IsBoolean, IsEnum, IsEnumInput, IsNumber, IsString } from './schema/schemas'
+import { 
+    IsBoolean, 
+    IsEnum, 
+    IsEnumInput, 
+    IsNumber, 
+    IsString,
 
-import { Schema, SchemaFrom } from './schema'
+    Schema, 
+    SchemaFrom
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+} from './schema'
 
 //// Main ////
 

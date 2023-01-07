@@ -2,12 +2,16 @@ import { Callable, Infer, TypesOf } from '@benzed/util'
 
 import Schema from '../schema'
 
-import IsBoolean from './boolean'
-import IsNumber from './number'
+import {
+    IsBoolean, 
+    IsNumber, 
+    IsString, 
+    IsEnum, 
+    IsEnumInput
+} from './is-type'
+
 import ChainableSchema from './chainable-schema'
 
-import { IsString } from './string'
-import IsEnum, { IsEnumInput } from './enum'
 import { IsInstanceInput, IsInstance, schemaFrom } from '../schema-from'
 
 //// Eslint ////

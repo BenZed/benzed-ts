@@ -49,5 +49,5 @@ it('string or boolean', () => {
 
     expect(isStringBoolOrNumber('10')).toEqual(true)
     expect(isStringBoolOrNumber(10)).toEqual(true)
-    expectTypeOf(isStringBoolOrNumber).toMatchTypeOf<IsUnion<[string, boolean, number]>>()
+    expectTypeOf(isStringBoolOrNumber).toMatchTypeOf<IsUnion<[IsString, IsBoolean, IsNumber]>>()
 })

@@ -1,5 +1,3 @@
-export * from './boolean'
-export * from './enum'
-export * from './number'
-export * from './string'
+
+export * from './is-type'
 export * from './or'
