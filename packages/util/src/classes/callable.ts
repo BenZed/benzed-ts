@@ -1,5 +1,5 @@
 
-import { iterate } from '../methods'
+import { iterate, memoize } from '../methods'
 import property from '../property'
 import { Func, Infer, isFunc, isObject, } from '../types'
 
@@ -22,7 +22,7 @@ type _RemoveSignature<T> = T extends Func
     
 //// Type ////
 
-type CallableConstructor = abstract new <F extends Func>(f: F) => F
+type CallableConstructor = abstract new <F extends Func>(f: F, memoize?: boolean) => F
 
 type CallableObject<F extends Func, T> = Infer<F & _RemoveSignature<T>>
 
@@ -31,6 +31,7 @@ interface Callable extends CallableConstructor {
     signatureOf<F extends Func>(callable: F): F
 
     templateOf<F extends Func>(callable: F): object
+
     /**
      * Create an object with a call signature.
      * @param signature Method
@@ -39,12 +40,14 @@ interface Callable extends CallableConstructor {
     create<F extends (this: T, ...args: any) => any, O extends object, T = O>(
         //            ^ infer this context
         signature: F, 
-        template: O
+        template: O,
+        memoized?: boolean
     ): CallableObject<_RemoveInferredThis<F>,O>
 
     create<F extends Func, O extends object>(
         signature: F,
-        template: O
+        template: O,
+        memoized?: boolean
     ): CallableObject<F, O>
 
 }
@@ -93,7 +96,9 @@ const Callable = class {
         return template
     }
 
-    static create(signature: Func, template: object): object {
+    static create(signature: Func, template: object, memoized?: boolean): object {
+
+        const caller = memoized ? memoize(signature) : signature
 
         const callable = function (
             this: unknown, 
@@ -101,10 +106,10 @@ const Callable = class {
         ): unknown {
             return args[0] === $$retreiveSignature 
                 ? { signature, template }
-                : signature.apply(this ?? callable, args)
+                : caller.apply(this ?? callable, args)
         }
 
-        this._allDescriptors(callable, signature)
+        this._allDescriptors(callable, caller)
         this._allDescriptors(callable, template)
 
         return callable

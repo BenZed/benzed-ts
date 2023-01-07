@@ -1,5 +1,6 @@
 import { expectTypeOf } from 'expect-type'
 import { toVoid } from '../methods'
+import provide from '../methods/provide'
 import { Falsy, Func } from '../types'
 import { Callable } from './callable'
 
@@ -463,4 +464,20 @@ it('retereive template', () => {
 
     expect(Callable.templateOf(noop)).toEqual(template)
     expect(() => Callable.templateOf(parseInt)).toThrow()
+})
+
+it('provide this context', () => {
+ 
+    class Provide<S, A extends unknown[], R> extends Callable<(...args: A) => R> {
+
+        constructor(
+            readonly ctx: S,
+            f: (ctx: S) => (...args: A) => R, 
+        ) {
+            super((...args) => provide(ctx, f)(...args))
+        }
+    }
+
+    const multiply = new Provide({ by: 5, }, ({ by }) => (n: number) => n * by)
+    expect(multiply(5)).toEqual(25)
 })
