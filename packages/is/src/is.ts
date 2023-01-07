@@ -7,6 +7,8 @@ import { Schema, SchemaFrom } from './schema'
     @typescript-eslint/no-explicit-any
 */
 
+//// Type ////
+
 //// Main ////
 
 class Is extends Callable<SchemaFrom> {

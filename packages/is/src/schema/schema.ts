@@ -77,11 +77,9 @@ class Schema<T = any> extends Schematic<T> implements Iterable<Validate<unknown>
     protected _copyWithValidators(...validators: Validate<unknown>[]): this {
 
         const Constructor = this.constructor as new (...params: any) => this
-        
         const clone = new Constructor();
 
         (clone as Mutable<Schema>).validate = Validator.from(...validators)
-
         return clone
     }
 

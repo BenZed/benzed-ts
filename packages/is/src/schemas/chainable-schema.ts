@@ -1,4 +1,5 @@
 import Schema from '../schema/schema'
+
 import type Or from './or'
 
 /* eslint-disable 
@@ -13,7 +14,7 @@ class ChainableSchema<T> extends Schema<T> {
         return new _Or(this)
     }
 
-    // get and(): AndSchemata<this> {}
+    // get and(): And<this> {}
 
 }
 

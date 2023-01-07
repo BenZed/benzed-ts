@@ -1,6 +1,6 @@
 import { Callable, Infer, TypesOf } from '@benzed/util'
 
-import Schema, { Schemas } from '../schema/schema'
+import Schema from '../schema/schema'
 
 import IsBoolean from './boolean'
 import IsNumber from './number'
@@ -19,7 +19,7 @@ import IsEnum, { IsEnumInput } from './enum'
 //// Types ////
 
 type FlattenUnion<S extends Schema> = S extends IsUnion<infer Sx> 
-    ? Schemas<Sx>
+    ? Sx
     : [S]
 
 interface IsUnionFrom<S extends Schema> {
@@ -33,32 +33,35 @@ interface IsUnionFrom<S extends Schema> {
 //// ToIsUnion ////
 
 type ToIsUnion<S extends Schema, T extends Schema> = 
-    Infer<IsUnion<TypesOf<[...FlattenUnion<S>, ...FlattenUnion<T>]>>>
+    Infer<IsUnion<[...FlattenUnion<S>, ...FlattenUnion<T>]>>
 
-class IsUnion<T extends unknown[]> extends ChainableSchema<T[number]>{
+class IsUnion<S extends Schema[]> extends ChainableSchema<TypesOf<S>[number]>{
 
-    static flatten<S extends Schema>(schema: S): FlattenUnion<S> {
+    static flatten<Sx extends Schema>(schema: Sx): FlattenUnion<Sx> {
         return (schema instanceof IsUnion
             ? schema.types
             : [schema]
-        ) as FlattenUnion<S>
+        ) as FlattenUnion<Sx>
     }
 
-    readonly types: Schemas<T>
+    readonly types: S
 
-    constructor(...types: Schemas<T>) {
-        super((i, options) => {
+    constructor(...types: S) {
+
+        type O = TypesOf<S>[number]
+
+        super((i, options): O => {
             const schemas = this.types as Schema<unknown>[]
     
-            for (const schema of this.types as Schema[]) {
+            for (const schema of schemas) {
                 if (schema.is(i))
-                    return i
+                    return i as O
             }
 
             const errors: Error[] = []
             for (const schema of schemas) {
                 try {
-                    return schema.validate(i, options)
+                    return schema.validate(i, options) as O
                 } catch (e) {
                     errors.push(e as Error)
                 }
@@ -67,6 +70,7 @@ class IsUnion<T extends unknown[]> extends ChainableSchema<T[number]>{
             // TODO validationErrors need to support arrays and maps of errors
             throw new Error(`Multiple Or Schema Errors: ${errors.map(e => e.message)}`)
         })
+
         this.types = types
     }
 }
@@ -99,14 +103,12 @@ class Or<S extends Schema> extends Callable<IsUnionFrom<S>> {
     
     private _toIsUnion<T extends Schema>(to: T): ToIsUnion<S, T> {
 
-        type Types = TypesOf<[...FlattenUnion<S>, ...FlattenUnion<T>]>
-
-        const schemas = [
+        const types = [
             ...IsUnion.flatten(this.from),
             ...IsUnion.flatten(to)
-        ] as Schema<unknown>[] as Schemas<Types>
+        ] as [...FlattenUnion<S>, ...FlattenUnion<T>]
 
-        return new IsUnion(...schemas)
+        return new IsUnion(...types)
     }
     
 }
