@@ -1,5 +1,6 @@
+import { IsBoolean } from './is-boolean'
+
 import { nil } from '@benzed/util'
-import { IsBoolean } from './boolean'
 
 //// Tests ////
 

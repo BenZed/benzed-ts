@@ -1,5 +1,7 @@
+
+import { IsType } from './is-type'
+
 import { isBoolean, isNil } from '@benzed/util'
-import { IsType } from './type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

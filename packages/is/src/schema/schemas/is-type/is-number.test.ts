@@ -1,4 +1,4 @@
-import NumberSchema from './number'
+import NumberSchema from './is-number'
 
 const isNumber = new NumberSchema()
  

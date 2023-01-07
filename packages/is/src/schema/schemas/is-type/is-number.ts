@@ -1,5 +1,6 @@
 import { isNumber, through } from '@benzed/util'
-import IsType from './type'
+
+import IsType from './is-type'
 
 import { 
     RangeSettingsSignature, 

@@ -1,4 +1,4 @@
-import { IsString } from './string'
+import { IsString } from './is-string'
 
 const isString = new IsString()
 

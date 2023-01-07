@@ -1,4 +1,4 @@
-import { IsEnum } from './enum'
+import { IsEnum } from './is-enum'
 
 const traffic = new IsEnum('green', 'red', 'yellow')
 

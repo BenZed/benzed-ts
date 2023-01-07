@@ -2,7 +2,7 @@ import { capitalize } from '@benzed/string'
 import { isString } from '@benzed/util'
 
 import { ValidationErrorMessage } from '../../../validator'
-import { IsType } from './type'
+import { IsType } from './is-type'
 
 //// Symbols ////
 
