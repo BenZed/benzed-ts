@@ -1,5 +1,4 @@
-import { through } from '../methods'
-import { Func } from './func'
+import { through } from '../methods/returns'
 import { merge } from './merge'
 import { nil } from './nil'
 import { Mutable } from './types'
@@ -7,7 +6,6 @@ import { Mutable } from './types'
 //// Types ////
 
 interface Match<T> {
-    // <F extends (input: T) => unknown, D>(doWith: F, orElse: D): ReturnType<F> | D
     <F extends (input: T) => unknown>(doWith: F): ReturnType<F> | nil
     (): T | nil
 }

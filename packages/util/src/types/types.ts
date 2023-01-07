@@ -13,7 +13,7 @@ export type JsonArray = Json[] | readonly Json[]
 export type JsonRecord = { [k: string]: Json | nil } | { readonly [k: string]: Json | nil }
     
 export type Json =
-    | JsonPrimitive
+    | JsonPrimitive 
     | JsonArray
     | JsonRecord
 

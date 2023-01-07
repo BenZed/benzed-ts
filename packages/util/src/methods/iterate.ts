@@ -1,4 +1,5 @@
 import { ResolveAsyncOutput } from '../classes'
+
 import { 
     Func, 
     indexesOf, 
@@ -13,6 +14,7 @@ import {
     isNotNil, 
     symbolsOf 
 } from '../types'
+
 import applyResolver from './apply-resovler'
 
 //// Types ////
@@ -83,6 +85,7 @@ function iterate(...values: unknown[]): unknown {
                 if (isNotNil(resolved))
                     results.push(resolved)
             })
+
             if (isPromise(result)) 
                 return result.then(() => iterate(generator, each, results))
 
@@ -90,7 +93,6 @@ function iterate(...values: unknown[]): unknown {
         }
     }
     return results.length > 0 ? results : nil
-
 }
 
 //// Extend ////

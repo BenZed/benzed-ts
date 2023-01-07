@@ -1,5 +1,4 @@
 
-import { returns } from '../methods/returns'
 import { isNaN } from './primitive'
 
 /* eslint-disable 
@@ -28,4 +27,4 @@ export const isNotNil = (input: unknown) => !isNil(input)
 /**
  * Returns nil
  */
-export const toNil = returns(nil)
+export const toNil = () => nil

@@ -1,4 +1,5 @@
-import { nil, optional, Optional } from '../types'
+import { nil } from '../types'
+import { optional, Optional } from '../types/optional'
 
 //// Main ////
 

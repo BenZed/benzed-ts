@@ -95,6 +95,5 @@ it('preserves <this>', () => {
     expect(foo.combine('hello')).toEqual(combine('hello'))
     expect(combine('hello')).toEqual('hellobar')
     expect(() => combine('sup')).toThrow('Cannot read properties of undefined')
-
 })
 

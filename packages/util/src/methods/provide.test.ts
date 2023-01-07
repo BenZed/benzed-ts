@@ -1,7 +1,7 @@
 
 import { provide } from './provide'
 
-it('provides a context to a function', () => {
+it('provides a context to a function', () => { 
 
     const f = provide({ by: 5 }, ctx => (i: number) => i * ctx.by)
 

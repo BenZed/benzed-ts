@@ -1,9 +1,7 @@
 import { ValueMap as _ValueMap } from '@benzed/util'
 
-import equals from './equals'
-import copy from './copy'
-
-import { CopyComparable } from './index'
+import equals, { Comparable } from './equals'
+import copy, { Copyable } from './copy'
 
 import { $$copy, $$equals } from './symbols'
 
@@ -15,7 +13,7 @@ import { $$copy, $$equals } from './symbols'
 
 //// Main ////
 
-class ValueMap<K, V> extends _ValueMap<K,V> implements CopyComparable {
+class ValueMap<K, V> extends _ValueMap<K,V> implements Copyable, Comparable {
 
     protected _keysEqual(l: K, r: K): boolean {
         return equals(l,r)

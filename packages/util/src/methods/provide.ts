@@ -1,12 +1,13 @@
-import { Func, nil } from '../types'
+import { ReferenceMap } from '../classes/reference-map'
+import type { Func, nil } from '../types'
 
-////  ////
+//// Data ////
 
-const cache = new Map<unknown, Func>()
+const cache = new ReferenceMap<[unknown, Func], Func>()
 
-////  ////
+//// Types ////
 
-interface Provided<F extends Func, C> {
+interface Provided<F extends Func, C> { 
     (ctx: C): F
 }
 
@@ -15,10 +16,12 @@ interface Provided<F extends Func, C> {
  */
 function provide<F extends Func, C>(ctx: C, provided: Provided<F,C>): F {
 
-    let provider = cache.get(ctx) as F | nil
+    const key = [ctx, provided] as [unknown, Func]
+
+    let provider = cache.get(key) as F | nil
     if (!provider) {
         provider = ((...args) => provided(ctx)(...args)) as F
-        cache.set(ctx, provider)
+        cache.set(key, provider)
     }
 
     return provider
