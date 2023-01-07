@@ -6,7 +6,7 @@ import {
     RangeValidator,
     RangeValidatorSignature,
     toRangeSettings 
-} from '../validators'
+} from '../validator/validators'
 
 //// Helper ////
 

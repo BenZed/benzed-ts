@@ -1,6 +1,8 @@
 import { isFunc, isObject, nil } from '@benzed/util'
 
-import { Validate, ValidatorContext, ValidateOptions, ValidationError } from '../validator'
+import { Validate, ValidateOptions } from '../validate'
+import { ValidatorContext } from '../validator'
+import { ValidationError } from '../error'
 
 //// Internal Types ////
 

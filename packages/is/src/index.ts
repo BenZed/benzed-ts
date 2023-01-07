@@ -10,12 +10,12 @@ const is = new Is()
 export default is 
 
 export {
-    is
+    is  
 }
 
 export * from './schema'
 export * from './schemas'
 export * from './validator'
-export * from './validators'
+export * from './validator/validators'
 
 export { TypeOf, TypesOf } from '@benzed/util'

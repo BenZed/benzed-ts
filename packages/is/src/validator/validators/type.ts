@@ -1,12 +1,6 @@
 import { nil } from '@benzed/util'
 
-import { 
-    ValidatorContext,
-    Validator, 
-    ValidatorTypeGuard,
-    ValidatorSettings,
-} from '../validator'
-
+import Validator, { ValidatorContext, ValidatorSettings, ValidatorTypeGuard } from '../validator'
 //// Types ////
 
 /**

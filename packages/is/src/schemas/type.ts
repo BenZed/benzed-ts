@@ -9,7 +9,7 @@ import {
     TypeValidatorSettings,
     TypeValidatorCast,
     TypeValidatorDefault 
-} from '../validators'
+} from '../validator/validators'
 
 import ChainableSchema from './chainable-schema'
 
