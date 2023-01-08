@@ -1,6 +1,7 @@
 import { ReferenceMap } from '../classes'
 import { property } from '../property'
-import { Func } from '../types/func'
+import { isRecord, isString, keysOf } from '../types'
+import { Func, isFunc } from '../types/func'
 
 // Helper 
 
@@ -36,6 +37,12 @@ export interface MemoizeOptions<F extends Func> {
 
 // Main
 
+export function memoize<R extends Record<string, Func>>(funcs: R): {
+    [K in keyof R]: Memoized<R[K]>
+}
+
+export function memoize<F extends Func>(name: string, f: F): Memoized<F>
+
 export function memoize<F extends Func>(f: F, name?: string): Memoized<F>
 
 export function memoize<F extends Func>(f: F, options?: MemoizeOptions<F>): Memoized<F>
@@ -43,28 +50,38 @@ export function memoize<F extends Func>(f: F, options?: MemoizeOptions<F>): Memo
 /**
  * get a method that caches it's output based in the identicality of it's arguments
  */
-export function memoize<F extends Func>(
-    func: F, 
-    options?: string | MemoizeOptions<F>
-): Memoized<F> {
+export function memoize(
+    ...args: unknown[]
+): unknown {
+
+    // Memoize a record
+    if (isRecord(args[0], isFunc)) {
+        const output: Record<string, Func> = {}
+        for (const key of keysOf(args[0]))
+            output[key] = memoize(args[0][key], key)
+
+        return output
+    }
+
+    const [func, options] = (isString(args[0]) ? [args[1], args[0]] : args) as [Func, string | MemoizeOptions<Func>]
 
     // Get Options
     const { name, cache } = resolveOptions(func, options)
 
-    function memoized(this: unknown, ...args: Parameters<F> ): ReturnType<F> {
+    function memoized(this: unknown, ...args: Parameters<Func> ): ReturnType<Func> {
 
         // get memoized value
         if (cache.has(args)) 
-            return cache.get(args) as ReturnType<F>
+            return cache.get(args)
 
         // create memoized value
         const value = func.apply(this, args)
         cache.set(args, value)
 
-        return value as ReturnType<F>
+        return value
     }
 
-    return property.name(memoized, name) as Memoized<F>
+    return property.name(memoized, name)
 }
 
 //// Extend ////
