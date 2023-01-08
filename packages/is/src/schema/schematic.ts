@@ -1,6 +1,14 @@
 import { Callable, TypeAssertion, TypeGuard } from '@benzed/util'
 
 import { Validate } from '../validator'
+import { schemaFrom } from './schema-from'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-var-requires
+*/
 
 //// Types ////
 
@@ -10,12 +18,21 @@ interface SchematicMethods<O extends I, I = unknown> {
     validate: Validate<I, O>
 }
 
+/**
+ * @internal
+ */
+type AnySchematic = Schematic<any,any>
+
 //// Main ////
 
 class Schematic<
     O extends I, 
-    I = unknown 
+    I = unknown
 > extends Callable<TypeGuard<O, I>> implements SchematicMethods<O,I> {
+
+    static get from(): typeof schemaFrom {
+        return require('./schema-from').schemaFrom
+    }
 
     readonly is: TypeGuard<O,I>
     readonly assert: TypeAssertion<O,I>
@@ -50,5 +67,6 @@ export default Schematic
 
 export {
     Schematic,
-    SchematicMethods
+    SchematicMethods,
+    AnySchematic
 }

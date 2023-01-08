@@ -1,6 +1,7 @@
 import { nil } from '@benzed/util'
+import Validate from '../validate'
 
-import Validator, { ValidatorContext, ValidatorSettings, ValidatorTypeGuard } from '../validator'
+import Validator, { ValidatorContext, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from '../validator'
 //// Types ////
 
 /**
@@ -62,10 +63,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             ...rest
         })
 
-        this.type = type
-        this.cast = cast
-        this.default = toDefault
-        this.transform = (i, ctx) => {
+        const applyDefaultAndCast: ValidatorTransform<unknown, T> = (i, ctx) => {
 
             // apply default
             if (i === nil && this.default)  
@@ -77,6 +75,11 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             
             return i
         }
+
+        this.type = type
+        this.cast = cast
+        this.default = toDefault
+        this.transform = applyDefaultAndCast
     }
 }
 

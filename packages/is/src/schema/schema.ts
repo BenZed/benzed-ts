@@ -15,26 +15,24 @@ import {
 } from '../validator'
 
 import Schematic from './schematic'
-import type { schemaFrom } from './schema-from'
 
-//// Type ////
-
+//// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/no-var-requires
-*/
 
+*/
 //// Types ////
 
 type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
     ? [Schema<T1>, ...Schemas<Tr>]
     : []
 
-class Schema<T = any> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
+/**
+ * @internal
+ */
+type AnySchema = Schema<any>
 
-    static get from(): typeof schemaFrom {
-        return require('./schema-from').schemaFrom
-    }
+class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
 
     constructor(validate: Validate<unknown, T>)
     constructor(settings: ValidatorSettings<unknown, T>)
@@ -160,5 +158,6 @@ export default Schema
 
 export {
     Schema,
-    Schemas
+    Schemas,
+    AnySchema
 }

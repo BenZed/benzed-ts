@@ -1,7 +1,8 @@
 import { Callable } from '@benzed/util'
 
 import { Schema } from '../schema'
-import { IsEnumInput } from './is-type'
+import Schematic, { AnySchematic } from '../schematic'
+import { IsEnumInput, IsInstanceInput } from './is-type'
 
 import { type Or } from './or'
 
@@ -24,20 +25,53 @@ interface ChainableSchemaFactoryInterface {
         ...options: E
     ): unknown
 
+    instanceOf<T extends IsInstanceInput>(
+        type: T
+    ): unknown
+}
+
+interface ChainableSchematicInterface {
+
+    get or(): Or<AnySchematic>
+
+}
+
+//// Helper ////
+
+const getOr = (): typeof Or => require('./or').Or
+// const getAnd = (): typeof And => require('./and').And
+
+//// For Container Schemas that should not have the SchemaBuilder interface ////
+
+abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchematicInterface {
+
+    get or(): Or<this> {
+        const Or = getOr()
+        return new Or(this)
+    }
+
+    // get and(): And<this> {
+    //     const And = getAnd()
+    //     return new And(this)
+    // }
+
 }
 
 /**
  * Schema for chaining schemas into unions or intersections, as well as
  * nesting flag schemas
  */
-abstract class ChainableSchema<T> extends Schema<T> {
+abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchematicInterface {
 
     get or(): Or<this> {
-        const _Or = require('./or').Or as typeof Or
-        return new _Or(this)
+        const Or = getOr()
+        return new Or(this)
     }
 
-    // get and(): And<this> {}
+    // get and(): And<this> {
+    //     const And = getAnd()
+    //     return new And(this)
+    // }
 
 }
 
@@ -47,6 +81,7 @@ export default ChainableSchema
 
 export {
     ChainableSchema,
+    ChainableSchematic,
     ChainableSchemaFactory,
     ChainableSchemaFactoryInterface
 }

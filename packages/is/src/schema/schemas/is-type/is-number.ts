@@ -1,4 +1,4 @@
-import { isNumber, through } from '@benzed/util'
+import { isNumber, isString, through } from '@benzed/util'
 
 import IsPrimitive from './is-primitive'
 
@@ -13,7 +13,7 @@ import {
 
 const toNumber = (value: unknown): unknown => {
 
-    if (typeof value === 'string') {
+    if (isString(value)) {
         const parsed = parseFloat(value)
         if (!Number.isNaN(parsed))
             return parsed
@@ -36,7 +36,10 @@ class IsNumber extends IsPrimitive<number> {
 
     range: RangeValidatorSignature<this> = (...args: RangeSettingsSignature) => {
         const settings = toRangeSettings(args)
-        return this._setValidatorByType(RangeValidator, () => new RangeValidator(settings))
+        return this._setValidatorByType(
+            RangeValidator, 
+            () => new RangeValidator(settings)
+        )
     }
 
     get finite(): this {

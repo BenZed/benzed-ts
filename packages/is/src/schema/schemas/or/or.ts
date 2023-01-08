@@ -10,10 +10,18 @@ import {
     IsInstance
 } from '../is-type'
 
-import Schema from '../../schema'
+import { 
+    IsUnion, 
+    IsUnionFlatten 
+} from './is-union'
 
-import { IsUnion, IsUnionFlatten } from './is-union'
-import { ChainableSchemaFactory, ChainableSchemaFactoryInterface } from '../chainable-schema'
+import { 
+    ChainableSchemaFactory,
+    ChainableSchemaFactoryInterface 
+} from '../chainable-schema'
+
+import Schema from '../../schema'
+import { AnySchematic } from '../../schematic'
 
 //// Eslint ////
 
@@ -23,22 +31,22 @@ import { ChainableSchemaFactory, ChainableSchemaFactoryInterface } from '../chai
 
 //// Types ////
 
-interface IsUnionFrom<S extends Schema> {
+interface IsUnionFrom<S extends AnySchematic> {
     <T extends IsInstanceInput>(type: T): ToIsUnion<S, IsInstance<T>>
     <T extends IsEnumInput>(...options: T): ToIsUnion<S, IsEnum<T>>
-    <T extends Schema>(schema: T): ToIsUnion<S, T>
+    <T extends AnySchematic>(schema: T): ToIsUnion<S, T>
     // tuple shortcut 
     // shape shortcut
 }
 
 //// ToIsUnion ////
 
-type ToIsUnion<S extends Schema, T extends Schema> = 
+type ToIsUnion<S extends AnySchematic, T extends AnySchematic> = 
     Infer<IsUnion<[...IsUnionFlatten<S>, ...IsUnionFlatten<T>]>>
 
 //// Or ////
 
-class Or<S extends Schema> 
+class Or<S extends AnySchematic> 
     extends ChainableSchemaFactory<IsUnionFrom<S>> 
     implements ChainableSchemaFactoryInterface {
 
@@ -68,9 +76,15 @@ class Or<S extends Schema>
         return this._toIsUnion(new IsEnum(...options))
     }
 
+    instanceOf<T extends IsInstanceInput>(
+        type: T
+    ): ToIsUnion<S, IsInstance<T>> {
+        return this._toIsUnion(new IsInstance(type))
+    }
+
     //// Helper ////
-    
-    private _toIsUnion<T extends Schema>(to: T): ToIsUnion<S, T> {
+
+    private _toIsUnion<T extends AnySchematic>(to: T): ToIsUnion<S, T> {
 
         const types = [
             ...IsUnion.flatten(this.from),
@@ -86,6 +100,5 @@ class Or<S extends Schema>
 export default Or
 
 export {
-    Or,
-    IsUnion
+    Or
 }

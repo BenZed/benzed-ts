@@ -4,6 +4,8 @@ import {
     IsBoolean, 
     IsEnum, 
     IsEnumInput, 
+    IsInstance, 
+    IsInstanceInput, 
     IsNumber, 
     IsString,
 
@@ -27,10 +29,16 @@ class Is extends ChainableSchemaFactory<SchemaFrom>
 
     number = new IsNumber()
 
-    enum<E extends IsEnumInput>(
-        ...options: E
-    ): IsEnum<E> {
+    enum<T extends IsEnumInput>(
+        ...options: T
+    ): IsEnum<T> {
         return new IsEnum(...options)
+    }
+
+    instanceOf<T extends IsInstanceInput>(
+        type: T
+    ): IsInstance<T> {
+        return new IsInstance(type)
     }
 
 }

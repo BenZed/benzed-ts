@@ -1,8 +1,8 @@
-import { TypesOf } from '@benzed/util'
+import { Mutable, TypesOf } from '@benzed/util'
+import { AnyValidate, Validate } from '../../../validator'
+import { AnySchematic } from '../../schematic'
 
-import Schema from '../../schema'
-
-import ChainableSchema from '../chainable-schema'
+import { ChainableSchematic } from '../chainable-schema'
 
 //// Eslint ////
 
@@ -12,30 +12,37 @@ import ChainableSchema from '../chainable-schema'
 
 //// Types ////
 
-type IsUnionFlatten<S extends Schema> = S extends IsUnion<infer Sx> 
+type IsUnionFlatten<S extends AnyValidate> = S extends IsUnion<infer Sx> 
     ? Sx
     : [S]
 
-type IsUnionInput = Schema[]
+type IsUnionInput = AnySchematic[]
 
 //// IsUnion ////
 
-class IsUnion<S extends IsUnionInput> extends ChainableSchema<TypesOf<S>[number]>{
+class IsUnion<S extends IsUnionInput> 
+    extends ChainableSchematic<TypesOf<S>[number]>{
 
-    static flatten<Sx extends Schema>(schema: Sx): IsUnionFlatten<Sx> {
+    static flatten<V extends AnyValidate>(schema: V): IsUnionFlatten<V> {
         return (schema instanceof IsUnion
             ? schema.types
             : [schema]
-        ) as IsUnionFlatten<Sx>
+        ) as IsUnionFlatten<V>
     }
 
     readonly types: S
+
+    // protected override _copyWithValidators(...validators: Validate<unknown, unknown>[]): this {
+    //     const clone = super._copyWithValidators(...validators);
+    //     (clone as Mutable<{ types: S }>).types = this.types
+    //     return clone
+    // }
 
     constructor(...types: S) {
 
         type O = TypesOf<S>[number]
 
-        super((i, options): O => {
+        const isUnion: Validate<unknown, O> = (i, options): O => {
             const schemas = this.types as IsUnionInput
     
             for (const schema of schemas) {
@@ -54,7 +61,9 @@ class IsUnion<S extends IsUnionInput> extends ChainableSchema<TypesOf<S>[number]
 
             // TODO validationErrors need to support arrays and maps of errors
             throw new Error(`Multiple Or Schema Errors: ${errors.map(e => e.message)}`)
-        })
+        }
+
+        super(isUnion)
 
         this.types = types
     }

@@ -19,10 +19,10 @@ it('upperCase()', () => {
         .trim
         .upperCase
         .startsWith('ace')
-        .endsWith('base')  
+        .endsWith('base')
         .includes('case')
-        .includes('face')
+        .includes('face')  
 
-    expect(isWeirdString.validate).toHaveProperty('transforms')
-
+    expect(isWeirdString.validate)
+        .toHaveProperty('transforms')
 })

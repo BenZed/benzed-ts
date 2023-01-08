@@ -1,4 +1,3 @@
-import { it } from '@jest/globals'
 
 import { IsInstance } from './is-instance'
 
@@ -6,11 +5,9 @@ import { IsInstance } from './is-instance'
 
 class Foo {}
 
-it('isInstance', () => {
-    
+test('isInstance', () => {
     const isFoo = new IsInstance(Foo)   
-    
     expect(isFoo(new Foo())).toEqual(true)
 
+    expect(() => isFoo.validate('')).toThrow('Must be type Foo')
 })
-

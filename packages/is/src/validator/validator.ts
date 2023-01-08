@@ -4,6 +4,7 @@ import {
     defined, 
     isFunc, 
     Pipe,
+    property,
     through as noTransform
 } from '@benzed/util'
 
@@ -68,10 +69,13 @@ class Validator<I, O extends I = I> extends Validate<I, O> implements Required<V
     error: string | ValidationErrorMessage<I> = this.error ?? 'Validation failed.'
 
     constructor(settings: ValidatorSettings<I,O>) {
-        super((i, ctx) => this.validate(i, ctx))
+
+        const validate: Validate<I,O> = (i, ctx) => this.validate(i, ctx)
+        super(validate)
+
         assign(this, defined(settings))
 
-        this.validate = this.validate.bind(this)
+        this.validate = property.name(this.validate.bind(this), 'validate')
     }
 
     validate(input: I, options: ValidateOptions): O {

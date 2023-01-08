@@ -1,4 +1,3 @@
-
 import { Callable } from '@benzed/util'
 
 import { Is } from './is'

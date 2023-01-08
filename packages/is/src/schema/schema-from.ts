@@ -1,13 +1,13 @@
 import { isFunc, isPrimitive } from '@benzed/util'
 
-import { Schema } from './schema'
-
 import { 
     IsEnum,
     IsEnumInput,
     IsInstance,
     IsInstanceInput
 } from './schemas'
+
+import Schematic, { AnySchematic } from './schematic'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -19,7 +19,7 @@ import {
 interface SchemaFrom {
     <T extends IsInstanceInput>(type: T): IsInstance<T>
     <T extends IsEnumInput>(...options: T): IsEnum<T>
-    <T extends Schema>(schema: T): T
+    <T extends AnySchematic>(schema: T): T
     // tuple shortcut
     // shape shortcut
 }
@@ -31,7 +31,7 @@ const schemaFrom = ((...args: unknown[]) => {
     if (args.every(isPrimitive))
         return new IsEnum(...args)
 
-    if (args.every(arg => arg instanceof Schema))
+    if (args.every(arg => arg instanceof Schematic))
         return isSingle ? args[0] : new IsTuple(...args)
 
     if (isSingle && isFunc(args[0]))

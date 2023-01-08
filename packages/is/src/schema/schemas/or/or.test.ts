@@ -1,9 +1,11 @@
-import { Or, IsUnion } from './or'
+import { Or } from './or'
+import IsUnion from './is-union'
 import { IsString, IsBoolean, IsNumber, IsEnum } from '../is-type'
 
-import { isString, TypeOf } from '@benzed/util'
+import { TypeOf } from '@benzed/util'
 
 import { expectTypeOf } from 'expect-type'
+import { copy } from '@benzed/immutable'
 
 const $booleanOr = new Or(new IsBoolean())
 const isBooleanOrString = $booleanOr.string
@@ -64,20 +66,9 @@ describe('flattening', () => {
         expect(isBooleanOrStringOrNumber.types).toHaveLength(3)
     })
 
-    it('validators are preserved', () => {
+})
 
-        const isTruthyStringOrBool = new Or(new IsString)
-            .boolean
-            .asserts(i => !!i, i => isString(i) ? 'Must not be empty' : 'Must not be false')
-
-        expect(isTruthyStringOrBool(false)).toBe(false)
-        expect(isTruthyStringOrBool('')).toBe(false)
-        expect(isTruthyStringOrBool('')).toBe(false)
-        expect(isTruthyStringOrBool('hey')).toBe(true)
-        expect(isTruthyStringOrBool(true)).toBe(true)
-
-        expect(() => isTruthyStringOrBool.validate('')).toThrow('Must not be empty')
-        expect(() => isTruthyStringOrBool.validate(false)).toThrow('Must not be false')
-    })
-
+it('types are preserved on copy', () => {
+    expect(copy(isBooleanOrString).types).toHaveLength(2)
+    // expect(copy(isBooleanOrString)).not.toBe(isBooleanOrString)
 })

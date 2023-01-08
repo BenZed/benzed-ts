@@ -1,9 +1,9 @@
-import { capitalize } from '@benzed/string'
-import { isString } from '@benzed/util'
+import { isString, memoize, Transform } from '@benzed/util'
+// import { capitalize } from '@benzed/string' <-- TODO wtf?? can't import this for some reason
 
 import { ValidationErrorMessage } from '../../../validator'
 
-import IsPrimitive from './is-primitive'
+import IsPrimitive from './is-primitive'  
 
 //// Symbols ////
 
@@ -11,6 +11,29 @@ const $$trim = Symbol('trim-validator')
 const $$case = Symbol('case-validator')
 const $$start = Symbol('starts-with-validator')
 const $$end = Symbol('ends-with-validator')
+
+//// String Validate //// 
+
+type Helper<I,O> = Record<string, Transform<I, O> | ((data: I) => Transform<I,O>)>
+
+// Setup like this because function names is really nice for debugging, not
+// necessarily for performacne
+const StringTransform = { 
+
+    trim: i => i.trim(),
+    toUpper: i => i.toUpperCase(),
+    toLower: i => i.toLowerCase(),
+    capitalize: i => i.charAt(0).toUpperCase() + i.slice(1),
+    ...memoize({
+        startsWith: start => i => i.startsWith(start) ? i : start + i,
+        endsWith: end => i => i.endsWith(end) ? i : end + i
+    }),
+
+} satisfies Helper<string, string>
+
+const StringAssert = memoize({
+    contains: value => i => i.includes(value)
+}) satisfies Helper<string, boolean>
 
 //// Boolean ////
 
@@ -24,8 +47,9 @@ class IsString extends IsPrimitive<string> {
     }
 
     get trim(): this {
+
         return this.transforms(
-            i => i.trim(),
+            StringTransform.trim,
             'must not begin or end with whitespace',
             $$trim
         )
@@ -33,7 +57,7 @@ class IsString extends IsPrimitive<string> {
 
     get upperCase(): this {
         return this.transforms(
-            i => i.toUpperCase(),
+            StringTransform.toUpper,
             'must be upper cased',
             $$case
         )
@@ -41,7 +65,7 @@ class IsString extends IsPrimitive<string> {
 
     get lowerCase(): this {
         return this.transforms(
-            i => i.toLowerCase(),
+            StringTransform.toLower,
             'must be lower cased',
             $$case
         )
@@ -49,7 +73,7 @@ class IsString extends IsPrimitive<string> {
 
     get capitalize(): this {
         return this.transforms(
-            capitalize,
+            StringTransform.capitalize,
             'must be capitalized',
             $$case
         )
@@ -57,7 +81,7 @@ class IsString extends IsPrimitive<string> {
 
     startsWith(start: string, error?: string | ValidationErrorMessage<string>): this {
         return this.transforms(
-            i => i.startsWith(start) ? i : start + i, 
+            StringTransform.startsWith(start), 
             error ?? `must start with "${start}"`,
             $$start
         )
@@ -65,7 +89,7 @@ class IsString extends IsPrimitive<string> {
 
     endsWith(end: string, error?: string | ValidationErrorMessage<string>): this {
         return this.transforms(
-            i => i.endsWith(end) ? i : i + end, 
+            StringTransform.endsWith(end), 
             error ?? `must end with "${end}"`,
             $$end
         )
@@ -73,7 +97,7 @@ class IsString extends IsPrimitive<string> {
 
     includes(value: string, error?: string | ValidationErrorMessage<string>): this {
         return this.asserts(
-            i => i.includes(value), 
+            StringAssert.contains(value), 
             error ?? `must contain value "${value}"`,
             `contains-${value}`
         )
