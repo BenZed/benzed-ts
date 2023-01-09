@@ -1,10 +1,9 @@
 
-import { iterate, memoize } from '../methods'
-import property from '../property'
+import { Property } from '../property'
 import { Func, Infer, isFunc, isObject, } from '../types'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Symbol ////
@@ -40,14 +39,12 @@ interface Callable extends CallableConstructor {
     create<F extends (this: T, ...args: any) => any, O extends object, T = O>(
         //            ^ infer this context
         signature: F, 
-        template: O,
-        memoized?: boolean
+        template: O
     ): CallableObject<_RemoveInferredThis<F>,O>
 
     create<F extends Func, O extends object>(
         signature: F,
-        template: O,
-        memoized?: boolean
+        template: O
     ): CallableObject<F, O>
 
 }
@@ -58,21 +55,6 @@ interface Callable extends CallableConstructor {
  * An extendable class with a call signature
  */
 const Callable = class {
-
-    private static _allDescriptors(target: object, source: object): void {
-
-        const descriptors: PropertyDescriptorMap = {}
-
-        for (const prototype of [source, ...property.prototypesOf(source, [Object.prototype, Function.prototype])]) {
-            for (const keyOrSymbol of iterate<string | symbol>(property.keysOf(prototype), property.symbolsOf(prototype))) {
-                const descriptor = property.descriptorOf(prototype, keyOrSymbol)
-                if (descriptor)
-                    descriptors[keyOrSymbol] = descriptor
-            }
-        }
-
-        property.define(target, descriptors)
-    }
 
     static signatureOf(callable: Func): Func {
 
@@ -96,9 +78,7 @@ const Callable = class {
         return template
     }
 
-    static create(signature: Func, template: object, memoized?: boolean): object {
-
-        const caller = memoized ? memoize(signature) : signature
+    static create(signature: Func, template: object): object {
 
         const callable = function (
             this: unknown, 
@@ -106,11 +86,11 @@ const Callable = class {
         ): unknown {
             return args[0] === $$retreiveSignature 
                 ? { signature, template }
-                : caller.apply(this ?? callable, args)
+                : signature.apply(this ?? callable, args)
         }
 
-        this._allDescriptors(callable, caller)
-        this._allDescriptors(callable, template)
+        Property.transpose(signature, callable, [Object.prototype, Function.prototype])
+        Property.transpose(template, callable, [Object.prototype, Function.prototype])
 
         return callable
     }
@@ -123,7 +103,7 @@ const Callable = class {
         if (Object.is(instance.constructor, this))
             return true
 
-        if (property.prototypesOf(instance.constructor).includes(this))
+        if (Property.prototypesOf(instance.constructor).includes(this))
             return true 
 
         return false
