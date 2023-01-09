@@ -21,6 +21,8 @@ import applyResolver from './apply-resovler'
 
 type Iter<T> = Iterable<T> | ArrayLike<T> | Record<string | number, T>
 
+type Value<T> = T extends Iter<infer Tx> ? Tx : T
+
 //// Main ////
 
 function* generate<T>(...values: (Iter<T> | T)[]): Generator<T> {
@@ -49,11 +51,6 @@ type Iterated<T, E extends (item: T, stop: () => T | void) => unknown> =
         ? void 
         : Awaited<ReturnType<E>>[]
     >
-
-function iterate<T, E extends (item: T, stop: () => T | void) => unknown>(
-    iterable: Iter<T>,
-    each: E
-): Iterated<T, E>
     
 function iterate<T>(
     iterable: Iter<T>
@@ -62,6 +59,11 @@ function iterate<T>(
 function iterate<T>(
     ...values: (T | Iter<T>)[]
 ): Generator<T>
+
+function iterate<T, E extends (item: T, stop: () => T | void) => unknown>(
+    iterable: Iter<T>,
+    each: E
+): Iterated<T, E>
 
 function iterate(...values: unknown[]): unknown {
     const eachIndex = values.findIndex(isFunc)
