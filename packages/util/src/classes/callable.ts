@@ -97,7 +97,7 @@ const Callable = class {
 
     static [Symbol.hasInstance](instance: unknown): boolean {
 
-        if (!isFunc(instance) || !isFunc(instance?.constructor))
+        if (!(isFunc(instance) || isObject(instance)) || !isFunc(instance?.constructor))
             return false 
 
         if (Object.is(instance.constructor, this))
