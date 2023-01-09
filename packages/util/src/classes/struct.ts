@@ -1,4 +1,0 @@
-
-class Struct<T> {
-    
-}
