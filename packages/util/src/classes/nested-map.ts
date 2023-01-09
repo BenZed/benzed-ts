@@ -3,11 +3,11 @@ import { optional, Optional } from '../types/optional'
 
 //// Main ////
 
-class ReferenceMap<K extends unknown[], V> implements Map<K,V> {
+class NestedMap<K extends unknown[], V> implements Map<K,V> {
 
     //// State ////
     
-    private readonly _refs: Map<unknown, ReferenceMap<unknown[], V>> = new Map()
+    private readonly _refs: Map<unknown, NestedMap<unknown[], V>> = new Map()
 
     private _value = optional<V>()
 
@@ -32,7 +32,7 @@ class ReferenceMap<K extends unknown[], V> implements Map<K,V> {
 
         let next = this._refs.get(ref)
         if (!next) {
-            next = new ReferenceMap()
+            next = new NestedMap()
             this._refs.set(ref, next)
         }
 
@@ -94,7 +94,7 @@ class ReferenceMap<K extends unknown[], V> implements Map<K,V> {
         yield* this._iter()
     }
 
-    forEach(f: (value: V, key: K, map: ReferenceMap<K, V>) => void, thisArg?: unknown): void {
+    forEach(f: (value: V, key: K, map: NestedMap<K, V>) => void, thisArg?: unknown): void {
         for (const [k,v] of this._iter())
             f.call(thisArg, v, k, this)
     }
@@ -125,7 +125,7 @@ class ReferenceMap<K extends unknown[], V> implements Map<K,V> {
         if (!this._refs.has(ref))
             return optional.nil()
 
-        const next = this._refs.get(ref) as ReferenceMap<unknown[],V>
+        const next = this._refs.get(ref) as NestedMap<unknown[],V>
         return next._get(nestedRefs)
     }
 
@@ -133,8 +133,8 @@ class ReferenceMap<K extends unknown[], V> implements Map<K,V> {
 
 //// Exports ////
 
-export default ReferenceMap
+export default NestedMap
 
 export {
-    ReferenceMap
+    NestedMap
 }

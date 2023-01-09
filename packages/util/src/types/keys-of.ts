@@ -1,4 +1,4 @@
-import { property } from '../property'
+import { Property } from '../property'
 
 import defined from './defined'
 
@@ -62,11 +62,11 @@ export function * symbolsOf<T extends object[] | readonly object[]> (
     const symbols: Set<symbol> = new Set()
 
     for (const object of objects) {
-        for (const symbol of property.symbolsOf(object)) {
+        for (const symbol of Property.symbolsOf(object)) {
             if (symbols.has(symbol))
                 continue
         
-            const descriptor = property.descriptorOf(object, symbol)
+            const descriptor = Property.descriptorOf(object, symbol)
             if (!descriptor)
                 continue 
 

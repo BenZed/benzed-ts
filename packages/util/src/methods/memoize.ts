@@ -1,5 +1,5 @@
-import { ReferenceMap } from '../classes'
-import { property } from '../property'
+import { NestedMap } from '../classes'
+import { Property } from '../property'
 import { isRecord, isString, keysOf } from '../types'
 import { Func, isFunc } from '../types/func'
 
@@ -15,7 +15,7 @@ function resolveOptions<F extends Func>(
 
     const { 
         name = func.name,
-        cache = new ReferenceMap() as ReferenceMap<Parameters<F>, ReturnType<F>>
+        cache = new NestedMap() as NestedMap<Parameters<F>, ReturnType<F>>
 
     } = typeof options === 'string'
         ? { name: options }
@@ -32,7 +32,7 @@ export type Memoized<F extends Func> = F
 
 export interface MemoizeOptions<F extends Func> {
     name?: string
-    cache?: ReferenceMap<Parameters<F>, ReturnType<F>>
+    cache?: NestedMap<Parameters<F>, ReturnType<F>>
 }
 
 // Main
@@ -81,7 +81,7 @@ export function memoize(
         return value
     }
 
-    return property.name(memoized, name)
+    return Property.name(memoized, name)
 }
 
 //// Extend ////

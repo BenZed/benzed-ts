@@ -1,6 +1,7 @@
 
 import { nil } from './types/nil'
 import { intersect } from './types/merge'
+import { iterate } from './methods'
 
 //// Type ////
 
@@ -14,6 +15,11 @@ interface Property {
 
     define<T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
     define<T extends object>(object: T, definitions: PropertyDescriptorMap): T
+
+    /**
+     * Apply all property descriptions from the source object onto the target object.
+     */
+    transpose<S extends object, T extends object>(source: S, target: T, blacklist?: object[]): S & T
 
     /**
      * Shortcut for Object.defineProperty(object, 'name', { value })
@@ -60,12 +66,12 @@ const define = (
 
 //// Implementation ////
 
-const property = intersect(
+const Property = intersect(
     Object.defineProperty(define, 'name', { writable: true }), // so the name() method can be assigned
     {
 
         name(object: object, name: string) {
-            return property.value(object, 'name', name)
+            return Property.value(object, 'name', name)
         },
 
         value(object: object, key: string | symbol, value: unknown) {
@@ -78,6 +84,22 @@ const property = intersect(
         },
 
         define,
+
+        transpose(source: object, target: object, blacklist = [Object.prototype]) {
+            const descriptors: PropertyDescriptorMap = {}
+
+            for (const template of [source, ...Property.prototypesOf(source, blacklist)]) {
+                const keys = Property.keysOf(template)
+                const symbols = Property.symbolsOf(template)
+                for (const keyOrSymbol of iterate<string | symbol>(keys, symbols)) {
+                    const descriptor = Property.descriptorOf(template, keyOrSymbol)
+                    if (descriptor)
+                        descriptors[keyOrSymbol] = descriptor
+                }
+            }
+    
+            return Property.define(target, descriptors)
+        },
 
         descriptorOf(object: object, key: string | symbol) {
             return Object.getOwnPropertyDescriptor(object, key)
@@ -123,11 +145,17 @@ const property = intersect(
 
 ) as Property
 
+//// Deprecation ////
+
+/**
+ * Use Property instead
+ * @deprecated
+ */
+const property = Property 
+
 //// Exports ////
 
-export default property
-
 export {
-    property,
-    Property
+    Property,
+    property
 }

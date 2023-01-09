@@ -1,9 +1,9 @@
 import { isArray, isNumber, isObject, nil } from '../types'
-import { ReferenceMap } from './reference-map'
+import { NestedMap } from './nested-map'
 
 ////  ////
 
-const ref = new ReferenceMap<number[], object>()
+const ref = new NestedMap<number[], object>()
 
 const kv = [
     { key: [], value: { v: 'A' } },
@@ -70,7 +70,7 @@ it('size', () => {
 }) 
 
 it('clear', () => {
-    const ref = new ReferenceMap()
+    const ref = new NestedMap()
     kv.forEach(({ key, value }) => {
         ref.set([...key], value)
     })
@@ -82,7 +82,7 @@ it('clear', () => {
 
 it('delete', () => {
 
-    const ref = new ReferenceMap()
+    const ref = new NestedMap()
     ref.set([], 0)
 
     expect(ref.delete([])).toEqual(true)
