@@ -7,12 +7,23 @@ import { isReferable, Prototypal } from './util'
 
 //// Types ////
 
+interface ValueEqual {
+    equals(input: unknown): input is this
+}
+
+/**
+ * @deprecated
+ * @internal
+ */
 interface Comparable {
     [$$equals]: (right: unknown) => right is this
 }
 
+/**
+ * @internal
+ */
 function isComparable(input: unknown): input is Comparable {
-    return isFunc((input as Comparable)[$$equals])
+    return isFunc((input as Comparable)?.[$$equals])
 }
 
 //// Helper ////
@@ -167,5 +178,5 @@ export default equals
 export {
     equals,
     Comparable,
-    isComparable
+    ValueEqual
 }

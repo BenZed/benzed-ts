@@ -8,12 +8,20 @@ import { $$copy } from './symbols'
 
 type Refs = unknown[]
 
+interface ValueCopy {
+    copy(): this
+}
+
+/**
+ * @deprecated
+ * Use ValueCopy instead
+ */
 interface Copyable {
     [$$copy]: (refs?: Refs) => this
 }
 
 function isCopyable(input: unknown): input is Copyable {
-    return isFunc((input as Copyable)[$$copy])
+    return isFunc((input as Copyable)?.[$$copy])
 }
 
 //// Helper ////
@@ -182,5 +190,5 @@ export default copy
 export {
     copy,
     Copyable,
-    isCopyable
+    ValueCopy
 }
