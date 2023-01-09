@@ -11,3 +11,4 @@ test('isInstance', () => {
 
     expect(() => isFoo.validate('')).toThrow('Must be type Foo')
 })
+

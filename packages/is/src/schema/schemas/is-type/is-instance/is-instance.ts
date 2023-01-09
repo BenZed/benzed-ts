@@ -1,6 +1,7 @@
-import { Mutable } from '@benzed/util/src'
-import { Validate } from '../../../validator'
-import IsType from './is-type'
+import { Mutable } from '@benzed/util'
+
+import { Validate } from '../../../../validator'
+import IsType from '../is-type'
 
 //// EsLint ////
 
@@ -14,10 +15,9 @@ export type IsInstanceInput =
     (new (...args: any) => object) | 
     (abstract new (...args: any) => object)
 
-//// Exports ////
+//// Main ////
 
-class IsInstance<C extends IsInstanceInput> 
-    extends IsType<InstanceType<C>> {
+class IsInstance<C extends IsInstanceInput> extends IsType<InstanceType<C>> {
 
     constructor(readonly Type: C) {
         super({
