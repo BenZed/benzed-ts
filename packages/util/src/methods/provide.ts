@@ -1,9 +1,5 @@
-import { ReferenceMap } from '../classes/reference-map'
-import type { Func, nil } from '../types'
-
-//// Data ////
-
-const cache = new ReferenceMap<[unknown, Func], Func>()
+import { PrivateState } from '../classes'
+import type { Func } from '../types'
 
 //// Types ////
 
@@ -14,17 +10,11 @@ interface Provided<F extends Func, C> {
 /**
  * Provide a memoized context to a method.
  */
-function provide<F extends Func, C>(ctx: C, provided: Provided<F,C>): F {
+function provide<F extends Func, C extends object>(ctx: C, provided: Provided<F,C>): F {
+    if (!PrivateState.has(ctx))
+        PrivateState.set(ctx, (...args: unknown[]) => provided(ctx)(...args))
 
-    const key = [ctx, provided] as [unknown, Func]
-
-    let provider = cache.get(key) as F | nil
-    if (!provider) {
-        provider = ((...args) => provided(ctx)(...args)) as F
-        cache.set(key, provider)
-    }
-
-    return provider
+    return PrivateState.get(ctx) as F
 }
 
 //// Exports ////
