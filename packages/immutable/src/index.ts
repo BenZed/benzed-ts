@@ -1,6 +1,5 @@
 export * from './copy'
 export * from './equals'
-export * from './symbols'
 export * from './util'
 export * from './array'
-export * from './struct'
+export * from './struct' 

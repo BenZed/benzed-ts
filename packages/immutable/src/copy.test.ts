@@ -1,5 +1,4 @@
-import { $$copy } from './symbols'
-import copy from './copy'
+import { copy, $$copy } from './copy'
 
 import { describe, it, expect } from '@jest/globals'
 

@@ -2,7 +2,10 @@
 import { keysOf, isFunc, indexesOf } from '@benzed/util'
 
 import { isPrototypal, isReferable, Prototypal } from './util'
-import { $$copy } from './symbols'
+
+//// Symbols ////
+
+const $$copy = Symbol('=')
 
 //// Types ////
 
@@ -189,6 +192,7 @@ export default copy
 
 export {
     copy,
+    $$copy,
     Copyable,
     ValueCopy
 }

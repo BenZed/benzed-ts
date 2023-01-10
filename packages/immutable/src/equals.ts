@@ -2,8 +2,11 @@
 
 import { keysOf, isFunc, isIterable, isArrayLike, isObject } from '@benzed/util'
 
-import { $$equals } from './symbols'
 import { isReferable, Prototypal } from './util'
+
+//// Symbols ////
+
+const $$equals = Symbol('==')
 
 //// Types ////
 
@@ -177,6 +180,7 @@ export default equals
 
 export {
     equals,
+    $$equals,
     Comparable,
     ValueEqual
 }

@@ -1,6 +1,5 @@
-import equals from './equals'
+import equals, { $$equals } from './equals'
 import { inspect } from 'util'
-import { $$equals } from './symbols'
 
 import { describe, it, expect } from '@jest/globals'
 

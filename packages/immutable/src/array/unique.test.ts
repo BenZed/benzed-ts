@@ -1,6 +1,6 @@
 import copy from '../copy'
 import unique from './unique'
-import { $$equals } from '../symbols'
+import { $$equals } from '../equals'
 
 describe('unique()', () => {
 
