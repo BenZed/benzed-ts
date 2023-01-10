@@ -1,4 +1,4 @@
-import { Callable } from '@benzed/util'
+import { Callable, TypeGuard } from '@benzed/util'
 
 import { Schema } from '../schema'
 import Schematic, { AnySchematic } from '../schematic'
@@ -9,6 +9,7 @@ import { IsEnumInput, type Or } from './or'
 /* eslint-disable 
     @typescript-eslint/no-var-requires
 */
+
 //// Main ////
 
 const ChainableSchemaFactory = Callable
@@ -16,23 +17,55 @@ const ChainableSchemaFactory = Callable
 interface ChainableSchemaFactoryInterface {
 
     get string(): unknown
-
     get boolean(): unknown
-
     get number(): unknown
+
+    get integer(): unknown
+    get bigint(): unknown
+    get nan(): unknown
+
+    get null(): unknown
+    get nil(): unknown
+    get undefined(): unknown
+
+    get symbol(): unknown
+
+    get primitive(): unknown
 
     enum<E extends IsEnumInput>(
         ...options: E
     ): unknown
 
+    typeOf<T extends TypeGuard<unknown>>(guard: T): unknown
+
     instanceOf<T extends IsInstanceInput>(
         type: T
     ): unknown
+
+    get record(): unknown
+    get shape(): unknown
+    get tuple(): unknown
+
+    get iterable(): unknown
+    get array(): unknown
+    get map(): unknown
+    get set(): unknown
+
+    get object(): unknown
+    get function(): unknown
+    
+    get promise(): unknown
+    get error(): unknown
+    get date(): unknown
+    get weakMap(): unknown
+    get weakSet(): unknown
+
 }
 
 interface ChainableSchematicInterface {
 
     get or(): Or<AnySchematic>
+    // get and(): And<AnySchematic>
 
 }
 
