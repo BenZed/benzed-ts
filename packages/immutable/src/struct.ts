@@ -8,6 +8,11 @@ import equals, { $$equals, ValueEqual } from './equals'
 
 abstract class Struct implements ValueCopy, ValueEqual {
 
+    static [Symbol.hasInstance](input: unknown): boolean {
+        // So that Structs are also instances of CallableStructs
+        return Callable[Symbol.hasInstance].call(this, input)
+    }
+
     //// Copyable ////
     
     copy(): this {
@@ -39,10 +44,6 @@ abstract class Struct implements ValueCopy, ValueEqual {
     }
 
 }
-
-//// So that CallableStructs are also instances of Structs ////
-
-Struct[Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
 //// CallableStruct ////
 
