@@ -30,7 +30,7 @@ class PrivateState<T extends object, S> {
     }
 
     static has(object: object): boolean {
-        return this.for(Object)._states.has(object)
+        return this.for(Object).has(object)
     }
 
     static set<S>(object: object, value: S): typeof PrivateState {
@@ -57,6 +57,11 @@ class PrivateState<T extends object, S> {
         this._assertType(instance)
         this._states.set(instance, state)
         return this
+    }
+
+    has(instance: T): boolean {
+        this._assertType(instance)
+        return this._states.has(instance)
     }
 
     delete(instance: T): boolean {

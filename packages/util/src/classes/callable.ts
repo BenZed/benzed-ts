@@ -1,14 +1,11 @@
 
 import { Property } from '../property'
 import { Func, Infer, isFunc, isObject, } from '../types'
+import PrivateState from './private-state'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Symbol ////
-
-const $$retreiveSignature = Symbol('retreive-signature-from-callable-param')
 
 //// Helper Types ////
 
@@ -18,7 +15,9 @@ type _RemoveInferredThis<F extends Func> =
 type _RemoveSignature<T> = T extends Func 
     ? { [K in keyof T]: T[K] }
     : T
-    
+
+type _SignatureTemplate = { template: object, signature: Func }
+
 //// Type ////
 
 type CallableConstructor = abstract new <F extends Func>(f: F, memoize?: boolean) => F
@@ -57,40 +56,33 @@ interface Callable extends CallableConstructor {
 const Callable = class {
 
     static signatureOf(callable: Func): Func {
-
-        const result = callable($$retreiveSignature)
-        const signature = result?.signature
-        
-        if (!isFunc(signature))
-            throw new Error('Input method is not a callable object.')
-
+        const { signature } = PrivateState.get(callable) as _SignatureTemplate
         return signature
     }
 
     static templateOf(callable: Func): object {
 
-        const result = callable($$retreiveSignature)
-        const template = result?.template
-        
-        if (!isObject(template))
-            throw new Error('Input method is not a callable object.')
-
+        const { template } = PrivateState.get(callable) as _SignatureTemplate
         return template
     }
 
     static create(signature: Func, template: object): object {
 
-        const callable = function (
-            this: unknown, 
-            ...args: unknown[]
-        ): unknown {
-            return args[0] === $$retreiveSignature 
-                ? { signature, template }
-                : signature.apply(this ?? callable, args)
-        }
+        if (!isFunc(signature))
+            throw new Error('Signature must be a function.')
+
+        const callable = 'prototype' in signature 
+            ? function (
+                this: unknown, 
+                ...args: unknown[]
+            ): unknown {
+                return signature.apply(this ?? callable, args)
+            }
+            : (...args: unknown[]) => (signature as Func)(...args)
 
         Property.transpose(signature, callable, [Object.prototype, Function.prototype])
         Property.transpose(template, callable, [Object.prototype, Function.prototype])
+        PrivateState.set(callable, { signature, template })
 
         return callable
     }
