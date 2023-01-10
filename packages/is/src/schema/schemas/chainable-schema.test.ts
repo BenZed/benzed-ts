@@ -2,7 +2,6 @@
 import { isNil } from '@benzed/util'
 import { ValidationError } from '../../validator'
 import { ChainableSchema } from './chainable-schema'
-import { Or } from './or'
 
 //// Setup ////
 
@@ -28,3 +27,4 @@ it('has or method', () => {
 })
 
 it.todo('has and method')
+

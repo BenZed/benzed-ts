@@ -1,4 +1,4 @@
-import { isString, memoize, Transform } from '@benzed/util'
+import { isString as _isString, memoize, Transform, TypeGuard } from '@benzed/util'
 // import { capitalize } from '@benzed/string' <-- TODO wtf?? can't import this for some reason
 
 import { ValidationErrorMessage } from '../../../validator'
@@ -31,19 +31,24 @@ const StringTransform = {
 
 } satisfies Helper<string, string>
 
-const StringAssert = memoize({
-    contains: value => i => i.includes(value)
+const StringAssert = memoize({ 
+    includes: value => i => i.includes(value) 
 }) satisfies Helper<string, boolean>
 
-//// Boolean ////
+//// String ////
 
-class IsString extends IsPrimitive<string> {
+class IsStringType<S extends string> extends IsPrimitive<string> {
+
+    constructor(type: string, is: TypeGuard<S>) {
+        super({ type, is }) 
+    }
+
+}
+
+class IsString extends IsStringType<string> {
 
     constructor() {
-        super({
-            type: 'string',
-            is: isString
-        }) 
+        super('string', _isString) 
     }
 
     get trim(): this {
@@ -97,7 +102,7 @@ class IsString extends IsPrimitive<string> {
 
     includes(value: string, error?: string | ValidationErrorMessage<string>): this {
         return this.asserts(
-            StringAssert.contains(value), 
+            StringAssert.includes(value), 
             error ?? `must contain value "${value}"`,
             `contains-${value}`
         )
@@ -109,3 +114,5 @@ class IsString extends IsPrimitive<string> {
 export {
     IsString
 }
+
+export const isString = new IsString()
