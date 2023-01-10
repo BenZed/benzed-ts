@@ -1,15 +1,20 @@
 import { Or } from './or'
 import IsUnion from './is-union'
-import { IsString, IsBoolean, IsNumber, IsEnum } from '../is-type'
-
-import { TypeOf } from '@benzed/util'
+import { IsEnum } from './is-enum'
+import { IsString, IsBoolean, IsNumber } from '../is-type'
 
 import { expectTypeOf } from 'expect-type'
+
 import { copy } from '@benzed/immutable'
+import { TypeOf } from '@benzed/util'
+
+//// Data ////
 
 const $booleanOr = new Or(new IsBoolean())
 const isBooleanOrString = $booleanOr.string
 const isBooleanOrStringOrNumber = isBooleanOrString.or.number
+
+//// Tests ////
 
 it('chain string or boolean example', () => {
 

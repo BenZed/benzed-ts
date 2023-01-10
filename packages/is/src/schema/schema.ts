@@ -1,17 +1,18 @@
-import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
+import { $$copy, $$equals, equals, ValueCopy, ValueEqual } from '@benzed/immutable'
 import { isString, isSymbol, Mutable, nil, Pipe, TypeGuard } from '@benzed/util'
 import { pluck } from '@benzed/array'
 
-import { 
-    ValidationErrorMessage, 
-    
-    Validate, 
+import {
+
+    Validate,
     ValidatorSettings, 
-    
+    ValidationErrorMessage, 
+
     Validator, 
     ValidatorTypeGuard,
     ValidatorTransform,
     ValidatorPredicate
+
 } from '../validator'
 
 import Schematic from './schematic'
@@ -32,13 +33,15 @@ type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
  */
 type AnySchema = Schema<any>
 
-class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
+class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>> {
 
     constructor(validate: Validate<unknown, T>)
     constructor(settings: ValidatorSettings<unknown, T>)
     constructor(input: Validate<unknown, T> | ValidatorSettings<unknown, T>) {
         super(Validator.from(input))
     }
+    
+    //// Main ////
     
     get validators(): Validate<unknown>[] {
         return Array.from(this) 
@@ -104,7 +107,7 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
 
     protected _setValidatorById(
         id: string | symbol,
-        update: (previous?: Validate<any>) => Validate<any>
+        update: nil | ((previous?: Validate<any>) => Validate<any>)
     ): this {
         return this._upsertValidator(
             (v): v is Validate<any> => 'id' in v && v.id === id,
@@ -114,17 +117,18 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
 
     private _upsertValidator(
         find: TypeGuard<Validate<any>, Validate<any>>,
-        update: (previous?: Validate<any>) => Validate<any>
+        update?: (previous?: Validate<any>) => Validate<any>
     ): this {
 
         const newValidators = [...this.validators]
 
         const oldValidator = pluck(newValidators, find, 1).at(0)
 
-        const newValidator = update(oldValidator)
+        const newValidator = update?.(oldValidator)
+        if (newValidator)
+            newValidators.push(newValidator)
 
-        return this._copyWithValidators(...newValidators, newValidator)
-
+        return this._copyWithValidators(...newValidators)
     }
     
     //// Copy/Comparable ////

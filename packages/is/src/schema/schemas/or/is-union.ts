@@ -1,8 +1,8 @@
-import { Mutable, TypesOf } from '@benzed/util'
-import { AnyValidate, Validate } from '../../../validator'
-import { AnySchematic } from '../../schematic'
+import { TypesOf } from '@benzed/util'
 
+import { AnySchematic } from '../../schematic'
 import { ChainableSchematic } from '../chainable-schema'
+import { AnyValidate, Validate } from '../../../validator'
 
 //// Eslint ////
 
@@ -20,8 +20,7 @@ type IsUnionInput = AnySchematic[]
 
 //// IsUnion ////
 
-class IsUnion<S extends IsUnionInput> 
-    extends ChainableSchematic<TypesOf<S>[number]>{
+class IsUnion<S extends IsUnionInput> extends ChainableSchematic<TypesOf<S>[number]>{
 
     static flatten<V extends AnyValidate>(schema: V): IsUnionFlatten<V> {
         return (schema instanceof IsUnion

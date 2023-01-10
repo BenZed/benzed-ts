@@ -1,7 +1,7 @@
-import NumberSchema from './is-number'
-
-const isNumber = new NumberSchema()
+import { isNumber } from './is-number'
  
+//// Export ////
+
 it('validates number values', () => {
 
     expect(isNumber.validate(100))
@@ -40,10 +40,10 @@ describe('range()', () => {
 
     it('creates an instance of the schema with a range validator', () => {
 
-        const $twoToTen = isNumber.range(2, 10)
+        const isTwoToTen = isNumber.range(2, 10)
 
-        expect($twoToTen.validate(2)).toEqual(2)
-        expect(() => $twoToTen.validate(0))
+        expect(isTwoToTen.validate(2)).toEqual(2)
+        expect(() => isTwoToTen.validate(0))
             .toThrow('Must be between 2 and 10')
     })
 
@@ -72,24 +72,22 @@ describe('range()', () => {
     })
 })
 
-/*
-
 describe('default()', () => {
 
     it('respects default setting, if valid', () => {
-        expect(number.default(5).validate(undefined)).toEqual(5)
+        expect(isNumber.default(5).validate(undefined)).toEqual(5)
     })
 
-    it('defaults are respected across copies', () => {
-        expect(() => number.validate(undefined)).toThrow('is required')
-        expect(() => number.floor(1).validate(undefined)).toThrow('is required')
+    it.skip('defaults are respected across copies', () => {
+        expect(() => isNumber.validate(undefined)).toThrow('is required')
+        expect(() => isNumber.floor(1).validate(undefined)).toThrow('is required')
     })
 
 })
 
 for (const method of ['round', 'floor', 'ceil'] as const) {
 
-    describe(`${method}()`, () => {
+    describe.skip(`${method}()`, () => {
 
         it(`creates an instance of the schema with a ${method} validator`, () => {
             const $evenNumber = number[method](2)
@@ -119,4 +117,3 @@ for (const method of ['round', 'floor', 'ceil'] as const) {
     })
 }
 
-*/

@@ -2,10 +2,10 @@ import { Primitive } from '@benzed/util'
 
 import { ValidationErrorMessage, Validator } from '../../../validator'
 
-import ChainableSchema from '../chainable-schema'
+import ChainableSchema, { ChainableSchematic } from '../chainable-schema'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 const $$enum = Symbol('enum-validator')
@@ -16,7 +16,7 @@ type IsEnumInput = Primitive[]
 
 //// Setup ////
 
-class IsEnum<T extends IsEnumInput> extends ChainableSchema<T[number]> {
+class IsEnum<T extends IsEnumInput> extends ChainableSchematic<T[number]> {
 
     readonly options: T
 
@@ -31,10 +31,6 @@ class IsEnum<T extends IsEnumInput> extends ChainableSchema<T[number]> {
         })
 
         this.options = options
-    }
-
-    error(error: string | ValidationErrorMessage<unknown>): this {
-        return this._setValidatorById($$enum, enumV => new Validator({ ...enumV, error }))
     }
 
 }

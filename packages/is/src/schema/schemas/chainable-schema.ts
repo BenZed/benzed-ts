@@ -2,9 +2,9 @@ import { Callable } from '@benzed/util'
 
 import { Schema } from '../schema'
 import Schematic, { AnySchematic } from '../schematic'
-import { IsEnumInput, IsInstanceInput } from './is-type'
+import { IsInstanceInput } from './is-type'
 
-import { type Or } from './or'
+import { IsEnumInput, type Or } from './or'
 
 /* eslint-disable 
     @typescript-eslint/no-var-requires

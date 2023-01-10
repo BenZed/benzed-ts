@@ -4,11 +4,15 @@ import {
     IsBoolean, 
     IsNumber, 
     IsString, 
-    IsEnum, 
-    IsEnumInput,
+
     IsInstanceInput,
     IsInstance
 } from '../is-type'
+
+import {
+    IsEnum, 
+    IsEnumInput,
+} from '../or'
 
 import { 
     IsUnion, 
