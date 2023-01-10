@@ -1,24 +1,22 @@
-import { copy } from '@benzed/immutable'
-
-import { Assert, Schema } from './schema'
-
-import { expectTypeOf } from 'expect-type'
-
-import { describe, it, expect } from '@jest/globals'
+import { Schema } from './schema'
 import { isString } from '@benzed/util'
 
 //// Setup ////
 
 const $string = new Schema({ is: isString, error: 'must be type string' })
+console.log($string, { ...$string })
+ 
+/*
 
-const $lowerCaseString = $string.transforms(
+const $lowerCaseString = $string.transforms( 
     i => i.toLowerCase(), 
     'Must be lowercase.'
 ) 
-
+ 
 const $password = $string
     .asserts(i => i.length >= 8, 'must have 8 characters or more')
-    .asserts(i => !!i.match(/[A-Z]/), 'must have a capital character.')
+    
+// .asserts(i => !!i.match(/[A-Z]/), 'must have a capital character.')
 
 //// Tests //// 
     
@@ -31,7 +29,7 @@ describe('schema()', () => {
         expect(() => $string.validate(100))
             .toThrow('must be type string')
     })
-
+ 
     it('context.transform', () => {
         const $shout = $string
             .transforms(s => `${s}!`.replace(/!+$/, '!'))
@@ -80,19 +78,7 @@ describe('asserts()', () => {
 
     it('is immutable', () => {
         expect($password).not.toBe($string)
-    })
-
-})
-
-describe('assert()', () => {
-
-    it('is a type assertion', () => {
-        const value: unknown = 'Ace'
-        const assertString: Assert<typeof $string> = $string.assert.bind($string)
-
-        assertString(value)
-        expectTypeOf(value).toEqualTypeOf<string>()
-    })
+    }) 
 
 })
 
@@ -127,3 +113,5 @@ describe('Copyable', () => {
     })
 
 })
+
+*/

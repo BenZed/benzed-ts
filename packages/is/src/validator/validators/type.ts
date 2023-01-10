@@ -1,5 +1,4 @@
 import { nil } from '@benzed/util'
-import Validate from '../validate'
 
 import Validator, { ValidatorContext, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from '../validator'
 //// Types ////
@@ -14,7 +13,7 @@ import Validator, { ValidatorContext, ValidatorSettings, ValidatorTransform, Val
   */
  type Default<T> = (ctx: ValidatorContext<unknown>) => T | nil
 
-interface TypeValidatorSettings<T> extends Omit<ValidatorSettings<unknown, T>, 'transform' | 'is'> {
+interface TypeValidatorSettings<T> extends Partial<Omit<ValidatorSettings<unknown, T>, 'transform' | 'is'>> {
 
     /**
      * Name of the type

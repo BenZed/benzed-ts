@@ -1,5 +1,4 @@
-import { $$copy, $$equals, Comparable, Copyable, equals } from '@benzed/immutable'
-import { isString, isSymbol, Mutable, nil, Pipe, TypeGuard } from '@benzed/util'
+import { isString, isSymbol, nil, Pipe, TypeGuard } from '@benzed/util'
 import { pluck } from '@benzed/array'
 
 import { 
@@ -32,20 +31,14 @@ type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
  */
 type AnySchema = Schema<any>
 
-class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>>, Copyable, Comparable {
-
-    constructor(validate: Validate<unknown, T>)
-    constructor(settings: ValidatorSettings<unknown, T>)
-    constructor(input: Validate<unknown, T> | ValidatorSettings<unknown, T>) {
-        super(Validator.from(input))
-    }
+class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>> {
     
     get validators(): Validate<unknown>[] {
         return Array.from(this) 
     }
 
     validates(
-        input: Validate<T> | ValidatorSettings<T>
+        input: Validate<T> | Partial<ValidatorSettings<T>>
     ): this {
 
         const validate = Validator.from(input)
@@ -73,12 +66,7 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
     //// Helper ////
 
     protected _copyWithValidators(...validators: Validate<unknown>[]): this {
-
-        const Constructor = this.constructor as new (...params: any) => this
-        const clone = new Constructor();
-
-        (clone as Mutable<Schema>).validate = Validator.from(...validators)
-        return clone
+        return Object.assign(this.copy(), { validate: Validator.from(...validators) })
     }
 
     protected _addValidator(validator: Validate<T>): this {
@@ -93,7 +81,7 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
         Constructor: C,
         update: (input: InstanceType<C> | nil) => InstanceType<C>,
     ): this {
-        if (([Validator, Validate] as unknown[]).includes(Constructor))
+        if (([Validator] as [unknown]).includes(Constructor))
             throw new Error(`Must be an extension of ${Validator.name}`)
     
         return this._upsertValidator(
@@ -125,18 +113,6 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
 
         return this._copyWithValidators(...newValidators, newValidator)
 
-    }
-    
-    //// Copy/Comparable ////
-
-    [$$copy](): this {
-        return this._copyWithValidators(...this.validators)
-    }
-
-    [$$equals](other: unknown): other is this {
-        return other instanceof Schema && 
-            other.constructor === this.constructor && 
-            equals(other.validators, this.validators)
     }
 
     //// Iterable ////

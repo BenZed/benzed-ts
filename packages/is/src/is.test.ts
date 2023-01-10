@@ -19,10 +19,6 @@ const is = new Is()
 
 //// Tests ////
 
-test('schema.from siganture', () => {
-    expect(Callable.signatureOf(is)).toEqual(Schema.from)
-})
-
 test('string', () => {
     expect(is.string).toBeInstanceOf(IsString)
 })
@@ -38,6 +34,12 @@ test('number', () => {
 test('enum()', () => {
     expect(is.enum(-1, 0, 1)).toBeInstanceOf(IsEnum)
     expectTypeOf(is.enum(-1, 0, 1)).toEqualTypeOf<IsEnum<[-1,0,1]>>()
+})
+
+test('schema.from signature', () => {
+    expect(Callable.signatureOf(is)).toEqual(Schema.from)
+
+    expectTypeOf(is(0)).toEqualTypeOf<IsEnum<[0]>>()
 })
 
 //// Examples ////

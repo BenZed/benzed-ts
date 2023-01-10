@@ -1,6 +1,7 @@
-import { Callable, TypeAssertion, TypeGuard } from '@benzed/util'
+import { StructCallable } from '@benzed/immutable'
+import { Mutable, TypeAssertion, TypeGuard } from '@benzed/util'
 
-import { Validate } from '../validator'
+import { Validate, Validator, ValidatorSettings } from '../validator'
 import { schemaFrom } from './schema-from'
 
 //// EsLint ////
@@ -28,21 +29,30 @@ type AnySchematic = Schematic<any,any>
 class Schematic<
     O extends I, 
     I = unknown
-> extends Callable<TypeGuard<O, I>> implements SchematicMethods<O,I> {
+> extends StructCallable<TypeGuard<O, I>> implements SchematicMethods<O,I> {
 
     static get from(): typeof schemaFrom {
         return require('./schema-from').schemaFrom
     }
 
-    readonly is: TypeGuard<O,I>
-    readonly assert: TypeAssertion<O,I>
+    readonly is!: TypeGuard<O,I>
+    readonly assert!: TypeAssertion<O,I>
     readonly validate: Validate<I, O>
 
-    constructor(validate: Validate<I,O>) {
+    constructor(validate: Validate<I,O>)
+    constructor(settings: Partial<ValidatorSettings<I,O>>)
+    constructor(input: Validate<I,O> | Partial<ValidatorSettings<I,O>>) {
+
+        super((i): i is O => this.is(i))
+
+        this.validate = Validator.from(input)
+    }
+
+    override initialize(): this {
 
         const is = (i: I): i is O => {
             try {
-                void this.assert(i)
+                void this.assert(i) 
                 return true
             } catch {
                 return false
@@ -52,11 +62,12 @@ class Schematic<
         const assert = (i: I): asserts i is O => 
             void this.validate(i, { transform: false }) 
 
-        super(is)
+        const that = this as Mutable<this>
+        that.is = is 
+        that.assert = assert
 
-        this.is = is 
-        this.assert = assert
-        this.validate = validate
+        return this
+        
     }
 
 }

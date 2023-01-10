@@ -1,6 +1,4 @@
 
-import { Callable } from '@benzed/util'
-
 //// EsLint ////
 
 /* eslint-disable 
@@ -22,7 +20,9 @@ interface ValidateOptions {
  */
 type AnyValidate = Validate<any,any>
 
-class Validate<I, O extends I = I> extends Callable<(input: I, options?: ValidateOptions) => O> { }
+interface Validate<I, O extends I = I> {
+    (input: I, options?: ValidateOptions): O
+}
 
 //// Exports ////
 

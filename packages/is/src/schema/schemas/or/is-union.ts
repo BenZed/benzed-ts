@@ -1,4 +1,4 @@
-import { Mutable, TypesOf } from '@benzed/util'
+import { TypesOf } from '@benzed/util'
 import { AnyValidate, Validate } from '../../../validator'
 import { AnySchematic } from '../../schematic'
 

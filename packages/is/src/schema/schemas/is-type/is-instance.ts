@@ -1,5 +1,3 @@
-import { Mutable } from '@benzed/util/src'
-import { Validate } from '../../../validator'
 import IsType from './is-type'
 
 //// EsLint ////
@@ -25,12 +23,6 @@ class IsInstance<C extends IsInstanceInput>
             is: (i): i is InstanceType<C> => 
                 i instanceof Type
         })
-    }
-
-    protected override _copyWithValidators(...validators: Validate<unknown, unknown>[]): this {
-        const clone = super._copyWithValidators(...validators);
-        (clone as Mutable<{ Type: C }>).Type = this.Type
-        return clone
     }
 
 }

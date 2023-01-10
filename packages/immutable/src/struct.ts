@@ -1,4 +1,4 @@
-import { Callable, Func, isFunc } from '@benzed/util'
+import { Callable, Func } from '@benzed/util'
 
 import { ValueCopy } from './copy'
 import { $$copy, $$equals } from './symbols'
@@ -8,8 +8,8 @@ import equals, { ValueEqual } from './equals'
 
 abstract class Struct implements ValueCopy, ValueEqual {
 
-    static get Callable(): typeof CallableStruct {
-        return CallableStruct
+    static get Callable(): typeof StructCallable {
+        return StructCallable
     } 
 
     static [Symbol.hasInstance](input: unknown): boolean {
@@ -61,29 +61,27 @@ abstract class Struct implements ValueCopy, ValueEqual {
 
 //// CallableStruct ////
 
-type CallableStruct = abstract new <F extends Func>(f: F) => F & Struct
+type StructCallable = abstract new <F extends Func>(f: F) => F & Struct
 
-const CallableStruct = class extends Struct {
+const StructCallable = class extends Struct {
 
-    constructor(f: Func) {
+    constructor(private _signature: Func) {
         super()
-        return Callable.create(f, this)
+        return Callable.create(_signature, this)
     }
 
-    override copy(): this {
+    override initialize(): this {
+        if (this instanceof Callable) {
+            this._signature = Callable.signatureOf(this as unknown as Func)
+            console.log(this)
+            return this
+        }
 
-        const clone = super.copy()
-
-        return isFunc(this)  
-            ? Callable.create(
-                Callable.signatureOf(this), 
-                clone
-            ) as this
-                
-            : clone
+        return Callable.create(this._signature, this) as this
+        
     }
 
-} as CallableStruct
+} as StructCallable
 
 //// Exports ////
 
@@ -91,5 +89,5 @@ export default Struct
 
 export {
     Struct,
-    CallableStruct
+    StructCallable
 }

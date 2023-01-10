@@ -1,4 +1,4 @@
-import { Callable } from '@benzed/util'
+import { StructCallable } from '@benzed/immutable'
 
 import { Schema } from '../schema'
 import Schematic, { AnySchematic } from '../schematic'
@@ -10,8 +10,8 @@ import { type Or } from './or'
     @typescript-eslint/no-var-requires
 */
 //// Main ////
-
-const ChainableSchemaFactory = Callable
+ 
+const ChainableSchemaFactory = StructCallable
 
 interface ChainableSchemaFactoryInterface {
 
