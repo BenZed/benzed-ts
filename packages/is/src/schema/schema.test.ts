@@ -1,37 +1,40 @@
 import { Schema } from './schema'
-import { isString } from '@benzed/util'
+import { isString as _isString } from '@benzed/util'
+
+import { copy } from '@benzed/immutable'
+
+import { expectTypeOf } from 'expect-type'
 
 //// Setup ////
 
-const $string = new Schema({ is: isString, error: 'must be type string' })
-console.log($string, { ...$string })
- 
-/*
+const isString = new Schema({ 
+    is: _isString, 
+    error: 'must be type string' 
+})
 
-const $lowerCaseString = $string.transforms( 
+const isLowerCaseString = isString.transforms( 
     i => i.toLowerCase(), 
     'Must be lowercase.'
 ) 
  
-const $password = $string
+const isPassword = isString
     .asserts(i => i.length >= 8, 'must have 8 characters or more')
-    
-// .asserts(i => !!i.match(/[A-Z]/), 'must have a capital character.')
+    .asserts(i => !!i.match(/[A-Z]/), 'must have a capital character.')
 
 //// Tests //// 
     
-describe('schema()', () => {
+describe('schema()', () => { 
 
     it('schema() type signature', () => {
-        expect($string.validate('ace'))
+        expect(isString.validate('ace'))
             .toEqual('ace')
 
-        expect(() => $string.validate(100))
+        expect(() => isString.validate(100))
             .toThrow('must be type string')
     })
  
     it('context.transform', () => {
-        const $shout = $string
+        const $shout = isString
             .transforms(s => `${s}!`.replace(/!+$/, '!'))
 
         expect(() => $shout.validate('Ace', { transform: false }))
@@ -39,7 +42,7 @@ describe('schema()', () => {
     })
 
     it('context.path', () => {
-        expect(() => $string.validate(100, { path: ['ace']}))
+        expect(() => isString.validate(100, { path: ['ace']}))
             .toThrow('ace must be type string')
     })
 })
@@ -47,37 +50,37 @@ describe('schema()', () => {
 describe('transforms()', () => {
 
     it('appends a transform validator', () => {
-        expect($lowerCaseString.validate('Foo')).toEqual('foo')
+        expect(isLowerCaseString.validate('Foo')).toEqual('foo')
     })
 
     it('is immutable', () => {
-        expect($lowerCaseString).not.toBe($string)
-        expect($string.validate('Foo')).toEqual('Foo')
+        expect(isLowerCaseString).not.toBe(isString)
+        expect(isString.validate('Foo')).toEqual('Foo')
     })
 
-    it('error method', () => {
+    it('error method', () => {  
 
-        const $path = $string.transforms(
+        const isPath = isString.transforms(
             i => `/${i}`.replace(/^\/+/, '/'),
             i => `${i} requires a slash`
         )
 
-        expect($path.validate('sup')).toEqual('/sup')
+        expect(isPath.validate('sup')).toEqual('/sup')
 
-        expect(() => $path.validate('ace-of-base', { transform: false }))
+        expect(() => isPath.validate('ace-of-base', { transform: false }))
             .toThrow('ace-of-base requires a slash')
-    })
+    }) 
 })
 
 describe('asserts()', () => {
 
     it('appends assert validators', () => {
-        expect(() => $password.validate('a')).toThrow('must have 8 characters or more')
-        expect(() => $password.validate ('abcdefgh')).toThrow('must have a capital character.')
+        expect(() => isPassword.validate('a')).toThrow('must have 8 characters or more')
+        expect(() => isPassword.validate ('abcdefgh')).toThrow('must have a capital character.')
     })
 
     it('is immutable', () => {
-        expect($password).not.toBe($string)
+        expect(isPassword).not.toBe(isString)
     }) 
 
 })
@@ -85,22 +88,38 @@ describe('asserts()', () => {
 describe('is()', () => {
 
     it('returns true if value is valid', () => {
-        expect($password.is('1234567A')).toBe(true)
+        expect(isPassword.is('1234567A')).toBe(true)
     })
 
     it('returns false if value is not valid', () => {
-        expect($lowerCaseString.is('Ace')).toBe(false)
+        expect(isLowerCaseString.is('Ace')).toBe(false)
     })
 
     it('is a type guard', () => {
         const value: unknown = 'Ace'
-        if ($string.is(value))
+        if (isString.is(value))
             expectTypeOf(value).toEqualTypeOf<string>()
     })
 
     it('is bound', () => {
-        const isString = $string.is
-        expect(isString('string')).toBe(true)
+        expect(isString.is('string')).toBe(true)
+    })
+
+})
+
+describe('assert()', () => {
+
+    it('does not throw if input is valid', () => {
+        expect(() => isPassword.assert('1234567A')).not.toThrow()
+    })  
+
+    it('throws if input is not valid', () => {
+        expect(() => isLowerCaseString.assert('Ace')).toThrow('Must be lowercase')
+    })
+
+    it('is bound', () => {
+        const assertString = isString.assert
+        expect(() => assertString('string')).not.toThrow()
     })
 
 })
@@ -108,10 +127,8 @@ describe('is()', () => {
 describe('Copyable', () => {
 
     it('can be immutably copied', () => {
-        const $stringCopy = copy($string)
-        expect($stringCopy).not.toBe($string)
+        const isString2 = copy(isString)
+        expect(isString2).not.toBe(isString)
     })
 
 })
-
-*/

@@ -59,6 +59,8 @@ abstract class IsType<T> extends ChainableSchema<T> {
         return this._setTypeValidator({ error })
     }
 
+    //// Helper ////
+    
     protected _setTypeValidator(settings: Partial<TypeValidatorSettings<T>>): this {
         return this._setValidatorByType(
             TypeValidator, 

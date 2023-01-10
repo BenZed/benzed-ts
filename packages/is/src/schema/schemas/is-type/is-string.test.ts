@@ -7,7 +7,6 @@ it('validates strings', () => {
 })
 
 it('trim()', () => {
- 
     const isTrimmedString = isString.trim
     expect(isTrimmedString.validate(' ace ')).toEqual('ace')
     expect(() => isTrimmedString.assert(' ace ')).toThrow('must not begin or end with')

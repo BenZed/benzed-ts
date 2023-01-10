@@ -1,4 +1,7 @@
-import { ChainableSchemaFactory, ChainableSchemaFactoryInterface } from './schema/schemas/chainable-schema'
+import { 
+    ChainableSchemaFactory, 
+    ChainableSchemaFactoryGetters 
+} from './schema/schemas/chainable-schema'
 
 import { 
     IsBoolean, 
@@ -17,7 +20,7 @@ import {
 //// Main ////
 
 class Is extends ChainableSchemaFactory<SchemaFrom> 
-    implements ChainableSchemaFactoryInterface {
+    implements ChainableSchemaFactoryGetters {
 
     constructor() {
         super(Schema.from)

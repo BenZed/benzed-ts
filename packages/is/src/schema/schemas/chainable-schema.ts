@@ -1,4 +1,4 @@
-import { StructCallable } from '@benzed/immutable'
+import { CallableStruct } from '@benzed/immutable'
 import { TypeGuard } from '@benzed/util/src'
 
 import { Schema } from '../schema'
@@ -13,9 +13,9 @@ import { IsEnumInput, type Or } from './or'
 
 //// Main ////
  
-const ChainableSchemaFactory = StructCallable
+const ChainableSchemaFactory = CallableStruct
 
-interface ChainableSchemaFactoryInterface {
+interface ChainableSchemaFactoryGetters {
 
     get string(): unknown
     get boolean(): unknown
@@ -32,16 +32,6 @@ interface ChainableSchemaFactoryInterface {
     get symbol(): unknown
 
     get primitive(): unknown
-
-    enum<E extends IsEnumInput>(
-        ...options: E
-    ): unknown
-
-    typeOf<T extends TypeGuard<unknown>>(guard: T): unknown
-
-    instanceOf<T extends IsInstanceInput>(
-        type: T
-    ): unknown
 
     get record(): unknown
     get shape(): unknown
@@ -63,12 +53,34 @@ interface ChainableSchemaFactoryInterface {
 
 }
 
-interface ChainableSchematicInterface {
+interface ChainableSchemaFactoryMethods {
+
+    enum<E extends IsEnumInput>(
+        ...options: E
+    ): unknown
+
+    typeOf<T extends TypeGuard<unknown>>(guard: T): unknown
+
+    instanceOf<T extends IsInstanceInput>(
+        type: T
+    ): unknown
+
+}
+
+interface ChainableSchemaFactoryInterface extends ChainableSchemaFactoryMethods, ChainableSchemaFactoryGetters {}
+
+interface ChainableSchemaGetters {
 
     get or(): Or<AnySchematic>
     // get and(): And<AnySchematic>
 
 }
+
+interface ChainableSchemaMethods {
+    //
+}
+
+interface ChainableSchemaInterface extends ChainableSchemaGetters, ChainableSchemaMethods {}
 
 //// Helper ////
 
@@ -77,7 +89,7 @@ const getOr = (): typeof Or => require('./or').Or
 
 //// For Container Schemas that should not have the SchemaBuilder interface ////
 
-abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchematicInterface {
+abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchemaInterface {
 
     get or(): Or<this> {
         const Or = getOr()
@@ -95,7 +107,7 @@ abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSc
  * Schema for chaining schemas into unions or intersections, as well as
  * nesting flag schemas
  */
-abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchematicInterface {
+abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchemaInterface {
 
     get or(): Or<this> {
         const Or = getOr()
@@ -117,5 +129,10 @@ export {
     ChainableSchema,
     ChainableSchematic,
     ChainableSchemaFactory,
-    ChainableSchemaFactoryInterface
+    ChainableSchemaFactoryGetters,
+    ChainableSchemaFactoryInterface,
+    ChainableSchemaGetters,
+    ChainableSchemaMethods,
+    ChainableSchemaInterface
+
 }

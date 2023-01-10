@@ -2,6 +2,7 @@
 import { isNil } from '@benzed/util'
 import { ValidationError } from '../../validator'
 import { ChainableSchema } from './chainable-schema'
+import { Or } from './or'
 
 //// Setup ////
 
@@ -23,7 +24,7 @@ it('is abstact', () => {
 })
 
 it('has or method', () => {
-    expect(isVoid.or).toBeInstanceOf(Or)
+    expect(isVoid.or).toBeInstanceOf(Or) 
 })
 
 it.todo('has and method')

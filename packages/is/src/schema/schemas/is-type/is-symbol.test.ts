@@ -1,32 +1,27 @@
-import { IsBoolean } from './is-boolean'
+import { isSymbol } from './is-symbol'
 
 import { nil } from '@benzed/util'
 
 //// Tests ////
 
-const isBoolean = new IsBoolean()  
-
 it('validates booleans', () => {
-    expect(isBoolean.validate(true)).toEqual(true)
-    expect(isBoolean.validate(false)).toEqual(false)
-  
-    expect(() => isBoolean.validate('what'))
-        .toThrow('Must be type boolean')
-}) 
+    expect(isSymbol(Symbol.iterator)).toEqual(true)
+    expect(isSymbol(false)).toEqual(false)
 
-it('casts "true" to true', () => {
-    expect(isBoolean.validate('true'))
-        .toEqual(true)
+    expect(() => isSymbol.validate('what'))
+        .toThrow('Must be type symbol')  
 })  
-
-it('casts "false" to false', () => {
-    expect(isBoolean.validate('false')) 
-        .toEqual(false)
-})
 
 it('default()', () => {
 
-    expect(isBoolean.default(false).validate(nil)).toBe(false)
-    expect(isBoolean.default(() => true).validate(nil)).toBe(true)
+    const $$default = Symbol('default')
+
+    expect(isSymbol.default($$default)
+        .validate(nil))
+        .toBe($$default)
+    
+    expect(isSymbol.default(() => $$default)
+        .validate(nil))
+        .toBe($$default)
 })
  

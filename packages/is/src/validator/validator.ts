@@ -3,9 +3,10 @@ import {
     ContextTransform,
     isFunc, 
     Pipe,
+    Property,
     through as noTransform
 } from '@benzed/util'
-import { equals, StructCallable } from '@benzed/immutable'
+import { equals, CallableStruct } from '@benzed/immutable'
 
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
@@ -46,7 +47,7 @@ const isTransformEqual = <I>(input: I, ctx: ValidatorContext<I>): boolean =>
 
 //// Main ////
 
-class Validator<I, O extends I = I> extends StructCallable<Validate<I,O>> {
+class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
 
     static from<Ix, Ox extends Ix>(...input: (Validate<Ix,Ox> | Partial<ValidatorSettings<Ix,Ox>>)[]): Validate<Ix,Ox> {
 
@@ -55,7 +56,7 @@ class Validator<I, O extends I = I> extends StructCallable<Validate<I,O>> {
             ? validators[0] 
             : Pipe.from(...validators)
     
-        return validator as Validate<Ix,Ox>
+        return Property.name(validator, 'validate') as Validate<Ix,Ox>
     }
 
     is: ValidatorTypeGuard<I,O>

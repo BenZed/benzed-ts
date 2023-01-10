@@ -1,5 +1,5 @@
 
-import { isSymbol } from '@benzed/util'
+import { isSymbol as _isSymbol } from '@benzed/util'
 
 import IsType from './is-type'
 
@@ -13,7 +13,7 @@ class IsSymbol extends IsType<symbol> {
     constructor() {
         super({
             type: 'symbol',
-            is: isSymbol
+            is: _isSymbol
         })
     }
 }
@@ -21,6 +21,8 @@ class IsSymbol extends IsType<symbol> {
 //// Exports ////
 
 export default IsSymbol
+
+export const isSymbol = new IsSymbol
 
 export {
     IsSymbol

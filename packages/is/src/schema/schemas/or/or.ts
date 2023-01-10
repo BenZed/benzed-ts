@@ -21,7 +21,7 @@ import {
 
 import { 
     ChainableSchemaFactory,
-    ChainableSchemaFactoryInterface 
+    ChainableSchemaFactoryGetters 
 } from '../chainable-schema'
 
 import Schema from '../../schema'
@@ -52,7 +52,7 @@ type ToIsUnion<S extends AnySchematic, T extends AnySchematic> =
 
 class Or<S extends AnySchematic> 
     extends ChainableSchemaFactory<IsUnionFrom<S>> 
-    implements ChainableSchemaFactoryInterface {
+    implements ChainableSchemaFactoryGetters {
 
     constructor(readonly from: S) {
         super((...args: Parameters<IsUnionFrom<S>>) => 

@@ -1,5 +1,5 @@
 import { isFunc, isObject, nil } from '@benzed/util'
-import { StructCallable } from '@benzed/immutable'
+import { CallableStruct } from '@benzed/immutable'
 
 import { Validate, ValidateOptions } from '../validate'
 import { ValidatorContext } from '../validator'
@@ -100,7 +100,7 @@ const binary = {
 
 //// Exports ////
 
-class RangeValidator extends StructCallable<Validate<number>> {
+class RangeValidator extends CallableStruct<Validate<number>> {
 
     readonly range: Omit<RangeSettings, 'error'>
     readonly error?: RangeSettings['error']

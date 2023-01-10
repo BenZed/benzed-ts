@@ -69,7 +69,8 @@ class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unkn
     //// Helper ////
 
     protected _copyWithValidators(...validators: Validate<unknown>[]): this {
-        return Object.assign(this.copy(), { validate: Validator.from(...validators) })
+        const schema = this.copy()
+        return Object.assign(schema, { validate: Validator.from(...validators) })
     }
 
     protected _addValidator(validator: Validate<T>): this {
