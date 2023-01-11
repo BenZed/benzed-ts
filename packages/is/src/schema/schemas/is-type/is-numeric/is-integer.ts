@@ -28,4 +28,4 @@ export {
     IsInteger
 }
 
-export const isInteger = new IsInteger()
+export const isInteger = new IsInteger

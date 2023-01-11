@@ -8,3 +8,4 @@ export class IsRegExp extends IsInstance<RegExpConstructor> {
     }
 }
 
+export const isRegExp = new IsRegExp

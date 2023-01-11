@@ -15,7 +15,7 @@ import ChainableSchema from '../chainable-schema'
 
 //// Types ////
 
-abstract class IsType<T> extends ChainableSchema<T> {
+class IsType<T> extends ChainableSchema<T> {
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 

@@ -8,3 +8,4 @@ export class IsWeakMap extends IsInstance<WeakMapConstructor> {
     }
 }
 
+export const isWeakMap = new IsWeakMap

@@ -8,3 +8,4 @@ export class IsDate extends IsInstance<DateConstructor> {
     }
 }
 
+export const isDate = new IsDate

@@ -66,4 +66,4 @@ export {
     IsNumber
 }
 
-export const isNumber = new IsNumber()
+export const isNumber = new IsNumber

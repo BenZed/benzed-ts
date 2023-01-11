@@ -8,3 +8,4 @@ export class IsPromise extends IsInstance<PromiseConstructor> {
     }
 }
 
+export const isPromise = new IsPromise

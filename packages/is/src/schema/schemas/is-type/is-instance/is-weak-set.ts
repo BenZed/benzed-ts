@@ -8,3 +8,4 @@ export class IsWeakSet extends IsInstance<WeakSetConstructor> {
     }
 }
 
+export const isWeakSet = new IsWeakSet

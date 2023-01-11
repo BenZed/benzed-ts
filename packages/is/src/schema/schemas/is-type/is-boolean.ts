@@ -1,7 +1,7 @@
 
 import IsPrimitive from './is-primitive'
 
-import { isBoolean, isNil } from '@benzed/util'
+import { isBoolean as _isBoolean, isNil } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -21,7 +21,7 @@ class IsBoolean extends IsPrimitive<boolean> {
     constructor() {
         super({
             type: 'boolean',
-            is: isBoolean,
+            is: _isBoolean,
             cast: toBoolean
         })
     }
@@ -34,3 +34,5 @@ export default IsBoolean
 export {
     IsBoolean
 }
+
+export const isBoolean = new IsBoolean

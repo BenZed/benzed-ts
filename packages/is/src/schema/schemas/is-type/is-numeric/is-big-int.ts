@@ -19,4 +19,4 @@ export default IsBigInt
 
 export { IsBigInt }
 
-export const isBigInt = new IsBigInt()
+export const isBigInt = new IsBigInt

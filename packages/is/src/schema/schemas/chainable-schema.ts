@@ -1,8 +1,8 @@
 import { CallableStruct } from '@benzed/immutable'
-import { TypeGuard } from '@benzed/util/src'
+import { TypeGuard } from '@benzed/util'
 
 import { Schema } from '../schema'
-import Schematic, { AnySchematic } from '../schematic'
+import { Schematic, AnySchematic } from '../schematic'
 import { IsInstanceInput } from './is-type'
 
 import { IsEnumInput, type Or } from './or'
@@ -15,7 +15,10 @@ import { IsEnumInput, type Or } from './or'
  
 const ChainableSchemaFactory = CallableStruct
 
-interface ChainableSchemaFactoryGetters {
+/**
+ * @internal
+ */
+interface ChainableSchemaFactoryInterface {
 
     get string(): unknown
     get boolean(): unknown
@@ -28,14 +31,12 @@ interface ChainableSchemaFactoryGetters {
     get null(): unknown
     get nil(): unknown
     get undefined(): unknown
+    get defined(): unknown
 
     get symbol(): unknown
 
     get primitive(): unknown
-
     get record(): unknown
-    get shape(): unknown
-    get tuple(): unknown
 
     get iterable(): unknown
     get array(): unknown
@@ -51,15 +52,21 @@ interface ChainableSchemaFactoryGetters {
     get weakMap(): unknown
     get weakSet(): unknown
 
-}
+    // get json(): unknown 
 
-interface ChainableSchemaFactoryMethods {
+    tuple<T extends IsTupleInput>(
+        ...types: T
+    ): unknown
+
+    shape<T extends IsShapeInput>(
+        shape: T
+    ): unknown
 
     enum<E extends IsEnumInput>(
         ...options: E
     ): unknown
 
-    typeOf<T extends TypeGuard<unknown>>(guard: T): unknown
+    typeOf<T extends TypeGuard<unknown>>(is: T): unknown
 
     instanceOf<T extends IsInstanceInput>(
         type: T
@@ -67,20 +74,15 @@ interface ChainableSchemaFactoryMethods {
 
 }
 
-interface ChainableSchemaFactoryInterface extends ChainableSchemaFactoryMethods, ChainableSchemaFactoryGetters {}
-
-interface ChainableSchemaGetters {
+/**
+ * @internal
+ */
+interface ChainableSchemaInterface {
 
     get or(): Or<AnySchematic>
     // get and(): And<AnySchematic>
 
 }
-
-interface ChainableSchemaMethods {
-    //
-}
-
-interface ChainableSchemaInterface extends ChainableSchemaGetters, ChainableSchemaMethods {}
 
 //// Helper ////
 
@@ -129,10 +131,10 @@ export {
     ChainableSchema,
     ChainableSchematic,
     ChainableSchemaFactory,
-    ChainableSchemaFactoryGetters,
     ChainableSchemaFactoryInterface,
-    ChainableSchemaGetters,
-    ChainableSchemaMethods,
     ChainableSchemaInterface
-
 }
+
+export * from './or'
+export * from './is-type'
+export * from './is-iterable'

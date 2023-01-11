@@ -14,7 +14,7 @@ abstract class Struct implements ValueCopy, ValueEqual {
     }
 
     //// Copyable ////
-    
+
     copy(): this {
         const state = Object.getOwnPropertyDescriptors({ ...this })
         const struct = Object.create(this, state)
@@ -24,7 +24,7 @@ abstract class Struct implements ValueCopy, ValueEqual {
     [$$copy](): this {
         return this.copy()
     }
-    
+
     //// Comparable ////
 
     /**

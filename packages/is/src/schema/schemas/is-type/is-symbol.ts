@@ -22,8 +22,8 @@ class IsSymbol extends IsType<symbol> {
 
 export default IsSymbol
 
-export const isSymbol = new IsSymbol
-
 export {
     IsSymbol
 }
+
+export const isSymbol = new IsSymbol

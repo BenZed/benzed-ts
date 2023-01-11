@@ -10,3 +10,4 @@ export class IsError extends IsInstance<ErrorConstructor> {
     // get like(): IsJson<Error> { } // TODO add me
 }
 
+export const isError = new IsError
