@@ -8,7 +8,8 @@ import {
     IsEnum, 
     IsNumber, 
     IsString,
-    IsUnion
+    IsUnion,
+    chain
 } from './schema'
 
 import { expectTypeOf } from 'expect-type'

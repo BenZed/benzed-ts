@@ -134,7 +134,3 @@ export {
     ChainableSchemaFactoryInterface,
     ChainableSchemaInterface
 }
-
-export * from './or'
-export * from './is-type'
-export * from './is-iterable'
