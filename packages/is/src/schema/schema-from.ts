@@ -7,7 +7,7 @@ import {
     IsInstanceInput
 } from './schemas'
 
-import Schematic, { AnySchematic } from './schematic'
+import ToUnion, { AnySchematic } from './schematic'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -31,7 +31,7 @@ const schemaFrom = ((...args: unknown[]) => {
     if (args.every(isPrimitive))
         return new IsEnum(...args)
 
-    if (args.every(arg => arg instanceof Schematic))
+    if (args.every(arg => arg instanceof ToUnion))
         return isSingle ? args[0] : new IsTuple(...args)
 
     if (isSingle && isFunc(args[0]))

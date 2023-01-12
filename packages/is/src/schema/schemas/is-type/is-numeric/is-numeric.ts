@@ -1,9 +1,9 @@
 
-import IsPrimitive from '../is-primitive'
+import IsType from '../is-type'
 
 //// Boolean ////
 
-abstract class IsNumeric<N extends number | bigint> extends IsPrimitive<N> { 
+abstract class IsNumeric<N extends number | bigint> extends IsType<N> { 
 
 }
 

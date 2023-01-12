@@ -5,7 +5,7 @@ import { Schema } from '../schema'
 import { Schematic, AnySchematic } from '../schematic'
 import { IsInstanceInput } from './is-type'
 
-import { IsEnumInput, type Or } from './or'
+import { type Or } from './or'
 
 /* eslint-disable 
     @typescript-eslint/no-var-requires
@@ -62,10 +62,6 @@ interface ChainableSchemaFactoryInterface {
         shape: T
     ): unknown
 
-    enum<E extends IsEnumInput>(
-        ...options: E
-    ): unknown
-
     typeOf<T extends TypeGuard<unknown>>(is: T): unknown
 
     instanceOf<T extends IsInstanceInput>(
@@ -86,21 +82,44 @@ interface ChainableSchemaInterface {
 
 //// Helper ////
 
-const getOr = (): typeof Or => require('./or').Or
-// const getAnd = (): typeof And => require('./and').And
+const toOr = <T extends AnySchematic>(schematic: T): Or<T> => {
+    const _Or = require('./or').Or as typeof Or 
+    return new _Or(schematic)
+}
+
+// const toAnd = <T extends AnySchematic>(schematic: T): And<T> => {
+//     const _And = require('./and').Or as typeof And 
+//     return new _And(schematic)
+// }
+
+// const toOptional = <T extends AnySchematic>(schematic: T): Optional<T> => {
+//     const _Optional = require('./optional').Optional as typeof And 
+//     return new _Optional(schematic)
+// }
+
+// const toReadOnly = <T extends AnySchematic>(schematic: T): ReadOnly<T> => {
+//     const _ReadOnly = require('./readonly').ReadOnly as typeof ReadOnly 
+//     return new _ReadOnly(schematic)
+// }
 
 //// For Container Schemas that should not have the SchemaBuilder interface ////
 
 abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchemaInterface {
 
     get or(): Or<this> {
-        const Or = getOr()
-        return new Or(this)
+        return toOr(this)
     }
 
     // get and(): And<this> {
-    //     const And = getAnd()
-    //     return new And(this)
+    //     return toAnd(this)
+    // }
+
+    // get optional(): And<this> {
+    //     return toAnd(this)
+    // }
+
+    // get readonly(): And<this> {
+    //     return toAnd(this)
     // }
 
 }
@@ -112,13 +131,19 @@ abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSc
 abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchemaInterface {
 
     get or(): Or<this> {
-        const Or = getOr()
-        return new Or(this)
+        return toOr(this)
     }
 
     // get and(): And<this> {
-    //     const And = getAnd()
-    //     return new And(this)
+    //     return toAnd(this)
+    // }
+
+    // get optional(): And<this> {
+    //     return toAnd(this)
+    // }
+
+    // get readonly(): And<this> {
+    //     return toAnd(this)
     // }
 
 }

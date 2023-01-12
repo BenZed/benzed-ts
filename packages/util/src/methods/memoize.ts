@@ -66,19 +66,19 @@ export function memoize(
     const [func, options] = (isString(args[0]) ? [args[1], args[0]] : args) as [Func, string | MemoizeOptions<Func>]
 
     // Get Options
-    const { name, cache } = resolveOptions(func, options)
+    const { name, cache: memoizations } = resolveOptions(func, options)
 
-    function memoized(this: unknown, ...args: Parameters<Func> ): ReturnType<Func> {
+    function memoized(this: unknown, ...input: Parameters<Func> ): ReturnType<Func> {
 
         // get memoized value
-        if (cache.has(args)) 
-            return cache.get(args)
+        if (memoizations.has(input)) 
+            return memoizations.get(input)
 
         // create memoized value
-        const value = func.apply(this, args)
-        cache.set(args, value)
+        const output = func.apply(this, input)
+        memoizations.set(input, output)
 
-        return value
+        return output
     }
 
     return Property.name(memoized, name)

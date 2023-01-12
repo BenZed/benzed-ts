@@ -1,7 +1,5 @@
-
-import IsPrimitive from './is-primitive'
-
 import { isBoolean as _isBoolean, isNil } from '@benzed/util'
+import IsType from './is-type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -17,7 +15,7 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
 
 //// Boolean ////
 
-class IsBoolean extends IsPrimitive<boolean> {
+class IsBoolean extends IsType<boolean> {
     constructor() {
         super({
             type: 'boolean',

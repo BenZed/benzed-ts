@@ -3,7 +3,7 @@ import { isString as _isString, memoize, Transform, TypeGuard } from '@benzed/ut
 
 import { ValidationErrorMessage } from '../../../validator'
 
-import IsPrimitive from './is-primitive'  
+import IsType from './is-type'  
 
 //// Symbols ////
 
@@ -37,7 +37,7 @@ const StringAssert = memoize({
 
 //// String ////
 
-class IsStringType<S extends string> extends IsPrimitive<string> {
+class IsStringType<S extends string> extends IsType<string> {
 
     constructor(type: string, is: TypeGuard<S>) {
         super({ type, is }) 

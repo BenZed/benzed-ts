@@ -1,9 +1,8 @@
 import { TypesOf } from '@benzed/util'
 
-import { ChainableSchematic } from '../chainable-schema'
-
 import { AnySchematic } from '../../schematic'
-import { AnyValidate, Validate } from '../../../validator'
+
+import { ChainableSchematic } from '../chainable-schema'
 
 //// Eslint ////
 
@@ -13,68 +12,48 @@ import { AnyValidate, Validate } from '../../../validator'
 
 //// Types ////
 
-type IsUnionFlatten<S extends AnyValidate> = S extends IsUnion<infer Sx> 
-    ? Sx
-    : [S]
+type IsUnionInput = readonly AnySchematic[]
 
-type IsUnionInput = AnySchematic[]
+type IsUnionOutput<T extends IsUnionInput> = TypesOf<T>[number]
 
 //// IsUnion ////
 
-class IsUnion<S extends IsUnionInput> extends ChainableSchematic<TypesOf<S>[number]>{
+class IsUnion<T extends IsUnionInput> extends ChainableSchematic<IsUnionOutput<T>> {
 
-    static flatten<V extends AnyValidate>(schema: V): IsUnionFlatten<V> {
-        return (schema instanceof IsUnion
-            ? schema.types
-            : [schema]
-        ) as IsUnionFlatten<V>
-    }
+    readonly types: T
 
-    readonly types: S
+    constructor(...types: T) {
 
-    // protected override _copyWithValidators(...validators: Validate<unknown, unknown>[]): this {
-    //     const clone = super._copyWithValidators(...validators);
-    //     (clone as Mutable<{ types: S }>).types = this.types
-    //     return clone
-    // }
+        type O = IsUnionOutput<T>
 
-    constructor(...types: S) {
+        super((i, options?): O => {
+            const errors: unknown[] = []
 
-        type O = TypesOf<S>[number]
-
-        const isUnion: Validate<unknown, O> = (i, options): O => {
-            const schemas = this.types as IsUnionInput
-    
-            for (const schema of schemas) {
-                if (schema.is(i))
-                    return i as O
+            const types = this.types
+            for (const type of types) {
+                if (type.is(i))
+                    return i
             }
 
-            const errors: Error[] = []
-            for (const schema of schemas) {
+            for (const type of this.types) {
                 try {
-                    return schema.validate(i, options) as O
+                    return type.validate(i, options)
                 } catch (e) {
-                    errors.push(e as Error)
+                    errors.push(e)
                 }
             }
-
-            // TODO validationErrors need to support arrays and maps of errors
-            throw new Error(`Multiple Or Schema Errors: ${errors.map(e => e.message)}`)
-        }
-
-        super(isUnion)
-
+    
+            throw new AggregateError(errors)
+        })
+        
         this.types = types
     }
 }
-
 //// Exports ////
 
 export default IsUnion
 
 export {
     IsUnion,
-    IsUnionInput,
-    IsUnionFlatten
+    IsUnionInput
 }

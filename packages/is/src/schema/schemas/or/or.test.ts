@@ -1,6 +1,5 @@
 import { Or } from './or'
 import IsUnion from './is-union'
-import { IsEnum } from './is-enum'
 import { IsString, IsBoolean, IsNumber } from '../is-type'
 
 import { expectTypeOf } from 'expect-type'

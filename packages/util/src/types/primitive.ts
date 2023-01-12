@@ -22,12 +22,13 @@ export const isTruthy = (input: unknown): input is Truthy => !!input
 
 //// Primitive ////
 
-export type Primitive = string | number | boolean | bigint | null | undefined
+export type Primitive = string | number | boolean | bigint | symbol | null | undefined 
 export const isPrimitive = (i: unknown): i is Primitive => 
     isString(i) || 
     isNumber(i) || 
     isBoolean(i) || 
     isBigInt(i) || 
+    isSymbol(i) ||
     isNil(i)
 
 //// Symbol ////

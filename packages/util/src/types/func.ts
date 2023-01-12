@@ -13,13 +13,17 @@ export type TypeOf<F extends _TypeGuard | _TypeAssertion> =
         ? T 
         : unknown 
 
-export type TypesOf<F extends _TypeGuard[] | _TypeAssertion[]> = 
+type _TypeMethod = _TypeGuard | _TypeAssertion
+
+type _TypeMethods = _TypeMethod[] | readonly _TypeMethod[]
+
+export type TypesOf<F extends _TypeMethods> = 
     F extends [infer F1, ...infer Fr]
         ? F1 extends TypeGuard<infer T1> 
-            ? Fr extends _TypeGuard[] | _TypeAssertion[]
+            ? Fr extends _TypeMethods
                 ? [T1, ...TypesOf<Fr>]
                 : [T1]
-            : Fr extends _TypeGuard[] | _TypeAssertion[]
+            : Fr extends _TypeMethods
                 ? TypesOf<Fr>
                 : []
         : []

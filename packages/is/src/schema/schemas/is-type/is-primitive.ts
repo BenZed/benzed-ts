@@ -1,4 +1,4 @@
-import { Primitive } from '@benzed/util'
+import { Primitive, isPrimitive as _isPrimitive } from '@benzed/util'
 
 import IsType from './is-type'
 
@@ -8,7 +8,16 @@ import IsType from './is-type'
 
 //// Setup ////
 
-abstract class IsPrimitive<T extends Primitive> extends IsType<T> {}
+class IsPrimitive extends IsType<Primitive> {
+
+    constructor() {
+        super({
+            type: 'primitive',
+            is: _isPrimitive
+        })
+    }
+
+}
 
 //// Exports ////
 
@@ -17,3 +26,5 @@ export default IsPrimitive
 export {
     IsPrimitive
 }
+
+export const isPrimitive = new IsPrimitive

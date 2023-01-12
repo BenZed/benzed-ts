@@ -1,20 +1,28 @@
 import { PrivateState } from '../classes'
 import type { Func } from '../types'
 
+import { memoize, Memoized } from './memoize'
+
 //// Types ////
 
-interface Provided<F extends Func, C> { 
+interface Provider<F extends Func, C> { 
     (ctx: C): F
 }
 
 /**
- * Provide a memoized context to a method.
+ * Receive a function memoized by the given context and provider method.
  */
-function provide<F extends Func, C extends object>(ctx: C, provided: Provided<F,C>): F {
-    if (!PrivateState.has(ctx))
-        PrivateState.set(ctx, (...args: unknown[]) => provided(ctx)(...args))
+function provide<F extends Func, C>(ctx: C, provided: Provider<F,C>): F {
 
-    return PrivateState.get(ctx) as F
+    type P = Provider<F,C>
+
+    const providers: PrivateState<P, Memoized<P>> = PrivateState.for(provide)
+
+    if (!providers.has(provided)) 
+        providers.set(provided, memoize(provided))
+
+    const provider = providers.get(provided)
+    return provider(ctx)
 }
 
 //// Exports ////
@@ -23,5 +31,5 @@ export default provide
 
 export {
     provide,
-    Provided
+    Provider
 }
