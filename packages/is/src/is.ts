@@ -30,7 +30,7 @@ class Is extends chain.ChainableSchematicFactory<ResolveSchematic>
     defined = chain.isDefined
     primitive = chain.isPrimitive 
     record = chain.Record
-    array = chain.Array
+    array = chain.IsArray
     iterable = chain.Iterable
     map = chain.Map
     set = chain.Set

@@ -1,6 +1,6 @@
 export * from './is-instance'
-export * from './is-boolean'
 export * from './is-numeric'
+export * from './is-boolean'
 export * from './is-primitive'
 export * from './is-string'
 export * from './is-symbol'

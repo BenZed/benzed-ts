@@ -82,7 +82,7 @@ type OrSchematic<T extends OrSchematicInput> = _Or<T> extends infer S
         : never
     : never 
 
-interface ToOrSchematic<S extends AnySchematic> {
+interface ToOr<S extends AnySchematic> {
     <T extends Primitive>(value: T): OrSchematic<[S, IsValue<T>]>
     <T extends IsInstanceInput>(type: T): OrSchematic<[S, IsInstance<T>]>
     <T extends AnySchematic>(schema: T): OrSchematic<[S, T]>
@@ -93,7 +93,7 @@ interface ToOrSchematic<S extends AnySchematic> {
 
 class Or<S extends AnySchematic>
 
-    extends ChainableSchematicFactory<ToOrSchematic<S>> 
+    extends ChainableSchematicFactory<ToOr<S>> 
     implements ChainableFactory {
 
     static to<T extends OrSchematicInput>(...inputs: T): OrSchematic<T> {
