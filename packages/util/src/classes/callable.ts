@@ -56,13 +56,13 @@ interface Callable extends CallableConstructor {
 const Callable = class {
 
     static signatureOf(callable: Func): Func {
-        const { signature } = PrivateState.get(callable) as _SignatureTemplate
+        const { signature } = PrivateState.for(Callable).get(callable) as _SignatureTemplate
         return signature
     }
 
     static templateOf(callable: Func): object {
 
-        const { template } = PrivateState.get(callable) as _SignatureTemplate
+        const { template } = PrivateState.for(Callable).get(callable) as _SignatureTemplate
         return template
     }
 
@@ -82,7 +82,7 @@ const Callable = class {
 
         Property.transpose(signature, callable, [Object.prototype, Function.prototype])
         Property.transpose(template, callable, [Object.prototype, Function.prototype])
-        PrivateState.set(callable, { signature, template })
+        PrivateState.for(Callable).set(callable, { signature, template })
 
         return callable
     }

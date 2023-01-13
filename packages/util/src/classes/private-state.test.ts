@@ -15,10 +15,6 @@ test('should create a private state for a class', () => {
     expect(privateState.has(instance)).toBe(true)
 })
 
-test('should throw an error if the object is not an instance of the class', () => {
-    expect(() => privateState.set({} as TestClass, {})).toThrowError()
-})
-
 test('should get the private state of an object', () => {
     const object = new TestClass()
     privateState.set(object, { test: true })
@@ -29,7 +25,7 @@ test('should delete the private state of an object', () => {
     const object = new TestClass()
     privateState.set(object, {})
     privateState.delete(object)
-    expect(PrivateState.has(object)).toBe(false)
+    expect(privateState.has(object)).toBe(false)
 })
 
 test('should throw an error if trying to get the state of an object without state', () => {

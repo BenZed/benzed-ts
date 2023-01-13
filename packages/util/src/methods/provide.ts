@@ -12,17 +12,16 @@ interface Provider<F extends Func, C> {
 /**
  * Receive a function memoized by the given context and provider method.
  */
-function provide<F extends Func, C>(ctx: C, provided: Provider<F,C>): F {
+function provide<F extends Func, C>(ctx: C, provider: Provider<F,C>): F {
 
     type P = Provider<F,C>
 
-    const providers: PrivateState<P, Memoized<P>> = PrivateState.for(provide)
+    const memoProviders: PrivateState<P, Memoized<P>> = PrivateState.for(provide)
+    if (!memoProviders.has(provider)) 
+        memoProviders.set(provider, memoize(provider))
 
-    if (!providers.has(provided)) 
-        providers.set(provided, memoize(provided))
-
-    const provider = providers.get(provided)
-    return provider(ctx)
+    const memoProvider = memoProviders.get(provider)
+    return memoProvider(ctx)
 }
 
 //// Exports ////
