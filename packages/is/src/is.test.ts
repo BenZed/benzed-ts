@@ -2,10 +2,7 @@ import { Callable } from '@benzed/util'
 
 import { is } from './is'
 
-import { 
-    Schema
-} from './schema'
-
+import { Schema } from './schema'
 import * as chain from './schema/schemas/chain'
 
 import { expectTypeOf } from 'expect-type'

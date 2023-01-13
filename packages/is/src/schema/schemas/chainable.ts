@@ -15,68 +15,63 @@ import { type Or } from './or'
  
 const ChainableSchematicFactory = CallableStruct
 
-/**
- * @internal
- */
-interface ChainableSchematicFactoryInterface {
+interface ChainableJsonFactory {
 
-    get string(): unknown
-    get boolean(): unknown
-    get number(): unknown
+    get string(): AnySchematic
+    get boolean(): AnySchematic
+    get number(): AnySchematic
+    get integer(): AnySchematic
 
-    get integer(): unknown
-    get bigint(): unknown
-    get nan(): unknown
+    get null(): AnySchematic
+    get nil(): AnySchematic
 
-    get null(): unknown
-    get nil(): unknown
-    get undefined(): unknown
-    get defined(): unknown
-
-    get symbol(): unknown
-
-    get primitive(): unknown
-    get record(): unknown
-
-    get iterable(): unknown
-    get array(): unknown
-    get map(): unknown
-    get set(): unknown
-
-    get object(): unknown
-    get function(): unknown
-    
-    get promise(): unknown
-    get error(): unknown
-    get date(): unknown
-    get weakMap(): unknown
-    get weakSet(): unknown
-
-    // get json(): unknown 
-
-    // tuple<T extends IsTupleInput>(
-    //     ...types: T
-    // ): unknown
-
-    // shape<T extends IsShapeInput>(
-    //     shape: T
-    // ): unknown
-
-    typeOf<T extends TypeGuard<unknown>>(is: T): unknown
-
-    instanceOf<T extends IsInstanceInput>(
-        type: T
-    ): unknown
+    get record(): AnySchematic
+    get array(): AnySchematic
 
 }
 
 /**
  * @internal
  */
-interface ChainableSchematicInterface {
+interface ChainableFactory extends ChainableJsonFactory {
+
+    get bigint(): AnySchematic
+    get symbol(): AnySchematic
+    get defined(): AnySchematic
+    get primitive(): AnySchematic
+
+    get nan(): AnySchematic
+    get undefined(): AnySchematic
+
+    get iterable(): AnySchematic
+    get map(): AnySchematic
+    get set(): AnySchematic
+
+    get object(): AnySchematic
+    get function(): AnySchematic
+    
+    get promise(): AnySchematic
+    get error(): AnySchematic
+    get date(): AnySchematic
+    get weakMap(): AnySchematic
+    get weakSet(): AnySchematic
+
+    tuple<T extends IsTupleInput>(...types: T): IsTuple
+    shape<T extends IsShapeInput>(shape: T): IsShape<T>
+    instanceOf<T extends IsInstanceInput>(type: T): IsInstance<T>
+    typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): IsType<T>
+
+}
+
+/**
+ * @internal
+ */
+interface Chainable {
 
     get or(): Or<AnySchematic>
     // get and(): And<AnySchematic>
+    // get optional(): Optional<AnySchematic>
+    // get readonly(): Readonly<AnySchematic>
 
 }
 
@@ -104,7 +99,7 @@ const toOr = <T extends AnySchematic>(schematic: T): Or<T> => {
 
 //// For Container Schemas that should not have the SchemaBuilder interface ////
 
-abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchematicInterface {
+abstract class ChainableSchematic<T> extends Schematic<T> implements Chainable {
 
     get or(): Or<this> {
         return toOr(this)
@@ -128,7 +123,7 @@ abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSc
  * Schema for chaining schemas into unions or intersections, as well as
  * nesting flag schemas
  */
-abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchematicInterface {
+abstract class ChainableSchema<T> extends Schema<T> implements Chainable {
 
     get or(): Or<this> {
         return toOr(this)
@@ -156,6 +151,6 @@ export {
     ChainableSchema,
     ChainableSchematic,
     ChainableSchematicFactory,
-    ChainableSchematicFactoryInterface,
-    ChainableSchematicInterface
+    ChainableFactory,
+    Chainable
 }

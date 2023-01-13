@@ -1,4 +1,4 @@
-import { Primitive, asNil, isNil as _isNil } from '@benzed/util'
+import { asNil, isNil as _isNil, nil } from '@benzed/util'
 import { ChainableSchematic } from '../chainable'
 
 /* eslint-disable 
@@ -7,7 +7,7 @@ import { ChainableSchematic } from '../chainable'
 
 //// Setup ////
 
-class IsNil<T extends Primitive> extends ChainableSchematic<T> {
+class IsNil extends ChainableSchematic<nil> {
 
     constructor() {
         super({

@@ -1,4 +1,4 @@
-import { Primitive, isDefined as _isDefined } from '@benzed/util'
+import { Primitive, isDefined as _isDefined, nil } from '@benzed/util'
 import { ChainableSchematic } from '../chainable'
 
 /* eslint-disable 
@@ -7,7 +7,9 @@ import { ChainableSchematic } from '../chainable'
 
 //// Setup ////
 
-class IsDefined<T extends Primitive> extends ChainableSchematic<T> {
+type Defined = Exclude<Primitive, nil | null> | object
+
+class IsDefined extends ChainableSchematic<Defined> {
 
     constructor() {
         super({

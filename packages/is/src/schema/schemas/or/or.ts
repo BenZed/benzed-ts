@@ -1,5 +1,4 @@
-import { Primitive, provide, TypeGuard } from '@benzed/util'
-import { unique } from '@benzed/immutable'
+import { Primitive, TypeGuard } from '@benzed/util'
 
 import {
     IsBoolean, 
@@ -18,8 +17,8 @@ import {
 } from './is-union'
 
 import { 
+    ChainableFactory,
     ChainableSchematicFactory, 
-    ChainableSchematicFactoryInterface
 } from '../chainable'
 
 import Schematic, { 
@@ -95,7 +94,7 @@ interface ToOrSchematic<S extends AnySchematic> {
 class Or<S extends AnySchematic>
 
     extends ChainableSchematicFactory<ToOrSchematic<S>> 
-    implements ChainableSchematicFactoryInterface {
+    implements ChainableFactory {
 
     static to<T extends OrSchematicInput>(...inputs: T): OrSchematic<T> {
 

@@ -2,16 +2,17 @@
 import { IsType, ResolveSchematic, Schematic } from './schema'
 import * as chain from './schema/schemas/chain'
 
-import { isFunc, TypeGuard } from '@benzed/util'
 import { 
     TypeValidator, 
     TypeValidatorSettings
 } from './validator'
 
+import { isFunc, TypeGuard } from '@benzed/util'
+
 //// Main ////
 
 class Is extends chain.ChainableSchematicFactory<ResolveSchematic> 
-    implements chain.ChainableSchematicFactoryInterface {
+    implements chain.ChainableFactory {
 
     constructor() {
         super(Schematic.resolve)
@@ -40,7 +41,6 @@ class Is extends chain.ChainableSchematicFactory<ResolveSchematic>
     date = chain.isDate
     weakMap = chain.isWeakMap
     weakSet = chain.isWeakSet
-
     symbol = chain.isSymbol
 
     tuple<T extends chain.IsTupleInput>(...types: T): chain.IsTuple {
@@ -85,6 +85,6 @@ const is = new Is
 export default Is
 
 export {
-    Is,
-    is
+    is,
+    Is
 }

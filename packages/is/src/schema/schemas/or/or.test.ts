@@ -5,7 +5,7 @@ import { IsString, IsBoolean, IsNumber } from '../is-type'
 import { expectTypeOf } from 'expect-type'
 
 import { copy } from '@benzed/immutable'
-import { isString, TypeOf } from '@benzed/util'
+import { TypeOf } from '@benzed/util'
 import { isNaN, IsValue } from '../is-value'
 
 //// Data ////
@@ -19,7 +19,6 @@ const isBooleanOrStringOrNumber = isBooleanOrString.or.number
 it('type debugging', () => {
 
     const t2 = isBooleanOr(new IsString)
-
 })
 
 it('chain string or boolean example', () => {  
