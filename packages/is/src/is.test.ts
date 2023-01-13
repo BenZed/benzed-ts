@@ -1,17 +1,14 @@
 import { Callable } from '@benzed/util'
 
-import { Is } from './is'
+import { is } from './is'
 
 import { 
-    chain, 
     Schema
 } from './schema'
 
+import * as chain from './schema/schemas/chain'
+
 import { expectTypeOf } from 'expect-type'
-
-//// Setup ////
-
-const is = new Is() 
 
 //// Tests ////
 
@@ -27,16 +24,10 @@ test('number', () => {
     expect(is.number).toBeInstanceOf(chain.IsNumber)
 })
 
-test('enum()', () => {
-    expect(is.enum(-1, 0, 1)).toBeInstanceOf(chain.IsEnum)
-    expectTypeOf(is.enum(-1, 0, 1))
-        .toEqualTypeOf<chain.IsEnum<[-1,0,1]>>()
-})
-
 test('schema.from signature', () => {
-    expect(Callable.signatureOf(is)).toEqual(Schema.from)
-
-    expectTypeOf(is(0)).toEqualTypeOf<chain.IsEnum<[0]>>()
+    expect(Callable.signatureOf(is)).toEqual(Schema.resolve)
+    const isZero = is(0)
+    expectTypeOf(isZero).toEqualTypeOf<chain.IsValue<0>>()
 })
 
 //// Examples ////

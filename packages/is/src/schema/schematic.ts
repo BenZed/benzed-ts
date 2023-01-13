@@ -1,8 +1,8 @@
-import { CallableStruct } from '@benzed/immutable'
-import { TypeAssertion, TypeGuard } from '@benzed/util'
+import { CallableStruct, Struct } from '@benzed/immutable'
+import { isFunc, isPrimitive, Primitive, TypeAssertion, TypeGuard } from '@benzed/util'
 
 import { Validate, Validator, ValidatorSettings } from '../validator'
-import { schemaFrom } from './schema-from'
+import type { IsInstance, IsInstanceInput, IsValue, OrSchematic, OrSchematicInput } from './schemas'
 
 //// EsLint ////
 
@@ -11,7 +11,7 @@ import { schemaFrom } from './schema-from'
     @typescript-eslint/no-var-requires
 */
 
-//// Types ////
+//// Schematic Types ////
 
 interface SchematicMethods<O extends I, I = unknown> {
     is: TypeGuard<O, I>
@@ -19,10 +19,28 @@ interface SchematicMethods<O extends I, I = unknown> {
     validate: Validate<I, O>
 }
 
-/**
- * @internal
- */
 type AnySchematic = Schematic<any,any>
+
+//// ToSchematic Types ////
+
+type ToSchematicInput = Primitive | IsInstanceInput | AnySchematic // | IsShapeInput | IsTupleInput | IsTypeValidator
+type ToSchematic<T extends ToSchematicInput> = 
+    T extends Primitive 
+        ? IsValue<T>
+        : T extends IsInstanceInput 
+            ? IsInstance<T>
+            : T extends AnySchematic 
+                ? T 
+                : never
+
+//// ResolveSchematic ////
+
+interface ResolveSchematic {
+    <T extends Primitive>(value: T): IsValue<T>
+    <T extends IsInstanceInput>(type: T): IsInstance<T>
+    <T extends AnySchematic>(schema: T): T
+    <T extends OrSchematicInput>(...options: T): OrSchematic<T>
+}
 
 //// Main ////
 
@@ -31,8 +49,39 @@ class Schematic<
     I = unknown
 > extends CallableStruct<TypeGuard<O, I>> implements SchematicMethods<O,I> {
 
-    static get from(): typeof schemaFrom {
-        return require('./schema-from').schemaFrom
+    static is<Ox extends Ix, Ix = unknown>(input: unknown): input is Schematic<Ox,Ix> {
+        return isFunc<Schematic<Ox,Ix>>(input) &&
+            isFunc(input.is) &&
+            isFunc(input.assert) && 
+            isFunc(input.validate)
+    }
+
+    static resolve = ((...inputs: OrSchematicInput) => {
+        const schematics = inputs.map(Schematic.to) as AnySchematic[]
+        if (schematics.length === 0)
+            throw new Error('At least one input is required.')
+
+        const { Or } = require('./schemas/or') as typeof import('./schemas/or')
+        return Or.to(...schematics)
+    }) as ResolveSchematic
+   
+    static to<T extends ToSchematicInput>(input: T): ToSchematic<T> {
+
+        const { IsInstance } = require('./schemas/is-type/is-instance') as typeof import('./schemas/is-type/is-instance')
+        const { IsValue } = require('./schemas/is-value') as typeof import('./schemas/is-value')
+
+        const schema = isFunc(input)
+            ? Schematic.is(input) 
+                ? input
+                : new IsInstance(input)
+            : isPrimitive(input) 
+                ? new IsValue(input)
+                : input
+
+        if (!Schematic.is(schema))
+            throw new Error('Invalid input.')
+
+        return schema as ToSchematic<T>
     }
 
     constructor(validate: Validate<I,O>)
@@ -40,7 +89,7 @@ class Schematic<
     constructor(input: Validate<I,O> | Partial<ValidatorSettings<I,O>>) {
         super((i): i is O => this.is(i))
         this.validate = Validator.from(input)
-        this._bindSchematicMethods()
+        Struct.bindMethods(this as Schematic<unknown>, 'is', 'assert')
     }
 
     readonly validate: Validate<I, O>
@@ -62,17 +111,12 @@ class Schematic<
     
     override copy(): this {
         const clone = super.copy()
-        clone._bindSchematicMethods()
+        Struct.bindMethods(clone as Schematic<unknown>, 'is', 'assert')
         return clone
     }
 
     //// Helper ////
-    
-    private _bindSchematicMethods(): void {
-        const { is, assert } = Schematic.prototype
-        this.is = is.bind(this) 
-        this.assert = assert.bind(this)
-    }
+
 }
 
 //// Exports ////
@@ -82,5 +126,14 @@ export default Schematic
 export {
     Schematic,
     SchematicMethods,
-    AnySchematic
+
+    AnySchematic,
+
+    ToSchematicInput,
+    ToSchematic,
+
+    OrSchematic,
+    OrSchematicInput,
+
+    ResolveSchematic,
 }

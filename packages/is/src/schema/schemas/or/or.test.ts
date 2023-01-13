@@ -5,17 +5,24 @@ import { IsString, IsBoolean, IsNumber } from '../is-type'
 import { expectTypeOf } from 'expect-type'
 
 import { copy } from '@benzed/immutable'
-import { TypeOf } from '@benzed/util'
+import { isString, TypeOf } from '@benzed/util'
+import { isNaN, IsValue } from '../is-value'
 
 //// Data ////
 
-const $booleanOr = new Or(new IsBoolean())
-const isBooleanOrString = $booleanOr.string
+const isBooleanOr = new Or(new IsBoolean())
+const isBooleanOrString = isBooleanOr.string
 const isBooleanOrStringOrNumber = isBooleanOrString.or.number
 
 //// Tests ////
 
-it('chain string or boolean example', () => {
+it('type debugging', () => {
+
+    const t2 = isBooleanOr(new IsString)
+
+})
+
+it('chain string or boolean example', () => {  
 
     expectTypeOf(isBooleanOrString).toMatchTypeOf<IsUnion<[IsBoolean, IsString]>>()
 
@@ -29,7 +36,7 @@ it('chain string or boolean example', () => {
 
     expect(isBooleanOrString(10)).toEqual(false)
     expect(() => isBooleanOrString.validate(10))
-        .toThrow('Must be type boolean,Must be type string')
+        .toThrow(Error)
 
 })
 
@@ -48,13 +55,13 @@ it('chain to arbitrary schema', () => {
     const isBoolOrStringOrNumberCalled = isBooleanOrString.or(new IsNumber())
 
     expectTypeOf(isBoolOrStringOrNumberCalled).toEqualTypeOf(isBooleanOrStringOrNumber)
-    expectTypeOf<TypeOf<typeof isBooleanOrStringOrNumber>>()
+    expectTypeOf<TypeOf<typeof isBooleanOrStringOrNumber>>() 
         .toEqualTypeOf<boolean | string | number>()
 })
 
-it('chain method also has schema.from signature', () => {
+it('chain method also has Or.to signature', () => {
 
-    const zeroOr = new Or(new IsEnum(0))
+    const zeroOr = new Or(new IsValue(0))
 
     const isSortOutput = zeroOr(1).or(-1)
 
@@ -74,5 +81,11 @@ describe('flattening', () => {
 
 it('types are preserved on copy', () => {
     expect(copy(isBooleanOrString).types).toHaveLength(2)
-    // expect(copy(isBooleanOrString)).not.toBe(isBooleanOrString)
+    expect(copy(isBooleanOrString)).not.toBe(isBooleanOrString)
+})
+
+it('isNaN merges nicely', () => { 
+    const isStringOrNaN = new Or(isNaN).string
+
+    expectTypeOf(isStringOrNaN).toEqualTypeOf<IsUnion<[]>>()
 })

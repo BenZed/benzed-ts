@@ -8,5 +8,5 @@ test('isValue', () => {
     expect(isNull(null)).toBe(true)
     expect(isNull(1)).toBe(false)
     expect(isNull.validate(null)).toEqual(null)
-    expect(() => isNull.validate(10)).toThrow('must be null')
+    expect(() => isNull.validate(10)).toThrow('Must be null')
 })

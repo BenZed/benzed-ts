@@ -13,12 +13,12 @@ import { type Or } from './or'
 
 //// Main ////
  
-const ChainableSchemaFactory = CallableStruct
+const ChainableSchematicFactory = CallableStruct
 
 /**
  * @internal
  */
-interface ChainableSchemaFactoryInterface {
+interface ChainableSchematicFactoryInterface {
 
     get string(): unknown
     get boolean(): unknown
@@ -54,13 +54,13 @@ interface ChainableSchemaFactoryInterface {
 
     // get json(): unknown 
 
-    tuple<T extends IsTupleInput>(
-        ...types: T
-    ): unknown
+    // tuple<T extends IsTupleInput>(
+    //     ...types: T
+    // ): unknown
 
-    shape<T extends IsShapeInput>(
-        shape: T
-    ): unknown
+    // shape<T extends IsShapeInput>(
+    //     shape: T
+    // ): unknown
 
     typeOf<T extends TypeGuard<unknown>>(is: T): unknown
 
@@ -73,7 +73,7 @@ interface ChainableSchemaFactoryInterface {
 /**
  * @internal
  */
-interface ChainableSchemaInterface {
+interface ChainableSchematicInterface {
 
     get or(): Or<AnySchematic>
     // get and(): And<AnySchematic>
@@ -83,28 +83,28 @@ interface ChainableSchemaInterface {
 //// Helper ////
 
 const toOr = <T extends AnySchematic>(schematic: T): Or<T> => {
-    const _Or = require('./or').Or as typeof Or 
-    return new _Or(schematic)
+    const { Or } = require('./or') as typeof import('./or')
+    return new Or(schematic)
 }
 
 // const toAnd = <T extends AnySchematic>(schematic: T): And<T> => {
-//     const _And = require('./and').Or as typeof And 
-//     return new _And(schematic)
+//     const { And } = require('./and') as typeof import('./and')
+//     return new And(schematic)
 // }
 
 // const toOptional = <T extends AnySchematic>(schematic: T): Optional<T> => {
-//     const _Optional = require('./optional').Optional as typeof And 
-//     return new _Optional(schematic)
+//     const { Optional } = require('./optional') as typeof import('./optional')
+//     return new Optional(schematic)
 // }
 
 // const toReadOnly = <T extends AnySchematic>(schematic: T): ReadOnly<T> => {
-//     const _ReadOnly = require('./readonly').ReadOnly as typeof ReadOnly 
-//     return new _ReadOnly(schematic)
+//     const { ReadOnly } = require('./readonly') as typeof import('./readonly')
+//     return new ReadOnly(schematic)
 // }
 
 //// For Container Schemas that should not have the SchemaBuilder interface ////
 
-abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchemaInterface {
+abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSchematicInterface {
 
     get or(): Or<this> {
         return toOr(this)
@@ -114,12 +114,12 @@ abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSc
     //     return toAnd(this)
     // }
 
-    // get optional(): And<this> {
-    //     return toAnd(this)
+    // get optional(): Optional<this> {
+    //     return toOptional(this)
     // }
 
-    // get readonly(): And<this> {
-    //     return toAnd(this)
+    // get readonly(): Readonly<this> {
+    //     return toReadonly(this)
     // }
 
 }
@@ -128,7 +128,7 @@ abstract class ChainableSchematic<T> extends Schematic<T> implements ChainableSc
  * Schema for chaining schemas into unions or intersections, as well as
  * nesting flag schemas
  */
-abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchemaInterface {
+abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchematicInterface {
 
     get or(): Or<this> {
         return toOr(this)
@@ -138,12 +138,12 @@ abstract class ChainableSchema<T> extends Schema<T> implements ChainableSchemaIn
     //     return toAnd(this)
     // }
 
-    // get optional(): And<this> {
-    //     return toAnd(this)
+    // get optional(): Optional<this> {
+    //     return toOptional(this)
     // }
 
-    // get readonly(): And<this> {
-    //     return toAnd(this)
+    // get readonly(): Readonly<this> {
+    //     return toReadonly(this)
     // }
 
 }
@@ -155,7 +155,7 @@ export default ChainableSchema
 export {
     ChainableSchema,
     ChainableSchematic,
-    ChainableSchemaFactory,
-    ChainableSchemaFactoryInterface,
-    ChainableSchemaInterface
+    ChainableSchematicFactory,
+    ChainableSchematicFactoryInterface,
+    ChainableSchematicInterface
 }

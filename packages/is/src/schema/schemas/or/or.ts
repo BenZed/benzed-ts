@@ -1,4 +1,5 @@
-import { Primitive, TypeOf } from '@benzed/util'
+import { Primitive, provide, TypeGuard } from '@benzed/util'
+import { unique } from '@benzed/immutable'
 
 import {
     IsBoolean, 
@@ -6,7 +7,10 @@ import {
     IsString, 
 
     IsInstanceInput,
-    IsInstance
+    IsInstance,
+    isBoolean,
+    isString,
+    isNumber
 } from '../is-type'
 
 import { 
@@ -14,15 +18,17 @@ import {
 } from './is-union'
 
 import { 
-    ChainableSchemaFactory, ChainableSchemaFactoryInterface
-} from '../chainable-schema'
+    ChainableSchematicFactory, 
+    ChainableSchematicFactoryInterface
+} from '../chainable'
 
-import Schema from '../../schema'
-import { AnySchematic } from '../../schematic'
+import Schematic, { 
+    AnySchematic, 
+    ToSchematic, 
+    ToSchematicInput 
+} from '../../schematic'
+
 import { IsValue } from '../is-value'
-
-import { expectTypeOf, Extends } from 'expect-type'
-import { V2 } from '../../../../../math/src'
 
 //// Eslint ////
 
@@ -30,105 +36,118 @@ import { V2 } from '../../../../../math/src'
     @typescript-eslint/no-explicit-any,
 */
 
-//// Types ////
+//// Helper Types ////
 
-interface IsUnionFrom<S extends AnySchematic> {
-    <T extends IsInstanceInput>(type: T): ToUnion<[S, IsInstance<T>]>
-    <T extends ToUnionInput>(...options: T): ToUnion<[S, ...T]>
-    <T extends AnySchematic>(schema: T): ToUnion<[S, T]>
-    // tuple shortcut 
-    // shape shortcut
-}
-
-//// ToIsUnion ////
-
-type _Unique<T extends readonly unknown[], V extends Primitive> = T extends [infer T1, ...infer Tr]
+type _UniqueValues<T extends readonly unknown[], V extends Primitive> = T extends [infer T1, ...infer Tr]
     ? T1 extends V
         ? [T1, ...Tr]
         : Tr extends [] 
             ? [...T, V]
-            : [T1, ..._Unique<Tr, V>]
+            : [T1, ..._UniqueValues<Tr, V>]
     : [V]
-    type U0 = _Unique<[0,1,2,3,4],0>
-    type U1 = _Unique<[0,1,2,3,4],1>
-    type U2 = _Unique<[0,1,2,3,4],2>
-    type U3 = _Unique<[0,1,2,3,4],3>
-    type U4 = _Unique<[0,1,2,3,4],4>
-    type U5 = _Unique<[0,1,2,3,4],5>
 
-type _Merge<T extends readonly unknown[], V extends Primitive[] = []> = T extends [infer T1, ...infer Tr]
-    ? T1 extends IsUnion<infer Tx>
-        ? _Merge<[...Tx, ...Tr], V>
+type _FlattenSchematics<T extends readonly unknown[]> = T extends [infer T1, ...infer Tr]
+    ? T1 extends IsUnion<infer Tx>  
+        ? _FlattenSchematics<[...Tx, ...Tr]>
+        :[T1, ..._FlattenSchematics<Tr>]
+    : []
+
+type _MergeSchematics<T extends readonly unknown[], V extends Primitive[] = []> = T extends [infer T1, ...infer Tr]
+    ? Tr['length'] extends 0
+        ? T1 extends IsValue<infer Vx> 
+            ? _ResolveSchematics<_UniqueValues<V, Vx>>
+            : [T1, ..._ResolveSchematics<V>]
         : T1 extends IsValue<infer Vx> 
-            ? _Unique<V, Vx> extends true   
-                ? _Merge<[...Tr, IsValue<Vx>], [...V, Vx]>
-                : _Merge<Tr, V>
-            : [T1, ..._Merge<Tr, V>]
+            ? _MergeSchematics<Tr, _UniqueValues<V, Vx>>
+            : [T1, ..._MergeSchematics<Tr, V>]
     : []
 
-type ToUnion<T extends readonly unknown[]> = IsUnion<_Merge<T>>
-
-type TU1 = ToUnion<[IsUnion<[IsValue<0>, IsValue<1>]>, IsValue<2>]>
-expectTypeOf<TU1>().toMatchTypeOf<IsUnion<[IsValue<0>, IsValue<1>, IsValue<2>]>>()
-
-type TU2 = ToUnion<[IsUnion<[IsValue<0>, IsValue<1>]>, IsUnion<[IsValue<0>, IsValue<1>]>]>
-expectTypeOf<TU2>().toMatchTypeOf<IsUnion<[IsValue<0>, IsValue<1>]>>()
-
-type TU3 = ToUnion<[IsValue<0>, IsValue<1>]>
-
-type ToUnionInput = readonly (Primitive | AnySchematic)[]
-
-type _ToUnionTypes<I extends readonly unknown[]> = I extends [infer Ix, ...infer Ir]
-    ? Ix extends IsUnion<infer Tx>
-        ? [...Tx, ..._ToUnionTypes<Ir>]
-        : Ix extends Primitive 
-            ? [IsValue<Ix>, ..._ToUnionTypes<Ir>]
-            : [Ix, ..._ToUnionTypes<Ir>]
+type _ResolveSchematics<T extends readonly unknown[]> = T extends [infer T1, ...infer Tr]
+    ? T1 extends IsUnion<infer Tx> 
+        ? [...Tx, ..._ResolveSchematics<Tr>]
+        : T1 extends ToSchematicInput
+            ? [ToSchematic<T1>, ..._ResolveSchematics<Tr>]
+            : never
     : []
+
+type _Or<T extends OrSchematicInput> = _MergeSchematics<_FlattenSchematics<_ResolveSchematics<T>>>
+
+//// Types ////
+
+type OrSchematicInput = ToSchematicInput[] | readonly ToSchematicInput[]
+type OrSchematic<T extends OrSchematicInput> = _Or<T> extends infer S 
+    ? S extends AnySchematic[] 
+        ? S['length'] extends 1 
+            ? S[0]
+            : IsUnion<S>
+        : never
+    : never 
+
+interface ToOrSchematic<S extends AnySchematic> {
+    <T extends Primitive>(value: T): OrSchematic<[S, IsValue<T>]>
+    <T extends IsInstanceInput>(type: T): OrSchematic<[S, IsInstance<T>]>
+    <T extends AnySchematic>(schema: T): OrSchematic<[S, T]>
+    <T extends OrSchematicInput>(...options: T): OrSchematic<[S, ..._ResolveSchematics<T>]>
+}
 
 //// Or ////
 
-class Or<S extends AnySchematic> 
-    extends ChainableSchemaFactory<IsUnionFrom<S>> 
-    implements ChainableSchemaFactoryInterface {
+class Or<S extends AnySchematic>
+
+    extends ChainableSchematicFactory<ToOrSchematic<S>> 
+    implements ChainableSchematicFactoryInterface {
+
+    static to<T extends OrSchematicInput>(...inputs: T): OrSchematic<T> {
+
+        const outputs: AnySchematic[] = []
+
+        const isValueSchematic = IsValue[Symbol.hasInstance].bind(IsValue) as TypeGuard<IsValue<Primitive>>
+
+        const isUnique = (t1: AnySchematic): boolean => 
+            !isValueSchematic(t1) ||
+            !outputs.filter(isValueSchematic).some(t1.equals)
+
+        for (const input of inputs) {
+
+            const type = Schematic.to(input) as AnySchematic
+
+            const flattened = type instanceof IsUnion 
+                ? type.types as AnySchematic[] 
+                : [type]
+
+            const unique = flattened.filter(isUnique)
+
+            outputs.push(...unique)
+        }
+
+        const output = outputs.length === 1 ? outputs[0] : new IsUnion(...outputs)
+        return output as OrSchematic<T>
+    }
 
     constructor(readonly from: S) {
-        super((...args: Parameters<IsUnionFrom<S>>) => 
-            this._toUnion(Schema.from(...args)) as any
-        )
+        super((...args: OrSchematicInput) => Or.to(this.from, ...args))
     }
 
     //// Chain ////
     
-    get boolean(): ToUnion<[S, IsBoolean]> {
-        return this._toUnion(new IsBoolean)
+    get boolean(): OrSchematic<[S, IsBoolean]> {
+        return Or.to(this.from, isBoolean)
     }
 
-    get string(): ToUnion<[S, IsString]> {
-        return this._toUnion(new IsString)
+    get string(): OrSchematic<[S, IsString]> {
+        return Or.to(this.from, isString)
     }
 
-    get number(): ToUnion<[S, IsNumber]> {
-        return this._toUnion(new IsNumber)
+    get number(): OrSchematic<[S, IsNumber]> {
+        return Or.to(this.from, isNumber)
     }
 
     instanceOf<T extends IsInstanceInput>(
         type: T
-    ): ToUnion<[S, IsInstance<T>]> {
-        return this._toUnion(new IsInstance(type))
+    ): OrSchematic<[S, IsInstance<T>]> {
+        return Or.to(this.from, new IsInstance(type))
     }
 
-    //// Helper ////
-
-    private _toUnion<T extends AnySchematic[]>(...to: T): ToUnion<[S, ...T]> {
-
-        const types = [
-            ...IsUnion.flatten(this.from),
-            ...IsUnion.flatten(to)
-        ] as const
-
-        return new IsUnion(...types)
-    }
 }
 
 //// Exports ////
@@ -136,5 +155,7 @@ class Or<S extends AnySchematic>
 export default Or
 
 export {
-    Or
+    Or,
+    OrSchematic,
+    OrSchematicInput
 }

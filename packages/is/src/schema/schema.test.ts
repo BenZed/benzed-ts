@@ -7,7 +7,7 @@ import { expectTypeOf } from 'expect-type'
 
 //// Setup ////
 
-const isString = new Schema({ 
+const isString = new Schema({
     is: _isString, 
     error: 'must be type string' 
 })
@@ -79,20 +79,22 @@ describe('asserts()', () => {
         expect(() => isPassword.validate ('abcdefgh')).toThrow('must have a capital character.')
     })
 
-    it('is immutable', () => {
+    it('is immutable', () => { 
         expect(isPassword).not.toBe(isString)
     }) 
 
-})
+}) 
 
-describe('is()', () => {
-
+describe('is()', () => {  
+ 
     it('returns true if value is valid', () => {
         expect(isPassword.is('1234567A')).toBe(true)
     })
 
     it('returns false if value is not valid', () => {
-        expect(isLowerCaseString.is('Ace')).toBe(false)
+        isLowerCaseString.is = isLowerCaseString.constructor.prototype.is.bind(isLowerCaseString)
+        expect(isLowerCaseString.is('Ace')) 
+            .toBe(false)
     })
 
     it('is a type guard', () => {
@@ -102,7 +104,7 @@ describe('is()', () => {
     })
 
     it('is bound', () => {
-        expect(isString.is('string')).toBe(true)
+        expect(['string'].some(isString.is)).toBe(true)
     })
 
 })

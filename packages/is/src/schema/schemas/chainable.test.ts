@@ -1,7 +1,7 @@
 
 import { isNil } from '@benzed/util'
 import { ValidationError } from '../../validator'
-import { ChainableSchema } from './chainable-schema'
+import { ChainableSchema } from './chainable'
 import { Or } from './or'
 
 //// Setup ////

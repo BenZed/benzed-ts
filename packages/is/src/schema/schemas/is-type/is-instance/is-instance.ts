@@ -17,11 +17,15 @@ export type IsInstanceInput =
 class IsInstance<C extends IsInstanceInput> extends IsType<InstanceType<C>> {
 
     constructor(readonly Type: C) {
+
+        const isInstanceOf = (i: unknown): i is InstanceType<C> => 
+            i instanceof this.Type
+
         super({
             type: Type.name,
-            is: (i): i is InstanceType<C> => 
-                i instanceof Type
+            is: isInstanceOf
         })
+
     }
 
 }

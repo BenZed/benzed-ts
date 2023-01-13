@@ -1,16 +1,20 @@
 
-import { chain, Schema, SchemaFrom } from './schema'
+import { IsType, ResolveSchematic, Schematic } from './schema'
+import * as chain from './schema/schemas/chain'
 
-import { TypeGuard } from '@benzed/util'
-import { TypeValidatorSettings } from './validator'
+import { isFunc, TypeGuard } from '@benzed/util'
+import { 
+    TypeValidator, 
+    TypeValidatorSettings
+} from './validator'
 
 //// Main ////
 
-class Is extends chain.ChainableSchemaFactory<SchemaFrom> 
-    implements chain.ChainableSchemaFactoryInterface {
+class Is extends chain.ChainableSchematicFactory<ResolveSchematic> 
+    implements chain.ChainableSchematicFactoryInterface {
 
     constructor() {
-        super(Schema.from)
+        super(Schematic.resolve)
     }
 
     string = chain.isString
@@ -47,23 +51,34 @@ class Is extends chain.ChainableSchemaFactory<SchemaFrom>
         return new chain.IsShape(shape)
     }
 
-    enum<T extends chain.IsEnumInput>(...options: T): chain.IsEnum<T> {
-        return new chain.IsEnum(...options)
-    }
-
     instanceOf<T extends chain.IsInstanceInput>(type: T): chain.IsInstance<T> {
         return new chain.IsInstance(type)
     }
 
-    typeOf<T extends TypeGuard<unknown> | TypeValidatorSettings<unknown>>(is: T): chain.IsType<T> {
-        return new chain.IsType({ is })
+    typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): chain.IsType<T> {
+
+        if (of instanceof IsType)
+            return of
+
+        const settings = isFunc<TypeGuard<T>>(of)
+            ? of instanceof TypeValidator<T>
+                ? of
+                : { 
+                    is: of, 
+                    type: of
+                        .name
+                        .replace(/^is/, '') || 'unknown' 
+                }
+            : of
+
+        return new chain.IsType(settings)
     }
 
 }
 
 //// Default ////
 
-const is = new Is()
+const is = new Is
 
 //// Exports ////
 

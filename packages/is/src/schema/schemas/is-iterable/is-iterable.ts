@@ -1,4 +1,4 @@
-import ChainableSchema from '../chainable-schema'
+import ChainableSchema from '../chainable'
 
 //// Exports ////
 

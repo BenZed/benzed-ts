@@ -11,7 +11,7 @@ import {
     TypeValidatorDefault 
 } from '../../../validator/validators'
 
-import ChainableSchema from '../chainable-schema'
+import ChainableSchema from '../chainable'
 
 //// Types ////
 

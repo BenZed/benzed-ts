@@ -2,7 +2,7 @@ import { TypesOf } from '@benzed/util'
 
 import { AnySchematic } from '../../schematic'
 
-import { ChainableSchematic } from '../chainable-schema'
+import { ChainableSchematic } from '../chainable'
 
 //// Eslint ////
 
@@ -13,7 +13,6 @@ import { ChainableSchematic } from '../chainable-schema'
 //// Types ////
 
 type IsUnionInput = readonly AnySchematic[]
-
 type IsUnionOutput<T extends IsUnionInput> = TypesOf<T>[number]
 
 //// IsUnion ////
@@ -42,7 +41,7 @@ class IsUnion<T extends IsUnionInput> extends ChainableSchematic<IsUnionOutput<T
                     errors.push(e)
                 }
             }
-    
+
             throw new AggregateError(errors)
         })
         
