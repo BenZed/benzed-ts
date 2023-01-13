@@ -17,5 +17,4 @@ test('isNil', () => {
     expect(isNil.validate(nil)).toEqual(nil)
     expect(() => isNil.validate(10))
         .toThrow('Must be nil')
-
 })
