@@ -1,26 +1,51 @@
 import { PrivateState } from '../classes'
-import type { Func } from '../types'
+import { Func, isObject } from '../types'
 
 import { memoize, Memoized } from './memoize'
 
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
+
 //// Types ////
 
-interface Provider<F extends Func, C> { 
+interface Provider<F extends Func = Func, C = unknown> { 
     (ctx: C): F
 }
 
-/**
- * Receive a function memoized by the given context and provider method.
- */
-function provide<F extends Func, C>(ctx: C, provider: Provider<F,C>): F {
+type Provided<P extends Provider> = P extends Provider<infer F, unknown> ? F : Func
 
-    type P = Provider<F,C>
+//// Helper ////
 
-    const memoProviders: PrivateState<P, Memoized<P>> = PrivateState.for(provide)
-    if (!memoProviders.has(provider)) 
-        memoProviders.set(provider, memoize(provider))
+function getMemoizedProvider<P extends Provider<Func, any>>(provider: P, key: object = provider): Provided<P> {
 
+    const memoProviders: PrivateState<object, Memoized<Provider>> = PrivateState.for(provide)
+    if (!memoProviders.has(key)) 
+        memoProviders.set(key, memoize(provider))
+        
     const memoProvider = memoProviders.get(provider)
+    return memoProvider as Provided<P>
+}
+
+//// Main ////
+
+function provide<P extends Provider>(provider: P): Provided<P>
+function provide<F extends Func, C extends object>(ctx: C, provider: Provider<F,C>): F 
+function provide(...args: [Provider] | [unknown, Provider]): Func {
+
+    const isWithContextSignature = args.length === 2
+    if (!isWithContextSignature) {
+        const [ provider ] = args
+        return getMemoizedProvider(provider)
+    }
+
+    const [ ctx, provider ] = args
+    if (!isObject(ctx))
+        throw new Error('Providing by context requires the contex to be an object.')
+
+    const memoProvider = getMemoizedProvider(provider, ctx)
     return memoProvider(ctx)
 }
 
