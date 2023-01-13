@@ -1,24 +1,96 @@
-import { Callable, Func } from '@benzed/util'
+import { Callable, Func, isFunc, Property } from '@benzed/util'
 
 import { ValueCopy, $$copy } from './copy'
 
 import equals, { $$equals, ValueEqual } from './equals'
 
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
+//// Helper ////
+
+type MethodNames<S> = keyof {
+    [K in keyof S as S[K] extends Func ? K : never]: unknown
+}
+
+//// Helper Methods ////
+
+function copy<S extends Struct>(input: S): S {
+    const state = Object.getOwnPropertyDescriptors({ ...input })
+    const output = Object.create(input, state) as Struct
+    return output as S
+}
+
+function initialize<S extends Struct>(input: S, signature?: Func): S {
+    const output = signature  
+        ? Callable.create(signature, input)
+        : input 
+
+    return Struct.bindMethods(output as Struct, 'equals', 'copy') as S    
+}
+
 //// StructBase ////
 
 abstract class Struct implements ValueCopy, ValueEqual {
+
+    /**
+     * Bind to a given struct the given methods keys that correspond to method keys on the struct's prototype.
+     * Binds all methods if method keys are not provided.
+     */
+    static bindMethods<S extends Struct, N extends MethodNames<S>[]>(struct: S, ...methodNames: N): S {
+
+        const protos = Property.prototypesOf(
+            struct.constructor.prototype, 
+            [Object.prototype, Function.prototype]
+        ) as any[]
+        protos.push(struct.constructor.prototype)
+        protos.reverse()
+    
+        // Get all method names by default
+
+        for (const methodName of methodNames) {
+
+            const proto = protos.find(proto => isFunc(proto[methodName]))
+            const method = proto?.[methodName]
+
+            if (!isFunc(method))
+                throw new Error(`${String(methodName)} is an invalid method key.`)
+
+            Property.define(
+                struct, 
+                methodName, 
+                {
+                    value: method.bind(struct),
+                    enumerable: false,
+                    writable: true,
+                    configurable: true
+                }
+            )
+        }
+
+        return struct
+    }
 
     static [Symbol.hasInstance](input: unknown): boolean {
         // So that Structs are also instances of CallableStructs
         return Callable[Symbol.hasInstance].call(this, input)
     }
 
+    //// Constructor ////
+    
+    constructor() {
+        // TODO perhaps we should add an argument to allow
+        // all methods to be bound
+        return initialize(this)
+    }
+
     //// Copyable ////
 
     copy(): this {
-        const state = Object.getOwnPropertyDescriptors({ ...this })
-        const struct = Object.create(this, state)
-        return struct
+        return initialize(copy(this))
     }
 
     [$$copy](): this {
@@ -53,12 +125,13 @@ const CallableStruct = class extends Struct {
 
     constructor(signature: Func) {
         super()
-        return Callable.create(signature, this)
+        return initialize(this, signature)
     }
 
     override copy(): this {
+        const struct = copy(this)
         const signature = Callable.signatureOf(this as unknown as Func)
-        return Callable.create(signature, this) as this
+        return initialize(struct, signature)
     }
 
 } as CallableStruct
