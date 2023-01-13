@@ -17,10 +17,11 @@ import {
 import ToUnion from './schematic'
 
 //// EsLint ////
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
 
+/* eslint-disable
+    @typescript-eslint/no-explicit-any,
 */
+
 //// Types ////
 
 type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
