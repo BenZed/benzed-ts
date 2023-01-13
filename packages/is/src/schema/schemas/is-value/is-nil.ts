@@ -13,7 +13,7 @@ class IsNil<T extends Primitive> extends ChainableSchematic<T> {
         super({
             is: _isNil,
             transform: asNil,
-            error: () => 'Must be nil'
+            error: 'Must be nil'
         })
     }
 }

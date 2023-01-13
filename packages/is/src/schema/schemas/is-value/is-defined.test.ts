@@ -15,7 +15,5 @@ test('isNil', () => {
     expect(isNil.validate(NaN)).toEqual(nil)
     expect(isNil.validate(null)).toEqual(nil)
     expect(isNil.validate(nil)).toEqual(nil)
-    expect(() => isNil.validate(10))
-        .toThrow('Must be nil')
-
+    expect(() => isNil.validate(10)).toThrow('Must be nil')
 })
