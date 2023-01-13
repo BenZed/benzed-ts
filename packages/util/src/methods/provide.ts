@@ -25,7 +25,7 @@ function getMemoizedProvider<P extends Provider<Func, any>>(provider: P, key: ob
     if (!memoProviders.has(key)) 
         memoProviders.set(key, memoize(provider))
         
-    const memoProvider = memoProviders.get(provider)
+    const memoProvider = memoProviders.get(key)
     return memoProvider as Provided<P>
 }
 

@@ -4,7 +4,7 @@ import { provide } from './provide'
 it('provides a context to a function', () => { 
 
     const f = provide({ by: 5 }, ctx => (i: number) => i * ctx.by)
-
+ 
     expect(f(2)).toEqual(10)
 })
 
@@ -20,7 +20,7 @@ it('is memoized', () => {
     expect(push1).toBe(push2)
     push1(1)
     push2(2)
-
+ 
     expect(state).toEqual([1,2])
 
     const push3 = provide([], providePush)
