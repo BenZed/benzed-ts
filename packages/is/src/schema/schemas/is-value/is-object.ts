@@ -1,9 +1,9 @@
 import { isFunc, isObject as _isObject } from '@benzed/util'
-import { ChainableSchematic } from '../chainable'
+import { ChainableSchema } from '../chainable'
 
 //// Exports ////
 
-class IsObject extends ChainableSchematic<object> {
+class IsObject extends ChainableSchema<object> {
 
     constructor() {
         super({

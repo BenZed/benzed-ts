@@ -1,5 +1,5 @@
 import { Primitive, isDefined as _isDefined, nil } from '@benzed/util'
-import { ChainableSchematic } from '../chainable'
+import { ChainableSchema } from '../chainable'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -9,7 +9,7 @@ import { ChainableSchematic } from '../chainable'
 
 type Defined = Exclude<Primitive, nil | null> | object
 
-class IsDefined extends ChainableSchematic<Defined> {
+class IsDefined extends ChainableSchema<Defined> {
 
     constructor() {
         super({

@@ -1,3 +1,4 @@
+import { isFunc, TypeGuard } from '@benzed/util'
 
 import { IsType, ResolveSchematic, Schematic } from './schema'
 import * as chain from './schema/schemas/chain'
@@ -6,8 +7,6 @@ import {
     TypeValidator, 
     TypeValidatorSettings
 } from './validator'
-
-import { isFunc, TypeGuard } from '@benzed/util'
 
 //// Main ////
 
@@ -29,11 +28,11 @@ class Is extends chain.ChainableSchematicFactory<ResolveSchematic>
     undefined = chain.isUndefined
     defined = chain.isDefined
     primitive = chain.isPrimitive 
-    record = chain.Record
-    array = chain.IsArray
-    iterable = chain.Iterable
-    map = chain.Map
-    set = chain.Set
+    record = chain.isRecord
+    array = chain.isArray
+    iterable = chain.isIterable
+    map = chain.isMap
+    set = chain.isSet
     object = chain.isObject
     function = chain.isFunction
     promise = chain.isPromise
@@ -70,7 +69,6 @@ class Is extends chain.ChainableSchematicFactory<ResolveSchematic>
                         .replace(/^is/, '') || 'unknown' 
                 }
             : of
-
         return new chain.IsType(settings)
     }
 

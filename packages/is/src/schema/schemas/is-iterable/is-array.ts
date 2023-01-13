@@ -16,7 +16,6 @@ class IsArrayOf<T extends IsArrayInput> extends IsType<unknown> {
             is: (i: unknown): i is TypeOf<T> => _isArray(i, this.item)
         })
     }
-
 }
 
 class IsArray extends IsArrayOf<TypeGuard<unknown>> {
