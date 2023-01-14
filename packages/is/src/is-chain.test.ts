@@ -1,9 +1,9 @@
 
-import { isString } from '@benzed/util'
+import {isString } from '@benzed/util'
 import { test } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
 
-import { IS, Is, Or, Str, Bool } from './is-chain'
+import { IS, Is, Or, Str, Bool, Shape, Num, Readonly } from './is-chain'
 
 //// Tests ////
 
@@ -42,7 +42,7 @@ test.skip('is.boolean.or.string', () => {
 
 })
 
-test.skip('is(is.string.or.boolean).or(is.string.or.number)', () => {
+test.skip('isSingleCharOrDoubleCharOrNegativeNumber', () => {
 
     const isSingleCharOrDoubleCharOrNegativeNumber = is
         .string.length('==', 1)
@@ -51,4 +51,14 @@ test.skip('is(is.string.or.boolean).or(is.string.or.number)', () => {
 
     expectTypeOf(isSingleCharOrDoubleCharOrNegativeNumber).toEqualTypeOf<Is<Or<[Str, Bool]>>>()
 
+})
+
+test.skip('is.shape', () => {
+
+    const isVector = is.shape({
+        x: is.number.readonly,
+        y: is.number.readonly
+    })
+
+    expectTypeOf(isVector).toEqualTypeOf<Is<Shape<{ x: Readonly<Num>, y: Readonly<Num> }>>>()
 })

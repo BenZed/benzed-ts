@@ -86,6 +86,8 @@ type _Fill<A,B> = {
 type _IsUnwrap<T extends AnySchematic> = 
     T extends Is<infer Tx> ? Tx : T
 
+//// Is ////
+
 type _InheritIs<T> = T extends AnySchematic 
     ? Is<T> 
     : T extends Func
@@ -93,9 +95,6 @@ type _InheritIs<T> = T extends AnySchematic
             ? (...params: Parameters<T>) => Is<ReturnType<T>>
             : T
         : T
-
-//// Is ////
-
 export type Is<T extends AnySchematic> = 
     Schematic<TypeOf<T>> 
     & _Fill<{
@@ -115,7 +114,6 @@ type _InheritOr<S, T extends AnySchematic[]> = S extends AnySchematic
             ? (...params: Parameters<S>) => Or<T>
             : S
         : S
-
 export type Or<T extends AnySchematic[]> = Schematic<TypesOf<T>[number]> & {
     [K in keyof Last<T>]: _InheritOr<Last<T>[K], T>
 } & {
@@ -131,7 +129,6 @@ type _InheritOptional<T> = T extends AnySchematic
             ? (...params: Parameters<T>) => Optional<ReturnType<T>>
             : T
         : T
-
 export type Optional<T extends AnySchematic> = Schematic<TypeOf<T> | nil> & {
     [K in keyof T]: _InheritOptional<T[K]>
 } & {
@@ -146,7 +143,6 @@ type _InheritReadonly<T> = T extends AnySchematic
             ? (...params: Parameters<T>) => Optional<ReturnType<T>>
             : T
         : T
-
 export type Readonly<T extends AnySchematic> = Schematic<TypeOf<T>> & {
     [K in keyof T]: _InheritReadonly<T[K]>
 } & {
