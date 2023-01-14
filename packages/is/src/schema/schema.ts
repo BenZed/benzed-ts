@@ -33,7 +33,8 @@ type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
  */
 type AnySchema = Schema<any>
 
-class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknown>> {
+class Schema<T = unknown> extends ToUnion<T> 
+    implements Iterable<Validate<unknown>> {
     
     //// Main ////
     
@@ -42,10 +43,11 @@ class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknow
     }
 
     validates(
-        input: Validate<T> | Partial<ValidatorSettings<T>>
+        ...input: (Validate<T> | Partial<ValidatorSettings<T>>)[]
     ): this {
 
-        const validate = Validator.from(input)
+        const validate = Validator.from(...input)
+
         return 'id' in validate && (isString(validate.id) || isSymbol(validate.id))
             ? this._setValidatorById(validate.id, () => validate)
             : this._addValidator(validate)
@@ -56,7 +58,11 @@ class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknow
         error?: string | ValidationErrorMessage<T>,
         id?: string | symbol
     ): this {
-        return this.validates({ is: isValid, error, id })
+        return this.validates({ 
+            is: isValid, 
+            error, 
+            id 
+        })
     }
 
     transforms(
@@ -64,7 +70,11 @@ class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknow
         error?: string | ValidationErrorMessage<T>,
         id?: string | symbol
     ): this {
-        return this.validates({ transform, error, id })
+        return this.validates({ 
+            transform, 
+            error, 
+            id 
+        })
     }
 
     //// Helper ////

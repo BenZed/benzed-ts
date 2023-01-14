@@ -2,14 +2,16 @@
 import {
     ContextTransform,
     isFunc, 
+    isString, 
+    nil, 
     Pipe,
     Property,
-    through as noTransform
 } from '@benzed/util'
-import { equals, CallableStruct } from '@benzed/immutable'
 
+import { equals, CallableStruct } from '@benzed/immutable'
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
+import { capitalize } from '@benzed/string'
 
 //// Shorcuts ////
 
@@ -45,6 +47,8 @@ interface ValidatorSettings<I, O extends I = I> {
 const isTransformEqual = <I>(input: I, ctx: ValidatorContext<I>): boolean => 
     equals(input, ctx.transformed)
 
+const noTransform = <I>(input: I): I => input
+
 //// Main ////
 
 class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
@@ -55,8 +59,19 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
         const validator = validators.length === 1 
             ? validators[0] 
             : Pipe.from(...validators)
-    
-        return Property.name(validator, 'validate') as Validate<Ix,Ox>
+
+        const [first] = input
+
+        // use name or id of the first input as the validator name
+        const name = first && (
+            'name' in first && first.name
+                ? first.name
+                : 'id' in first && isString(first.id) && first.id 
+                    ? first.id 
+                    : nil
+        ) || 'validate'
+
+        return Property.name(validator, name) as Validate<Ix,Ox>
     }
 
     is: ValidatorTypeGuard<I,O>
@@ -72,8 +87,10 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
 
         super((i, options): O => this.validate(i, options))
 
-        this.is = is as ValidatorTypeGuard<I,O>
-        this.transform = transform
+        const name = isString(id) ? id : 'valid'
+
+        this.is = Property.name(is, is.name || `is${capitalize(name)}`) as ValidatorTypeGuard<I,O>
+        this.transform = Property.name(transform, transform.name || `to${capitalize(name)}`)
         this.error = error
         
         assign(this, { id })
@@ -81,7 +98,12 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
 
     validate(input: I, options?: ValidateOptions): O {
 
-        const ctx: ValidatorContext<I> = { transform: true, path: [], input, ...options }
+        const ctx: ValidatorContext<I> = { 
+            transform: true, 
+            path: [], 
+            input,
+            ...options 
+        }
 
         ctx.transformed = this.transform(ctx.input, ctx)
 

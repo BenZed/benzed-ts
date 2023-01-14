@@ -87,6 +87,11 @@ const toOr = <T extends AnySchematic>(schematic: T): Or<T> => {
 //     return new And(schematic)
 // }
 
+// const toOf = <T extends AnySchematic>(schematic: T): Of<T> => {
+//     const { Of } = require('./of') as typeof import('./of')
+//     return new Of(schematic)
+// }
+
 // const toOptional = <T extends AnySchematic>(schematic: T): Optional<T> => {
 //     const { Optional } = require('./optional') as typeof import('./optional')
 //     return new Optional(schematic)

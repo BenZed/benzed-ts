@@ -1,4 +1,5 @@
-import { nil } from '@benzed/util'
+import { capitalize } from '@benzed/string'
+import { nil, Property } from '@benzed/util'
 
 import Validator, { ValidatorContext, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from '../validator'
 //// Types ////
@@ -76,8 +77,16 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
         }
 
         this.type = type
-        this.cast = cast
-        this.default = toDefault
+
+        this.cast = cast && Property.name(
+            cast,
+            cast.name && cast.name !== 'cast' ? cast.name : `castTo${capitalize(type)}`
+        )
+
+        this.default = toDefault && Property.name(
+            toDefault, 
+            toDefault.name && toDefault.name !== 'default' ? toDefault.name : `toDefault${capitalize(type)}`
+        )
         this.transform = applyDefaultAndCast
     }
 }

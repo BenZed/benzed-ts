@@ -9,7 +9,7 @@ import {
     IsInstance,
     isBoolean,
     isString,
-    isNumber
+    isNumber,
 } from '../is-type'
 
 import { 
@@ -28,6 +28,7 @@ import Schematic, {
 } from '../../schematic'
 
 import { IsValue } from '../is-value'
+import { isArray, IsArray } from '../is-iterable'
 
 //// Eslint ////
 
@@ -139,6 +140,10 @@ class Or<S extends AnySchematic>
 
     get number(): OrSchematic<[S, IsNumber]> {
         return Or.to(this.from, isNumber)
+    }
+
+    get array(): OrSchematic<[S, IsArray]> {
+        return Or.to(this.from, isArray)
     }
 
     instanceOf<T extends IsInstanceInput>(

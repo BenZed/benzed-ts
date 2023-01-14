@@ -16,7 +16,7 @@ import type { IsInstance, IsInstanceInput, IsValue, OrSchematic, OrSchematicInpu
 interface SchematicMethods<O extends I, I = unknown> {
     is: TypeGuard<O, I>
     assert: TypeAssertion<O, I>
-    validate: Validate<I, O>
+    validate: Validate<I, O> 
 }
 
 type AnySchematic = Schematic<any,any>
@@ -52,7 +52,7 @@ class Schematic<
     static is<Ox extends Ix, Ix = unknown>(input: unknown): input is Schematic<Ox,Ix> {
         return isFunc<Schematic<Ox,Ix>>(input) &&
             isFunc(input.is) &&
-            isFunc(input.assert) && 
+            isFunc(input.assert) &&
             isFunc(input.validate)
     }
 
@@ -87,7 +87,11 @@ class Schematic<
     constructor(validate: Validate<I,O>)
     constructor(settings: Partial<ValidatorSettings<I,O>>)
     constructor(input: Validate<I,O> | Partial<ValidatorSettings<I,O>>) {
-        super((i): i is O => this.is(i))
+
+        super(function (this: Schematic<O>, i): i is O {
+            return this.is(i)
+        })
+
         this.validate = Validator.from(input)
         Struct.bindMethods(this as Schematic<unknown>, 'is', 'assert')
     }
@@ -109,7 +113,7 @@ class Schematic<
 
     //// Copy ////
     
-    override copy(): this {
+    override copy(): this { 
         const clone = super.copy()
         Struct.bindMethods(clone as Schematic<unknown>, 'is', 'assert')
         return clone

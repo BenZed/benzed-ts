@@ -1,4 +1,4 @@
-import { Callable, Func, isFunc, Property } from '@benzed/util'
+import { Callable, CallableContextProvider, Func, isFunc, Property, Provider } from '@benzed/util'
 
 import { ValueCopy, $$copy } from './copy'
 
@@ -24,12 +24,12 @@ function copy<S extends Struct>(input: S): S {
     return output as S
 }
 
-function initialize<S extends Struct>(input: S, signature?: Func): S {
+function initialize<S extends Struct>(input: S, signature?: Func, provider?: CallableContextProvider<Func>): S {
     const output = signature  
-        ? Callable.create(signature, input)
+        ? Callable.create(signature, input, provider)
         : input 
 
-    return Struct.bindMethods(output as Struct, 'equals', 'copy') as S    
+    return Struct.bindMethods(output as Struct, 'equals', 'copy') as S
 }
 
 //// StructBase ////
@@ -119,19 +119,22 @@ abstract class Struct implements ValueCopy, ValueEqual {
 
 //// CallableStruct ////
 
-type CallableStruct = abstract new <F extends Func>(f: F) => F & Struct
+type CallableStruct = abstract new <F extends Func>(signature: F, ctxProvider?: CallableContextProvider<F>) => F & Struct
 
 const CallableStruct = class extends Struct {
 
-    constructor(signature: Func) {
+    constructor(signature: Func, ctxProvider?: CallableContextProvider<Func>) {
         super()
-        return initialize(this, signature)
+        return initialize(this, signature, ctxProvider)
     }
 
     override copy(): this {
         const struct = copy(this)
-        const signature = Callable.signatureOf(this as unknown as Func)
-        return initialize(struct, signature)
+
+        const callable = this as unknown as Func
+        const callableSignature = Callable.signatureOf(callable)
+        const callableCtxProvider = Callable.contextProviderOf(callable)
+        return initialize(struct, callableSignature, callableCtxProvider)
     }
 
 } as CallableStruct

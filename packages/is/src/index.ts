@@ -6,4 +6,4 @@ export * from './validator'
 
 //// Exports ////
 
-export { TypeOf as InferType, TypesOf as InferTypes } from '@benzed/util'
+export { TypeOf as InferType, TypesOf as InferTypes } from '@benzed/util'  

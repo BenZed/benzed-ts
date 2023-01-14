@@ -1,8 +1,12 @@
+import { Last } from '@benzed/array/src'
 import { TypesOf } from '@benzed/util'
 
 import { AnySchematic } from '../../schematic'
 
 import { ChainableSchematic } from '../chainable'
+import { ArrayOf, IsArray, IsArrayOf } from '../is-iterable'
+import { IsString } from '../is-type'
+import Or, { OrSchematic } from './or'
 
 //// Eslint ////
 
@@ -47,7 +51,9 @@ class IsUnion<T extends IsUnionInput> extends ChainableSchematic<IsUnionOutput<T
         
         this.types = types
     }
+
 }
+
 //// Exports ////
 
 export default IsUnion
