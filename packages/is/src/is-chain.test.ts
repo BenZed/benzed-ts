@@ -1,5 +1,5 @@
 
-import {isString } from '@benzed/util'
+import { isString, TypeOf } from '@benzed/util'
 import { test } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
 
@@ -12,11 +12,17 @@ const string = isString as Str
 
 test.skip('is(string)', () => {
     const isStr = is(string)
+    expect(isStr('str')).toBe(true)
+    expect(isStr(0)).toBe(false)
+    expectTypeOf(isStr.validate('str')).toEqualTypeOf('str')
     expectTypeOf(isStr).toEqualTypeOf<Is<Str>>()
 })
 
 test.skip('is.string', () => {
     const isStr = is.string
+    expect(isStr('str')).toBe(true)
+    expect(isStr(0)).toBe(false)
+    expectTypeOf(isStr.validate('str')).toEqualTypeOf('str')
     expectTypeOf(isStr).toEqualTypeOf<Is<Str>>()
 
     // Inherits getters
@@ -30,6 +36,11 @@ test.skip('is.string', () => {
 
 test.skip('is.boolean.or.string', () => {
     const isStrOrBool = is.boolean.or.string
+
+    expect(isStrOrBool('str')).toEqual(true)
+    expect(isStrOrBool(true)).toEqual(true)
+    expect(isStrOrBool(0)).toEqual(false)
+    expectTypeOf(isStrOrBool.validate(true)).toEqualTypeOf<string | boolean>()
     expectTypeOf(isStrOrBool).toEqualTypeOf<Is<Or<[Bool, Str]>>>()
 
     // Inherits last getters
@@ -61,4 +72,8 @@ test.skip('is.shape', () => {
     })
 
     expectTypeOf(isVector).toEqualTypeOf<Is<Shape<{ x: Readonly<Num>, y: Readonly<Num> }>>>()
+})
+
+test.skip('is.string.optional', () => {
+    const isOptionalString = is.string.optional
 })
