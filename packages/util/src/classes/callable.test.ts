@@ -2,7 +2,7 @@ import { expectTypeOf } from 'expect-type'
 import { toVoid } from '../methods'
 import provide from '../methods/provide'
 import { Falsy, Func } from '../types'
-import { Callable } from './callable'
+import { Callable, CallableContextProvider } from './callable'
 
 it('is abstract', () => {
     // @ts-expect-error Abstract
@@ -278,11 +278,13 @@ describe('this context', () => {
             constructor(private readonly _words: string) {
                 super(function (this: Shout) {
                     return `${this?._words ?? this ?? ''}!`
-                })
+                },
+                (ctx, callable) => ctx ?? callable
+                )
             }
         }
 
-        const shout = new Shout('hello')
+        const shout = new Shout('hello', )
 
         expect(shout()).toEqual('hello!')
         expect(shout.call('sup')).toEqual('sup!')
@@ -371,13 +373,13 @@ describe('Callable.create on generic objects', () => {
 
     it('creating a callable of a callable', () => {
 
-        const foo = Callable.create(function () {
+        const foo = Callable.create(function getKeys() {
             return Object.keys(this)
         }, {
             foo: 1
         })
 
-        const bar = Callable.create(function () {
+        const bar = Callable.create(function getBar() {
             return this.bar
         }, {
             bar: 2
@@ -468,8 +470,9 @@ it('retereive template', () => {
 
 it('provide this context', () => {
  
-    class Provide<S, A extends unknown[], R> extends Callable<(...args: A) => R> {
-
+    class Provide<S extends object, A extends unknown[], R> 
+        extends Callable<(...args: A) => R> {
+ 
         constructor(
             readonly ctx: S,
             f: (ctx: S) => (...args: A) => R, 
@@ -480,4 +483,20 @@ it('provide this context', () => {
 
     const multiply = new Provide({ by: 5, }, ({ by }) => (n: number) => n * by)
     expect(multiply(5)).toEqual(25)
+})
+
+describe('context provider argument', () => {
+
+    class Contextual extends Callable<() => string> {
+        constructor(readonly message: string, ctxProvider: CallableContextProvider<() => string>) {
+            super(function () {
+                return this.message
+            }, ctxProvider)
+        }
+    }
+
+    const dynamic = new Contextual('callable', (_this, callable) => callable)
+
+    expect(dynamic()).toEqual('callable')
+
 })

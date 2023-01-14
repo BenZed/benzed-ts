@@ -197,16 +197,18 @@ const Pipe = (class extends Callable<Func> {
         return new this(transforms, isNil(ctx) ? nil : { ctx }) as Pipe | ContextPipe
     }
 
-    constructor(readonly transforms: readonly Transform[], private readonly bound?: { ctx: unknown }) {
+    readonly transforms: readonly Transform[]
 
-        transforms = Pipe.flatten(transforms)
-
-        super(bound
-            ? applyTransforms.bind(transforms, bound.ctx)
-            : function transform(this: unknown, input: unknown, ctx: unknown = this): unknown {
-                return applyTransforms.call(transforms, ctx, input)
-            }
+    constructor(transforms: readonly Transform[], private readonly bound?: { ctx: unknown }) {
+        super(
+            function transform(this: unknown, input: unknown, ctx: unknown = this): unknown {
+                return applyTransforms.call(pipe.transforms, ctx, input)
+            },
+            (ctx) => bound ? bound.ctx : ctx
         )
+
+        this.transforms = Pipe.flatten(transforms)
+        const pipe = this
     }
 
     to(transform: Transform): Pipe {

@@ -76,6 +76,10 @@ export const isPromise = <T>(input: unknown): input is Promise<T> =>
 
 export const isAsync = isPromise
 
+//// Misc ////
+
+export const isUnknown = (input: unknown): input is unknown => true
+
 //// Json ////
     
 export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 

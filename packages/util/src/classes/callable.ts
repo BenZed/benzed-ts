@@ -1,6 +1,6 @@
 
 import { Property } from '../property'
-import { Func, Infer, isFunc, isObject, } from '../types'
+import { Func, Infer, isFunc, isObject } from '../types'
 import PrivateState from './private-state'
 
 /* eslint-disable 
@@ -16,18 +16,16 @@ type _RemoveSignature<T> = T extends Func
     ? { [K in keyof T]: T[K] }
     : T
 
-type _SignatureTemplate = { template: object, signature: Func }
-
 //// Type ////
 
-type CallableConstructor = abstract new <F extends Func>(f: F, memoize?: boolean) => F
+type CallableConstructor = abstract new <F extends Func>(f: F, provider?: CallableContextProvider<F>) => F
 
 type CallableObject<F extends Func, T> = Infer<F & _RemoveSignature<T>>
 
 interface Callable extends CallableConstructor {
 
     signatureOf<F extends Func>(callable: F): F
-
+    contextProviderOf<F extends Func>(callable: F): CallableContextProvider<F>
     templateOf<F extends Func>(callable: F): object
 
     /**
@@ -38,7 +36,8 @@ interface Callable extends CallableConstructor {
     create<F extends (this: T, ...args: any) => any, O extends object, T = O>(
         //            ^ infer this context
         signature: F, 
-        template: O
+        template: O,
+        provider?: CallableContextProvider<F>,
     ): CallableObject<_RemoveInferredThis<F>,O>
 
     create<F extends Func, O extends object>(
@@ -48,6 +47,20 @@ interface Callable extends CallableConstructor {
 
 }
 
+/**
+ * For providing a "this" context to callables that 
+ * require it.
+ */
+interface CallableContextProvider<F extends Func> {
+    (context: ThisType<F>, callable: F): unknown
+}
+
+//// Default Context Providers ////
+
+const provideDynamicContext = (ctx: unknown, callable: Func): unknown => ctx ?? callable
+
+const provideCallableContext = (_ctx: unknown, callable: Func): unknown => callable
+
 //// Main ////
 
 /**
@@ -56,33 +69,55 @@ interface Callable extends CallableConstructor {
 const Callable = class {
 
     static signatureOf(callable: Func): Func {
-        const { signature } = PrivateState.for(Callable).get(callable) as _SignatureTemplate
+        const { signature } = signatures.get(callable)
         return signature
     }
 
-    static templateOf(callable: Func): object {
+    static contextProviderOf(callable: Func): CallableContextProvider<Func> {
+        const { ctxProvider } = signatures.get(callable)
+        return ctxProvider
+    }
 
-        const { template } = PrivateState.for(Callable).get(callable) as _SignatureTemplate
+    static templateOf(callable: Func): object {
+        const { template } = signatures.get(callable)
         return template
     }
 
-    static create(signature: Func, template: object): object {
+    static create(
+        signature: Func, 
+        template: object, 
+        ctxProvider: CallableContextProvider<Func> = provideDynamicContext
+    ): object {
 
         if (!isFunc(signature))
             throw new Error('Signature must be a function.')
 
-        const callable = 'prototype' in signature 
-            ? function (
-                this: unknown, 
-                ...args: unknown[]
-            ): unknown {
-                return signature.apply(this ?? callable, args)
-            }
-            : (...args: unknown[]) => (signature as Func)(...args)
+        const signatureProperties = signature
+        if (signature instanceof Callable) 
+            signature = signatures.get(signature).signature
 
-        Property.transpose(signature, callable, [Object.prototype, Function.prototype])
+        // Resolve signature if nesting callables
+        signature = signatures.has(signature)
+            ? signatures.get(signature).signature
+            : signature
+
+        const isContextual = 'prototype' in signature
+
+        const callable = isContextual
+            ? function (this: unknown, ...args: unknown[]): unknown {
+                const ctx = ctxProvider(this as ThisType<Func>, callable)
+                return signature.apply(ctx, args)
+            }
+            : (...args: unknown[]) => signature(...args)
+
+        Property.transpose(signatureProperties, callable, [Object.prototype, Function.prototype])
         Property.transpose(template, callable, [Object.prototype, Function.prototype])
-        PrivateState.for(Callable).set(callable, { signature, template })
+
+        signatures.set(callable, { 
+            signature,
+            ctxProvider,
+            template,
+        })
 
         return callable
     }
@@ -101,11 +136,19 @@ const Callable = class {
         return false
     }
 
-    constructor(func: Func) {
-        return Callable.create(func, this)
+    constructor(func: Func, contextProvider = provideCallableContext) {
+        return Callable.create(func, this, contextProvider)
     }
 
 } as Callable
+
+//// State ////
+
+const signatures = PrivateState.for<Func, { 
+    signature: Func
+    ctxProvider: CallableContextProvider<Func>
+    template: object 
+}>(Callable)
 
 //// Exports ////
 
@@ -113,5 +156,6 @@ export default Callable
 
 export {
     Callable,
-    CallableObject
+    CallableObject,
+    CallableContextProvider
 }
