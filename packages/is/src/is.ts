@@ -1,7 +1,38 @@
 import { isFunc, TypeGuard } from '@benzed/util'
 
-import { IsType, ResolveSchematic, Schematic } from './schema'
-import * as chain from './schema/schemas/chain'
+import {
+
+    isString,
+    isBoolean, 
+    isNumber,
+    isInteger,
+
+    isBigInt,
+    isSymbol,
+    isPrimitive,
+
+    isNull,
+    isUndefined,
+    isNaN,
+    isNil,
+
+    isFunction, 
+
+    arrayOf,
+
+    isIterable,
+    isArray,
+
+    isObject,
+    isPromise,
+    isError,
+    isDate, 
+
+    IsType, 
+    ResolveSchematic, 
+    Schematic,
+} from './schema'
+import { ChainableFactory, SchematicFactory } from './schema/schemas/chainable'
 
 import { 
     TypeValidator, 
@@ -10,66 +41,76 @@ import {
 
 //// Main ////
 
-class Is extends chain.ChainableSchematicFactory<ResolveSchematic> 
-    implements chain.ChainableFactory {
+class Is extends SchematicFactory<ResolveSchematic> 
+    implements ChainableFactory {
 
     constructor() {
         super(Schematic.resolve)
     }
 
-    string = chain.isString
-    boolean = chain.isBoolean
-    number = chain.isNumber
-    integer = chain.isInteger
-    bigint = chain.isBigInt
-    nan = chain.isNaN
-    null = chain.isNull
-    nil = chain.isNil
-    undefined = chain.isUndefined
-    defined = chain.isDefined
-    primitive = chain.isPrimitive 
-    record = chain.isRecord
-    array = chain.isArray
-    iterable = chain.isIterable
-    map = chain.isMap
-    set = chain.isSet
-    object = chain.isObject
-    function = chain.isFunction
-    promise = chain.isPromise
-    error = chain.isError
-    date = chain.isDate
-    weakMap = chain.isWeakMap
-    weakSet = chain.isWeakSet
-    symbol = chain.isSymbol
+    string = isString
+    boolean = isBoolean
+    number = isNumber
+    integer = isInteger
 
-    tuple<T extends chain.IsTupleInput>(...types: T): chain.IsTuple {
-        return new chain.IsTuple(...types)
+    bigint = isBigInt
+    symbol = isSymbol
+    primitive = isPrimitive
+
+    null = isNull
+    undefined = isUndefined
+    nan = isNaN
+    nil = isNil
+
+    iterable = isIterable
+    // iterableOf = isIterableOf
+
+    array = isArray
+    arrayOf = arrayOf
+    // map = isMap
+    // mapOf = mapOf
+    // set = isSet
+    // setOf = setOf
+
+    // record = isRecord
+    // recordOf = recordOf
+
+    object = isObject
+    function = isFunction
+    
+    promise = isPromise
+    error = isError
+
+    date = isDate
+
+    tuple<T extends IsTupleInput>(...types: T): IsTuple<T> {
+        return new IsTuple(...types)
     }
 
-    shape<T extends chain.IsShapeInput>(shape: T): chain.IsShape<T> {
-        return new chain.IsShape(shape)
+    shape<T extends IsShapeInput>(shape: T): IsShape<T> {
+        return new IsShape(shape)
     }
 
-    instanceOf<T extends chain.IsInstanceInput>(type: T): chain.IsInstance<T> {
-        return new chain.IsInstance(type)
+    instanceOf<T extends IsInstanceInput>(type: T): IsInstance<T> {
+        return new IsInstance(type)
     }
 
-    typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): chain.IsType<T> {
+    typeOf<T>(type: TypeGuard<T> | TypeValidatorSettings<T>): IsType<T> {
 
-        if (of instanceof IsType)
-            return of
+        if (type instanceof IsType)
+            return type
 
-        const settings = isFunc<TypeGuard<T>>(of)
-            ? of instanceof TypeValidator<T>
-                ? of
+        const settings = isFunc<TypeGuard<T>>(type)
+            ? type instanceof TypeValidator<T>
+                ? type
                 : { 
-                    is: of, 
-                    type: of
+                    is: type, 
+                    type: type
                         .name
                         .replace(/^is/, '') || 'unknown' 
                 }
-            : of
-        return new chain.IsType(settings)
+            : type
+        return new IsType(settings)
     }
 
 }

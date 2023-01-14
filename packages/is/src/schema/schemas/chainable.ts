@@ -3,7 +3,7 @@ import { TypeGuard } from '@benzed/util'
 
 import { Schema } from '../schema'
 import { Schematic, AnySchematic } from '../schematic'
-import { IsInstanceInput } from './is-type'
+import { IsInstanceInput, IsType } from './is-type'
 
 import { type Or } from './or'
 
@@ -13,40 +13,38 @@ import { type Or } from './or'
 
 //// Main ////
  
-const ChainableSchematicFactory = CallableStruct
+const SchematicFactory = CallableStruct
 
-interface ChainableJsonFactory {
+type SchematicFactory = typeof SchematicFactory
+
+interface ChainableFactory {
 
     get string(): AnySchematic
     get boolean(): AnySchematic
     get number(): AnySchematic
     get integer(): AnySchematic
 
-    get null(): AnySchematic
-    get nil(): AnySchematic
-
-    get record(): AnySchematic
-    get array(): AnySchematic
-
-}
-
-/**
- * @internal
- */
-interface ChainableFactory extends ChainableJsonFactory {
-
     get bigint(): AnySchematic
     get symbol(): AnySchematic
     get defined(): AnySchematic
     get primitive(): AnySchematic
 
+    get null(): AnySchematic
+    get nil(): AnySchematic
     get nan(): AnySchematic
     get undefined(): AnySchematic
 
     get iterable(): AnySchematic
+    get iterableOf(): SchematicFactory
+    get array(): AnySchematic
+    get arrayOf(): SchematicFactory
     get map(): AnySchematic
+    get mapOf(): SchematicFactory
     get set(): AnySchematic
+    get setOf(): SchematicFactory
 
+    get record(): AnySchematic
+    get recordOf(): SchematicFactory
     get object(): AnySchematic
     get function(): AnySchematic
     
@@ -56,7 +54,7 @@ interface ChainableFactory extends ChainableJsonFactory {
     get weakMap(): AnySchematic
     get weakSet(): AnySchematic
 
-    tuple<T extends IsTupleInput>(...types: T): IsTuple
+    tuple<T extends IsTupleInput>(...types: T): IsTuple<T>
     shape<T extends IsShapeInput>(shape: T): IsShape<T>
     instanceOf<T extends IsInstanceInput>(type: T): IsInstance<T>
     typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): IsType<T>
@@ -155,7 +153,7 @@ export default ChainableSchema
 export {
     ChainableSchema,
     ChainableSchematic,
-    ChainableSchematicFactory,
+    SchematicFactory,
     ChainableFactory,
     Chainable
 }

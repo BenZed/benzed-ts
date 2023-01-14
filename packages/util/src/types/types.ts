@@ -135,4 +135,4 @@ export interface Stack<T> extends Iterable<T> {
     
 }
 
-export type Infer<T> = T extends infer I ? I : never
+export type Infer<T, V = unknown> = T extends infer I ? I extends V ? I : never : never

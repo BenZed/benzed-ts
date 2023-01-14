@@ -18,7 +18,7 @@ import {
 
 import { 
     ChainableFactory,
-    ChainableSchematicFactory, 
+    SchematicFactory, 
 } from '../chainable'
 
 import Schematic, { 
@@ -92,9 +92,11 @@ interface ToOr<S extends AnySchematic> {
 
 //// Or ////
 
+// class OrOf<U extends IsUnion<AnySchematic[], C extends ChainableCollection> {}
+
 class Or<S extends AnySchematic>
 
-    extends ChainableSchematicFactory<ToOr<S>> 
+    extends SchematicFactory<ToOr<S>> 
     implements ChainableFactory {
 
     static to<T extends OrSchematicInput>(...inputs: T): OrSchematic<T> {
@@ -161,5 +163,7 @@ export default Or
 export {
     Or,
     OrSchematic,
-    OrSchematicInput
+    OrSchematicInput,
+
+    ToOr
 }

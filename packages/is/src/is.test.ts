@@ -28,15 +28,15 @@ test('schema.from signature', () => {
 
 //// Examples ////
 
-it('string or boolean', () => {
+it('is.string.or.boolean', () => {
 
-    const isStringBoolOrNumber = is.string.or.boolean.or(is.number)
+    const isStringBoolOrNumber = is.string.or.boolean.or.number
 
     expect(isStringBoolOrNumber('10')).toEqual(true)
     expect(isStringBoolOrNumber(10)).toEqual(true)
     expectTypeOf(isStringBoolOrNumber).toMatchTypeOf<IsUnion<[
         IsString, 
-        IsBoolean, 
+        IsBoolean,
         IsNumber
     ]>>()
 })
