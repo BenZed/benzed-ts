@@ -1,6 +1,6 @@
-import IsInstance from './instance'
+import Instance from './instance'
 
 //// Exports ////
 
-export interface IsRegExp extends IsInstance<RegExpConstructor> {}
-export const isRegExp: IsRegExp = new IsInstance(RegExp)
+export interface RegExp extends Instance<RegExpConstructor> {}
+export const isRegExp: RegExp = new Instance(RegExp)

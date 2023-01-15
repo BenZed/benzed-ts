@@ -1,6 +1,6 @@
-import IsInstance from './instance'
+import Instance from './instance'
 
 //// Exports ////
 
-export interface IsWeakSet extends IsInstance<WeakSetConstructor> {}
-export const IsWeakSet: IsWeakSet = new IsInstance(WeakSet)
+export interface WeakSet extends Instance<WeakSetConstructor> {}
+export const WeakSet: WeakSet = new Instance(WeakSet)

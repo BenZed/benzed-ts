@@ -1,6 +1,6 @@
 
-import IsValue from './value'
+import Value from './value'
 
 //// Main ////
-export interface IsNull extends IsValue<null> {}
-export const isNull: IsNull = new IsValue(null)
+export interface Null extends Value<null> {}
+export const isNull: Null = new Value(null)

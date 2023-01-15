@@ -1,9 +1,9 @@
 
-import { IsDate } from './date'
+import { Date } from './date'
 
 //// Tests ////
 
-const isDate = new IsDate()
+const isDate = new Date()
 
 test('isDate', () => {
     expect(isDate(new Date()))

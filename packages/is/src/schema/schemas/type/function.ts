@@ -1,9 +1,9 @@
 import { Func, isFunc } from '@benzed/util'
-import IsType from './type'
+import Type from './type'
 
 //// Exports ////
 
-class IsFunction extends IsType<Func> {
+class Function extends Type<Func> {
 
     constructor() {
         super({
@@ -17,10 +17,10 @@ class IsFunction extends IsType<Func> {
 
 //// Exports ////
 
-export default IsFunction
+export default Function
 
 export {
-    IsFunction
+    Function
 }
 
-export const isFunction = new IsFunction
+export const isFunction = new Function

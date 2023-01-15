@@ -2,7 +2,7 @@ import { CallableStruct, Struct } from '@benzed/immutable'
 import { isFunc, isPrimitive, Primitive, TypeAssertion, TypeGuard } from '@benzed/util'
 
 import { Validate, Validator, ValidatorSettings } from '../validator'
-import type { IsInstance, IsInstanceInput, IsValue, OrSchematic, OrSchematicInput } from './schemas'
+import type { Instance, InstanceInput, Value, OrSchematic, OrSchematicInput } from './schemas'
 
 //// EsLint ////
 
@@ -23,12 +23,12 @@ type AnySchematic = Schematic<any,any>
 
 //// ToSchematic Types ////
 
-type ToSchematicInput = Primitive | IsInstanceInput | AnySchematic // | IsShapeInput | IsTupleInput | IsTypeValidator
+type ToSchematicInput = Primitive | InstanceInput | AnySchematic // | ShapeInput | TupleInput | TypeValidator
 type ToSchematic<T extends ToSchematicInput> = 
     T extends Primitive 
-        ? IsValue<T>
-        : T extends IsInstanceInput 
-            ? IsInstance<T>
+        ? Value<T>
+        : T extends InstanceInput 
+            ? Instance<T>
             : T extends AnySchematic 
                 ? T 
                 : never
@@ -36,8 +36,8 @@ type ToSchematic<T extends ToSchematicInput> =
 //// ResolveSchematic ////
 
 interface ResolveSchematic {
-    <T extends Primitive>(value: T): IsValue<T>
-    <T extends IsInstanceInput>(type: T): IsInstance<T>
+    <T extends Primitive>(value: T): Value<T>
+    <T extends InstanceInput>(type: T): Instance<T>
     <T extends AnySchematic>(schema: T): T
     <T extends OrSchematicInput>(...options: T): OrSchematic<T>
 }
@@ -67,15 +67,15 @@ class Schematic<
    
     static to<T extends ToSchematicInput>(input: T): ToSchematic<T> {
 
-        const { IsInstance } = require('./schemas/type/instance') as typeof import('./schemas/type/instance')
-        const { IsValue } = require('./schemas/value') as typeof import('./schemas/value')
+        const { Instance } = require('./schemas/type/instance') as typeof import('./schemas/type/instance')
+        const { Value } = require('./schemas/value') as typeof import('./schemas/value')
 
         const schema = isFunc(input)
             ? Schematic.is(input) 
                 ? input
-                : new IsInstance(input)
+                : new Instance(input)
             : isPrimitive(input) 
-                ? new IsValue(input)
+                ? new Value(input)
                 : input
 
         if (!Schematic.is(schema))

@@ -1,8 +1,14 @@
 import { Last } from '@benzed/array'
 import { Func, TypesOf } from '@benzed/util'
 
-import { Is, _IsUnwrap } from './is'
-import { AnySchematic, IsArray, IsArrayOf, IsBoolean, IsNumber, IsString, Schematic } from '../schema'
+import { Is, _UnwrapIs } from './is'
+import { AnySchematic, Array, ArrayOf, Boolean, Number, String, Schematic } from '../schema'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Helper TYpes ////
 
@@ -29,13 +35,13 @@ export type Or<T extends AnySchematic[]> = Schematic<TypesOf<T>[number]> & {
 //// Factory ////
 
 export interface OR<S extends AnySchematic[]> {
-    <T extends AnySchematic>(type: T): Is<Or<[...S, ..._IsUnwrap<T> extends Or<infer Tx> ? Tx : [_IsUnwrap<T>]]>>
+    <T extends AnySchematic>(type: T): Is<Or<[...S, ..._UnwrapIs<T> extends Or<infer Tx> ? Tx : [_UnwrapIs<T>]]>>
 
-    get string(): Is<Or<[...S, IsString]>>
-    get number(): Is<Or<[...S, IsNumber]>>
-    get boolean(): Is<Or<[...S, IsBoolean]>>
-    get array(): Is<Or<[...S, IsArray]>>
-    arrayOf<T extends AnySchematic>(type: T): Is<Or<[...S, IsArrayOf<_IsUnwrap<T>>]>>
+    get string(): Is<Or<[...S, String]>>
+    get number(): Is<Or<[...S, Number]>>
+    get boolean(): Is<Or<[...S, Boolean]>>
+    get array(): Is<Or<[...S, Array]>>
+    arrayOf<T extends AnySchematic>(type: T): Is<Or<[...S, ArrayOf<_UnwrapIs<T>>]>>
     shape<T extends ShapeInput>(type: T): Is<Or<[...S, Shape<T>]>>
 }
 

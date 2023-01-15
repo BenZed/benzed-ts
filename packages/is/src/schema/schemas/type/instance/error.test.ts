@@ -1,9 +1,9 @@
 
-import { IsError } from './error'
+import { Error } from './error'
 
 //// Tests ////
 
-const isError = new IsError()
+const isError = new Error()
 
 test('isError', () => {
     expect(isError(new Error()))

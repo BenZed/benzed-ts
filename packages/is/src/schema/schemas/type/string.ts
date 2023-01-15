@@ -1,9 +1,9 @@
 import { isString as _isString, memoize, Transform, TypeGuard } from '@benzed/util'
-// import { capitalize } from '@benzed/string' <-- TODO wtf?? can't import this for some reason
+import { capitalize } from '@benzed/string'
 
 import { ValidationErrorMessage } from '../../../validator'
 
-import IsType from './type'  
+import Type from './type'  
 
 //// Symbols ////
 
@@ -23,7 +23,7 @@ const StringTransform = {
     trim: i => i.trim(),
     toUpper: i => i.toUpperCase(),
     toLower: i => i.toLowerCase(),
-    capitalize: i => i.charAt(0).toUpperCase() + i.slice(1),
+    capitalize,
     ...memoize({
         startsWith: start => i => i.startsWith(start) ? i : start + i,
         endsWith: end => i => i.endsWith(end) ? i : end + i
@@ -37,15 +37,15 @@ const StringAssert = memoize({
 
 //// String ////
 
-class IsStringType<S extends string> extends IsType<string> {
+class StringType<S extends string> extends Type<string> {
 
-    constructor(type: string, is: TypeGuard<S>) {
+    constructor(name: string, is: TypeGuard<S>) {
         super({ name, is }) 
     }
 
 }
 
-class IsString extends IsStringType<string> {
+class String extends StringType<string> {
 
     constructor() {
         super('string', _isString) 
@@ -112,7 +112,7 @@ class IsString extends IsStringType<string> {
 //// Exports ////
 
 export {
-    IsString
+    String
 }
 
-export const isString = new IsString()
+export const isString = new String()

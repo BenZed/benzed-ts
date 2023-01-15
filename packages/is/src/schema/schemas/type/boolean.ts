@@ -1,5 +1,5 @@
 import { isBoolean as _isBoolean, isNil } from '@benzed/util'
-import IsType from './type'
+import Type from './type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -15,7 +15,7 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
 
 //// Boolean ////
 
-class IsBoolean extends IsType<boolean> {
+class Boolean extends Type<boolean> {
     constructor() {
         super({
             name: 'boolean',
@@ -27,10 +27,10 @@ class IsBoolean extends IsType<boolean> {
 
 //// Exports ////
 
-export default IsBoolean
+export default Boolean
 
 export {
-    IsBoolean
+    Boolean
 }
 
-export const isBoolean = new IsBoolean
+export const isBoolean = new Boolean

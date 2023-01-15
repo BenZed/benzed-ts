@@ -1,6 +1,6 @@
-import IsValue from './value'
+import Value from './value'
 
 //// Exports ////
 
-export interface IsNaN extends IsValue<number> {}
-export const isNaN: IsNaN = new IsValue(NaN)
+export interface NaN extends Value<number> {}
+export const isNaN: NaN = new Value(NaN)

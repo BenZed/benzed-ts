@@ -10,7 +10,7 @@ import {
     toRangeSettings
 } from '../../../../validator/validators'
 
-import IsNumeric from './numeric'
+import Numeric from './numeric'
 
 //// Helper ////
 
@@ -27,7 +27,7 @@ const toNumber = (value: unknown): unknown => {
 
 //// Boolean ////
 
-class IsNumber extends IsNumeric<number> {
+class Number extends Numeric<number> {
 
     constructor() {
         super({
@@ -57,10 +57,10 @@ class IsNumber extends IsNumeric<number> {
 
 //// Exports ////
 
-export default IsNumber
+export default Number
 
 export {
-    IsNumber
+    Number
 }
 
-export const isNumber = new IsNumber
+export const isNumber = new Number

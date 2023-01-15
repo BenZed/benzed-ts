@@ -9,18 +9,18 @@ import Schematic, { AnySchematic } from '../../schematic'
 
 //// Types ////
 
-type IsUnionInput = readonly AnySchematic[]
-type IsUnionOutput<T extends IsUnionInput> = TypesOf<T>[number]
+type UnionInput = readonly AnySchematic[]
+type UnionOutput<T extends UnionInput> = TypesOf<T>[number]
 
-//// IsUnion ////
+//// Union ////
 
-class IsUnion<T extends IsUnionInput> extends Schematic<IsUnionOutput<T>> {
+class Union<T extends UnionInput> extends Schematic<UnionOutput<T>> {
 
     readonly types: T
 
     constructor(...types: T) {
 
-        type O = IsUnionOutput<T>
+        type O = UnionOutput<T>
 
         super((i, options?): O => {
             const errors: unknown[] = []
@@ -49,9 +49,9 @@ class IsUnion<T extends IsUnionInput> extends Schematic<IsUnionOutput<T>> {
 
 //// Exports ////
 
-export default IsUnion
+export default Union
 
 export {
-    IsUnion,
-    IsUnionInput
+    Union,
+    UnionInput
 }

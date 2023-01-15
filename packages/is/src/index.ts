@@ -1,8 +1,8 @@
-import { Is } from './is'
+import {  } from './is'
 
 //// Default ////
 
-const is = new Is
+const is = new 
 
 //// Exports ////
 
@@ -10,7 +10,7 @@ export default is
 
 export {
     is,
-    Is
+    
 }
 
 export { TypeOf as InferType, TypesOf as InferTypes } from '@benzed/util'  

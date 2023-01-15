@@ -2,7 +2,7 @@ import {
     isInteger as _isInteger, isString, 
 } from '@benzed/util'
 
-import IsNumeric from './numeric'
+import Numeric from './numeric'
 
 //// Helper ////
 
@@ -10,7 +10,7 @@ const toInteger = (i: unknown): unknown => isString(i) ? parseInt(i) : i
 
 //// Boolean ////
 
-class IsInteger extends IsNumeric<number> {
+class Integer extends Numeric<number> {
     constructor() {
         super({
             name: 'integer',
@@ -22,10 +22,10 @@ class IsInteger extends IsNumeric<number> {
 
 //// Exports ////
 
-export default IsInteger
+export default Integer
 
 export {
-    IsInteger
+    Integer
 }
 
-export const isInteger = new IsInteger
+export const isInteger = new Integer

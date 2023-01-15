@@ -1,9 +1,9 @@
 import { isFunc, isObject as _isObject } from '@benzed/util'
-import IsType from './type'
+import Type from './type'
 
 //// Exports ////
 
-class IsObject extends IsType<object> {
+class Object extends Type<object> {
 
     constructor() {
         super({
@@ -17,10 +17,10 @@ class IsObject extends IsType<object> {
 
 //// Exports ////
 
-export default IsObject
+export default Object
 
 export {
-    IsObject
+    Object
 }
 
-export const isObject = new IsObject
+export const isObject = new Object

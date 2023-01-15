@@ -1,17 +1,17 @@
 
-import IsType from '../type'
+import Type from '../type'
 
 //// Boolean ////
 
-abstract class IsNumeric<N extends number | bigint> extends IsType<N> { 
+abstract class Numeric<N extends number | bigint> extends Type<N> { 
 
 }
 
 //// Exports ////
 
-export default IsNumeric
+export default Numeric
 
 export {
-    IsNumeric
+    Numeric
 }
 

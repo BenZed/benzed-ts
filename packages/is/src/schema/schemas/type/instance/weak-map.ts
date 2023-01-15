@@ -1,6 +1,6 @@
-import IsInstance from './instance'
+import Instance from './instance'
 
 //// Exports ////
 
-export interface IsWeakMap extends IsInstance<WeakMapConstructor> {}
-export const isWeakMap: IsWeakMap = new IsInstance(WeakMap)
+export interface WeakMap extends Instance<WeakMapConstructor> {}
+export const isWeakMap: WeakMap = new Instance(WeakMap)

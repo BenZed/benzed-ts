@@ -2,14 +2,14 @@ import {
     isArray as _isArray, 
     isString as _isString, 
     safeJsonParse, 
-    TypeOf
+    TypeOf as OutputTypeOf
 } from '@benzed/util'
 
 import { 
-    IsUnknown, 
+    Unknown, 
     isUnknown,
-} from '../../type'
-import { AnyTypeGuard, IsTypeOf } from '../type-of'
+} from '../type'
+import { AnyTypeGuard, TypeOf } from './type-of'
 
 //// EsLint ////
 
@@ -19,13 +19,13 @@ import { AnyTypeGuard, IsTypeOf } from '../type-of'
 
 //// Types ////
 
-type IsArrayInput = AnyTypeGuard
+type ArrayInput = AnyTypeGuard
 
-class IsArrayOf<T extends IsArrayInput> extends IsTypeOf<T, TypeOf<T>[]> {
+class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
 
     constructor(of: T) {
 
-        type O = TypeOf<T>[]
+        type O = OutputTypeOf<T>[]
 
         super({
 
@@ -49,11 +49,11 @@ class IsArrayOf<T extends IsArrayInput> extends IsTypeOf<T, TypeOf<T>[]> {
 
 //// Exports ////
 
-export default IsArrayOf
+export default ArrayOf
 
 export {
-    IsArrayOf
+    ArrayOf
 }
 
-export interface IsArray extends IsArrayOf<IsUnknown> {}
-export const isArray: IsArray = new IsArrayOf(isUnknown)
+export interface Array extends ArrayOf<Unknown> {}
+export const isArray: Array = new ArrayOf(isUnknown)

@@ -1,6 +1,6 @@
-import { IsString } from './string'
+import { String } from './string'
 
-const isString = new IsString()
+const isString = new String()
 
 it('validates strings', () => {
     expect(isString.validate('foo')).toEqual('foo')

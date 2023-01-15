@@ -1,9 +1,9 @@
 
-import { IsWeakMap } from './weak-map'
+import { WeakMap } from './weak-map'
 
 //// Tests ////
 
-const isWeakMap = new IsWeakMap()
+const isWeakMap = new WeakMap()
 
 test('isRegExp', () => {
     expect(isWeakMap(new WeakMap()))

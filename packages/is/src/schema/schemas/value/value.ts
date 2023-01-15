@@ -7,7 +7,7 @@ import Schematic from '../../schematic'
 
 //// Setup ////
 
-class IsValue<T extends Primitive> extends Schematic<T> {
+class Value<T extends Primitive> extends Schematic<T> {
 
     constructor(readonly value: T) {
         super({
@@ -21,8 +21,8 @@ class IsValue<T extends Primitive> extends Schematic<T> {
 
 //// Exports ////
 
-export default IsValue
+export default Value
 
 export {
-    IsValue
+    Value
 }

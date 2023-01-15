@@ -1,4 +1,4 @@
-import IsType from '../type'
+import Type from '../type'
 
 //// EsLint ////
 
@@ -8,13 +8,13 @@ import IsType from '../type'
 
 //// Types ////
 
-export type IsInstanceInput = 
+export type InstanceInput = 
     (new (...args: any) => object) | 
     (abstract new (...args: any) => object)
 
 //// Main ////
 
-class IsInstance<C extends IsInstanceInput> extends IsType<InstanceType<C>> {
+class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
 
     constructor(readonly Type: C) {
 
@@ -32,8 +32,8 @@ class IsInstance<C extends IsInstanceInput> extends IsType<InstanceType<C>> {
 
 //// Exports ////
 
-export default IsInstance
+export default Instance
 
 export {
-    IsInstance
+    Instance
 }

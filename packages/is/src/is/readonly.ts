@@ -10,7 +10,7 @@ import { AnySchematic, Schematic } from '../schema'
 //// Helper TYpes ////
 
 type _InheritReadonly<T> = T extends AnySchematic 
-    ? Readonly<T> 
+    ? _Readonly<T> 
     : T extends Func
         ? ReturnType<T> extends AnySchematic 
             ? (...params: Parameters<T>) => Readonly<ReturnType<T>>
@@ -19,12 +19,16 @@ type _InheritReadonly<T> = T extends AnySchematic
 
 //// Exports ////
 
-export type Readonly<T extends AnySchematic> = 
-    & Schematic<TypeOf<T>> 
+type _Readonly<T extends AnySchematic> = 
+    & Schematic<Readonly<TypeOf<T>>> 
     & {
-        [K in keyof T]: _InheritReadonly<T[K]>
+        [K in keyof T]: K extends 'of' ? T[K] : _InheritReadonly<T[K]>
     }  
     & {
         readonly: Readonly<T>
         writable: T
     }
+
+export {
+    _Readonly as Readonly
+}

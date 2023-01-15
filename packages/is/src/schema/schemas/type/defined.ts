@@ -9,7 +9,7 @@ import Schema from '../../schema'
 
 type Defined = Exclude<Primitive, nil | null> | object
 
-class IsDefined extends Schema<Defined> {
+class Defined extends Schema<Defined> {
 
     constructor() {
         super({
@@ -21,10 +21,10 @@ class IsDefined extends Schema<Defined> {
 
 //// Exports ////
 
-export default IsDefined
+export default Defined
 
 export {
-    IsDefined
+    Defined
 }
 
-export const isDefined = new IsDefined
+export const isDefined = new Defined

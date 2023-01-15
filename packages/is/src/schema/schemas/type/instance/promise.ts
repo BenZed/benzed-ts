@@ -1,6 +1,6 @@
-import IsInstance from './instance'
+import Instance from './instance'
 
 //// Exports ////
 
-export interface IsPromise extends IsInstance<PromiseConstructor> {}
-export const isPromise: IsPromise = new IsInstance(Promise)
+export interface Promise extends Instance<PromiseConstructor> {}
+export const isPromise: Promise = new Instance(Promise)

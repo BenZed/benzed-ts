@@ -7,7 +7,7 @@ import Schematic from '../../schematic'
 
 //// Setup ////
 
-class IsNil extends Schematic<nil> {
+class Nil extends Schematic<nil> {
 
     constructor() {
         super({
@@ -20,10 +20,10 @@ class IsNil extends Schematic<nil> {
 
 //// Exports ////
 
-export default IsNil
+export default Nil
 
 export {
-    IsNil
+    Nil
 }
 
-export const isNil = new IsNil
+export const isNil = new Nil

@@ -1,6 +1,6 @@
 
-import IsValue from './value'
+import Value from './value'
 
 //// Main ////
-export interface IsUndefined extends IsValue<undefined> {}
-export const isUndefined: IsUndefined = new IsValue(undefined)
+export interface Undefined extends Value<undefined> {}
+export const isUndefined: Undefined = new Value(undefined)

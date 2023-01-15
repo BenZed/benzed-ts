@@ -1,13 +1,13 @@
-import IsInstance from './instance'
+import Instance from './instance'
 
 //// Exports ////
 
-export class IsError extends IsInstance<ErrorConstructor> {
+export class Error extends Instance<ErrorConstructor> {
     constructor() {
         super(Error)
     }
 
-    // get like(): IsJson<Error> { } // TODO add me
+    // get like(): Json<Error> { } // TODO add me
 }
 
-export const isError = new IsError
+export const isError = new Error

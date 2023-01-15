@@ -1,7 +1,7 @@
 
 import { isSymbol as _isSymbol } from '@benzed/util'
 
-import IsType from './type'
+import Type from './type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -9,7 +9,7 @@ import IsType from './type'
 
 //// Boolean ////
 
-class IsSymbol extends IsType<symbol> {
+class Symbol extends Type<symbol> {
     constructor() {
         super({
             name: 'symbol',
@@ -20,10 +20,10 @@ class IsSymbol extends IsType<symbol> {
 
 //// Exports ////
 
-export default IsSymbol
+export default Symbol
 
 export {
-    IsSymbol
+    Symbol
 }
 
-export const isSymbol = new IsSymbol
+export const isSymbol = new Symbol

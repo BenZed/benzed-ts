@@ -1,12 +1,12 @@
-import { IsUnion } from './union'
+import { Union } from './union'
 
 import { test, expect } from '@jest/globals'
-import { IsValue } from '../value'
+import { Value } from '../value'
 
 //// Tests ////
 
-test(`${IsUnion.name}`, () => {
-    const isOneOrZero = new IsUnion(new IsValue(0 as const), new IsValue(1 as const))
+test(`${Union.name}`, () => {
+    const isOneOrZero = new Union(new Value(0 as const), new Value(1 as const))
 
     expect(isOneOrZero(0)).toEqual(true)
     expect(isOneOrZero(1)).toEqual(true)

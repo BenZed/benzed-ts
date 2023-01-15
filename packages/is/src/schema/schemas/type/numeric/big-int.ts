@@ -1,10 +1,10 @@
 import { isBigInt as _isBigInt } from '@benzed/util'
 
-import IsNumeric from './numeric'
+import Numeric from './numeric'
 
 //// Boolean ////
 
-class IsBigInt extends IsNumeric<bigint> {
+class BigInt extends Numeric<bigint> {
     constructor() {
         super({
             name: 'bigint',
@@ -15,8 +15,8 @@ class IsBigInt extends IsNumeric<bigint> {
 
 //// Exports ////
 
-export default IsBigInt
+export default BigInt
 
-export { IsBigInt }
+export { BigInt }
 
-export const isBigInt = new IsBigInt
+export const isBigInt = new BigInt

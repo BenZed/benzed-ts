@@ -1,12 +1,26 @@
 import { Or } from './or'
-import IsUnion from './union'
-import { isString, isNumber, isBoolean, IsBoolean, IsString, IsNumber } from '../type'
+import Union from './union'
+
+import { 
+    isString, 
+    isNumber, 
+    isBoolean, 
+    Boolean, 
+    String, 
+    Number 
+} from '../type'
 
 import { expectTypeOf } from 'expect-type'
 
 import { copy } from '@benzed/immutable'
 import { TypeOf } from '@benzed/util'
-import { isNaN, IsValue } from '../value'
+import { isNaN, Value } from '../value'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/ban-types,
+*/
 
 //// Data ////
 
@@ -17,7 +31,7 @@ const isBooleanOrStringOrNumber = new Or(isBoolean)(isString, isNumber)
 
 it('chain string or boolean example', () => {  
 
-    expectTypeOf(isBooleanOrString).toMatchTypeOf<IsUnion<[IsBoolean, IsString]>>()
+    expectTypeOf(isBooleanOrString).toMatchTypeOf<Union<[Boolean, String]>>()
 
     expectTypeOf<TypeOf<typeof isBooleanOrString>>().toEqualTypeOf<boolean | string>()
 
@@ -35,7 +49,7 @@ it('chain string or boolean example', () => {
 
 it('chain string or boolean or number', () => {
     expectTypeOf(isBooleanOrStringOrNumber)
-        .toMatchTypeOf<IsUnion<[IsBoolean, IsString, IsNumber]>>()
+        .toMatchTypeOf<Union<[Boolean, String, Number]>>()
     
     expectTypeOf<TypeOf<typeof isBooleanOrStringOrNumber>>()
         .toEqualTypeOf<boolean | string | number>()
@@ -46,7 +60,7 @@ it('chain string or boolean or number', () => {
 
 it('chain method also has Or.to signature', () => {
 
-    const isSortOutput = new Or(new IsValue(0))(new IsValue(1), new IsValue(-1))
+    const isSortOutput = new Or(new Value(0))(new Value(1), new Value(-1))
 
     expect(isSortOutput(1)).toEqual(true)
     expect(isSortOutput(-1)).toEqual(true)
@@ -69,6 +83,5 @@ it('types are preserved on copy', () => {
 
 it('isNaN merges nicely', () => { 
     const isStringOrNaN = new Or(isNaN).string
-
-    expectTypeOf(isStringOrNaN).toEqualTypeOf<IsUnion<[]>>()
+    expectTypeOf(isStringOrNaN).toEqualTypeOf<Union<[]>>()
 })

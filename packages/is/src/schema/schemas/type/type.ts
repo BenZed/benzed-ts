@@ -15,7 +15,7 @@ import Schema from '../../schema'
 
 //// Types ////
 
-class IsType<T> extends Schema<T> {
+class Type<T> extends Schema<T> {
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 
@@ -72,7 +72,7 @@ class IsType<T> extends Schema<T> {
 
 //// Exports ////
 
-export default IsType
+export default Type
 export {
-    IsType
+    Type
 }

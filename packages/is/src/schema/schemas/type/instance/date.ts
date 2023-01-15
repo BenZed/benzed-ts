@@ -1,6 +1,6 @@
-import IsInstance from './instance'
+import Instance from './instance'
 
 //// Exports ////
 
-export interface IsDate extends IsInstance<DateConstructor> {}
-export const isDate: IsDate = new IsInstance(Date)
+export interface Date extends Instance<DateConstructor> {}
+export const isDate: Date = new Instance(Date)

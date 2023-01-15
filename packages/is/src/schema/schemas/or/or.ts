@@ -1,19 +1,19 @@
 import { Primitive, TypeGuard } from '@benzed/util'
 
 import {
-    IsBoolean, 
-    IsNumber, 
-    IsString, 
+    Boolean, 
+    Number, 
+    String, 
 
-    IsInstanceInput,
-    IsInstance,
+    InstanceInput,
+    Instance,
     isBoolean,
     isString,
     isNumber,
 } from '../type'
 
 import { 
-    IsUnion, 
+    Union, 
 } from './union'
 
 import Schematic, { 
@@ -24,14 +24,15 @@ import Schematic, {
 
 import { _Factory } from '../../../is'
 
-import { IsValue } from '../value'
-import { isArray, IsArrayOf } from '../type-of'
+import { Value } from '../value'
+import { isArray, Array } from '../type-of'
 import { CallableStruct } from '@benzed/immutable/src'
 
 //// Eslint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
 //// Helper Types ////
@@ -45,23 +46,23 @@ type _UniqueValues<T extends readonly unknown[], V extends Primitive> = T extend
     : [V]
 
 type _FlattenSchematics<T extends readonly unknown[]> = T extends [infer T1, ...infer Tr]
-    ? T1 extends IsUnion<infer Tx>  
+    ? T1 extends Union<infer Tx>  
         ? _FlattenSchematics<[...Tx, ...Tr]>
         :[T1, ..._FlattenSchematics<Tr>]
     : []
 
 type _MergeSchematics<T extends readonly unknown[], V extends Primitive[] = []> = T extends [infer T1, ...infer Tr]
     ? Tr['length'] extends 0
-        ? T1 extends IsValue<infer Vx> 
+        ? T1 extends Value<infer Vx> 
             ? _ResolveSchematics<_UniqueValues<V, Vx>>
             : [T1, ..._ResolveSchematics<V>]
-        : T1 extends IsValue<infer Vx> 
+        : T1 extends Value<infer Vx> 
             ? _MergeSchematics<Tr, _UniqueValues<V, Vx>>
             : [T1, ..._MergeSchematics<Tr, V>]
     : []
 
 type _ResolveSchematics<T extends readonly unknown[]> = T extends [infer T1, ...infer Tr]
-    ? T1 extends IsUnion<infer Tx> 
+    ? T1 extends Union<infer Tx> 
         ? [...Tx, ..._ResolveSchematics<Tr>]
         : T1 extends ToSchematicInput
             ? [ToSchematic<T1>, ..._ResolveSchematics<Tr>]
@@ -77,20 +78,20 @@ type OrSchematic<T extends OrSchematicInput> = _Or<T> extends infer S
     ? S extends AnySchematic[] 
         ? S['length'] extends 1 
             ? S[0]
-            : IsUnion<S>
+            : Union<S>
         : never
     : never 
 
 interface ToOr<S extends AnySchematic> {
-    <T extends Primitive>(value: T): OrSchematic<[S, IsValue<T>]>
-    <T extends IsInstanceInput>(type: T): OrSchematic<[S, IsInstance<T>]>
+    <T extends Primitive>(value: T): OrSchematic<[S, Value<T>]>
+    <T extends InstanceInput>(type: T): OrSchematic<[S, Instance<T>]>
     <T extends AnySchematic>(schema: T): OrSchematic<[S, T]>
     <T extends OrSchematicInput>(...options: T): OrSchematic<[S, ..._ResolveSchematics<T>]>
 }
 
 //// Or ////
 
-// class OrOf<U extends IsUnion<AnySchematic[], C extends ChainableCollection> {}
+// class OrOf<U extends Union<AnySchematic[], C extends ChainableCollection> {}
 
 class Or<S extends AnySchematic> extends CallableStruct<ToOr<S>> implements _Factory {
 
@@ -98,7 +99,7 @@ class Or<S extends AnySchematic> extends CallableStruct<ToOr<S>> implements _Fac
 
         const outputs: AnySchematic[] = []
 
-        const isValueSchematic = IsValue[Symbol.hasInstance].bind(IsValue) as TypeGuard<IsValue<Primitive>>
+        const isValueSchematic = Value[Symbol.hasInstance].bind(Value) as TypeGuard<Value<Primitive>>
 
         const isUnique = (t1: AnySchematic): boolean => 
             !isValueSchematic(t1) ||
@@ -108,7 +109,7 @@ class Or<S extends AnySchematic> extends CallableStruct<ToOr<S>> implements _Fac
 
             const type = Schematic.to(input) as AnySchematic
 
-            const flattened = type instanceof IsUnion 
+            const flattened = type instanceof Union 
                 ? type.types as AnySchematic[] 
                 : [type]
 
@@ -117,7 +118,7 @@ class Or<S extends AnySchematic> extends CallableStruct<ToOr<S>> implements _Fac
             outputs.push(...unique)
         }
 
-        const output = outputs.length === 1 ? outputs[0] : new IsUnion(...outputs)
+        const output = outputs.length === 1 ? outputs[0] : new Union(...outputs)
         return output as OrSchematic<T>
     }
 
@@ -127,26 +128,26 @@ class Or<S extends AnySchematic> extends CallableStruct<ToOr<S>> implements _Fac
 
     //// Chain ////
     
-    get boolean(): OrSchematic<[S, IsBoolean]> {
+    get boolean(): OrSchematic<[S, Boolean]> {
         return Or.to(this.from, isBoolean)
     }
 
-    get string(): OrSchematic<[S, IsString]> {
+    get string(): OrSchematic<[S, String]> {
         return Or.to(this.from, isString)
     }
 
-    get number(): OrSchematic<[S, IsNumber]> {
+    get number(): OrSchematic<[S, Number]> {
         return Or.to(this.from, isNumber)
     }
 
-    get array(): OrSchematic<[S, IsArrayOf]> {
+    get array(): OrSchematic<[S, Array]> {
         return Or.to(this.from, isArray)
     }
 
-    instanceOf<T extends IsInstanceInput>(
+    instanceOf<T extends InstanceInput>(
         type: T
-    ): OrSchematic<[S, IsInstance<T>]> {
-        return Or.to(this.from, new IsInstance(type))
+    ): OrSchematic<[S, Instance<T>]> {
+        return Or.to(this.from, new Instance(type))
     }
 
 }

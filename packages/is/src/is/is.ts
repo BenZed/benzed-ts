@@ -1,25 +1,32 @@
-import { TypeOf, Func } from '@benzed/util'
+import { TypeOf as Infer, Func } from '@benzed/util'
 
-import { AnySchematic, IsArray, IsArrayOf, IsBoolean, IsNumber, IsString, IsUnknown, Schematic } from '../schema'
+import { 
+    AnySchematic, 
+    Array, 
+    Boolean, 
+    Number, 
+    String, 
+    Schematic 
+} from '../schema'
 
 import { Optional } from './optional'
 import { Readonly } from './readonly'
 import { OR, Or } from './or'
-import { IsTypeOf } from '../schema/schemas/type-of/type-of'
-import { Of, OF } from './of'
+import { OF } from './of'
 
 //// EsLint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
-//// Is ////
+////  ////
 
 /**
  * @internal
  */
-export type _IsUnwrap<T extends AnySchematic> = T extends Is<infer Tx> ? Tx : T
+export type _UnwrapIs<T extends AnySchematic> = T extends Is<infer Tx> ? Tx : T
 
 /**
  * @internal
@@ -57,14 +64,14 @@ export interface _Factory {
     get weakMap(): AnySchematic
     get weakSet(): AnySchematic
 
-    tuple<T extends IsTupleInput>(...types: T): AnySchematic
-    shape<T extends IsShapeInput>(shape: T): AnySchematic
-    instanceOf<T extends IsInstanceInput>(type: T): AnySchematic
+    tuple<T extends TupleInput>(...types: T): AnySchematic
+    shape<T extends ShapeInput>(shape: T): AnySchematic
+    instanceOf<T extends InstanceInput>(type: T): AnySchematic
     typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): AnySchematic
 
 }
 
-//// Is ////
+//// Helper Types ////
 
 /**
  * Apply properties from B to A that arn't defined in A
@@ -79,9 +86,9 @@ type _Fill<A,B> = {
 
 /**
  * Re-wrap the result of a method or getting or a schematic
- * in this Is<> cursor
+ * in this <> cursor
  */
-type _InheritIs<T> = T extends AnySchematic 
+type _Inherit<T> = T extends AnySchematic 
     ? Is<T> 
     : T extends Func
         ? ReturnType<T> extends AnySchematic 
@@ -90,11 +97,11 @@ type _InheritIs<T> = T extends AnySchematic
         : T
 
 export type Is<T extends AnySchematic> = 
-    & Schematic<TypeOf<T>> 
+    & Schematic<Infer<T>> 
     & _Fill<{
         [K in keyof T]: K extends 'of' 
             ? OF<T>
-            : _InheritIs<T[K]>
+            : _Inherit<T[K]>
     }, {
         or: OR<T extends Or<infer Tx> ? Tx : [T]>
         optional: Is<Optional<T>>
@@ -104,14 +111,14 @@ export type Is<T extends AnySchematic> =
 //// Factories ////
 
 export interface IS extends _Factory {
-    <T extends AnySchematic>(type: T): Is<_IsUnwrap<T>>
+    <T extends AnySchematic>(type: T): Is<_UnwrapIs<T>>
 
-    get string(): Is<IsString>
-    get number(): Is<IsNumber>
-    get boolean(): Is<IsBoolean>
-    get array(): Is<IsArray>
-    // tuple<T extends IsTupleInput>(...types: T): AnySchematic
-    // shape<T extends IsShapeInput>(shape: T): AnySchematic
-    // instanceOf<T extends IsInstanceInput>(type: T): AnySchematic
+    get string(): Is<String>
+    get number(): Is<Number>
+    get boolean(): Is<Boolean>
+    get array(): Is<Array>
+    // tuple<T extends TupleInput>(...types: T): AnySchematic
+    // shape<T extends ShapeInput>(shape: T): AnySchematic
+    // instanceOf<T extends InstanceInput>(type: T): AnySchematic
     // typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): AnySchematic}
 }
