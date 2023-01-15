@@ -33,8 +33,7 @@ type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
  */
 type AnySchema = Schema<any>
 
-class Schema<T = unknown> extends ToUnion<T> 
-    implements Iterable<Validate<unknown>> {
+class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknown>> {
     
     //// Main ////
     

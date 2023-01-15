@@ -2,10 +2,5 @@ import IsInstance from './is-instance'
 
 //// Exports ////
 
-export class IsRegExp extends IsInstance<RegExpConstructor> {
-    constructor() {
-        super(RegExp)
-    }
-}
-
-export const isRegExp = new IsRegExp
+export interface IsRegExp extends IsInstance<RegExpConstructor> {}
+export const isRegExp: IsRegExp = new IsInstance(RegExp)

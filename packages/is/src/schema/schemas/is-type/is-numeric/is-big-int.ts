@@ -7,7 +7,7 @@ import IsNumeric from './is-numeric'
 class IsBigInt extends IsNumeric<bigint> {
     constructor() {
         super({
-            type: 'bigint',
+            name: 'bigint',
             is: _isBigInt
         })
     }

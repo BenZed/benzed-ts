@@ -19,7 +19,7 @@ interface TypeValidatorSettings<T> extends Partial<Omit<ValidatorSettings<unknow
     /**
      * Name of the type
      */
-    readonly type: string
+    readonly name: string
 
     readonly is: ValidatorTypeGuard<unknown, T>
 
@@ -42,7 +42,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
     /**
      * Name of the type
      */
-    readonly type: string
+    override readonly name: string
 
     /**
      * Default cast method for this type
@@ -56,7 +56,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
 
     constructor(settings: TypeValidatorSettings<T>) {
 
-        const { type, default: toDefault, cast, error = `Must be type ${type}`, ...rest } = settings
+        const { name, default: toDefault, cast, error = `Must be type ${name}`, ...rest } = settings
  
         super({
             error,
@@ -76,17 +76,18 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             return i
         }
 
-        this.type = type
+        this.name = name
 
         this.cast = cast && Property.name(
             cast,
-            cast.name && cast.name !== 'cast' ? cast.name : `castTo${capitalize(type)}`
+            cast.name && cast.name !== 'cast' ? cast.name : `castTo${capitalize(name)}`
         )
 
         this.default = toDefault && Property.name(
             toDefault, 
-            toDefault.name && toDefault.name !== 'default' ? toDefault.name : `toDefault${capitalize(type)}`
+            toDefault.name && toDefault.name !== 'default' ? toDefault.name : `toDefault${capitalize(name)}`
         )
+
         this.transform = applyDefaultAndCast
     }
 }

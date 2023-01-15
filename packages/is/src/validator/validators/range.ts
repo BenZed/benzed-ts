@@ -54,11 +54,11 @@ function toRangeSettings(signature: RangeSettingsSignature): RangeSettings {
 }
  
 type RangeSettingsSignature = 
-    [RangeSettings] | 
-    [UnaryComparator, number] | 
-    [number, BinaryComparator, number] | 
-    [number, number] | 
-    [number]
+    [min: number, max: number] | 
+    [equals: number] |
+    [compare: UnaryComparator, value: number] | 
+    [min: number, compare: BinaryComparator, max: number] | 
+    [settings: RangeSettings] 
 
 interface RangeValidatorSignature<T> {
     (settings: RangeSettings): T
@@ -105,11 +105,11 @@ class RangeValidator extends CallableStruct<Validate<number>> {
     readonly range: Omit<RangeSettings, 'error'>
     readonly error?: RangeSettings['error']
 
+    constructor(equals: number) 
     constructor(settings: RangeSettings)
     constructor(min: number, comparator: BinaryComparator, max: number)
     constructor(comparator: UnaryComparator, value: number)
     constructor(min: number, max: number)
-    constructor(equals: number) 
     constructor (...args: RangeSettingsSignature) {
 
         super((input: number, ctx?: ValidateOptions): number => {

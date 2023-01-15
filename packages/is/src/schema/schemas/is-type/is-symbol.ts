@@ -12,7 +12,7 @@ import IsType from './is-type'
 class IsSymbol extends IsType<symbol> {
     constructor() {
         super({
-            type: 'symbol',
+            name: 'symbol',
             is: _isSymbol
         })
     }

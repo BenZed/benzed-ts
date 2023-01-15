@@ -8,11 +8,8 @@
 //// Types ////
 
 interface ValidateOptions {
-
     readonly transform?: boolean
-
     readonly path?: readonly (symbol | string | number)[]
-
 }
 
 /**

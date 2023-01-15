@@ -2,10 +2,5 @@ import IsInstance from './is-instance'
 
 //// Exports ////
 
-export class IsWeakSet extends IsInstance<WeakSetConstructor> {
-    constructor() {
-        super(WeakSet)
-    }
-}
-
-export const isWeakSet = new IsWeakSet
+export interface IsWeakSet extends IsInstance<WeakSetConstructor> {}
+export const IsWeakSet: IsWeakSet = new IsInstance(WeakSet)

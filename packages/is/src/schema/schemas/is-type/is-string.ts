@@ -40,7 +40,7 @@ const StringAssert = memoize({
 class IsStringType<S extends string> extends IsType<string> {
 
     constructor(type: string, is: TypeGuard<S>) {
-        super({ type, is }) 
+        super({ name, is }) 
     }
 
 }

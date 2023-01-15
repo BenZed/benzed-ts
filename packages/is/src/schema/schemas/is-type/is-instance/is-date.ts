@@ -2,10 +2,5 @@ import IsInstance from './is-instance'
 
 //// Exports ////
 
-export class IsDate extends IsInstance<DateConstructor> {
-    constructor() {
-        super(Date)
-    }
-}
-
-export const isDate = new IsDate
+export interface IsDate extends IsInstance<DateConstructor> {}
+export const isDate: IsDate = new IsInstance(Date)

@@ -2,10 +2,5 @@ import IsInstance from './is-instance'
 
 //// Exports ////
 
-export class IsPromise extends IsInstance<PromiseConstructor> {
-    constructor() {
-        super(Promise)
-    }
-}
-
-export const isPromise = new IsPromise
+export interface IsPromise extends IsInstance<PromiseConstructor> {}
+export const isPromise: IsPromise = new IsInstance(Promise)

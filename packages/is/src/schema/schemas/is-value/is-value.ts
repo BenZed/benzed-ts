@@ -1,5 +1,5 @@
 import { Primitive } from '@benzed/util'
-import { ChainableSchematic } from '../chainable'
+import Schematic from '../../schematic'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -7,7 +7,7 @@ import { ChainableSchematic } from '../chainable'
 
 //// Setup ////
 
-class IsValue<T extends Primitive> extends ChainableSchematic<T> {
+class IsValue<T extends Primitive> extends Schematic<T> {
 
     constructor(readonly value: T) {
         super({

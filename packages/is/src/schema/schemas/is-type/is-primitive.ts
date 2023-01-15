@@ -12,7 +12,7 @@ class IsPrimitive extends IsType<Primitive> {
 
     constructor() {
         super({
-            type: 'primitive',
+            name: 'primitive',
             is: _isPrimitive
         })
     }

@@ -1,6 +1,6 @@
 import { Or } from './or'
 import IsUnion from './is-union'
-import { IsString, IsBoolean, IsNumber } from '../is-type'
+import { isString, isNumber, isBoolean, IsBoolean, IsString, IsNumber } from '../is-type'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -10,16 +10,10 @@ import { isNaN, IsValue } from '../is-value'
 
 //// Data ////
 
-const isBooleanOr = new Or(new IsBoolean())
+const isBooleanOr = new Or(isBoolean)
 const isBooleanOrString = isBooleanOr.string
-const isBooleanOrStringOrNumber = isBooleanOrString.or.number
-
+const isBooleanOrStringOrNumber = new Or(isBoolean)(isString, isNumber)
 //// Tests ////
-
-it('type debugging', () => {
-
-    const t2 = isBooleanOr(new IsString)
-})
 
 it('chain string or boolean example', () => {  
 
@@ -50,19 +44,9 @@ it('chain string or boolean or number', () => {
         expect(isBooleanOrStringOrNumber(value)).toEqual(true)
 })
 
-it('chain to arbitrary schema', () => {
-    const isBoolOrStringOrNumberCalled = isBooleanOrString.or(new IsNumber())
-
-    expectTypeOf(isBoolOrStringOrNumberCalled).toEqualTypeOf(isBooleanOrStringOrNumber)
-    expectTypeOf<TypeOf<typeof isBooleanOrStringOrNumber>>() 
-        .toEqualTypeOf<boolean | string | number>()
-})
-
 it('chain method also has Or.to signature', () => {
 
-    const zeroOr = new Or(new IsValue(0))
-
-    const isSortOutput = zeroOr(1).or(-1)
+    const isSortOutput = new Or(new IsValue(0))(new IsValue(1), new IsValue(-1))
 
     expect(isSortOutput(1)).toEqual(true)
     expect(isSortOutput(-1)).toEqual(true)

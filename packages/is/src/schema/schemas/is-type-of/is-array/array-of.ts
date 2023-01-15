@@ -1,19 +1,11 @@
-import { 
-    Pipe, 
-    Primitive, 
-    TypeOf
-} from '@benzed/util'
+import { Primitive } from '@benzed/util'
+import { CallableStruct } from '@benzed/immutable'
 
 import { 
     AnySchematic, 
     OrSchematic, 
     OrSchematicInput 
 } from '../../../schematic'
-
-import { 
-    ChainableFactory, 
-    SchematicFactory, 
-} from '../../chainable'
 
 import { Or } from '../../or'
 
@@ -25,7 +17,8 @@ import {
 } from '../../is-type'
 
 import { IsValue } from '../../is-value'
-import { IsArray } from './is-array'
+import { _Factory } from '../../../../is'
+import { IsArrayOf } from './is-array'
 
 //// EsLint ////
 
@@ -36,23 +29,23 @@ import { IsArray } from './is-array'
 //// Types //// 
 
 interface ToArrayOf {
-    <T extends Primitive>(value: T): IsArray<IsValue<T>>
-    <T extends IsInstanceInput>(type: T): IsArray<IsInstance<T>>
-    <T extends AnySchematic>(schema: T): IsArray<T>
-    <T extends OrSchematicInput>(...options: T): IsArray<OrSchematic<T>>
+    <T extends Primitive>(value: T): IsArrayOf<IsValue<T>>
+    <T extends IsInstanceInput>(type: T): IsArrayOf<IsInstance<T>>
+    <T extends AnySchematic>(schema: T): IsArrayOf<T>
+    <T extends OrSchematicInput>(...options: T): IsArrayOf<OrSchematic<T>>
 }
 
 //// Exports ////
 
-class ArrayOf extends SchematicFactory<ToArrayOf> implements ChainableFactory {
+class ArrayOf extends CallableStruct<ToArrayOf> implements _Factory {
 
     constructor() {
         super((...options: OrSchematicInput) => 
-            this._toArrayOf(Or.to(...options)) as IsArray<any>
+            this._toArrayOf(Or.to(...options)) as IsArrayOf<any>
         )
     }
 
-    get string(): IsArray<IsString> {
+    get string(): IsArrayOf<IsString> {
         return this._toArrayOf(isString)
     }
 
@@ -60,8 +53,8 @@ class ArrayOf extends SchematicFactory<ToArrayOf> implements ChainableFactory {
 
     private _toArrayOf<T extends AnySchematic>(
         schematic: T
-    ): IsArray<T> {
-        return new IsArray(schematic)
+    ): IsArrayOf<T> {
+        return new IsArrayOf(schematic)
     }
 }
 

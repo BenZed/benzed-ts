@@ -11,11 +11,11 @@ import {
     TypeValidatorDefault 
 } from '../../../validator/validators'
 
-import ChainableSchema from '../chainable'
+import Schema from '../../schema'
 
 //// Types ////
 
-class IsType<T> extends ChainableSchema<T> {
+class IsType<T> extends Schema<T> {
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 
@@ -48,8 +48,8 @@ class IsType<T> extends ChainableSchema<T> {
     /**
      * Change the name of the type when the error is thrown
      */
-    type(name: string): this {
-        return this._setTypeValidator({ type: name }) 
+    named(name: string): this {
+        return this._setTypeValidator({ name: name }) 
     }
 
     /**

@@ -1,12 +1,13 @@
 import { Func, isFunc } from '@benzed/util'
-import ChainableSchema from '../chainable'
+import IsType from './is-type'
 
 //// Exports ////
 
-class IsFunction extends ChainableSchema<Func> {
+class IsFunction extends IsType<Func> {
 
     constructor() {
         super({
+            name: 'function',
             is: isFunc,
             error: 'must be a function'
         })

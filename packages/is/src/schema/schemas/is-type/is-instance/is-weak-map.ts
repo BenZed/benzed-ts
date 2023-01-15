@@ -2,10 +2,5 @@ import IsInstance from './is-instance'
 
 //// Exports ////
 
-export class IsWeakMap extends IsInstance<WeakMapConstructor> {
-    constructor() {
-        super(WeakMap)
-    }
-}
-
-export const isWeakMap = new IsWeakMap
+export interface IsWeakMap extends IsInstance<WeakMapConstructor> {}
+export const isWeakMap: IsWeakMap = new IsInstance(WeakMap)

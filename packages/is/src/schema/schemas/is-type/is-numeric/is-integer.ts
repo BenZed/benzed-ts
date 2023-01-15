@@ -13,7 +13,7 @@ const toInteger = (i: unknown): unknown => isString(i) ? parseInt(i) : i
 class IsInteger extends IsNumeric<number> {
     constructor() {
         super({
-            type: 'integer',
+            name: 'integer',
             is: _isInteger,
             cast: toInteger
         })

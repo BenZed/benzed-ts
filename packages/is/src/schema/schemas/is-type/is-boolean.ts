@@ -18,7 +18,7 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
 class IsBoolean extends IsType<boolean> {
     constructor() {
         super({
-            type: 'boolean',
+            name: 'boolean',
             is: _isBoolean,
             cast: toBoolean
         })

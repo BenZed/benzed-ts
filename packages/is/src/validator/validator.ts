@@ -7,11 +7,11 @@ import {
     Pipe,
     Property,
 } from '@benzed/util'
-
+import { capitalize } from '@benzed/string'
 import { equals, CallableStruct } from '@benzed/immutable'
+
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
-import { capitalize } from '@benzed/string'
 
 //// Shorcuts ////
 
@@ -37,7 +37,6 @@ interface ValidatorSettings<I, O extends I = I> {
     is: ValidatorTypeGuard<I, O> | ValidatorPredicate<I>
     transform: ValidatorTransform<I, O>
     error: string | ValidationErrorMessage<I>
-
     id?: string | symbol
 
 }

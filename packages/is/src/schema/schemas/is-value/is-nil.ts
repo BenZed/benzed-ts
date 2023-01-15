@@ -1,5 +1,5 @@
 import { asNil, isNil as _isNil, nil } from '@benzed/util'
-import { ChainableSchematic } from '../chainable'
+import Schematic from '../../schematic'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -7,7 +7,7 @@ import { ChainableSchematic } from '../chainable'
 
 //// Setup ////
 
-class IsNil extends ChainableSchematic<nil> {
+class IsNil extends Schematic<nil> {
 
     constructor() {
         super({

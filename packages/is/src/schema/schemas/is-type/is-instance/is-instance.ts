@@ -22,7 +22,7 @@ class IsInstance<C extends IsInstanceInput> extends IsType<InstanceType<C>> {
             i instanceof this.Type
 
         super({
-            type: Type.name,
+            name: Type.name,
             is: isInstanceOf
         })
 

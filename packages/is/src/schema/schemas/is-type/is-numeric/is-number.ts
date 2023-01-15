@@ -5,12 +5,9 @@ import {
 } from '@benzed/util'
 
 import { 
-
     RangeSettingsSignature, 
     RangeValidator,
-    RangeValidatorSignature,
     toRangeSettings
-
 } from '../../../../validator/validators'
 
 import IsNumeric from './is-numeric'
@@ -34,7 +31,7 @@ class IsNumber extends IsNumeric<number> {
 
     constructor() {
         super({
-            type: 'number',
+            name: 'number',
             is: _isNumber,
             cast: toNumber
         })
@@ -48,7 +45,7 @@ class IsNumber extends IsNumeric<number> {
         return this._setValidatorById('is-infinite', nil)
     }
 
-    range: RangeValidatorSignature<this> = (...args: RangeSettingsSignature) => {
+    range(...args: RangeSettingsSignature): this {
         const settings = toRangeSettings(args)
         return this._setValidatorByType(
             RangeValidator, 

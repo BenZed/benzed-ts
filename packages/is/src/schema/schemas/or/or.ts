@@ -16,19 +16,17 @@ import {
     IsUnion, 
 } from './is-union'
 
-import { 
-    ChainableFactory,
-    SchematicFactory, 
-} from '../chainable'
-
 import Schematic, { 
     AnySchematic, 
     ToSchematic, 
     ToSchematicInput 
 } from '../../schematic'
 
+import { _Factory } from '../../../is'
+
 import { IsValue } from '../is-value'
-import { isArray, IsArray } from '../is-iterable'
+import { isArray, IsArrayOf } from '../is-type-of'
+import { CallableStruct } from '@benzed/immutable/src'
 
 //// Eslint ////
 
@@ -94,10 +92,7 @@ interface ToOr<S extends AnySchematic> {
 
 // class OrOf<U extends IsUnion<AnySchematic[], C extends ChainableCollection> {}
 
-class Or<S extends AnySchematic>
-
-    extends SchematicFactory<ToOr<S>> 
-    implements ChainableFactory {
+class Or<S extends AnySchematic> extends CallableStruct<ToOr<S>> implements _Factory {
 
     static to<T extends OrSchematicInput>(...inputs: T): OrSchematic<T> {
 
@@ -144,7 +139,7 @@ class Or<S extends AnySchematic>
         return Or.to(this.from, isNumber)
     }
 
-    get array(): OrSchematic<[S, IsArray]> {
+    get array(): OrSchematic<[S, IsArrayOf]> {
         return Or.to(this.from, isArray)
     }
 
