@@ -67,8 +67,8 @@ class Schematic<
    
     static to<T extends ToSchematicInput>(input: T): ToSchematic<T> {
 
-        const { IsInstance } = require('./schemas/is-type/is-instance') as typeof import('./schemas/is-type/is-instance')
-        const { IsValue } = require('./schemas/is-value') as typeof import('./schemas/is-value')
+        const { IsInstance } = require('./schemas/type/instance') as typeof import('./schemas/type/instance')
+        const { IsValue } = require('./schemas/value') as typeof import('./schemas/value')
 
         const schema = isFunc(input)
             ? Schematic.is(input) 

@@ -1,5 +1,5 @@
-export * from './is-type-of'
-export * from './is-type'
-export * from './is-value'
+export * from './type-of'
+export * from './type'
+export * from './value'
 export * from './or'
  

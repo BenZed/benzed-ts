@@ -5,7 +5,7 @@ import { AnySchematic, IsArray, IsArrayOf, IsBoolean, IsNumber, IsString, IsUnkn
 import { Optional } from './optional'
 import { Readonly } from './readonly'
 import { OR, Or } from './or'
-import { IsTypeOf } from '../schema/schemas/is-type-of/is-type-of'
+import { IsTypeOf } from '../schema/schemas/type-of/type-of'
 import { Of, OF } from './of'
 
 //// EsLint ////

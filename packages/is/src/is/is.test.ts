@@ -2,7 +2,7 @@ import { test } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
 
 import { Is, IS } from './is'
-import { isString, IsString, IsBoolean, IsNumber, IsArrayOf } from '../schema'
+import { isString, String, Boolean, Number, ArrayOf } from '../schema'
 import { Or } from './or'
 import { nil } from '@benzed/util'
 import { Optional } from './optional'
@@ -17,7 +17,7 @@ test.skip('is(string)', () => {
     expect(isStr('str')).toBe(true)
     expect(isStr(0)).toBe(false)
     expectTypeOf(isStr.validate('str')).toEqualTypeOf('str')
-    expectTypeOf(isStr).toEqualTypeOf<Is<IsString>>()
+    expectTypeOf(isStr).toEqualTypeOf<<String>>()
 })
 
 test.skip('is.string', () => {
@@ -25,15 +25,15 @@ test.skip('is.string', () => {
     expect(isStr('str')).toBe(true)
     expect(isStr(0)).toBe(false)
     expectTypeOf(isStr.validate('str')).toEqualTypeOf('str')
-    expectTypeOf(isStr).toEqualTypeOf<Is<IsString>>()
+    expectTypeOf(isStr).toEqualTypeOf<<String>>()
 
     // Inherits getters
     const isTrimStr = is.string.trim
-    expectTypeOf(isTrimStr).toEqualTypeOf<Is<IsString>>()
+    expectTypeOf(isTrimStr).toEqualTypeOf<<String>>()
 
     // Inherits methods
     const isHashTag = is.string.startsWith('#')
-    expectTypeOf(isHashTag).toEqualTypeOf<Is<IsString>>()
+    expectTypeOf(isHashTag).toEqualTypeOf<<String>>()
 })
 
 test.skip('is.boolean.or.string', () => {
@@ -43,15 +43,15 @@ test.skip('is.boolean.or.string', () => {
     expect(isBoolOrString(true)).toEqual(true)
     expect(isBoolOrString(0)).toEqual(false)
     expectTypeOf(isBoolOrString.validate(true)).toEqualTypeOf<string | boolean>()
-    expectTypeOf(isBoolOrString).toEqualTypeOf<Is<Or<[IsBoolean, IsString]>>>()
+    expectTypeOf(isBoolOrString).toEqualTypeOf<<Or<[Boolean, String]>>>()
 
     // Inherits last getters
     const isBoolOrTrimString = is.boolean.or.string.trim
-    expectTypeOf(isBoolOrTrimString).toEqualTypeOf<Is<Or<[IsBoolean, IsString]>>>()
+    expectTypeOf(isBoolOrTrimString).toEqualTypeOf<<Or<[Boolean, String]>>>()
 
     // Inherits last method
     const isStringOrNegativeNumber = is.string.or.number.range('<', 0)
-    expectTypeOf(isStringOrNegativeNumber).toEqualTypeOf<Is<Or<[IsBoolean, IsString]>>>()
+    expectTypeOf(isStringOrNegativeNumber).toEqualTypeOf<<Or<[Boolean, String]>>>()
 
 })
 
@@ -62,7 +62,7 @@ test.skip('isSingleCharOrDoubleCharOrNegativeNumber', () => {
         .or.string.startsWith('<').endsWith('/>')
         .or.number.range('<', 0)
 
-    expectTypeOf(isHashOrTagOrNegativeNumber).toMatchTypeOf<Is<Or<[IsString, IsString, IsNumber]>>>()
+    expectTypeOf(isHashOrTagOrNegativeNumber).toMatchTypeOf<<Or<[String, String, Number]>>>()
 
 })
 
@@ -72,7 +72,7 @@ test.skip('is.array.of.string', () => {
     expect(isArrayOfString(['ace'])).toBe(true)
     expect(isArrayOfString([])).toBe(true)
     expect(isArrayOfString([0])).toBe(false)
-    expectTypeOf(isArrayOfString).toMatchTypeOf<Is<IsArrayOf<IsString>>>()
+    expectTypeOf(isArrayOfString).toMatchTypeOf<<ArrayOf<String>>>()
 
 })
 
@@ -83,7 +83,7 @@ test.skip('is.array.optional.of.number', () => {
     expect(isOptionalArrayOfNumber(0)).toBe(false)
     expect(isOptionalArrayOfNumber(nil)).toBe(true)
     expectTypeOf(isOptionalArrayOfNumber)
-        .toMatchTypeOf<Is<Optional<IsArrayOf<IsNumber>>>>()
+        .toMatchTypeOf<<Optional<ArrayOf<Number>>>>()
 })
 
 test.skip('is.array.readonly.of.number', () => {
@@ -93,7 +93,7 @@ test.skip('is.array.readonly.of.number', () => {
     expect(isReadonlyArrayOfNumber(0)).toBe(false)
     expect(isReadonlyArrayOfNumber(nil)).toBe(true)
     expectTypeOf(isReadonlyArrayOfNumber)
-        .toMatchTypeOf<Is<Readonly<IsArrayOf<IsNumber>>>>()
+        .toMatchTypeOf<<Readonly<ArrayOf<Number>>>>()
 })
 
 test.skip('is.array.optional.readonly.of.number', () => {
@@ -103,7 +103,7 @@ test.skip('is.array.optional.readonly.of.number', () => {
     expect(isOptionalReadonlyArrayOfNumber(0)).toBe(false)
     expect(isOptionalReadonlyArrayOfNumber(nil)).toBe(true)
     expectTypeOf(isOptionalReadonlyArrayOfNumber)
-        .toMatchTypeOf<Is<Readonly<Optional<IsArrayOf<IsNumber>>>>>()
+        .toMatchTypeOf<<Readonly<Optional<ArrayOf<Number>>>>>()
 })
 
 test.skip('is.array.of.array.of.boolean', () => {
@@ -112,7 +112,7 @@ test.skip('is.array.of.array.of.boolean', () => {
     expect(isArrayOfArrayOfBoolean([[]])).toBe(true)
     expect(isArrayOfArrayOfBoolean(['hey'])).toBe(false)
     expectTypeOf(isArrayOfArrayOfBoolean)
-        .toMatchTypeOf<Is<IsArrayOf<IsArrayOf<IsBoolean>>>>()
+        .toMatchTypeOf<<ArrayOf<ArrayOf<Boolean>>>>()
 })
 
 test.skip('is.shape', () => {
@@ -123,7 +123,7 @@ test.skip('is.shape', () => {
     })
 
     expectTypeOf(isVector)
-        .toEqualTypeOf<Is<Shape<{ x: Readonly<IsNumber>, y: Readonly<IsNumber> }>>>()
+        .toEqualTypeOf<<Shape<{ x: Readonly<Number>, y: Readonly<Number> }>>>()
 })
 
 test.skip('is.string.optional', () => {

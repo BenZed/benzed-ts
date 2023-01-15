@@ -10,11 +10,11 @@ import {
     isBoolean,
     isString,
     isNumber,
-} from '../is-type'
+} from '../type'
 
 import { 
     IsUnion, 
-} from './is-union'
+} from './union'
 
 import Schematic, { 
     AnySchematic, 
@@ -24,8 +24,8 @@ import Schematic, {
 
 import { _Factory } from '../../../is'
 
-import { IsValue } from '../is-value'
-import { isArray, IsArrayOf } from '../is-type-of'
+import { IsValue } from '../value'
+import { isArray, IsArrayOf } from '../type-of'
 import { CallableStruct } from '@benzed/immutable/src'
 
 //// Eslint ////

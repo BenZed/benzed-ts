@@ -1,2 +1,2 @@
-export * from './is-union'
+export * from './union'
 export * from './or'

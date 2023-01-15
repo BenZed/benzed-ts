@@ -1,12 +1,12 @@
 import { Or } from './or'
-import IsUnion from './is-union'
-import { isString, isNumber, isBoolean, IsBoolean, IsString, IsNumber } from '../is-type'
+import IsUnion from './union'
+import { isString, isNumber, isBoolean, IsBoolean, IsString, IsNumber } from '../type'
 
 import { expectTypeOf } from 'expect-type'
 
 import { copy } from '@benzed/immutable'
 import { TypeOf } from '@benzed/util'
-import { isNaN, IsValue } from '../is-value'
+import { isNaN, IsValue } from '../value'
 
 //// Data ////
 

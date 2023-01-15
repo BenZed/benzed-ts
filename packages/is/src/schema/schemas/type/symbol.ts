@@ -1,0 +1,29 @@
+
+import { isSymbol as _isSymbol } from '@benzed/util'
+
+import IsType from './type'
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
+//// Boolean ////
+
+class IsSymbol extends IsType<symbol> {
+    constructor() {
+        super({
+            name: 'symbol',
+            is: _isSymbol
+        })
+    }
+}
+
+//// Exports ////
+
+export default IsSymbol
+
+export {
+    IsSymbol
+}
+
+export const isSymbol = new IsSymbol

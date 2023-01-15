@@ -11,7 +11,7 @@ import {
     IsArray 
 } from '../schema'
     
-import { AnyTypeGuard, IsTypeOf } from '../schema/schemas/is-type-of/is-type-of'
+import { AnyTypeGuard, IsTypeOf } from '../schema/schemas/type-of/type-of'
 import { Optional } from './optional'
 import { Readonly } from './readonly'
 
