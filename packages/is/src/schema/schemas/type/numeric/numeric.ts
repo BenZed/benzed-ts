@@ -14,4 +14,3 @@ export default Numeric
 export {
     Numeric
 }
-

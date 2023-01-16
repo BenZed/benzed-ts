@@ -1,8 +1,7 @@
 import { CallableStruct, Struct } from '@benzed/immutable'
-import { isFunc, isPrimitive, Primitive, TypeAssertion, TypeGuard } from '@benzed/util'
+import { isFunc, TypeAssertion, TypeGuard } from '@benzed/util'
 
 import { Validate, Validator, ValidatorSettings } from '../validator'
-import type { Instance, InstanceInput, Value, OrSchematic, OrSchematicInput } from './schemas'
 
 //// EsLint ////
 
@@ -21,34 +20,18 @@ interface SchematicMethods<O extends I, I = unknown> {
 
 type AnySchematic = Schematic<any,any>
 
-//// ToSchematic Types ////
+type AnySchematics = readonly AnySchematic[] | AnySchematic[]
 
-type ToSchematicInput = Primitive | InstanceInput | AnySchematic // | ShapeInput | TupleInput | TypeValidator
-type ToSchematic<T extends ToSchematicInput> = 
-    T extends Primitive 
-        ? Value<T>
-        : T extends InstanceInput 
-            ? Instance<T>
-            : T extends AnySchematic 
-                ? T 
-                : never
-
-//// ResolveSchematic ////
-
-interface ResolveSchematic {
-    <T extends Primitive>(value: T): Value<T>
-    <T extends InstanceInput>(type: T): Instance<T>
-    <T extends AnySchematic>(schema: T): T
-    <T extends OrSchematicInput>(...options: T): OrSchematic<T>
-}
+type SchematicConstructor = typeof Schematic
 
 //// Main ////
 
-class Schematic<
-    O extends I, 
-    I = unknown
-> extends CallableStruct<TypeGuard<O, I>> implements SchematicMethods<O,I> {
+class Schematic<O extends I, I = unknown> 
+    extends CallableStruct<TypeGuard<O, I>> 
+    implements SchematicMethods<O,I> {
 
+    //// Static Utility ////
+    
     static is<Ox extends Ix, Ix = unknown>(input: unknown): input is Schematic<Ox,Ix> {
         return isFunc<Schematic<Ox,Ix>>(input) &&
             isFunc(input.is) &&
@@ -56,33 +39,7 @@ class Schematic<
             isFunc(input.validate)
     }
 
-    static resolve = ((...inputs: OrSchematicInput) => {
-        const schematics = inputs.map(Schematic.to) as AnySchematic[]
-        if (schematics.length === 0)
-            throw new Error('At least one input is required.')
-
-        const { Or } = require('./schemas/or') as typeof import('./schemas/or')
-        return Or.to(...schematics)
-    }) as ResolveSchematic
-   
-    static to<T extends ToSchematicInput>(input: T): ToSchematic<T> {
-
-        const { Instance } = require('./schemas/type/instance') as typeof import('./schemas/type/instance')
-        const { Value } = require('./schemas/value') as typeof import('./schemas/value')
-
-        const schema = isFunc(input)
-            ? Schematic.is(input) 
-                ? input
-                : new Instance(input)
-            : isPrimitive(input) 
-                ? new Value(input)
-                : input
-
-        if (!Schematic.is(schema))
-            throw new Error('Invalid input.')
-
-        return schema as ToSchematic<T>
-    }
+    //// Constructor ////
 
     constructor(validate: Validate<I,O>)
     constructor(settings: Partial<ValidatorSettings<I,O>>)
@@ -95,6 +52,8 @@ class Schematic<
         this.validate = Validator.from(input)
         Struct.bindMethods(this as Schematic<unknown>, 'is', 'assert')
     }
+
+    //// Schematic Methods ////
 
     readonly validate: Validate<I, O>
 
@@ -119,8 +78,6 @@ class Schematic<
         return clone
     }
 
-    //// Helper ////
-
 }
 
 //// Exports ////
@@ -130,14 +87,8 @@ export default Schematic
 export {
     Schematic,
     SchematicMethods,
+    SchematicConstructor,
 
     AnySchematic,
-
-    ToSchematicInput,
-    ToSchematic,
-
-    OrSchematic,
-    OrSchematicInput,
-
-    ResolveSchematic,
+    AnySchematics
 }

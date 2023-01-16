@@ -1,4 +1,5 @@
 import { isNumber } from './number'
+import * as Math from '@benzed/math'
  
 //// Export ////
 
@@ -88,6 +89,8 @@ describe('default()', () => {
 for (const method of ['round', 'floor', 'ceil'] as const) {
 
     describe.skip(`${method}()`, () => {
+
+        const number = new Number
 
         it(`creates an instance of the schema with a ${method} validator`, () => {
             const $evenNumber = number[method](2)

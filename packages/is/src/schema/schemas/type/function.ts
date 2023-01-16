@@ -7,8 +7,8 @@ class Function extends Type<Func> {
 
     constructor() {
         super({
-            name: 'function',
             is: isFunc,
+            name: 'function',
             error: 'must be a function'
         })
     }

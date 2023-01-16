@@ -3,13 +3,13 @@ import Type from './type'
 
 //// Exports ////
 
-class Object extends Type<object> {
+class AnyObject extends Type<object> {
 
     constructor() {
         super({
             name: 'object',
             is: (i: unknown): i is object => _isObject(i) || isFunc(i),
-            error: 'must be an object'
+            error: 'must be any object'
         })
     }
 
@@ -17,10 +17,10 @@ class Object extends Type<object> {
 
 //// Exports ////
 
-export default Object
+export default AnyObject
 
 export {
-    Object
+    AnyObject
 }
 
-export const isObject = new Object
+export const isObject = new AnyObject

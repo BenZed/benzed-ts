@@ -1,4 +1,6 @@
 export * from './is'
-export * from './optional'
 export * from './or'
+export * from './of'
+// export * from './and'
+export * from './optional'
 export * from './readonly'

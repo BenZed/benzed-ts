@@ -1,75 +1,21 @@
-import { TypeOf as Infer, Func } from '@benzed/util'
+import { TypeOf as TypeGuardOutput, Func } from '@benzed/util'
 
 import { 
+    Schematic, 
     AnySchematic, 
-    Array, 
-    Boolean, 
-    Number, 
-    String, 
-    Schematic 
 } from '../schema'
 
 import { Optional } from './optional'
 import { Readonly } from './readonly'
-import { OR, Or } from './or'
-import { OF } from './of'
+import RefSchematic from './util/ref'
 
 //// EsLint ////
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/no-var-requires
 */
-
-////  ////
-
-/**
- * @internal
- */
-export type _UnwrapIs<T extends AnySchematic> = T extends Is<infer Tx> ? Tx : T
-
-/**
- * @internal
- */
-export interface _Factory {
-
-    get string(): AnySchematic
-    get boolean(): AnySchematic
-    get number(): AnySchematic
-    get integer(): AnySchematic
-
-    get primitive(): AnySchematic
-    get defined(): AnySchematic
-    get bigint(): AnySchematic
-    get symbol(): AnySchematic
-
-    get null(): AnySchematic
-    get nil(): AnySchematic
-    get nan(): AnySchematic
-    get undefined(): AnySchematic
-
-    get iterable(): AnySchematic
-    get array(): AnySchematic
-    get map(): AnySchematic
-    get set(): AnySchematic
-
-    get record(): AnySchematic
-    get object(): AnySchematic
-    get function(): AnySchematic
-
-    get date(): AnySchematic
-    get promise(): AnySchematic
-    get regexp(): AnySchematic
-    get error(): AnySchematic
-    get weakMap(): AnySchematic
-    get weakSet(): AnySchematic
-
-    tuple<T extends TupleInput>(...types: T): AnySchematic
-    shape<T extends ShapeInput>(shape: T): AnySchematic
-    instanceOf<T extends InstanceInput>(type: T): AnySchematic
-    typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): AnySchematic
-
-}
 
 //// Helper Types ////
 
@@ -86,9 +32,9 @@ type _Fill<A,B> = {
 
 /**
  * Re-wrap the result of a method or getting or a schematic
- * in this <> cursor
+ * in this cursor
  */
-type _Inherit<T> = T extends AnySchematic 
+type _InheritIs<T> = T extends AnySchematic 
     ? Is<T> 
     : T extends Func
         ? ReturnType<T> extends AnySchematic 
@@ -96,29 +42,62 @@ type _Inherit<T> = T extends AnySchematic
             : T
         : T
 
-export type Is<T extends AnySchematic> = 
-    & Schematic<Infer<T>> 
+//// Is ////
+
+/**
+ * @internal
+ */
+type IsRef<T extends AnySchematic> = T extends Is<infer Tx> ? Tx : T
+
+type Is<T extends AnySchematic> = 
+    
+    & Schematic<TypeGuardOutput<T>>
+
     & _Fill<{
-        [K in keyof T]: K extends 'of' 
-            ? OF<T>
-            : _Inherit<T[K]>
+        [K in keyof T]: _InheritIs<T[K]>
     }, {
-        or: OR<T extends Or<infer Tx> ? Tx : [T]>
-        optional: Is<Optional<T>>
-        readonly: Is<Readonly<T>>
+        /**
+         * @internal
+         */
+        readonly ref: T
     }>
 
-//// Factories ////
+// & _Fill<{
+//     [K in keyof T]: K extends 'of' 
+//         ? OfTo<T>
+//         : _InheritIs<T[K]>
+// }, {
+//     or: OrTo<T extends Or<infer Tx> ? Tx : [T]>
+//     optional: Is<Optional<T>>
+//     readonly: Is<Readonly<T>>
 
-export interface IS extends _Factory {
-    <T extends AnySchematic>(type: T): Is<_UnwrapIs<T>>
+//     /**
+//      * @internal
+//      */
+//     readonly ref: T
+// }>
 
-    get string(): Is<String>
-    get number(): Is<Number>
-    get boolean(): Is<Boolean>
-    get array(): Is<Array>
-    // tuple<T extends TupleInput>(...types: T): AnySchematic
-    // shape<T extends ShapeInput>(shape: T): AnySchematic
-    // instanceOf<T extends InstanceInput>(type: T): AnySchematic
-    // typeOf<T>(of: TypeGuard<T> | TypeValidatorSettings<T>): AnySchematic}
+const Is = class extends RefSchematic<AnySchematic> {
+
+    constructor(ref: AnySchematic) {
+
+        // unwrap
+        while (ref instanceof Is)
+            ref = ref.ref
+
+        super(ref)
+    }
+
+    protected _refInherit(): void {
+
+        //
+    }
+
+} as (new <T extends AnySchematic>(ref: T) => Is<T>)
+
+//// Exports ////
+    
+export {
+    Is,
+    IsRef,
 }

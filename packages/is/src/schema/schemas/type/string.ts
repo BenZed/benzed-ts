@@ -1,5 +1,6 @@
+// FIXME Cannot import?? It's behaving like it's encountering circular refs
+// import { capitalize } from '@benzed/string' 
 import { isString as _isString, memoize, Transform, TypeGuard } from '@benzed/util'
-import { capitalize } from '@benzed/string'
 
 import { ValidationErrorMessage } from '../../../validator'
 
@@ -23,7 +24,7 @@ const StringTransform = {
     trim: i => i.trim(),
     toUpper: i => i.toUpperCase(),
     toLower: i => i.toLowerCase(),
-    capitalize,
+    capitalize: i => i.charAt(0).toUpperCase() + i.slice(1),
     ...memoize({
         startsWith: start => i => i.startsWith(start) ? i : start + i,
         endsWith: end => i => i.endsWith(end) ? i : end + i

@@ -17,6 +17,10 @@ import Schema from '../../schema'
 
 class Type<T> extends Schema<T> {
 
+    override get name(): string {
+        return this.validators.at(0)?.name ?? 'Type'
+    }
+
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
         super(new TypeValidator(input)) 
     }
@@ -64,7 +68,11 @@ class Type<T> extends Schema<T> {
     protected _setTypeValidator(settings: Partial<TypeValidatorSettings<T>>): this {
         return this._setValidatorByType(
             TypeValidator, 
-            t => new TypeValidator({ ...(t as TypeValidatorSettings<T>), ...settings })
+            t => new TypeValidator({ 
+                ...(t as TypeValidatorSettings<T>), 
+                name: this.name, 
+                ...settings 
+            })
         )
     }
          

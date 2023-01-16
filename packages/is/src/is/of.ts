@@ -1,5 +1,5 @@
 
-import { Is, _UnwrapIs } from './is'
+import { Is, IsRef } from './is'
 
 import { 
     AnySchematic, 
@@ -27,9 +27,10 @@ import { Readonly } from './readonly'
 type AnyTypeOf = TypeOf<AnyTypeGuard, any>
 
 type _OfArray<F extends AnyTypeGuard, T extends AnySchematic> = 
-    F extends AnyTypeOf
-        ? ArrayOf<Of<F, T>>
-        : ArrayOf<T>
+    // F extends AnyTypeOf
+    //     ? ArrayOf<Of<F, T>>
+    //     : ArrayOf<T>
+    ArrayOf<T>
 
 type _Of<F extends AnyTypeGuard, T extends AnySchematic> = 
     F extends ArrayOf<infer Fx>
@@ -49,8 +50,8 @@ export type Of<F extends AnyTypeGuard, T extends AnySchematic> =
 
 //// Factory ////
 
-export interface OF<F extends AnyTypeGuard> {
-    <T extends AnySchematic>(type: T): Is<Of<F, _UnwrapIs<T>>>
+export interface OfTo<F extends AnyTypeGuard> {
+    <T extends AnySchematic>(type: T): Is<Of<F, IsRef<T>>>
 
     get string(): Is<Of<F, String>>
     get number(): Is<Of<F, Number>>

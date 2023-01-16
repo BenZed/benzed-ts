@@ -1,6 +1,7 @@
 import {
     isNumber as _isNumber,
     isString,
+    isNaN,
     nil,
 } from '@benzed/util'
 
@@ -18,7 +19,7 @@ const toNumber = (value: unknown): unknown => {
 
     if (isString(value)) {
         const parsed = parseFloat(value)
-        if (!Number.isNaN(parsed))
+        if (!isNaN(parsed))
             return parsed
     }
 
