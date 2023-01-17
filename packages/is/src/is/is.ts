@@ -74,6 +74,11 @@ const Is = class extends Ref<unknown> {
         return new Is(optional)
     }
 
+    get readonly(): Is<ReadOnly<AnySchematic>> {
+        const readonly = new ReadOnly(this.ref)
+        return new Is(readonly)
+    }
+
 } as unknown as (
     new <T extends AnySchematic>(ref: T) => Is<IsRef<T>>
 )

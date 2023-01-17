@@ -73,11 +73,10 @@ it('to readonly and back', () => {
 
     expectTypeOf(isReadonlyArray).toMatchTypeOf<Is<ReadOnly<Array>>>()
     expect(isReadonlyArray).toBeInstanceOf(Is)
-    expect(isReadonlyArray.ref).toBeInstanceOf(Optional)
-    expect(isReadonlyArray('')).toBe(true)
-    expect(isReadonlyArray(nil)).toBe(true)
+    expect(isReadonlyArray.ref).toBeInstanceOf(ReadOnly)
+    expect(isReadonlyArray([])).toBe(true)
 
     const backToArray = isReadonlyArray.writable
-    expect(backToArray.ref).toBe(isStringRef.ref)
-    expect(backToArray).toBeInstanceOf(Is)
+    expect(backToArray.ref).toBe(isArray)
+    expect(backToArray).toBeInstanceOf(Is) 
 })
