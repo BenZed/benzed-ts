@@ -13,7 +13,7 @@ import {
     
 import { AnyTypeGuard, TypeOf } from '../schema/schemas/type-of/type-of'
 import { Optional } from './optional'
-import { Readonly } from './readonly'
+import { ReadOnly } from './readonly'
 
 //// EsLint ////
 

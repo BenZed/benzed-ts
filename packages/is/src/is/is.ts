@@ -3,7 +3,7 @@ import { TypeOf as TypeGuardOutput, Func } from '@benzed/util'
 import { AnySchematic } from '../schema'
 
 import { Optional } from './optional'
-import { Readonly } from './readonly'
+import { ReadOnly } from './readonly'
 import { To } from './to'
 
 import Ref from './util/ref'
@@ -56,7 +56,7 @@ type Is<T extends AnySchematic> =
     & _Fill<{
         get or(): To<[T]>
         get optional(): Is<Optional<T>>
-        get readonly(): Is<Readonly<T>>
+        get readonly(): Is<ReadOnly<T>>
     },{
         [K in keyof T]: K extends 'of' 
             ? never // OfTo<T>

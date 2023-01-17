@@ -27,7 +27,6 @@ type Optional<T extends AnySchematic> =
         [K in keyof T]: K extends 'of' ? T[K] : _InheritOptional<T[K]>
     } 
     & {
-        optional: Optional<T>
         required: T
     }
 

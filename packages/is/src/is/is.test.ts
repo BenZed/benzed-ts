@@ -1,7 +1,8 @@
-import { isString, String, isBoolean, Boolean, isNumber, Number } from '../schema'
+import { Array, isArray, isString, String, isBoolean, Boolean, isNumber, Number } from '../schema'
 import { Is } from './is'
 import { Or } from './or'
 import { Optional } from './optional'
+import { ReadOnly } from './readonly'
 
 import { nil } from '@benzed/util'
 
@@ -65,5 +66,18 @@ it('to optional and back', () => {
     const backToString = isOptionalString.required
     expect(backToString.ref).toBe(isStringRef.ref)
     expect(backToString).toBeInstanceOf(Is)
+})
 
+it('to readonly and back', () => {
+    const isReadonlyArray = new Is(isArray).readonly
+
+    expectTypeOf(isReadonlyArray).toMatchTypeOf<Is<ReadOnly<Array>>>()
+    expect(isReadonlyArray).toBeInstanceOf(Is)
+    expect(isReadonlyArray.ref).toBeInstanceOf(Optional)
+    expect(isReadonlyArray('')).toBe(true)
+    expect(isReadonlyArray(nil)).toBe(true)
+
+    const backToArray = isReadonlyArray.writable
+    expect(backToArray.ref).toBe(isStringRef.ref)
+    expect(backToArray).toBeInstanceOf(Is)
 })
