@@ -1,4 +1,4 @@
-import { Func, isFunc, KeysOf, keysOf, merge, Mutable, nil, Property, TypeOf } from '@benzed/util'
+import { Func, isFunc, KeysOf, keysOf, merge, nil, Property,} from '@benzed/util'
 
 import { AnySchematic, Schematic } from '../../schema'
 import { ValidateOptions } from '../../validator'
@@ -19,17 +19,17 @@ import { ValidateOptions } from '../../validator'
  */
 export const getSchematicExtensionDescriptors = (schematic: AnySchematic): PropertyDescriptorMap => {
 
-    const Constructor = schematic.constructor
-
-    const descriptors: PropertyDescriptorMap = {}
-
+    const descriptors: PropertyDescriptorMap = Property.descriptorsOf(schematic)
+    
     let extendsSchematic = false
+
+    const Constructor = schematic.constructor
     for (const prototype of Property.eachPrototype(Constructor.prototype)) {
         if (prototype === Schematic.prototype) {
             extendsSchematic = true
             break
         }
-        
+
         const protoDescriptors = Property.descriptorsOf(prototype)
         for (const key of keysOf(protoDescriptors)) {
             if (key in descriptors === false)
@@ -56,22 +56,19 @@ export const getSchematicExtensionDescriptors = (schematic: AnySchematic): Prope
  */
 abstract class Ref<T> extends Schematic<T> {
 
-    protected static _normalize(ref: AnySchematic): AnySchematic {
-        while (ref instanceof this)
-            ref = ref.ref
-        return ref
-    }
-
     readonly ref: Schematic<T>
 
     constructor(ref: Schematic<T>) {
 
-        ref = Ref._normalize(ref)
+        super(function validateRef(
+            this: Ref<T>, 
+            i: unknown, 
+            options?: ValidateOptions
+        ): T {
+            return this.ref.validate(i, options)
+        })
 
-        // unwrap
-        super(ref.validate)
-
-        this.ref = ref
+        this.ref = this._assertRef(ref)
         this._inheritRefDescriptors()
     }
 
@@ -91,6 +88,12 @@ abstract class Ref<T> extends Schematic<T> {
     }
 
     //// Helper ////
+
+    private _assertRef(ref: AnySchematic): AnySchematic {
+        if (ref instanceof this.constructor)
+            throw new Error(`${this.constructor.name} cannot reference an instance of itself.`)
+        return ref
+    }
 
     private _inheritRefDescriptors(): void {
 
@@ -119,7 +122,6 @@ abstract class Ref<T> extends Schematic<T> {
             if (descriptor) 
                 descriptors[key] = descriptor
         }
-
         Property.define(this, descriptors)
     }
 
@@ -158,11 +160,10 @@ abstract class Ref<T> extends Schematic<T> {
     protected _copyWithRef(ref: Schematic<T>): this {
         const clone = super.copy()
 
-        ref = Ref._normalize(ref)
+        ref = clone._assertRef(ref)
 
         merge(clone, { 
-            ref,
-            validate: ref.validate
+            ref
         })
 
         clone._inheritRefDescriptors()

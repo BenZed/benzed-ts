@@ -1,11 +1,10 @@
 import { TypeOf as TypeGuardOutput, Func } from '@benzed/util'
 
-import { OrTo } from './or-to'
-
 import { Schematic, AnySchematic } from '../schema'
 
 import { Optional } from './optional'
 import { Readonly } from './readonly'
+import { To } from './to'
 
 import Ref from './util/ref'
 
@@ -59,7 +58,7 @@ type Is<T extends AnySchematic> =
          */
         readonly ref: T
 
-        get or(): OrTo<T>
+        get or(): To<[T]>
         get optional(): Is<Optional<T>>
         get readonly(): Is<Readonly<T>>
     },{
@@ -70,8 +69,8 @@ type Is<T extends AnySchematic> =
 
 const Is = class extends Ref<AnySchematic> {
 
-    get or (): OrTo<AnySchematic> {
-        throw new Error('Not yet implemented')
+    get or (): To<[AnySchematic]> {
+        return new To(this.ref)
     }
 
 } as unknown as (

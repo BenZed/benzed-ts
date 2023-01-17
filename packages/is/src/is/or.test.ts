@@ -1,4 +1,4 @@
-import { isString, isBoolean } from '../schema'
+import { isString, isBoolean, String } from '../schema'
 import { Or } from './or'
 
 //// EsLint //// 
@@ -26,8 +26,13 @@ it('inherits the schematic methods of the last type', () => {
 })
 
 it('cannot nest', () => { 
-    expect(() => new Or(isBoolOrString))
-        .toThrow(`Cannot contain other ${Or.name} instances`)
+    expect(() => new Or(isBoolOrString, isString))
+        .toThrow(`cannot contain other ${Or.name} instances`)
+})
+
+it('requires at least two types', () => { 
+    expect(() => new Or(isString))
+        .toThrow('requires at least two types to create a union')
 })
 
 it('schematic methods that return a schematic are re-wrapped in Or', () => {

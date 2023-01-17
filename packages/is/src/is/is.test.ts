@@ -1,5 +1,6 @@
-import { isString, String } from '../schema'
+import { isString, String, isBoolean, Boolean, isNumber, Number } from '../schema'
 import { Is } from './is'
+import { Or } from './or'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -9,7 +10,7 @@ import { expectTypeOf } from 'expect-type'
     @typescript-eslint/ban-types
 */
 
-//// Setup ////
+//// Setup //// 
 
 const isStringRef = new Is(isString) 
  
@@ -21,10 +22,8 @@ it('inherits other schematics methods', () => {
     expect(isStringRef.startsWith).toBeInstanceOf(Function)
 })
 
-it('untangles', () => {
-    const isStringRef2 = new Is(isStringRef)
-    expect(isStringRef2.ref).toBe(isStringRef.ref)
-    expectTypeOf(isStringRef2).toMatchTypeOf<Is<String>>()
+it('cannot self ref', () => {
+    expect(() => new Is(isStringRef)).toThrow('cannot reference an instance of itself')
 })
 
 it('schematic methods that return a schematic are re-wrapped in Is', () => {
@@ -40,4 +39,12 @@ it('schematic getters that return a schematic are re-wrapped in Is', () => {
     expect(isTrimmed.validate(' a ')).toBe('a')
     expect(isTrimmed).toBeInstanceOf(Is)
     expect(isTrimmed.ref).toBeInstanceOf(String) 
+})
+
+it('wrapping or ref type', () => {
+    const isBooleanOrNumber = new Is(new Or(isBoolean, isNumber))
+    expectTypeOf(isBooleanOrNumber).toMatchTypeOf<Is<Or<[Boolean, Number]>>>()
+    expect(isBooleanOrNumber.types[0]).toBe(isBoolean)
+    expect(isBooleanOrNumber.types[1]).toBe(isNumber)    
+    expect(isBooleanOrNumber.range).toBeInstanceOf(Function)
 })

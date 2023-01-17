@@ -1,4 +1,4 @@
-import { resolveSchematic, resolveSchematics } from './resolve'
+import { resolveSchematic, reduceSchematics } from './resolve'
 
 import { test, expect } from '@jest/globals'
 
@@ -49,7 +49,8 @@ describe('resolveSchematics', () => {
 
     test('multiple inputs resusult in an Or union', () => {
 
-        const isZeroBoolOrFoo = resolveSchematics(isBoolean, Foo, 0)
+        const isZeroBoolOrFoo = reduceSchematics(isBoolean, Foo, 0)
+
         expect(isZeroBoolOrFoo).toBeInstanceOf(Or)
         expect(isZeroBoolOrFoo(0)).toBe(true)
         expect(isZeroBoolOrFoo(true)).toBe(true)

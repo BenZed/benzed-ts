@@ -54,7 +54,7 @@ type _ResolveSchematics<T extends readonly unknown[]> = T extends [infer T1, ...
             : never
     : []
 
-type _ResolveShematicsOutput<T extends ResolveSchematicsInput> = _MergeSchematics<_FlattenSchematics<_ResolveSchematics<T>>>
+type _ResolveShematicsOutput<T extends ReduceSchematicsInput> = _MergeSchematics<_FlattenSchematics<_ResolveSchematics<T>>>
 
 //// Types ////
 
@@ -72,8 +72,8 @@ type ResolveSchematicOutput<T extends ResolveSchematicInput> =
                 ? T 
                 : never
 
-type ResolveSchematicsInput = ResolveSchematicInput[] | readonly ResolveSchematicInput[]
-type ResolveSchematicsOutput<T extends ResolveSchematicsInput> = _ResolveShematicsOutput<T> extends infer S 
+type ReduceSchematicsInput = ResolveSchematicInput[] | readonly ResolveSchematicInput[]
+type ReduceSchematicsOutput<T extends ReduceSchematicsInput> = _ResolveShematicsOutput<T> extends infer S 
     ? S extends AnySchematic[] 
         ? S['length'] extends 1 
             ? S[0]
@@ -100,9 +100,9 @@ function resolveSchematic<T extends ResolveSchematicInput>(
         : new Instance(input)) as ResolveSchematicOutput<T>
 }
 
-function resolveSchematics<T extends ResolveSchematicsInput>(
+function reduceSchematics<T extends ReduceSchematicsInput>(
     ...inputs: T
-): ResolveSchematicsOutput<T> {
+): ReduceSchematicsOutput<T> {
 
     const schematics: AnySchematic[] = []
 
@@ -129,7 +129,7 @@ function resolveSchematics<T extends ResolveSchematicsInput>(
         ? schematics[0] 
         : new Or(...schematics)
 
-    return schematic as ResolveSchematicsOutput<T>
+    return schematic as ReduceSchematicsOutput<T>
 }
 
 /**
@@ -152,7 +152,7 @@ interface ResolveSchematicMap {
     // get nan(): AnySchematic
     // get undefined(): AnySchematic
 
-    // get iterable(): AnySchematic
+    // get iterable(): AnySchematic  
     get array(): AnySchematic
     // get map(): AnySchematic
     // get set(): AnySchematic
@@ -188,7 +188,7 @@ export {
     ResolveSchematicInput,
     ResolveSchematicOutput,
 
-    resolveSchematics,
-    ResolveSchematicsInput,
-    ResolveSchematicsOutput,
+    reduceSchematics,
+    ReduceSchematicsInput,
+    ReduceSchematicsOutput,
 }

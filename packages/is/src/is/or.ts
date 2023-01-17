@@ -16,7 +16,7 @@ import { ValidateOptions } from '../validator'
     @typescript-eslint/no-explicit-any
 */
 
-//// Helper TYpes ////
+//// Helper Types ////
 
 type _ReplaceLast<T extends readonly AnySchematic[], A extends AnySchematic> = T extends [...infer Tf, unknown]
     ? [...Tf, A]
@@ -85,10 +85,17 @@ const Or = class extends Ref<unknown> {
         types: readonly AnySchematic[], 
         newLast?: AnySchematic
     ): void {
+
         if (types.some(type => type instanceof Or)) {
             throw new Error(
-                `Cannot contain other ${Or.name} ` + 
+                `${Or.name} cannot contain other ${Or.name} ` + 
                 'instances. Flatten them.'
+            )
+        }
+
+        if (types.length < 2) {
+            throw new Error(
+                `${Or.name} requires at least two types to create a union.`
             )
         }
 
