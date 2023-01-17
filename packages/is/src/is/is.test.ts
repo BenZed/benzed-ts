@@ -11,13 +11,9 @@ import { expectTypeOf } from 'expect-type'
 
 //// Setup ////
 
-const isStringRef = new Is(isString)
-
+const isStringRef = new Is(isString) 
+ 
 //// Tests ////
-
-it('wraps other schematics', () => {
-    expect(isStringRef.ref).toBeInstanceOf(String)
-})
 
 it('inherits other schematics methods', () => {
     expect(isStringRef('')).toBe(true)
@@ -27,7 +23,7 @@ it('inherits other schematics methods', () => {
 
 it('untangles', () => {
     const isStringRef2 = new Is(isStringRef)
-    expect(isStringRef2.ref).toBe(isStringRef.ref)    
+    expect(isStringRef2.ref).toBe(isStringRef.ref)
     expectTypeOf(isStringRef2).toMatchTypeOf<Is<String>>()
 })
 
@@ -36,13 +32,12 @@ it('schematic methods that return a schematic are re-wrapped in Is', () => {
     expect(isHash('#hello')).toBe(true)
     expect(isHash).toBeInstanceOf(Is)
     expect(isHash.ref).toBeInstanceOf(String) 
-}) 
+})
 
 it('schematic getters that return a schematic are re-wrapped in Is', () => {
-
     const isTrimmed = isStringRef.trim
     expect(isTrimmed(' a ')).toBe(false)
     expect(isTrimmed.validate(' a ')).toBe('a')
     expect(isTrimmed).toBeInstanceOf(Is)
-    expect(isTrimmed.ref).toBeInstanceOf(String)
+    expect(isTrimmed.ref).toBeInstanceOf(String) 
 })

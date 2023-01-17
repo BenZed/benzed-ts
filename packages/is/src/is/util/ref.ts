@@ -1,7 +1,7 @@
-import { Callable, Func, isFunc, isSymbol, KeysOf, keysOf, nil, Property, symbolsOf, TypeGuard, TypeOf } from '@benzed/util'
-import { CallableStruct, Struct } from '@benzed/immutable'
+import { Func, isFunc, KeysOf, keysOf, merge, Mutable, nil, Property, TypeOf } from '@benzed/util'
 
 import { AnySchematic, Schematic } from '../../schema'
+import { ValidateOptions } from '../../validator'
 
 //// EsLint ////
 
@@ -9,81 +9,101 @@ import { AnySchematic, Schematic } from '../../schema'
     @typescript-eslint/no-explicit-any
 */
 
+//// Helper ////
+
+/**
+ * Get property descriptions of string indexed keys following 
+ * public naming conventions of every prototype in the chain
+ * of the given schematic. 
+ * @internal
+ */
+export const getSchematicExtensionDescriptors = (schematic: AnySchematic): PropertyDescriptorMap => {
+
+    const Constructor = schematic.constructor
+
+    const descriptors: PropertyDescriptorMap = {}
+
+    let extendsSchematic = false
+    for (const prototype of Property.eachPrototype(Constructor.prototype)) {
+        if (prototype === Schematic.prototype) {
+            extendsSchematic = true
+            break
+        }
+        
+        const protoDescriptors = Property.descriptorsOf(prototype)
+        for (const key of keysOf(protoDescriptors)) {
+            if (key in descriptors === false)
+                descriptors[key] = protoDescriptors[key]
+        }
+    }
+
+    for (const key of keysOf(descriptors)) {
+        if (key === 'constructor' || key === 'prototype' || key.startsWith('_'))
+            delete descriptors[key]
+    }
+
+    if (!extendsSchematic)
+        throw new Error(`${schematic?.name} does not extend ${Schematic.name}`)
+
+    return descriptors
+}
+
 //// RefSchematic ////
 
 /**
  * Schematic that exposes/transforms properties of it's reference schematic 
  * for it's own purposes
  */
-abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>> {
+abstract class Ref<T> extends Schematic<T> {
 
-    readonly ref: T
-
-    constructor(ref: T) {
-
-        // unwrap
-        super(function refIs(
-            this: Ref<T>, 
-            i
-        ): i is TypeOf<T> {
-            return this.ref.is(i)
-        })
-
-        // Untangle
-        const This = this.constructor as new (ref: T) => this
-        while (ref instanceof This)
+    protected static _normalize(ref: AnySchematic): AnySchematic {
+        while (ref instanceof this)
             ref = ref.ref
-        this.ref = ref
-
-        // Inherit
-        this._refInherit()
+        return ref
     }
 
-    //// Convenience ////
+    readonly ref: Schematic<T>
 
-    protected _getRefDescriptors(): PropertyDescriptorMap {
-        const protos = Property.prototypesOf(
-            this.ref.constructor.prototype, 
-            [
-                Object.prototype,
-                Function.prototype,
-                Struct.prototype,
-                CallableStruct.prototype,
-                Schematic.prototype
-            ]
-        )
+    constructor(ref: Schematic<T>) {
 
-        const refDescriptors = Property.descriptorsOf(this.ref, ...protos)
+        ref = Ref._normalize(ref)
 
-        const keys = keysOf(refDescriptors)
-        const symbols = symbolsOf(refDescriptors)
+        // unwrap
+        super(ref.validate)
 
-        const IGNORE_KEYS = ['constructor', 'prototype']
+        this.ref = ref
+        this._inheritRefDescriptors()
+    }
 
-        for (const key of [...keys, ...symbols]) {
-            if (
-                isSymbol(key) ||
-                key.startsWith('_') ||
-                IGNORE_KEYS.includes(key)
-            ) 
-                delete refDescriptors[key]
-        }
+    //// Struct Overrides ////
 
-        return refDescriptors
+    override get state(): Partial<this> {
+        // the default behaviour is that any enumerable
+        // property is state, which will cause an infinite 
+        // loop when trying to collect state for _inheritRefDescriptors
+        return {
+            ref: this.ref
+        } as Partial<this>
+    }
+
+    override copy(): this {
+        return this._copyWithRef(this.ref)
     }
 
     //// Helper ////
 
-    private _refInherit(): void {
+    private _inheritRefDescriptors(): void {
 
-        const refDescriptors = this._getRefDescriptors()
-        const isDescriptors = Property.descriptorsOf(this.constructor.prototype)
+        const refDescriptors = getSchematicExtensionDescriptors(this.ref)
+        const thisDescriptors = getSchematicExtensionDescriptors(this)
+
+        const descriptors: PropertyDescriptorMap = {}
 
         for (const prop of keysOf(refDescriptors)) {
-            if (prop in isDescriptors)
+            if (prop in thisDescriptors)
                 continue
 
-            const key = prop as KeysOf<T>
+            const key = prop as KeysOf<Schematic<T>>
 
             const refDescriptor = refDescriptors[key]
 
@@ -96,26 +116,31 @@ abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>
                     ? this._createRefAccessorDescriptor(key, refDescriptor)
                     : refDescriptor
 
-            if (descriptor)
-                Property.define(this, key, descriptor)
+            if (descriptor) 
+                descriptors[key] = descriptor
         }
+
+        Property.define(this, descriptors)
     }
 
-    protected _createRefMethodDescriptor(key: KeysOf<T>, input: PropertyDescriptor): PropertyDescriptor | nil {
+    protected _createRefMethodDescriptor(
+        key: KeysOf<Schematic<T>>, 
+        input: PropertyDescriptor
+    ): PropertyDescriptor | nil {
 
         return {
             ...input,
             value: (...args: unknown[]) => { 
                 const output = (this.ref[key] as Func)(...args)
-                return this._wrapIfSchematic(output)
+                return this._copyWithRefIfSchematic(output)
             }
         }
     }
 
-    protected _createRefAccessorDescriptor(key: KeysOf<T>, input: PropertyDescriptor): PropertyDescriptor | nil {
+    protected _createRefAccessorDescriptor(key: KeysOf<Schematic<T>>, input: PropertyDescriptor): PropertyDescriptor | nil {
         return {
             ...input,
-            get: () => this._wrapIfSchematic(this.ref[key]),
+            get: () => this._copyWithRefIfSchematic(this.ref[key]),
             set: 'set' in input 
                 ? (value: unknown) => {
                     (this.ref as any)[key] = value
@@ -124,17 +149,25 @@ abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>
         }
     }
 
-    private _wrapIfSchematic(output: unknown): unknown {
+    private _copyWithRefIfSchematic(output: unknown): unknown {
         return Schematic.is(output)
-            ? this._wrap(output)
+            ? this._copyWithRef(output as Schematic<T>)
             : output
     }
 
-    protected _wrap(output: AnySchematic): this {
-        const This = this.constructor as new (ref: AnySchematic) => this
-        return new This(output)
+    protected _copyWithRef(ref: Schematic<T>): this {
+        const clone = super.copy()
+
+        ref = Ref._normalize(ref)
+
+        merge(clone, { 
+            ref,
+            validate: ref.validate
+        })
+
+        clone._inheritRefDescriptors()
+        return clone
     }
-    
 }
 
 //// Exports ////

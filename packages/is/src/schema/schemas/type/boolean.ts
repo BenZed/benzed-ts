@@ -17,7 +17,7 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
 
 export interface Boolean extends Type<boolean> {}
 export const isBoolean: Boolean = new Type({ 
-    name: 'defined', 
+    name: 'boolean',
     is: _isBoolean,
     cast: toBoolean
 })

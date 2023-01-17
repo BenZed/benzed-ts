@@ -1,5 +1,6 @@
-import { Or } from './or'
-import Union from './union'
+
+import { copy } from '@benzed/immutable'
+import { TypeOf } from '@benzed/util'
 
 import { 
     isString, 
@@ -7,15 +8,14 @@ import {
     isBoolean, 
     Boolean, 
     String, 
-    Number 
-} from '../type'
+    Number,
+} from '../schema/schemas/type'
+import { isNaN, NaN, Value } from '../schema/schemas/value'
 
 import { expectTypeOf } from 'expect-type'
 
-import { copy } from '@benzed/immutable'
-import { TypeOf } from '@benzed/util'
-import { isNaN, Value } from '../value'
-
+import { OrTo } from './or-to'
+import { Or } from './or'
 //// EsLint ////
 
 /* eslint-disable 
@@ -24,14 +24,14 @@ import { isNaN, Value } from '../value'
 
 //// Data ////
 
-const isBooleanOr = new Or(isBoolean)
+const isBooleanOr = new OrTo(isBoolean)
 const isBooleanOrString = isBooleanOr.string
-const isBooleanOrStringOrNumber = new Or(isBoolean)(isString, isNumber)
+const isBooleanOrStringOrNumber = new OrTo(isBoolean)(isString, isNumber)
 //// Tests ////
 
 it('chain string or boolean example', () => {  
 
-    expectTypeOf(isBooleanOrString).toMatchTypeOf<Union<[Boolean, String]>>()
+    expectTypeOf(isBooleanOrString).toMatchTypeOf<Or<[Boolean, String]>>()
 
     expectTypeOf<TypeOf<typeof isBooleanOrString>>().toEqualTypeOf<boolean | string>()
 
@@ -49,7 +49,7 @@ it('chain string or boolean example', () => {
 
 it('chain string or boolean or number', () => {
     expectTypeOf(isBooleanOrStringOrNumber)
-        .toMatchTypeOf<Union<[Boolean, String, Number]>>()
+        .toMatchTypeOf<Or<[Boolean, String, Number]>>()
     
     expectTypeOf<TypeOf<typeof isBooleanOrStringOrNumber>>()
         .toEqualTypeOf<boolean | string | number>()
@@ -60,7 +60,7 @@ it('chain string or boolean or number', () => {
 
 it('chain method also has Or.to signature', () => {
 
-    const isSortOutput = new Or(new Value(0))(new Value(1), new Value(-1))
+    const isSortOutput = new OrTo(new Value(0))(new Value(1), new Value(-1))
 
     expect(isSortOutput(1)).toEqual(true)
     expect(isSortOutput(-1)).toEqual(true)
@@ -82,6 +82,6 @@ it('types are preserved on copy', () => {
 })
 
 it('isNaN merges nicely', () => { 
-    const isStringOrNaN = new Or(isNaN).string
-    expectTypeOf(isStringOrNaN).toEqualTypeOf<Union<[]>>()
+    const isStringOrNaN = new OrTo(isNaN).string
+    expectTypeOf(isStringOrNaN).toMatchTypeOf<Or<[String, NaN]>>()
 })

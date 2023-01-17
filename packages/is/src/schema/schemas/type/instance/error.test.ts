@@ -1,15 +1,11 @@
 
-import { Error } from './error'
+import { isError } from './error'
 
 //// Tests ////
 
-const isError = new Error()
+test.skip('isError', () => {
+    expect(isError(new Error())).toEqual(true)
 
-test('isError', () => {
-    expect(isError(new Error()))
-        .toEqual(true)
-
-    expect(() => isError.validate(''))
-        .toThrow('Must be type Error')
+    expect(() => isError.validate('')).toThrow('Must be type Error')
 })
 

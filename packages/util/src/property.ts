@@ -38,6 +38,7 @@ interface Property {
     keysOf(object: object): string[]
     keysOf(...objects: object[]): string[]
 
+    eachPrototype(object: object): IterableIterator<object>
     prototypesOf(object: object, blacklist?: object[]): object[]
     prototypeOf(object: object): object
 }
@@ -61,7 +62,6 @@ const define = (
         : args
 
     return Object.defineProperties(object, definitions)
-
 }
 
 //// Implementation ////
@@ -125,13 +125,21 @@ const Property = intersect(
                 .filter((x,i,a) => a.findIndex(y => Object.is(x, y)) === i) // unique
         },
 
+        * eachPrototype(object: object): IterableIterator<object> {
+            let prototype: object | nil = object 
+            while (prototype) {
+                yield prototype
+                prototype = Object.getPrototypeOf(prototype)
+            }
+        },
+
         prototypesOf(object: object, blacklist = [Object.prototype]): object[] {
             const prototypes: object[] = []
 
-            let prototype: object | nil = object
-            while (prototype) {
-                prototype = Object.getPrototypeOf(prototype)
-                if (prototype && !blacklist.includes(prototype))
+            for (const prototype of this.eachPrototype(object)) {
+                if (prototype === object)
+                    continue
+                if (!blacklist.includes(prototype))
                     prototypes.push(prototype)
             }
 

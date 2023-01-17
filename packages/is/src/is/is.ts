@@ -74,7 +74,9 @@ const Is = class extends Ref<AnySchematic> {
         throw new Error('Not yet implemented')
     }
 
-} as unknown as (new <T extends AnySchematic>(ref: T) => Is<IsRef<T>>)
+} as unknown as (
+    new <T extends AnySchematic>(ref: T) => Is<IsRef<T>>
+)
 
 //// Exports ////
     

@@ -1,7 +1,14 @@
-import { Callable, CallableContextProvider, Func, isFunc, Property, Provider } from '@benzed/util'
+import {
+    Callable,
+    CallableContextProvider,
+
+    Func, 
+    isFunc, 
+
+    Property 
+} from '@benzed/util'
 
 import { ValueCopy, $$copy } from './copy'
-
 import equals, { $$equals, ValueEqual } from './equals'
 
 //// EsLint ////
@@ -19,8 +26,8 @@ type MethodNames<S> = keyof {
 //// Helper Methods ////
 
 function copy<S extends Struct>(input: S): S {
-    const state = Object.getOwnPropertyDescriptors({ ...input })
-    const output = Object.create(input, state) as Struct
+    const stateDescriptors = Property.descriptorsOf(input.state)
+    const output = Object.create(input, stateDescriptors) as Struct
     return output as S
 }
 
@@ -79,6 +86,13 @@ abstract class Struct implements ValueCopy, ValueEqual {
         return Callable[Symbol.hasInstance].call(this, input)
     }
 
+    //// State ////
+    
+    get state(): Partial<this> {
+        // by default, all enumerable fields are state
+        return { ...this } as Partial<this>
+    }
+
     //// Constructor ////
     
     constructor() {
@@ -107,7 +121,7 @@ abstract class Struct implements ValueCopy, ValueEqual {
         return (
             other instanceof Struct && 
             other.constructor === this.constructor && 
-            equals({ ...other }, { ...this })
+            equals(other.state, this.state)
         )
     }
     

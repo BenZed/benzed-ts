@@ -1,31 +1,13 @@
-import { Func, Primitive, TypeGuard, TypesOf } from '@benzed/util'
-import { CallableStruct } from '@benzed/immutable'
+import { Func, merge, Property, TypesOf } from '@benzed/util'
 import { Last } from '@benzed/array'
 
 import { 
     AnySchematic, 
-    
-    isArray, 
-    Array, 
-    
-    isBoolean,
-    Boolean, 
-    
-    isString,
-    String, 
-
-    isNumber,
-    Number, 
-
-    Instance, 
-    InstanceInput, 
-
     Schematic, 
-
-    Value 
 } from '../schema'
 
 import { Ref } from './util'
+import { ValidateOptions } from '../validator'
 
 //// EsLint ////
 
@@ -56,65 +38,89 @@ type Or<T extends readonly AnySchematic[]> = Schematic<TypesOf<T>[number]> & {
     readonly types: T
 }
 
-// const Or = class extends Schematic<unknown> {
+//// Helper ////
 
-//     readonly types: readonly AnySchematic[]
+function validateUnion(
+    this: Or<readonly AnySchematic[]>, 
+    i: unknown, 
+    options?: ValidateOptions
+): unknown {
 
-//     constructor(...types: readonly AnySchematic[]) {
+    const types = this.types
+    for (const type of types) {
+        if (type.is(i))
+            return i
+    }
 
-//         super(function (this: Or<readonly AnySchematic[]>, i, options?) {
-//             const errors: unknown[] = []
+    const errors: unknown[] = []
+    for (const type of types) {
+        try {
+            return type.validate(i, options)
+        } catch (e) {
+            errors.push(e)
+        }
+    }
 
-//             const types = this.types
-//             for (const type of types) {
-//                 if (type.is(i))
-//                     return i
-//             }
+    throw new AggregateError(errors)
+}
 
-//             for (const type of types) {
-//                 try {
-//                     return type.validate(i, options)
-//                 } catch (e) {
-//                     errors.push(e)
-//                 }
-//             }
+//// Or ////
 
-//             throw new AggregateError(errors)
-//         })
-        
-//         this.types = types
-//         this._applyInterfaceOfLastType()
-//     }
+const Or = class extends Ref<unknown> {
 
-//     private _applyInterfaceOfLastType(): void {
-//         // TODO
-//     }
-
-// } as unknown as (new <T extends AnySchematic[]>(...types: T) => Or<T>)
-
-const Or = class extends Ref<AnySchematic> {
-
-    constructor(readonly types: AnySchematic[]) {
+    readonly types!: readonly AnySchematic[]
+    constructor(...types: readonly AnySchematic[]) {
         const ref = types.at(-1)
         if (!ref)
             throw new Error('Must have at least one type.')
 
         super(ref)
+        this._assignTypes(types)
+        this._assignUnionValidation()
+    }
+
+    //// Helper ////
+
+    private _assignTypes(
+        types: readonly AnySchematic[], 
+        newLast?: AnySchematic
+    ): void {
+        if (types.some(type => type instanceof Or)) {
+            throw new Error(
+                `Cannot contain other ${Or.name} ` + 
+                'instances. Flatten them.'
+            )
+        }
+
+        merge(
+            this,
+            {
+                types: newLast ? [ ...types.slice(0, -1), newLast ] : types
+            }
+        )
+    }
+    
+    private _assignUnionValidation(): void {
+        const validate = Property.name(
+            validateUnion.bind(this as unknown as Or<readonly AnySchematic[]>),
+            'validateUnion'
+        )
+
+        merge(
+            this,
+            {
+                validate
+            }
+        )
     }
 
     //// Overrides ////
 
-    protected override _wrap(schematic: AnySchematic): this {
-
-        // Replace the last type
-        const types = [
-            ...this.types.slice(0, -1),
-            schematic
-        ]
-
-        // Copy
-        const This = this.constructor as new (...types: AnySchematic[]) => this
-        return new This(...types) 
+    protected override _copyWithRef(schematic: AnySchematic): this {
+        const clone = super._copyWithRef(schematic)
+        clone._assignTypes(this.types, schematic)
+        clone._assignUnionValidation()
+        return clone as this        
     }
 
 } as unknown as (new <T extends AnySchematic[]>(...types: T) => Or<T>)
