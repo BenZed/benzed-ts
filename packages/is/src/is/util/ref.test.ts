@@ -9,11 +9,11 @@ import { keysOf, nil } from '@benzed/util'
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
-
+  
 // @ts-expect-error it's abstract
 const ref = new Ref(isString)
 
-//// Tests ////
+//// Tests //// 
 
 it('wraps ref schematic methods', () => {
 
@@ -43,12 +43,6 @@ it('survives copy', () => {
     expect(refCopy.is(str)).toBe(true)
     expect(refCopy.assert(str)).toBe(nil)
     expect(refCopy.validate(str)).toBe(str)
-})
-
-it('untangles nested refs', () => {
-    // @ts-expect-error it's abstract
-    const refRef = new Ref(ref)
-    expect(refRef.ref).toBe(isString)
 })
 
 describe(getSchematicExtensionDescriptors.name + '()', () => { 

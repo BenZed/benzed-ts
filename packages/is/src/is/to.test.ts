@@ -1,3 +1,4 @@
+
 import { nil, TypeOf } from '@benzed/util'
 
 import { test } from '@jest/globals'
@@ -8,14 +9,27 @@ import { Is } from './is'
 import { Or } from './or'
 import { Optional } from './optional'
 import { Readonly } from './readonly'
-import { isString, String, Boolean, Number, ArrayOf, isBoolean, isNumber, isNaN, NaN, Value } from '../schema'
+
+import {
+    isString, 
+    String, 
+    Boolean, 
+    Number, 
+    ArrayOf, 
+    isBoolean, 
+    isNumber, 
+    isNaN, 
+    NaN, 
+    Value 
+} from '../schema'
+
 import { copy } from '@benzed/immutable'
 
-//// EsLint ////
+//// EsLint ////  
 
 /* eslint-disable 
     @typescript-eslint/ban-types
-*/ 
+*/
 
 //// IS TO ////
 
@@ -27,9 +41,9 @@ test('is(string)', () => {
     expect(isStr(0)).toBe(false)
     expectTypeOf(isStr.validate('str')).toEqualTypeOf('str')
     expectTypeOf(isStr).toEqualTypeOf<Is<String>>()
-})
+}) 
 
-test('is.string', () => {
+test('is.string', () => { 
     const isStr = is.string
     expect(isStr('str')).toBe(true)
     expect(isStr(0)).toBe(false)
@@ -69,7 +83,7 @@ test('is.boolean.or.string', () => {
 
 }) 
 
-test.skip('isHashOrTagOrNegativeNumber', () => {
+test('isHashOrTagOrNegativeNumber', () => {
     const isHashOrTagOrNegativeNumber = is
         .string.startsWith('#')
         .or.string.startsWith('<').endsWith('/>')
@@ -79,7 +93,7 @@ test.skip('isHashOrTagOrNegativeNumber', () => {
 
 test.skip('is.array.of.string', () => {
 
-    const isArrayOfString = is.array.of.string
+    const isArrayOfString = is.array.of.string 
     expect(isArrayOfString(['ace'])).toBe(true)
     expect(isArrayOfString([])).toBe(true)
     expect(isArrayOfString([0])).toBe(false)

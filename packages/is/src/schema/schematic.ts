@@ -45,7 +45,7 @@ class Schematic<O extends I, I = unknown>
     constructor(settings: Partial<ValidatorSettings<I,O>>)
     constructor(input: Validate<I,O> | Partial<ValidatorSettings<I,O>>) {
 
-        super(function (this: Schematic<O>, i): i is O {
+        super(function is(this: Schematic<O>, i): i is O {
             return this.is(i)
         })
 

@@ -7,7 +7,7 @@ import {
 } from '../schema'
 
 import { Ref } from './util'
-import { ValidateOptions } from '../validator'
+import { Validate, ValidateOptions } from '../validator'
 
 //// EsLint ////
 
@@ -32,11 +32,13 @@ type _InheritOr<S, T extends readonly AnySchematic[]> = S extends AnySchematic
 
 //// Or ////
 
-type Or<T extends readonly AnySchematic[]> = Schematic<TypesOf<T>[number]> & {
-    [K in keyof Last<T>]: _InheritOr<Last<T>[K], T>
-} & {
-    readonly types: T
-}
+type Or<T extends readonly AnySchematic[]> = 
+    Ref<TypesOf<T>[number]> & 
+    {
+        [K in keyof Last<T>]: _InheritOr<Last<T>[K], T>
+    } & {
+        readonly types: T
+    }
 
 //// Helper ////
 
@@ -76,7 +78,6 @@ const Or = class extends Ref<unknown> {
 
         super(ref)
         this._assignTypes(types)
-        this._assignUnionValidation()
     }
 
     //// Helper ////
@@ -107,17 +108,10 @@ const Or = class extends Ref<unknown> {
         )
     }
     
-    private _assignUnionValidation(): void {
-        const validate = Property.name(
+    protected override _setValidate(): Validate<unknown> {
+        return Property.name(
             validateUnion.bind(this as unknown as Or<readonly AnySchematic[]>),
             'validateUnion'
-        )
-
-        merge(
-            this,
-            {
-                validate
-            }
         )
     }
 
@@ -126,7 +120,6 @@ const Or = class extends Ref<unknown> {
     protected override _copyWithRef(schematic: AnySchematic): this {
         const clone = super._copyWithRef(schematic)
         clone._assignTypes(this.types, schematic)
-        clone._assignUnionValidation()
         return clone as this        
     }
 

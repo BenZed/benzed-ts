@@ -1,7 +1,7 @@
 import { Func, isFunc, KeysOf, keysOf, merge, nil, Property,} from '@benzed/util'
 
 import { AnySchematic, Schematic } from '../../schema'
-import { ValidateOptions } from '../../validator'
+import { Validate } from '../../validator'
 
 //// EsLint ////
 
@@ -48,8 +48,6 @@ export const getSchematicExtensionDescriptors = (schematic: AnySchematic): Prope
     return descriptors
 }
 
-//// RefSchematic ////
-
 /**
  * Schematic that exposes/transforms properties of it's reference schematic 
  * for it's own purposes
@@ -59,17 +57,10 @@ abstract class Ref<T> extends Schematic<T> {
     readonly ref: Schematic<T>
 
     constructor(ref: Schematic<T>) {
-
-        super(function validateRef(
-            this: Ref<T>, 
-            i: unknown, 
-            options?: ValidateOptions
-        ): T {
-            return this.ref.validate(i, options)
-        })
-
+        super(ref.validate)
         this.ref = this._assertRef(ref)
         this._inheritRefDescriptors()
+        this._assignValidate() 
     }
 
     //// Struct Overrides ////
@@ -87,7 +78,65 @@ abstract class Ref<T> extends Schematic<T> {
         return this._copyWithRef(this.ref)
     }
 
+    //// Convenience ////
+
+    protected _copyWithRef(ref: Schematic<T>): this {
+        const clone = super.copy()
+
+        merge(clone, { 
+            ref: clone._assertRef(ref)
+        })
+        clone._inheritRefDescriptors()
+        clone._assignValidate()
+        return clone
+    }
+
+    protected _setValidate(): Validate<unknown, T> {
+        return this.ref.validate
+    }
+
+    protected _createRefMethodDescriptor(
+        key: KeysOf<Schematic<T>>, 
+        input: PropertyDescriptor
+    ): PropertyDescriptor | nil {
+
+        return {
+            ...input,
+            value: (...args: unknown[]) => { 
+                const output = (this.ref[key] as Func)(...args)
+                return this._copyWithRefIfSchematic(output)
+            }
+        }
+    }
+
+    protected _createRefAccessorDescriptor(key: KeysOf<Schematic<T>>, input: PropertyDescriptor): PropertyDescriptor | nil {
+        return {
+            ...input,
+            get: () => this._copyWithRefIfSchematic(this.ref[key]),
+            set: 'set' in input 
+                ? (value: unknown) => {
+                    (this.ref as any)[key] = value
+                }
+                : nil
+        }
+    }
+
+    protected _copyWithRefIfSchematic(output: unknown): unknown {
+        return Schematic.is(output)
+            ? this._copyWithRef(output as Schematic<T>)
+            : output
+    }
+
     //// Helper ////
+    
+    private _assignValidate(): void {
+        merge(
+            this,
+            {
+                validate: this._setValidate()
+            }
+        )
+    }
 
     private _assertRef(ref: AnySchematic): AnySchematic {
         if (ref instanceof this.constructor)
@@ -125,50 +174,6 @@ abstract class Ref<T> extends Schematic<T> {
         Property.define(this, descriptors)
     }
 
-    protected _createRefMethodDescriptor(
-        key: KeysOf<Schematic<T>>, 
-        input: PropertyDescriptor
-    ): PropertyDescriptor | nil {
-
-        return {
-            ...input,
-            value: (...args: unknown[]) => { 
-                const output = (this.ref[key] as Func)(...args)
-                return this._copyWithRefIfSchematic(output)
-            }
-        }
-    }
-
-    protected _createRefAccessorDescriptor(key: KeysOf<Schematic<T>>, input: PropertyDescriptor): PropertyDescriptor | nil {
-        return {
-            ...input,
-            get: () => this._copyWithRefIfSchematic(this.ref[key]),
-            set: 'set' in input 
-                ? (value: unknown) => {
-                    (this.ref as any)[key] = value
-                }
-                : nil
-        }
-    }
-
-    private _copyWithRefIfSchematic(output: unknown): unknown {
-        return Schematic.is(output)
-            ? this._copyWithRef(output as Schematic<T>)
-            : output
-    }
-
-    protected _copyWithRef(ref: Schematic<T>): this {
-        const clone = super.copy()
-
-        ref = clone._assertRef(ref)
-
-        merge(clone, { 
-            ref
-        })
-
-        clone._inheritRefDescriptors()
-        return clone
-    }
 }
 
 //// Exports ////

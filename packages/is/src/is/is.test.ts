@@ -1,6 +1,9 @@
 import { isString, String, isBoolean, Boolean, isNumber, Number } from '../schema'
 import { Is } from './is'
 import { Or } from './or'
+import { Optional } from './optional'
+
+import { nil } from '@benzed/util'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -47,4 +50,20 @@ it('wrapping or ref type', () => {
     expect(isBooleanOrNumber.types[0]).toBe(isBoolean)
     expect(isBooleanOrNumber.types[1]).toBe(isNumber)    
     expect(isBooleanOrNumber.range).toBeInstanceOf(Function)
+})
+
+it('to optional and back', () => {
+
+    const isOptionalString = isStringRef.optional
+
+    expectTypeOf(isOptionalString).toMatchTypeOf<Is<Optional<String>>>()
+    expect(isOptionalString).toBeInstanceOf(Is)
+    expect(isOptionalString.ref).toBeInstanceOf(Optional)
+    expect(isOptionalString('')).toBe(true)
+    expect(isOptionalString(nil)).toBe(true)
+
+    const backToString = isOptionalString.required
+    expect(backToString.ref).toBe(isStringRef.ref)
+    expect(backToString).toBeInstanceOf(Is)
+
 })

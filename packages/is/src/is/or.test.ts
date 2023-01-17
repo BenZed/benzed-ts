@@ -7,7 +7,7 @@ import { Or } from './or'
     @typescript-eslint/ban-types
 */
 
-//// Setup //// 
+//// Setup ////
 
 const isBoolOrString = new Or(isBoolean, isString) 
 
