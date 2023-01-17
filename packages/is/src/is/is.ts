@@ -1,13 +1,12 @@
-import { TypeOf as TypeGuardOutput, Func } from '@benzed/util'
+import { capitalize } from '@benzed/string'
+import { TypeOf as TypeGuardOutput, Func, Property, keysOf, isFunc, nil } from '@benzed/util'
 
 import { 
     Schematic, 
     AnySchematic, 
 } from '../schema'
 
-import { Optional } from './optional'
-import { Readonly } from './readonly'
-import RefSchematic from './util/ref'
+import Ref from './util/ref'
 
 //// EsLint ////
 
@@ -77,23 +76,30 @@ type Is<T extends AnySchematic> =
 //     readonly ref: T
 // }>
 
-const Is = class extends RefSchematic<AnySchematic> {
+const Is = class extends Ref<AnySchematic> {
 
     constructor(ref: AnySchematic) {
-
-        // unwrap
-        while (ref instanceof Is)
-            ref = ref.ref
-
         super(ref)
     }
 
-    protected _refInherit(): void {
-
-        //
+    //// Overrides ////
+    
+    protected _callRefMethod(key: keyof AnySchematic): (...args: unknown[]) => unknown {
+        return (...args: unknown[]) =>
+            this._wrapIfSchematic((this.ref[key] as Func)(...args))
+    }
+    
+    protected _getRefValue(key: keyof AnySchematic): () => unknown {
+        return () => this._wrapIfSchematic(this.ref[key])
     }
 
-} as (new <T extends AnySchematic>(ref: T) => Is<T>)
+    protected _setRefValue(key: keyof AnySchematic): (value: unknown) => void {
+        return (value: unknown) => {
+            (this.ref as any)[key] = value
+        }
+    }
+
+} as unknown as (new <T extends AnySchematic>(ref: T) => Is<T>)
 
 //// Exports ////
     

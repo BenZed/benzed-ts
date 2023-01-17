@@ -19,7 +19,16 @@ it('inherits other schematics methods', () => {
 
 it('schematic methods that return a schematic are re-wrapped in Is', () => {
     const isHash = isStringRef.startsWith('#')
-    expect(isHash).toBeInstanceOf(Is)
     expect(isHash('#hello')).toBe(true)
-    expect(isHash('')).toBe(false)
+    expect(isHash).toBeInstanceOf(Is)
+    expect(isHash.ref).toBeInstanceOf(String) 
+}) 
+
+it('schematic getters that return a schematic are re-wrapped in Is', () => {
+
+    const isTrimmed = isStringRef.trim
+    expect(isTrimmed(' a ')).toBe(false)
+    expect(isTrimmed.validate(' a ')).toBe('a')
+    expect(isTrimmed).toBeInstanceOf(Is)
+    expect(isTrimmed.ref).toBeInstanceOf(String)
 })

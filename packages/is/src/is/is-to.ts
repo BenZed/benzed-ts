@@ -1,4 +1,4 @@
-import { TypeOf as TypeGuardOutput, Primitive } from '@benzed/util'
+import { Primitive } from '@benzed/util'
 
 import { 
     AnySchematic, 
