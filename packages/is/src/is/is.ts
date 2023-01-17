@@ -1,10 +1,11 @@
-import { capitalize } from '@benzed/string'
-import { TypeOf as TypeGuardOutput, Func, Property, keysOf, isFunc, nil } from '@benzed/util'
+import { TypeOf as TypeGuardOutput, Func } from '@benzed/util'
 
-import { 
-    Schematic, 
-    AnySchematic, 
-} from '../schema'
+import { OrTo } from './or-to'
+
+import { Schematic, AnySchematic } from '../schema'
+
+import { Optional } from './optional'
+import { Readonly } from './readonly'
 
 import Ref from './util/ref'
 
@@ -53,53 +54,27 @@ type Is<T extends AnySchematic> =
     & Schematic<TypeGuardOutput<T>>
 
     & _Fill<{
-        [K in keyof T]: _InheritIs<T[K]>
-    }, {
         /**
          * @internal
          */
         readonly ref: T
+
+        get or(): OrTo<T>
+        get optional(): Is<Optional<T>>
+        get readonly(): Is<Readonly<T>>
+    },{
+        [K in keyof T]: K extends 'of' 
+            ? never // OfTo<T>
+            : _InheritIs<T[K]>
     }>
-
-// & _Fill<{
-//     [K in keyof T]: K extends 'of' 
-//         ? OfTo<T>
-//         : _InheritIs<T[K]>
-// }, {
-//     or: OrTo<T extends Or<infer Tx> ? Tx : [T]>
-//     optional: Is<Optional<T>>
-//     readonly: Is<Readonly<T>>
-
-//     /**
-//      * @internal
-//      */
-//     readonly ref: T
-// }>
 
 const Is = class extends Ref<AnySchematic> {
 
-    constructor(ref: AnySchematic) {
-        super(ref)
+    get or (): OrTo<AnySchematic> {
+        throw new Error('Not yet implemented')
     }
 
-    //// Overrides ////
-    
-    protected _callRefMethod(key: keyof AnySchematic): (...args: unknown[]) => unknown {
-        return (...args: unknown[]) =>
-            this._wrapIfSchematic((this.ref[key] as Func)(...args))
-    }
-    
-    protected _getRefValue(key: keyof AnySchematic): () => unknown {
-        return () => this._wrapIfSchematic(this.ref[key])
-    }
-
-    protected _setRefValue(key: keyof AnySchematic): (value: unknown) => void {
-        return (value: unknown) => {
-            (this.ref as any)[key] = value
-        }
-    }
-
-} as unknown as (new <T extends AnySchematic>(ref: T) => Is<T>)
+} as unknown as (new <T extends AnySchematic>(ref: T) => Is<IsRef<T>>)
 
 //// Exports ////
     

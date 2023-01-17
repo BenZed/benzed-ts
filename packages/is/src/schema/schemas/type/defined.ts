@@ -1,5 +1,5 @@
 import { Primitive, isDefined as _isDefined, nil } from '@benzed/util'
-import Schema from '../../schema'
+import Type from './type'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -7,24 +7,12 @@ import Schema from '../../schema'
 
 //// Setup ////
 
-type Defined = Exclude<Primitive, nil | null> | object
-
-class Defined extends Schema<Defined> {
-
-    constructor() {
-        super({
-            is: _isDefined,
-            error: 'Must be defined'
-        })
-    }
-}
+type defined = Exclude<Primitive, nil | null> | object
 
 //// Exports ////
 
-export default Defined
-
-export {
-    Defined
-}
-
-export const isDefined = new Defined
+export interface Defined extends Type<defined> {}
+export const isDefined: Defined = new Type({ 
+    name: 'defined', 
+    is: (i: unknown): i is defined => _isDefined(i)
+})

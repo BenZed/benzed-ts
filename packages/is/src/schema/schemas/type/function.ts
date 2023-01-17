@@ -1,26 +1,14 @@
 import { Func, isFunc } from '@benzed/util'
 import Type from './type'
 
-//// Exports ////
-
-class Function extends Type<Func> {
-
-    constructor() {
-        super({
-            is: isFunc,
-            name: 'function',
-            error: 'must be a function'
-        })
-    }
-
-}
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Exports ////
 
-export default Function
-
-export {
-    Function
-}
-
-export const isFunction = new Function
+export interface Function extends Type<Func> {}
+export const isFunction: Function = new Type({ 
+    name: 'function', 
+    is: isFunc
+})

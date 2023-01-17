@@ -80,8 +80,11 @@ class IsTo extends ResolveSchematic<IsToSignature> implements ResolveSchematicMa
 const is = new IsTo
 
 //// Exports ////
-    
+
+export default is
+
 export {
     is,
+    IsTo,
     IsToSignature
 }

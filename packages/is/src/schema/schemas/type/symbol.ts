@@ -4,26 +4,10 @@ import { isSymbol as _isSymbol } from '@benzed/util'
 import Type from './type'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
-
-//// Boolean ////
-
-class Symbol extends Type<symbol> {
-    constructor() {
-        super({
-            name: 'symbol',
-            is: _isSymbol
-        })
-    }
-}
 
 //// Exports ////
 
-export default Symbol
-
-export {
-    Symbol
-}
-
-export const isSymbol = new Symbol
+export interface Symbol extends Type<symbol> {}
+export const isSymbol: Symbol = new Type({ name: 'unknown', is: _isSymbol })

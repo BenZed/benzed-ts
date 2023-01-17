@@ -2,7 +2,7 @@ import { isBoolean as _isBoolean, isNil } from '@benzed/util'
 import Type from './type'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
 //// Helper ////
@@ -13,24 +13,11 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
         ? true 
         : input
 
-//// Boolean ////
-
-class Boolean extends Type<boolean> {
-    constructor() {
-        super({
-            name: 'boolean',
-            is: _isBoolean,
-            cast: toBoolean
-        })
-    }
-}
-
 //// Exports ////
 
-export default Boolean
-
-export {
-    Boolean
-}
-
-export const isBoolean = new Boolean
+export interface Boolean extends Type<boolean> {}
+export const isBoolean: Boolean = new Type({ 
+    name: 'defined', 
+    is: _isBoolean,
+    cast: toBoolean
+})

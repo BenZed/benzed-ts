@@ -2,7 +2,6 @@ import { Func, Primitive, TypeGuard, TypesOf } from '@benzed/util'
 import { CallableStruct } from '@benzed/immutable'
 import { Last } from '@benzed/array'
 
-import { _Factory } from './is'
 import { 
     AnySchematic, 
     
@@ -26,10 +25,13 @@ import {
     Value 
 } from '../schema'
 
+import { Ref } from './util'
+
 //// EsLint ////
 
 /* eslint-disable 
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Helper TYpes ////
@@ -46,71 +48,6 @@ type _InheritOr<S, T extends readonly AnySchematic[]> = S extends AnySchematic
             : S
         : S
 
-//// Or Factory ////
-
-class OrTo<S extends AnySchematic[]> extends CallableStruct<ToIsOr<S>> implements _Factory {
-
-    static to<T extends ResolveSchematicsInput>(...inputs: T): IsOr<T> {
-
-        const outputs: AnySchematic[] = []
-
-        const isValueSchematic = Value[Symbol.hasInstance].bind(Value) as TypeGuard<Value<Primitive>>
-
-        const isUnique = (t1: AnySchematic): boolean => 
-            !isValueSchematic(t1) ||
-            !outputs.filter(isValueSchematic).some(t1.equals)
-
-        for (const input of inputs) {
-
-            const type = Schematic.to(input) as AnySchematic
-
-            const flattened = type instanceof Or 
-                ? type.types as AnySchematic[] 
-                : [type]
-
-            const unique = flattened.filter(isUnique)
-
-            outputs.push(...unique)
-        }
-
-        const output = outputs.length === 1 
-            ? outputs[0] 
-            : new Or(...outputs)
-        return output as IsOr<T>
-    }
-
-    readonly from: S
-    constructor(...from: S) {
-        super((...args: ResolveSchematicsInput) => OrTo.to(...this.from, ...args))
-        this.from = from
-    }
-
-    //// Chain ////
-    
-    get boolean(): ResolveSchematics<[...S, Boolean]> {
-        return OrTo.to(...this.from, isBoolean)
-    }
-
-    get string(): IsOr<[...S, String]> {
-        return OrTo.to(...this.from, isString)
-    }
-
-    get number(): IsOr<[...S, Number]> {
-        return OrTo.to(...this.from, isNumber)
-    }
-
-    get array(): IsOr<[...S, Array]> {
-        return OrTo.to(...this.from, isArray)
-    }
-
-    instanceOf<T extends InstanceInput>(
-        type: T
-    ): IsOr<[...S, Instance<T>]> {
-        return OrTo.to(...this.from, new Instance(type))
-    }
-
-}
-
 //// Or ////
 
 type Or<T extends readonly AnySchematic[]> = Schematic<TypesOf<T>[number]> & {
@@ -119,47 +56,73 @@ type Or<T extends readonly AnySchematic[]> = Schematic<TypesOf<T>[number]> & {
     readonly types: T
 }
 
-const Or = class extends Schematic<unknown> {
+// const Or = class extends Schematic<unknown> {
 
-    readonly types: readonly AnySchematic[]
+//     readonly types: readonly AnySchematic[]
 
-    constructor(...types: readonly AnySchematic[]) {
+//     constructor(...types: readonly AnySchematic[]) {
 
-        super(function (this: Or<readonly AnySchematic[]>, i, options?) {
-            const errors: unknown[] = []
+//         super(function (this: Or<readonly AnySchematic[]>, i, options?) {
+//             const errors: unknown[] = []
 
-            const types = this.types
-            for (const type of types) {
-                if (type.is(i))
-                    return i
-            }
+//             const types = this.types
+//             for (const type of types) {
+//                 if (type.is(i))
+//                     return i
+//             }
 
-            for (const type of types) {
-                try {
-                    return type.validate(i, options)
-                } catch (e) {
-                    errors.push(e)
-                }
-            }
+//             for (const type of types) {
+//                 try {
+//                     return type.validate(i, options)
+//                 } catch (e) {
+//                     errors.push(e)
+//                 }
+//             }
 
-            throw new AggregateError(errors)
-        })
+//             throw new AggregateError(errors)
+//         })
         
-        this.types = types
-        this._applyInterfaceOfLastType()
+//         this.types = types
+//         this._applyInterfaceOfLastType()
+//     }
+
+//     private _applyInterfaceOfLastType(): void {
+//         // TODO
+//     }
+
+// } as unknown as (new <T extends AnySchematic[]>(...types: T) => Or<T>)
+
+const Or = class extends Ref<AnySchematic> {
+
+    constructor(readonly types: AnySchematic[]) {
+        const ref = types.at(-1)
+        if (!ref)
+            throw new Error('Must have at least one type.')
+
+        super(ref)
     }
 
-    private _applyInterfaceOfLastType(): void {
-        // TODO
+    //// Overrides ////
+
+    protected override _wrap(schematic: AnySchematic): this {
+
+        // Replace the last type
+        const types = [
+            ...this.types.slice(0, -1),
+            schematic
+        ]
+
+        // Copy
+        const This = this.constructor as new (...types: AnySchematic[]) => this
+        return new This(...types) 
     }
 
 } as unknown as (new <T extends AnySchematic[]>(...types: T) => Or<T>)
 
 //// Exports ////
 
-export default OrTo
+export default Or
 
 export {
-    OrTo,
     Or
 }

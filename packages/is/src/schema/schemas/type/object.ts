@@ -1,26 +1,14 @@
 import { isFunc, isObject as _isObject } from '@benzed/util'
 import Type from './type'
 
-//// Exports ////
-
-class AnyObject extends Type<object> {
-
-    constructor() {
-        super({
-            name: 'object',
-            is: (i: unknown): i is object => _isObject(i) || isFunc(i),
-            error: 'must be any object'
-        })
-    }
-
-}
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Exports ////
 
-export default AnyObject
-
-export {
-    AnyObject
-}
-
-export const isObject = new AnyObject
+export interface Object extends Type<object> {}
+export const isObject: Object = new Type({ 
+    name: 'object', 
+    is: (i: unknown): i is object => _isObject(i) || isFunc(i) 
+})

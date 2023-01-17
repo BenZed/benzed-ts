@@ -1,6 +1,14 @@
 import { isString, String } from '../schema'
 import { Is } from './is'
 
+import { expectTypeOf } from 'expect-type'
+
+//// EsLint ////
+
+/* eslint-disable
+    @typescript-eslint/ban-types
+*/
+
 //// Setup ////
 
 const isStringRef = new Is(isString)
@@ -15,6 +23,12 @@ it('inherits other schematics methods', () => {
     expect(isStringRef('')).toBe(true)
     expect(isStringRef(0)).toBe(false)
     expect(isStringRef.startsWith).toBeInstanceOf(Function)
+})
+
+it('untangles', () => {
+    const isStringRef2 = new Is(isStringRef)
+    expect(isStringRef2.ref).toBe(isStringRef.ref)    
+    expectTypeOf(isStringRef2).toMatchTypeOf<Is<String>>()
 })
 
 it('schematic methods that return a schematic are re-wrapped in Is', () => {

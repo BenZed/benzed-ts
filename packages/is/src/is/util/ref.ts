@@ -1,6 +1,5 @@
-import { Callable, isFunc, isSymbol, KeysOf, keysOf, nil, Property, symbolsOf, TypeGuard, TypeOf } from '@benzed/util'
+import { Callable, Func, isFunc, isSymbol, KeysOf, keysOf, nil, Property, symbolsOf, TypeGuard, TypeOf } from '@benzed/util'
 import { CallableStruct, Struct } from '@benzed/immutable'
-import { capitalize } from '@benzed/string'
 
 import { AnySchematic, Schematic } from '../../schema'
 
@@ -27,7 +26,7 @@ abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>
             this: Ref<T>, 
             i
         ): i is TypeOf<T> {
-            return this.ref(i)
+            return this.ref.is(i)
         })
 
         // Untangle
@@ -40,20 +39,7 @@ abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>
         this._refInherit()
     }
 
-    //// Abstract ////
-
-    protected abstract _callRefMethod(key: keyof T): (...args: unknown[]) => unknown
-    protected abstract _getRefValue(key: keyof T): () => unknown
-    protected abstract _setRefValue(key: keyof T): (value: unknown) => void
-
     //// Convenience ////
-
-    protected _wrapIfSchematic(output: unknown): unknown {
-        const This = this.constructor as new (ref: AnySchematic) => this
-        return Schematic.is(output)
-            ? new This(output) 
-            : output
-    }
 
     protected _getRefDescriptors(): PropertyDescriptorMap {
         const protos = Property.prototypesOf(
@@ -91,7 +77,7 @@ abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>
     private _refInherit(): void {
 
         const refDescriptors = this._getRefDescriptors()
-        const isDescriptors = Property.descriptorsOf(this)
+        const isDescriptors = Property.descriptorsOf(this.constructor.prototype)
 
         for (const prop of keysOf(refDescriptors)) {
             if (prop in isDescriptors)
@@ -105,22 +91,48 @@ abstract class Ref<T extends AnySchematic> extends Callable<TypeGuard<TypeOf<T>>
             const isGetter = !isMethod && isFunc(refDescriptor.get)
 
             const descriptor = isMethod 
-                ? {
-                    ...refDescriptor,
-                    value: Property.name(this._callRefMethod(key), `ref${capitalize(key)}`)
-                }
+                ? this._createRefMethodDescriptor(key, refDescriptor)
                 : isGetter 
-                    ? {
-                        ...refDescriptor,
-                        get: this._getRefValue(key),
-                        set: 'set' in refDescriptor 
-                            ? this._setRefValue(key)
-                            : nil
-                    }
+                    ? this._createRefAccessorDescriptor(key, refDescriptor)
                     : refDescriptor
 
-            Property.define(this, key, descriptor)
+            if (descriptor)
+                Property.define(this, key, descriptor)
         }
+    }
+
+    protected _createRefMethodDescriptor(key: KeysOf<T>, input: PropertyDescriptor): PropertyDescriptor | nil {
+
+        return {
+            ...input,
+            value: (...args: unknown[]) => { 
+                const output = (this.ref[key] as Func)(...args)
+                return this._wrapIfSchematic(output)
+            }
+        }
+    }
+
+    protected _createRefAccessorDescriptor(key: KeysOf<T>, input: PropertyDescriptor): PropertyDescriptor | nil {
+        return {
+            ...input,
+            get: () => this._wrapIfSchematic(this.ref[key]),
+            set: 'set' in input 
+                ? (value: unknown) => {
+                    (this.ref as any)[key] = value
+                }
+                : nil
+        }
+    }
+
+    private _wrapIfSchematic(output: unknown): unknown {
+        return Schematic.is(output)
+            ? this._wrap(output)
+            : output
+    }
+
+    protected _wrap(output: AnySchematic): this {
+        const This = this.constructor as new (ref: AnySchematic) => this
+        return new This(output)
     }
     
 }
