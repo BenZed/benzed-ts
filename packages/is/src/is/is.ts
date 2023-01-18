@@ -6,7 +6,7 @@ import { Optional } from './optional'
 import { ReadOnly } from './readonly'
 import { To } from './to'
 
-import Ref from './util/ref'
+import Ref from './ref'
 
 //// EsLint ////
 
@@ -72,7 +72,6 @@ const Is = class extends Ref<unknown> {
     }
 
     get of(): unknown {
-
         if ('of' in this.ref === false)
             return nil
 

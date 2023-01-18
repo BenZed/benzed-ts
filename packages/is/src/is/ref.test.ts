@@ -1,7 +1,7 @@
 import { it } from '@jest/globals'
 
 import Ref, { getSchematicExtensionDescriptors } from './ref'
-import { isString, String, Schema } from '../../schema'
+import { isString, String, Schema } from '../schema'
 import { keysOf, nil } from '@benzed/util'
 
 //// EsLint ////

@@ -1,7 +1,7 @@
 import { TypeOf, nil, Func, Property } from '@benzed/util'
 import { Validate, ValidateOptions } from '../validator'
 import { AnySchematic } from '../schema'
-import { Ref } from './util'
+import { Ref } from './ref'
 
 //// EsLint ////
 

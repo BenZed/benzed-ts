@@ -1,6 +1,6 @@
 import { TypeOf, Func } from '@benzed/util'
 import { AnySchematic, Schematic } from '../schema'
-import { Ref } from './util'
+import { Ref } from './ref'
 
 //// EsLint ////
 

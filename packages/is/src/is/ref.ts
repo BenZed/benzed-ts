@@ -1,7 +1,7 @@
-import { Func, isFunc, KeysOf, keysOf, merge, nil, Property,} from '@benzed/util'
+import { Func, isFunc, KeysOf, keysOf, merge, nil, Property } from '@benzed/util'
 
-import { AnySchematic, Schematic } from '../../schema'
-import { Validate } from '../../validator'
+import { AnySchematic, Schematic } from '../schema'
+import { Validate } from '../validator'
 
 //// EsLint ////
 
@@ -138,7 +138,7 @@ abstract class Ref<T> extends Schematic<T> {
         )
     }
 
-    private _assertRef(ref: AnySchematic): AnySchematic {
+    private _assertRef(ref: Schematic<T>): Schematic<T> {
         if (ref instanceof this.constructor)
             throw new Error(`${this.constructor.name} cannot reference an instance of itself.`)
         return ref

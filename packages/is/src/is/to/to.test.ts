@@ -1,14 +1,16 @@
 
 import { nil, TypeOf } from '@benzed/util'
+import { copy } from '@benzed/immutable'
 
 import { test } from '@jest/globals'
+
 import { expectTypeOf } from 'expect-type'
 
 import { To } from './to'
-import { Is } from './is'
-import { Or } from './or'
-import { Optional } from './optional'
-import { ReadOnly } from './readonly'
+import { Is } from '../is'
+import { Or } from '../or'
+import { Optional } from '../optional'
+import { ReadOnly } from '../readonly'
 
 import {
     String, 
@@ -26,9 +28,7 @@ import {
     isNaN, 
 
     Value 
-} from '../schema'
-
-import { copy } from '@benzed/immutable'
+} from '../../schema'
 
 //// EsLint ////  
 
@@ -38,7 +38,7 @@ import { copy } from '@benzed/immutable'
 
 //// IS TO ////
 
-const is = new To(nil as void)
+const is = new To()
 
 test('is(string)', () => {
     const isStr = is(isString)

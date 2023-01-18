@@ -1,11 +1,8 @@
-import { resolveSchematic, reduceSchematics } from './resolve'
+import { resolveSchematic } from './resolve-schematics'
 
 import { test, expect } from '@jest/globals'
 
-import { Instance, Boolean, isBoolean, isString, Value } from '../../schema'
-import { Or } from '../or'
-
-import { expectTypeOf } from 'expect-type'
+import { Instance, isString, Value } from '../../schema'
 
 //// EsLint ////
 
@@ -42,27 +39,5 @@ describe('resolveSchematic', () => {
         const isStr = resolveSchematic(isString)
         expect(isStr).toEqual(isString)
     }) 
-
-})
-
-describe('resolveSchematics', () => {
-
-    test('multiple inputs resusult in an Or union', () => {
-
-        const isZeroBoolOrFoo = reduceSchematics(isBoolean, Foo, 0)
-
-        expect(isZeroBoolOrFoo).toBeInstanceOf(Or)
-        expect(isZeroBoolOrFoo(0)).toBe(true)
-        expect(isZeroBoolOrFoo(true)).toBe(true)
-        expect(isZeroBoolOrFoo(new Foo())).toBe(true)
-        expect(isZeroBoolOrFoo(2)).toBe(false)
-
-        expectTypeOf(isZeroBoolOrFoo)
-            .toEqualTypeOf<Or<[Boolean, Instance<typeof Foo>, Value<0>]>>()
-    })
-
-    test.todo('unions are flattened')
-
-    test.todo('multiple equal values are merged')
 
 })

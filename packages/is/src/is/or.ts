@@ -3,7 +3,7 @@ import { Last } from '@benzed/array'
 
 import { AnySchematic } from '../schema'
 
-import { Ref } from './util'
+import { Ref } from './ref'
 import { Validate, ValidateOptions } from '../validator'
 
 //// EsLint ////

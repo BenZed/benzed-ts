@@ -1,4 +1,6 @@
 
+import { Callable, Infer } from '@benzed/util'
+
 import { 
     AnySchematic, 
 
@@ -14,31 +16,29 @@ import {
     isString,
     ArrayOf,
     IterableOf,
-} from '../schema'
+} from '../../schema'
 
 import { 
     AnyTypeGuard, 
     TypeOf 
-} from '../schema/schemas/type-of/type-of'
+} from '../../schema/schemas/type-of/type-of'
 
-import { Is } from './is'
+import { Is } from '../is'
 
 import { 
-    
-    ResolveSchematic,
-    ResolveSchematicMap,
-
-    reduceSchematics, 
-    ReduceSchematicsInput, 
-    ReduceSchematicsOutput,
-
     resolveSchematics,
     ResolveSchematicsInput,
     ResolveSchematicsOutput
-} from './util'
+} from './resolve-schematics'
 
-import { Optional } from './optional'
-import { ReadOnly } from './readonly'
+import { 
+    reduceSchematics, 
+    ReduceSchematicsInput, 
+    ReduceSchematicsOutput,
+} from './reduce-schematics'
+
+import { Optional } from '../optional'
+import { ReadOnly } from '../readonly'
 
 //// EsLint ////
 
@@ -76,7 +76,8 @@ type Of<O extends AnySchematic, T extends AnySchematic> =
         
 //// Types ////
 
-type IsTo<F extends From, T extends ReduceSchematicsInput> = Is<ReduceSchematicsOutput<[...F, ...T]>>
+type IsTo<F extends From, T extends ReduceSchematicsInput> = 
+    Infer<Is<ReduceSchematicsOutput<[...F, ...T]>>, AnySchematic>
 
 interface ToSignature<F extends From> {
     <T extends ResolveSchematicsInput>(...inputs: T): IsTo<F, ResolveSchematicsOutput<T>>
@@ -86,9 +87,7 @@ interface ToSignature<F extends From> {
 
 type From = [AnySchematic] | []
 
-class To<F extends From>
-    extends ResolveSchematic<ToSignature<F>> 
-    implements ResolveSchematicMap {
+class To<F extends From> extends Callable<ToSignature<F>> {
 
     readonly from: F
 
@@ -99,7 +98,7 @@ class To<F extends From>
         ) {
             const resolved = resolveSchematics(...inputs)
             const reduced = reduceSchematics(...this.from, ...resolved)
-            return new Is(reduced) as any
+            return new Is(reduced)
         })
 
         this.from = from
