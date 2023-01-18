@@ -3,17 +3,18 @@ import { isIterable } from './iterable'
 import { it, expect } from '@jest/globals'
 
 //// Tests ////
-
+ 
 it('returns true if something is iterable', () => {
     expect(isIterable([])).toBe(true)
     expect(isIterable(new Map())).toBe(true)
     expect(isIterable.is(new Set())).toBe(true)
-    expect(isIterable.is({ 
+
+    expect(isIterable({
         *[Symbol.iterator]() {
-            yield 1 
+            yield 1
         }
     })).toBe(true)
-})
+}) 
 
 it('returns false if something is not iterable', () => {
     expect(isIterable(null)).toBe(false)

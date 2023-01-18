@@ -157,5 +157,8 @@ export default Callable
 export {
     Callable,
     CallableObject,
-    CallableContextProvider
+    CallableContextProvider,
+
+    provideCallableContext,
+    provideDynamicContext
 }

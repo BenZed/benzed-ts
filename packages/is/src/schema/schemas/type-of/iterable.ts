@@ -19,18 +19,20 @@ class IterableOf<O extends AnyTypeGuard> extends TypeOf<O, _Iterable<OutputType<
 
     constructor(of: O) {
         super({
+
             of,
+
             name: 'iterable',
-            is(i: unknown): i is _Iterable<OutputType<O>> {
-                if (!_isIterable(i))
+
+            is(input: unknown): input is _Iterable<OutputType<O>> {
+                if (!_isIterable(input))
                     return false
-                
-                if (this.of !== isUnknown as AnyTypeGuard) {
-                    for (const item of i) {
-                        if (!this.of(item))
-                            return false
-                    }
-                } 
+
+                for (const item of input) {
+                    if (!this.of(item))
+                        return false
+                }
+
                 return true
             }
         })

@@ -5,7 +5,8 @@ import {
     Func, 
     isFunc, 
 
-    Property 
+    Property, 
+    provideCallableContext
 } from '@benzed/util'
 
 import { ValueCopy, $$copy } from './copy'
@@ -137,7 +138,7 @@ type CallableStruct = abstract new <F extends Func>(signature: F, ctxProvider?: 
 
 const CallableStruct = class extends Struct {
 
-    constructor(signature: Func, ctxProvider?: CallableContextProvider<Func>) {
+    constructor(signature: Func, ctxProvider: CallableContextProvider<Func> = provideCallableContext) {
         super()
         return initialize(this, signature, ctxProvider)
     }

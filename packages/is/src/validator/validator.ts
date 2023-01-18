@@ -92,8 +92,9 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
         this.is = Property.name(is, is.name || `is${capitalize(name)}`) as ValidatorTypeGuard<I,O>
         this.transform = Property.name(transform, transform.name || `to${capitalize(name)}`)
         this.error = error
-        
+
         assign(this, { id, ...rest })
+
     }
 
     validate(input: I, options?: ValidateOptions): O {
