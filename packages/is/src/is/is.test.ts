@@ -27,6 +27,7 @@ it('inherits other schematics methods', () => {
 })
 
 it('cannot self ref', () => {
+    // @ts-expect-error illegal argument
     expect(() => new Is(isStringRef)).toThrow('cannot reference an instance of itself')
 })
 

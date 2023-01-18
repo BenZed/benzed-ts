@@ -1,10 +1,7 @@
 import { Func, merge, Property, TypesOf } from '@benzed/util'
 import { Last } from '@benzed/array'
 
-import { 
-    AnySchematic, 
-    Schematic, 
-} from '../schema'
+import { AnySchematic } from '../schema'
 
 import { Ref } from './util'
 import { Validate, ValidateOptions } from '../validator'

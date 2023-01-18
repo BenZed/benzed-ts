@@ -18,7 +18,7 @@ interface SchematicMethods<O extends I, I = unknown> {
     validate: Validate<I, O> 
 }
 
-type AnySchematic = Schematic<any,any>
+type AnySchematic = Schematic<unknown, unknown>
 
 type AnySchematics = readonly AnySchematic[] | AnySchematic[]
 

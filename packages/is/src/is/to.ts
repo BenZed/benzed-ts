@@ -1,5 +1,4 @@
 
-import { Infer } from '@benzed/util'
 import { 
     AnySchematic, 
 
@@ -13,17 +12,33 @@ import {
 
     String,
     isString,
+    ArrayOf,
+    IterableOf,
 } from '../schema'
+
+import { 
+    AnyTypeGuard, 
+    TypeOf 
+} from '../schema/schemas/type-of/type-of'
+
 import { Is } from './is'
 
 import { 
+    
     ResolveSchematic,
     ResolveSchematicMap,
 
     reduceSchematics, 
     ReduceSchematicsInput, 
-    ReduceSchematicsOutput
+    ReduceSchematicsOutput,
+
+    resolveSchematics,
+    ResolveSchematicsInput,
+    ResolveSchematicsOutput
 } from './util'
+
+import { Optional } from './optional'
+import { ReadOnly } from './readonly'
 
 //// EsLint ////
 
@@ -32,19 +47,46 @@ import {
     @typescript-eslint/ban-types,
 */
 
+//// Helper Types ////
+
+type AnyTypeOf = TypeOf<AnySchematic, unknown>
+
+type _OfArray<F extends AnyTypeGuard, T extends AnySchematic> = 
+    F extends AnyTypeOf
+        ? ArrayOf<_Of<F, T>>
+        : ArrayOf<T>
+
+type _Of<F extends AnySchematic, T extends AnySchematic> = 
+    F extends ArrayOf<infer Fx>
+        ? _OfArray<Fx, T>
+
+        // Also check MapOf, SetOf, RecordOf
+        : F extends TypeOf<infer Fxx, any>  
+            ? IterableOf<Fxx>
+            : F
+
 //// Types ////
 
-type IsResolved<F extends readonly AnySchematic[], T extends ReduceSchematicsInput> = Infer<Is<ReduceSchematicsOutput<[...F, ...T]>>, AnySchematic>
-    
-interface ToSignature<F extends readonly AnySchematic[]> {
-    <T extends ReduceSchematicsInput>(
-        ...inputs: T
-    ): IsResolved<F,T>
+type Of<O extends AnySchematic, T extends AnySchematic> = 
+    O extends Optional<infer Tx> 
+        ? Optional<Of<Tx, T>>
+        : O extends ReadOnly<infer Txx>     
+            ? ReadOnly<Of<Txx,T>>
+            : _Of<O, T>
+        
+//// Types ////
+
+type IsTo<F extends From, T extends ReduceSchematicsInput> = Is<ReduceSchematicsOutput<[...F, ...T]>>
+
+interface ToSignature<F extends From> {
+    <T extends ResolveSchematicsInput>(...inputs: T): IsTo<F, ResolveSchematicsOutput<T>>
 }
 
 //// Implementation ////
 
-class To<F extends readonly AnySchematic[]> 
+type From = [AnySchematic] | []
+
+class To<F extends From>
     extends ResolveSchematic<ToSignature<F>> 
     implements ResolveSchematicMap {
 
@@ -53,32 +95,29 @@ class To<F extends readonly AnySchematic[]>
     constructor(...from: F) {
         super(function (
             this: To<F>, 
-            ...inputs: ReduceSchematicsInput
+            ...inputs: ResolveSchematicsInput
         ) {
-            return new Is(
-                reduceSchematics(
-                    ...this.from, 
-                    ...inputs
-                )
-            )
+            const resolved = resolveSchematics(...inputs)
+            const reduced = reduceSchematics(...this.from, ...resolved)
+            return new Is(reduced) as any
         })
 
         this.from = from
     }
     
-    get string(): IsResolved<F, [String]> {
+    get string(): IsTo<F, [String]> {
         return this(isString)
     }
 
-    get number(): IsResolved<F, [Number]> {
+    get number(): IsTo<F, [Number]> {
         return this(isNumber)
     }
 
-    get boolean(): IsResolved<F, [Boolean]> {
+    get boolean(): IsTo<F, [Boolean]> {
         return this(isBoolean)
     }
 
-    get array(): IsResolved<F, [Array]> {
+    get array(): IsTo<F, [Array]> {
         return this(isArray)
     }
 

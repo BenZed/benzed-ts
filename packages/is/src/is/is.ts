@@ -1,4 +1,4 @@
-import { TypeOf as TypeGuardOutput, Func } from '@benzed/util'
+import { TypeOf as TypeGuardOutput, Func, nil } from '@benzed/util'
 
 import { AnySchematic } from '../schema'
 
@@ -58,23 +58,33 @@ type Is<T extends AnySchematic> =
         get optional(): Is<Optional<T>>
         get readonly(): Is<ReadOnly<T>>
     },{
-        [K in keyof T]: K extends 'of' 
-            ? never // OfTo<T>
+        [K in keyof T]: K extends 'of'
+            ? T[K] extends AnySchematic
+                ? To<[T]>
+                : T[K]
             : _InheritIs<T[K]>
     }>
 
 const Is = class extends Ref<unknown> {
 
-    get or (): To<[AnySchematic]> {
+    get or (): unknown {
         return new To(this.ref)
     }
 
-    get optional(): Is<Optional<AnySchematic>> {
+    get of(): unknown {
+
+        if ('of' in this.ref === false)
+            return nil
+
+        return new To(this.ref)
+    }
+
+    get optional(): unknown {
         const optional = new Optional(this.ref)
         return new Is(optional)
     }
 
-    get readonly(): Is<ReadOnly<AnySchematic>> {
+    get readonly(): unknown {
         const readonly = new ReadOnly(this.ref)
         return new Is(readonly)
     }
