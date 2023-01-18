@@ -5,6 +5,10 @@ import {
     TypeOf as OutputTypeOf
 } from '@benzed/util'
 
+import { ValidatorContext } from '../../../validator'
+
+import Schematic from '../../schematic'
+
 import { 
     Unknown, 
     isUnknown,
@@ -22,6 +26,14 @@ import { AnyTypeGuard, TypeOf } from './type-of'
 
 type ArrayInput = AnyTypeGuard
 
+//// Helper ////
+
+function toArray(i: unknown): unknown {
+    return _isString(i)
+        ? safeJsonParse(i)
+        : i
+}
+
 //// Types ////
 
 class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
@@ -38,14 +50,27 @@ class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
                 return _isArray(i, this.of)
             },
 
-            cast(i: unknown): unknown {
-                return _isString(i)
-                    ? safeJsonParse(i)
-                    : i
+            cast: toArray,
+
+            transform(
+                input: unknown, 
+                ctx: ValidatorContext<unknown>
+            ): unknown {
+
+                const { of } = this
+
+                const o = _isArray(input) && Schematic.is(of)
+                    ? input.map((value, i) => of.validate(value, { 
+                        ...ctx,
+                        input: value, 
+                        path: [...ctx.path, i] 
+                    } as ValidatorContext<unknown>))
+                    : input
+
+                return o
             }
         })
     }
-
 }
 
 //// Exports ////
@@ -53,6 +78,7 @@ class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
 export default ArrayOf
 
 export {
+    toArray,
     ArrayOf
 }
 

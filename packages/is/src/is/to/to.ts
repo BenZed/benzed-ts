@@ -17,6 +17,11 @@ import {
     isString,
     ArrayOf,
     IterableOf,
+
+    Instance,
+    InstanceInput, 
+
+    Tuple,
 } from '../../schema'
 
 import { 
@@ -136,7 +141,7 @@ function resolveOf(from: From, of: AnySchematic): AnySchematic {
 
 type ToOutput<F extends From, O extends boolean, T extends ReduceSchematicsInput> = 
     Infer<
-    
+
     Is<
     O extends true 
         ? F[0] extends { of: AnySchematic } 
@@ -144,7 +149,7 @@ type ToOutput<F extends From, O extends boolean, T extends ReduceSchematicsInput
             : never
         : ReduceSchematicsOutput<[...F, ...T]>
     >
-    
+
     , AnySchematic>
 
 interface ToSignature<F extends From, C extends boolean> {
@@ -213,6 +218,16 @@ class To<F extends From, O extends boolean> extends Callable<ToSignature<F, O>> 
 
     get array(): ToOutput<F, O, [Array]> {
         return this(isArray)
+    }
+
+    tuple<T extends ResolveSchematicsInput>(
+        ...input: T
+    ): ToOutput<F, O, [Tuple<ResolveSchematicsOutput<T>>]> {
+        return this(new Tuple(...resolveSchematics(...input)))
+    }
+
+    instance<T extends InstanceInput>(type: T): ToOutput<F, O, [Instance<T>]> {
+        return this(new Instance(type))
     }
 
 }

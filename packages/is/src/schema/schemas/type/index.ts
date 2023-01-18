@@ -1,5 +1,6 @@
 export * from './instance'
 export * from './numeric'
+export * from './tuple'
 export * from './boolean'
 export * from './defined'
 export * from './function'

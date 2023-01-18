@@ -1,7 +1,7 @@
 import { TypeGuard } from '@benzed/util'
 
 import { TypeValidatorSettings } from '../../../validator'
-import { Type } from '../type'
+import { Type } from '../type/type'
 
 //// Exports ////
 

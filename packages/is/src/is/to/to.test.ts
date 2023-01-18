@@ -27,7 +27,8 @@ import {
     NaN, 
     isNaN, 
 
-    Value 
+    Value,
+    Tuple
 } from '../../schema'
 
 //// EsLint ////  
@@ -199,6 +200,50 @@ test.skip('is.shape', () => {
 
     expectTypeOf(isVector)
         .toEqualTypeOf<Is<Shape<{ x: Readonly<Number>, y: Readonly<Number> }>>>()
+})
+
+test('is.tuple(is(-1,0,1), is.string)', () => {
+
+    const isSort = is.tuple(is(-1,0,1), is.string)
+    expectTypeOf(isSort)
+        .toEqualTypeOf<Is<Tuple<[Or<[Value<-1>, Value<0>, Value<1>]>, String]>>>()
+
+    expect(isSort([0, 'star'])).toBe(true)
+    expect(isSort([1, 'star'])).toBe(true)
+    expect(isSort([-1, 'star'])).toBe(true)
+    expect(isSort([2, 'star'])).toBe(false)
+    expect(isSort([0, true])).toBe(false)
+
+    const valid = isSort.validate([0, 'star'])
+    expectTypeOf(valid).toEqualTypeOf<[-1 | 0 | 1, string]>()
+})
+
+test('is.tuple(is.string, is.string).readonly', () => {
+
+    const isName = is.tuple(is.string, is.string).readonly
+    expectTypeOf(isName)
+        .toEqualTypeOf<Is<ReadOnly<Tuple<[String,String]>>>>()
+
+    expect(isName(['Ben', 'Zed'])).toBe(true)
+    expect(isName(['Jerry'])).toBe(false)
+    expect(isName([0,0])).toBe(false)
+
+    const valid = isName.validate(['Ben', 'Zed'])
+    expectTypeOf(valid)
+        .toEqualTypeOf<readonly [string, string]>()
+})
+
+test('is.tuple(is.number, is.array.of.string).optional', () => {
+
+    const isNumberThenArrayOfString = is.tuple(is.number, is.array.of.string).optional
+
+    expect(isNumberThenArrayOfString([0,['']])).toBe(true)
+    expect(isNumberThenArrayOfString([['']])).toBe(false)
+    expect(isNumberThenArrayOfString([1, [1]])).toBe(false)
+
+    const valid = isNumberThenArrayOfString.validate([0, ['']])
+    expectTypeOf(valid)
+        .toEqualTypeOf<[number, string[]] | nil>()
 })
 
 //// Or TO ////

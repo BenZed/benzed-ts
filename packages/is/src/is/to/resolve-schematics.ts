@@ -1,4 +1,4 @@
-import { Infer, isFunc, isPrimitive, Primitive } from '@benzed/util'
+import { isFunc, isPrimitive, Primitive } from '@benzed/util'
 
 import { 
     AnySchematic, 
@@ -9,8 +9,6 @@ import {
     Schematic,
 } from '../../schema'
 import { Is, IsRef } from '../is'
-
-import { Or } from '../or'
 
 //// Helper Types ////
 
@@ -28,18 +26,18 @@ type ResolveSchematicOutput<T extends ResolveSchematicInput> =
                 ? IsRef<T>
                 : never
 
-type _ResolveSchematics<T extends unknown[]> = T extends [infer T1, ...infer Tr]
-    ? T1 extends Or<infer Tx> 
-        ? [...Tx, ..._ResolveSchematics<Tr>]
-        : T1 extends ResolveSchematicInput
+type _ResolveSchematics<T extends ResolveSchematicsInput> = T extends [infer T1, ...infer Tr]
+    ? T1 extends ResolveSchematicInput
+        ? Tr extends ResolveSchematicsInput 
             ? [ResolveSchematicOutput<T1>, ..._ResolveSchematics<Tr>]
-            : never
+            : [ResolveSchematicOutput<T1>]
+        : never
     : []
 
 //// Types ////
 
 type ResolveSchematicsInput = ResolveSchematicInput[]
-type ResolveSchematicsOutput<T extends ResolveSchematicsInput> = Infer<_ResolveSchematics<T>, AnySchematic[]>
+type ResolveSchematicsOutput<T extends ResolveSchematicsInput> = _ResolveSchematics<T>
 
 //// Methods ////
 

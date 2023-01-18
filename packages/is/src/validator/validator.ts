@@ -1,14 +1,7 @@
 
-import {
-    ParamTransform,
-    isFunc, 
-    isString, 
-    nil, 
-    Pipe,
-    Property,
-} from '@benzed/util'
-import { capitalize } from '@benzed/string'
+import { ParamTransform, isFunc, isString, nil, Pipe, Property } from '@benzed/util'
 import { equals, CallableStruct } from '@benzed/immutable'
+import { capitalize } from '@benzed/string'
 
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
@@ -93,7 +86,6 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
         this.error = error
 
         assign(this, { id, ...rest })
-
     }
 
     validate(input: I, options?: ValidateOptions): O {
@@ -117,7 +109,6 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
 
         return output
     }
-
 }
 
 //// Exports ////
