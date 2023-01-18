@@ -1,18 +1,6 @@
-import {  } from './is'
-
-//// Default ////
-
-const is = new 
-
-//// Exports ////
-
-export default is
-
-export {
-    is,
-    
-}
-
-export { TypeOf as InferType, TypesOf as InferTypes } from '@benzed/util'  
+export { default } from './is'
+export * from './is'
 export * from './schema'
-export * from './validator' 
+export * from './validator'  
+
+export { TypeOf as InferType, TypesOf as InferTypes } from '@benzed/util' 

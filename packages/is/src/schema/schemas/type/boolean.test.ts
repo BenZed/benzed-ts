@@ -1,10 +1,8 @@
-import { Boolean } from './boolean'
+import { isBoolean } from './boolean'
 
 import { nil } from '@benzed/util'
 
 //// Tests ////
-
-const isBoolean = new Boolean()  
 
 it('validates booleans', () => {
     expect(isBoolean.validate(true)).toEqual(true)
@@ -14,7 +12,7 @@ it('validates booleans', () => {
         .toThrow('Must be type boolean')
 }) 
 
-it('casts "true" to true', () => {
+it('casts "true" to true', () => { 
     expect(isBoolean.validate('true'))
         .toEqual(true)
 })  

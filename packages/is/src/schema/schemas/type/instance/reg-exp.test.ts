@@ -1,9 +1,7 @@
 
-import { RegExp } from './reg-exp'
+import { isRegExp } from './reg-exp'
 
 //// Tests ////
-
-const isRegExp = new RegExp()
 
 test('isRegExp', () => {
     expect(isRegExp(/ace/))

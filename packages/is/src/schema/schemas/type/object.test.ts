@@ -2,7 +2,7 @@ import { isObject } from './object'
 
 import { test, expect } from '@jest/globals'
 
-//// Tests ////
+//// Tests //// 
 
 test(`${isObject.name}`, () => {
     expect(isObject({})).toBe(true)
@@ -10,5 +10,5 @@ test(`${isObject.name}`, () => {
     expect(isObject(1)).toBe(false)
     expect(isObject(Symbol.iterator)).toBe(false)
     expect(isObject.validate({})).toEqual({})
-    expect(() => isObject.validate(10)).toThrow('must be an object')
+    expect(() => isObject.validate(10)).toThrow('ust be type object')
 })

@@ -1,9 +1,7 @@
 
-import { Promise } from './promise'
+import { isPromise } from './promise'
 
 //// Tests ////
-
-const isPromise = new Promise()
 
 test('isPromise', () => {
     expect(isPromise(Promise.resolve())).toEqual(true)

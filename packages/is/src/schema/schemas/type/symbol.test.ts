@@ -4,7 +4,7 @@ import { nil } from '@benzed/util'
 
 //// Tests ////
 
-it('validates booleans', () => {
+it('validates symbols', () => {
     expect(isSymbol(Symbol.iterator)).toEqual(true)
     expect(isSymbol(false)).toEqual(false)
 
@@ -14,7 +14,7 @@ it('validates booleans', () => {
 
 it('default()', () => {
 
-    const $$default = Symbol('default')
+    const $$default = Symbol('default') 
 
     expect(isSymbol.default($$default)
         .validate(nil))

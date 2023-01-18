@@ -1,7 +1,7 @@
 
 import { Instance } from './instance'
 
-//// Tests ////
+//// Tests //// 
 
 class Foo {}
 

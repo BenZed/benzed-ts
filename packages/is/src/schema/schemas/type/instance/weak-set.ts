@@ -7,4 +7,4 @@ const WeakSetConstructor = globalThis.WeakSet
 //// Exports ////
 
 export interface WeakSet extends Instance<WeakSetConstructor> {}
-export const WeakSet: WeakSet = new Instance(WeakSetConstructor)
+export const isWeakSet: WeakSet = new Instance(WeakSetConstructor)

@@ -23,10 +23,10 @@ it('returns false if something is not iterable', () => {
 it('validates iterables', () => {
     expect(isIterable.validate('')).toEqual('')
     expect(isIterable.validate([1,2,3,4])).toEqual([1,2,3,4])
-    expect(() => isIterable.validate(1)).toThrow('must be iterable')
+    expect(() => isIterable.validate(1)).toThrow('ust be type iterable')
 })
 
 it('asserts iterables', () => {
     expect(() => isIterable.assert([])).not.toThrow()
-    expect(() => isIterable.assert({})).toThrow('must be iterable')
+    expect(() => isIterable.assert({})).toThrow('ust be type iterable') 
 })

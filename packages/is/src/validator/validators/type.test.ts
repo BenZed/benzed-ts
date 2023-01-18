@@ -7,8 +7,8 @@ import { TypeValidator } from './type'
 
 const isNum = new TypeValidator({  
     is: isNumber,
-    type: 'number'
-})
+    name: 'number'
+})  
 
 //// Tests ////
 

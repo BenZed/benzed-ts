@@ -1,15 +1,13 @@
 
-import { RegExp } from './reg-exp'
+import { isWeakSet } from './weak-set'
 
 //// Tests ////
 
-const isRegExp = new RegExp()
-
-test('isRegExp', () => {
-    expect(isRegExp(/ace/))
+test('isWeakSet', () => {
+    expect(isWeakSet(new WeakSet())) 
         .toEqual(true)
 
-    expect(() => isRegExp.validate(''))
-        .toThrow('Must be type RegExp')
+    expect(() => isWeakSet.validate(''))
+        .toThrow('ust be type WeakSet') 
 })
 

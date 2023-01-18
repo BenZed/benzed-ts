@@ -10,4 +10,4 @@ import Type from './type'
 //// Exports ////
 
 export interface Symbol extends Type<symbol> {}
-export const isSymbol: Symbol = new Type({ name: 'unknown', is: _isSymbol })
+export const isSymbol: Symbol = new Type({ name: 'symbol', is: _isSymbol })

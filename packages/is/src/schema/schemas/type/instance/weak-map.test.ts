@@ -1,15 +1,13 @@
 
-import { WeakMap } from './weak-map'
+import { isWeakMap } from './weak-map'
 
 //// Tests ////
 
-const isWeakMap = new WeakMap()
-
-test('isRegExp', () => {
-    expect(isWeakMap(new WeakMap()))
+test('isWeakMap', () => {
+    expect(isWeakMap(new WeakMap())) 
         .toEqual(true)
 
     expect(() => isWeakMap.validate(''))
-        .toThrow('Must be type WeakMap')
+        .toThrow('ust be type WeakMap') 
 })
 

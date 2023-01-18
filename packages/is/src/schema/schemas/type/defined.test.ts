@@ -1,19 +1,19 @@
-import { isNil } from './nil'
+import { isDefined } from './defined'
 
 import { test, expect } from '@jest/globals'
 import { nil } from '@benzed/util'
 
 //// Tests ////
 
-test('isNil', () => {
+test('isDefined', () => {
 
-    expect(isNil(NaN)).toBe(true)
-    expect(isNil(null)).toBe(true)
-    expect(isNil(undefined)).toBe(true)
-    expect(isNil(1)).toBe(false)
+    expect(isDefined(NaN)).toBe(false)
+    expect(isDefined(null)).toBe(false)
+    expect(isDefined(undefined)).toBe(false)
+    expect(isDefined(1)).toBe(true)
 
-    expect(isNil.validate(NaN)).toEqual(nil)
-    expect(isNil.validate(null)).toEqual(nil)
-    expect(isNil.validate(nil)).toEqual(nil)
-    expect(() => isNil.validate(10)).toThrow('Must be nil')
+    expect(isDefined.validate(1)).toEqual(1)
+    expect(isDefined.validate({})).toEqual({})
+    expect(isDefined.validate(0)).toEqual(0)
+    expect(() => isDefined.validate(nil)).toThrow('Must be defined')
 })
