@@ -1,5 +1,6 @@
 import { Callable } from '../classes'
-import { Func, nil, isNil, isPromise, isFunc } from '../types'
+import { applyResolver, iterate } from '../methods'
+import { Func, nil } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -14,17 +15,16 @@ interface Transform<I = unknown, O = unknown> {
     (input: I): O
 }
 
-interface ContextTransform<I = unknown, O = unknown, C = unknown> {
-    (input: I, ctx: C): O
+interface ParamTransform<I = unknown, O = unknown, P extends unknown[] = []> {
+    (input: I, ...params: P): O
 }
 
 type Transformer<T extends Func> = Iterable<T> & {
     readonly transforms: readonly Transform[]
 } & T
 
-type InputOf<F extends Func> = F extends (input: infer I, ...args: any) => any ? I : unknown
-type OutputOf<F extends Func> = F extends (...args: any) => infer O ? O : unknown
-type ContextOf<F extends Func> = F extends (input: any, ctx: infer Cx) => any ? Cx : void
+type InputOf<F extends Func> = F extends (input: infer I, ...params: unknown[]) => unknown ? I : unknown
+type OutputOf<F extends Func> = F extends (...params: unknown[]) => infer O ? O : unknown
 
 type ResolveAsyncOutput<I,O> = I extends Promise<any> 
     ? Promise<Awaited<O>>
@@ -36,54 +36,39 @@ interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
      * Append another transformation onto the end of this pipe.
      */
     to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, ResolveAsyncOutput<O, Ox>>
-    to<Ox, C>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, ResolveAsyncOutput<O, Ox>, C>
+    to<Ox, P extends unknown[]>(transform: ParamTransform<Awaited<O>, Ox, P>): ParamPipe<I, ResolveAsyncOutput<O, Ox>, P>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
      */
     from<Ix>(transform: Transform<Ix, I>): Pipe<Ix, O>
-    from<Ix, C>(transform: ContextTransform<Ix, I, C>): ContextPipe<Ix, O, C>
+    from<Ix, P extends unknown[]>(transform: ParamTransform<Ix, I, P>): ParamPipe<Ix, O, P>
 
-    bind<C>(ctx: C): BoundPipe<I, O, C>
+    bind(ctx: unknown): Pipe<I, O>
 
 }
 
-interface ContextPipe<I = unknown, O = unknown, C = unknown> extends Transformer<ContextTransform<I,O,C>> {
+interface ParamPipe<I = unknown, O = unknown, P extends unknown[] = []> extends Transformer<ParamTransform<I,O,P>> {
 
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): ContextPipe<I, ResolveAsyncOutput<O, Ox>, C>
+    to<Ox>(transform: ParamTransform<Awaited<O>, Ox, P>): ParamPipe<I, ResolveAsyncOutput<O, Ox>, P>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
      */
-    from<Ix>(transform: ContextTransform<Ix, I, C>): ContextPipe<Ix, O, C>
+    from<Ix>(transform: ParamTransform<Ix, I, P>): ParamPipe<Ix, O, P>
 
-    bind(ctx: C): BoundPipe<I, O, C>
-    call(ctx: C, input: I): O
-    apply(ctx: C, input: [I]): O
+    bind(ctx: unknown): ParamPipe<I, O, P>
 }
 
-interface BoundPipe<I = unknown, O = unknown, C = unknown> extends Transformer<Transform<I,O>> {
+interface PipeConstructor {
 
     /**
-     * Append another transformation onto the end of this pipe.
+     * @internal
      */
-    to<Ox>(transform: ContextTransform<Awaited<O>, Ox, C>): BoundPipe<I, ResolveAsyncOutput<O, Ox>, C>
-
-    /**
-     * Prepend a transformation onto the beginning of this pipe.
-     */
-    from<Ix>(transform: ContextTransform<Ix, I, C>): BoundPipe<Ix, O, C>
-
-    bind: never
-    call(ctx: C, input: I): O
-    apply(ctx: C, input: [I]): O
-}
-
-type CallableConstructor = typeof Callable
-interface PipeConstructor extends CallableConstructor {
+    new (transforms: readonly Transform[], _bound?: { ctx: unknown }): Pipe<unknown,unknown>
 
     /**
      * Given a number of transforms, get a flattened array of just transforms 
@@ -91,50 +76,16 @@ interface PipeConstructor extends CallableConstructor {
      */
     flatten<T>(transforms: readonly Transform<Awaited<T>,T>[]): readonly Transform<T,T>[]
 
-    from<I, O, C>(transform: ContextTransform<Awaited<I>, O, C>): unknown extends C 
+    from<I, O, P extends unknown[]>(transform: ParamTransform<Awaited<I>, O, P>): P extends [] 
         ? Pipe<I, O>
-        : ContextPipe<I, O, C>
-    from<I,O>(transform: Transform<Awaited<I>,O>): Pipe<I,O>
+        : ParamPipe<I, O, P>
+    from<I, O>(transform: Transform<Awaited<I>, O>): Pipe<I, O>
 
     /** 
      * Create a pipe from a multiple transform methods with the same type as input and output.
      */
     from<T>(...transforms: Transform<Awaited<T>,T>[]): Pipe<T,T>
 
-    /**
-     * Convert a pipe to a bound pipe.
-     * @param func 
-     */
-    convert<I, O, C>(transforms: readonly Transform<I,O>[] | readonly ContextTransform<I,O,C>[], ctx: C): BoundPipe<I,O,C>
-
-    /**
-     * Convert a function with a *this* context to a context pipe
-     */
-    convert<I, O, C>(
-        func: ((this: C, input: Awaited<I>) => O) 
-    ): ContextPipe<I,O,C>
-
-}
-
-//// Transform ////
-
-function applyTransforms(
-    this: readonly ContextTransform[],
-    ctx: unknown,
-    value: unknown
-): unknown {
-
-    const transforms = Array.from(this).reverse()
-
-    while (transforms.length > 0) {
-        const transform = transforms.pop() as ContextTransform
-
-        value = transform.call(ctx, value, ctx)
-        if (isPromise(value)) 
-            return value.then(applyTransforms.bind(transforms.reverse(), ctx))
-    } 
-
-    return value
 }
 
 //// Main ////
@@ -148,89 +99,87 @@ const Pipe = (class extends Callable<Func> {
         let bound: { ctx: unknown } | nil = nil
         let transforms: Transform[] = []
 
-        const unchecked = Array.from(input).reverse()
-        while (unchecked.length > 0) {
+        const remaining = Array.from(input).reverse()
+        while (remaining.length > 0) {
 
-            const transform = unchecked.pop() as Transform
+            const transform = remaining.pop() as Transform
             const pipe = transform instanceof this ? transform : nil
             if (!pipe)
                 transforms.push(transform)
-            else if (!pipe.bound)
+
+            else if (!pipe._bound)
                 transforms.push(...pipe.transforms)
+
             else {
 
                 if (transforms.length > 0)
-                    pipes.push(Pipe.convert(transforms, bound))
+                    pipes.push(new Pipe(transforms, bound))
 
-                bound = pipe.bound
+                bound = pipe._bound
                 transforms = [...pipe.transforms]
             }
         }
 
-        if (bound && transforms.length > 0)
-            pipes.push(Pipe.convert(transforms, bound))
+        if (bound && transforms.length > 0) {
+            pipes.push(new Pipe(transforms, bound))
+            return pipes
+        }
 
         return [...transforms, ...pipes]  
     }
 
-    static from(...transforms: (Transform | ContextTransform)[]): Pipe | ContextPipe {
-        return this.convert(transforms, nil)
-    }
-
-    static convert(
-        ...args:
-        [(this: unknown, input: unknown) => unknown] | 
-        [transforms: readonly (Transform | ContextTransform)[], ctx: unknown]
-    ): Pipe | ContextPipe | BoundPipe {
-
-        const isBindSignature = isFunc(args[0]) 
-        
-        const transforms = (isBindSignature ? [args[0]] : args[0]) as Transform[]
-        const ctx = isBindSignature ? nil : args[1]
-
-        if (transforms.length === 0)
-            throw new Error('At least one transform required.')
-
-        if (isBindSignature && 'prototype' in transforms[0] === false)
-            throw new Error('Must convert a prototypal function')
-
-        return new this(transforms, isNil(ctx) ? nil : { ctx }) as Pipe | ContextPipe
+    static from(...transforms: (Transform | ParamTransform)[]): Pipe | ParamPipe {
+        return new Pipe(transforms)
     }
 
     readonly transforms: readonly Transform[]
 
-    constructor(transforms: readonly Transform[], private readonly bound?: { ctx: unknown }) {
+    constructor (transforms: readonly Transform[], private readonly _bound?: { ctx: unknown }) {
         super(
-            function transform(this: unknown, input: unknown, ctx: unknown = this): unknown {
-                return applyTransforms.call(pipe.transforms, ctx, input)
+            function transform(this: [unknown, Pipe], input: unknown, ...params: unknown[]): unknown {
+
+                const [ ctx, pipe ] = this
+
+                const results = iterate(
+
+                    pipe.transforms as ParamTransform<unknown,unknown,unknown[]>[],
+
+                    transform => applyResolver(
+                        transform.call(ctx, input, ...params), 
+                        output => {
+                            input = output 
+                        }
+                    )
+                )
+
+                return applyResolver(results, () => input)
             },
-            (ctx) => bound ? bound.ctx : ctx
+            (ctx, pipe) => [ _bound ? _bound.ctx : ctx, pipe ]
         )
 
         this.transforms = Pipe.flatten(transforms)
-        const pipe = this
     }
 
     to(transform: Transform): Pipe {
-        return Pipe.convert([...this.transforms, transform], this.bound?.ctx)
+        return new Pipe([...this.transforms, transform], this._bound)
     }
 
     from(transform: Transform): Pipe {
-        return Pipe.convert([transform, ...this.transforms], this.bound?.ctx)
+        return new Pipe([transform, ...this.transforms], this._bound)
     }
 
     override bind(ctx: unknown): Pipe {
-        if (this.bound)
+        if (this._bound)
             throw new Error(`${this.constructor.name} is already bound.`)
 
-        return Pipe.convert(this.transforms, ctx)
+        return new Pipe(this.transforms, { ctx })
     }
 
     *[Symbol.iterator](this: Pipe): Iterator<Transform> {
         yield* this.transforms
     }
-}
-) as PipeConstructor
+
+}) as PipeConstructor
 
 //// Exports ////
 
@@ -239,15 +188,13 @@ export default Pipe
 export {
 
     Transform,
-    ContextTransform, 
+    ParamTransform, 
 
     Pipe,
-    ContextPipe,
-    BoundPipe,
+    ParamPipe,
 
     InputOf,
     OutputOf,
-    ContextOf,
 
     ResolveAsyncOutput
 }

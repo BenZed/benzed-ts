@@ -76,7 +76,7 @@ describe('range()', () => {
 describe('default()', () => {
 
     it('respects default setting, if valid', () => {
-        expect(isNumber.default(5).validate(undefined)).toEqual(5)
+        expect(isNumber.default(5).validate(undefined)).toEqual(5)   
     })
 
     it.skip('defaults are respected across copies', () => {

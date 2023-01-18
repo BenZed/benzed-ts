@@ -12,7 +12,7 @@ it('trim()', () => {
     expect(() => isTrimmedString.assert(' ace ')).toThrow('must not begin or end with')
 }) 
 
-it('upperCase()', () => {
+it('upperCase()', () => { 
  
     const isWeirdString = isString
         .trim

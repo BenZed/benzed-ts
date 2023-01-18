@@ -1,7 +1,8 @@
 import { capitalize } from '@benzed/string'
-import { ContextPipe, nil, Pipe, Property } from '@benzed/util'
+import { nil, Pipe, Property, Func } from '@benzed/util'
 
 import Validator, { ValidatorContext, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from '../validator'
+
 //// Types ////
 
 /**
@@ -40,6 +41,21 @@ interface TypeValidatorSettings<T> extends Partial<Omit<ValidatorSettings<unknow
 
 }
 
+//// Helper ////
+
+function applyDefaultCastAndTransform<T>(this: TypeValidator<T>, i: unknown, ctx: ValidatorContext<unknown>): unknown {
+
+    // apply default
+    if (i === nil && this.default)  
+        i = this.default(ctx)
+
+    // apply cast
+    if (!this.is(i, ctx) && this.cast)
+        i = this.cast(i, ctx)
+
+    return i
+}
+
 //// Validator ////
 
 class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSettings<T> {
@@ -59,6 +75,9 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
      */
     readonly default?: Default<T>
 
+    /**
+     *  
+     */
     override readonly transform: ValidatorTransform<unknown>
 
     constructor(settings: TypeValidatorSettings<T>) {
@@ -69,20 +88,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             error,
             ...rest
         })
-
-        const applyDefaultAndCast: ValidatorTransform<unknown, T> = function (this: TypeValidator<T>, i, ctx) {
-
-            // apply default
-            if (i === nil && this.default)  
-                i = this.default(ctx)
-
-            // apply cast
-            if (!this.is(i, ctx) && this.cast)
-                i = this.cast(i, ctx)
-
-            return i
-        }
-
+ 
         this.name = name
 
         this.cast = cast && Property.name(
@@ -95,9 +101,9 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             toDefault.name && toDefault.name !== 'default' ? toDefault.name : `toDefault${capitalize(name)}`
         )
 
-        let pipe = Pipe.from(applyDefaultAndCast)
-        if (transform)
-            pipe = pipe.to(transform)
+        let pipe = transform ? Pipe.from(transform) : Pipe.from(applyDefaultCastAndTransform)
+        if (!pipe.transforms.includes(applyDefaultCastAndTransform as Func))
+            pipe = pipe.from(applyDefaultCastAndTransform)
 
         this.transform = pipe
     }

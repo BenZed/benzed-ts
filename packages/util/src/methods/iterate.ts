@@ -21,9 +21,7 @@ import applyResolver from './apply-resovler'
 
 type Iter<T> = Iterable<T> | ArrayLike<T> | Record<string | number, T>
 
-type Value<T> = T extends Iter<infer Tx> ? Tx : T
-
-//// Main ////
+//// Helper ////
 
 function* generate<T>(...values: (Iter<T> | T)[]): Generator<T> {
     for (const value of values) {
@@ -44,6 +42,37 @@ function* generate<T>(...values: (Iter<T> | T)[]): Generator<T> {
     }
 }
 
+function resolveResults<T, E extends (item: T, stop: () => T | void) => unknown>(
+    iterable: Iterable<T>, each:E, results: unknown[] = []
+): Iterated<T,E> {
+
+    const pushToResults = (resolved: unknown): void => {
+        if (isNotNil(resolved))
+            results.push(resolved)
+    }
+
+    const breakGenerator = (value: T | void): void => {
+        i = generator.return(value)
+    }
+
+    const generator = generate(iterable)
+    let i = generator.next()
+    while (!i.done) {
+        const output = each(i.value, breakGenerator)
+
+        const resolve = applyResolver(output, pushToResults)
+
+        if (isPromise(resolve)) 
+            return resolve.then(() => resolveResults(generator, each, results)) as Iterated<T,E>
+
+        i = generator.next()
+    }
+
+    return (results.length > 0 ? results : nil) as Iterated<T,E>
+}
+
+//// Main ////
+
 type Iterated<T, E extends (item: T, stop: () => T | void) => unknown> = 
     ResolveAsyncOutput<
     ReturnType<E>,
@@ -51,6 +80,11 @@ type Iterated<T, E extends (item: T, stop: () => T | void) => unknown> =
         ? void 
         : Awaited<ReturnType<E>>[]
     >
+    
+function iterate<T, E extends (item: T, stop: () => T | void) => unknown>(
+    iterable: Iter<T>,
+    each: E
+): Iterated<T, E>
     
 function iterate<T>(
     iterable: Iter<T>
@@ -60,41 +94,13 @@ function iterate<T>(
     ...values: (T | Iter<T>)[]
 ): Generator<T>
 
-function iterate<T, E extends (item: T, stop: () => T | void) => unknown>(
-    iterable: Iter<T>,
-    each: E
-): Iterated<T, E>
-
 function iterate(...values: unknown[]): unknown {
-    const eachIndex = values.findIndex(isFunc)
-    const each = eachIndex > 0 ? values.at(eachIndex) as Func : nil
-    if (!each)
-        return generate(...values)
 
-    const resultsIndex = eachIndex + 1
-    const results = isArray(values[resultsIndex]) ? values[resultsIndex] as unknown[] : []
+    const [ iterable, each ] = values
+    if (values.length === 2 && isIterable(iterable) && isFunc(each)) 
+        return resolveResults(iterable, each)
 
-    for (const value of values) {
-        if (value === each)
-            break 
-
-        const generator = generate(value)
-        let iterator = generator.next()
-        while (!iterator.done) {
-            const output = each(iterator.value, generator.return)
-
-            const result = applyResolver(output, resolved => {
-                if (isNotNil(resolved))
-                    results.push(resolved)
-            })
-
-            if (isPromise(result)) 
-                return result.then(() => iterate(generator, each, results))
-
-            iterator = generator.next()
-        }
-    }
-    return results.length > 0 ? results : nil
+    return generate(...values)
 }
 
 //// Extend ////

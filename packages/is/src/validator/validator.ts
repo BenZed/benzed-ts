@@ -1,6 +1,6 @@
 
 import {
-    ContextTransform,
+    ParamTransform,
     isFunc, 
     isString, 
     nil, 
@@ -27,10 +27,9 @@ interface ValidatorContext<T> extends Required<ValidateOptions> {
 type ValidatorTypeGuard<I, O extends I = I> = 
     ((input: I, ctx: ValidatorContext<I>) => input is O)
 
-type ValidatorPredicate<I> = ContextTransform<I, boolean, ValidatorContext<I>>
+type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidatorContext<I>]>
 
-type ValidatorTransform<I, O extends I = I> = 
-    ContextTransform<I, I | O, ValidatorContext<I>>
+type ValidatorTransform<I, O extends I = I> = ParamTransform<I, I | O, [ValidatorContext<I>]>
 
 interface ValidatorSettings<I, O extends I = I> {
 
