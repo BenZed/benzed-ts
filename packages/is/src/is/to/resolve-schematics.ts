@@ -8,6 +8,7 @@ import {
     Value,
     Schematic,
 } from '../../schema'
+import { Is, IsRef } from '../is'
 
 import { Or } from '../or'
 
@@ -23,7 +24,9 @@ type ResolveSchematicOutput<T extends ResolveSchematicInput> =
         ? Value<T>
         : T extends InstanceInput 
             ? Instance<T>
-            : T
+            : T extends AnySchematic 
+                ? IsRef<T>
+                : never
 
 type _ResolveSchematics<T extends unknown[]> = T extends [infer T1, ...infer Tr]
     ? T1 extends Or<infer Tx> 
@@ -43,6 +46,9 @@ type ResolveSchematicsOutput<T extends ResolveSchematicsInput> = Infer<_ResolveS
 function resolveSchematic<T extends ResolveSchematicInput>(
     input: T
 ): ResolveSchematicOutput<T> {
+
+    if (input instanceof Is)
+        input = input.ref as T
 
     if (isPrimitive(input))
         return new Value(input) as ResolveSchematicOutput<T>

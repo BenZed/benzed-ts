@@ -72,7 +72,7 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             // apply cast
             if (!this.is(i, ctx) && this.cast)
                 i = this.cast(i, ctx)
-            
+
             return i
         }
 

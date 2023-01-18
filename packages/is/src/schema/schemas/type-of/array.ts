@@ -9,6 +9,7 @@ import {
     Unknown, 
     isUnknown,
 } from '../type'
+
 import { AnyTypeGuard, TypeOf } from './type-of'
 
 //// EsLint ////
@@ -21,11 +22,11 @@ import { AnyTypeGuard, TypeOf } from './type-of'
 
 type ArrayInput = AnyTypeGuard
 
+//// Types ////
+
 class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
 
     constructor(of: T) {
-
-        type O = OutputTypeOf<T>[]
 
         super({
 
@@ -33,18 +34,18 @@ class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
 
             name: 'array',
 
-            is(i: unknown): i is O {
+            is(i: unknown): i is OutputTypeOf<T>[] {
                 return _isArray(i, this.of)
             },
 
             cast(i: unknown): unknown {
-                return _isString(i) 
-                    ? safeJsonParse(i, (i): i is O => 
-                        this.is(i, { input: i, transform: false, path: []})) 
+                return _isString(i)
+                    ? safeJsonParse(i)
                     : i
             }
         })
     }
+
 }
 
 //// Exports ////

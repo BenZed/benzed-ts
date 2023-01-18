@@ -1,4 +1,4 @@
-import { isString, isSymbol, nil, Pipe, TypeGuard } from '@benzed/util'
+import { isString, isSymbol, nil, Pipe, TypeGuard, merge } from '@benzed/util'
 import { pluck } from '@benzed/array'
 
 import {
@@ -14,7 +14,7 @@ import {
 
 } from '../validator'
 
-import ToUnion from './schematic'
+import Schematic from './schematic'
 
 //// EsLint ////
 
@@ -33,7 +33,7 @@ type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
  */
 type AnySchema = Schema<any>
 
-class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknown>> {
+class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>> {
     
     //// Main ////
     
@@ -80,7 +80,7 @@ class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknow
 
     protected _copyWithValidators(...validators: Validate<unknown>[]): this {
         const schema = this.copy()
-        return Object.assign(schema, { validate: Validator.from(...validators) })
+        return merge(schema, { validate: Validator.from(...validators) }) as this
     }
 
     protected _addValidator(validator: Validate<T>): this {
@@ -95,39 +95,55 @@ class Schema<T = unknown> extends ToUnion<T> implements Iterable<Validate<unknow
         Constructor: C,
         update: (input: InstanceType<C> | nil) => InstanceType<C>,
     ): this {
-        if (([Validator] as [unknown]).includes(Constructor))
-            throw new Error(`Must be an extension of ${Validator.name}`)
-    
-        return this._upsertValidator(
-            (i): i is InstanceType<C> => i instanceof Constructor, 
-            update as (previous?: Validate<unknown>) => InstanceType<C>
-        )
+        const validators = this._upsertValidatorByType(Constructor, update)
+        return this._copyWithValidators(...validators)
     }
 
     protected _setValidatorById(
         id: string | symbol,
         update: nil | ((previous?: Validate<any>) => Validate<any>)
     ): this {
+        const validators = this._upsertValidatorById(
+            id,
+            update
+        )
+        return this._copyWithValidators(...validators)
+    }
+
+    protected _upsertValidatorById(
+        id: string | symbol,
+        update: nil | ((previous?: Validate<any>) => Validate<any>)
+    ): Validate<unknown, unknown>[] {
         return this._upsertValidator(
             (v): v is Validate<any> => 'id' in v && v.id === id,
             update
         )
     }
 
+    protected _upsertValidatorByType<C extends new (...args: any) => Validate<any>>(
+        Constructor: C,
+        update: (input: InstanceType<C> | nil) => InstanceType<C>,
+    ): Validate<unknown, unknown>[] {
+        if (([Validator] as [unknown]).includes(Constructor))
+            throw new Error(`Must be an extension of ${Validator.name}`)
+    
+        return this._upsertValidator(
+            (i): i is InstanceType<C> => i instanceof Constructor,
+            update as (previous?: Validate<unknown>) => InstanceType<C>
+        )
+    }
+
     private _upsertValidator(
         find: TypeGuard<Validate<any>, Validate<any>>,
         update?: (previous?: Validate<any>) => Validate<any>
-    ): this {
-
+    ): Validate<unknown, unknown>[] {
         const newValidators = [...this.validators]
-
         const oldValidator = pluck(newValidators, find, 1).at(0)
-
         const newValidator = update?.(oldValidator)
         if (newValidator)
             newValidators.push(newValidator)
 
-        return this._copyWithValidators(...newValidators)
+        return newValidators
     }
 
     //// Iterable ////

@@ -15,7 +15,7 @@ import { Validate, ValidateOptions } from '../validator'
 
 //// Helper Types ////
 
-type _ReplaceLast<T extends readonly AnySchematic[], A extends AnySchematic> = T extends [...infer Tf, unknown]
+export type _ReplaceLast<T extends readonly AnySchematic[], A extends AnySchematic> = T extends [...infer Tf, unknown]
     ? [...Tf, A]
     : [A]
 
@@ -68,7 +68,7 @@ function validateUnion(
 const Or = class extends Ref<unknown> {
 
     readonly types!: readonly AnySchematic[]
-    constructor(...types: readonly AnySchematic[]) {
+    constructor(...types: AnySchematic[]) {
         const ref = types.at(-1)
         if (!ref)
             throw new Error('Must have at least one type.')

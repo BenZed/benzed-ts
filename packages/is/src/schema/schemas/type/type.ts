@@ -65,22 +65,29 @@ class Type<T> extends Schema<T> {
 
     //// Helper ////
     
-    protected _setTypeValidator(settings: Partial<TypeValidatorSettings<T>>): this {
+    protected _getTypeValidator(): TypeValidator<T> {
+        const type = this.validators.find((v): v is TypeValidator<T> => v instanceof TypeValidator)
+        if (!type) 
+            throw new Error('Type validator missing.')
+        return type
+    }
+
+    protected _setTypeValidator(
+        settings: Partial<TypeValidatorSettings<T>>
+    ): this {
         return this._setValidatorByType(
             TypeValidator, 
-            t => new TypeValidator({ 
-                ...(t as TypeValidatorSettings<T>), 
+            type => new TypeValidator({ 
+                ...(type as TypeValidatorSettings<T>), 
                 name: this.name, 
                 ...settings 
             })
         )
     }
-         
 }
 
 //// Exports ////
 
 export default Type
-export {
-    Type
-}
+
+export { Type }

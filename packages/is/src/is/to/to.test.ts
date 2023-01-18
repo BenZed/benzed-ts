@@ -38,7 +38,7 @@ import {
 
 //// IS TO ////
 
-const is = new To()
+const is = To.is
 
 test('is(string)', () => {
     const isStr = is(isString)
@@ -86,7 +86,7 @@ test('is.boolean.or.string', () => {
     const isStringOrNegativeNumber = is.string.or.number.range('<', 0)
     expectTypeOf(isStringOrNegativeNumber).toEqualTypeOf<Is<Or<[Boolean, String]>>>()
 
-}) 
+})
 
 test('isHashOrTagOrNegativeNumber', () => {
     const isHashOrTagOrNegativeNumber = is
@@ -96,32 +96,38 @@ test('isHashOrTagOrNegativeNumber', () => {
     expectTypeOf(isHashOrTagOrNegativeNumber).toMatchTypeOf<Is<Or<[String, String, Number]>>>()
 })
 
-test.skip('is.array.of.string', () => {
+test('is.array.of.string', () => {
 
-    const isArrayOfString = is.array.of.string
+    const isArrayOfString = is.array.of.string  
+
     expect(isArrayOfString(['ace'])).toBe(true)
     expect(isArrayOfString([])).toBe(true)
     expect(isArrayOfString([0])).toBe(false)
     expectTypeOf(isArrayOfString).toMatchTypeOf<Is<ArrayOf<String>>>()
-
 })
 
-test.skip('is.array.optional.of.number', () => {
-    const isOptionalArrayOfNumber = is.array.optional.of.number
+test('is.array.optional.of.number', () => { 
+
+    const isOptionalArrayOfNumber = is.array.optional.of.number  
+
     expect(isOptionalArrayOfNumber([1])).toBe(true)
     expect(isOptionalArrayOfNumber([])).toBe(true)
     expect(isOptionalArrayOfNumber(0)).toBe(false)
     expect(isOptionalArrayOfNumber(nil)).toBe(true)
     expectTypeOf(isOptionalArrayOfNumber)
         .toMatchTypeOf<Is<Optional<ArrayOf<Number>>>>()
-})
 
-test.skip('is.array.readonly.of.number', () => {
+    const valid = isOptionalArrayOfNumber.validate([])
+    expectTypeOf(valid).toEqualTypeOf<number[] | undefined>()
+}) 
+
+test('is.array.readonly.of.number', () => {
     const isReadonlyArrayOfNumber = is.array.readonly.of.number
+
     expect(isReadonlyArrayOfNumber([1])).toBe(true)
     expect(isReadonlyArrayOfNumber([])).toBe(true)
     expect(isReadonlyArrayOfNumber(0)).toBe(false)
-    expect(isReadonlyArrayOfNumber(nil)).toBe(true)
+    expect(isReadonlyArrayOfNumber(nil)).toBe(false)
     expectTypeOf(isReadonlyArrayOfNumber)
         .toMatchTypeOf<Is<ReadOnly<ArrayOf<Number>>>>()
 
@@ -129,25 +135,59 @@ test.skip('is.array.readonly.of.number', () => {
     expectTypeOf(valid).toEqualTypeOf<readonly number[]>()
 })
 
-test.skip('is.array.optional.readonly.of.number', () => {
+test('is.array.optional.readonly.of.number', () => {
     const isOptionalReadonlyArrayOfNumber = is.array.optional.readonly.of.number
+
     expect(isOptionalReadonlyArrayOfNumber([1])).toBe(true)
     expect(isOptionalReadonlyArrayOfNumber([])).toBe(true)
     expect(isOptionalReadonlyArrayOfNumber(0)).toBe(false)
     expect(isOptionalReadonlyArrayOfNumber(nil)).toBe(true)
     expectTypeOf(isOptionalReadonlyArrayOfNumber)
         .toMatchTypeOf<Is<ReadOnly<Optional<ArrayOf<Number>>>>>()
-})
 
-test.skip('is.array.of.array.of.boolean', () => {
+    const valid = isOptionalReadonlyArrayOfNumber.validate([])
+    expectTypeOf(valid).toEqualTypeOf<Readonly<number[] | undefined>>()
+}) 
+
+test('is.array.of.array.of.boolean', () => { 
+
     const isArrayOfArrayOfBoolean = is.array.of.array.of.boolean
-    expect(isArrayOfArrayOfBoolean([[1]])).toBe(true)
+
+    expect(isArrayOfArrayOfBoolean([[true]])).toBe(true)
     expect(isArrayOfArrayOfBoolean([[]])).toBe(true)
     expect(isArrayOfArrayOfBoolean(['hey'])).toBe(false)
+    expect(isArrayOfArrayOfBoolean([['hey']])).toBe(false)
 
-    const output = isArrayOfArrayOfBoolean.validate([])
-    expectTypeOf(output)
-        .toMatchTypeOf<boolean[][]>()
+    const valid = isArrayOfArrayOfBoolean.validate([])
+    expectTypeOf(valid)
+        .toMatchTypeOf<boolean[][]>() 
+})
+
+test('is.string.optional', () => {
+    const isOptionalString = is.string.optional
+    expect(isOptionalString('hey')).toBe(true)
+    expect(isOptionalString(nil)).toBe(true)
+
+    const valid = isOptionalString.validate(nil)
+    expectTypeOf(valid)
+        .toMatchTypeOf<string | undefined>()
+})
+
+test('is.string.or.boolean.or(is.array.of.number.readonly)', () => {
+    const isStringOrBooleanOrReadonlyArrayOfNumber = is.string.or.boolean.or(is.array.readonly.of.number)
+    expectTypeOf(isStringOrBooleanOrReadonlyArrayOfNumber)
+        .toEqualTypeOf<Is<Or<[String, Boolean, ReadOnly<ArrayOf<Number>>]>>>()
+
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber(true)).toBe(true)
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber('true')).toBe(true)
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber([])).toBe(true)
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber([0])).toBe(true)
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber(0)).toBe(false)
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber([''])).toBe(false)
+    expect(isStringOrBooleanOrReadonlyArrayOfNumber([true])).toBe(false)
+
+    const valid = isStringOrBooleanOrReadonlyArrayOfNumber.validate('')
+    expectTypeOf(valid).toEqualTypeOf<string | boolean | readonly number[]>()
 })
 
 test.skip('is.shape', () => {
@@ -161,15 +201,11 @@ test.skip('is.shape', () => {
         .toEqualTypeOf<Is<Shape<{ x: Readonly<Number>, y: Readonly<Number> }>>>()
 })
 
-test.skip('is.string.optional', () => {
-    const isOptionalString = is.string.optional
-})
-
 //// Or TO ////
 
-const isBooleanOr = new To(isBoolean)
+const isBooleanOr = To.or(isBoolean)
 const isBooleanOrString = isBooleanOr.string
-const isBooleanOrStringOrNumber = new To(isBoolean)(isString, isNumber)
+const isBooleanOrStringOrNumber = To.or(isBoolean)(isString, isNumber)
 
 it('chain string or boolean example', () => {  
 
@@ -200,9 +236,9 @@ it('chain string or boolean or number', () => {
         expect(isBooleanOrStringOrNumber(value)).toEqual(true)
 })
 
-it('chain method also has Or.to signature', () => {
+it('chain method also has To.or signature', () => {
 
-    const isSortOutput = new To(new Value(0))(new Value(1), new Value(-1))
+    const isSortOutput = To.or(new Value(0))(new Value(1), new Value(-1))
 
     expect(isSortOutput(1)).toEqual(true)
     expect(isSortOutput(-1)).toEqual(true)
@@ -222,6 +258,6 @@ it('types are preserved on copy', () => {
 }) 
 
 it('isNaN merges nicely', () => { 
-    const isStringOrNaN = new To(isNaN).string
+    const isStringOrNaN = To.or(isNaN).string
     expectTypeOf(isStringOrNaN).toMatchTypeOf<Is<Or<[NaN, String]>>>()
 })

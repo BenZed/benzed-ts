@@ -4,7 +4,7 @@ import { nil } from '../types'
 
 function safeJsonParse<T>(
     json: string,
-    isType: (input: unknown) => input is T
+    isType?: (input: unknown) => input is T
 ): T | nil {
 
     let output: unknown
@@ -12,7 +12,7 @@ function safeJsonParse<T>(
         output = JSON.parse(json)
     } catch { }
 
-    return isType(output) ? output : nil
+    return !isType || isType(output) ? output as T : nil
 }
 
 //// Exports ////

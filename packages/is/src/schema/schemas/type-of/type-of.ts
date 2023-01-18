@@ -1,24 +1,29 @@
 import { TypeGuard } from '@benzed/util'
+
 import { TypeValidatorSettings } from '../../../validator'
 import { Type } from '../type'
 
 //// Exports ////
 
+export type AnyTypeOf = TypeOf<AnyTypeGuard, unknown>
+
 export type AnyTypeGuard = TypeGuard<unknown>
 
-export interface TypeOfSettings<O extends AnyTypeGuard, T> extends TypeValidatorSettings<T> {
+export interface TypeOfSettings<O extends AnyTypeGuard, T> 
+    extends TypeValidatorSettings<T> {
 
     readonly of: O
-
 }
 
 export abstract class TypeOf<O extends AnyTypeGuard, T> extends Type<T> {
 
-    readonly of: O
+    get of(): O {
+        const type = this._getTypeValidator()
+        return (type as unknown as TypeOfSettings<O, T>).of
+    }
 
-    constructor({ of, ...settings }: TypeOfSettings<O, T>) {
+    constructor(settings: TypeOfSettings<O, T>) {
         super(settings)
-        this.of = of
     }
 }
 

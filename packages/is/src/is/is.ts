@@ -4,9 +4,10 @@ import { AnySchematic } from '../schema'
 
 import { Optional } from './optional'
 import { ReadOnly } from './readonly'
-import { To } from './to'
+import { To, ToOr, ToOf } from './to'
 
 import Ref from './ref'
+import { AnyTypeOf } from '../schema/schemas/type-of/type-of'
 
 //// EsLint ////
 
@@ -54,28 +55,26 @@ type Is<T extends AnySchematic> =
     & Ref<TypeGuardOutput<T>>
 
     & _Fill<{
-        get or(): To<[T]>
+        get or(): ToOr<T>
         get optional(): Is<Optional<T>>
         get readonly(): Is<ReadOnly<T>>
     },{
         [K in keyof T]: K extends 'of'
-            ? T[K] extends AnySchematic
-                ? To<[T]>
-                : T[K]
+            ? ToOf<T>
             : _InheritIs<T[K]>
     }>
 
 const Is = class extends Ref<unknown> {
 
     get or (): unknown {
-        return new To(this.ref)
+        return To.or(this.ref)
     }
 
     get of(): unknown {
         if ('of' in this.ref === false)
             return nil
 
-        return new To(this.ref)
+        return To.of(this.ref as AnyTypeOf)
     }
 
     get optional(): unknown {
