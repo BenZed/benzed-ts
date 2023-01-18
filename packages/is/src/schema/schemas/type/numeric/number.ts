@@ -6,6 +6,7 @@ import {
 } from '@benzed/util'
 
 import { 
+    RangeSettings,
     RangeSettingsSignature, 
     RangeValidator,
     toRangeSettings
@@ -48,6 +49,32 @@ class Number extends Numeric<number> {
 
     range(...args: RangeSettingsSignature): this {
         const settings = toRangeSettings(args)
+        return this._setRangeValidator(settings)
+    }
+
+    above(value: number): this {
+        return this._setRangeValidator({ comparator: '>', value })
+    }
+
+    below(value: number): this {
+        return this._setRangeValidator({ comparator: '<', value })
+    }
+
+    equalOrBelow(value: number): this {
+        return this._setRangeValidator({ comparator: '<=', value })
+    }
+
+    equalOrAbove(value: number): this {
+        return this._setRangeValidator({ comparator: '>=', value })
+    }
+
+    between(min: number, max: number): this {
+        return this._setRangeValidator({ min, comparator: '..', max })
+    }
+
+    // 
+
+    protected _setRangeValidator(settings: RangeSettings): this {
         return this._setValidatorByType(
             RangeValidator, 
             () => new RangeValidator(settings)

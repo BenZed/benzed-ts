@@ -22,6 +22,8 @@ import {
     InstanceInput, 
 
     Tuple,
+    Shape,
+    ShapeInput
 } from '../../schema'
 
 import { 
@@ -224,6 +226,12 @@ class To<F extends From, O extends boolean> extends Callable<ToSignature<F, O>> 
         ...input: T
     ): ToOutput<F, O, [Tuple<ResolveSchematicsOutput<T>>]> {
         return this(new Tuple(...resolveSchematics(...input)))
+    }
+
+    shape<T extends ResolveShapeInput>(
+        shape: T
+    ): ToOutput<F, O, [Shape<ResolveShapeOutput<T>>]> {
+        return this(new Shape(shape))
     }
 
     instance<T extends InstanceInput>(type: T): ToOutput<F, O, [Instance<T>]> {

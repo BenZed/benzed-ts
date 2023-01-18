@@ -1,4 +1,4 @@
-import { isFunc, isPrimitive, Primitive } from '@benzed/util'
+import { isFunc, isPrimitive, isRecord, Primitive, keysOf, Infer } from '@benzed/util'
 
 import { 
     AnySchematic, 
@@ -7,24 +7,41 @@ import {
     Instance,
     Value,
     Schematic,
+    Shape,
+
+    TupleInput,
+    Tuple
 } from '../../schema'
+
 import { Is, IsRef } from '../is'
 
 //// Helper Types ////
 
+type ResolveShapeInput = {
+    [key: string]: ResolveSchematicInput
+}
+
+type ResolveShapeOutput<T extends ResolveShapeInput> = Infer<Shape<{
+    [K in keyof T]: ResolveSchematicOutput<T[K]>
+}>>
+
 type ResolveSchematicInput = 
     Primitive |
     InstanceInput | 
-    AnySchematic // | ShapeInput | TupleInput | TypeValidator
+    AnySchematic | 
+    ResolveShapeInput 
+    // | TypeValidator
 
 type ResolveSchematicOutput<T extends ResolveSchematicInput> = 
     T extends Primitive 
         ? Value<T>
-        : T extends InstanceInput 
-            ? Instance<T>
-            : T extends AnySchematic 
-                ? IsRef<T>
-                : never
+        : T extends ResolveShapeInput
+            ? ResolveShapeOutput<T>
+            : T extends InstanceInput 
+                ? Instance<T>
+                : T extends AnySchematic 
+                    ? IsRef<T>
+                    : never
 
 type _ResolveSchematics<T extends ResolveSchematicsInput> = T extends [infer T1, ...infer Tr]
     ? T1 extends ResolveSchematicInput
@@ -50,6 +67,14 @@ function resolveSchematic<T extends ResolveSchematicInput>(
 
     if (isPrimitive(input))
         return new Value(input) as ResolveSchematicOutput<T>
+
+    if (isRecord(input)) {
+        const shape = { ...input }
+        for (const key of keysOf(shape)) 
+            shape[key] = resolveSchematic(input[key])
+        
+        return new Shape(shape) as ResolveSchematicOutput<T>
+    }
 
     // TODO check for shape and tuple
     if (!isFunc(input))

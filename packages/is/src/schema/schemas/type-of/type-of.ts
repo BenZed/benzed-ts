@@ -18,7 +18,7 @@ export interface TypeOfSettings<O extends AnyTypeGuard, T>
 export abstract class TypeOf<O extends AnyTypeGuard, T> extends Type<T> {
 
     get of(): O {
-        const type = this._getTypeValidator()
+        const type = this.typeValidator
         return (type as unknown as TypeOfSettings<O, T>).of
     }
 

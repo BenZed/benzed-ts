@@ -65,7 +65,7 @@ class Type<T> extends Schema<T> {
 
     //// Helper ////
     
-    protected _getTypeValidator(): TypeValidator<T> {
+    get typeValidator(): TypeValidator<T> {
         const type = this.validators.find((v): v is TypeValidator<T> => v instanceof TypeValidator)
         if (!type) 
             throw new Error('Type validator missing.')

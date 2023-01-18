@@ -28,11 +28,6 @@ type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
     ? [Schema<T1>, ...Schemas<Tr>]
     : []
 
-/**
- * @internal
- */
-type AnySchema = Schema<any>
-
 class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>> {
     
     //// Main ////
@@ -165,6 +160,5 @@ export default Schema
 
 export {
     Schema,
-    Schemas,
-    AnySchema
+    Schemas
 }

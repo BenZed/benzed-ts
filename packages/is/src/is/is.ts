@@ -66,6 +66,10 @@ type Is<T extends AnySchematic> =
 
 const Is = class extends Ref<unknown> {
 
+    get name(): string {
+        return this.ref.name
+    }
+
     get or (): unknown {
         return To.or(this.ref)
     }

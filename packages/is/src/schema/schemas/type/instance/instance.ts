@@ -22,7 +22,7 @@ interface InstanceSettings<C extends InstanceInput> extends TypeValidatorSetting
 class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
 
     get Type(): C {
-        return (this._getTypeValidator() as unknown as InstanceSettings<C>).Type
+        return (this.typeValidator as unknown as InstanceSettings<C>).Type
     }
 
     override get name(): string {

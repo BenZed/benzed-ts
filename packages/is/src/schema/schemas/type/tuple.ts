@@ -24,7 +24,7 @@ type TupleOutput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
 class Tuple<T extends TupleInput> extends Type<TupleOutput<T>> {
 
     get types(): T {
-        return (this._getTypeValidator() as unknown as { types: T }).types
+        return (this.typeValidator() as unknown as { types: T }).types
     }
 
     constructor(...types: T) {

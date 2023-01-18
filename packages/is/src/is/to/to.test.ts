@@ -28,7 +28,9 @@ import {
     isNaN, 
 
     Value,
-    Tuple
+    Tuple,
+
+    Shape
 } from '../../schema'
 
 //// EsLint ////  
@@ -191,7 +193,7 @@ test('is.string.or.boolean.or(is.array.of.number.readonly)', () => {
     expectTypeOf(valid).toEqualTypeOf<string | boolean | readonly number[]>()
 })
 
-test.skip('is.shape', () => {
+test('is.shape', () => {
 
     const isVector = is.shape({
         x: is.number.readonly,
@@ -199,7 +201,14 @@ test.skip('is.shape', () => {
     })
 
     expectTypeOf(isVector)
-        .toEqualTypeOf<Is<Shape<{ x: Readonly<Number>, y: Readonly<Number> }>>>()
+        .toEqualTypeOf<Is<Shape<{ x: ReadOnly<Number>, y: ReadOnly<Number> }>>>()
+
+    const valid = isVector.validate({ x: 0, y: 0 })
+    expectTypeOf(valid).toEqualTypeOf<{ readonly x: number, readonly y: number }>()
+
+    const isReadonlyVector = isVector.readonly
+    const rValid = isReadonlyVector.validate({ x: 0, y: 0 })
+    expectTypeOf(rValid).toEqualTypeOf<{ readonly x: number, readonly y: number }>()
 })
 
 test('is.tuple(is(-1,0,1), is.string)', () => {
