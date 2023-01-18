@@ -1,5 +1,5 @@
 import { capitalize } from '@benzed/string'
-import { nil, Property } from '@benzed/util'
+import { ContextPipe, nil, Pipe, Property } from '@benzed/util'
 
 import Validator, { ValidatorContext, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from '../validator'
 //// Types ////
@@ -33,6 +33,11 @@ interface TypeValidatorSettings<T> extends Partial<Omit<ValidatorSettings<unknow
      */
     readonly default?: Default<T>
 
+    /**
+     * Arbitrary method for transform type typed input
+     */
+    readonly transform?: ValidatorTransform<unknown, T>
+
 }
 
 //// Validator ////
@@ -54,16 +59,18 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
      */
     readonly default?: Default<T>
 
+    override readonly transform: ValidatorTransform<unknown>
+
     constructor(settings: TypeValidatorSettings<T>) {
 
-        const { name, default: toDefault, cast, error = `Must be type ${name}`, ...rest } = settings
+        const { name, transform, default: toDefault, cast, error = `Must be type ${name}`, ...rest } = settings
  
         super({
             error,
             ...rest
         })
 
-        const applyDefaultAndCast: ValidatorTransform<unknown, T> = (i, ctx) => {
+        const applyDefaultAndCast: ValidatorTransform<unknown, T> = function (this: TypeValidator<T>, i, ctx) {
 
             // apply default
             if (i === nil && this.default)  
@@ -88,7 +95,11 @@ class TypeValidator<T> extends Validator<unknown, T> implements TypeValidatorSet
             toDefault.name && toDefault.name !== 'default' ? toDefault.name : `toDefault${capitalize(name)}`
         )
 
-        this.transform = applyDefaultAndCast
+        let pipe = Pipe.from(applyDefaultAndCast)
+        if (transform)
+            pipe = pipe.to(transform)
+
+        this.transform = pipe
     }
 }
 

@@ -42,7 +42,7 @@ class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
 
             Type
 
-            // TODO add support for implicit extended ValidatorSettings
+        // TODO add support for implicit extended ValidatorSettings
         } as InstanceSettings<C>)
 
     }

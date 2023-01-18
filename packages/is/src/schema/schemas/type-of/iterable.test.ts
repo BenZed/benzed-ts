@@ -14,7 +14,7 @@ it('returns true if something is iterable', () => {
             yield 1
         }
     })).toBe(true)
-}) 
+})
 
 it('returns false if something is not iterable', () => {
     expect(isIterable(null)).toBe(false)
