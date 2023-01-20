@@ -1,4 +1,4 @@
-import { Func, isPromise } from '../types'
+import { isPromise } from '../types'
 
 //// Types ////
 
@@ -18,7 +18,13 @@ function applyResolver<T, R extends Resolver<T>>(input: T, resolver: R): Resolve
 
     return (
         isPromise(input)
-            ? input.then(resolver as Func)
+            ? input.then(resolved => {
+                try {
+                    return resolver(resolved as Awaited<T>)
+                } catch (e) {
+                    return Promise.reject(e)
+                }
+            })
             : resolver(input as Awaited<T>)
     ) as Resolved<T, R> 
 }

@@ -1,6 +1,6 @@
 
-import { ParamTransform, isFunc, isString, nil, Pipe, Property } from '@benzed/util'
-import { equals, CallableStruct } from '@benzed/immutable'
+import { ParamTransform, isFunc, isString, nil, Pipe, Property, applyResolver } from '@benzed/util'
+import { equals } from '@benzed/immutable'
 import { capitalize } from '@benzed/string'
 
 import { Validate, ValidateOptions } from './validate'
@@ -42,7 +42,43 @@ const noTransform = <I>(input: I): I => input
 
 //// Main ////
 
-class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
+function createCtx <I>(input: I, options?: ValidateOptions): ValidatorContext<I> {
+
+    const ctx = { 
+        transform: true, 
+        path: [],
+        input,
+        ...options 
+    }
+
+    return ctx
+}
+
+function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
+
+    const ctx = createCtx(input, options)
+
+    const output = applyResolver(
+        this.transform(ctx.input, ctx), 
+        transformed => {
+
+            const output = ctx.transform 
+                ? transformed
+                : ctx.input 
+    
+            const isValid = this.is(output, { ...ctx, transformed })
+            if (!isValid)
+                ValidationError.throw(ctx, this.error)
+
+            return output
+        })
+
+    return output as O
+}
+
+//// Main ////
+
+class Validator<I, O extends I = I> extends Validate<I,O> {
 
     static from<Ix, Ox extends Ix>(...input: (Validate<Ix,Ox> | Partial<ValidatorSettings<Ix,Ox>>)[]): Validate<Ix,Ox> {
 
@@ -77,7 +113,7 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
         ...rest
     }: Partial<ValidatorSettings<I,O>> = {}) {
 
-        super((i, options): O => this.validate(i, options))
+        super(validate)
 
         const name = isString(id) ? id : 'valid'
 
@@ -87,28 +123,7 @@ class Validator<I, O extends I = I> extends CallableStruct<Validate<I,O>> {
 
         assign(this, { id, ...rest })
     }
-
-    validate(input: I, options?: ValidateOptions): O {
-
-        const ctx: ValidatorContext<I> = { 
-            transform: true, 
-            path: [], 
-            input,
-            ...options 
-        }
-
-        ctx.transformed = this.transform(ctx.input, ctx)
-
-        const output = ctx.transform 
-            ? ctx.transformed 
-            : ctx.input 
-
-        const isValid = this.is(output, ctx)
-        if (!isValid)
-            ValidationError.throw(ctx, this.error)
-
-        return output
-    }
+    
 }
 
 //// Exports ////

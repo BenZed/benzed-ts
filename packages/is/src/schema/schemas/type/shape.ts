@@ -1,8 +1,42 @@
-import { isObject, isString, keysOf, safeJsonParse, Infer, TypeOf } from '@benzed/util'
+import { isObject, isString, keysOf, safeJsonParse, Infer, TypeOf, nil, TypeGuard, isArray, isNumber, isBoolean } from '@benzed/util'
 
 import { TypeValidatorSettings, ValidatorContext } from '../../../validator'
 import { AnySchematic } from '../../schematic'
+import { Number } from './numeric'
 import Type from './type'
+
+import { ReadOnly, Optional } from '../../../is'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types,
+*/
+
+//// Helper Types ////
+
+type ShapeReadOnlyOutput<T extends ShapeInput> = {
+    +readonly [K in keyof T as T[K] extends ReadOnly<any> ? T[K] extends Optional<any> ? never : K : never]-?: TypeOf<T[K]>
+}
+
+type ShapeReadOnlyOptionalOutput<T extends ShapeInput> = {
+    +readonly [K in keyof T as T[K] extends ReadOnly<any> ? T[K] extends Optional<any> ? K : never : never]+?: TypeOf<T[K]>
+}
+
+type ShapeOptionalOutput<T extends ShapeInput> = {
+    -readonly[K in keyof T as T[K] extends ReadOnly<any> ? never : T[K] extends Optional<any> ? K : never]+?: TypeOf<T[K]>
+}
+
+type ShapeNominalOutput<T extends ShapeInput> = {
+    -readonly[K in keyof T as T[K] extends ReadOnly<any> ? never : T[K] extends Optional<any> ? never : K]-?: TypeOf<T[K]>
+}
+
+type ShapeOutputIntersection<T extends ShapeInput> = 
+    // ShapeReadOnlyOutput<T> &
+    // ShapeReadOnlyOptionalOutput<T> &
+    // ShapeOptionalOutput<T> &
+    ShapeNominalOutput<T>
 
 //// Types //// 
 
@@ -10,9 +44,8 @@ type ShapeInput = {
     [key: string | number | symbol]: AnySchematic
 }
 
-type ShapeOutput<T extends ShapeInput> = Infer<{
-    [K in keyof T]: TypeOf<T[K]>
-}, object>
+type ShapeOutput<T extends ShapeInput> = 
+    ShapeOutputIntersection<T> extends infer O ? O : never
 
 //// Tuple ////  
 

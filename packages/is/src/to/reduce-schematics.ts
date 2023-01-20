@@ -3,9 +3,9 @@
 import { 
     AnySchematic, 
     // Value,
-} from '../../schema'
+} from '../schema'
 
-import { Or } from '../or'
+import { Or } from '../schema/schemas/mutator/_old-pre-mutator/or'
 
 import resolveSchematic from './resolve-schematics'
 

@@ -1,157 +1,88 @@
-import { isString, isSymbol, nil, Pipe, TypeGuard, merge } from '@benzed/util'
-import { pluck } from '@benzed/array'
+import { nil, Pipe, merge, OutputOf } from '@benzed/util'
+import { copy } from '@benzed/immutable'
 
 import {
 
     Validate,
     ValidatorSettings, 
-    ValidationErrorMessage, 
 
     Validator, 
-    ValidatorTypeGuard,
-    ValidatorTransform,
-    ValidatorPredicate
+    ValidateOptions,
+    AnyValidate
 
 } from '../validator'
-
-import Schematic from './schematic'
 
 //// EsLint ////
 
 /* eslint-disable
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Types ////
 
-type Schemas<T extends unknown[]> = T extends [infer T1, ...infer Tr]
-    ? [Schema<T1>, ...Schemas<Tr>]
-    : []
+class Schema<T = unknown> extends Validate<unknown, T> {
 
-class Schema<T = unknown> extends Schematic<T> implements Iterable<Validate<unknown>> {
-    
-    //// Main ////
-    
-    get validators(): Validate<unknown>[] {
-        return Array.from(this) 
+    static validate<T>(this: Schema<T>, i: unknown, options?: ValidateOptions): T {
+        if (this as { validate: Validate<unknown,T> } === Schema)
+            return i as T
+
+        return this.validate(i, options)
     }
 
-    validates(
-        ...input: (Validate<T> | Partial<ValidatorSettings<T>>)[]
-    ): this {
-
-        const validate = Validator.from(...input)
-
-        return 'id' in validate && (isString(validate.id) || isSymbol(validate.id))
-            ? this._setValidatorById(validate.id, () => validate)
-            : this._addValidator(validate)
+    static replace<Tx>(schema: Schema<unknown>, validate: Validate<Tx>): Schema<Tx> {
+        return merge(copy(schema), { validate }) as Schema<Tx>
+    }
+    
+    static merge<Vx extends Schema<unknown>>(schema: Vx, ...validators: Validate<OutputOf<Vx>>[]): Vx 
+    static merge<Tx>(schema: Schema<Tx>, ...validators: Validate<Tx>[]): Schema<Tx> {
+        const validate = Validator.from(schema.validate, ...validators as Validate<unknown, Tx>[])
+        return this.replace(schema, validate)
     }
 
-    asserts(
-        isValid: ValidatorTypeGuard<T> | ValidatorPredicate<T>, 
-        error?: string | ValidationErrorMessage<T>,
+    static upsert<Vx extends Schema<unknown>>(
+        schema: Vx, 
+        update: (previous?: AnyValidate) => AnyValidate,
+        id?: string | symbol): Vx
+    static upsert<Tx>(
+        schema: Schema<Tx>, 
+        update: (previous?: AnyValidate) => AnyValidate,
         id?: string | symbol
-    ): this {
-        return this.validates({ 
-            is: isValid, 
-            error, 
-            id 
-        })
+    ): Schema<Tx> {
+
+        const updatedValidators = Pipe.flatten([schema.validate]) as AnyValidate[]
+
+        const index = id ? updatedValidators.findIndex(v => 'id' in v && v.id === id) : -1
+        const isNew = index < 0
+
+        const validator = update(isNew ? updatedValidators[index] : nil)
+        if (isNew)
+            updatedValidators.push(validator)
+        else 
+            updatedValidators.splice(index, 1, validator)
+
+        return this.merge(schema, ...updatedValidators as Validate<Tx>[])
     }
 
-    transforms(
-        transform: ValidatorTransform<T>,
-        error?: string | ValidationErrorMessage<T>,
-        id?: string | symbol
-    ): this {
-        return this.validates({ 
-            transform, 
-            error, 
-            id 
-        })
+    //// Constructor ////
+
+    constructor(validate: Validate<unknown, T>)
+    constructor(settings: Partial<ValidatorSettings<unknown, T>>)
+    constructor(input: Validate<unknown, T> | Partial<ValidatorSettings<unknown, T>>) {
+        super(Schema.validate)
+        this.validate = Validator.from(input)
     }
 
-    //// Helper ////
+    //// Struct Methods ////
 
-    protected _copyWithValidators(...validators: Validate<unknown>[]): this {
-        const schema = this.copy()
-        return merge(schema, { validate: Validator.from(...validators) }) as this
+    override get state(): Partial<this> {
+        const { validate } = this
+        return { validate } as Partial<this>
     }
 
-    protected _addValidator(validator: Validate<T>): this {
-        return this._copyWithValidators(...this.validators, validator as Validator<unknown>)
-    }
+    //// Schematic Methods ////
 
-    protected _addValidatorShortcut(): this {
-        return this
-    }
+    readonly validate: Validate<unknown, T>
 
-    protected _setValidatorByType<C extends new (...args: any) => Validate<any>>(
-        Constructor: C,
-        update: (input: InstanceType<C> | nil) => InstanceType<C>,
-    ): this {
-        const validators = this._upsertValidatorByType(Constructor, update)
-        return this._copyWithValidators(...validators)
-    }
-
-    protected _setValidatorById(
-        id: string | symbol,
-        update: nil | ((previous?: Validate<any>) => Validate<any>)
-    ): this {
-        const validators = this._upsertValidatorById(
-            id,
-            update
-        )
-        return this._copyWithValidators(...validators)
-    }
-
-    protected _upsertValidatorById(
-        id: string | symbol,
-        update: nil | ((previous?: Validate<any>) => Validate<any>)
-    ): Validate<unknown, unknown>[] {
-        return this._upsertValidator(
-            (v): v is Validate<any> => 'id' in v && v.id === id,
-            update
-        )
-    }
-
-    protected _upsertValidatorByType<C extends new (...args: any) => Validate<any>>(
-        Constructor: C,
-        update: (input: InstanceType<C> | nil) => InstanceType<C>,
-    ): Validate<unknown, unknown>[] {
-        if (([Validator] as [unknown]).includes(Constructor))
-            throw new Error(`Must be an extension of ${Validator.name}`)
-    
-        return this._upsertValidator(
-            (i): i is InstanceType<C> => i instanceof Constructor,
-            update as (previous?: Validate<unknown>) => InstanceType<C>
-        )
-    }
-
-    private _upsertValidator(
-        find: TypeGuard<Validate<any>, Validate<any>>,
-        update?: (previous?: Validate<any>) => Validate<any>
-    ): Validate<unknown, unknown>[] {
-        const newValidators = [...this.validators]
-        const oldValidator = pluck(newValidators, find, 1).at(0)
-        const newValidator = update?.(oldValidator)
-        if (newValidator)
-            newValidators.push(newValidator)
-
-        return newValidators
-    }
-
-    //// Iterable ////
-    
-    *[Symbol.iterator](): IterableIterator<Validate<unknown>> {
-
-        const validators: Iterable<Validate<unknown>> = this.validate instanceof Pipe 
-            ? this.validate as Pipe 
-            : [this.validate]
-
-        for (const validator of validators)
-            yield validator
-    }
 }
 
 //// Exports ////
@@ -160,5 +91,4 @@ export default Schema
 
 export {
     Schema,
-    Schemas
 }

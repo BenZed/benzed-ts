@@ -11,11 +11,11 @@ import {
     TypeValidatorDefault 
 } from '../../../validator/validators'
 
-import Schema from '../../schema'
+import SchemaBuilder from '../../schema'
 
 //// Types ////
 
-class Type<T> extends Schema<T> {
+class Type<T> extends SchemaBuilder<T> {
 
     override get name(): string {
         return this.validators.at(0)?.name ?? 'Type'

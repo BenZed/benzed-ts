@@ -3,6 +3,7 @@ lerna-debug.log
 npm-debug.log
 packages/*/lib
 storage/*
+_old*
 
 .idea
 

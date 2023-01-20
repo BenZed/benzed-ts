@@ -11,9 +11,9 @@ import {
 
     TupleInput,
     Tuple
-} from '../../schema'
+} from '../schema'
 
-import { Is, IsRef } from '../is'
+import { Is, IsRef } from '../schema/schemas/mutator/_old-pre-mutator/is'
 
 //// Helper Types ////
 

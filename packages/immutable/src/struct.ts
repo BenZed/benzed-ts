@@ -5,6 +5,8 @@ import {
     Func, 
     isFunc, 
 
+    nil, 
+
     Property, 
     provideCallableContext
 } from '@benzed/util'
@@ -26,23 +28,24 @@ type MethodNames<S> = keyof {
 
 //// Helper Methods ////
 
-function copy<S extends Struct>(input: S): S {
-    const stateDescriptors = Property.descriptorsOf(input.state)
-    const output = Object.create(input, stateDescriptors) as Struct
-    return output as S
-}
-
-function initialize<S extends Struct>(input: S, signature?: Func, provider?: CallableContextProvider<Func>): S {
-    const output = signature  
-        ? Callable.create(signature, input, provider)
-        : input 
-
-    return Struct.bindMethods(output as Struct, 'equals', 'copy') as S
-}
-
 //// StructBase ////
 
 abstract class Struct implements ValueCopy, ValueEqual {
+
+    static copy<S extends Struct>(input: S): S {
+        return Object.create(input)
+    }
+
+    static initialize<S extends Struct>(input: S, state?: Partial<S>, signature?: Func, provider?: CallableContextProvider<Func>): S {
+        const output = (signature  
+            ? Callable.create(signature, input, provider)
+            : input) as S
+
+        if (state)
+            output['state'] = state
+    
+        return Struct.bindMethods(output as Struct, 'equals', 'copy') as S
+    }
 
     /**
      * Bind to a given struct the given methods keys that correspond to method keys on the struct's prototype.
@@ -94,18 +97,22 @@ abstract class Struct implements ValueCopy, ValueEqual {
         return { ...this } as Partial<this>
     }
 
+    protected set state(state: Partial<this>) {
+        const stateDescriptors = Property.descriptorsOf(state)
+
+        Property.define(this, stateDescriptors)
+    }
+
     //// Constructor ////
     
     constructor() {
-        // TODO perhaps we should add an argument to allow
-        // all methods to be bound
-        return initialize(this)
+        return Struct.initialize(this)
     }
 
     //// Copyable ////
 
     copy(): this {
-        return initialize(copy(this))
+        return Struct.initialize(Struct.copy(this), this.state)
     }
 
     [$$copy](): this {
@@ -140,16 +147,20 @@ const CallableStruct = class extends Struct {
 
     constructor(signature: Func, ctxProvider: CallableContextProvider<Func> = provideCallableContext) {
         super()
-        return initialize(this, signature, ctxProvider)
+        return Struct.initialize(this, this.state, signature, ctxProvider)
     }
 
     override copy(): this {
-        const struct = copy(this)
+        const struct = Struct.copy(this)
 
         const callable = this as unknown as Func
-        const callableSignature = Callable.signatureOf(callable)
-        const callableCtxProvider = Callable.contextProviderOf(callable)
-        return initialize(struct, callableSignature, callableCtxProvider)
+
+        return Struct.initialize(
+            struct, 
+            this.state, 
+            Callable.signatureOf(callable), 
+            Callable.contextProviderOf(callable)
+        )
     }
 
 } as CallableStruct

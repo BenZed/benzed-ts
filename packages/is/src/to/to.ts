@@ -24,17 +24,17 @@ import {
     Tuple,
     Shape,
     ShapeInput
-} from '../../schema'
+} from '../schema'
 
 import { 
     AnyTypeGuard, 
     TypeOf 
-} from '../../schema/schemas/type-of/type-of'
+} from '../schema/schemas/type-of/type-of'
 
-import { Is } from '../is'
-import { Or, _ReplaceLast } from '../or'
+import { Is } from '../schema/schemas/mutator/_old-pre-mutator/is'
+import { Or, _ReplaceLast } from '../schema/schemas/mutator/_old-pre-mutator/or'
 
-import { Validator, TypeValidator } from '../../validator'
+import { Validator, TypeValidator } from '../validator'
 
 import { 
     resolveSchematics,
@@ -48,9 +48,9 @@ import {
     ReduceSchematicsOutput,
 } from './reduce-schematics'
 
-import { Optional } from '../optional'
-import { ReadOnly } from '../readonly'
-import Ref from '../ref'
+import { Optional } from '../schema/schemas/mutator/_old-pre-mutator/optional'
+import { ReadOnly } from '../schema/schemas/mutator/_old-pre-mutator/readonly'
+import Ref from '../schema/schemas/mutator/_old-pre-mutator/ref'
 
 //// EsLint ////
 
@@ -61,32 +61,32 @@ import Ref from '../ref'
 
 //// Helper Types ////
 
-type _OfArray<F extends AnyTypeGuard, T extends AnySchematic> = 
-    F extends AnySchematic & { of: AnySchematic }
-        ? ArrayOf<_Of<F, T>>
-        : ArrayOf<T>
+// type _OfArray<F extends AnyTypeGuard, T extends AnySchematic> = 
+//     F extends AnySchematic & { of: AnySchematic }
+//         ? ArrayOf<_Of<F, T>>
+//         : ArrayOf<T>
 
-type _Of<F extends AnySchematic, T extends AnySchematic> = 
-    F extends ArrayOf<infer Fx>
-        ? _OfArray<Fx, T>
+// type _Of<F extends AnySchematic, T extends AnySchematic> = 
+//     F extends ArrayOf<infer Fx>
+//         ? _OfArray<Fx, T>
 
-        // Also check MapOf, SetOf, RecordOf
-        : F extends TypeOf<infer Fxx, any>  
-            ? IterableOf<Fxx>
-            : F
+//         // Also check MapOf, SetOf, RecordOf
+//         : F extends TypeOf<infer Fxx, any>  
+//             ? IterableOf<Fxx>
+//             : F
 
 // type Of<O extends AnySchematic, T extends AnySchematic> = _Of<O, T>
 
 // TODO: this is hairy
-type Of<O extends AnySchematic, T extends AnySchematic> = 
-    O extends Optional<infer Tx> 
-        ? Optional<Of<Tx, T>>
-        : O extends ReadOnly<infer Txx>     
-            ? ReadOnly<Of<Txx,T>>
-            : O extends Or<infer Txxx> 
-                // TODO fix me
-                ? Or<_ReplaceLast<Txxx, Of<Last<Txxx>, T>>>
-                : _Of<O, T>
+// type Of<O extends AnySchematic, T extends AnySchematic> = 
+//     O extends Optional<infer Tx> 
+//         ? Optional<Of<Tx, T>>
+//         : O extends ReadOnly<infer Txx>     
+//             ? ReadOnly<Of<Txx,T>>
+//             : O extends Or<infer Txxx> 
+//                 // TODO fix me
+//                 ? Or<_ReplaceLast<Txxx, Of<Last<Txxx>, T>>>
+//                 : _Of<O, T>
 
 // TODO clean this up, this is hacky as fuck and prone to bugs
 function resolveOf(from: From, of: AnySchematic): AnySchematic {
@@ -141,18 +141,18 @@ function resolveOf(from: From, of: AnySchematic): AnySchematic {
 
 //// Types ////
 
-type ToOutput<F extends From, O extends boolean, T extends ReduceSchematicsInput> = 
-    Infer<
+// type ToOutput<F extends From, O extends boolean, T extends ReduceSchematicsInput> = 
+//     Infer<
 
-    Is<
-    O extends true 
-        ? F[0] extends { of: AnySchematic } 
-            ? Of<F[0], ReduceSchematicsOutput<T>>
-            : never
-        : ReduceSchematicsOutput<[...F, ...T]>
-    >
+//     Is<
+//     O extends true 
+//         ? F[0] extends { of: AnySchematic } 
+//             ? Of<F[0], ReduceSchematicsOutput<T>>
+//             : never
+//         : ReduceSchematicsOutput<[...F, ...T]>
+//     >
 
-    , AnySchematic>
+//     , AnySchematic>
 
 interface ToSignature<F extends From, C extends boolean> {
     <T extends ResolveSchematicsInput>(
