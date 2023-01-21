@@ -30,12 +30,6 @@ type SchemaBuilders<T extends unknown[]> = T extends [infer T1, ...infer Tr]
 
 class SchemaBuilder<T = unknown> extends Schema<T> implements Iterable<AnyValidate> {
 
-    //// Main ////
-    
-    get validators(): AnyValidate[] {
-        return Array.from(this)
-    }
-
     validates(
         ...input: (Validate<T> | Partial<ValidatorSettings<T>>)[]
     ): this {
@@ -69,7 +63,11 @@ class SchemaBuilder<T = unknown> extends Schema<T> implements Iterable<AnyValida
         })
     }
 
-    //// Iterable ////
+    //// Main ////
+    
+    get validators(): AnyValidate[] {
+        return Array.from(this)
+    }
     
     *[Symbol.iterator](): IterableIterator<AnyValidate> {
 

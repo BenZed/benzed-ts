@@ -2,7 +2,7 @@ import { CallableStruct } from '@benzed/immutable/src'
 import { OutputOf, TypeAssertion, TypeGuard } from '@benzed/util'
 import { Validate } from '../../../validator'
 
-import { Optional, ReadOnly, MutatorType as M } from './mutator'
+import { Optional, ReadOnly, MutatorType as M } from './mutator-operations'
 
 //// Helper ////
 

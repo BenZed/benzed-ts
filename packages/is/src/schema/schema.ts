@@ -1,15 +1,11 @@
-import { nil, Pipe, merge, OutputOf } from '@benzed/util'
+import { nil, Pipe, merge, OutputOf, ParamPipe } from '@benzed/util'
 import { copy } from '@benzed/immutable'
 
 import {
-
     Validate,
-    ValidatorSettings, 
-
     Validator, 
     ValidateOptions,
     AnyValidate
-
 } from '../validator'
 
 //// EsLint ////
@@ -20,22 +16,26 @@ import {
 
 //// Types ////
 
+function schemaValidate <T>(this: Schema<T>, i: unknown, options?: ValidateOptions): T {
+    return this.validate(i, options)
+}
+
+type SchemaValidate<T> = Validate<unknown,T>
+
+//// Helper ////
+
 class Schema<T = unknown> extends Validate<unknown, T> {
 
-    static validate<T>(this: Schema<T>, i: unknown, options?: ValidateOptions): T {
-        if (this as { validate: Validate<unknown,T> } === Schema)
-            return i as T
-
-        return this.validate(i, options)
+    static replace<Tx>(schema: Schema<unknown>, validate: SchemaValidate<Tx>): Schema<Tx> {
+        const clone = schema.copy()
+        console.log(schema.constructor.name, 'replace', { validate })
+        clone.state = { ...schema.state, validate }
+        return clone as Schema<Tx>
     }
 
-    static replace<Tx>(schema: Schema<unknown>, validate: Validate<Tx>): Schema<Tx> {
-        return merge(copy(schema), { validate }) as Schema<Tx>
-    }
-    
     static merge<Vx extends Schema<unknown>>(schema: Vx, ...validators: Validate<OutputOf<Vx>>[]): Vx 
     static merge<Tx>(schema: Schema<Tx>, ...validators: Validate<Tx>[]): Schema<Tx> {
-        const validate = Validator.from(schema.validate, ...validators as Validate<unknown, Tx>[])
+        const validate = Validator.from(schema.validate, ...validators as SchemaValidate<Tx>[])
         return this.replace(schema, validate)
     }
 
@@ -65,23 +65,24 @@ class Schema<T = unknown> extends Validate<unknown, T> {
 
     //// Constructor ////
 
-    constructor(validate: Validate<unknown, T>)
-    constructor(settings: Partial<ValidatorSettings<unknown, T>>)
-    constructor(input: Validate<unknown, T> | Partial<ValidatorSettings<unknown, T>>) {
-        super(Schema.validate)
-        this.validate = Validator.from(input)
+    constructor(readonly validate: SchemaValidate<T>) {
+        super(schemaValidate)
     }
 
     //// Struct Methods ////
 
     override get state(): Partial<this> {
         const { validate } = this
-        return { validate } as Partial<this>
+        return { validate } as unknown as Partial<this>
     }
 
-    //// Schematic Methods ////
+    protected override set state(state: Partial<this>) {
+        const { validate } = state
+        if (!validate)
+            throw new Error('validator required to set schema state')
 
-    readonly validate: Validate<unknown, T>
+        merge(this, { validate })
+    }
 
 }
 
@@ -91,4 +92,5 @@ export default Schema
 
 export {
     Schema,
+    SchemaValidate,
 }

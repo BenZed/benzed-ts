@@ -2,6 +2,7 @@
 //// EsLint ////
 
 import { CallableStruct, Struct } from '@benzed/immutable/src'
+import { provideCallableContext } from '@benzed/util/src'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -27,7 +28,11 @@ interface ValidateConstructor {
     new <I, O extends I>(v: Validate<I,O>): Validate<I,O> & Struct
 }
 
-const Validate = class extends CallableStruct<Validate<unknown>> {} as ValidateConstructor
+const Validate = class extends CallableStruct<Validate<unknown>> {
+    constructor(validate: Validate<unknown>) {
+        super(validate, provideCallableContext)
+    }
+} as ValidateConstructor
 
 //// Exports ////
 

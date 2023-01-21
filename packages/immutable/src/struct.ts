@@ -147,7 +147,7 @@ const CallableStruct = class extends Struct {
 
     constructor(signature: Func, ctxProvider: CallableContextProvider<Func> = provideCallableContext) {
         super()
-        return Struct.initialize(this, this.state, signature, ctxProvider)
+        return Struct.initialize(this, nil, signature, ctxProvider)
     }
 
     override copy(): this {
@@ -157,7 +157,7 @@ const CallableStruct = class extends Struct {
 
         return Struct.initialize(
             struct, 
-            this.state, 
+            nil, 
             Callable.signatureOf(callable), 
             Callable.contextProviderOf(callable)
         )
