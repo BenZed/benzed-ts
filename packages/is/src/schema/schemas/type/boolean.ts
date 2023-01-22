@@ -1,5 +1,6 @@
 import { isBoolean as _isBoolean, isNil } from '@benzed/util'
-import Type from './type'
+import TypeValidator from '../../../validator/validators/type'
+import Schema from '../../schema'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
@@ -15,9 +16,10 @@ const toBoolean = (input: unknown): unknown => input === 'false' || input === 0 
 
 //// Exports ////
 
-export interface Boolean extends Type<boolean> {}
-export const isBoolean: Boolean = new Type({ 
+export interface Boolean extends Schema<TypeValidator<boolean>> {}
+export const isBoolean: Boolean = new Schema(TypeValidator.create({ 
     name: 'boolean',
     is: _isBoolean,
     cast: toBoolean
-})
+}))
+

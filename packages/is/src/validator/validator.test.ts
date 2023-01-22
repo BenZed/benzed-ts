@@ -1,11 +1,18 @@
-import { asNil, isObject, isString as _isString } from '@benzed/util'
+import { asNil, isArray, isNumber, isObject, isString as _isString } from '@benzed/util'
 import { Validator } from './validator'
 
-const isString = new Validator({
+import { expectTypeOf } from 'expect-type'
+import Validate from './validate'
+
+//// Type ////
+
+const isString = Validator.create({
     error: 'must be a string',
     transform: i => asNil(i) && !isObject(i) ? `${i}` : i,
     is: _isString 
 })
+
+//// Tests ////
 
 describe(`${Validator.name}()`, () => {
 
@@ -26,3 +33,26 @@ describe(`${Validator.name}()`, () => {
 
 })
 
+describe('Constructor signatures', () => {
+
+    const isArrayOfNumber = Validator.create({
+        of: isNumber,
+        is(input: unknown): input is number[] {
+            return isArray(input, this.of)
+        },
+        error: 'Must be an array of numbers'
+    })
+
+    it('partial settings', () => {
+        expectTypeOf(isString).toEqualTypeOf<Validate<unknown,string>>()
+    })
+
+    it('super settings', () => {
+        expectTypeOf(isArrayOfNumber).toEqualTypeOf<{
+            of: <N extends number = number>(i: unknown) => i is N
+            is(input: unknown): input is number[]
+            error: string
+        } & Validate<unknown, number[]>>()
+    })
+
+})

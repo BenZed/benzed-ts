@@ -1,5 +1,5 @@
 import { Primitive, isDefined as _isDefined, nil } from '@benzed/util'
-import SchemaBuilder from '../../schema'
+import SchemaBuilder from '../../_old-schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

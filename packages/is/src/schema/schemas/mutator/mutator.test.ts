@@ -7,4 +7,6 @@
 
 //// Tests ////
 
-it.todo('applies mutators')
+it('applies mutators', () => {
+    // 
+})

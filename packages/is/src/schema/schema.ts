@@ -1,96 +1,190 @@
-import { nil, Pipe, merge, OutputOf, ParamPipe } from '@benzed/util'
-import { copy } from '@benzed/immutable'
+import { Struct } from '@benzed/immutable'
+
+import { 
+    merge, 
+    nil, 
+    ParamPipe, 
+    KeysOf, 
+    InputOf, 
+    Pipe, 
+    isSymbol, 
+    isFunc 
+} from '@benzed/util'
 
 import {
+
+    AnyValidate,
     Validate,
-    Validator, 
+    ValidateConstructor,
+    ValidateInput,
     ValidateOptions,
-    AnyValidate
+    ValidateOutput,
+    ValidationErrorMessage,
+    Validator,
+    ValidatorPredicate,
+    ValidatorSettings,
+    ValidatorTransform
+
 } from '../validator'
-
-//// EsLint ////
-
-/* eslint-disable
-    @typescript-eslint/no-explicit-any
-*/
 
 //// Types ////
 
-function schemaValidate <T>(this: Schema<T>, i: unknown, options?: ValidateOptions): T {
+type SchemaValidator<V extends AnyValidate> = ParamPipe<ValidateInput<V>, ValidateOutput<V>, [ValidateOptions | nil]>
+type SchemaValidate<V extends AnyValidate> = Validate<ValidateInput<V>, ValidateOutput<V>>
+type SchemaPredicate<V extends AnyValidate> = ValidatorPredicate<ValidateInput<V>>
+type SchemaTransform<V extends AnyValidate> = ValidatorTransform<ValidateInput<V>, ValidateOutput<V>>
+type SchemaError<V extends AnyValidate> = ValidationErrorMessage<InputOf<V>> | string
+
+type AddSchemaSettings<V extends AnyValidate> = ValidatorSettings<ValidateInput<V>, ValidateOutput<V>>
+
+interface SchemaProperties<V extends AnyValidate> extends SchemaValidate<V>, Struct {
+    validate: SchemaValidator<V>
+
+    validates<Vx extends Partial<AddSchemaSettings<V>>>(settings: Vx, id?: symbol): this
+    validates(validate: SchemaValidate<V>, id?: symbol): this
+
+    asserts(is: SchemaPredicate<V>, error?: SchemaError<V>, id?: symbol): this
+    transforms(to: SchemaTransform<V>, error?: SchemaTransform<V>, id?: symbol): this
+}
+
+type _SchemaDynamicKeys<V extends AnyValidate> = Exclude<KeysOf<V>, KeysOf<SchemaProperties<V>>>
+
+type AnySchema = Schema<AnyValidate>
+
+type Schema<V extends AnyValidate> = SchemaProperties<V> & {
+    [K in _SchemaDynamicKeys<V>]: (input: V[K]) => Schema<V>
+}
+
+interface SchemaConstructor extends ValidateConstructor {
+
+    replace<V extends AnyValidate>(schema: AnySchema, validate: V): Schema<V> 
+
+    merge<V extends AnyValidate[]>(schema: AnySchema, ...validators: V): Schema<V[0]>
+    merge<S extends AnySchema>(schema: S, ...validators: SchemaValidate<S>[]): S
+
+    upsert<S extends AnySchema, V extends SchemaValidate<S>>(
+        schema: S,
+        update: (previous?: V) => V,
+        id?: symbol
+    ): S
+
+    new <V extends AnyValidate>(validate: V): Schema<V>
+}
+
+//// Implementation ////
+
+function schemaValidate <V extends AnyValidate>(this: Schema<V>, i: ValidateInput<V>, options?: ValidateOptions): ValidateOutput<V> {
     return this.validate(i, options)
 }
 
-type SchemaValidate<T> = Validate<unknown,T>
+//// Main ////
 
-//// Helper ////
+const Schema = class <V extends AnyValidate> extends Validate<ValidateInput<V>, ValidateOutput<V>> {
 
-class Schema<T = unknown> extends Validate<unknown, T> {
+    //// Static ////
 
-    static replace<Tx>(schema: Schema<unknown>, validate: SchemaValidate<Tx>): Schema<Tx> {
+    static replace<V extends AnyValidate>(schema: AnySchema, validate: V): Schema<V> {
         const clone = schema.copy()
-        console.log(schema.constructor.name, 'replace', { validate })
-        clone.state = { ...schema.state, validate }
-        return clone as Schema<Tx>
+        merge(clone, { validate: Pipe.from(validate) })
+        return clone as unknown as Schema<V>
     }
 
-    static merge<Vx extends Schema<unknown>>(schema: Vx, ...validators: Validate<OutputOf<Vx>>[]): Vx 
-    static merge<Tx>(schema: Schema<Tx>, ...validators: Validate<Tx>[]): Schema<Tx> {
-        const validate = Validator.from(schema.validate, ...validators as SchemaValidate<Tx>[])
-        return this.replace(schema, validate)
+    static merge<V extends AnyValidate[]>(schema: AnySchema, ...validators: V): Schema<V[0]>
+    static merge<S extends AnySchema>(schema: S, ...validators: SchemaValidate<S>[]): S {
+        const validate = Validator.merge(schema.validate, ...validators as AnyValidate[])
+        return this.replace(schema, validate) as S
     }
 
-    static upsert<Vx extends Schema<unknown>>(
-        schema: Vx, 
-        update: (previous?: AnyValidate) => AnyValidate,
-        id?: string | symbol): Vx
-    static upsert<Tx>(
-        schema: Schema<Tx>, 
-        update: (previous?: AnyValidate) => AnyValidate,
-        id?: string | symbol
-    ): Schema<Tx> {
+    static upsert<S extends AnySchema, V extends SchemaValidate<S>>(
+        schema: S,
+        update: (previous?: V) => V,
+        id?: symbol
+    ): S {
 
-        const updatedValidators = Pipe.flatten([schema.validate]) as AnyValidate[]
+        const updatedValidators = Pipe.flatten([schema.validate as AnyValidate])
 
         const index = id ? updatedValidators.findIndex(v => 'id' in v && v.id === id) : -1
         const isNew = index < 0
 
-        const validator = update(isNew ? updatedValidators[index] : nil)
+        const validator = update(isNew ? updatedValidators[index] as V : nil) as AnyValidate
         if (isNew)
             updatedValidators.push(validator)
-        else 
+        else
             updatedValidators.splice(index, 1, validator)
 
-        return this.merge(schema, ...updatedValidators as Validate<Tx>[])
+        return this.merge(schema, ...updatedValidators) as S
     }
 
-    //// Constructor ////
+    //// Instance ////
 
-    constructor(readonly validate: SchemaValidate<T>) {
+    constructor(validate: V) {
         super(schemaValidate)
+        this.validate = Pipe.from(validate) as SchemaValidator<V>
     }
 
-    //// Struct Methods ////
+    readonly validate: SchemaValidator<V>
 
-    override get state(): Partial<this> {
-        const { validate } = this
-        return { validate } as unknown as Partial<this>
+    override get name(): string {
+        return this.validate.name
     }
 
-    protected override set state(state: Partial<this>) {
-        const { validate } = state
-        if (!validate)
-            throw new Error('validator required to set schema state')
+    validates<Vx extends Partial<AddSchemaSettings<V>>>(settings: Vx, id?: symbol): this
+    validates(settings: AddSchemaSettings<V>, id?: symbol): this
+    validates(input: SchemaValidate<V>, id?: symbol): this
 
-        merge(this, { validate })
+    validates(
+        input: Partial<AddSchemaSettings<V>> | SchemaValidate<V>,
+        id = 'id' in input && isSymbol(input.id) ? input.id : nil
+    ): this {
+        const validate = (isFunc(input) ? input : Validator.create(input)) as AnyValidate
+        return (
+            isSymbol(id)
+                ? Schema.upsert(this as AnySchema, () => validate, id)
+                : Schema.merge(this as AnySchema, validate)
+        ) as this
     }
 
-}
+    asserts(
+        isValid: SchemaPredicate<V>,
+        error?: SchemaError<V>,
+        id?: symbol
+    ): this {
+        return this.validates({
+            is: isValid,
+            error,
+            id
+        })
+    }
+
+    transforms(
+        transform: SchemaTransform<V>,
+        error?: SchemaError<V>, 
+        id?: symbol
+    ): this {
+        return this.validates({
+            transform,
+            error,
+            id
+        })
+    }
+
+    //// Main ////
+
+    get validators(): AnyValidate[] {
+        return Array.from(this)
+    }
+
+    *[Symbol.iterator](): IterableIterator<AnyValidate> {
+        yield* this.validate.transforms as unknown as IterableIterator<AnyValidate>
+    }
+
+} as SchemaConstructor
 
 //// Exports ////
 
-export default Schema
+export default Schema 
 
 export {
     Schema,
-    SchemaValidate,
+    AnySchema
 }

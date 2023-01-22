@@ -10,19 +10,26 @@ import {
     TypeValidatorCast,
     TypeValidatorDefault 
 } from '../../../validator/validators'
+import Schema from '../../_old-schema'
 
-import SchemaBuilder from '../../schema'
+import Schema from '../../schema'
+
+//// Constants ////
+
+const $$type = Symbol('type-validator-id')
 
 //// Types ////
 
-class Type<T> extends SchemaBuilder<T> {
+class Type<T> extends Schema<T> {
 
     override get name(): string {
         return this.validators.at(0)?.name ?? 'Type'
     }
 
     constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
-        super(new TypeValidator(input)) 
+        super(
+            new TypeValidator(input)
+        )
     }
 
     /**
@@ -75,13 +82,14 @@ class Type<T> extends SchemaBuilder<T> {
     protected _setTypeValidator(
         settings: Partial<TypeValidatorSettings<T>>
     ): this {
-        return this._setValidatorByType(
-            TypeValidator, 
-            type => new TypeValidator({ 
+        return Schema.upsert(
+            this, 
+            (type?: TypeValidator<T>) => new TypeValidator({ 
                 ...(type as TypeValidatorSettings<T>), 
                 name: this.name, 
                 ...settings 
-            })
+            }),
+            $$type
         )
     }
 }

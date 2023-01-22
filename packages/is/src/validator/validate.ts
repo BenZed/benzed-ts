@@ -2,7 +2,7 @@
 //// EsLint ////
 
 import { CallableStruct, Struct } from '@benzed/immutable/src'
-import { provideCallableContext } from '@benzed/util/src'
+import { provideCallableContext, InputOf, OutputOf } from '@benzed/util/src'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -24,6 +24,9 @@ interface Validate<I, O extends I = I> {
     (input: I, options?: ValidateOptions): O
 }
 
+type ValidateInput<V extends AnyValidate> = InputOf<V>
+type ValidateOutput<V extends AnyValidate> = OutputOf<V> extends ValidateInput<V> ? OutputOf<V> : never
+
 interface ValidateConstructor {
     new <I, O extends I>(v: Validate<I,O>): Validate<I,O> & Struct
 }
@@ -41,6 +44,9 @@ export default Validate
 export {
     Validate,
     ValidateConstructor,
-    AnyValidate,
-    ValidateOptions
+    ValidateOptions,
+    ValidateInput,
+    ValidateOutput,
+
+    AnyValidate
 }

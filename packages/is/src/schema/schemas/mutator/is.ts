@@ -1,8 +1,8 @@
-import { CallableStruct } from '@benzed/immutable/src'
-import { OutputOf, TypeAssertion, TypeGuard } from '@benzed/util'
+import { CallableStruct } from '@benzed/immutable'
+import { Optional, OutputOf, TypeAssertion, TypeGuard } from '@benzed/util'
 import { Validate } from '../../../validator'
-
-import { Optional, ReadOnly, MutatorType as M } from './mutator-operations'
+import { Mutator } from './mutator'
+import { ReadOnly } from './mutators'
 
 //// Helper ////
 
@@ -28,11 +28,11 @@ class Is<V extends Validate<unknown>> extends CallableStruct<TypeGuard<OutputOf<
     }
 
     get optional(): Is<Optional<V>> {
-        return new Is(Mutate.add(this.validate, M.Optional))
+        return new Is(Mutator.add(this.validate, M.Optional))
     }
 
     get readonly(): Is<ReadOnly<V>> {
-        return new Is(Mutate.add(this.validate, M.ReadOnly))
+        return new Is(Mutator.add(this.validate, M.ReadOnly))
     }
 
     get assert(): Assert<V> {
@@ -48,11 +48,11 @@ class Assert<V extends Validate<unknown>> extends CallableStruct<TypeAssertion<O
     }
 
     get optional(): Assert<Optional<V>> {
-        return new Assert(Mutate.add(this.validate, M.Optional))
+        return new Assert(Mutator.add(this.validate, M.Optional))
     }
 
     get readonly(): Assert<ReadOnly<V>> {
-        return new Assert(Mutate.add(this.validate, M.ReadOnly))
+        return new Assert(Mutator.add(this.validate, M.ReadOnly))
     }
 
     get is(): Is<V> {

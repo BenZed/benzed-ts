@@ -76,7 +76,7 @@ interface PipeConstructor {
      * Given a number of transforms, get a flattened array of just transforms 
      * from any pipes that may have been in the input
      */
-    flatten<T>(transforms: readonly Transform<Awaited<T>,T>[]): readonly Transform<T,T>[]
+    flatten<T>(transforms: readonly Transform<Awaited<T>,T>[]): Transform<T,T>[]
 
     /** 
      * Create a pipe from a multiple transform methods with the same type as input and output.
@@ -93,7 +93,7 @@ interface PipeConstructor {
 
 const Pipe = (class extends Callable<Func> {
 
-    static flatten(input: readonly AnyTransform[]): readonly AnyTransform[] {
+    static flatten(input: readonly AnyTransform[]): AnyTransform[] {
 
         const pipes: Pipe[] = []
 

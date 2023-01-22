@@ -1,14 +1,14 @@
 
-import { ParamTransform, isFunc, isString, nil, Pipe, Property, applyResolver } from '@benzed/util'
 import { equals } from '@benzed/immutable'
-import { capitalize } from '@benzed/string'
+import { ParamTransform, applyResolver, isFunc, Property, Pipe, merge, Infer } from '@benzed/util'
 
-import { Validate, ValidateOptions } from './validate'
+import { AnyValidate, Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
 
-//// Shorcuts ////
-
-const { assign } = Object 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// Types ////
 
@@ -17,32 +17,37 @@ interface ValidatorContext<T> extends Required<ValidateOptions> {
     transformed?: T
 }
 
-type ValidatorTypeGuard<I, O extends I = I> = 
-    ((input: I, ctx: ValidatorContext<I>) => input is O)
+type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidatorContext<I>) => input is O
 
 type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidatorContext<I>]>
 
 type ValidatorTransform<I, O extends I = I> = ParamTransform<I, I | O, [ValidatorContext<I>]>
 
 interface ValidatorSettings<I, O extends I = I> {
-
+    name: string
     is: ValidatorTypeGuard<I, O> | ValidatorPredicate<I>
-    transform: ValidatorTransform<I, O>
     error: string | ValidationErrorMessage<I>
-    id?: string | symbol
-
+    transform: ValidatorTransform<I, O>
+    id?: symbol
 }
 
-//// Helpers ////
+type AnyValidatorSettings = Partial<ValidatorSettings<unknown,unknown>>
 
-const isTransformEqual = <I>(input: I, ctx: ValidatorContext<I>): boolean => 
-    equals(input, ctx.transformed)
+type ValidatorAdditional<A extends AnyValidatorSettings> = Infer<{
+    [K in Exclude<keyof A, keyof AnyValidatorSettings>]: A[K]
+}>
 
-const noTransform = <I>(input: I): I => input
+type ToValidator<A extends AnyValidatorSettings> = 
+   A extends
 
-//// Main ////
+   { is: ValidatorTypeGuard<infer I, infer O> } | { transform: ValidatorTransform<infer I, infer O> } 
 
-function createCtx <I>(input: I, options?: ValidateOptions): ValidatorContext<I> {
+       ? Validator<I, O> & ValidatorAdditional<A> 
+       : never
+
+//// Defaults ////
+
+function createValidatorContext <I>(input: I, options?: ValidateOptions): ValidatorContext<I> {
 
     const ctx = { 
         transform: true, 
@@ -56,7 +61,7 @@ function createCtx <I>(input: I, options?: ValidateOptions): ValidatorContext<I>
 
 function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
 
-    const ctx = createCtx(input, options)
+    const ctx = createValidatorContext(input, options)
 
     const output = applyResolver(
         this.transform(ctx.input, ctx), 
@@ -64,11 +69,11 @@ function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: Vali
 
             const output = ctx.transform 
                 ? transformed
-                : ctx.input 
-    
+                : ctx.input
+
             const isValid = this.is(output, { ...ctx, transformed })
             if (!isValid)
-                ValidationError.throw(ctx, this.error)
+                ValidationError.throw(this.error, ctx)
 
             return output
         })
@@ -78,52 +83,47 @@ function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: Vali
 
 //// Main ////
 
-class Validator<I, O extends I = I> extends Validate<I,O> {
+class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I,O> {
 
-    static from<Ix, Ox extends Ix>(...input: (Validate<Ix,Ox> | Partial<ValidatorSettings<Ix,Ox>>)[]): Validate<Ix,Ox> {
+    static create<Ix, Ox extends Ix = Ix>(settings: Partial<ValidatorSettings<Ix,Ox>>): Validator<Ix,Ox>
+    static create<S extends AnyValidatorSettings>(settings: S): ToValidator<S>
+    static create({ name, error, id, ...settings }: ValidatorSettings<unknown>): AnyValidate {
+        const validator = new Validator(name, error, id)
+        return merge(validator, settings)
+    }
 
-        const validators = input.map(v => isFunc(v) ? v : new Validator(v))
+    static merge(...input: (AnyValidate | Partial<ValidatorSettings<unknown>>)[]): AnyValidate {
+
+        const validators = input.map(v => isFunc(v) ? v : Validator.create(v))
         const validator = validators.length === 1 
             ? validators[0] 
-            : Pipe.from(...validators)
+            : Pipe.from( ...validators )
 
-        const [first] = input
+        if (validators.length > 1) {
+            const name = (validators[0].name ?? 'validate').replaceAll('-merged', '')
+            Property.name(validator, name + '-merged')
+        }
 
-        // use name or id of the first input as the validator name
-        const name = first && (
-            'name' in first && first.name
-                ? first.name
-                : 'id' in first && isString(first.id) && first.id 
-                    ? first.id 
-                    : nil
-        ) || 'validate'
-
-        return Property.name(validator, name) as Validate<Ix,Ox>
+        return validator
     }
 
-    is: ValidatorTypeGuard<I,O>
-    transform: ValidatorTransform<I,O>
-    error: string | ValidationErrorMessage<I> 
+    is(input: I, ctx: ValidatorContext<I>): input is O {
+        return equals(input, ctx.transformed)
+    }
 
-    constructor({
-        is = isTransformEqual,
-        transform = noTransform,
-        error = 'Validation failed.',
-        id,
-        ...rest
-    }: Partial<ValidatorSettings<I,O>> = {}) {
-
-        super(validate)
-
-        const name = isString(id) ? id : 'valid'
-
-        this.is = Property.name(is, is.name || `is${capitalize(name)}`) as ValidatorTypeGuard<I,O>
-        this.transform = Property.name(transform, transform.name || `to${capitalize(name)}`)
-        this.error = error
-
-        assign(this, { id, ...rest })
+    transform(input: I, ctx: ValidatorContext<I>): I | O {
+        ctx.transformed = input
+        return input
     }
     
+    private constructor(
+        override readonly name: string = Validator.constructor.name,
+        readonly error: string | ValidationErrorMessage<I> = 'Validation failed.',
+        readonly id?: symbol
+    ) {
+        super(validate)
+    }
+
 }
 
 //// Exports ////
@@ -133,9 +133,14 @@ export default Validator
 export {
     Validator,
     ValidatorSettings,
-    ValidatorTransform,
-    ValidatorTypeGuard,
     ValidatorPredicate,
+    ValidatorTypeGuard,
+    ValidatorTransform,
 
-    ValidatorContext
+    ValidatorContext,
+    createValidatorContext,
+
+    AnyValidatorSettings,
+    ToValidator
+
 }
