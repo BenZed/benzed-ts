@@ -4,7 +4,8 @@ import { InputOf, OutputOf } from '@benzed/util'
 import { ValidateOptions } from './validate-options'
 
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any
 */
 

@@ -21,7 +21,7 @@ import {
 import {
 
     AnyValidate,
-    AnyValidatorSettings,
+    GenericValidatorSettings,
     Validate,
     ValidateConstructor,
     ValidateOptions,
@@ -60,12 +60,12 @@ type _SchemaSetters<I,O,T extends object> = {
     
 //// Types ////
 
-type ToSchemaSettings<O extends object> = O extends AnyValidatorSettings
+type ToSchemaSettings<O extends object> = O extends GenericValidatorSettings
     ? { 
-        [K in Exclude<KeysOf<AnyValidatorSettings> | KeysOf<O>, _SchemaSettingDisallowedKeys>]: K extends keyof O 
+        [K in Exclude<KeysOf<GenericValidatorSettings> | KeysOf<O>, _SchemaSettingDisallowedKeys>]: K extends keyof O 
             ? O[K]
-            : K extends keyof AnyValidatorSettings
-                ? AnyValidatorSettings[K]
+            : K extends keyof GenericValidatorSettings
+                ? GenericValidatorSettings[K]
                 : never
     }
     : { [K in _SchemaSettingKeys<O>]: O[K] }

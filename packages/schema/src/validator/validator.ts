@@ -3,16 +3,17 @@ import { equals, Struct } from '@benzed/immutable'
 import {
     ParamTransform, 
     applyResolver, 
-    merge, 
+    isFunc,
+    Property,
+    assign,
 } from '@benzed/util'
 
+import { ValidateContext } from './validate-context'
 import { Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './validate-error'
-import { ValidateContext } from './validate-context'
 
 import validatorFrom, { ToValidator } from './validator-from'
 import validatorMerge from './validator-merge'
-import { assert } from 'console'
 
 //// EsLint ////
 
@@ -25,18 +26,23 @@ import { assert } from 'console'
 interface ValidatorSettings<I, O = I> {
     name: string
     error: string | ValidationErrorMessage<I>
-    transform: ValidatorTransform<I, O>
-    is: O extends I
-        ? ValidatorTypeGuard<I, O> | ValidatorPredicate<I>
+    isValid: O extends I
+        ? ValidatorPredicate<I> | ValidatorTypeGuard<I, O>
         : ValidatorPredicate<I>
+    transform: ValidatorTransform<I, O>
+
     id?: symbol
 }
 
-type AnyValidatorSettings = Partial<ValidatorSettings<unknown,unknown>>
+type GenericValidatorSettings = Record<string, unknown>
 
 //// Setting Methods ////
 
-type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
+type ValidatorTypeGuard<I, O extends I = I> = (
+    input: I, 
+    ctx: ValidateContext<I>
+) => input is O
+
 type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidateContext<I>]>
 type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>]>
 
@@ -48,8 +54,9 @@ interface ValidatorConstructor {
     from: typeof validatorFrom
     merge: typeof validatorMerge
 
-    new <I, O extends I>(settings: ValidatorSettings<I,O>): Validator<I,O>
-    new <S extends AnyValidatorSettings>(settings: S): ToValidator<S>
+    new <I, O extends I = I>(settings: Partial<ValidatorSettings<I,O>>): Validator<I,O>
+    new <S extends GenericValidatorSettings>(settings: S): ToValidator<S>
+
 }
 
 //// Validate Method ////
@@ -68,14 +75,31 @@ function validate<I, O>(this: Validator<I,O>, input: I, options?: Partial<Valida
                 ? ctx.transformed
                 : ctx.input
 
-            const isValid = this.is(output, ctx)
-            if (!isValid)
+            if (!this.isValid(output, ctx))
                 throw new ValidationError(this, ctx)
 
             return output
         })
 
     return output as O
+}
+
+/**
+ * If a method is overridden, ensure that it is enumerable.
+ */
+function override<I,O>(validator: Validate<I,O>, name: string, method: unknown): void {
+
+    if (!isFunc(method)) 
+        return
+
+    Property.define(
+        validator, 
+        name, 
+        { 
+            value: method, 
+            enumerable: true, 
+            configurable: true
+        })
 }
 
 //// Main ////
@@ -87,30 +111,31 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
     static merge = validatorMerge
 
     constructor(
-        { name, error, id, ...overrides }: Partial<ValidatorSettings<I,O>>
+        { name, error, id, isValid, transform, ...settings }: Partial<ValidatorSettings<I,O>>
     ) {
 
         super(validate)
         this.name = name ?? this.constructor.name
-        this.error = error ?? 'Validation failed.'
+        this.error = error ?? (this.name === this.constructor.name 
+            ? 'Validation failed.'
+            : `Must be ${this.name}.`)
 
         if (id)
             this.id = id
 
-        merge(this, overrides)
+        override(this, 'isValid', isValid)
+        override(this, 'transform', transform)
+        assign(this, settings)
+
     }
 
     override readonly name: string
     readonly error: string | ValidationErrorMessage<I>
     readonly id?: symbol
     
-    is(input: I, ctx: ValidateContext<I>): input is O {
+    isValid(input: I, ctx: ValidateContext<I>): input is O {
         return equals(input, ctx.transformed)
     }
-
-    // assert(input: I, options?: ValidateOptions): asserts input is O {
-    //     return
-    // }
 
     transform(input: I, ctx: ValidateContext<I>): I | O {
         ctx.transformed = input
@@ -126,10 +151,9 @@ export default Validator
 export {
     Validator,
     ValidatorSettings,
+    GenericValidatorSettings,
     ValidatorPredicate,
     ValidatorTypeGuard,
     ValidatorTransform,
-
-    AnyValidatorSettings
 
 }

@@ -1,28 +1,39 @@
 import { isFunc, Infer } from '@benzed/util'
 
-import { AnyValidate } from './validate'
+import Validate, { AnyValidate } from './validate'
 
-import Validator, { 
-    AnyValidatorSettings, 
-    ValidatorTransform, 
-    ValidatorTypeGuard 
-} from './validator'
+import Validator, { GenericValidatorSettings, ValidatorPredicate, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from './validator'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// Types ////
 
-type ToValidator<A extends AnyValidatorSettings> = 
-   A extends
+type _ToValidator<A extends GenericValidatorSettings> = 
+    // Type from type guard
+    A extends { isValid: ValidatorTypeGuard<infer I, infer O> }
+        ? Validator<I, O>
 
-   { is: ValidatorTypeGuard<infer I, infer O> } | { transform: ValidatorTransform<infer I, infer O> } 
+        // Type from predicate
+        : A extends { isValid: ValidatorPredicate<infer I> }
+            ? Validator<I, I>
 
-       ? Validator<I, O> & ValidatorOverrides<A> 
-       : never
+            // Type from transform
+            : A extends { transform: ValidatorTransform<infer I, infer O> } 
+                ? Validator<I, O>
+                : never
 
-type ValidatorOverrides<A extends AnyValidatorSettings> = Infer<{
-    [K in Exclude<keyof A, keyof AnyValidatorSettings>]: A[K]
-}>
+type ToValidator<A extends GenericValidatorSettings> = 
+    Infer<_ToValidator<A> & ValidatorOverrides<A>, Validate<any>>
 
-type ValidatorFrom<V extends AnyValidate | AnyValidatorSettings> = V extends AnyValidatorSettings
+type ValidatorOverrides<A extends object> = Infer<{
+    [K in Exclude<keyof A, keyof ValidatorSettings<unknown>>]: A[K]
+}, GenericValidatorSettings>
+
+type ValidatorFrom<V extends AnyValidate | GenericValidatorSettings> = V extends GenericValidatorSettings
     ? ToValidator<V>
     : V
 
@@ -31,7 +42,7 @@ type ValidatorFrom<V extends AnyValidate | AnyValidatorSettings> = V extends Any
 /**
  * Convert the given input to a validator, if it isn't one already.
  */
-function validatorFrom<V extends AnyValidate | AnyValidatorSettings>(settings: V): ValidatorFrom<V> {
+function validatorFrom<V extends AnyValidate | GenericValidatorSettings>(settings: V): ValidatorFrom<V> {
     const validator = isFunc(settings) 
         ? settings 
         : new Validator(settings)

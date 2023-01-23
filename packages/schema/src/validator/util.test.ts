@@ -11,40 +11,35 @@ import Validate from './validate'
 
 export const testValidator = <I,O>(
     validator: Validate<I,O>, 
-    data: { input: I, transform?: boolean } & ({ output: O } | { error: string }),
+    data: { input: I, transform: boolean } & ({ output: O } | { error: string }),
 ): void => {
 
-    const transforms = 'transform' in data ? [data.transform] : [ true, false]
+    const isOutput = 'output' in data 
 
-    for (const transform of transforms) {
+    const inputStr = safeJsonStringify(data.input)
+    const outputStr = isOutput 
+        ? `${safeJsonStringify(data.output)}`
+        : `"${data.error}"`
 
-        const isOutput = 'output' in data 
+    const description = isOutput && data.transform ? 'transforms' : 'asserts'
 
-        const inputStr = safeJsonStringify(data.input)
-        const outputStr = isOutput 
-            ? `${safeJsonStringify(data.output)}`
-            : `"${data.error}"`
+    const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
 
-        const description = isOutput && transform ? 'transforms' : 'asserts'
+    describe(description, () => {
+        it(title, () => {
 
-        const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
-
-        describe(description, () => {
-            it(title, () => {
-
-                let validated: any
+            let validated: any
     
-                try {
-                    validated = validator(data.input, { transform })
-                } catch (e) {
-                    validated = e
-                }
+            try {
+                validated = validator(data.input, { transform: data.transform })
+            } catch (e) {
+                validated = e
+            }
     
-                if (isOutput) 
-                    expect(validated).toEqual(data.output)
-                else 
-                    expect(validated?.message).toContain(data.error)
-            })
+            if (isOutput) 
+                expect(validated).toEqual(data.output)
+            else 
+                expect(validated?.message).toContain(data.error)
         })
-    }
+    })
 }

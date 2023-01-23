@@ -37,3 +37,7 @@ export type Merge<T extends readonly object[]> = Intersect<T> extends (...args: 
  * Merge an arbitrary number of objects into one.
  */
 export const merge: <A extends readonly object[]> (...objects: A) => Merge<A> = Object.assign
+
+export {
+    merge as assign
+}

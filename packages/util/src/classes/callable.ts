@@ -33,11 +33,11 @@ interface Callable extends CallableConstructor {
      * @param signature Method
      * @param template Object to use as a template to add descriptors to.
      */
-    create<F extends (this: T, ...args: any) => any, O extends object, T = O>(
+    create<F extends (this: T, ...args: any) => any, O extends object, T = O> (
         //            ^ infer this context
         signature: F, 
         template: O,
-        provider?: CallableContextProvider<F>,
+        provider?: CallableContextProvider<F, T>,
     ): CallableObject<_RemoveInferredThis<F>,O>
 
     create<F extends Func, O extends object>(
@@ -51,15 +51,17 @@ interface Callable extends CallableConstructor {
  * For providing a "this" context to callables that 
  * require it.
  */
-interface CallableContextProvider<F extends Func> {
-    (context: ThisType<F>, callable: F): unknown
+interface CallableContextProvider<F extends Func, T = ThisType<F>> {
+    (context: T, callable: F): unknown
 }
 
 //// Default Context Providers ////
 
-const provideDynamicContext = (ctx: unknown, callable: Func): unknown => ctx ?? callable
+const provideDynamicContext: CallableContextProvider<Func> = (ctx, callable) => ctx ?? callable
 
-const provideCallableContext = (_ctx: unknown, callable: Func): unknown => callable
+const provideCallableContext: CallableContextProvider<Func> = (_, callable) => callable
+
+const provideTupleContext = (ctx: unknown, callable: Func): unknown => [ctx, callable]
 
 //// Main ////
 
