@@ -14,7 +14,7 @@ function isAsNil(this: Nil, input: unknown, options?: ValidateOptions): nil {
         input = asNil(input)
 
     if (!_isNil(input))
-        ValidationError.throw(this.error)
+        ValidationError.throw(this, this.error)
 
     return nil
 }

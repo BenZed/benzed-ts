@@ -6,7 +6,7 @@ import Validate from './validate'
 
 //// Type ////
 
-const isString = Validator.create({
+const isString = new Validator({
     error: 'must be a string',
     transform: i => asNil(i) && !isObject(i) ? `${i}` : i,
     is: _isString 
@@ -35,7 +35,7 @@ describe(`${Validator.name}()`, () => {
 
 describe('Constructor signatures', () => {
 
-    const isArrayOfNumber = Validator.create({
+    const isArrayOfNumber = new Validator({
         of: isNumber,
         is(input: unknown): input is number[] {
             return isArray(input, this.of)

@@ -1,6 +1,13 @@
 
-import { equals } from '@benzed/immutable'
-import { ParamTransform, applyResolver, isFunc, Property, Pipe, merge, Infer } from '@benzed/util'
+import { equals, Struct } from '@benzed/immutable'
+import {
+    ParamTransform, 
+    applyResolver, 
+    isFunc, Property, 
+    Pipe, 
+    merge, 
+    Infer 
+} from '@benzed/util'
 
 import { AnyValidate, Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
@@ -18,14 +25,14 @@ interface ValidatorContext<T> extends Required<ValidateOptions> {
 }
 
 type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidatorContext<I>) => input is O
-
 type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidatorContext<I>]>
+type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidatorContext<I>]>
 
-type ValidatorTransform<I, O extends I = I> = ParamTransform<I, I | O, [ValidatorContext<I>]>
-
-interface ValidatorSettings<I, O extends I = I> {
+interface ValidatorSettings<I, O = I> {
     name: string
-    is: ValidatorTypeGuard<I, O> | ValidatorPredicate<I>
+    is: O extends I 
+        ? ValidatorTypeGuard<I, O> | ValidatorPredicate<I>
+        : ValidatorPredicate<I>
     error: string | ValidationErrorMessage<I>
     transform: ValidatorTransform<I, O>
     id?: symbol
@@ -33,17 +40,40 @@ interface ValidatorSettings<I, O extends I = I> {
 
 type AnyValidatorSettings = Partial<ValidatorSettings<unknown,unknown>>
 
-type ValidatorAdditional<A extends AnyValidatorSettings> = Infer<{
-    [K in Exclude<keyof A, keyof AnyValidatorSettings>]: A[K]
-}>
+interface Validator<I, O = I> extends Validate<I,O>, ValidatorSettings<I,O>, Struct {}
 
 type ToValidator<A extends AnyValidatorSettings> = 
    A extends
 
    { is: ValidatorTypeGuard<infer I, infer O> } | { transform: ValidatorTransform<infer I, infer O> } 
 
-       ? Validator<I, O> & ValidatorAdditional<A> 
+       ? Validator<I, O> & ValidatorOverrides<A> 
        : never
+
+type ValidatorOverrides<A extends AnyValidatorSettings> = Infer<{
+    [K in Exclude<keyof A, keyof AnyValidatorSettings>]: A[K]
+}>
+
+type Mergable<I, O> = Validate<I,O> | ValidatorSettings<I, O> 
+type Merge<I, O> = [
+    Mergable<I, O>
+] | [
+    Mergable<I,unknown>,
+    ...Mergable<unknown,unknown>[],
+    Mergable<unknown,O>
+]
+interface ValidatorConstructor {
+
+    from<V extends AnyValidate | AnyValidatorSettings>(settings: AnyValidate | AnyValidatorSettings): V extends AnyValidatorSettings 
+        ? ToValidator<V>
+        : V
+
+    merge(...validators: Merge<unknown, unknown>): Validate<unknown, unknown>
+    merge<I, O>(...validators: Validate<I,O>[]): Validate<I, O>
+
+    new <I, O extends I>(settings: ValidatorSettings<I,O>): Validator<I,O>
+    new <S extends AnyValidatorSettings>(settings: S): ToValidator<S>
+}
 
 //// Defaults ////
 
@@ -59,13 +89,15 @@ function createValidatorContext <I>(input: I, options?: ValidateOptions): Valida
     return ctx
 }
 
-function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
+function validate<I, O>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
 
     const ctx = createValidatorContext(input, options)
 
     const output = applyResolver(
         this.transform(ctx.input, ctx), 
-        transformed => {
+        value => {
+
+            const transformed = value as I
 
             const output = ctx.transform 
                 ? transformed
@@ -73,7 +105,7 @@ function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: Vali
 
             const isValid = this.is(output, { ...ctx, transformed })
             if (!isValid)
-                ValidationError.throw(this.error, ctx)
+                ValidationError.throw(this, this.error, ctx)
 
             return output
         })
@@ -83,28 +115,27 @@ function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: Vali
 
 //// Main ////
 
-class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorSettings<I,O> {
+const Validator = class <I, O extends I = I> extends Validate<I, O> {
 
-    static create<Ix, Ox extends Ix = Ix>(settings: Partial<ValidatorSettings<Ix,Ox>>): Validator<Ix,Ox>
-    static create<S extends AnyValidatorSettings>(settings: S): ToValidator<S>
-    static create({ name, error, id, ...settings }: ValidatorSettings<unknown>): AnyValidate {
-        const validator = new Validator(name, error, id)
-        return merge(validator, settings)
+    static from<V extends AnyValidate | AnyValidatorSettings>(settings: V): V extends AnyValidatorSettings 
+        ? ToValidator<V>
+        : V {
+        return isFunc(settings) ? settings : new Validator(settings) as any
     }
 
-    static merge(...input: (AnyValidate | Partial<ValidatorSettings<unknown>>)[]): AnyValidate {
+    static merge<I, O>(...input: Merge<I,O>): Validate<I,O> {
 
-        const validators = input.map(v => isFunc(v) ? v : Validator.create(v))
-        const validator = validators.length === 1 
+        const validators = input.map(v => isFunc<Validate<unknown>>(v) ? v: new Validator(v as ValidatorSettings<unknown>))
+        const validate = validators.length === 1 
             ? validators[0] 
-            : Pipe.from( ...validators )
+            : Pipe.from( ...validators)
 
         if (validators.length > 1) {
             const name = (validators[0].name ?? 'validate').replaceAll('-merged', '')
-            Property.name(validator, name + '-merged')
+            Property.name(validate, name + '-merged')
         }
 
-        return validator
+        return validate as Validate<I, O>
     }
 
     is(input: I, ctx: ValidatorContext<I>): input is O {
@@ -115,16 +146,26 @@ class Validator<I, O extends I = I> extends Validate<I, O> implements ValidatorS
         ctx.transformed = input
         return input
     }
+
+    override readonly name: string
+    readonly error: string | ValidationErrorMessage<I>
+    readonly id?: symbol
     
-    private constructor(
-        override readonly name: string = Validator.constructor.name,
-        readonly error: string | ValidationErrorMessage<I> = 'Validation failed.',
-        readonly id?: symbol
+    constructor(
+        { name, error, id, ...overrides }: Partial<ValidatorSettings<I,O>>
     ) {
+
         super(validate)
+        this.name = name ?? this.constructor.name
+        this.error = error ?? 'Validation failed.'
+
+        if (id)
+            this.id = id
+
+        merge(this, overrides)
     }
 
-}
+} as ValidatorConstructor
 
 //// Exports ////
 
@@ -140,7 +181,7 @@ export {
     ValidatorContext,
     createValidatorContext,
 
-    AnyValidatorSettings,
-    ToValidator
+    ValidatorOverrides,
+    AnyValidatorSettings
 
 }

@@ -20,7 +20,7 @@ function isValue<T extends Primitive>(
         input = this.value
 
     if (!Object.is(input, this.value))
-        ValidationError.throw(this.error)
+        ValidationError.throw(this, this.error)
 
     return input as T
 }

@@ -97,7 +97,7 @@ function validateType<T>(this: TypeValidator<T>, i: unknown, options?: ValidateO
     const validated = applyResolver(casted, casted => {
 
         if (!this.is(casted, ctx))
-            ValidationError.throw(this.error, ctx)
+            ValidationError.throw(this, this.error, ctx)
 
         return casted
     })

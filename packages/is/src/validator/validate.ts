@@ -1,8 +1,8 @@
 
 //// EsLint ////
 
-import { CallableStruct, Struct } from '@benzed/immutable/src'
-import { provideCallableContext, InputOf, OutputOf } from '@benzed/util/src'
+import { CallableStruct, Struct } from '@benzed/immutable'
+import { provideCallableContext, InputOf, OutputOf } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -20,15 +20,15 @@ interface ValidateOptions {
  */
 type AnyValidate = Validate<unknown>
 
-interface Validate<I, O extends I = I> {
+interface Validate<I, O = I> {
     (input: I, options?: ValidateOptions): O
 }
 
 type ValidateInput<V extends AnyValidate> = InputOf<V>
-type ValidateOutput<V extends AnyValidate> = OutputOf<V> extends ValidateInput<V> ? OutputOf<V> : never
+type ValidateOutput<V extends AnyValidate> = OutputOf<V>
 
 interface ValidateConstructor {
-    new <I, O extends I>(v: Validate<I,O>): Validate<I,O> & Struct
+    new <I, O>(validate: Validate<I, O>): Validate<I, O> & Struct
 }
 
 const Validate = class extends CallableStruct<Validate<unknown>> {

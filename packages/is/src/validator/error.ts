@@ -1,5 +1,6 @@
 
 import { isFunc, nil } from '@benzed/util'
+import Validate from './validate'
 import { createValidatorContext, ValidatorContext } from './validator'
 
 ////  ////
@@ -9,11 +10,12 @@ import { createValidatorContext, ValidatorContext } from './validator'
 export class ValidationError<T = unknown> extends Error {
 
     static throw<I>(
+        validator: Validate<I,unknown>,
         error: string | ValidationErrorMessage<I>, 
         ctx: ValidatorContext<I> = createValidatorContext(nil) as ValidatorContext<I>
     ): never {
         throw new ValidationError(ctx, isFunc(error) 
-            ? error(ctx.transformed ?? ctx.input, ctx) 
+            ? error.call(validator, ctx.transformed ?? ctx.input, ctx) 
             : error
         )
     }
@@ -27,5 +29,5 @@ export class ValidationError<T = unknown> extends Error {
 
 }
 
-export type ValidationErrorMessage<T = unknown> = (output: T, ctx: ValidatorContext<T>) => string
+export type ValidationErrorMessage<T = unknown> = (input: T, ctx: ValidatorContext<T>) => string
 
