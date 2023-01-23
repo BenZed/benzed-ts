@@ -1,7 +1,4 @@
-
-import { isFunc, nil } from '@benzed/util'
-import Validate from './validate'
-import { createValidatorContext, ValidatorContext } from './validator'
+import ValidateContext from './context'
 
 //// Types ////
 
@@ -11,15 +8,16 @@ export class ValidationError<T = unknown> extends Error {
 
     constructor(
         msg: ValidationErrorInput<T> | { error: ValidationErrorInput<T> },
-        ctx: T | ValidatorContext<T>
+        ctx: T | ValidateContext<T>
     ) {
 
-        if (ctx instanceof ValidatorContext)
+        if (!(ctx instanceof ValidateContext))
+            ctx = new ValidateContext(ctx)
 
-            super(`${ctx.path.join('\/')} ${msg}`.trim())
+        super(`${ctx.path.join('\/')} ${msg}`.trim())
     }
 
 }
 
-export type ValidationErrorMessage<T = unknown> = (input: T, ctx: ValidatorContext<T>) => string
+export type ValidationErrorMessage<T = unknown> = (input: T, ctx: ValidateContext<T>) => string
 

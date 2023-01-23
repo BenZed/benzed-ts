@@ -11,23 +11,19 @@ import {
 
 import { AnyValidate, Validate, ValidateOptions } from './validate'
 import { ValidationErrorMessage, ValidationError } from './error'
+import { ValidateContext } from './context'
 
 //// EsLint ////
+
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
 
 //// Types ////
 
-interface ValidatorContext<T> extends Required<ValidateOptions> {
-    readonly input: T
-    readonly path: readonly (string | symbol | number)[]
-    transformed?: T
-}
-
-type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidatorContext<I>) => input is O
-type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidatorContext<I>]>
-type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidatorContext<I>]>
+type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
+type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidateContext<I>]>
+type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>]>
 
 interface ValidatorSettings<I, O = I> {
     name: string
@@ -65,7 +61,9 @@ type Merge<I, O> = [
 ]
 interface ValidatorConstructor {
 
-    from<V extends AnyValidate | AnyValidatorSettings>(settings: AnyValidate | AnyValidatorSettings): V extends AnyValidatorSettings 
+    from<V extends AnyValidate | AnyValidatorSettings>(
+        settings: AnyValidate | AnyValidatorSettings
+    ): V extends AnyValidatorSettings 
         ? ToValidator<V>
         : V
 
@@ -78,35 +76,23 @@ interface ValidatorConstructor {
 
 //// Defaults ////
 
-function createValidatorContext <I>(input: I, options?: ValidateOptions): ValidatorContext<I> {
+function validate<I, O>(this: Validator<I,O>, input: I, options?: Partial<ValidateOptions>): O {
 
-    const ctx = { 
-        transform: true, 
-        path: [],
-        input,
-        ...options 
-    }
-
-    return ctx
-}
-
-function validate<I, O>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
-
-    const ctx = createValidatorContext(input, options)
+    const ctx = new ValidateContext(input, options)
 
     const output = applyResolver(
         this.transform(ctx.input, ctx), 
-        value => {
+        transformed => {
 
-            const transformed = value as I
+            ctx.transformed = transformed as I
 
             const output = ctx.transform 
-                ? transformed
+                ? ctx.transformed
                 : ctx.input
 
-            const isValid = this.is(output, { ...ctx, transformed })
+            const isValid = this.is(output, ctx)
             if (!isValid)
-                ValidationError.throw(this, this.error, ctx)
+                throw new ValidationError(this, ctx)
 
             return output
         })
@@ -139,11 +125,11 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
         return validate as Validate<I, O>
     }
 
-    is(input: I, ctx: ValidatorContext<I>): input is O {
+    is(input: I, ctx: ValidateContext<I>): input is O {
         return equals(input, ctx.transformed)
     }
 
-    transform(input: I, ctx: ValidatorContext<I>): I | O {
+    transform(input: I, ctx: ValidateContext<I>): I | O {
         ctx.transformed = input
         return input
     }
@@ -178,9 +164,6 @@ export {
     ValidatorPredicate,
     ValidatorTypeGuard,
     ValidatorTransform,
-
-    ValidatorContext,
-    createValidatorContext,
 
     ValidatorOverrides,
     AnyValidatorSettings

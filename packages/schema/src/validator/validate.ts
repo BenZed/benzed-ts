@@ -1,22 +1,23 @@
-
-//// EsLint ////
-
 import { CallableStruct, Struct } from '@benzed/immutable'
 import { InputOf, OutputOf } from '@benzed/util'
+
 import { ValidateOptions } from './options'
 
+//// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
 
 //// Types ////
 
-type AnyValidate = Validate<unknown>
-
 interface Validate<I, O = I> {
     (input: I, options?: Partial<ValidateOptions>): O
 }
+
+type AnyValidate = Validate<unknown>
+
 type ValidateInput<V extends AnyValidate> = InputOf<V>
+
 type ValidateOutput<V extends AnyValidate> = OutputOf<V>
 
 interface ValidateConstructor {
@@ -26,9 +27,11 @@ interface ValidateConstructor {
 //// Implementation ////
 
 const Validate = class extends CallableStruct<Validate<unknown>> {
+
     constructor(validate: Validate<unknown>) {
         super(validate)
     }
+
 } as ValidateConstructor
 
 //// Exports ////

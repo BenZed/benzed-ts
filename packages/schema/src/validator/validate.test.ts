@@ -1,55 +1,35 @@
-import { safeJsonStringify } from '@benzed/util'
 
-import { Validate, ValidateOptions } from './validate'
+import { ValidateOptions } from './validate'
 
-import { test, it, expect, describe } from '@jest/globals'
+import { testValidator } from './util.test'
 
-import { expectTypeOf } from 'expect-type'
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
+
+//// Setup ////
+
+const numericString = (i: string, options?: Partial<ValidateOptions>): `${number}` => {
+
+    const digits = parseFloat(i)
+    if (Number.isNaN(digits))
+        throw new Error(`${i} could not be converted to a number`)
+
+    const transformed = `${digits}`
+
+    const output = options?.transform ? transformed : i
+    if (output !== transformed)
+        throw new Error(`${i} must be a numeric string.`)
+ 
+    return output as `${number}`
+}
 
 //// Tests ////
 
-const testValidator = <I,O>(
-    validator: Validate<I,O>, 
-    input: I,
-    output: O, 
-    transform: boolean, 
-    error?: string
-): void => {
-
-    describe(`Validator ${validator.name}`, () => {
-
-        it(`transforms ${input} to ${output}`, () => {
-
-        })
-
-    })
-
-}
-
-describe(Validate.name, () => {
-
-    const parse = (i: string, options?: ValidateOptions): number => {
-    }
-
-    test('takes an input, receive and output', () => {
-        const parse = (i => parseInt(i)) satisfies Validate<string, number>
-    })
-
-    test('takes an input, optionally validation options and returns and output', () => {
-        expectTypeOf<Validate<string, number>>()
-            .toMatchTypeOf<(i: string, options?: ValidateOptions) => number>()
-
-        const parse = (i => parseInt(i)) satisfies Validate<string, number>
-
-    })
-
-})
-
-const isValid = <I,O extends I>(validate: Validate<I,O>) => (i: I): i is O => {
-    try {
-        validate(i, { transform: false })
-        return true
-    } catch {
-        return false
-    }
-}
+testValidator(numericString, { input: '100', output: '100' })
+testValidator(numericString, { input: '100.1', output: '100.1' }) 
+testValidator(numericString, { input: ' 1 ', output: '1', transform: true })
+testValidator(numericString, { input: ' 1 ', error: 'must be a numeric string', transform: false })
+testValidator(numericString, { input: 'Sup', error: 'could not be converted to a number', transform: false })
