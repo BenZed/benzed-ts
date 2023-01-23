@@ -1,4 +1,4 @@
-import ValidationError from './util/validation-error'
+import { ValidationError } from './validator/error'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -6,7 +6,7 @@ import ValidationError from './util/validation-error'
 
 export function expectValidationError(func: () => unknown): ReturnType<typeof expect> {
 
-    let error
+    let error: unknown
     try {
         func()
     } catch (e) {

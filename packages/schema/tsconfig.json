@@ -5,7 +5,7 @@
     },
     "include": [
         "./src"
-    ],
+, "../is/src/validators", "../is/src/schemas"    ],
     "exclude": [
         "./src/**/*.test.ts"
     ]
