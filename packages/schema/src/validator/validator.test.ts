@@ -1,60 +1,29 @@
-import { asNil, isArray, isNumber, isObject, isString as _isString } from '@benzed/util'
-import { Validator } from './validator'
+import { isString } from '@benzed/util'
+import { describe } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
-import Validate from './validate'
+import { Validator } from './validator'
 
-import { it, describe, expect } from '@jest/globals'  
+import { testValidator } from './util.test'
 
-//// Type ////
-
-const isString = new Validator({
-    error: 'must be a string',
-    transform: i => asNil(i) && !isObject(i) ? `${i}` : i,
-    is: _isString 
-})
+//// Setup ////
 
 //// Tests ////
 
-describe(`${Validator.name}()`, () => {
+describe('is option', () => {
 
-    it('options.is', () => {
-        expect(isString('hey')).toEqual('hey')
-        expect(() => isString({})).toThrow('must be a string')
+    const $string = new Validator({
+        is: isString
+    }) 
+
+    it.skip('infers name', () => {
+        expect($string).toHaveProperty('name', 'string')
     })
 
-    it('options.transform', () => {
-        expect(isString(10)).toEqual('10')
-        expect(isString(true)).toEqual('true')
-        expect(() => isString(null)).toThrow('must be a string')
+    it('equal type Validator<unknown,string>', () => {
+        expectTypeOf($string).toEqualTypeOf<Validator<unknown,string>>()
     })
 
-    it('options.error', () => {
-        expect(() => isString(null)).toThrow('must be a string')
-    })
-
-})
-
-describe('Constructor signatures', () => {
-
-    const isArrayOfNumber = new Validator({
-        of: isNumber,
-        is(input: unknown): input is number[] {
-            return isArray(input, this.of)
-        },
-        error: 'Must be an array of numbers'
-    })  
-
-    it('partial settings', () => {
-        expectTypeOf(isString).toEqualTypeOf<Validate<unknown,string>>()
-    })
-
-    it('super settings', () => {
-        expectTypeOf(isArrayOfNumber).toEqualTypeOf<{
-            of: <N extends number = number>(i: unknown) => i is N
-            is(input: unknown): input is number[]
-            error: string
-        } & Validate<unknown, number[]>>()
-    })
-
+    testValidator($string, { input: 'string', output: 'string' })
+    testValidator($string, { input: 0, error: 'Validation failed.' })
 })

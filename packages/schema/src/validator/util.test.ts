@@ -18,34 +18,32 @@ export const testValidator = <I,O>(
 
     for (const transform of transforms) {
 
-        describe(`${validator.name}`, () => {
-            const isOutput = 'output' in data 
+        const isOutput = 'output' in data 
 
-            const inputStr = safeJsonStringify(data.input)
-            const outputStr = isOutput 
-                ? `${safeJsonStringify(data.output)}`
-                : `"${data.error}"`
+        const inputStr = safeJsonStringify(data.input)
+        const outputStr = isOutput 
+            ? `${safeJsonStringify(data.output)}`
+            : `"${data.error}"`
 
-            const description = isOutput && transform ? 'transforms' : 'asserts'
+        const description = isOutput && transform ? 'transforms' : 'asserts'
 
-            const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
+        const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
 
-            describe(description, () => {
-                it(title, () => {
+        describe(description, () => {
+            it(title, () => {
 
-                    let validated: any
+                let validated: any
     
-                    try {
-                        validated = validator(data.input, { transform })
-                    } catch (e) {
-                        validated = e
-                    }
+                try {
+                    validated = validator(data.input, { transform })
+                } catch (e) {
+                    validated = e
+                }
     
-                    if (isOutput) 
-                        expect(validated).toEqual(data.output)
-                    else 
-                        expect(validated?.message).toContain(data.error)
-                })
+                if (isOutput) 
+                    expect(validated).toEqual(data.output)
+                else 
+                    expect(validated?.message).toContain(data.error)
             })
         })
     }

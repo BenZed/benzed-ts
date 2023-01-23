@@ -2,7 +2,7 @@ import { isFunc, isObject, nil } from '@benzed/util'
 
 import { Validate, ValidateOptions } from '../../../schema/src/validator/validate'
 import { ValidatorContext } from '../../../schema/src/validator/validator'
-import { ValidationError } from '../../../schema/src/validator/error'
+import { ValidationError } from '../../../schema/src/validator/validate-error'
 
 //// Internal Types ////
 

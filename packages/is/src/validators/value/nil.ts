@@ -1,5 +1,5 @@
 import { asNil, isNil as _isNil, nil } from '@benzed/util'
-import { ValidationError, ValidationErrorMessage } from '../../../../schema/src/validator/error'
+import { ValidationError, ValidationErrorMessage } from '../../../../schema/src/validator/validate-error'
 import Validate, { ValidateOptions } from '../../../../schema/src/validator/validate'
 
 /* eslint-disable 

@@ -1,5 +1,6 @@
 import { Struct } from '@benzed/immutable'
 import { merge } from '@benzed/util'
+
 import { ValidateOptions } from './validate'
 
 //// Main ////

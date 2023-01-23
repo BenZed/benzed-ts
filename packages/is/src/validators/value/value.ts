@@ -2,7 +2,7 @@ import { isSymbol, nil, Primitive } from '@benzed/util'
 import { capitalize } from '@benzed/string'
 
 import { Validate, ValidateOptions } from '../../../../schema/src/validator/validate'
-import { ValidationError, ValidationErrorMessage } from '../../../../schema/src/validator/error'
+import { ValidationError, ValidationErrorMessage } from '../../../../schema/src/validator/validate-error'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

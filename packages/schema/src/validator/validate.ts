@@ -1,7 +1,7 @@
 import { CallableStruct, Struct } from '@benzed/immutable'
 import { InputOf, OutputOf } from '@benzed/util'
 
-import { ValidateOptions } from './options'
+import { ValidateOptions } from './validate-options'
 
 //// EsLint ////
 /* eslint-disable 
