@@ -1,7 +1,6 @@
 import { ResolveAsyncOutput } from '../classes'
 
 import { 
-    Func, 
     indexesOf, 
     isArrayLike, 
     isFunc, 
@@ -10,7 +9,6 @@ import {
     isPromise, 
     keysOf, 
     nil, 
-    isArray, 
     isNotNil, 
     symbolsOf 
 } from '../types'
@@ -68,7 +66,7 @@ function resolveResults<T, E extends (item: T, stop: () => T | void) => unknown>
         i = generator.next()
     }
 
-    return (results.length > 0 ? results : nil) as Iterated<T,E>
+    return results as Iterated<T,E>
 }
 
 //// Main ////
@@ -76,9 +74,7 @@ function resolveResults<T, E extends (item: T, stop: () => T | void) => unknown>
 type Iterated<T, E extends (item: T, stop: () => T | void) => unknown> = 
     ResolveAsyncOutput<
     ReturnType<E>,
-    Awaited<ReturnType<E>> extends void 
-        ? void 
-        : Awaited<ReturnType<E>>[]
+    Exclude<Awaited<ReturnType<E>>, nil>[]
     >
     
 function iterate<T, E extends (item: T, stop: () => T | void) => unknown>(

@@ -1,4 +1,4 @@
-import { isFunc, Infer } from '@benzed/util'
+import { isFunc, Infer, KeysOf } from '@benzed/util'
 
 import Validate, { AnyValidate } from './validate'
 
@@ -29,8 +29,8 @@ type _ToValidator<A extends GenericValidatorSettings> =
 type ToValidator<A extends GenericValidatorSettings> = 
     Infer<_ToValidator<A> & ValidatorOverrides<A>, Validate<any>>
 
-type ValidatorOverrides<A extends object> = Infer<{
-    [K in Exclude<keyof A, keyof ValidatorSettings<unknown>>]: A[K]
+type ValidatorOverrides<A extends AnyValidate | GenericValidatorSettings> = Infer<{
+    [K in Exclude<KeysOf<A>, KeysOf<ValidatorSettings<unknown>>>]: A[K]
 }, GenericValidatorSettings>
 
 type ValidatorFrom<V extends AnyValidate | GenericValidatorSettings> = V extends GenericValidatorSettings
@@ -56,5 +56,7 @@ export default validatorFrom
 export {
     validatorFrom,
     ValidatorFrom,
+    ValidatorOverrides,
+
     ToValidator
 }

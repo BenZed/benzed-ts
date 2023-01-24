@@ -97,3 +97,38 @@ it('named remapping with a clean custom type', () => {
 
     expectTypeOf($oneToFour).toEqualTypeOf<OneToFour>()
 }) 
+
+describe('sub validators', () => {
+
+    const $lowercase = new Validator({
+        name: 'lowercase',
+        transform: (i: string) => i.toLowerCase()
+    }) 
+
+    const $string = new Cursor({
+
+        name: 'string',
+        isValid: isString,
+        lowercase: $lowercase
+    })
+ 
+    describe('add sub validator', () => {
+        const $lowerString = $string.lowercase()
+        it('type match', () => {  
+            expectTypeOf($lowerString).toEqualTypeOf($string)
+        })
+        testValidator($lowerString, { input: 0, error: 'Must be string', transform: true })
+        testValidator($lowerString, { input: 'HELLO', output: 'hello', transform: true })
+    })
+
+    describe('remove sub validator', () => {
+        const $string2 = $string.lowercase().lowercase(false)
+        testValidator($string2, { input: 0, error: 'Must be string', transform: true })
+    })
+
+    describe('error shorthand', () => {
+        const $noupperString = $string.lowercase('No uppercase letters allowed')
+        testValidator($noupperString, { input: 'Hi', error: 'No uppercase letters allowed', transform: false })
+    })
+
+})

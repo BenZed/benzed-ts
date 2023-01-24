@@ -33,7 +33,6 @@ interface ValidatorSettings<I, O = I> {
         : ValidatorPredicate<I>
     transform: ValidatorTransform<I, O>
 
-    id?: symbol
 }
 
 type GenericValidatorSettings = Record<string, unknown>
@@ -118,7 +117,7 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
     static merge = validatorMerge
 
     constructor(
-        { name, error, id, isValid, transform, ...settings }: Partial<ValidatorSettings<I,O>>
+        { name, error, isValid, transform, ...settings }: Partial<ValidatorSettings<I,O>>
     ) {
 
         super(validate)
@@ -126,9 +125,6 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
         this.error = error ?? (this.name === this.constructor.name 
             ? 'Validation failed.'
             : `Must be ${this.name}.`)
-
-        if (id)
-            this.id = id
 
         override(this, 'isValid', isValid)
         override(this, 'transform', transform)
@@ -138,7 +134,6 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
 
     override readonly name: string
     readonly error: string | ValidationErrorMessage<I>
-    readonly id?: symbol
     
     isValid(input: I, ctx: ValidateContext<I>): input is O {
         return equals(input, ctx.value)

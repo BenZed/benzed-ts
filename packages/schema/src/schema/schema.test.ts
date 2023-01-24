@@ -24,7 +24,7 @@ describe('created from generic validate method', () => {
 it('created from generic transform', () => {
     const $parse = new Schema((i: string) => parseInt(i))   
         .asserts(i => !Number.isNaN(i), v => `Could not convert "${v}" into a number.`)
- 
+
     expect($parse('1')).toEqual(1)
     expect(() => $parse('ace')).toThrow('Could not convert "ace" into a number.')
 })

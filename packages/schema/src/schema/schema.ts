@@ -1,9 +1,5 @@
 
-import {
-    nil,
-    isSymbol,
-    isFunc,
-} from '@benzed/util'
+import { isFunc } from '@benzed/util'
 
 import {
     AnyValidate,
@@ -15,12 +11,8 @@ import {
     ValidatorSettings,
     ValidatorTransform,
 } from '../validator'
-
+  
 import { Cursor, CursorSettings, ToCursor } from './cursor'
-
-import { schemaReplace } from './schema-replace'
-import { schemaUpsert } from './schema-upsert'
-import { schemaMerge } from './schema-merge'
 
 //// EsLint ////
 
@@ -59,23 +51,12 @@ type ToSchema<V extends AnyValidate | CursorSettings> = ToCursor<V> extends Curs
 
 interface SchemaConstructor {
 
-    replace: typeof schemaReplace
-    merge: typeof schemaMerge
-    upsert: typeof schemaUpsert
-
     new <V extends AnyValidate | CursorSettings>(validate: V): ToSchema<V>
 
 }
 //// Main ////
 
 const Schema = class <I, O, T extends CursorSettings> extends Cursor<I,O> {
-
-    //// Static ////
-
-    static replace = schemaReplace
-
-    static merge = schemaMerge
-    static upsert = schemaUpsert
 
     //// Instance ////
 
@@ -84,41 +65,34 @@ const Schema = class <I, O, T extends CursorSettings> extends Cursor<I,O> {
     }
 
     validates(
-        input: Partial<ValidatorSettings<unknown>> | Validate<unknown>,
-        id = 'id' in input && isSymbol(input.id) ? input.id : nil
+        input: Partial<ValidatorSettings<unknown>> | Validate<unknown>
     ): this {
-        const validate = (isFunc(input) ? input : Validator.from(input)) as AnyValidate
+        let validate = (isFunc(input) ? input : Validator.from(input)) as AnyValidate
 
-        const anySchema = this as unknown as AnySchema
+        validate = Validator.merge(...this.validators as [AnyValidate], validate)
 
-        return (
-            isSymbol(id)
-                ? Schema.upsert(anySchema, () => validate, id)
-                : Schema.merge(anySchema, validate)
-        ) as unknown as this
+        const schema = this.copy()
+        schema.state = { validate } as unknown as Partial<this>
+        return schema
     }
 
     asserts(
         isValid: ValidatorPredicate<unknown>,
-        error?: ValidationErrorInput<unknown>,
-        id?: symbol
+        error?: ValidationErrorInput<unknown>
     ): this {
         return this.validates({
             isValid,
-            error,
-            id
+            error
         })
     }
 
     transforms(
         transform: ValidatorTransform<unknown>,
-        error?: ValidationErrorInput<unknown>, 
-        id?: symbol
+        error?: ValidationErrorInput<unknown>
     ): this {
         return this.validates({
             transform,
-            error,
-            id
+            error
         })
     }
 

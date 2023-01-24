@@ -6,7 +6,6 @@ import {
     ParamPipe,
     KeysOf,
     Pipe,
-    Func,
     keysOf,
     defined,
     Infer,
@@ -19,13 +18,14 @@ import {
     ValidateConstructor,
     ValidateContext,
     ValidateOptions,
+    ValidationErrorInput,
     Validator,
     ValidatorSettings,
 } from '../validator'
 
 import { ToValidator } from '../validator/validator-from'
 
-import ensureSetters from './ensure-setters'
+import ensureAccessors, { getSettingsValidator } from './ensure-setters'
 
 //// EsLint ////
 
@@ -42,20 +42,35 @@ type _CursorSettingDisallowedKeys =
     KeysOf<CursorProperties<unknown, unknown, CursorSettings>> | 
     Extract<_ValidatorSettingKeys, 'transform' | 'isValid' | 'id'>
 
-    type _NameToNamed<O extends object> = 'name' extends keyof O ? 'named' : never
+    type _NameToNamed<O extends object> = 'name' extends keyof O 
+        ? 'named' 
+        : never
 
-type _CursorSettingKeys<O extends object> = Exclude<KeysOf<O>, _CursorSettingDisallowedKeys>
-type _SchemaSetterKeys<O extends object> = 
+type _CursorSetterKeys<O extends object> = 
     | Exclude<KeysOf<O>, _CursorSettingDisallowedKeys | 'name'> 
     | _NameToNamed<O>
 
+type _CursorValidateOptions<V extends AnyValidate> = Infer<{
+    [K in Exclude<KeysOf<V>, _CursorSettingDisallowedKeys | 'name'>]: V[K]
+}>
+
+type _CursorValidateSetter<V extends AnyValidate, I, O, T extends CursorSettings> = 
+    (
+        errorSettingsOrEnabled?: ValidationErrorInput<I> | boolean | Partial<_CursorValidateOptions<V>>
+    ) => Cursor<I, O, T>
+
 type _CursorSetters<I, O, T extends CursorSettings> = {
-    [K in _SchemaSetterKeys<T>]: K extends 'named' 
+    [K in _CursorSetterKeys<T>]: K extends 'named'
+
         ? (input: string) => Cursor<I, O, T>
-        : K extends keyof T 
-            ? (input: T[K]) => Cursor<I, O, T>
-            : never
+        : T[K] extends AnyValidate
+            ? _CursorValidateSetter<T[K], I, O, T>
+            : K extends keyof T 
+                ? (input: T[K]) => Cursor<I, O, T>
+                : never
 }
+
+type _CursorSettingKeys<O extends object> = Exclude<KeysOf<O>, _CursorSettingDisallowedKeys>
 
 type _ToCursorSettings<I, O extends object> = Infer<{ 
     [K in _CursorSettingKeys<O>]: K extends _ValidatorSettingKeys 
@@ -65,18 +80,20 @@ type _ToCursorSettings<I, O extends object> = Infer<{
     
 //// Types ////
 
-type ValidatorPipe<I, O> = ParamPipe<I, O, [ValidateOptions | nil]>
+type ValidatorPipe<I, O> = ParamPipe<I, O, [Partial<ValidateOptions> | nil]>
+
+type AnyValidatorPipe = ValidatorPipe<any, any>
 
 interface CursorProperties<I, O, T extends CursorSettings> extends Validate<I, O>, Struct {
 
-    settings: T
+    readonly settings: T
 
     /**
      * Mutably change this schema's settings
      */
     apply(settings: Partial<T>): this
 
-    validate: ValidatorPipe<I, O>
+    readonly validate: ValidatorPipe<I, O>
 
 }
 
@@ -104,12 +121,6 @@ function cursorValidate <I,O>(this: { validate: Validate<I, O> }, i: I, options?
 
     return this.validate(i, ctx)
 
-}
-
-function getSettingsValidator(schema: { validate: Func }): AnyValidate {
-    return schema.validate instanceof Pipe
-        ? schema.validate.transforms[0]
-        : schema.validate
 }
 
 //// Main ////
@@ -142,7 +153,7 @@ const Cursor = class extends Validate<unknown, unknown> {
     //// Struct ////
 
     protected _apply(settings: CursorSettings): this {
-        ensureSetters(this, settings)
+        ensureAccessors(this as unknown as AnyCursor, settings)
 
         const validator = getSettingsValidator(this)
 
@@ -183,4 +194,6 @@ export {
     AnyCursor,
     ToCursor,
 
+    ValidatorPipe,
+    AnyValidatorPipe
 }
