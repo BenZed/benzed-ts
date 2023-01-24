@@ -6,6 +6,8 @@ import {
     isFunc,
     Property,
     assign,
+    Func,
+    nil,
 } from '@benzed/util'
 
 import { ValidateContext } from './validate-context'
@@ -51,6 +53,7 @@ type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>
 interface Validator<I, O = I> extends Validate<I,O>, ValidatorSettings<I,O>, Struct {}
 
 interface ValidatorConstructor {
+
     from: typeof validatorFrom
     merge: typeof validatorMerge
 
@@ -66,14 +69,14 @@ function validate<I, O>(this: Validator<I,O>, input: I, options?: Partial<Valida
     const ctx = new ValidateContext(input, options)
 
     const output = applyResolver(
-        this.transform(ctx.input, ctx), 
-        transformed => {
+        this.transform(input, ctx),
+        resolved => {
 
-            ctx.transformed = transformed as I
+            ctx.value = resolved as I
 
             const output = ctx.transform 
-                ? ctx.transformed
-                : ctx.input
+                ? ctx.value
+                : input
 
             if (!this.isValid(output, ctx))
                 throw new ValidationError(this, ctx)
@@ -85,9 +88,13 @@ function validate<I, O>(this: Validator<I,O>, input: I, options?: Partial<Valida
 }
 
 /**
- * If a method is overridden, ensure that it is enumerable.
+ * If a validator method is overridden, ensure that it is enumerable.
  */
-function override<I,O>(validator: Validate<I,O>, name: string, method: unknown): void {
+function override<I,O>(
+    validator: Validate<I,O>, 
+    name: 'isValid' | 'transform', 
+    method: Func | nil
+): void {
 
     if (!isFunc(method)) 
         return
@@ -134,11 +141,10 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
     readonly id?: symbol
     
     isValid(input: I, ctx: ValidateContext<I>): input is O {
-        return equals(input, ctx.transformed)
+        return equals(input, ctx.value)
     }
 
-    transform(input: I, ctx: ValidateContext<I>): I | O {
-        ctx.transformed = input
+    transform(input: I, _ctx: ValidateContext<I>): I | O {
         return input
     }
 
@@ -151,9 +157,10 @@ export default Validator
 export {
     Validator,
     ValidatorSettings,
-    GenericValidatorSettings,
     ValidatorPredicate,
     ValidatorTypeGuard,
     ValidatorTransform,
+
+    GenericValidatorSettings
 
 }

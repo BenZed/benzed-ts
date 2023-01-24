@@ -47,7 +47,7 @@ class Tuple<T extends TupleInput> extends Type<TupleOutput<T>> {
                         input[i], 
                         {
                             ...ctx,
-                            input: input[i],
+                            value: input[i],
                             path: [...ctx.path, i ]
                         } as ValidateContext<unknown>))
 

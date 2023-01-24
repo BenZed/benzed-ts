@@ -42,7 +42,7 @@ abstract class Struct implements ValueCopy, ValueEqual {
             : input) as S
 
         if (state)
-            output['state'] = state
+            output.state = state
     
         return Struct.bindMethods(output as Struct, 'equals', 'copy') as S
     }
@@ -157,7 +157,7 @@ const CallableStruct = class extends Struct {
 
         return Struct.initialize(
             struct, 
-            nil, 
+            this.state, 
             Callable.signatureOf(callable), 
             Callable.contextProviderOf(callable)
         )

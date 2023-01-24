@@ -1,5 +1,5 @@
 import { Struct } from '@benzed/immutable'
-import { merge } from '@benzed/util'
+import { assign, merge, omit } from '@benzed/util'
 
 import { ValidateOptions } from './validate'
 
@@ -7,14 +7,19 @@ import { ValidateOptions } from './validate'
 
 class ValidateContext<I> extends Struct implements ValidateOptions {
 
-    readonly transform: boolean
+    readonly transform!: boolean
     readonly path: readonly (string | symbol | number)[] = []
+    readonly input!: I
 
-    transformed?: I
-
-    constructor(readonly input: I, options?: Partial<ValidateOptions>) {
+    constructor(public value: I, options?: Partial<ValidateOptions>) {
         super()
-        this.transform = options?.transform ?? true
+
+        if (options instanceof ValidateContext)
+            assign(this, omit(options, 'value'))
+        else {
+            this.transform = options?.transform ?? true
+            this.input = value
+        }
     }
 
     push(item: string | symbol | number): this {

@@ -9,12 +9,8 @@ export class ValidationError<T = unknown> extends Error {
 
     constructor(
         error: ValidationErrorInput<T> | { error: ValidationErrorInput<T> },
-        ctx: T | ValidateContext<T>
+        ctx: ValidateContext<T>
     ) {
-
-        // wrap context
-        if (!(ctx instanceof ValidateContext))
-            ctx = new ValidateContext(ctx)
 
         // untangle error message
         const msg = isString(error)

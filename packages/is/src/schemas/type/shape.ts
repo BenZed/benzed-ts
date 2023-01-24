@@ -125,7 +125,7 @@ class Shape<T extends ShapeInput> extends Type<ShapeOutput<T>> {
                     output[key] = property.validate(input[key], { 
                         ...ctx,
                         path: [...ctx.path, key ], 
-                        input: input[key] 
+                        value: input[key] 
                     } as ValidateContext<unknown>) as O[keyof O]
                 }
 

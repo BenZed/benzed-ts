@@ -1,7 +1,7 @@
 
 import { ValidateOptions } from './validate'
 
-import { testValidator } from './util.test'
+import { testValidator } from '../util.test'
 
 //// EsLint ////
 

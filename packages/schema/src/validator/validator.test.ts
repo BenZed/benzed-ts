@@ -1,10 +1,10 @@
-import { isInteger, isString } from '@benzed/util'
+import { isBoolean, isInteger, isString } from '@benzed/util'
 import { describe } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
 import { Validator } from './validator'
 
-import { testValidator } from './util.test'
+import { testValidator } from '../util.test'
 
 //// Tests ////
 
@@ -221,6 +221,19 @@ describe('spreading a super validator', () => {
     testValidator($square, { 
         input: { sides: 3 }, 
         error: 'Must be a quadrilateral (4 sides)', 
-        transform: false 
-    })
+        transform: false
+    }) 
+})
+
+describe('copy', () => {
+
+    const $b1 = new Validator({
+        name: 'boolean',
+        isValid: isBoolean
+    }) 
+
+    const $b2 = $b1.copy()
+
+    expect($b2).not.toBe($b1)
+ 
 })

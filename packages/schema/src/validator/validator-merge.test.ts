@@ -3,7 +3,7 @@ import { describe } from '@jest/globals'
 
 import Validator from './validator'
 import validatorMerge from './validator-merge'
-import { testValidator } from './util.test'
+import { testValidator } from '../util.test'
 
 //// Setup ////
 

@@ -62,7 +62,7 @@ class ArrayOf<T extends ArrayInput> extends TypeOf<T, OutputTypeOf<T>[]> {
                 const o = _isArray(input) && Schematic.is(of)
                     ? input.map((value, i) => of.validate(value, { 
                         ...ctx,
-                        input: value, 
+                        value: value, 
                         path: [...ctx.path, i] 
                     } as ValidateContext<unknown>))
                     : input
