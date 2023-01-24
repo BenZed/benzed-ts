@@ -3,15 +3,21 @@ import { isFunc, Pipe, Property } from '@benzed/util'
 import Validate from './validate'
 import Validator, { ValidatorSettings } from './validator'
 
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Types ////
 
-type Mergable<I, O> = Validate<I,O> | ValidatorSettings<I, O> 
+type Mergable<I, O> = Validate<I,O> | Partial<ValidatorSettings<I, O>> 
 type Merge<I, O> = [
     Mergable<I, O>
 ] | [
-    Mergable<I,unknown>,
-    ...Mergable<unknown,unknown>[],
-    Mergable<unknown,O>
+    Mergable<I, any>,
+    ...Mergable<any, any>[],
+    Mergable<any, O>
 ]
 
 //// Main ////
