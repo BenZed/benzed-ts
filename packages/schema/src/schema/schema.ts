@@ -1,42 +1,26 @@
-import { copy, Struct } from '@benzed/immutable'
 
 import {
-    merge,
     nil,
-    ParamPipe,
-    KeysOf,
-    Pipe,
     isSymbol,
     isFunc,
-    InputOf,
-    OutputOf,
-    Func,
-    keysOf,
-    defined,
-    Infer,
 } from '@benzed/util'
 
 import {
     AnyValidate,
     GenericValidatorSettings as SchemaSettings,
     Validate,
-    ValidateConstructor,
-    ValidateContext,
-    ValidateOptions,
-    ValidateOutput,
-    ValidationErrorMessage,
+    ValidationErrorInput,
     Validator,
     ValidatorPredicate,
     ValidatorSettings,
     ValidatorTransform,
 } from '../validator'
 
-import { ToValidator } from '../validator/validator-from'
+import { Cursor, CursorSettings, ToCursor } from './cursor'
 
-import ensureSetters from './ensure-setters'
-import { schemaMerge } from './schema-merge'
 import { schemaReplace } from './schema-replace'
 import { schemaUpsert } from './schema-upsert'
+import { schemaMerge } from './schema-merge'
 
 //// EsLint ////
 
@@ -45,108 +29,46 @@ import { schemaUpsert } from './schema-upsert'
     @typescript-eslint/ban-types
 */
 
-//// Helper Types ////
-
-type _ValidatorSettingKeys = KeysOf<ValidatorSettings<any,any>>
-
-type _SchemaSettingDisallowedKeys = 
-    KeysOf<SchemaProperties<unknown, unknown, SchemaSettings>> | 
-    Extract<_ValidatorSettingKeys, 'transform' | 'isValid' | 'id'>
-
-    type _NameToNamed<O extends object> = 'name' extends keyof O ? 'named' : never
-
-type _SchemaSettingKeys<O extends object> = Exclude<KeysOf<O>, _SchemaSettingDisallowedKeys>
-type _SchemaSetterKeys<O extends object> = 
-    | Exclude<KeysOf<O>, _SchemaSettingDisallowedKeys | 'name'> 
-    | _NameToNamed<O>
-
-type _SchemaSetters<I, O, T extends SchemaSettings> = {
-    [K in _SchemaSetterKeys<T>]: K extends 'named' 
-        ? (input: string) => Schema<I, O, T>
-        : K extends keyof T 
-            ? (input: T[K]) => Schema<I, O, T>
-            : never
-}
-
-type _ToSchemaSettings<I, O extends object> = Infer<{ 
-    [K in _SchemaSettingKeys<O>]: K extends _ValidatorSettingKeys 
-        ? ValidatorSettings<I>[K]
-        : O[K]
-}, SchemaSettings>
-    
 //// Types ////
 
-type SchemaValidator<I, O> = ParamPipe<I, O, [ValidateOptions | nil]>
-type SchemaValidate<O> = Validate<O,O>
-type SchemaError<I> = ValidationErrorMessage<I> | string
+interface SchemaProperties<I,O> extends Validate<I,O> {
 
-interface SchemaProperties<I, O, T extends SchemaSettings> extends Validate<I, O>, Struct {
-
-    settings: T
-
-    /**
-     * Mutably change this schema's settings
-     */
-    apply(settings: Partial<T>): this
-
-    validate: SchemaValidator<I, O>
-
-    validates<Vx extends Partial<ValidatorSettings<O, O>>>(settings: Vx): this
+    validates<T extends Partial<ValidatorSettings<O, O>>>(settings: T): this
     validates(validate: ValidatorPredicate<I>): this
 
-    asserts(isValid: ValidatorPredicate<O>, error?: SchemaError<I>): this
-    transforms(transform: ValidatorTransform<O,O>, error?: SchemaError<I>): this
+    asserts(
+        isValid: ValidatorPredicate<O>,
+        error?: ValidationErrorInput<I>,
+        id?: symbol
+    ): this
 
+    transforms(
+        transform: ValidatorTransform<O>,
+        error?: ValidationErrorInput<I>, 
+        id?: symbol
+    ): this
 }
 
-type Schema<I, O, T extends SchemaSettings> = SchemaProperties<I, O, T> & _SchemaSetters<I, O, T>
+type Schema<I,O,T extends CursorSettings> = SchemaProperties<I,O> & Cursor<I, O, T>
 
 type AnySchema = Schema<unknown, unknown, SchemaSettings>
 
-type ToSchema<V extends AnyValidate | SchemaSettings> = V extends Validate<infer I, infer O> 
-    ? Schema<I,O, _ToSchemaSettings<I, V>>
-    : V extends SchemaSettings 
-        ? ToValidator<V> extends Validate<infer I, infer O>
-            ? Schema<I,O, _ToSchemaSettings<I, V>>
-            : never
-        : never 
+type ToSchema<V extends AnyValidate | CursorSettings> = ToCursor<V> extends Cursor<infer I, infer O, infer T>
+    ? Schema<I,O,T>
+    : never
 
-interface SchemaConstructor extends ValidateConstructor {
+interface SchemaConstructor {
 
-    replace<S extends AnySchema, V extends Validate<InputOf<S>, OutputOf<S>>>(
-        schema: S, 
-        validate: V
-    ): S
+    replace: typeof schemaReplace
+    merge: typeof schemaMerge
+    upsert: typeof schemaUpsert
 
-    merge<S extends AnySchema, V extends SchemaValidate<ValidateOutput<S>>[]>(schema: S, ...validators: V): S
-
-    upsert<S extends AnySchema, V extends SchemaValidate<ValidateOutput<S>>>(
-        schema: S,
-        update: (previous?: V) => V,
-        id?: symbol
-    ): S
- 
-    new <V extends SchemaSettings | AnyValidate>(validate: V): ToSchema<V>
-}
-
-//// Implementation ////
-
-function schemaValidate <I,O>(this: { validate: Validate<I, O> }, i: I, options?: Partial<ValidateOptions>): O {
-    const ctx = new ValidateContext(i, options)
-
-    return this.validate(i, ctx)
+    new <V extends AnyValidate | CursorSettings>(validate: V): ToSchema<V>
 
 }
-
-function getSettingsValidator(schema: { validate: Func }): AnyValidate {
-    return schema.validate instanceof Pipe
-        ? schema.validate.transforms[0]
-        : schema.validate
-}
-
 //// Main ////
 
-const Schema = class extends Validate<unknown, unknown> {
+const Schema = class <I, O, T extends CursorSettings> extends Cursor<I,O> {
 
     //// Static ////
 
@@ -157,25 +79,12 @@ const Schema = class extends Validate<unknown, unknown> {
 
     //// Instance ////
 
-    constructor(settings: SchemaSettings) {
-        super(schemaValidate)
-
-        this.validate = Pipe.from(Validator.from(settings))
-        this._apply(settings)
-    }
-
-    get settings(): SchemaSettings {
-        return defined(getSettingsValidator(this))
-    }
-
-    readonly validate: SchemaValidator<unknown, unknown>
-
-    override get name(): string {
-        return getSettingsValidator(this).name
+    constructor(settings: T) {
+        super(settings as any)
     }
 
     validates(
-        input: Partial<ValidatorSettings<unknown>> | SchemaValidate<unknown>,
+        input: Partial<ValidatorSettings<unknown>> | Validate<unknown>,
         id = 'id' in input && isSymbol(input.id) ? input.id : nil
     ): this {
         const validate = (isFunc(input) ? input : Validator.from(input)) as AnyValidate
@@ -191,7 +100,7 @@ const Schema = class extends Validate<unknown, unknown> {
 
     asserts(
         isValid: ValidatorPredicate<unknown>,
-        error?: SchemaError<unknown>,
+        error?: ValidationErrorInput<unknown>,
         id?: symbol
     ): this {
         return this.validates({
@@ -203,7 +112,7 @@ const Schema = class extends Validate<unknown, unknown> {
 
     transforms(
         transform: ValidatorTransform<unknown>,
-        error?: SchemaError<unknown>, 
+        error?: ValidationErrorInput<unknown>, 
         id?: symbol
     ): this {
         return this.validates({
@@ -213,10 +122,6 @@ const Schema = class extends Validate<unknown, unknown> {
         })
     }
 
-    override apply(settings: SchemaSettings): this {
-        return this.copy()._apply(settings)
-    }
-
     //// Iteration ////
 
     get validators(): AnyValidate[] {
@@ -224,37 +129,7 @@ const Schema = class extends Validate<unknown, unknown> {
     }
 
     *[Symbol.iterator](): IterableIterator<AnyValidate> {
-        yield* this.validate.transforms as unknown as IterableIterator<AnyValidate>
-    }
-
-    //// Struct ////
-
-    protected _apply(settings: SchemaSettings): this {
-        ensureSetters(this, settings)
-
-        const validator = getSettingsValidator(this)
-
-        // apply settings to main validator
-        for (const key of keysOf(settings))
-            (validator as any)[key] = settings[key]
-
-        return this
-    }
-
-    override get state(): Partial<this> {
-        const { validate } = this
-        return { validate } as Partial<this>
-    }
-
-    override set state(value: Partial<this>) {
-        let { validate } = value
-        if (!validate)
-            throw new Error('Invalid state.')
-
-        if (validate instanceof Pipe)
-            validate = Pipe.from(...validate.transforms.map(copy))
-        
-        merge(this, { validate })
+        yield* (this as unknown as Schema<I,O,T>).validate.transforms
     }
 
 } as unknown as SchemaConstructor
@@ -265,6 +140,5 @@ export default Schema
 
 export {
     Schema,
-    AnySchema,
-    SchemaValidate
+    AnySchema
 }

@@ -1,4 +1,3 @@
-import { unique } from '@benzed/array'
 import { ValueCopy } from '@benzed/immutable'
 import { capitalize } from '@benzed/string'
 
@@ -10,8 +9,6 @@ import {
     keysOf,
 } from '@benzed/util'
 
-import Schema from './schema'
-
 //// Types ////
 
 // Move me to @benzed/immutable TODO
@@ -19,20 +16,24 @@ interface ValueApply extends ValueCopy {
     apply(settings: object): this
 }
 
+const DISALLOWED_KEYS = [
+    'transform', 
+    'isValid',
+    'id', 
+    'asserts', 
+    'validates', 
+    'transforms'
+] as unknown[]
+
 //// Main ////
 
 function ensureSetters(object: ValueApply, settings: object): void {
-        
-    const disallowedKeys = Array
-        .from(keysOf(Schema.prototype))
-        .concat('value', 'is', 'transform', 'id')
-        .filter(unique)
 
     const descriptors = Property.descriptorsOf(settings)
 
     const allowedKeys = Array
         .from(keysOf(descriptors))
-        .filter(k => !disallowedKeys.includes(k))
+        .filter(k => !DISALLOWED_KEYS.includes(k))
 
     for (const key of allowedKeys) {
         const descriptor = descriptors[key]

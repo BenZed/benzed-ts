@@ -3,8 +3,6 @@ import ValidateContext from './validate-context'
 
 //// Types ////
 
-type ValidationErrorInput<T> = string | ValidationErrorMessage<T> 
-
 export class ValidationError<T = unknown> extends Error {
 
     constructor(
@@ -28,3 +26,4 @@ export class ValidationError<T = unknown> extends Error {
 
 export type ValidationErrorMessage<T = unknown> = (input: T, ctx: ValidateContext<T>) => string
 
+export type ValidationErrorInput<T> = string | ValidationErrorMessage<T> 
