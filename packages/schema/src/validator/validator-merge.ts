@@ -15,9 +15,9 @@ type Mergable<I, O> = Validate<I,O> | Partial<ValidatorSettings<I, O>>
 type Merge<I, O> = [
     Mergable<I, O>
 ] | [
-    Mergable<I, any>,
-    ...Mergable<any, any>[],
-    Mergable<any, O>
+    Mergable<I, O>,
+    ...Mergable<O, O>[],
+    Mergable<O, O>
 ]
 
 //// Main ////

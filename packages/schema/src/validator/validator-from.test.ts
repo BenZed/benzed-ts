@@ -1,49 +1,21 @@
+import { validatorFrom } from './validator-from'
 
-import { describe } from '@jest/globals'
+import { test } from '@jest/globals'
+
+import { expectTypeOf } from 'expect-type'
 import Validator from './validator'
-import { isString } from '@benzed/util'
-import { testValidator } from './util.test'
-
-//// Setup ////
-
-const $string = new Validator({
-    name: 'string',
-    isValid: isString
-})
-
-const $lower = new Validator({
-    name: 'lowercase',
-    transform: (i: string) => i.toLowerCase(),
-})
-
-const $trim = new Validator({
-    name: 'trimmed',
-    transform: (i: string) => i.trim(),
-})
 
 //// Tests ////
 
-describe('merge 2 validators', () => {
+test('ensure validator from input', () => {
 
-    const $lowerString = Validator.merge($string, $lower)
-    testValidator($lowerString, { input: 'Ace', output: 'ace', transform: true })
+    const v1 = validatorFrom({
+        transform: (i: number) => `${i}`,
+        isValid: () => true 
+    })
 
-    testValidator($lowerString, { input: 'ace', output: 'ace', transform: false })
+    expectTypeOf(v1).toEqualTypeOf<Validator<number,string>>()
 
-    testValidator($lowerString, { input: 0, error: 'Must be string', transform: true })
-    testValidator($lowerString, { input: 'Ace', error: 'Must be lowercase', transform: false })
-
-})
-
-describe('merge 3 validators', () => {
-
-    const $lowerTrimString = Validator.merge($string, $trim, $lower)
-    testValidator($lowerTrimString, { input: 0, error: 'Must be string', transform: false })
-    testValidator($lowerTrimString, { input: 'Face', error: 'Must be lowercase', transform: false })
-    testValidator($lowerTrimString, { input: ' face ', error: 'Must be trimmed', transform: false })
-
-    testValidator($lowerTrimString, { input: 'face', output: 'face', transform: false })
-    testValidator($lowerTrimString, { input: ' face ', output: 'face', transform: true })
-    testValidator($lowerTrimString, { input: ' FACE ', output: 'face', transform: true })
-    testValidator($lowerTrimString, { input: 'FACE', output: 'face', transform: true })
+    const v2 = validatorFrom(v1)
+    expect(v2).toEqual(v1)
 })

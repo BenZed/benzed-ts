@@ -17,13 +17,13 @@ type _ToValidator<A extends GenericValidatorSettings> =
     A extends { isValid: ValidatorTypeGuard<infer I, infer O> }
         ? Validator<I, O>
 
-        // Type from predicate
-        : A extends { isValid: ValidatorPredicate<infer I> }
-            ? Validator<I, I>
+    // Type from transform
+        : A extends { transform: ValidatorTransform<infer I, infer O> } 
+            ? Validator<I, O>
 
-            // Type from transform
-            : A extends { transform: ValidatorTransform<infer I, infer O> } 
-                ? Validator<I, O>
+        // Type from predicate
+            : A extends { isValid: ValidatorPredicate<infer I> }
+                ? Validator<I, I>
                 : never
 
 type ToValidator<A extends GenericValidatorSettings> = 

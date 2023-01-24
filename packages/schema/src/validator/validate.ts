@@ -15,7 +15,7 @@ interface Validate<I, O = I> {
     (input: I, options?: Partial<ValidateOptions>): O
 }
 
-type AnyValidate = Validate<unknown>
+type AnyValidate = Validate<any>
 
 type ValidateInput<V extends AnyValidate> = InputOf<V>
 

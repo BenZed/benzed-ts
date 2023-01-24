@@ -1,4 +1,4 @@
-import { ValidationError } from './validator/error'
+import { ValidationError } from './validator/validate-error'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
