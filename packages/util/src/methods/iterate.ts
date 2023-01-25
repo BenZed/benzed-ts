@@ -1,4 +1,4 @@
-import { ResolveAsyncOutput } from '../classes'
+import { ResolveAsyncOutput, Resolver} from '../classes'
 
 import { 
     indexesOf, 
@@ -12,8 +12,6 @@ import {
     isNotNil, 
     symbolsOf 
 } from '../types'
-
-import applyResolver from './apply-resovler'
 
 //// Types ////
 
@@ -41,12 +39,15 @@ function* generate<T>(...values: (Iter<T> | T)[]): Generator<T> {
 }
 
 function resolveResults<T, E extends (item: T, stop: () => T | void) => unknown>(
-    iterable: Iterable<T>, each:E, results: unknown[] = []
+    iterable: Iterable<T>, 
+    each:E, 
+    results: unknown[] = []
 ): Iterated<T,E> {
 
-    const pushToResults = (resolved: unknown): void => {
+    const pushToResults = (resolved: unknown): unknown => {
         if (isNotNil(resolved))
             results.push(resolved)
+        return resolved
     }
 
     const breakGenerator = (value: T | void): void => {
@@ -58,10 +59,12 @@ function resolveResults<T, E extends (item: T, stop: () => T | void) => unknown>
     while (!i.done) {
         const output = each(i.value, breakGenerator)
 
-        const resolve = applyResolver(output, pushToResults)
+        const resolved = new Resolver(output)
+            .then(pushToResults)
+            .value
 
-        if (isPromise(resolve)) 
-            return resolve.then(() => resolveResults(generator, each, results)) as Iterated<T,E>
+        if (isPromise(resolved)) 
+            return resolved.then(() => resolveResults(generator, each, results)) as unknown as Iterated<T,E>
 
         i = generator.next()
     }

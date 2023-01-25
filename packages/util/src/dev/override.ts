@@ -1,5 +1,5 @@
-import { applyResolver, noop } from '../methods'
-import { Func, KeysOfType, isPromise, merge, symbolsOf } from '../types'
+import { Resolver } from '../classes'
+import { Func, KeysOfType } from '../types'
 
 //// Types ////
 
@@ -48,10 +48,9 @@ export function override<T extends object, K extends KeysOfType<T, Func>>(
     // Override Action
     const overrideAction = <F extends () => unknown>(action: F): ReturnType<F> => {
         applyOverride()
-        return applyResolver(
-            action(), 
-            revertOverride
-        ) as ReturnType<F>
+        return new Resolver(action())   
+            .then(revertOverride)
+            .value as ReturnType<F>
     }
 
     return overrideAction as OverrideAction

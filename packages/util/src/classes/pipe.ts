@@ -1,5 +1,7 @@
-import { Callable } from '../classes'
-import { applyResolver, iterate } from '../methods'
+import { resolve } from 'path'
+import { isPromise } from 'util/types'
+import { Callable, Resolver } from '../classes'
+import { iterate } from '../methods'
 import { Func, nil } from '../types'
 
 /* eslint-disable 
@@ -89,6 +91,29 @@ interface PipeConstructor {
 
 }
 
+////  ////
+
+function resolveTransforms(
+    transforms: AnyTransform[], 
+    ctx: unknown, 
+    input: unknown, 
+    ...params: unknown[]
+    
+): unknown {
+
+    while (transforms.length > 0) {
+        const transform = transforms.pop() as AnyTransform
+
+        const transformed = transform.call(ctx, input, ...params)
+        if (isPromise(transformed))
+            return transformed.then(output => resolveTransforms(transforms, ctx, output, ...params))
+
+        input = transformed
+    }
+
+    return input
+}
+
 //// Main ////
 
 const Pipe = (class extends Callable<Func> {
@@ -141,19 +166,15 @@ const Pipe = (class extends Callable<Func> {
 
                 const [ ctx, pipe ] = this
 
-                const results = iterate(
+                const transforms = Array.from(pipe.transforms).reverse() as AnyTransform[]
 
-                    pipe.transforms as AnyTransform[],
-
-                    transform => applyResolver(
-                        transform.call(ctx, input, ...params), 
-                        output => {
-                            input = output 
-                        }
-                    )
+                return resolveTransforms(
+                    transforms, 
+                    ctx, 
+                    input, 
+                    ...params  
                 )
 
-                return applyResolver(results, () => input)
             },
             (ctx, pipe) => [ _bound ? _bound.ctx : ctx, pipe ]
         )

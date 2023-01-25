@@ -23,6 +23,12 @@ type Predicate<T> = (
  * ```
  */
 
+function pluck<T>(
+    input: ArrayLike<T>,
+    predicateFilter: Predicate<T>,
+    count?: number
+): T[]
+
 function pluck<
     A extends ArrayLike<unknown>,
     F extends TypeGuard<unknown> | Predicate<IndexValue<A>>
@@ -37,12 +43,6 @@ function pluck<I, O extends I>(
     typeGuardFilter: TypeGuard<O, I>,
     count?: number
 ): O[]
-
-function pluck<T>(
-    input: ArrayLike<T>,
-    predicateFilter: Predicate<T>,
-    count?: number
-): T[]
 
 //// Optionally bindable ////
 

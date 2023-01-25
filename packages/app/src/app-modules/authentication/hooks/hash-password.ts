@@ -1,4 +1,4 @@
-import { memoize, applyResolver } from '@benzed/util'
+import { memoize, Resolver } from '@benzed/util'
 
 import { CommandHook } from '../../command'
 import Authentication from '../authentication'
@@ -12,10 +12,11 @@ const hashPassword = memoize(<T extends { password?: string }>(): CommandHook<T,
 
         const auth = ctx.node.assertModule.inSelf.or.inAncestors(Authentication)
 
-        return applyResolver(
-            password && auth.hashPassword(password),
-            password => ({ ...input, password })
-        ) as T
+        const hashed = password && auth.hashPassword(password)
+
+        return new Resolver(hashed)
+            .then(password => ({ ...input, password }))
+            .value
     })
 
 //// Exports ////
