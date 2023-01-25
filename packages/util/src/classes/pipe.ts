@@ -1,8 +1,5 @@
-import { resolve } from 'path'
-import { isPromise } from 'util/types'
-import { Callable, Resolver } from '../classes'
-import { iterate } from '../methods'
-import { Func, nil } from '../types'
+import { Callable } from '../classes'
+import { Func, nil, isPromise } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,

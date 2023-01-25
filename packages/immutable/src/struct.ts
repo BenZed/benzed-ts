@@ -1,18 +1,19 @@
 import {
+    assign,
     Callable,
     CallableContextProvider,
 
-    Func, 
-    isFunc, 
+    Func,
+    Infer,
+    keysOf,
+    KeysOf,
+    pick,
+    provideCallableContext,
 
-    nil, 
-
-    Property, 
-    provideCallableContext
 } from '@benzed/util'
 
-import { ValueCopy, $$copy } from './copy'
-import equals, { $$equals, ValueEqual } from './equals'
+import copy, { $$copy } from './copy'
+import equals, { $$equals } from './equals'
 
 //// EsLint ////
 
@@ -20,67 +21,51 @@ import equals, { $$equals, ValueEqual } from './equals'
     @typescript-eslint/no-explicit-any,
 */
 
+//// Symbols ////
+
+const $$assign = Symbol('struct-state-assign')
+
 //// Helper ////
 
-type MethodNames<S> = keyof {
-    [K in keyof S as S[K] extends Func ? K : never]: unknown
+type StructState<T extends object> = Infer<{
+    [K in KeysOf<T>]: T[K]
+}, object>
+
+type StructAssignState<T extends object> = Partial<StructState<T>>
+
+//// Helper ////
+
+function applyExistingState<S extends Struct>(struct: S, state: StructAssignState<S>): S {
+
+    const previousState = { ...struct }
+    const validState = pick(state, ...keysOf(previousState)) as StructAssignState<S>
+    return applyNewState(struct, validState)
+}
+
+function applyNewState<S extends Struct>(struct: S, state: Partial<StructState<S>>): S {
+
+    const newState = struct[$$assign](state)
+    return assign(struct, newState) as S
 }
 
 //// StructBase ////
 
-abstract class Struct implements ValueCopy, ValueEqual {
+abstract class Struct {
 
-    static copy<S extends Struct>(input: S): S {
-        return Object.create(input)
+    static readonly $$assign = $$assign
+
+    static clone<S extends Struct>(struct: S): S {
+        return Object.create(struct)
     }
 
-    static initialize<S extends Struct>(input: S, state?: Partial<S>, signature?: Func, provider?: CallableContextProvider<Func>): S {
-        const output = (signature  
-            ? Callable.create(signature, input, provider)
-            : input) as S
+    static apply<S extends Struct>(
+        struct: S,
+        newState: Partial<StructState<S>>
+    ): S {
+        const newStruct = copy(struct)
 
-        if (state)
-            output.state = state
-    
-        return Struct.bindMethods(output as Struct, 'equals', 'copy') as S
-    }
-
-    /**
-     * Bind to a given struct the given methods keys that correspond to method keys on the struct's prototype.
-     * Binds all methods if method keys are not provided.
-     */
-    static bindMethods<S extends Struct, N extends MethodNames<S>[]>(struct: S, ...methodNames: N): S {
-
-        const protos = Property.prototypesOf(
-            struct.constructor.prototype, 
-            [Object.prototype, Function.prototype]
-        ) as any[]
-        protos.push(struct.constructor.prototype)
-        protos.reverse()
-    
-        // Get all method names by default
-
-        for (const methodName of methodNames) {
-
-            const proto = protos.find(proto => isFunc(proto[methodName]))
-            const method = proto?.[methodName]
-
-            if (!isFunc(method))
-                throw new Error(`${String(methodName)} is an invalid method key.`)
-
-            Property.define(
-                struct, 
-                methodName, 
-                {
-                    value: method.bind(struct),
-                    enumerable: false,
-                    writable: true,
-                    configurable: true
-                }
-            )
-        }
-
-        return struct
+        const assignedStruct = applyExistingState(newStruct, newState)
+        return assignedStruct
     }
 
     static [Symbol.hasInstance](input: unknown): boolean {
@@ -88,80 +73,65 @@ abstract class Struct implements ValueCopy, ValueEqual {
         return Callable[Symbol.hasInstance].call(this, input)
     }
 
-    //// State ////
+    //// Symbolic ////
+ 
+    protected [$$assign](state: StructAssignState<this>): StructAssignState<this> {
+        return state
+    }
+ 
+    protected [$$copy](): this {
+
+        const state = { ...this } as unknown as StructAssignState<this>
+
+        const newStruct = Struct.clone(this)
+
+        const appliedStruct = applyNewState(newStruct, state)
+        return appliedStruct
+    }
     
-    get state(): Partial<this> {
-        // by default, all enumerable fields are state
-        return { ...this } as Partial<this>
-    }
-
-    protected set state(state: Partial<this>) {
-        const stateDescriptors = Property.descriptorsOf(state)
-
-        Property.define(this, stateDescriptors)
-    }
-
-    //// Constructor ////
-    
-    constructor() {
-        return Struct.initialize(this)
-    }
-
-    //// Copyable ////
-
-    copy(): this {
-        return Struct.initialize(Struct.copy(this), this.state)
-    }
-
-    [$$copy](): this {
-        return this.copy()
-    }
-
-    //// Comparable ////
-
-    /**
-     * Returns true if provided value is an instance of this
-     * struct with a value equal state.
-     */
-    equals(other: unknown): other is this {
-        return (
-            other instanceof Struct && 
-            other.constructor === this.constructor && 
-            equals(other.state, this.state)
+    protected [$$equals](other: unknown): other is this {
+        return other instanceof Struct && equals(
+            { ...this },
+            { ...other }
         )
     }
-    
-    [$$equals](other: unknown): other is this {
-        return this.equals(other)
-    }
-
 }
 
 //// CallableStruct ////
 
-type CallableStruct = abstract new <F extends Func>(signature: F, ctxProvider?: CallableContextProvider<F>) => F & Struct
+type CallableStruct = typeof Struct & (
+    abstract new <F extends Func>(
+        signature: F, 
+        ctxProvider?: CallableContextProvider<F>
+    ) => F & Struct
+)
 
 const CallableStruct = class extends Struct {
 
-    constructor(signature: Func, ctxProvider: CallableContextProvider<Func> = provideCallableContext) {
+    constructor(
+        signature: Func, 
+        ctxProvider: CallableContextProvider<Func> = provideCallableContext
+    ) {
         super()
-        return Struct.initialize(this, nil, signature, ctxProvider)
+        return Callable.create(signature, this, ctxProvider) as this
     }
 
-    override copy(): this {
-        const struct = Struct.copy(this)
+    override [$$copy](): this {
 
         const callable = this as unknown as Func
+        const signature = Callable.signatureOf(callable)
+        const ctxProvider = Callable.contextProviderOf(callable)
 
-        return Struct.initialize(
-            struct, 
-            this.state, 
-            Callable.signatureOf(callable), 
-            Callable.contextProviderOf(callable)
-        )
+        const struct = super[$$copy]()
+        
+        return Callable.create(
+            signature, 
+            struct,
+            ctxProvider
+        ) as this
     }
 
-} as CallableStruct
+} as unknown as CallableStruct
 
 //// Exports ////
 
@@ -169,5 +139,8 @@ export default Struct
 
 export {
     Struct,
-    CallableStruct
+    CallableStruct,
+
+    StructState,
+    StructAssignState,
 }

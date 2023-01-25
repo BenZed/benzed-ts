@@ -50,7 +50,7 @@ export function override<T extends object, K extends KeysOfType<T, Func>>(
         applyOverride()
         return new Resolver(action())   
             .then(revertOverride)
-            .value as ReturnType<F>
+            .output as ReturnType<F>
     }
 
     return overrideAction as OverrideAction

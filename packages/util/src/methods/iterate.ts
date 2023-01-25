@@ -12,7 +12,7 @@ import {
     isNotNil, 
     symbolsOf 
 } from '../types'
-
+ 
 //// Types ////
 
 type Iter<T> = Iterable<T> | ArrayLike<T> | Record<string | number, T>
@@ -60,8 +60,8 @@ function resolveResults<T, E extends (item: T, stop: () => T | void) => unknown>
         const output = each(i.value, breakGenerator)
 
         const resolved = new Resolver(output)
-            .then(pushToResults)
-            .value
+            .then(pushToResults) 
+            .output
 
         if (isPromise(resolved)) 
             return resolved.then(() => resolveResults(generator, each, results)) as unknown as Iterated<T,E>
