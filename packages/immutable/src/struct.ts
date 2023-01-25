@@ -52,7 +52,7 @@ function applyNewState<S extends Struct>(struct: S, state: Partial<StructState<S
 
 abstract class Struct {
 
-    static readonly $$assign = $$assign
+    static readonly $$assign: typeof $$assign = $$assign
 
     static clone<S extends Struct>(struct: S): S {
         return Object.create(struct)

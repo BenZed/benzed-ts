@@ -1,12 +1,145 @@
-import { isBoolean, isInteger, isString } from '@benzed/util'
-import { describe } from '@jest/globals'
-
-import { expectTypeOf } from 'expect-type'
 import { Validator } from './validator'
 
 import { testValidator } from '../util.test'
+import { isBoolean, isInteger, isString } from '@benzed/util'
+
+import { expectTypeOf } from 'expect-type'
+import { copy } from '@benzed/immutable'
 
 //// Tests ////
+
+describe('construct with default settings', () => {
+
+    const $string = new Validator({
+        name: 'string',
+        isValid: isString
+    })
+
+    expectTypeOf($string).toEqualTypeOf<Validator<unknown, string>>()
+
+    testValidator($string,
+        { input: 0, error: 'Must be string', transform: false }
+    )
+
+    const $trim = new Validator({
+        name: 'trimmed',
+        transform(i: string) {
+            return i.trim()
+        }
+    })
+    expectTypeOf($trim).toEqualTypeOf<Validator<string, string>>()
+    testValidator($trim,
+        { input: ' ace ', output: 'ace', transform: true },
+        { input: ' ace ', error: 'ust be trimmed', transform: false }
+    )
+
+    const $blank = new Validator({})
+
+    expect($blank)
+})
+
+describe('construct with extra settings', () => {
+
+    const hasEnoughChars = function (this: { numChars: number }, i: string): boolean {
+        return i.length >= this.numChars
+    }
+    
+    describe('isValid', () => {
+        
+        const $has3Chars = new Validator({
+            name: 'term',
+            numChars: 3,
+            isValid: hasEnoughChars,
+            error():string {
+                return `Must have ${this.numChars} chars`
+            }
+        })
+
+        expectTypeOf($has3Chars).toEqualTypeOf<Validator<string, string> & {
+            numChars: number
+        }>()
+
+        testValidator($has3Chars, { input: 'ace', output: 'ace', transform: false })
+        testValidator($has3Chars, { input: 'ac', error: 'Must have 3 chars', transform: false })
+        
+        const $has4Chars = new Validator({ ...$has3Chars, numChars: 4 })
+        testValidator($has4Chars, { input: 'acer', output: 'acer', transform: false })
+        testValidator($has4Chars, { input: 'ace', error: 'Must have 4 chars', transform: false })
+        expectTypeOf($has4Chars).toEqualTypeOf<Validator<string, string> & {
+            numChars: number
+        }>()
+
+        it('retains isValid setting on spread', () => {
+            expect($has3Chars.isValid).toBe(hasEnoughChars)
+            expect($has4Chars.isValid).toBe(hasEnoughChars)
+        })
+
+        it('does not retain isValid on apply', () => {
+            
+            const $bad = Validator.apply($has3Chars, { 
+                // @ts-expect-error Not allowed to apply isValid 
+                isValid() { 
+                    return false
+                }
+            })
+
+            expect($bad.isValid).toEqual($has3Chars.isValid)
+        })
+    })
+
+    describe('transform', () => {
+
+        const $lowerCase = new Validator({
+            name: 'casing',
+            transform(i: string) {
+                const casing = this.case
+                switch (casing) {
+                    case 'lower': {
+                        return i.toLowerCase()
+                    }
+                    case 'upper': {
+                        return i.toUpperCase()
+                    }
+                    default: {
+                        const casingBad: never = casing
+                        throw new Error(`${casingBad} is an invalid option.`)
+                    }
+                }
+            },
+            case: 'lower' as 'lower' | 'upper',
+            error() {
+                return `Must be ${this.case} case`
+            } 
+        })
+
+        testValidator($lowerCase, 
+            { input: 'Ace', output: 'ace', transform: true },
+            { input: 'Ace', error: 'ust be lower case', transform: false }
+        )
+
+        const $upperCase = new Validator({ ...$lowerCase, case: 'upper' })
+        testValidator($upperCase, 
+            { input: 'Ace', output: 'ACE', transform: true },
+            { input: 'Ace', error: 'ust be upper case', transform: false }
+        )
+
+        it('retains transform setting on spread', () => {
+            expect($upperCase.transform).toBe($lowerCase.transform)
+        })
+
+        it('does not retain transform on apply', () => {
+            
+            const $bad = Validator.apply($lowerCase, {
+                // @ts-expect-error Not allowed to apply transform 
+                transform() { 
+                    return false
+                }
+            })
+
+            expect($bad.transform).toEqual($lowerCase.transform)
+        })
+    })
+})
 
 describe('isValid typeguard option', () => {
 
@@ -77,9 +210,9 @@ describe('transform and isValid predicate', () => {
 
         isValid(input: number[]) {
             return input.every(isInteger)
-        },
+        },  
 
-        transform(input) {
+        transform(input: number[]) {
             return input.map(Math.floor)
         },
 
@@ -232,7 +365,7 @@ describe('copy', () => {
         isValid: isBoolean
     }) 
 
-    const $b2 = $b1.copy()
+    const $b2 = copy($b1)
 
     expect($b2).not.toBe($b1)
  

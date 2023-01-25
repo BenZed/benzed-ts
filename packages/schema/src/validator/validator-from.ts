@@ -1,8 +1,8 @@
-import { isFunc, Infer, KeysOf } from '@benzed/util'
+import { isFunc } from '@benzed/util'
 
-import Validate, { AnyValidate } from './validate'
+import { AnyValidate } from './validate'
 
-import Validator, { GenericValidatorSettings, ValidatorPredicate, ValidatorSettings, ValidatorTransform, ValidatorTypeGuard } from './validator'
+import { Validator, AnyValidatorSettings, ToValidator } from './validator'
 
 //// EsLint ////
 
@@ -12,37 +12,18 @@ import Validator, { GenericValidatorSettings, ValidatorPredicate, ValidatorSetti
 
 //// Types ////
 
-type _ToValidator<A extends GenericValidatorSettings> = 
-    // Type from type guard
-    A extends { isValid: ValidatorTypeGuard<infer I, infer O> }
-        ? Validator<I, O>
-
-    // Type from transform
-        : A extends { transform: ValidatorTransform<infer I, infer O> } 
-            ? Validator<I, O>
-
-        // Type from predicate
-            : A extends { isValid: ValidatorPredicate<infer I> }
-                ? Validator<I, I>
-                : never
-
-type ToValidator<A extends GenericValidatorSettings> = 
-    Infer<_ToValidator<A> & ValidatorOverrides<A>, Validate<any>>
-
-type ValidatorOverrides<A extends AnyValidate | GenericValidatorSettings> = Infer<{
-    [K in Exclude<KeysOf<A>, KeysOf<ValidatorSettings<unknown>>>]: A[K]
-}, GenericValidatorSettings>
-
-type ValidatorFrom<V extends AnyValidate | GenericValidatorSettings> = V extends GenericValidatorSettings
-    ? ToValidator<V>
-    : V
+type ValidatorFrom<V extends AnyValidate | AnyValidatorSettings> = V extends AnyValidate
+    ? V
+    : V extends AnyValidatorSettings 
+        ? ToValidator<V>
+        : never
 
 //// Main ////
 
 /**
  * Convert the given input to a validator, if it isn't one already.
  */
-function validatorFrom<V extends AnyValidate | GenericValidatorSettings>(settings: V): ValidatorFrom<V> {
+function validatorFrom<V extends AnyValidate | AnyValidatorSettings>(settings: V): ValidatorFrom<V> {
     const validator = isFunc(settings) 
         ? settings 
         : new Validator(settings)
@@ -54,9 +35,5 @@ function validatorFrom<V extends AnyValidate | GenericValidatorSettings>(setting
 export default validatorFrom
 
 export {
-    validatorFrom,
-    ValidatorFrom,
-    ValidatorOverrides,
-
-    ToValidator
+    validatorFrom
 }

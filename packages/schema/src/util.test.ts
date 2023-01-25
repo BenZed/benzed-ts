@@ -23,35 +23,37 @@ export function expectValidationError(func: () => unknown): ReturnType<typeof ex
 
 export const testValidator = <I,O>(
     validator: Validate<I,O>, 
-    data: { input: I, transform: boolean } & ({ output: O } | { error: string }),
+    ...data: ({ input: I, transform: boolean } & ({ output: O } | { error: string }))[]
 ): void => {
 
-    const isOutput = 'output' in data 
+    for (const datum of data) {
+        const isOutput = 'output' in datum 
 
-    const inputStr = safeJsonStringify(data.input)
-    const outputStr = isOutput 
-        ? `${safeJsonStringify(data.output)}`
-        : `"${data.error}"`
+        const inputStr = safeJsonStringify(datum.input)
+        const outputStr = isOutput 
+            ? `${safeJsonStringify(datum.output)}`
+            : `"${datum.error}"`
 
-    const description = isOutput && data.transform ? 'transforms' : 'asserts'
+        const description = isOutput && datum.transform ? 'transforms' : 'asserts'
 
-    const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
+        const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
 
-    describe(description, () => {
-        it(title, () => {
+        describe(validator.name + ' ' + description, () => {
+            it(title, () => {
 
-            let validated: any
+                let validated: any
     
-            try {
-                validated = validator(data.input, { transform: data.transform })
-            } catch (e) {
-                validated = e
-            }
+                try {
+                    validated = validator(datum.input, { transform: datum.transform })
+                } catch (e) {
+                    validated = e
+                }
     
-            if (isOutput) 
-                expect(validated).toEqual(data.output)
-            else 
-                expect(validated?.message).toContain(data.error)
+                if (isOutput) 
+                    expect(validated).toEqual(datum.output)
+                else 
+                    expect(validated?.message).toContain(datum.error)
+            })
         })
-    })
+    }
 }
