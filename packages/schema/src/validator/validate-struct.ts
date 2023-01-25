@@ -44,6 +44,7 @@ function getValidSettingsKeys<V extends AnyValidateStruct>(validator: V): Settin
 
 type AnyValidateStruct = ValidateStruct<any,any>
 
+// TODO hoist this up to @benzed/immutable
 abstract class ValidateStruct<I,O extends I> extends Callable<Validate<I,O>> {
 
     protected readonly [$$disallowed]: readonly string[] = []
@@ -73,9 +74,8 @@ abstract class ValidateStruct<I,O extends I> extends Callable<Validate<I,O>> {
     static settingsOf<V extends AnyValidateStruct>(input: V): SettingsOf<V> {
 
         const validKeys = getValidSettingsKeys(input)
-
-        const validSetting = pick(input, ...validKeys) 
-        return validSetting as SettingsOf<V> 
+        const validSettings = pick(input, ...validKeys) 
+        return validSettings as SettingsOf<V> 
     }
 
 } 

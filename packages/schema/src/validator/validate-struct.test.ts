@@ -1,14 +1,12 @@
 import { ValidateStruct, $$disallowed } from './validate-struct'
 
 import { expectTypeOf } from 'expect-type'
-import { Infer, keysOf } from '@benzed/util'
 
 //// Types ////
 
 function assert<I>(this: Asserter<I>, i: I): I {
     if (!this.isValid(i))
         throw new Error(`${i} is not valid.`)
-
     return i
 }
 
@@ -19,15 +17,12 @@ class Asserter<I> extends ValidateStruct<I,I> {
 }
 
 class AssertHigher<N extends number> extends Asserter<number> {
-
     readonly [$$disallowed] = ['isValid'] as const
-
     constructor(readonly value: N) {
         super(function (this: AssertHigher<N>, input: number): boolean {
             return input > this.value
         })
     }
-
 }
 
 //// Validators ////
@@ -65,7 +60,7 @@ it('apply copies a validator with new settings', () => {
 it('apply ignores invalid settings', () => {
 
     const $hashTagWithId = Asserter.apply($hashtag, {
-        // @ts-expect-error Bad setting 
+        // @ts-expect-error Bad setting  
         unused: 'setting'
     })
 
@@ -75,7 +70,7 @@ it('apply ignores invalid settings', () => {
 
 it('disallowed keys', () => {
 
-    const $above5 = new AssertHigher(5)
+    const $above5 = new AssertHigher(5) 
 
     expect($above5(6)).toEqual(6)
     expect(() => $above5(5)).toThrow('5 is not valid')

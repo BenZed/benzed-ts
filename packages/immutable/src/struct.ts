@@ -26,8 +26,6 @@ type MethodNames<S> = keyof {
     [K in keyof S as S[K] extends Func ? K : never]: unknown
 }
 
-//// Helper Methods ////
-
 //// StructBase ////
 
 abstract class Struct implements ValueCopy, ValueEqual {
