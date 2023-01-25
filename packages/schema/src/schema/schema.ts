@@ -3,7 +3,6 @@ import { isFunc } from '@benzed/util'
 
 import {
     AnyValidate,
-    GenericValidatorSettings as SchemaSettings,
     Validate,
     ValidationErrorInput,
     Validator,
@@ -11,8 +10,10 @@ import {
     ValidatorSettings,
     ValidatorTransform,
 } from '../validator'
+
+import { ToValidator } from '../validator/validator-from'
   
-import { Cursor, CursorSettings, ToCursor } from './cursor'
+import { SchemaCursor, SchemaSetters, SchemaSettings, ToSchemaSettings } from './schema-cursor'
 
 //// EsLint ////
 
@@ -41,22 +42,27 @@ interface SchemaProperties<I,O> extends Validate<I,O> {
     ): this
 }
 
-type Schema<I,O,T extends CursorSettings> = SchemaProperties<I,O> & Cursor<I, O, T>
+type Schema<I,O,T extends SchemaSettings> = SchemaCursor<I, O, T> & SchemaProperties<I,O> & SchemaSetters<I, O, T>
 
 type AnySchema = Schema<unknown, unknown, SchemaSettings>
 
-type ToSchema<V extends AnyValidate | CursorSettings> = ToCursor<V> extends Cursor<infer I, infer O, infer T>
-    ? Schema<I,O,T>
-    : never
-
 interface SchemaConstructor {
 
-    new <V extends AnyValidate | CursorSettings>(validate: V): ToSchema<V>
+    new <V extends AnyValidate | SchemaSettings>(validate: V): ToSchema<V>
 
 }
+
+type ToSchema<V extends AnyValidate | SchemaSettings> = V extends Validate<infer I, infer O> 
+    ? Schema<I, O, ToSchemaSettings<I, V>>
+    : V extends SchemaSettings
+        ? ToValidator<V> extends Validate<infer I, infer O>
+            ? Schema<I, O, ToSchemaSettings<I, V>>
+            : never
+        : never 
+
 //// Main ////
 
-const Schema = class <I, O, T extends CursorSettings> extends Cursor<I,O> {
+const Schema = class <I, O, T extends SchemaSettings> extends SchemaCursor<I, O, T> {
 
     //// Instance ////
 

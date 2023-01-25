@@ -2,12 +2,12 @@
 import { equals, Struct } from '@benzed/immutable'
 import {
     ParamTransform, 
-    applyResolver, 
     isFunc,
     Property,
     assign,
     Func,
     nil,
+    Resolver,
 } from '@benzed/util'
 
 import { ValidateContext } from './validate-context'
@@ -16,6 +16,7 @@ import { ValidationErrorMessage, ValidationError } from './validate-error'
 
 import validatorFrom, { ToValidator } from './validator-from'
 import validatorMerge from './validator-merge'
+import ValidateStruct from './validate-struct'
 
 //// EsLint ////
 
@@ -51,6 +52,8 @@ type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>
 
 interface Validator<I, O = I> extends Validate<I,O>, ValidatorSettings<I,O>, Struct {}
 
+type AnyValidator = Validator<any>
+
 interface ValidatorConstructor {
 
     from: typeof validatorFrom
@@ -67,9 +70,10 @@ function validate<I, O>(this: Validator<I,O>, input: I, options?: Partial<Valida
 
     const ctx = new ValidateContext(input, options)
 
-    const output = applyResolver(
-        this.transform(input, ctx),
-        resolved => {
+    const transformed = this.transform(input.ctx, ctx)
+
+    return new Resolver(transformed)
+        .then(resolved => {
 
             ctx.value = resolved as I
 
@@ -82,8 +86,8 @@ function validate<I, O>(this: Validator<I,O>, input: I, options?: Partial<Valida
 
             return output
         })
+        .value as O
 
-    return output as O
 }
 
 /**
@@ -110,7 +114,7 @@ function override<I,O>(
 
 //// Main ////
 
-const Validator = class <I, O extends I = I> extends Validate<I, O> {
+const Validator = class <I, O extends I = I> extends Struct<I, O> {
 
     static from = validatorFrom
 
@@ -129,7 +133,6 @@ const Validator = class <I, O extends I = I> extends Validate<I, O> {
         override(this, 'isValid', isValid)
         override(this, 'transform', transform)
         assign(this, settings)
-
     }
 
     override readonly name: string
@@ -151,6 +154,7 @@ export default Validator
 
 export {
     Validator,
+    AnyValidator,
     ValidatorSettings,
     ValidatorPredicate,
     ValidatorTypeGuard,
