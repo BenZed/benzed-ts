@@ -1,4 +1,4 @@
-import { Resolver } from './resolver'
+import { Resolver, resolve } from './resolver'
 
 import { it, expect } from '@jest/globals'
 
@@ -18,24 +18,31 @@ for (const from of [true, false]) {
 
         it(title, async () => {
 
-            const number = i++
+            const number = i++ 
 
             const value = from ? Promise.resolve(number): number
             const func = then ? x2Async : x2Sync
     
-            const resolver = new Resolver(value).then(func)
+            const resolver = new Resolver(value).then(func) 
     
             const awaited = await resolver
-            const sync = resolver.value 
-            
+            const sync = resolver.output
+             
             expect(awaited).toEqual(x2Sync(number))
 
             if (then || from)
                 await expect(sync).resolves.toEqual(awaited)
             else 
-                expect(sync).toEqual(awaited)            
+                expect(sync).toEqual(awaited)
         })
-
     }
 }
- 
+
+it('arguments', () => {
+    
+    const toCap = (input: string, capitalize?: boolean): string => capitalize ? input.toUpperCase() : input
+
+    expect(resolve('hello')(toCap).value).toEqual('hello')
+    expect(resolve('hello')(toCap, false).value).toEqual('hello')
+    expect(resolve('hello')(toCap, true).value).toEqual('HELLO')
+})
