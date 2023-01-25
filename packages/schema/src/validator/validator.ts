@@ -3,7 +3,7 @@ import { CallableStruct, StructAssignState, equals } from '@benzed/immutable'
 import { Empty, Func, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
 
 import ValidateContext from './validate-context'
-import { AnyValidate, Validate, ValidateOptions } from './validate'
+import { AnyValidate, Validate, ValidateOptions, ValidateConstructor } from './validate'
 import { ValidationErrorMessage, ValidationError, ValidationErrorInput } from './validate-error'
 import validatorFrom from './validator-from'
 import validatorMerge from './validator-merge'
@@ -52,7 +52,7 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 interface Validator<I, O> extends Validate<I,O>, ValidatorSettings<I,O> {}
 
-type ApplyableValidatorSettings<V extends AnyValidate> = Omit<StructAssignState<V>, 'transform' | 'isValid'>
+type ApplicableValidatorSettings<V extends AnyValidate> = Omit<StructAssignState<V>, 'transform' | 'isValid'>
 type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidateContext<I>]>
 type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>]>
 type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
@@ -64,11 +64,11 @@ type ToValidator<S extends AnyValidatorSettings> =
         ? _ValidatorFromSettings<S>
         : _ValidatorFromSettings<S> & _ExtraSettings<S>
 
-interface ValidatorConstructor {
+interface ValidatorConstructor extends Omit<ValidateConstructor, 'apply'> {
 
     apply<V extends AnyValidate>(
         validator: V, 
-        settings: ApplyableValidatorSettings<V>
+        settings: ApplicableValidatorSettings<V>
     ): V
 
     from: typeof validatorFrom
@@ -82,7 +82,7 @@ interface ValidatorConstructor {
 
 //// Validator Method ////
 
-function validate<I, O extends I>(this: Required<ValidatorSettings<I,O>>, input: I, options?: Partial<ValidateOptions>): O {
+function validate<I, O>(this: Required<ValidatorSettings<I, O>>, input: I, options?: Partial<ValidateOptions>): O {
 
     const ctx = new ValidateContext(input, options)
 
@@ -108,7 +108,7 @@ function validate<I, O extends I>(this: Required<ValidatorSettings<I,O>>, input:
 
 //// Implementation ////
 
-const Validator = class extends CallableStruct<Validate<unknown>> {
+const Validator = class extends Validate<unknown, unknown> {
 
     static from = validatorFrom
     static merge = validatorMerge
@@ -154,7 +154,7 @@ export {
     ValidatorTypeGuard,
     ValidatorSettings,
 
-    ApplyableValidatorSettings,
+    ApplicableValidatorSettings,
     AnyValidatorSettings,
     ToValidator
 
