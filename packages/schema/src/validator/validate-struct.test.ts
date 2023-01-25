@@ -1,6 +1,7 @@
-import { ValidateStruct, $$disallowed } from './validate-struct'
+import { ValidateAssign, ValidateStruct } from './validate-struct'
 
 import { expectTypeOf } from 'expect-type'
+import { omit } from '@benzed/util'
 
 //// Types ////
 
@@ -16,10 +17,14 @@ class Asserter<I> extends ValidateStruct<I,I> {
     }
 }
 
-class AssertHigher<N extends number> extends Asserter<number> {
-    readonly [$$disallowed] = ['isValid'] as const
-    constructor(readonly value: N) {
-        super(function (this: AssertHigher<N>, input: number): boolean {
+class AssertHigher extends Asserter<number> {
+
+    [Asserter.$$assign](input: ValidateAssign<this>): ValidateAssign<this> {
+        return omit(input, 'isValid')
+    }
+
+    constructor(readonly value: number) {
+        super(function (this: AssertHigher, input: number): boolean {
             return input > this.value
         })
     }
@@ -34,8 +39,8 @@ const $hashtag = new Asserter(startsWithHashTag)
 //// Tests ////
 
 it('get validator settings', () => {
-
-    const $hashtagSettings = Asserter.settingsOf($hashtag)
+ 
+    const $hashtagSettings = { ...$hashtag }
 
     expect($hashtagSettings).toEqual({ isValid: startsWithHashTag })
     expectTypeOf($hashtagSettings).toEqualTypeOf<{ isValid: typeof startsWithHashTag }>()
@@ -60,7 +65,7 @@ it('apply copies a validator with new settings', () => {
 it('apply ignores invalid settings', () => {
 
     const $hashTagWithId = Asserter.apply($hashtag, {
-        // @ts-expect-error Bad setting  
+        // @ts-expect-error Bad setting
         unused: 'setting'
     })
 
@@ -68,15 +73,17 @@ it('apply ignores invalid settings', () => {
     expect($hashTagWithId).toHaveProperty('isValid', $hashtag.isValid)
 })
 
-it('disallowed keys', () => {
+it('respects assign constraints', () => {
 
-    const $above5 = new AssertHigher(5) 
+    const $above5 = new AssertHigher(5)
 
     expect($above5(6)).toEqual(6)
-    expect(() => $above5(5)).toThrow('5 is not valid')
+    expect(() => $above5(5)).toThrow('is not valid')
 
-    const $above5Settings = AssertHigher.settingsOf($above5)
-    expect($above5Settings).toEqual({ value: 5 })
-    expectTypeOf($above5Settings).toEqualTypeOf<{ value: 5 }>()
+    const $above4 = Asserter.apply($above5, { value: 4, isValid: () => true })
 
-}) 
+    expect($above4.isValid).toEqual($above5.isValid)
+    expect($above4(5)).toEqual(5)
+    expect(() => $above4(4)).toThrow('is not valid')
+
+})

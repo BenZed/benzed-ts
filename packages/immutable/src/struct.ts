@@ -60,7 +60,7 @@ abstract class Struct {
 
     static apply<S extends Struct>(
         struct: S,
-        newState: Partial<StructState<S>>
+        newState: StructAssignState<S>
     ): S {
         const newStruct = copy(struct)
 
