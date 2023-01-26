@@ -12,7 +12,7 @@ import {
 
 } from '@benzed/util'
 
-import copy, { $$copy } from './copy'
+import { $$copy } from './copy'
 import equals, { $$equals } from './equals'
 
 //// EsLint ////
@@ -45,6 +45,7 @@ function applyExistingState<S extends Struct>(struct: S, state: StructAssignStat
 function applyNewState<S extends Struct>(struct: S, state: Partial<StructState<S>>): S {
 
     const newState = struct[$$assign](state)
+
     return assign(struct, newState) as S
 }
 
@@ -62,7 +63,7 @@ abstract class Struct {
         struct: S,
         newState: StructAssignState<S>
     ): S {
-        const newStruct = copy(struct)
+        const newStruct = struct[$$copy]()
 
         const assignedStruct = applyExistingState(newStruct, newState)
         return assignedStruct
@@ -82,7 +83,6 @@ abstract class Struct {
     protected [$$copy](): this {
 
         const state = { ...this } as unknown as StructAssignState<this>
-
         const newStruct = Struct.clone(this)
 
         const appliedStruct = applyNewState(newStruct, state)

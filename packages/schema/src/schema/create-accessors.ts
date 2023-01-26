@@ -9,15 +9,11 @@ import {
     isBoolean,
     isString,
     isFunc,
-    Pipe,
 } from '@benzed/util'
 
 import { 
-    AnyValidate, 
-    AllowedValidatorSettings, 
     Validate, 
     ValidationErrorInput, 
-    Validator,
     VALIDATOR_DISALLOWED_SETTINGS_KEYS, 
 } from '../validator'
 
@@ -31,7 +27,7 @@ import { AnySchema } from './schema-types'
 
 //// Data ////
 
-const $$child = Symbol('sub-validator-id')
+const $$sub = Symbol('schema-sub-validator')
 
 //// Types ////
 
@@ -49,49 +45,35 @@ function getSubValidatorOptions(input: SubValidatorInput = {}): object {
     return options
 }
 
-function createSubValidator(input: SubValidatorInput, schema: AnySchema, key: string, $$sub: symbol): AnyValidate | nil {
-    
-    const enabled = isBoolean(input) ? input : true
-    if (!enabled)
-        return nil
-
-    const [ settings ] = schema.validators
-    const options = getSubValidatorOptions(input)
-
-    const template = (settings as any)[key]
-
-    const subValidator = new Validator({ ...template, ...options })
-    if (subValidator) {
-        Property.define(
-            subValidator, 
-            $$child, { value: $$sub, enumerable: true, configurable: true } 
-        )
-    }
-
-    return subValidator
-}
-
 function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: string, name: string): void {
-
-    const isValidator = descriptor.value instanceof Validate
-
-    const $$sub = isValidator ? Symbol(key) : nil
 
     const setter = function (this: AnySchema, value: unknown): unknown {
 
-        const newSettings = { [key]: value } as AllowedValidatorSettings<AnySchema>
+        const [ mainValidator ] = this
+        
+        const isValidator = (mainValidator as any)[key] instanceof Validate
+        const options = isValidator 
+            ? getSubValidatorOptions(value as SubValidatorInput) 
+            : { [key]: value }
 
-        const [ settingsValidator, ...rest ] = this.validators
+        if (isValidator) {
+            const enabled = isBoolean(value) ? value : true
+            Property.define(
+                options,
+                $$sub, 
+                { 
+                    value: [ key, enabled ], 
+                    configurable: true 
+                }
+            )
+        }
 
-        const updatedSettingsValidator = Validator.apply(settingsValidator, newSettings)
-
-        const validate = Pipe.from(Validator.merge(updatedSettingsValidator, ...rest))
-
-        return this.apply({ validate })
+        return this.apply(options)
     }
-    
+
+    const isValidator = descriptor.value instanceof Validate
     Property.name(setter, `${isValidator ? 'apply' : 'set'}${capitalize(key)}`)
-    Property.define(schema, name, { enumerable: false, value: setter, configurable: true, writable: true })
+    Property.define(schema, name, { enumerable: true, value: setter, configurable: true, writable: true })
 }
 
 function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
@@ -102,20 +84,19 @@ function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
         const descriptor = descriptors[key]
         const accessible = 
             !VALIDATOR_DISALLOWED_SETTINGS_KEYS.includes(key as any) &&
-            (descriptor.writable || 'getter' in descriptor && 'setter' in descriptor) 
+            descriptor.writable || 'getter' in descriptor && 'setter' in descriptor
 
-        return accessible ? key : nil
+        return accessible ? nil : key
     })
+
     return omit(descriptors, ...nonAccessibleKeys)
 }
 
 //// Main //// 
 
-function ensureAccessors(schema: AnySchema, settings: object): void {
+function createAccessors(schema: AnySchema, settings: object): void {
 
     const descriptors = getAccessibleDescriptors(settings)
-
-    console.log(descriptors)
 
     for (const key of keysOf(descriptors)) {
 
@@ -130,8 +111,9 @@ function ensureAccessors(schema: AnySchema, settings: object): void {
 
 //// Exports ////
 
-export default ensureAccessors
+export default createAccessors
 
 export {
-    ensureAccessors
+    createAccessors,
+    $$sub
 }

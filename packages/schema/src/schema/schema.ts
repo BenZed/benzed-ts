@@ -1,8 +1,22 @@
 
-import { isFunc, keysOf, ParamPipe, Pipe } from '@benzed/util'
-import { 
+import { $$copy, copy } from '@benzed/immutable'
+import {
+    isFunc,
+    isString,
+    isSymbol,
 
-    AllowedValidatorSettings,
+    keysOf,
+
+    ParamPipe,
+    Pipe,
+    Property,
+
+    nil,
+    omit,
+    provide,
+} from '@benzed/util'
+
+import {
     AnyValidatorSettings, 
     ValidateContext, 
 
@@ -10,7 +24,8 @@ import {
     Validator, 
 
     ValidatorPredicate, 
-    ValidatorTransform 
+    ValidatorTransform, 
+    VALIDATOR_DISALLOWED_SETTINGS_KEYS
 } from '../validator'
 
 import {
@@ -19,9 +34,10 @@ import {
     ValidateOptions
 } from '../validator/validate'
 
-import ensureAccessors from './ensure-accessors'
+import { createAccessors, $$sub } from './create-accessors'
 
 import { 
+    AnySchema,
     SchemaConstructor, 
     SchemaProperties, 
     SchemaSetters, 
@@ -35,6 +51,11 @@ import {
     @typescript-eslint/no-explicit-any,
 */
 
+//// Symbol ////
+
+const $$id = Symbol('schema-validator-id')
+const $$main = Symbol('schema-main-validator')
+
 //// Type ////
 
 type Schema<I, O, T extends SchemaSettingsInput<O>> = 
@@ -47,36 +68,109 @@ type AnyValidatorPipe = ValidatorPipe<unknown,unknown>
 
 //// Helper ////
 
-function schemaSettingsOutput(input: object): SchemaSettingsOutput<object> {
+function resolveId(
+    input: object
+): string | symbol | nil {
+
+    // resolve id
+    const id = $$id in input ? input[$$id] : nil
+    if (id && !isString(id) && !isSymbol(id))
+        throw new Error('Invalid sub validator id value.')
+
+    return id as string | symbol | nil
+}
+
+const withId = provide(id => object => $$id in object && object[$$id] === id)
+
+function upsertValidator(
+    validators: AnyValidate[],
+    validator?: AnyValidate,
+    id?: string | symbol
+): AnyValidate[] { 
+
+    const index = id ? validators.findIndex(withId(id)) : -1
+    const hasExisting = index >= 0
+
+    if (hasExisting && validator)
+        validators.splice(index, 1, validator)
+    else if (hasExisting)
+        validators.splice(index, 1)
+    else if (validator)
+        validators.push(validator)
+
+    return validators
+}
+
+function upsertValidators(
+    validators: AnyValidate[],
+    inputs: (Partial<AnyValidatorSettings> | AnyValidate)[]
+): AnyValidatorPipe {
+
+    for (const input of inputs) {
+
+        const id = resolveId(input)
+
+        const validator = isFunc(input) 
+            ? input 
+            : Validator.from(input)
+
+        upsertValidator(validators, validator, id)
+    }
+
+    // merge validators into validate method
+    return Pipe.from(
+        Validator.merge(...validators)
+    )
+}
+
+function schemaSettingsOutput(input: object, validators: AnyValidate[]): SchemaSettingsOutput<object> {
 
     const output = { ...input } as Record<string, object>
     for (const key of keysOf(output)) {
-        if (output[key] instanceof Validate)
-            output[key] = schemaSettingsOutput(output[key])
+        const isValidator = output[key] instanceof Validate
+        const isEnabled = validators.some(v => $$sub in v && v[$$sub] === key)
+
+        if (isValidator && isEnabled)
+            output[key] = schemaSettingsOutput(output[key], validators)
+        else if (isValidator && !isEnabled)
+            delete output[key]
     }
 
-    return output
+    return omit(output, ...VALIDATOR_DISALLOWED_SETTINGS_KEYS)
 }
-
-//// Validate ////
 
 function schemaValidator <I,O>(this: { validate: Validate<I, O> }, i: I, options?: Partial<ValidateOptions>): O {
     const ctx = new ValidateContext(i, options)
     return this.validate(i, ctx)
 }
 
+function defineMainValidatorId(validator: AnyValidate): void {
+    Property.define(
+        validator, 
+        $$id,
+        { 
+            value: $$main, 
+            enumerable: false 
+        }
+    )
+}
+
 //// Implementation ////
 
 const Schema = class extends Validate<unknown, unknown> {
+
+    static readonly $$id = $$id
 
     readonly validate: ValidatorPipe<unknown,unknown>
 
     constructor(settings: object) {
         super(schemaValidator)
 
-        const validator = Validator.from(settings)
+        const validator = Validator.from(settings) 
+        defineMainValidatorId(validator)
+        
         this.validate = Pipe.from(validator)
-        ensureAccessors(this, settings)
+        createAccessors(this, validator)
     }
 
     override get name(): string {
@@ -86,7 +180,7 @@ const Schema = class extends Validate<unknown, unknown> {
 
     get settings(): SchemaSettingsOutput<object> {
         const [ mainValidator ] = this.validators
-        return schemaSettingsOutput(mainValidator)
+        return schemaSettingsOutput(mainValidator, this.validators)
     }
 
     //// Validation Interface ////
@@ -94,13 +188,11 @@ const Schema = class extends Validate<unknown, unknown> {
     validates(
         input: Partial<AnyValidatorSettings> | AnyValidate
     ): this {
-        let validate = isFunc(input) ? input : Validator.from(input)
-        
-        validate = Pipe.from(
-            Validator.merge(...this.validators, validate)
-        )
 
-        return this.apply({ validate })
+        const validate = upsertValidators(this.validators, [input])
+
+        // update state
+        return Validator.apply(this, { validate } as any)
     }
 
     asserts(
@@ -126,13 +218,64 @@ const Schema = class extends Validate<unknown, unknown> {
     //// Apply ////
     
     override apply(settings: object): this {
-        return Validator.apply(this, settings as AllowedValidatorSettings<this>)
+
+        const [ mainValidator, ...validators ] = this.validators
+
+        const [ subKey, subEnabled ] = $$sub in settings 
+            ? settings[$$sub] as [string, boolean]
+            : [nil, false] as const
+
+        const isModifyingSubValidator = subKey !== nil
+        if (isModifyingSubValidator) {
+
+            // copy mainValidator
+            const newMainValidator = copy(mainValidator as any)
+
+            // update the subValidator on the mainValidator
+            newMainValidator[subKey] = Validator.apply(newMainValidator[subKey], settings)
+
+            // update the refValidator pointing to the subValidator
+            const refValidator = subEnabled
+                ? (function refValidator(this: AnySchema, i: unknown, ctx?: ValidateOptions): unknown {
+                    const subKey = (refValidator as any)[$$sub]
+                    const [ mainValidator ] = this.validators
+                    return mainValidator[subKey](i, ctx)
+                }) as AnyValidate
+
+                : nil
+            if (refValidator) 
+                Property.define(refValidator, $$sub, { value: subKey, enumerable: false })
+            upsertValidator(validators, refValidator)
+
+            // upate the schema
+            const validate = Validator.merge(newMainValidator, ...validators)
+            return Validator.apply(this, { validate } as any)
+        } else {
+            const newMainValidator = Validator.apply(mainValidator, settings)
+            return this.validates(newMainValidator)
+        }
+
+    }
+
+    protected [$$copy](): this {
+        const clone = super[$$copy]()
+
+        const [ mainValidator ] = this.validators
+        createAccessors(clone, mainValidator)
+
+        return clone
     }
 
     //// Iteration ////
-    
+
     get validators(): [AnyValidate, ...AnyValidate[]] {
-        return Array.from(this) as [AnyValidate, ...AnyValidate[]]
+
+        const validators = this.validate.transforms
+        const index = this.validate.transforms.findIndex(v => $$id in v && v[$$id] === $$main)
+        if (index !== 0)
+            throw new Error(`main validator at invalid index: ${index}`)
+
+        return [...validators] as [AnyValidate, ...AnyValidate[]]
     }
 
     *[Symbol.iterator](): IterableIterator<AnyValidate> {

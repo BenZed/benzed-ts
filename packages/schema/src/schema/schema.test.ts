@@ -49,10 +49,10 @@ describe('create cursor from validator', () => {
     testValidator($stringSchema, { input: 'hello', output: 'hello', transform: false })
 })
 
-describe.only('automatic setters for validator options', () => {
+describe('automatic setters for validator options', () => {
 
     const $stringWithAtLeast3Chars = new Schema({
-        name: 'string-with-3-chars',
+        name: 'string-with-3-chars',   
         minLength: 3,
         isValid(i: unknown): i is string {
             return typeof i === 'string' && i.length >= this.minLength
@@ -60,7 +60,7 @@ describe.only('automatic setters for validator options', () => {
         error() {
             return `Must be a string with at least ${this.minLength} chars.`
         }
-    }) 
+    })  
  
     it('type Schema<unknown, string, { minLength: number }>', () => {   
         expectTypeOf($stringWithAtLeast3Chars)
@@ -73,7 +73,6 @@ describe.only('automatic setters for validator options', () => {
         { input: 'ac', error: 'Must be a string with at least 3', transform: false }
     ) 
   
-    console.log($stringWithAtLeast3Chars)
     const $stringWithAtLeast4Chars = $stringWithAtLeast3Chars
         .minLength(4) 
         .error('See, you fucked up.')
@@ -87,7 +86,7 @@ describe.only('automatic setters for validator options', () => {
 
 describe('apply settings', () => {
 
-    const $triangle = new Schema({
+    const $triangle = new Schema({ 
         name: 'triangle',
         sides: 3,
         isValid(input: { sides: number }): boolean {
@@ -96,9 +95,9 @@ describe('apply settings', () => {
         error() {
             return `A ${this.name} must have ${this.sides} sides.`
         }
-    })  
+    })
 
-    it('type Schema<{ sides: number }, { sides: number }, { sides: number }>', () => {   
+    it('type Schema<{ sides: number }, { sides: number }, { sides: number }>', () => {
         expectTypeOf($triangle)
             .toMatchTypeOf<Schema<{ sides: number }, { sides: number }, {
             name: string
@@ -107,14 +106,16 @@ describe('apply settings', () => {
         }>>()
     })
 
-    testValidator($triangle, { input: { sides: 3 }, output: { sides: 3 }, transform: false})
-    testValidator($triangle, { input: { sides: 4 }, error: 'triangle must have 3 sides', transform: false})
+    testValidator(
+        $triangle,
+        { input: { sides: 3 }, output: { sides: 3 }, transform: false },
+        { input: { sides: 4 }, error: 'triangle must have 3 sides', transform: false }
+    )
 
-    const $quadrilateral = $triangle.apply({ sides: 4, name: 'quadrilateral' }) 
- 
-    console.log($quadrilateral.settings) 
-    testValidator($quadrilateral, { input: { sides: 3 }, error: 'quadrilateral must have 4 sides', transform: false})
-
+    const $quadrilateral = $triangle.apply({ sides: 4, name: 'quadrilateral' })
+    testValidator($quadrilateral,
+        { input: { sides: 3 }, error: 'quadrilateral must have 4 sides', transform: false }
+    )
 })
 
 it('named remapping with a clean custom type', () => {
@@ -145,6 +146,7 @@ describe('sub validators', () => {
 
     const $lowercase = new Validator({
         name: 'lowercase',
+        error: 'Must be lowercase.',
         transform: (i: string) => i.toLowerCase()
     }) 
 
@@ -155,11 +157,13 @@ describe('sub validators', () => {
         lowercase: $lowercase
     })
  
-    describe('add sub validator', () => {
+    describe('add sub validator', () => {  
+
         const $lowerString = $string.lowercase()
         it('type match', () => {  
             expectTypeOf($lowerString).toEqualTypeOf($string)
         })
+
         testValidator($lowerString, { input: 0, error: 'Must be string', transform: true })
         testValidator($lowerString, { input: 'HELLO', output: 'hello', transform: true })
     })
@@ -170,20 +174,29 @@ describe('sub validators', () => {
     })
 
     describe('error shorthand', () => {
-        const $noupperString = $string.lowercase('No uppercase letters allowed')
-        testValidator($noupperString, { input: 'Hi', error: 'No uppercase letters allowed', transform: false })
+        const $noupperString = $string   
+            .lowercase('No uppercase letters allowed') 
+        
+        testValidator(
+            $noupperString, 
+            { 
+                input: 'Hi', 
+                error: 'No uppercase letters allowed', 
+                transform: false 
+            }
+        )
     })
 
-    describe.only('settings', () => {
+    describe('settings', () => {
 
         const $range = new Validator({
             name: 'range',
             error() {
                 const max = isFinite(this.max) 
                 const min = isFinite(this.min)
-                const inc = this.inclusive 
+                const inc = this.inclusive
     
-                const detail = min && max 
+                const detail = min && max  
                     ? `between ${this.min} and ${inc ? 'equal to ' : ''}${this.max}`
                     : min 
                         ? `equal or above ${this.min}`
@@ -208,16 +221,15 @@ describe('sub validators', () => {
             isValid: (i: unknown): i is number => typeof i === 'number',
             range: $range
         })
-
+ 
         const $age = $number.named('age')
 
         const $youngPersonAge = $age.range({ min: 18, max: 35 })
 
         it('settings for uninitialized validators not included', () => {
-            expect($number.settings).toEqual({
-                name: 'number',
-                error: 'Must be number.'
-            })
+            expect($number.settings).toEqual({ 
+                name: 'number'
+            }) 
         })
 
     })

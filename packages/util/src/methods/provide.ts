@@ -31,7 +31,7 @@ function getMemoizedProvider<P extends Provider<Func, any>>(provider: P, key: ob
 
 //// Main ////
 
-function provide<P extends Provider>(provider: P): Provided<P>
+function provide<P extends Provider>(provider: P): Provider<P>
 function provide<F extends Func, C extends object>(ctx: C, provider: Provider<F,C>): F 
 function provide(...args: [Provider] | [unknown, Provider]): Func {
 

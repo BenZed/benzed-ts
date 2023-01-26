@@ -84,6 +84,8 @@ export type SchemaSettingsOutput<T extends object> = Infer<{
             : T[K]
 }>
 
+export type SchemaMainValidator<I,O,T extends SchemaSettingsInput<O>> = Validate<I,O> & T
+
 //// Schema Types ////
 
 export type AnySchema = SchemaProperties<any,any,any>
@@ -118,7 +120,7 @@ export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O>> extend
 
     //// Iteration ////
     
-    get validators(): [settingsValidator: Validate<I,O> & T, ...genericValidators: Validate<O,O>[]]
+    get validators(): [mainValidator: SchemaMainValidator<I,O,T>, ...genericValidators: Validate<O,O>[]]
 
 }
 
