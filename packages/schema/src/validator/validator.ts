@@ -16,18 +16,21 @@ import validatorMerge from './validator-merge'
 
 //// Helper Types ////
 
+const VALIDATOR_DISALLOWED_SETTINGS_KEYS = ['isValid', 'transform'] as const
+type _ValidatorDisallowedSettingsKeys = typeof VALIDATOR_DISALLOWED_SETTINGS_KEYS[number]
+
 type _ValidatorFromSettings<S extends AnyValidatorSettings> = 
-    Infer<Validator< SettingsInput<S>, SettingsOutput<S>>>
-    
-type _ExtraSettings<S extends AnyValidatorSettings> = Infer<{
-    [K in Exclude<KeysOf<S>, KeysOf<AnyValidatorSettings>>]: S[K]
-}, object>
+    Infer<Validator< ValidatorSettingsInput<S>, ValidatorSettingsOutput<S>>>
 
 type _InferSettingThisContext<S extends AnyValidatorSettings> = {
     [K in keyof S]: S[K] extends Func
         ? (this: S, ...args: Parameters<S[K]>) => ReturnType<S[K]>
         : S[K]
 }
+
+type _ValidatorSettingExtensions<S extends AnyValidatorSettings> = Infer<{
+    [K in Exclude<KeysOf<S>, KeysOf<AnyValidatorSettings>>]: S[K]
+}, object>
 
 //// Settings Types ////
 
@@ -39,8 +42,8 @@ type ValidatorSettings<I, O> = {
         : ValidatorPredicate<I> 
     transform?: ValidatorTransform<I, O>
 }
-type SettingsInput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, any> ? I : unknown
-type SettingsOutput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, infer O> 
+type ValidatorSettingsInput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, any> ? I : unknown
+type ValidatorSettingsOutput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, infer O> 
     ? unknown extends O 
         ? I 
         : O 
@@ -50,9 +53,11 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 //// Validator Types ////
 
-interface Validator<I, O> extends Validate<I,O>, ValidatorSettings<I,O> {}
+interface Validator<I, O> extends Validate<I,O>, Required<ValidatorSettings<I,O>> { }
 
-type ApplicableValidatorSettings<V extends AnyValidate> = Omit<StructAssignState<V>, 'transform' | 'isValid'>
+type AnyValidator = Validator<any,any>
+
+type AllowedValidatorSettings<V extends AnyValidate> = Omit<StructAssignState<V>, _ValidatorDisallowedSettingsKeys>
 type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidateContext<I>]>
 type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>]>
 type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
@@ -60,15 +65,15 @@ type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>
 //// Validator Constructor Types ////
 
 type ToValidator<S extends AnyValidatorSettings> = 
-    _ExtraSettings<S> extends Empty 
+    _ValidatorSettingExtensions<S> extends Empty 
         ? _ValidatorFromSettings<S>
-        : _ValidatorFromSettings<S> & _ExtraSettings<S>
+        : _ValidatorFromSettings<S> & _ValidatorSettingExtensions<S>
 
 interface ValidatorConstructor extends Omit<ValidateConstructor, 'apply'> {
 
     apply<V extends AnyValidate>(
         validator: V, 
-        settings: ApplicableValidatorSettings<V>
+        settings: AllowedValidatorSettings<V>
     ): V
 
     from: typeof validatorFrom
@@ -153,9 +158,14 @@ export {
     ValidatorTransform,
     ValidatorTypeGuard,
     ValidatorSettings,
+    ValidatorSettingsInput,
+    ValidatorSettingsOutput,
 
-    ApplicableValidatorSettings,
+    AllowedValidatorSettings,
     AnyValidatorSettings,
-    ToValidator
+    AnyValidator,
+    ToValidator,
+
+    VALIDATOR_DISALLOWED_SETTINGS_KEYS
 
 }

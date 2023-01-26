@@ -1,4 +1,4 @@
-import { Struct } from '@benzed/immutable'
+import { copy, Struct } from '@benzed/immutable'
 import { assign, merge, omit } from '@benzed/util'
 
 import { ValidateOptions } from './validate'
@@ -23,7 +23,7 @@ class ValidateContext<I> extends Struct implements ValidateOptions {
     }
 
     push(item: string | symbol | number): this {
-        const ctx = this.copy()
+        const ctx = copy(this)
         merge(ctx, { path: [...this.path, item ]})
         return ctx
     }

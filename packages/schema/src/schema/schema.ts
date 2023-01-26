@@ -1,124 +1,109 @@
 
-import { isFunc } from '@benzed/util'
+// import { isFunc, Pipe } from '@benzed/util'
 
-import {
-    AnyValidate,
-    Validate,
-    ValidationErrorInput,
-    Validator,
-    ValidatorPredicate,
-    ValidatorSettings,
-    ValidatorTransform,
-} from '../validator'
-
-import { ToValidator } from '../validator/validator-from'
+// import {
+//     AnyValidate,
+//     AnyValidatorSettings,
+//     ToValidator,
+//     Validate,
+//     ValidationErrorInput,
+//     Validator,
+//     ValidatorPredicate,
+//     ValidatorSettings,
+//     ValidatorTransform,
+// } from '../validator'
   
-import { SchemaCursor, SchemaSetters, SchemaSettings, ToSchemaSettings } from './schema-cursor'
+// import { SchemaCursor, SchemaSetters, AnySchemaSettings, ToSchema } from './schema-cursor'
 
-//// EsLint ////
+// //// EsLint ////
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
-*/
+// /* eslint-disable 
+//     @typescript-eslint/no-explicit-any,
+//     @typescript-eslint/ban-types
+// */
 
-//// Types ////
+// //// Types ////
 
-interface SchemaProperties<I,O> extends Validate<I,O> {
+// interface SchemaProperties<I,O> extends Validate<I,O> {
 
-    validates<T extends Partial<ValidatorSettings<O, O>>>(settings: T): this
-    validates(validate: ValidatorPredicate<I>): this
+//     validates<T extends Partial<ValidatorSettings<O, O>>>(settings: T): this
+//     validates(validate: ValidatorPredicate<I>): this
 
-    asserts(
-        isValid: ValidatorPredicate<O>,
-        error?: ValidationErrorInput<I>,
-        id?: symbol
-    ): this
+//     asserts(
+//         isValid: ValidatorPredicate<O>,
+//         error?: ValidationErrorInput<I>,
+//         id?: symbol
+//     ): this 
 
-    transforms(
-        transform: ValidatorTransform<O>,
-        error?: ValidationErrorInput<I>, 
-        id?: symbol
-    ): this
-}
+//     transforms(
+//         transform: ValidatorTransform<O>,
+//         error?: ValidationErrorInput<I>, 
+//         id?: symbol
+//     ): this
+    
+// }
 
-type Schema<I,O,T extends SchemaSettings> = SchemaCursor<I, O, T> & SchemaProperties<I,O> & SchemaSetters<I, O, T>
+// type Schema<I, O, T extends AnySchemaSettings> = SchemaCursor<I, O, T> & SchemaProperties<I,O> & SchemaSetters<I, O, T>
 
-type AnySchema = Schema<unknown, unknown, SchemaSettings>
+// type AnySchema = Schema<unknown, unknown, AnySchemaSettings>
 
-interface SchemaConstructor {
+// //// SchemaCursor ////
 
-    new <V extends AnyValidate | SchemaSettings>(validate: V): ToSchema<V>
+// interface SchemaConstructor {
 
-}
+//     new <V extends AnyValidate | AnySchemaSettings>(validate: V): ToSchema<V>
 
-type ToSchema<V extends AnyValidate | SchemaSettings> = V extends Validate<infer I, infer O> 
-    ? Schema<I, O, ToSchemaSettings<I, V>>
-    : V extends SchemaSettings
-        ? ToValidator<V> extends Validate<infer I, infer O>
-            ? Schema<I, O, ToSchemaSettings<I, V>>
-            : never
-        : never 
+// }
 
-//// Main ////
+// //// Main ////
 
-const Schema = class <I, O, T extends SchemaSettings> extends SchemaCursor<I, O, T> {
+// const Schema = class extends SchemaCursor<unknown,unknown, AnySchemaSettings> {
 
-    //// Instance ////
+//     //// Instance ////
 
-    constructor(settings: T) {
-        super(settings as any)
-    }
+//     constructor(settings: AnySchemaSettings) {
+//         super(settings)
+//     }
 
-    validates(
-        input: Partial<ValidatorSettings<unknown>> | Validate<unknown>
-    ): this {
-        let validate = (isFunc(input) ? input : Validator.from(input)) as AnyValidate
+//     validates(
+//         input: Partial<AnyValidatorSettings> | AnyValidate
+//     ): this {
+//         let validate = isFunc(input) ? input : Validator.from(input)
+        
+//         validate = Pipe.from(
+//             Validator.merge(...this.validators as [AnyValidate], validate)
+//         )
 
-        validate = Validator.merge(...this.validators as [AnyValidate], validate)
+//         return Validator.apply(this, { validate })
+//     }
 
-        const schema = this.copy()
-        schema.state = { validate } as unknown as Partial<this>
-        return schema
-    }
+//     asserts(
+//         isValid: ValidatorPredicate<unknown>,
+//         error?: ValidationErrorInput<unknown>
+//     ): this {
+//         return this.validates({
+//             isValid,
+//             error
+//         })
+//     }
 
-    asserts(
-        isValid: ValidatorPredicate<unknown>,
-        error?: ValidationErrorInput<unknown>
-    ): this {
-        return this.validates({
-            isValid,
-            error
-        })
-    }
+//     transforms(
+//         transform: ValidatorTransform<unknown>,
+//         error?: ValidationErrorInput<unknown>
+//     ): this {
+//         return this.validates({
+//             transform,
+//             error
+//         })
+//     }
 
-    transforms(
-        transform: ValidatorTransform<unknown>,
-        error?: ValidationErrorInput<unknown>
-    ): this {
-        return this.validates({
-            transform,
-            error
-        })
-    }
+// } as unknown as SchemaConstructor
 
-    //// Iteration ////
+// //// Exports ////
 
-    get validators(): AnyValidate[] {
-        return Array.from(this)
-    }
+// export default Schema 
 
-    *[Symbol.iterator](): IterableIterator<AnyValidate> {
-        yield* (this as unknown as Schema<I,O,T>).validate.transforms
-    }
-
-} as unknown as SchemaConstructor
-
-//// Exports ////
-
-export default Schema 
-
-export {
-    Schema,
-    AnySchema
-}
+// export {
+//     Schema,
+//     AnySchema
+// }

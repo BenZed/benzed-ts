@@ -18,7 +18,7 @@ type Merge<I, O> = [
     Mergable<I, O>,
     ...Mergable<O, O>[],
     Mergable<O, O>
-]
+] | Mergable<any,any>[]
 
 //// Main ////
 

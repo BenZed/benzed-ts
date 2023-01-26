@@ -1,3 +1,4 @@
+import { copy, Struct } from '@benzed/immutable'
 import { capitalize } from '@benzed/string'
 
 import {
@@ -9,15 +10,18 @@ import {
     isBoolean,
     isString,
     isFunc,
-    Pipe
+    Pipe,
+    assign
 } from '@benzed/util'
 
 import { 
     AnyValidate, 
     AnyValidator, 
+    AllowedValidatorSettings, 
     Validate, 
     ValidationErrorInput, 
-    Validator 
+    Validator, 
+    ValidatorSettings
 } from '../validator'
 
 import Schema, { AnySchema } from './schema'
@@ -25,20 +29,6 @@ import Schema, { AnySchema } from './schema'
 import SchemaCursor, { AnyValidatorPipe } from './schema-cursor'
 
 //// Data ////
-
-const DISALLOWED_KEYS = [
-    'transform', 
-    'isValid',
-    'id', 
-    'asserts', 
-    'validate',
-    'validates', 
-    'transforms',
-    'constructor',
-    'copy',
-    'equals',
-    'prototype'
-] as const
 
 const $$child = Symbol('sub-validator-id')
 
@@ -48,8 +38,9 @@ type SubValidatorInput = ValidationErrorInput<unknown> | boolean | object
 
 //// Helper ////
 
-function getSettingsValidator(cursor: { validate: AnyValidatorPipe }): AnyValidator {
-    return cursor.validate.transforms[0] as AnyValidator
+function getSettingsValidator(cursor: Iterable<AnyValidate>): AnyValidator {
+    const [ settingsValidtor ] = cursor 
+    return settingsValidtor
 }
 
 function getSubValidatorOptions(input: SubValidatorInput = {}): object {
@@ -90,36 +81,18 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
 
     const $$sub = isValidator ? Symbol(key) : nil
 
-    const setter = isValidator
-        ? function (this: AnySchema, input: SubValidatorInput = {}): unknown {
+    const setter = function (this: AnySchema, value: unknown): unknown {
 
-            // const validator = createSubValidator(input, this, key, $$sub as symbol)
+        const newSettings = { [key]: value } as AllowedValidatorSettings<AnySchema>
 
-            // const validators = Array.from(this.validate.transforms)
-            // const index = validators.findIndex(v => $$child in v && v[$$child] === $$sub)
-            // if (index >= 0)
-            //     validators.splice(index, 1, ...validator ? [validator] : [])
-            // else if (index < 0 && validator)
-            //     validators.push(validator)
+        const [ settingsValidator, ...rest ] = this
 
-            // const validate = Pipe.from(...validators)
+        const updatedSettingsValidator = Validator.apply(settingsValidator, newSettings)
 
-            // Copy cursor
-            const schema = this.copy()
+        const validate = Pipe.from(Validator.merge(updatedSettingsValidator, ...rest))
 
-            const options = getSubValidatorOptions(input)
-
-            const oldSettings = getSettingsValidator(schema)
-
-            const newSettings = oldSettings.apply({ [key]: options })
-
-            // schema['state'] = { validate } as typeof schema.state 
-            return schema
-        } 
-        
-        : function (this: AnySchema, value: unknown): unknown {
-            return this.apply({ [key]: value })
-        }
+        return Validator.apply(this, { validate })
+    }
     
     Property.name(setter, `${isValidator ? 'apply' : 'set'}${capitalize(key)}`)
     Property.define(schema, name, { enumerable: false, value: setter, configurable: true, writable: true })
