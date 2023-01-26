@@ -246,7 +246,7 @@ const Schema = class extends Validate<unknown, unknown> {
 
                 : nil
             if (refValidator) 
-                Property.define(refValidator, $$sub, { value: subKey, enumerable: true })
+                Property.define(refValidator, $$sub, { value: subKey, enumerable: false })
             
             upsertValidator(validators, refValidator, v => $$sub in v && v[$$sub] === subKey)
 

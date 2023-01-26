@@ -164,8 +164,7 @@ export type ToSchema<T extends AnyValidate | AnyValidatorSettings> = T extends V
 
 export interface SchemaConstructor {
 
-    new <V extends AnyValidate | AnyValidatorSettings>(
-        validate: V
-    ): ToSchema<V>
+    new <V extends AnyValidate | AnyValidatorSettings>(validate: V): ToSchema<V>
+    new <I,O,T extends SchemaSettingsInput<O>>(settings: T): Schema<I,O,T>
 
 }

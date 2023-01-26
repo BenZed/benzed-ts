@@ -76,7 +76,7 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
 
     const isValidator = descriptor.value instanceof Validate
     Property.name(setter, `${isValidator ? 'apply' : 'set'}${capitalize(key)}`)
-    Property.define(schema, name, { enumerable: true, value: setter, configurable: true, writable: true })
+    Property.define(schema, name, { enumerable: false, value: setter, configurable: true, writable: true })
 }
 
 function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
