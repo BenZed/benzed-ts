@@ -188,72 +188,89 @@ describe('sub validators', () => {
         )
     })
 
-    describe('settings', () => {
-
-        const $range = new Validator({
-            name: 'range',
-            error() {
-                const hasMax = isFinite(this.max) 
-                const hasMin = isFinite(this.min)
-                const inc = this.inclusive
-    
-                const detail = hasMin && hasMax  
-                    ? `between ${this.min} and ${inc ? 'equal to ' : ''}${this.max}`
-                    : hasMin 
-                        ? `equal or above ${this.min}`
-                        : `${inc ? 'equal to or ' : ''}below ${this.max}`
-    
-                return `Must be ${detail}`
-            },
-            isValid(input: number) {
-                return input >= this.min && (
-                    this.inclusive 
-                        ? input <= this.max
-                        : input < this.max
-                )
-            },
-            inclusive: false,
-            min: -Infinity,
-            max: Infinity
-        })  
-    
-        const $number = new Schema({
-            name: 'number',
-            isValid: (i: unknown): i is number => typeof i === 'number',
-            range: $range
-        })
- 
-        const $age = $number.named('age')
-
-        const $youngPersonAge = $age.range({ min: 18, max: 35 })
-
-        it('settings for uninitialized validators not included', () => {
-            expect($age .settings).toEqual({ 
-                name: 'age'
-            })
-        })
-
-        it('settings for initialized validators included', () => {
-            expect($youngPersonAge.settings).toEqual({
-                name: 'age',
-                range: {
-                    name: 'range',
-                    error: expect.any(Function),
-                    inclusive: false,
-                    max: 35,
-                    min: 18,
-                }
-            })
-        })
- 
-        it('removed validators no longer appear in settings', () => {
-            // validator removed
-            const $age2 = $youngPersonAge.range(false)
-            expect($age2.settings).toEqual({
-                name: 'age'
-            })
-        })
-
-    })
 })
 
+describe('settings', () => {
+
+    const $range = new Validator({
+        name: 'range',
+        error() {
+            const hasMax = isFinite(this.max) 
+            const hasMin = isFinite(this.min)
+            const inc = this.inclusive
+
+            const detail = hasMin && hasMax  
+                ? `between ${this.min} and ${inc ? 'equal to ' : ''}${this.max}`
+                : hasMin 
+                    ? `equal or above ${this.min}`
+                    : `${inc ? 'equal to or ' : ''}below ${this.max}`
+
+            return `Must be ${detail}`
+        },
+        isValid(input: number) {
+            return input >= this.min && (
+                this.inclusive 
+                    ? input <= this.max
+                    : input < this.max
+            )
+        },
+        inclusive: false,
+        min: -Infinity,
+        max: Infinity
+    })  
+
+    const $number = new Schema({
+        name: 'number',
+        isValid: (i: unknown): i is number => typeof i === 'number',
+        range: $range
+    })
+
+    const $age = $number.named('age')
+
+    const $youngPersonAge = $age.range({ min: 18, max: 35 })
+
+    it('settings for uninitialized validators not included', () => {
+        expect($age .settings).toEqual({ 
+            name: 'age'
+        })
+    })
+
+    it('settings for initialized validators included', () => {
+        expect($youngPersonAge.settings).toEqual({
+            name: 'age',
+            range: {
+                name: 'range',
+                error: expect.any(Function),
+                inclusive: false,
+                max: 35,
+                min: 18,
+            }
+        })
+    })
+
+    it('removed validators no longer appear in settings', () => {
+        // validator removed
+        const $age2 = $youngPersonAge.range(false)
+        expect($age2.settings).toEqual({
+            name: 'age'
+        })
+    })
+
+    describe('set with method syntax', () => {
+        const $negative = $number.range(r => Validator.apply(r, { max: 0 }))
+        expect($negative.settings).toEqual({
+            name: 'number',
+            range: {
+                name: 'range',
+                error: expect.any(Function),
+                inclusive: false,
+                max: 0,
+                min: -Infinity
+            }
+        })
+        testValidator($negative,
+            { input: -1, output: -1, transform: false, },
+            { input: 5, error: 'Must be below 0', transform: false, },
+        )
+    })
+})

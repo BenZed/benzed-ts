@@ -9,11 +9,11 @@ import {
     isBoolean,
     isString,
     isFunc,
+    Func,
 } from '@benzed/util'
 
 import { 
     Validate, 
-    ValidationErrorInput, 
     VALIDATOR_DISALLOWED_SETTINGS_KEYS, 
 } from '../validator'
 
@@ -31,16 +31,18 @@ const $$sub = Symbol('schema-sub-validator')
 
 //// Types ////
 
-type SubValidatorInput = ValidationErrorInput<unknown> | boolean | object 
+type SubValidatorInput = string | Func | boolean | object 
 
 //// Helper ////
 
-function getSubValidatorOptions(input: SubValidatorInput = {}): object {
-    const options = isString(input) || isFunc(input)
+function getSubValidatorOptions(input: SubValidatorInput = {}, setting: any): object {
+    const options = isString(input)
         ? { error: input }
         : isBoolean(input)
             ? {}
-            : input
+            : isFunc(input)
+                ? input(setting) 
+                : input 
 
     return options
 }
@@ -51,9 +53,10 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
 
         const [ mainValidator ] = this
         
-        const isValidator = (mainValidator as any)[key] instanceof Validate
+        const setting = (mainValidator as any)[key]
+        const isValidator = setting instanceof Validate
         const options = isValidator 
-            ? getSubValidatorOptions(value as SubValidatorInput) 
+            ? getSubValidatorOptions(value as SubValidatorInput, setting) 
             : { [key]: value }
 
         if (isValidator) {
