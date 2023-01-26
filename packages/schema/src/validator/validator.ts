@@ -50,7 +50,7 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 interface Validator<I, O> extends Validate<I,O> { 
     name: string
-    error?: ValidationErrorInput<I>
+    error(): string
     isValid(input: I, ctx: ValidateContext<I>): boolean
     transform(input: I, ctx: ValidateContext<I>): O
 }

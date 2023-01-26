@@ -1,17 +1,32 @@
-import { through } from '../methods/returns'
-import { merge } from './merge'
+import { Property } from '../property'
+import { Func } from './func'
+import { assign } from './merge'
 import { nil } from './nil'
-import { Mutable } from './types'
+
+//// Symbol ////
+
+const $$error = Symbol('optional-error-message')
 
 //// Types ////
 
 interface Match<T> {
-    <F extends (input: T) => unknown>(doWith: F): ReturnType<F> | nil
-    (): T | nil
+    <F extends Matcher<T>>(
+        withValue: F
+    ): Optional<ReolveMatcherOutput<T, F>>
+}
+
+type Matcher<T> = (value: T) => unknown
+
+type ReolveMatcherOutput<T, F extends Matcher<T>> = 
+     nil extends ReturnType<F> ? T : ReturnType<F> 
+
+interface Assert<T> {
+    assert(error?: string): T
 }
 
 interface Nil {
-    readonly has: false 
+    readonly has: false
+    readonly value?: nil
 }
 
 interface Value<T> {
@@ -19,34 +34,52 @@ interface Value<T> {
     readonly value: T 
 }
 
-type Optional<T> = (Nil | Value<T>) & Match<T>
+type Optional<T> = (Nil | Value<T>) & Match<T> & Assert<T>
+
+type ToOptional<T> = Exclude<T, nil>
+
+type Has<T> = Exclude<Optional<T>, Nil>
+
+//// Helper ////
+
+function assert<T>(this: Optional<ToOptional<T>> & { [$$error]?: string }, error = this[$$error] ?? 'Does not have value'): T {
+    if (!this.has)
+        throw new Error(error)
+
+    return this.value
+}
 
 //// Main ////
 
-function optional<T>(...args: [value: T] | []): Optional<T> {
-    const has = args.length > 0
+function optional<T>(value?: T, error?: string): Optional<ToOptional<T>> {
+    const has = value !== nil
 
-    const optional = merge((f = through, d?: unknown) => 
-        optional.has 
-            ? f(optional.value) 
-            : d
-    , { has }) as Optional<T>
+    const state = has ? { has, value } : { has }
 
-    if (has)
-        (optional as Mutable<Value<T>>).value = args[0] as T
+    const match = (action: Func): unknown => 
+        output.has 
+            ? optional(action(output.value), (output as { [$$error]?: string })[$$error]) 
+            : output
 
-    return optional
+    Property.define(match, 'assert', { value: assert, writable: true, configurable: true })
+    if (error)
+        Property.define(match, $$error, { value: error, writable: true, configurable: true })
+
+    const output = assign(match, state) 
+    return output as Optional<ToOptional<T>>
 
 }
 
-optional.nil = <T>() => optional<T>()
-optional.value = <T>(value: T) => optional<T>(value)
+optional.nil = <T>(error?: string) => optional<T>(nil, error)
+optional.value = <T>(value: ToOptional<T>, error?: string) => optional<T>(value, error)
 
 //// Exports ////
 
 export {
     optional,
     Optional,
+    ToOptional,
     Value,
-    Nil
+    Nil,
+    Has
 }

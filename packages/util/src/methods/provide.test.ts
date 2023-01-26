@@ -21,7 +21,7 @@ it('is memoized', () => {
     push1(1)
     push2(2)
  
-    expect(state).toEqual([1,2])
+    expect(state).toEqual([1,2]) 
 
     const push3 = provide([], providePush)
     expect(push3).not.toBe(push2)

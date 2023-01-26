@@ -91,7 +91,7 @@ describe('construct with extra settings', () => {
 
         const $lowerCase = new Validator({
             name: 'casing',
-            transform(i: string) {
+            transform(this: { case: 'lower' | 'upper' }, i: string) {
                 const casing = this.case
                 switch (casing) {
                     case 'lower': {
