@@ -1,130 +1,169 @@
 import { Struct } from '@benzed/immutable'
+import { Func, Infer, Invalid, KeysOf, nil } from '@benzed/util'
 
-import {
-    nil,
-    ParamPipe,
-    KeysOf,
-    Infer,
-} from '@benzed/util'
- 
-import {
-    AnyValidate,
-    AnyValidatorSettings,
-    Validate,
-    ValidateOptions,
-    ValidationErrorInput,
-    ValidatorPredicate,
-    ValidatorSettings,
-    ValidatorTransform,
+import { 
+    AnyValidate, 
+    AnyValidator, 
+    AnyValidatorSettings, 
+    ToValidator, 
+    Validate, 
+    ValidateInput, 
+    ValidationErrorInput, 
+    Validator, 
+    ValidatorPredicate, 
+    ValidatorSettings, 
+    ValidatorTransform, 
+    VALIDATOR_DISALLOWED_SETTINGS_KEYS 
 } from '../validator'
 
-import SchemaCursor from './schema-cursor'
+import Schema, { ValidatorPipe } from './schema'
 
 //// EsLint ////
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
+    @typescript-eslint/no-explicit-any
 */
 
-//// Helper Types ////
+//// Settings Types ////
 
-type _DISALLOWED_KEYS = never
+const SCHEMA_DISALLOWED_SETTINGS = [ 
+    ...VALIDATOR_DISALLOWED_SETTINGS_KEYS,
+    'transforms',
+    'asserts',
+    'validates',
+    'validators',
+    'apply',
+    'settings'
+] as const
 
-type _ValidatorSettingKeys = KeysOf<ValidatorSettings<unknown,unknown>>
+type _SchemaDisallowedSettingKeys = typeof SCHEMA_DISALLOWED_SETTINGS[number]
 
-    type _NameToNamed<O extends object> = 'name' extends keyof O 
-        ? 'named' 
-        : never
+type _SchemaSettingKeys<T> = Exclude<KeysOf<T>, _SchemaDisallowedSettingKeys>
 
-type _SchemaSetterKeys<O extends object> = 
-    | Exclude<KeysOf<O>, _DISALLOWED_KEYS | 'name'> 
-    | _NameToNamed<O>
+type _SchemaSettingInput<O> = 
+    SchemaProperties<O, O, any> | Validate<O, O> | object | string | number | boolean | bigint | symbol | Func
 
-type _SchemaSubValidateOptions<V extends AnyValidate> = Infer<{
-    [K in Exclude<KeysOf<V>, _DISALLOWED_KEYS | 'name'>]: V[K]
+type _SchemaSubSettings<T extends object> = Infer<{
+    [K in _SchemaSettingKeys<T>]: T[K] extends AnyValidate
+        ? _SchemaSubSettings<T[K]> | nil | string | boolean
+        : T[K]
 }>
 
-type _SchemaSubValidateSetter<V extends AnyValidate, I, O, T extends AnyValidatorSettings> = 
-    (
-        errorSettingsOrEnabled?: ValidationErrorInput<I> | boolean | Partial<_SchemaSubValidateOptions<V>>
-    ) => Schema<I, O, T>
+type _ValidatorSetter<I,O,T extends SchemaSettingsInput<O>,V extends AnyValidate> = 
+/**/ (input?: 
+/**/ string | // error shorthand
+/**/ boolean | // enabled shorthand
+/**/ ((update: V) => V) | // update method shorthand 
+/**/ Partial<_SchemaSubSettings<V>> // explicit options
+/**/ ) => Schema<I,O,T>
 
-type _SchemaSettingKeys<O extends object> = Exclude<KeysOf<O>, _DISALLOWED_KEYS>
+type _SchemaSetter<I, O, T extends SchemaSettingsInput<O>, S extends AnySchema> = 
+    S extends Schema<any,any,infer Tx>
+        ? Infer<
+        /**/ (input?: 
+        /**/ boolean | // enabled shorthand
+        /**/ string | // error shorthand
+        /**/ Partial<_SchemaSubSettings<Tx>> | // explicit options
+        /**/ ((update: S) => S) // update method
+        /**/ ) => Schema<I,O,T>>
+        : S
 
-//// Types ////
+type _OptionSetter<I,O,T extends SchemaSettingsInput<O>, V> = (input: V) => Schema<I,O,T>
 
-type ValidatorPipe<I, O> = ParamPipe<I, O, [Partial<ValidateOptions> | nil]>
+//// Settings Types ////
 
-type AnyValidatorPipe = ValidatorPipe<any, any>
+export type SchemaSettingsInput<O> = Record<string, _SchemaSettingInput<O>>
 
-type AnySchemaSettings = AnyValidatorSettings
+export type SchemaSettingsOutput<T extends object> = Infer<{
+    [K in _SchemaSettingKeys<T>]: T[K] extends AnyValidate | AnySchema
+        ? SchemaSettingsOutput<T[K]> | nil
+        : K extends KeysOf<AnyValidatorSettings>
+            ? T extends ValidatorSettings<infer I, infer O> 
+                ? Exclude<ValidatorSettings<I,O>[K], nil>
+                : T[K]
+            : T[K]
+}>
 
-interface SchemaCursorProperties<I, O, T extends AnyValidatorSettings> extends Validate<I, O>, Struct, Iterable<AnyValidate> {
+//// Schema Types ////
 
-    readonly settings: T
+export type AnySchema = SchemaProperties<any,any,any>
 
-    apply(settings: Partial<T>): this
+export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O>> extends Validate<I,O>, Struct, Iterable<Validate<unknown>>{
+    
+    get settings() : SchemaSettingsOutput<T>
 
-    readonly validate: ValidatorPipe<I, O>
+    readonly validate: ValidatorPipe<unknown,unknown>
+
+    get name(): string 
+
+    //// Validation Interface ////
+    
+    validates(
+        input: Partial<AnyValidatorSettings> | AnyValidate
+    ): this 
+
+    asserts(
+        isValid: ValidatorPredicate<unknown>,
+        error?: ValidationErrorInput<unknown>
+    ): this 
+
+    transforms(
+        transform: ValidatorTransform<unknown>,
+        error?: ValidationErrorInput<unknown>
+    ): this 
+
+    //// Apply ////
+    
+    apply(settings: object): this
+
+    //// Iteration ////
+    
     get validators(): AnyValidate[]
 
 }
 
-type SchemaSetters<I, O, T extends AnyValidatorSettings> = {
-    [K in _SchemaSetterKeys<T>]: K extends 'named'
-
-        ? (input: string) => Schema<I, O, T>
-        : T[K] extends AnyValidate
-            ? _SchemaSubValidateSetter<T[K], I, O, T>
-            : K extends keyof T 
-                ? (input: T[K]) => Schema<I, O, T>
-                : never
+export type SchemaSetters<I,O,T extends SchemaSettingsInput<O>> = {
+    [K in _SchemaSettingKeys<T> as K extends 'name' ? 'named' : K]: T[K] extends AnySchema
+        ? _SchemaSetter<I,O,T,T[K]>
+        : T[K] extends AnyValidator
+            ? _ValidatorSetter<I,O,T,T[K]>
+            : _OptionSetter<I,O,T,T[K]>
 }
 
-type ToSchema<V extends AnyValidate | AnySchemaSettings> = V extends Validate<infer I, infer O> 
-    ? Schema<I, O, ToSchemaSettings<I, V>>
-    : V extends AnySchemaSettings
-        ? ToValidator<V> extends Validate<infer I, infer O>
-            ? Schema<I, O, ToSchemaSettings<I, V>>
+//// Schema Constructor Types ////
+
+export type ToSchemaSettings<I ,O, T extends object> = Infer<{
+    [K in _SchemaSettingKeys<T>]: 
+    // is a standard validator setting
+    K extends KeysOf<AnyValidatorSettings>
+        // required standard validator setting
+        ? Exclude<ValidatorSettings<I,O>[K], nil>
+
+        // is validator 
+        : T[K] extends Validator<infer Ix, any> | SchemaProperties<infer Ix, any, any>
+            // output matches input
+            ? Ix extends O 
+                ? T[K]
+
+                // TODO make a real error
+                : Invalid<{ 'subvalidator-invalid-input-type': ValidateInput<Infer<T[K], AnyValidate>> }>
+            
+            // is whatever else
+            : T[K]
+}, SchemaSettingsInput<O>>
+
+export type ToSchema<T extends AnyValidate | AnyValidatorSettings> = T extends Validate<infer I, infer O> 
+    ? Schema<I, O, ToSchemaSettings<I, O, T>>
+    : T extends AnyValidatorSettings
+        ? ToValidator<T> extends Validate<infer I, infer O>
+            ? Schema<I, O, ToSchemaSettings<I, O, T>>
             : never
         : never 
 
-type ToSchemaSettings<I, O extends object> = Infer<{ 
-    [K in _SchemaSettingKeys<O>]: K extends _ValidatorSettingKeys 
-        ? ValidatorSettings<I>[K]
-        : O[K]
-}, AnySchemaSettings>
+export interface SchemaConstructor {
 
-//// Types ////
-
-interface SchemaProperties<I,O> extends Validate<I,O> {
-
-    validates<T extends Partial<ValidatorSettings<O, O>>>(settings: T): this
-    validates(validate: ValidatorPredicate<I>): this
-
-    asserts(
-        isValid: ValidatorPredicate<O>,
-        error?: ValidationErrorInput<I>,
-        id?: symbol
-    ): this 
-
-    transforms(
-        transform: ValidatorTransform<O>,
-        error?: ValidationErrorInput<I>, 
-        id?: symbol
-    ): this
-    
-}
-
-type Schema<I, O, T extends AnySchemaSettings> = SchemaCursor<I, O, T> & SchemaProperties<I,O> & SchemaSetters<I, O, T>
-
-type AnySchema = Schema<unknown, unknown, AnySchemaSettings>
-
-//// SchemaConstructor ////
-
-interface SchemaConstructor {
-
-    new <V extends AnyValidate | AnySchemaSettings>(validate: V): ToSchema<V>
+    new <V extends AnyValidate | AnyValidatorSettings>(
+        validate: V
+    ): ToSchema<V>
 
 }

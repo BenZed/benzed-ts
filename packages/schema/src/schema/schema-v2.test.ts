@@ -1,1 +1,0 @@
-it.todo('schema tests v2')

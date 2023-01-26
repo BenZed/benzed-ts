@@ -1,4 +1,3 @@
-import { copy, Struct } from '@benzed/immutable'
 import { capitalize } from '@benzed/string'
 
 import {
@@ -11,22 +10,24 @@ import {
     isString,
     isFunc,
     Pipe,
-    assign
 } from '@benzed/util'
 
 import { 
     AnyValidate, 
-    AnyValidator, 
     AllowedValidatorSettings, 
     Validate, 
     ValidationErrorInput, 
-    Validator, 
-    ValidatorSettings
+    Validator,
+    VALIDATOR_DISALLOWED_SETTINGS_KEYS, 
 } from '../validator'
 
-import Schema, { AnySchema } from './schema'
+import { AnySchema } from './schema-types'
 
-import SchemaCursor, { AnyValidatorPipe } from './schema-cursor'
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// Data ////
 
@@ -38,11 +39,6 @@ type SubValidatorInput = ValidationErrorInput<unknown> | boolean | object
 
 //// Helper ////
 
-function getSettingsValidator(cursor: Iterable<AnyValidate>): AnyValidator {
-    const [ settingsValidtor ] = cursor 
-    return settingsValidtor
-}
-
 function getSubValidatorOptions(input: SubValidatorInput = {}): object {
     const options = isString(input) || isFunc(input)
         ? { error: input }
@@ -53,16 +49,16 @@ function getSubValidatorOptions(input: SubValidatorInput = {}): object {
     return options
 }
 
-function createSubValidator(input: SubValidatorInput, cursor: AnySchema, key: string, $$sub: symbol): AnyValidate | nil {
+function createSubValidator(input: SubValidatorInput, schema: AnySchema, key: string, $$sub: symbol): AnyValidate | nil {
     
     const enabled = isBoolean(input) ? input : true
     if (!enabled)
         return nil
 
-    const settings = getSettingsValidator(cursor) as unknown as Record<string, AnyValidate>
+    const [ settings ] = schema.validators
     const options = getSubValidatorOptions(input)
 
-    const template = settings[key]
+    const template = (settings as any)[key]
 
     const subValidator = new Validator({ ...template, ...options })
     if (subValidator) {
@@ -104,8 +100,11 @@ function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
 
     const nonAccessibleKeys = iterate(keysOf(descriptors), key => { 
         const descriptor = descriptors[key]
-        const accessible = descriptor.writable || 'getter' in descriptor && 'setter' in descriptor
-        return !accessible || DISALLOWED_KEYS.includes(key as typeof DISALLOWED_KEYS[number]) ? key : nil
+        const accessible = 
+            !VALIDATOR_DISALLOWED_SETTINGS_KEYS.includes(key as any) &&
+            (descriptor.writable || 'getter' in descriptor && 'setter' in descriptor) 
+
+        return accessible ? key : nil
     })
 
     return omit(descriptors, ...nonAccessibleKeys)
@@ -126,7 +125,6 @@ function ensureAccessors(cursor: AnySchema, settings: object): void {
         const hasAccessor = name in cursor
         if (!hasAccessor)
             addAccessor(cursor, descriptor, key, name)
-
     }
 }
 
@@ -135,7 +133,5 @@ function ensureAccessors(cursor: AnySchema, settings: object): void {
 export default ensureAccessors
 
 export {
-    ensureAccessors,
-    getSettingsValidator,
-    DISALLOWED_KEYS
+    ensureAccessors
 }

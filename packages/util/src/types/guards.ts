@@ -2,6 +2,7 @@ import { indexesOf, keysOf } from '../types/keys-of'
 import { isBoolean, isNumber, isString } from './primitive'
 import { Func, isFunc, TypeGuard } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
+import { Sortable } from '../sort'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
@@ -79,6 +80,12 @@ export const isAsync = isPromise
 //// Misc ////
 
 export const isUnknown = (input: unknown): input is unknown => true
+
+export const isSortable = <T extends Sortable>(input: unknown): input is T =>
+    isNumber(input) && isFinite(input) || isString(input)
+
+const { isFinite } = Number 
+export { isFinite }
 
 //// Json ////
     

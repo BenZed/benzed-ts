@@ -1,10 +1,10 @@
-import { asNil, isNil } from './nil'
+import { isNil } from './nil'
 
 //// Basic ////
 
 export const isString = <S extends string = string>(i: unknown): i is S => typeof i === 'string'
 
-export const isNumber = <N extends number = number>(i: unknown): i is N => typeof i === 'number' && !Number.isNaN(i)
+export const isNumber = <N extends number = number>(i: unknown): i is N => typeof i === 'number' && !isNaN(i)
 
 export const isBoolean = <B extends boolean = boolean>(i: unknown): i is B => typeof i === 'boolean'
 
@@ -37,6 +37,5 @@ export const isSymbol = <S extends symbol>(i: unknown): i is S => typeof i === '
 
 //// Special ////
 
-export const isInteger = Number.isInteger as (i: unknown) => i is number
-
-export const isNaN = Number.isNaN
+const { isInteger, isNaN } = Number
+export { isInteger, isNaN }

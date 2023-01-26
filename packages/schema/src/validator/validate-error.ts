@@ -7,7 +7,7 @@ export class ValidationError<T = unknown> extends Error {
 
     constructor(
         error: ValidationErrorInput<T> | { error: ValidationErrorInput<T> },
-        ctx: ValidateContext<T>
+        readonly ctx: ValidateContext<T>
     ) {
 
         // untangle error message

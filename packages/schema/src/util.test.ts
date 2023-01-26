@@ -2,6 +2,8 @@ import { safeJsonStringify } from '@benzed/util'
 import { Validate } from './validator'
 import { ValidationError } from './validator/validate-error'
 
+import { expect, describe, it } from '@jest/globals'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 //// Exports ////

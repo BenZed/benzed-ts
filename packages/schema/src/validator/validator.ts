@@ -1,10 +1,10 @@
 
 import { CallableStruct, StructAssignState, equals } from '@benzed/immutable'
-import { Empty, Func, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
+import { Empty, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
 
-import ValidateContext from './validate-context'
 import { AnyValidate, Validate, ValidateOptions, ValidateConstructor } from './validate'
-import { ValidationErrorMessage, ValidationError, ValidationErrorInput } from './validate-error'
+import { ValidationError, ValidationErrorInput } from './validate-error'
+import ValidateContext from './validate-context'
 import validatorFrom from './validator-from'
 import validatorMerge from './validator-merge'
 
@@ -22,19 +22,13 @@ type _ValidatorDisallowedSettingsKeys = typeof VALIDATOR_DISALLOWED_SETTINGS_KEY
 type _ValidatorFromSettings<S extends AnyValidatorSettings> = 
     Infer<Validator< ValidatorSettingsInput<S>, ValidatorSettingsOutput<S>>>
 
-type _InferSettingThisContext<S extends AnyValidatorSettings> = {
-    [K in keyof S]: S[K] extends Func
-        ? (this: S, ...args: Parameters<S[K]>) => ReturnType<S[K]>
-        : S[K]
-}
-
 type _ValidatorSettingExtensions<S extends AnyValidatorSettings> = Infer<{
     [K in Exclude<KeysOf<S>, KeysOf<AnyValidatorSettings>>]: S[K]
 }, object>
 
 //// Settings Types ////
 
-type ValidatorSettings<I, O> = {
+interface ValidatorSettings<I, O> {
     name?: string
     error?: ValidationErrorInput<I>
     isValid?: O extends I 
@@ -42,6 +36,7 @@ type ValidatorSettings<I, O> = {
         : ValidatorPredicate<I> 
     transform?: ValidatorTransform<I, O>
 }
+
 type ValidatorSettingsInput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, any> ? I : unknown
 type ValidatorSettingsOutput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, infer O> 
     ? unknown extends O 
@@ -53,16 +48,23 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 //// Validator Types ////
 
-interface Validator<I, O> extends Validate<I,O>, Required<ValidatorSettings<I,O>> { }
+interface Validator<I, O> extends Validate<I,O> { 
+    name: string
+    error?: ValidationErrorInput<I>
+    isValid(input: I, ctx: ValidateContext<I>): boolean
+    transform(input: I, ctx: ValidateContext<I>): O
+}
 
 type AnyValidator = Validator<any,any>
 
-type AllowedValidatorSettings<V extends AnyValidate> = Omit<StructAssignState<V>, _ValidatorDisallowedSettingsKeys>
+type AllowedValidatorSettings<T extends object> = Omit<StructAssignState<T>, _ValidatorDisallowedSettingsKeys>
 type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidateContext<I>]>
 type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>]>
 type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
 
 //// Validator Constructor Types ////
+
+type ToValidatorInput = Record<string, unknown>
 
 type ToValidator<S extends AnyValidatorSettings> = 
     _ValidatorSettingExtensions<S> extends Empty 
@@ -77,10 +79,9 @@ interface ValidatorConstructor extends Omit<ValidateConstructor, 'apply'> {
     ): V
 
     from: typeof validatorFrom
-
     merge: typeof validatorMerge
 
-    new <S extends AnyValidatorSettings>(input: _InferSettingThisContext<S>): ToValidator<S>
+    new <S extends ToValidatorInput>(input: S): ToValidator<S>
     new <I, O extends I = I>(settings: ValidatorSettings<I,O>): Validator<I,O>
 
 }
@@ -119,14 +120,11 @@ const Validator = class extends Validate<unknown, unknown> {
     static merge = validatorMerge
 
     constructor(
-        { name, error, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
+        { name, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
     ) {
 
         super(validate)
         this.name = name ?? this.constructor.name
-        this.error = error ?? (this.name === this.constructor.name 
-            ? 'Validation failed.'
-            : `Must be ${this.name}.`)
 
         Property.transpose(settings, this)
     }
@@ -136,7 +134,12 @@ const Validator = class extends Validate<unknown, unknown> {
     }
 
     override readonly name: string
-    readonly error: string | ValidationErrorMessage<unknown>
+
+    error(): string {
+        return this.name === this.constructor.name 
+            ? 'Validation failed.'
+            : `Must be ${this.name}.`
+    }
     
     isValid(input: unknown, ctx: ValidateContext<unknown>): input is unknown {
         return equals(input, ctx.value)

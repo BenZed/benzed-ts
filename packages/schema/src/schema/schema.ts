@@ -1,109 +1,149 @@
 
-// import { isFunc, Pipe } from '@benzed/util'
+import { isFunc, keysOf, ParamPipe, Pipe } from '@benzed/util'
+import { 
 
-// import {
-//     AnyValidate,
-//     AnyValidatorSettings,
-//     ToValidator,
-//     Validate,
-//     ValidationErrorInput,
-//     Validator,
-//     ValidatorPredicate,
-//     ValidatorSettings,
-//     ValidatorTransform,
-// } from '../validator'
-  
-// import { SchemaCursor, SchemaSetters, AnySchemaSettings, ToSchema } from './schema-cursor'
+    AllowedValidatorSettings,
+    AnyValidatorSettings, 
+    ValidateContext, 
 
-// //// EsLint ////
+    ValidationErrorInput, 
+    Validator, 
 
-// /* eslint-disable 
-//     @typescript-eslint/no-explicit-any,
-//     @typescript-eslint/ban-types
-// */
+    ValidatorPredicate, 
+    ValidatorTransform 
+} from '../validator'
 
-// //// Types ////
+import {
+    AnyValidate, 
+    Validate, 
+    ValidateOptions
+} from '../validator/validate'
 
-// interface SchemaProperties<I,O> extends Validate<I,O> {
+import ensureAccessors from './ensure-accessors'
 
-//     validates<T extends Partial<ValidatorSettings<O, O>>>(settings: T): this
-//     validates(validate: ValidatorPredicate<I>): this
+import { 
+    SchemaConstructor, 
+    SchemaProperties, 
+    SchemaSetters, 
+    SchemaSettingsInput,
+    SchemaSettingsOutput
+} from './schema-types'
 
-//     asserts(
-//         isValid: ValidatorPredicate<O>,
-//         error?: ValidationErrorInput<I>,
-//         id?: symbol
-//     ): this 
+//// EsLint ////
 
-//     transforms(
-//         transform: ValidatorTransform<O>,
-//         error?: ValidationErrorInput<I>, 
-//         id?: symbol
-//     ): this
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
+//// Type ////
+
+type Schema<I, O, T extends SchemaSettingsInput<O>> = 
+    SchemaProperties<I, O, T> & 
+    SchemaSetters<I,O,T>
+
+type ValidatorPipe<I, O> = ParamPipe<I, O, [options?: Partial<ValidateOptions>]>
+
+//// Helper ////
+
+function schemaSettingsOutput(input: object): SchemaSettingsOutput<object> {
+
+    const output = { ...input } as Record<string, object>
+    for (const key of keysOf(output)) {
+        if (output[key] instanceof Validate)
+            output[key] = schemaSettingsOutput(output[key])
+    }
+
+    return output
+}
+
+//// Validate ////
+
+function schemaValidator <I,O>(this: { validate: Validate<I, O> }, i: I, options?: Partial<ValidateOptions>): O {
+    const ctx = new ValidateContext(i, options)
+    return this.validate(i, ctx)
+}
+
+//// Implementation ////
+
+const Schema = class extends Validate<unknown, unknown> {
+
+    readonly validate: ValidatorPipe<unknown,unknown>
+
+    constructor(settings: object) {
+        super(schemaValidator)
+
+        const validator = Validator.from(settings)
+        this.validate = Pipe.from(validator)
+        ensureAccessors(this, settings)
+    }
+
+    override get name(): string {
+        const [ mainValidator ] = this.validators
+        return mainValidator.name
+    }
+
+    get settings(): SchemaSettingsOutput<object> {
+        const [ mainValidator ] = this.validators
+        return schemaSettingsOutput(mainValidator)
+    }
+
+    //// Validation Interface ////
     
-// }
-
-// type Schema<I, O, T extends AnySchemaSettings> = SchemaCursor<I, O, T> & SchemaProperties<I,O> & SchemaSetters<I, O, T>
-
-// type AnySchema = Schema<unknown, unknown, AnySchemaSettings>
-
-// //// SchemaCursor ////
-
-// interface SchemaConstructor {
-
-//     new <V extends AnyValidate | AnySchemaSettings>(validate: V): ToSchema<V>
-
-// }
-
-// //// Main ////
-
-// const Schema = class extends SchemaCursor<unknown,unknown, AnySchemaSettings> {
-
-//     //// Instance ////
-
-//     constructor(settings: AnySchemaSettings) {
-//         super(settings)
-//     }
-
-//     validates(
-//         input: Partial<AnyValidatorSettings> | AnyValidate
-//     ): this {
-//         let validate = isFunc(input) ? input : Validator.from(input)
+    validates(
+        input: Partial<AnyValidatorSettings> | AnyValidate
+    ): this {
+        let validate = isFunc(input) ? input : Validator.from(input)
         
-//         validate = Pipe.from(
-//             Validator.merge(...this.validators as [AnyValidate], validate)
-//         )
+        validate = Pipe.from(
+            Validator.merge(...this.validators, validate)
+        )
 
-//         return Validator.apply(this, { validate })
-//     }
+        return this.apply({ validate })
+    }
 
-//     asserts(
-//         isValid: ValidatorPredicate<unknown>,
-//         error?: ValidationErrorInput<unknown>
-//     ): this {
-//         return this.validates({
-//             isValid,
-//             error
-//         })
-//     }
+    asserts(
+        isValid: ValidatorPredicate<unknown>,
+        error?: ValidationErrorInput<unknown>
+    ): this {
+        return this.validates({
+            isValid,
+            error
+        })
+    }
 
-//     transforms(
-//         transform: ValidatorTransform<unknown>,
-//         error?: ValidationErrorInput<unknown>
-//     ): this {
-//         return this.validates({
-//             transform,
-//             error
-//         })
-//     }
+    transforms(
+        transform: ValidatorTransform<unknown>,
+        error?: ValidationErrorInput<unknown>
+    ): this {
+        return this.validates({
+            transform,
+            error
+        })
+    }
 
-// } as unknown as SchemaConstructor
+    //// Apply ////
+    
+    override apply(settings: object): this {
+        return Validator.apply(this, settings as AllowedValidatorSettings<this>)
+    }
 
-// //// Exports ////
+    //// Iteration ////
+    
+    get validators(): AnyValidate[] {
+        return Array.from(this)
+    }
 
-// export default Schema 
+    *[Symbol.iterator](): IterableIterator<AnyValidate> {
+        yield* (this as { validate: ValidatorPipe<unknown, unknown> }).validate.transforms
+    }
 
-// export {
-//     Schema,
-//     AnySchema
-// }
+} as SchemaConstructor
+
+//// Exports ////
+
+export default Schema 
+
+export { 
+    Schema,
+    ValidatorPipe
+} 

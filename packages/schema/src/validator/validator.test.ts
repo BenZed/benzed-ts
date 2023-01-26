@@ -2,9 +2,9 @@ import { Validator } from './validator'
 
 import { testValidator } from '../util.test'
 import { isBoolean, isInteger, isString } from '@benzed/util'
+import { copy } from '@benzed/immutable'
 
 import { expectTypeOf } from 'expect-type'
-import { copy } from '@benzed/immutable'
 
 //// Tests ////
 
@@ -50,7 +50,7 @@ describe('construct with extra settings', () => {
             name: 'term',
             numChars: 3,
             isValid: hasEnoughChars,
-            error():string {
+            error(): string {
                 return `Must have ${this.numChars} chars`
             }
         })

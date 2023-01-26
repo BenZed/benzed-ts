@@ -1,6 +1,6 @@
 import { isNumber, isString } from '@benzed/util'
 
-import { Schema } from './schema-v2'
+import { Schema } from './schema'
 
 import { test, describe } from '@jest/globals'
 
@@ -12,8 +12,8 @@ import { ValidationErrorInput, Validator } from '../validator'
 /* eslint-disable 
     @typescript-eslint/ban-types
 */
-
-//// Tests ////
+ 
+//// Tests ////  
 
 describe('construction signatures', () => {
     
