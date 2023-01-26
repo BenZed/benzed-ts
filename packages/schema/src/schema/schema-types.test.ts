@@ -1,4 +1,4 @@
-import { isNumber, isString } from '@benzed/util'
+import { isNumber, isString, nil } from '@benzed/util'
 
 import { Schema } from './schema'
 
@@ -211,18 +211,18 @@ describe('setters', () => {
         (
             range?: boolean | 
             string | 
-            Partial<{ 
-                min: number
-                max: number
-                inclusive: boolean
-                name: string
-                error: ValidationErrorInput<number>
-                round: string | boolean | {
-                    name: string
-                    error: ValidationErrorInput<number>
-                } | undefined
-            }> |
-            ((update: typeof $range) => typeof $range)
+            { 
+                min?: number
+                max?: number
+                inclusive?: boolean
+                name?: string
+                error?: ValidationErrorInput<number>
+                round?: string | boolean | {
+                    name?: string
+                    error?: ValidationErrorInput<number>
+                }
+            } |
+            ((update: typeof $range) => typeof $range) | nil
         ) => 
                 typeof $number
         >()

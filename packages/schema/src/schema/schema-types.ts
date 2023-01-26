@@ -45,7 +45,7 @@ type _SchemaSettingInput<O> =
 
 type _SchemaSubSettings<T extends object> = Infer<{
     [K in _SchemaSettingKeys<T>]: T[K] extends AnyValidate
-        ? _SchemaSubSettings<T[K]> | nil | string | boolean
+        ? Partial<_SchemaSubSettings<T[K]>> | nil | string | boolean
         : T[K]
 }>
 
@@ -92,33 +92,33 @@ export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O>> extend
     
     get settings() : SchemaSettingsOutput<T>
 
-    readonly validate: ValidatorPipe<unknown,unknown>
+    readonly validate: ValidatorPipe<I,O>
 
     get name(): string 
 
     //// Validation Interface ////
     
     validates(
-        input: Partial<AnyValidatorSettings> | AnyValidate
+        input: Partial<ValidatorSettings<O,O>> | Validate<O>
     ): this 
 
     asserts(
-        isValid: ValidatorPredicate<unknown>,
-        error?: ValidationErrorInput<unknown>
+        isValid: ValidatorPredicate<O>,
+        error?: ValidationErrorInput<O>
     ): this 
 
     transforms(
-        transform: ValidatorTransform<unknown>,
-        error?: ValidationErrorInput<unknown>
+        transform: ValidatorTransform<O>,
+        error?: ValidationErrorInput<O>
     ): this 
 
     //// Apply ////
     
-    apply(settings: object): this
+    apply(settings: Partial<SchemaSettingsOutput<T>>): this
 
     //// Iteration ////
     
-    get validators(): AnyValidate[]
+    get validators(): [settingsValidator: Validate<I,O> & T, ...genericValidators: Validate<O,O>[]]
 
 }
 

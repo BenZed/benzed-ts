@@ -43,6 +43,8 @@ type Schema<I, O, T extends SchemaSettingsInput<O>> =
 
 type ValidatorPipe<I, O> = ParamPipe<I, O, [options?: Partial<ValidateOptions>]>
 
+type AnyValidatorPipe = ValidatorPipe<unknown,unknown> 
+
 //// Helper ////
 
 function schemaSettingsOutput(input: object): SchemaSettingsOutput<object> {
@@ -129,12 +131,12 @@ const Schema = class extends Validate<unknown, unknown> {
 
     //// Iteration ////
     
-    get validators(): AnyValidate[] {
-        return Array.from(this)
+    get validators(): [AnyValidate, ...AnyValidate[]] {
+        return Array.from(this) as [AnyValidate, ...AnyValidate[]]
     }
 
     *[Symbol.iterator](): IterableIterator<AnyValidate> {
-        yield* (this as { validate: ValidatorPipe<unknown, unknown> }).validate.transforms
+        yield* (this as { validate: AnyValidatorPipe }).validate.transforms
     }
 
 } as SchemaConstructor

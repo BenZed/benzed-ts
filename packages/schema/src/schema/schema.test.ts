@@ -112,8 +112,7 @@ describe('apply settings', () => {
 
     const $quadrilateral = $triangle.apply({ sides: 4, name: 'quadrilateral' }) 
  
-    type SA = Schema<1,2,{}>['apply']
-    console.log($quadrilateral.settings)
+    console.log($quadrilateral.settings) 
     testValidator($quadrilateral, { input: { sides: 3 }, error: 'quadrilateral must have 4 sides', transform: false})
 
 })

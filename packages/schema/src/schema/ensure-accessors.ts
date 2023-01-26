@@ -81,13 +81,13 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
 
         const newSettings = { [key]: value } as AllowedValidatorSettings<AnySchema>
 
-        const [ settingsValidator, ...rest ] = this
+        const [ settingsValidator, ...rest ] = this.validators
 
         const updatedSettingsValidator = Validator.apply(settingsValidator, newSettings)
 
         const validate = Pipe.from(Validator.merge(updatedSettingsValidator, ...rest))
 
-        return Validator.apply(this, { validate })
+        return this.apply({ validate })
     }
     
     Property.name(setter, `${isValidator ? 'apply' : 'set'}${capitalize(key)}`)
@@ -106,25 +106,25 @@ function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
 
         return accessible ? key : nil
     })
-
     return omit(descriptors, ...nonAccessibleKeys)
-
 }
 
-//// Main ////
+//// Main //// 
 
-function ensureAccessors(cursor: AnySchema, settings: object): void {
+function ensureAccessors(schema: AnySchema, settings: object): void {
 
     const descriptors = getAccessibleDescriptors(settings)
+
+    console.log(descriptors)
 
     for (const key of keysOf(descriptors)) {
 
         const descriptor = descriptors[key]
 
         const name = key === 'name' ? 'named' : key
-        const hasAccessor = name in cursor
+        const hasAccessor = name in schema
         if (!hasAccessor)
-            addAccessor(cursor, descriptor, key, name)
+            addAccessor(schema, descriptor, key, name)
     }
 }
 
