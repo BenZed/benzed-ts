@@ -12,8 +12,7 @@ import {
     Property,
 
     nil,
-    omit,
-    provide,
+    omit
 } from '@benzed/util'
 
 import {
@@ -80,15 +79,13 @@ function resolveId(
     return id as string | symbol | nil
 }
 
-const withId = provide(id => object => $$id in object && object[$$id] === id)
-
 function upsertValidator(
     validators: AnyValidate[],
     validator?: AnyValidate,
-    id?: string | symbol
+    find?: (validator: AnyValidate, index: number, validators: AnyValidate[]) => boolean
 ): AnyValidate[] { 
 
-    const index = id ? validators.findIndex(withId(id)) : -1
+    const index = find ? validators.findIndex(find) : -1
     const hasExisting = index >= 0
 
     if (hasExisting && validator)
@@ -114,7 +111,11 @@ function upsertValidators(
             ? input 
             : Validator.from(input)
 
-        upsertValidator(validators, validator, id)
+        upsertValidator(
+            validators, 
+            validator, 
+            object => $$id in object && object[$$id] === id
+        )
     }
 
     // merge validators into validate method
@@ -230,6 +231,7 @@ const Schema = class extends Validate<unknown, unknown> {
 
             // copy mainValidator
             const newMainValidator = copy(mainValidator as any)
+            defineMainValidatorId(newMainValidator)
 
             // update the subValidator on the mainValidator
             newMainValidator[subKey] = Validator.apply(newMainValidator[subKey], settings)
@@ -244,11 +246,12 @@ const Schema = class extends Validate<unknown, unknown> {
 
                 : nil
             if (refValidator) 
-                Property.define(refValidator, $$sub, { value: subKey, enumerable: false })
-            upsertValidator(validators, refValidator)
+                Property.define(refValidator, $$sub, { value: subKey, enumerable: true })
+            
+            upsertValidator(validators, refValidator, v => $$sub in v && v[$$sub] === subKey)
 
             // upate the schema
-            const validate = Validator.merge(newMainValidator, ...validators)
+            const validate = Pipe.from(newMainValidator, ...validators)
             return Validator.apply(this, { validate } as any)
         } else {
             const newMainValidator = Validator.apply(mainValidator, settings)
