@@ -51,26 +51,33 @@ type _SubValidatorSettings<T extends object> = Infer<{
         : T[K]
 }>
 
-type _ApplySubValidatorSettings<V extends AnyValidate | AnySchema> = 
+type _ApplySubValidatorSettings<V extends AnyValidate | AnySchema | SubValidatorConstructor> = 
     Partial<
     _SubValidatorSettings<V extends Schema<any,any,infer Tx> 
         ? Tx 
-        : V
+        : V extends SubValidatorConstructor<any, infer Vx>
+            ? Vx
+            : V
     >
     >
 
-type _ApplySubValidatorInput<V extends AnyValidate | AnySchema> = 
-    | [enabled?: boolean] 
-    | [update: ((update: V) => V)] 
-    | [error: string]
-    | [settings: _ApplySubValidatorSettings<V>]
+type _ApplySubValidatorInput<V extends AnyValidate | AnySchema | SubValidatorConstructor> = 
+    V extends SubValidatorConstructor<infer A, any> 
+        ? A
+        : [enabled?: boolean] 
+        | [update: ((update: V) => V)] 
+        | [error: string]
+        | [settings: _ApplySubValidatorSettings<V>]
 
 //// Settings Types ////
+
+export type SubValidatorConstructor<A extends unknown[] = any[], R extends AnyValidator = AnyValidator> = 
+    (new (...args: A) => R)
 
 /**
  * Helper type for keeping Schema return types clean on explicitly declared schemas.
  */
-export interface ApplySubValiator<V extends AnyValidate | AnySchema, R extends AnySchema> {
+export interface ApplySubValiator<V extends AnyValidate | AnySchema | SubValidatorConstructor, R extends AnySchema> {
     (...input: _ApplySubValidatorInput<V>): R
 }
 
@@ -79,11 +86,13 @@ export type SchemaSettingsInput<O> = { [key: string]: _SchemaSettingInput<O> }
 export type SchemaSettingsOutput<T extends object> = Infer<{
     [K in _SchemaSettingKeys<T>]: T[K] extends AnyValidate | AnySchema
         ? SchemaSettingsOutput<T[K]> | nil
-        : K extends KeysOf<AnyValidatorSettings>
-            ? T extends ValidatorSettings<infer I, infer O> 
-                ? Exclude<ValidatorSettings<I,O>[K], nil>
+        : T[K] extends SubValidatorConstructor<any, infer V> 
+            ? SchemaSettingsOutput<V> | nil
+            : K extends KeysOf<AnyValidatorSettings>
+                ? T extends ValidatorSettings<infer I, infer O> 
+                    ? Exclude<ValidatorSettings<I,O>[K], nil>
+                    : T[K]
                 : T[K]
-            : T[K]
 }>
 
 export type SchemaMainValidator<I,O,T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> = 
@@ -141,9 +150,12 @@ export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O> | Valid
 
 export type SchemaSetters<I,O,T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> = {
     [K in _SchemaSettingKeys<T> as K extends 'name' ? 'named' : K]: 
-    T[K] extends AnySchema | AnyValidator
-        ? (...args: _ApplySubValidatorInput<T[K]>) => Schema<I,O,T>
-        : (input: T[K]) => Schema<I,O,T>
+    T[K] extends SubValidatorConstructor<infer A>
+    
+        ? (...args: A) => Schema<I,O,T>
+        : T[K] extends AnySchema | AnyValidator
+            ? (...args: _ApplySubValidatorInput<T[K]>) => Schema<I,O,T>
+            : (input: T[K]) => Schema<I,O,T>
 }
 
 //// Schema Constructor Types ////
@@ -156,7 +168,7 @@ export type ToSchemaSettings<I ,O, T extends object> = Infer<{
         ? Exclude<ValidatorSettings<I,O>[K], nil>
 
         // is validator 
-        : T[K] extends Validator<infer Ix, any> | SchemaProperties<infer Ix, any, any>
+        : T[K] extends Validator<infer Ix, any> | SchemaProperties<infer Ix, any, any> | SubValidatorConstructor<any, Validator<infer Ix,any>>
             // output matches input
             ? Ix extends O 
                 ? T[K]

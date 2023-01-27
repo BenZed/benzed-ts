@@ -19,6 +19,9 @@ import { SchemaValidate } from '../../../../schema/src/schema/_old-schema'
 enum MutatorType {
     Optional,
     ReadOnly,
+    Not,
+    // And,
+    // Or,
     Async
 }
 

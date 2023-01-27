@@ -10,7 +10,7 @@ import {
     ValidatorTypeGuard
 } from '../../validator'
 
-import { SchemaSettingsOutput, ToSchemaSettings } from '../schema-types'
+import { SchemaSettingsOutput, SubValidatorConstructor, ToSchemaSettings } from '../schema-types'
 import { Schema, } from '../schema'
 
 //// Types ////
@@ -51,7 +51,7 @@ interface Type<T> extends Schema<unknown, T, ToTypeSettings<T>> {
 
 type TypeValidator<T = unknown> = Validator<unknown, T>
 
-type TypeAddSubValidatorSettings<T, S extends Record<string, AnyValidate>> = 
+type TypeAddSubValidatorSettings<T, S extends Record<string, AnyValidate | SubValidatorConstructor>> = 
     Infer<
     SchemaSettingsOutput<ToTypeSettings<T>> & 
     SchemaSettingsOutput<S>

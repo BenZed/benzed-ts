@@ -21,7 +21,7 @@ testValidator(
 )
 
 testValidator(
-    $string.lower(), 
+    $string.lowerCase(), 
     'lowercase sub validator',
     { input: 'Ace', error: 'ust be in lower case', transform: false },
     { input: 'ace', output: 'ace', transform: false },
@@ -29,19 +29,19 @@ testValidator(
 )
 
 testValidator(
-    $string.lower('No uppercase'),
+    $string.lowerCase('No uppercase'),
     'lowercase sub validator custom error',
     { input: 'Ace', error: 'No uppercase', transform: false },
 )
 
 testValidator(
-    $string.lower().lower(false),
+    $string.lowerCase().lowerCase(false),
     'lowercase sub validator disabled',
     { input: 'Ace', output: 'Ace', transform: false },
 )
 
 testValidator(
-    $string.upper(),
+    $string.upperCase(),
     'uppercase sub validator',
     { input: 'ace', error: 'ust be in upper case', transform: false },
     { input: 'ACE', output: 'ACE', transform: false },
@@ -49,19 +49,19 @@ testValidator(
 )
 
 testValidator(
-    $string.upper('No uppercase'),
+    $string.upperCase('No uppercase'),
     'uppercase sub validator custom error',
     { input: 'Ace', error: 'No uppercase', transform: false },
 )
 
 testValidator(
-    $string.upper().upper(false),
+    $string.upperCase().upperCase(false),
     'uppercase sub validator disabled',
     { input: 'Ace', output: 'Ace', transform: false },
 )
 
 testValidator(
-    $string.camel(), 
+    $string.camelCase(), 
     'camelcase sub validator',
     { input: 'ace of base', error: 'ust be in camel case', transform: false },
     { input: 'ace of base', output: 'aceOfBase', transform: true },
@@ -69,20 +69,31 @@ testValidator(
 ) 
 
 testValidator(
-    $string.camel('Requires camelCase'),
+    $string.camelCase('Requires camelCase'),
     'camelCase sub validator custom error',
     { input: 'ace of base', error: 'Requires camelCase', transform: false },
 )
 
 testValidator(
-    $string.camel().camel(false),
+    $string.camelCase().camelCase(false),
     'camelcase sub validator disabled',
-    { input: 'Ace', output: 'Ace', transform: false },
+    { input: 'ace of base', output: 'ace of base', transform: false },
 )
 
 testValidator(
-    $string.upper('upper case only').lower('lower case only'),
-    'casing sub validators overwrite each other',
+    $string
+        .upperCase('upper case only')
+        .camelCase('camel case only')
+        .lowerCase('lower case only')
+    ,
+    'casing sub validators replace one another',
     { input: 'Ace', output: 'ace', transform: true },
-    { input: 'Ace', error: 'lower case only', transform: false }
+    { input: 'Ace', error: 'lower case only', transform: false },
+)
+
+testValidator(
+    $string.trim(),
+    'trim validator',
+    { input: ' hey ', output: 'hey', transform: true },
+    { input: ' hello ', error: 'must be trimmed', transform: false }
 )
