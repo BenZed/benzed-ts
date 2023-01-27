@@ -17,7 +17,7 @@ testValidator(
     { input: '0', output: '0', transform: false },
 )
 
-testValidator(  
+testValidator(
     $string,
     'cast to string',
     { input: 0, output: '0', },

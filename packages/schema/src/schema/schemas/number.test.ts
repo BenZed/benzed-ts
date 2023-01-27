@@ -1,7 +1,6 @@
 
 import $number from './number'
 import { testValidator } from '../../util.test'
-import { toCamelCase } from '@benzed/string'
 
 //// EsLint ////
 
@@ -16,7 +15,17 @@ testValidator(
     'type of number',
     { input: 0, output: 0, transform: false },
     { input: NaN, error: 'ust be a number', transform: false },
-    { input: false, error: 'ust be a number', transform: false },
+    { input: false, error: 'ust be a number', transform: false }, 
+)
+
+testValidator(  
+    $number,
+    'cast to number',
+    { input: '0', output: 0, },
+    { input: 10n, output: 10, },
+    { input: true, output: 1, },
+    { input: false, output: 0, },
+    { input: 'ace', error: 'ust be a number', },
 )
 
 testValidator(
