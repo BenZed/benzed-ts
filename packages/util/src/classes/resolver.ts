@@ -78,8 +78,8 @@ function resolve<T>(input: T | Promise<T>): Resolver<T> {
     return new Resolver(input)
 }
 
-function doWith<T>(value: T): Resolver<T>
 function doWith<T, F extends Then<T>>(value: T, something: F): Resolved<T,F> 
+function doWith<T>(value: T): Resolver<T>
 function doWith(value: unknown, then?: Then<unknown>): Resolver<unknown> {
 
     const resolver = new Resolver(value)

@@ -39,7 +39,7 @@ describe('created from generic validate method', () => {
 it('created from generic transform', () => {
     const $parse = new Schema((i: string) => parseInt(i)).asserts(i => !Number.isNaN(i), v => `Could not convert "${v}" into a number.`)
 
-    expect($parse('1')).toEqual(1)
+    expect($parse('1')).toEqual(1) 
     expect(() => $parse('ace')).toThrow('Could not convert "ace" into a number.')
 })
 
@@ -229,15 +229,10 @@ describe('settings', () => {
 
     const $youngPersonAge = $age.range({ min: 18, max: 35 })
 
-    it('settings for uninitialized validators not included', () => {
-        expect($age .settings).toEqual({ 
-            name: 'age'
-        })
-    })
-
     it('settings for initialized validators included', () => {
         expect($youngPersonAge.settings).toEqual({
             name: 'age',
+            error: expect.any(Function),
             range: {
                 name: 'range',
                 error: expect.any(Function),
@@ -252,7 +247,8 @@ describe('settings', () => {
         // validator removed
         const $age2 = $youngPersonAge.range(false)
         expect($age2.settings).toEqual({
-            name: 'age'
+            name: 'age',
+            error: expect.any(Function)
         })
     })
 
@@ -260,6 +256,7 @@ describe('settings', () => {
         const $negative = $number.range(r => Validator.apply(r, { max: 0 }))
         expect($negative.settings).toEqual({
             name: 'number',
+            error: expect.any(Function),
             range: {
                 name: 'range',
                 error: expect.any(Function),

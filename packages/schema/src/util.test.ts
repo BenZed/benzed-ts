@@ -82,7 +82,7 @@ export const testValidator = <V extends AnyValidate>(
         describe(description, () => {
             runTests(validator, ...tests as ValidationTest<V>[])
         })
-    }
-
+    } else 
+        runTests(validator, ...tests as ValidationTest<V>[])
 }
 

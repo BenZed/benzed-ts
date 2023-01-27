@@ -1,7 +1,8 @@
 
-import { nil, Transform } from '@benzed/util'
+import { Infer, nil, Transform } from '@benzed/util'
 
 import {
+    AnyValidate,
     ValidateContext,
     ValidationErrorInput,
     Validator,
@@ -9,7 +10,7 @@ import {
     ValidatorTypeGuard
 } from '../../validator'
 
-import { ToSchemaSettings } from '../schema-types'
+import { SchemaSettingsOutput, ToSchemaSettings } from '../schema-types'
 import { Schema, } from '../schema'
 
 //// Types ////
@@ -50,6 +51,12 @@ interface Type<T> extends Schema<unknown, T, ToTypeSettings<T>> {
 
 type TypeValidator<T = unknown> = Validator<unknown, T>
 
+type TypeAddSubValidatorSettings<T, S extends Record<string, AnyValidate>> = 
+    Infer<
+    SchemaSettingsOutput<ToTypeSettings<T>> & 
+    SchemaSettingsOutput<S>
+    >
+
 //// Settings ////
 
 type DefaultTypeSettings<T> = Omit<TypeSettings<T>, 'isValid'> & { transform: ValidatorTransform<unknown, T> }
@@ -77,11 +84,12 @@ const defaultTypeSettings: DefaultTypeSettings<unknown> = {
 //// Exports ////
 
 export {
-    Type,
     Cast,
     Default,
     TypeSettings,
     ToTypeSettings,
+    Type,
+    TypeAddSubValidatorSettings,
 
     DefaultTypeSettings,
     defaultTypeSettings

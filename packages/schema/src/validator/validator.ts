@@ -7,6 +7,7 @@ import { ValidationError, ValidationErrorInput } from './validate-error'
 import ValidateContext from './validate-context'
 import validatorFrom from './validator-from'
 import validatorMerge from './validator-merge'
+import { $$id } from '../symbols'
 
 //// EsLint ////
 
@@ -16,7 +17,7 @@ import validatorMerge from './validator-merge'
 
 //// Helper Types ////
 
-const VALIDATOR_DISALLOWED_SETTINGS_KEYS = ['isValid', 'transform'] as const
+const VALIDATOR_DISALLOWED_SETTINGS_KEYS = ['isValid', 'transform', 'id'] as const
 type _ValidatorDisallowedSettingsKeys = typeof VALIDATOR_DISALLOWED_SETTINGS_KEYS[number]
 
 type _ValidatorFromSettings<S extends AnyValidatorSettings> = 
@@ -29,6 +30,7 @@ type _ValidatorSettingExtensions<S extends AnyValidatorSettings> = Infer<{
 //// Settings Types ////
 
 interface ValidatorSettings<I, O> {
+    id?: symbol 
     name?: string
     error?: ValidationErrorInput<I>
     isValid?: O extends I 
@@ -48,7 +50,7 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 //// Validator Types ////
 
-interface Validator<I, O = I> extends Validate<I,O> { 
+interface Validator<I, O = I> extends Validate<I,O> {
     name: string
     error(): string
     isValid(input: I, ctx: ValidateContext<I>): boolean
@@ -120,13 +122,19 @@ const Validator = class extends Validate<unknown, unknown> {
     static merge = validatorMerge
 
     constructor(
-        { name, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
+        { name, id, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
     ) {
 
         super(validate)
         this.name = name ?? this.constructor.name
 
         Property.transpose(settings, this)
+
+        // ensure error is counted as state if it wasn't provided
+        Property.configure(this, 'error', { enumerable: true })
+
+        if (id)
+            Property.configure(this, $$id, { value: id, enumerable: true })
     }
 
     override [CallableStruct.$$assign](state: StructAssignState<this>): StructAssignState<this> {

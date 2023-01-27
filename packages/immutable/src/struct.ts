@@ -43,9 +43,7 @@ function applyExistingState<S extends Struct>(struct: S, state: StructAssignStat
 }
 
 function applyNewState<S extends Struct>(struct: S, state: Partial<StructState<S>>): S {
-
     const newState = struct[$$assign](state)
-
     return assign(struct, newState) as S
 }
 

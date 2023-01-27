@@ -51,9 +51,7 @@ type _SubValidatorSettings<T extends object> = Infer<{
         : T[K]
 }>
 
-//// Settings Types ////
-
-export type ApplySubValidatorSettings<V extends AnyValidate | AnySchema> = 
+type _ApplySubValidatorSettings<V extends AnyValidate | AnySchema> = 
     Partial<
     _SubValidatorSettings<V extends Schema<any,any,infer Tx> 
         ? Tx 
@@ -61,11 +59,20 @@ export type ApplySubValidatorSettings<V extends AnyValidate | AnySchema> =
     >
     >
 
-export type ApplySubValidatorInput<V extends AnyValidate | AnySchema> = 
-    ((update: V) => V) | // update method
-    boolean | // enabled shorthand
-    string | // error shorthand
-    ApplySubValidatorSettings<V> // explicit options
+type _ApplySubValidatorInput<V extends AnyValidate | AnySchema> = 
+    | [enabled?: boolean] 
+    | [update: ((update: V) => V)] 
+    | [error: string]
+    | [settings: _ApplySubValidatorSettings<V>]
+
+//// Settings Types ////
+
+/**
+ * Helper type for keeping Schema return types clean on explicitly declared schemas.
+ */
+export interface ApplySubValiator<V extends AnyValidate | AnySchema, R extends AnySchema> {
+    (...input: _ApplySubValidatorInput<V>): R
+}
 
 export type SchemaSettingsInput<O> = { [key: string]: _SchemaSettingInput<O> }
 
@@ -79,13 +86,15 @@ export type SchemaSettingsOutput<T extends object> = Infer<{
             : T[K]
 }>
 
-export type SchemaMainValidator<I,O,T extends SchemaSettingsInput<O>> = Validate<I,O> & T
+export type SchemaMainValidator<I,O,T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> = 
+    Validate<I,O> & T
 
 //// Schema Types ////
 
 export type AnySchema = SchemaProperties<any,any,any>
 
-export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O>> extends Validate<I,O>, Struct, Iterable<Validate<unknown>>{
+export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> extends 
+    Validate<I,O>, Struct, Iterable<Validate<unknown>>{
     
     get settings() : SchemaSettingsOutput<T>
 
@@ -119,10 +128,10 @@ export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O>> extend
 
 }
 
-export type SchemaSetters<I,O,T extends SchemaSettingsInput<O>> = {
+export type SchemaSetters<I,O,T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> = {
     [K in _SchemaSettingKeys<T> as K extends 'name' ? 'named' : K]: 
     T[K] extends AnySchema | AnyValidator
-        ? (input?: ApplySubValidatorInput<T[K]>) => Schema<I,O,T>
+        ? (...args: _ApplySubValidatorInput<T[K]>) => Schema<I,O,T>
         : (input: T[K]) => Schema<I,O,T>
 }
 
@@ -160,6 +169,6 @@ export type ToSchema<T extends AnyValidate | AnyValidatorSettings> = T extends V
 export interface SchemaConstructor {
 
     new <V extends AnyValidate | AnyValidatorSettings>(validate: V): ToSchema<V>
-    new <I, O, T extends ValidatorSettings<I,O>>(settings: T): Schema<I,O,T>
+    new <I, O, T extends ValidatorSettings<I,O>>(settings: T): Schema<I, O, T>
 
 }

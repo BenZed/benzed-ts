@@ -11,6 +11,7 @@ import {
     isFunc,
     Func,
 } from '@benzed/util'
+import { $$subConfig } from '../symbols'
 
 import { 
     Validate, 
@@ -24,10 +25,6 @@ import { AnySchema } from './schema-types'
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
-
-//// Data ////
-
-const $$sub = Symbol('schema-sub-validator')
 
 //// Types ////
 
@@ -63,10 +60,11 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
             const enabled = isBoolean(value) ? value : true
             Property.define(
                 options,
-                $$sub, 
+                $$subConfig, 
                 { 
                     value: [ key, enabled ], 
-                    configurable: true 
+                    configurable: true,
+                    enumerable: true
                 }
             )
         }
@@ -117,6 +115,5 @@ function createAccessors(schema: AnySchema, settings: object): void {
 export default createAccessors
 
 export {
-    createAccessors,
-    $$sub
+    createAccessors
 }

@@ -28,7 +28,9 @@ const numericString = (i: string, options?: Partial<ValidateOptions>): `${number
 
 //// Tests ////
 
-testValidator(numericString, 
+testValidator(
+    numericString,
+    'example validate method',
     { input: '100', output: '100', transform: true },
     { input: '100', output: '100', transform: false },
     { input: '100', output: '100', transform: false },

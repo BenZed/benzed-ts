@@ -1,10 +1,24 @@
 
-import { isBigInt, isNumber, isString } from '@benzed/util'
-import { Validator } from '../../validator'
+import { toCamelCase } from '@benzed/string'
+import { Infer, isBigInt, isFinite, isNumber, isString } from '@benzed/util'
+import { AnyValidate, Validator } from '../../validator'
 
-import { Schema, } from '../schema'
-import { ApplySubValidatorInput } from '../schema-types'
-import { Cast, defaultTypeSettings, DefaultTypeSettings, Type } from './type'
+import { 
+    Schema
+} from '../schema'
+
+import { 
+    ApplySubValiator, SchemaSettingsOutput 
+} from '../schema-types'
+
+import { 
+    Cast, 
+    Type,
+    defaultTypeSettings, 
+    DefaultTypeSettings, 
+    ToTypeSettings,
+    TypeAddSubValidatorSettings
+} from './type'
 
 //// EsLint ////
 
@@ -13,36 +27,74 @@ import { Cast, defaultTypeSettings, DefaultTypeSettings, Type } from './type'
     @typescript-eslint/ban-types
 */
 
-//// Types ////
+//// Sub Validators ////
 
-interface String extends Type<string> {
-    lower(input?: ApplySubValidatorInput<typeof $lower>): this
+const caseSettings = {
+    id: Symbol('case-validator'),
+    name: 'case',
+    error() {
+        return `Must be in ${this.name} case.`
+    }
 }
 
-//// Defaults ////
-
-const castToString: Cast = (input) => 
-    isNumber(input) || isBigInt(input)
-        ? `${input}`
-        : input
-
-//// Validators ////
-
 const $lower = new Validator({
-    name: 'lowercase',
+    ...caseSettings,
+    name: 'lower',
     transform: (i: string) => i.toLowerCase()
 })
 
-//// Schema ////
+const $upper = new Validator({
+    ...caseSettings,
+    name: 'upper',
+    transform: (i: string) => i.toUpperCase()
+})
+
+const $camel = new Validator({
+    ...caseSettings,
+    name: 'camel',
+    transform: (i: string) => toCamelCase(i)
+})
+
+//// String Validation Defaults ////
+
+const castToString: Cast = (i) => 
+    isNumber(i) && isFinite(i) || isBigInt(i)
+        ? `${i}`
+        : i
+
+//// String Schema Type ////
+
+interface String extends Type<string> {
+
+    get settings(): TypeAddSubValidatorSettings<string, {
+        lower: typeof $lower
+        upper: typeof $upper
+        camel: typeof $camel
+    }>
+
+    // Make the return type inference nice
+    lower: ApplySubValiator<typeof $lower, this>
+    upper: ApplySubValiator<typeof $upper, this>
+    camel: ApplySubValiator<typeof $camel, this>
+}
+
+//// String Schema Implementation ////
 
 const $string: String = new Schema({
     ...defaultTypeSettings as DefaultTypeSettings<string>,
+
     name: 'string',
+
+    error(): string {
+        return `Must be a ${this.name}`
+    },
 
     isValid: isString,
     cast: castToString,
 
-    lower: $lower
+    lower: $lower,
+    upper: $upper,
+    camel: $camel,
 })
 
 //// Exports ////
