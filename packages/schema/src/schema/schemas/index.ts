@@ -7,6 +7,9 @@ export { default as $number } from './number'
 export * from './string'
 export { default as $string } from './string'
 
+export * from './symbol'
+export { default as $symbol } from './symbol'
+
 export * from './unknown'
 export { default as $unknown } from './unknown'
 
