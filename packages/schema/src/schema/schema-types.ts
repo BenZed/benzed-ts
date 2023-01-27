@@ -105,17 +105,28 @@ export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O> | Valid
     //// Validation Interface ////
     
     validates(
-        input: Partial<ValidatorSettings<O,O>> | Validate<O>
+        input: Partial<ValidatorSettings<O,O>> | Validate<O>,
+        id?: symbol
     ): this 
 
     asserts(
         isValid: ValidatorPredicate<O>,
-        error?: ValidationErrorInput<O>
+        id?: symbol
+    ): this 
+    asserts(
+        isValid: ValidatorPredicate<O>,
+        error?: ValidationErrorInput<O>,
+        id?: symbol
     ): this 
 
     transforms(
         transform: ValidatorTransform<O>,
-        error?: ValidationErrorInput<O>
+        id?: symbol
+    ): this 
+    transforms(
+        transform: ValidatorTransform<O>,
+        error?: ValidationErrorInput<O>,
+        id?: symbol
     ): this 
 
     //// Apply ////

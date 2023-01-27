@@ -1,6 +1,6 @@
 import { Schema } from './schema'
 
-import { Infer, isFinite, isString } from '@benzed/util'
+import { Infer, isFinite, isNumber, isString, pass } from '@benzed/util'
 
 import { 
     ValidationErrorMessage, 
@@ -270,5 +270,49 @@ describe('settings', () => {
             { input: 5, error: 'Must be below 0', transform: false, },
         )
     })
+})
 
+describe('validtor ids on generic validators', () => {
+
+    const $range = new Schema({
+
+        name: 'range',
+
+        transform(input: number[]): [number, number] {
+            return (input.length > 2 
+                ? input.slice(0,2)
+                : input) as [number, number]
+        },
+
+        isValid(input: number[]): boolean {
+            return input.length === 2 && input.every(isNumber)
+        },
+        error: 'Must be a tuple with two nunbers'
+    })
+
+    testValidator(
+        $range,
+        { input: [1,2,3], output: [1,2], transform: true },
+        { input: [1,2,3], error: 'ust be a tuple', transform: false },
+        { input: [1], error: 'ust be a tuple', transform: true },
+    )
+
+    const $$positive = Symbol('positive-range-validator')
+
+    const $positiveRange = $range.asserts(
+        r => r.every(i => i > 0), 
+        'Beginning and end must be positive', 
+        $$positive
+    )
+
+    testValidator(
+        $positiveRange,
+        { input: [ -1, 1 ], error: 'must be positive', transform: true },
+        { input: [ 1, -1 ], error: 'must be positive', transform: true },
+    )
+
+    testValidator(
+        $positiveRange.asserts(pass, $$positive), // disable it
+        { input: [ 1, -1 ], output: [1, -1], transform: true },
+    )
 })

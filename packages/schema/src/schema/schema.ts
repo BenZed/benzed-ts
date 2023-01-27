@@ -1,5 +1,6 @@
 
-import { $$copy, copy } from '@benzed/immutable'
+import { pluck } from '@benzed/array'
+import { $$copy, copy, sort } from '@benzed/immutable'
 import {
     isFunc,
     isString,
@@ -13,7 +14,8 @@ import {
 
     nil,
     omit,
-    provide
+    provide,
+    defined
 } from '@benzed/util'
 import { $$id, $$mainId, $$subConfig } from '../symbols'
 
@@ -79,6 +81,18 @@ function resolveId(
     return id as string | symbol | nil
 }
 
+function sortIdErrorArgs(
+    args: [error?: ValidationErrorInput<unknown>, id?: symbol] | [id?: symbol]
+): { 
+        error?: ValidationErrorInput<unknown> 
+        id?: symbol 
+    } {
+    const [id] = pluck(args, isSymbol) as [symbol?]
+    const [error] = args as [ValidationErrorInput<unknown>?]
+
+    return defined({ id, error })
+}
+
 function upsertValidator(
     validators: AnyValidate[],
     validator?: AnyValidate,
@@ -107,11 +121,11 @@ function upsertValidators(
 
     for (const input of inputs) {
 
-        const id = resolveId(input)
-
         const validator = isFunc(input) 
             ? input 
             : Validator.from(input)
+
+        const id = resolveId(validator)
 
         upsertValidator(
             validators, 
@@ -189,7 +203,7 @@ const Schema = class extends Validate<unknown, unknown> {
     //// Validation Interface ////
     
     validates(
-        input: Partial<AnyValidatorSettings> | AnyValidate
+        input: Partial<AnyValidatorSettings> | AnyValidate,
     ): this {
 
         const validate = upsertValidators(this.validators, [input])
@@ -200,21 +214,22 @@ const Schema = class extends Validate<unknown, unknown> {
 
     asserts(
         isValid: ValidatorPredicate<unknown>,
-        error?: ValidationErrorInput<unknown>
+        ...args: [error?: ValidationErrorInput<unknown>, id?: symbol] | [id?: symbol]
     ): this {
+        
         return this.validates({
             isValid,
-            error
+            ...sortIdErrorArgs(args)
         })
     }
 
     transforms(
         transform: ValidatorTransform<unknown>,
-        error?: ValidationErrorInput<unknown>
+        ...args: [error?: ValidationErrorInput<unknown>, id?: symbol] | [id?: symbol]
     ): this {
         return this.validates({
             transform,
-            error
+            ...sortIdErrorArgs(args)
         })
     }
 
