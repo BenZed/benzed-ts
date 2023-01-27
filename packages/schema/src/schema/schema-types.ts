@@ -63,8 +63,8 @@ type _ApplySubValidatorSettings<V extends AnyValidate | AnySchema | SubValidator
 
 type _ApplySubValidatorInput<V extends AnyValidate | AnySchema | SubValidatorConstructor> = 
     V extends SubValidatorConstructor<infer A, any> 
-        ? A
-        : [enabled?: boolean] 
+        ? [enabled: boolean] | A
+        : [enabled?: boolean]
         | [update: ((update: V) => V)] 
         | [error: string]
         | [settings: _ApplySubValidatorSettings<V>]

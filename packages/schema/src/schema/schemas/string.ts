@@ -1,5 +1,5 @@
 
-import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
+import { inputToOutput, isBigInt, isFinite, isNumber, isString } from '@benzed/util'
 import { toCamelCase } from '@benzed/string'
 
 import { ValidateContext, ValidationErrorInput } from '../../validator'
@@ -64,38 +64,32 @@ const Trim = new class Trim extends SubValidator<string> {
 }({ name: 'trimmed' })
 
 class EndsWith extends ValueValidator<string> {
-    constructor(value: string, settings?: SubValidatorSettings<string>) {
-        super(value, { 
-            name: 'ends-with', 
-            ...settings 
-        })
+    constructor(value: string, error?: ValidationErrorInput<string>, name = `ends-with-${value}`) {
+        super(value, { error, name })
     }
     override error(): string {
         return `Must end with ${this.value}`
     }
-    override isValid(input: string): boolean {
-        return input.endsWith(this.value)
+    override transform(input: string): string {
+        return input.endsWith(this.value) ? input : input + this.value 
     }
 }
 
 class StartsWith extends ValueValidator<string> {
-    constructor(value: string, settings?: SubValidatorSettings<string>) {
-        super(value, settings)
+    constructor(value: string, error?: ValidationErrorInput<string>, name = `starts-with-${value}`) {
+        super(value, { error, name })
     }
     override error(): string {
         return `Must start with ${this.value}`
     }
-    override isValid(input: string): boolean {
-        return input.startsWith(this.value)
+    override transform(input: string): string {
+        return input.startsWith(this.value) ? input : this.value + input
     }
 }
 
 class Includes<T extends { length: number } = string> extends ValueValidator<T> {
-    constructor(value: T, settings?: SubValidatorSettings<T>) {
-        super(value, { 
-            name: 'includes', 
-            ...settings 
-        })
+    constructor(value: T, error?: ValidationErrorInput<T>, name = `starts-with-${value}`) {
+        super(value, { name, error })
     }
     equals(input: T, ctx: ValidateContext<T>): boolean {
         void ctx
@@ -162,7 +156,15 @@ const $string = new Schema({
 
 }) as String
 
-const $hashTag = $string.startsWith('#', { error: 'Must be a hash-tag' })
+const $hashTag = $string
+    .startsWith('#', 'Must be a hash-tag')
+    .startsWith(false)
+    .validates({
+        name: 'shouting',
+        transform(input: string): string {
+            return input.endsWith('!') ? input.replace(/\!$/, '') : input
+        }
+    })
 
 //// Exports ////
 
