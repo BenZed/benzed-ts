@@ -41,38 +41,33 @@ type _SchemaDisallowedSettingKeys = typeof SCHEMA_DISALLOWED_SETTINGS[number]
 type _SchemaSettingKeys<T> = Exclude<KeysOf<T>, _SchemaDisallowedSettingKeys>
 
 type _SchemaSettingInput<O> = 
-    SchemaProperties<O, O, any> | Validate<O, O> | object | string | number | boolean | bigint | symbol | Func
+    | SchemaProperties<O, O, any>
+    | Validate<O, O>
+    | object | string | number | boolean | bigint | symbol | Func | nil
 
-type _SchemaSubSettings<T extends object> = Infer<{
+type _SubValidatorSettings<T extends object> = Infer<{
     [K in _SchemaSettingKeys<T>]: T[K] extends AnyValidate
-        ? Partial<_SchemaSubSettings<T[K]>> | nil | string | boolean
+        ? Partial<_SubValidatorSettings<T[K]>> | nil | string | boolean
         : T[K]
 }>
 
-type _ValidatorSetter<I,O,T extends SchemaSettingsInput<O>,V extends AnyValidate> = 
-/**/ (input?: 
-/**/ string | // error shorthand
-/**/ boolean | // enabled shorthand
-/**/ ((update: V) => V) | // update method shorthand 
-/**/ Partial<_SchemaSubSettings<V>> // explicit options
-/**/ ) => Schema<I,O,T>
-
-type _SchemaSetter<I, O, T extends SchemaSettingsInput<O>, S extends AnySchema> = 
-    S extends Schema<any,any,infer Tx>
-        ? Infer<
-        /**/ (input?: 
-        /**/ boolean | // enabled shorthand
-        /**/ string | // error shorthand
-        /**/ Partial<_SchemaSubSettings<Tx>> | // explicit options
-        /**/ ((update: S) => S) // update method
-        /**/ ) => Schema<I,O,T>>
-        : S
-
-type _OptionSetter<I,O,T extends SchemaSettingsInput<O>, V> = (input: V) => Schema<I,O,T>
-
 //// Settings Types ////
 
-export type SchemaSettingsInput<O> = Record<string, _SchemaSettingInput<O>>
+export type ApplySubValidatorSettings<V extends AnyValidate | AnySchema> = 
+    Partial<
+    _SubValidatorSettings<V extends Schema<any,any,infer Tx> 
+        ? Tx 
+        : V
+    >
+    >
+
+export type ApplySubValidatorInput<V extends AnyValidate | AnySchema> = 
+    ((update: V) => V) | // update method
+    boolean | // enabled shorthand
+    string | // error shorthand
+    ApplySubValidatorSettings<V> // explicit options
+
+export type SchemaSettingsInput<O> = { [key: string]: _SchemaSettingInput<O> }
 
 export type SchemaSettingsOutput<T extends object> = Infer<{
     [K in _SchemaSettingKeys<T>]: T[K] extends AnyValidate | AnySchema
@@ -125,11 +120,10 @@ export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O>> extend
 }
 
 export type SchemaSetters<I,O,T extends SchemaSettingsInput<O>> = {
-    [K in _SchemaSettingKeys<T> as K extends 'name' ? 'named' : K]: T[K] extends AnySchema
-        ? _SchemaSetter<I,O,T,T[K]>
-        : T[K] extends AnyValidator
-            ? _ValidatorSetter<I,O,T,T[K]>
-            : _OptionSetter<I,O,T,T[K]>
+    [K in _SchemaSettingKeys<T> as K extends 'name' ? 'named' : K]: 
+    T[K] extends AnySchema | AnyValidator
+        ? (input?: ApplySubValidatorInput<T[K]>) => Schema<I,O,T>
+        : (input: T[K]) => Schema<I,O,T>
 }
 
 //// Schema Constructor Types ////
@@ -152,6 +146,7 @@ export type ToSchemaSettings<I ,O, T extends object> = Infer<{
             
             // is whatever else
             : T[K]
+
 }, SchemaSettingsInput<O>>
 
 export type ToSchema<T extends AnyValidate | AnyValidatorSettings> = T extends Validate<infer I, infer O> 
@@ -165,6 +160,6 @@ export type ToSchema<T extends AnyValidate | AnyValidatorSettings> = T extends V
 export interface SchemaConstructor {
 
     new <V extends AnyValidate | AnyValidatorSettings>(validate: V): ToSchema<V>
-    new <I,O,T extends SchemaSettingsInput<O>>(settings: T): Schema<I,O,T>
+    new <I, O, T extends ValidatorSettings<I,O>>(settings: T): Schema<I,O,T>
 
 }

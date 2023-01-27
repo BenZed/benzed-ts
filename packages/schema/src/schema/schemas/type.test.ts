@@ -4,6 +4,6 @@ import { test, it, expect, describe } from '@jest/globals'
 
 //// Tests ////
 
-test(`${Type.name}`, () => {
+it('schema with sensible defaults for types', () => {
     
 })

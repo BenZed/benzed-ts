@@ -1,31 +1,88 @@
-import { isString, nil, pass, resolve } from '@benzed/util'
-import { ValidateContext, ValidatorTransform } from '../../validator'
-import Schema from '../schema'
 
-interface TypeSettings<T> {}
+import { nil, Transform } from '@benzed/util'
 
+import {
+    ValidateContext,
+    ValidationErrorInput,
+    Validator,
+    ValidatorTransform,
+    ValidatorTypeGuard
+} from '../../validator'
+
+import { ToSchemaSettings } from '../schema-types'
+import { Schema, } from '../schema'
+
+//// Types ////
+
+/**
+ * Attempt to convert the input type to the desired type
+ */
 type Cast = ValidatorTransform<unknown>
 
-class Type<T> extends Schema<unknown, T, TypeSettings<T>> {
+/**
+ * Provide a default if the input is undefined
+ */
+type Default<T> = Transform<ValidateContext<nil>, T | nil>
+
+interface TypeSettings<T> {
+
+    name: string 
+
+    isValid: ValidatorTypeGuard<unknown,T>
+
+    error?: ValidationErrorInput<unknown>
+    cast?: Cast
+    default?: Default<T>
 
 }
 
-const $type = new Schema({
+type ToTypeSettings<T> = ToSchemaSettings<unknown, T, TypeSettings<T>>
 
-    isValid: isString,
+interface Type<T> extends Schema<unknown, T, ToTypeSettings<T>> {
 
-    transform(input: unknown, ctx: ValidateContext<unknown>) {
-        if (!this.isValid(input) && this.cast)
-            input = this.cast(input, ctx)
+    // overridden to make the type inference nicer
+    named(name: string): this
+    cast(caster?: Cast): this
+    default(defaulter?: Default<T>): this
+    error(error: ValidationErrorInput<unknown>): this
 
-        if (input === nil && this.default)
-            input = this.default(input, ctx)
+}
 
-        return input
+type TypeValidator<T = unknown> = Validator<unknown, T>
+
+//// Settings ////
+
+type DefaultTypeSettings<T> = Omit<TypeSettings<T>, 'isValid'> & { transform: ValidatorTransform<unknown, T> }
+const defaultTypeSettings: DefaultTypeSettings<unknown> = {
+
+    name: 'unknown',
+
+    error(): string {
+        return `Must be of type ${this.name}`
     },
 
-    default: nil as ValidatorTransform<unknown> | nil,
+    transform (input: unknown, ctx: ValidateContext<unknown>): unknown {
 
-    cast: nil as ValidatorTransform<unknown> | nil
+        if (input === nil && this.default)
+            input = this.default(ctx as ValidateContext<nil>)
 
-})
+        if (!(this as TypeValidator).isValid(input, ctx) && this.cast)
+            input = this.cast(input, ctx)
+
+        return input
+    }
+
+}
+
+//// Exports ////
+
+export {
+    Type,
+    Cast,
+    Default,
+    TypeSettings,
+    ToTypeSettings,
+
+    DefaultTypeSettings,
+    defaultTypeSettings
+}

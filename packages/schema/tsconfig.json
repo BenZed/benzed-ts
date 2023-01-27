@@ -3,9 +3,7 @@
     "compilerOptions": {
         "outDir": "./lib",
     },
-    "include": [
-        "./src"
-, "_old-schema"    ],
+    "include": ["./src" ],
     "exclude": [
         "./src/**/*.test.ts"
     ]

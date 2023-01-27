@@ -1,44 +1,39 @@
-import { isFinite } from '@benzed/util'
-import { Validator } from '../validator'
+import { isSortable, Sortable, by } from '@benzed/util'
+import { ValidationErrorInput } from '../validator/validate-error'
+import Validator from '../validator/validator'
 
-//// Interview ////
+//// TODO: Implement ////
 
-const _range = new Validator({
+//// Settings ////
 
-    name: 'range',
+interface RangeSettings<T extends Sortable> {
+    readonly inclusive: boolean
+    readonly min: T
+    readonly max: T
+}
 
-    error() {
-        const hasMax = isFinite(this.max)
-        const hasMin = isFinite(this.min)
-        const inc = this.inclusive 
+interface RangeValidatorSettings<T extends Sortable> extends Required<RangeSettings<T>> {
+    readonly error?: ValidationErrorInput<T>
+    readonly name: string
+}
 
-        const detail = hasMin && hasMax 
-            ? `between ${this.min} and ${inc ? 'equal to ' : ''}${this.max}`
-            : hasMin 
-                ? `equal or above ${this.min}`
-                : `${inc ? 'equal to or ' : ''}below ${this.max}`
+type UnaryComparator = '>=' | '>' | '<' | '<='
+type BinaryComparator = '..' | '...'
 
-        return `Must be ${detail}` 
-    },
+type RangeValidatorParams<T extends Sortable> = 
+    | [comparator: UnaryComparator, value: T]
+    | [min: T, max: T]
+    | [min: T, comparator: BinaryComparator, max: T]
 
-    isValid(input: number) {
-        return input >= this.min && (
-            this.inclusive 
-                ? input <= this.max
-                : input < this.max
-        )
-    },
+//// Implementation ////
 
-    inclusive: false,
-    min: -Infinity,
-    max: Infinity
-
-})
-
-type _RangeValidator = typeof _range
+class RangeValidator<T extends Sortable> extends Validator<T,T> implements RangeValidatorSettings<T> {}
 
 //// Exports ////
 
-export interface RangeValidator extends _RangeValidator {}
+export default RangeValidator
 
-export const $range: RangeValidator = _range
+export {
+    RangeValidator,
+    RangeValidatorSettings
+}

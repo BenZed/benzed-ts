@@ -48,18 +48,18 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 //// Validator Types ////
 
-interface Validator<I, O> extends Validate<I,O> { 
+interface Validator<I, O = I> extends Validate<I,O> { 
     name: string
     error(): string
     isValid(input: I, ctx: ValidateContext<I>): boolean
-    transform(input: I, ctx: ValidateContext<I>): O
+    transform(input: I, ctx: ValidateContext<I>): O | I
 }
 
 type AnyValidator = Validator<any,any>
 
 type AllowedValidatorSettings<T extends object> = Omit<StructAssignState<T>, _ValidatorDisallowedSettingsKeys>
-type ValidatorPredicate<I> = ParamTransform<I, boolean, [ValidateContext<I>]>
-type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ValidateContext<I>]>
+type ValidatorPredicate<I> = ParamTransform<I, boolean, [ctx: ValidateContext<I>]>
+type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ctx: ValidateContext<I>]>
 type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
 
 //// Validator Constructor Types ////
