@@ -7,8 +7,8 @@ interface SubValidatorSettings<T> extends Pick<ValidatorSettings<T,T>, 'error' |
 //// Main ////
 
 class SubValidator<T> extends Validator<T,T> {
-    constructor(settings: SubValidatorSettings<T>) {
-        super(settings)
+    constructor(settings?: SubValidatorSettings<T>) {
+        super({...settings})
     }
 }
 

@@ -65,7 +65,7 @@ const defaultTypeSettings: DefaultTypeSettings<unknown> = {
     name: 'unknown',
 
     error(): string {
-        return `Must be of type ${this.name}`
+        return `Must be a ${this.name}`
     },
 
     transform (input: unknown, ctx: ValidateContext<unknown>): unknown {

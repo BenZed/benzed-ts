@@ -1,10 +1,11 @@
-import { isString, safeJsonStringify } from '@benzed/util'
+import { isPrimitive, isString } from '@benzed/util'
 import { pluck } from '@benzed/array'
 
 import { AnyValidate, ValidateInput, ValidateOutput } from './validator'
 import { ValidationError } from './validator/validate-error'
 
 import { expect, describe, it } from '@jest/globals'
+import { valid } from 'semver'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -21,38 +22,40 @@ type ValidationTest<V extends AnyValidate> =
     }))
 
 //// Helper ////
-    
+
+const print = (input: unknown):string => isPrimitive(input) 
+    ? String(input) 
+    : JSON.stringify(input)
+
 function runTests<V extends AnyValidate>(validator: V, ...tests: ValidationTest<V>[]): void {
     for (const test of tests ) {
         const isOutput = 'output' in test 
 
-        const inputStr = safeJsonStringify(test.input)
+        const inputStr = print(test.input)
         const outputStr = isOutput 
-            ? `${safeJsonStringify(test.output)}`
-            : `"${test.error}"`
+            ? `${print(test.output)}`
+            : `"${test.error}"`   
 
         const { transform = true } = test
 
-        const description = isOutput && transform ? 'transforms' : 'asserts'
+        const title = validator.name + 
+            ` ${transform ? 'transform' : 'assert'}` + 
+            ` ${inputStr} ${isOutput ? '->' : 'throws'} ${outputStr}`
 
-        const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
+        it(title, () => {
 
-        describe(validator.name + ' ' + description, () => {
-            it(title, () => {
-
-                let validated: any
-    
-                try {
-                    validated = validator(test.input, { transform })
-                } catch (e) {
-                    validated = e
-                }
-    
-                if (isOutput) 
-                    expect(validated).toEqual(test.output)
-                else 
-                    expect(validated?.message).toContain(test.error)
-            })
+            let validated: any
+        
+            try {
+                validated = validator(test.input, { transform })
+            } catch (e) {
+                validated = e
+            }
+        
+            if (isOutput) 
+                expect(validated).toEqual(test.output)
+            else 
+                expect(validated?.message).toContain(test.error)
         })
     }
 }

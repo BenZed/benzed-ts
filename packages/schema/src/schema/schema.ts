@@ -1,6 +1,6 @@
 
 import { pluck } from '@benzed/array'
-import { $$copy, copy, sort } from '@benzed/immutable'
+import { $$copy, copy } from '@benzed/immutable'
 import {
     isFunc,
     isString,
@@ -10,7 +10,6 @@ import {
 
     ParamPipe,
     Pipe,
-    Property,
 
     nil,
     omit,
@@ -41,7 +40,6 @@ import {
 import { createAccessors } from './create-accessors'
 
 import { 
-    AnySchema,
     SchemaConstructor, 
     SchemaProperties, 
     SchemaSetters, 

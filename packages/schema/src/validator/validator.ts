@@ -114,6 +114,11 @@ function validate<I, O>(this: Required<ValidatorSettings<I, O>>, input: I, optio
 
 }
 
+function toName(constructor: { name: string }): string {
+    const { name } = constructor
+    return name.charAt(0).toLowerCase() + name.slice(1)
+}
+
 //// Implementation ////
 
 const Validator = class extends Validate<unknown, unknown> {
@@ -127,7 +132,7 @@ const Validator = class extends Validate<unknown, unknown> {
     ) {
 
         super(validate)
-        this.name = name ?? this.constructor.name
+        this.name = name ?? toName(this.constructor)
 
         Property.transpose(defined(settings), this)
 
@@ -145,7 +150,7 @@ const Validator = class extends Validate<unknown, unknown> {
     override readonly name: string
 
     error(): string {
-        return this.name === this.constructor.name 
+        return this.name === toName(Validator) 
             ? 'Validation failed.'
             : `Must be ${this.name}.`
     }
