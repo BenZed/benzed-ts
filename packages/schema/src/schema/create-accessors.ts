@@ -11,7 +11,7 @@ import {
     isFunc,
     Func,
 } from '@benzed/util'
-import { $$subConfig } from '../symbols'
+import { $$constructor, $$subConfig, defineSymbol } from '../symbols'
 
 import { 
     Validate, 
@@ -46,27 +46,23 @@ function getSubValidatorOptions(input: SubValidatorInput = {}, setting: any): ob
 
 function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: string, name: string): void {
 
-    const setter = function (this: AnySchema, value: unknown): unknown {
+    const setter = function (this: AnySchema, ...values: unknown[]): unknown {
 
         const [ mainValidator ] = this
         
         const setting = (mainValidator as any)[key]
         const isValidator = setting instanceof Validate
-        const options = isValidator 
-            ? getSubValidatorOptions(value as SubValidatorInput, setting) 
-            : { [key]: value }
+        const isValidatorConstructor = isFunc(setting) && $$constructor in setting
+        const options = isValidatorConstructor 
+            ? {}
+            : isValidator 
+                ? getSubValidatorOptions(values[0] as SubValidatorInput, setting) 
+                : { [key]: values[0] }
 
-        if (isValidator) {
-            const enabled = isBoolean(value) ? value : true
-            Property.define(
-                options,
-                $$subConfig, 
-                { 
-                    value: [ key, enabled ], 
-                    configurable: true,
-                    enumerable: true
-                }
-            )
+        if (isValidator || isValidatorConstructor) {
+            const construct = isValidatorConstructor ? values : nil
+            const enabled = isBoolean(values[0]) && values.length === 1 ? values[0] : true
+            defineSymbol(options, $$subConfig, { key, enabled, construct })
         }
 
         return this.apply(options)
@@ -74,7 +70,15 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
 
     const isValidator = descriptor.value instanceof Validate
     Property.name(setter, `${isValidator ? 'apply' : 'set'}${capitalize(key)}`)
-    Property.define(schema, name, { enumerable: false, value: setter, configurable: true, writable: true })
+    Property.define(
+        schema, 
+        name, 
+        { 
+            enumerable: false, 
+            value: setter, 
+            configurable: true, 
+            writable: true 
+        })
 }
 
 function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {

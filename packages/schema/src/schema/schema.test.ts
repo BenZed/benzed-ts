@@ -164,13 +164,13 @@ describe('sub validators', () => {
             expectTypeOf($lowerString).toEqualTypeOf($string)
         })
 
-        testValidator($lowerString, { input: 0, error: 'Must be string', transform: true })
-        testValidator($lowerString, { input: 'HELLO', output: 'hello', transform: true })
+        testValidator($lowerString, { input: 0, error: 'Must be string', })
+        testValidator($lowerString, { input: 'HELLO', output: 'hello', })
     })
 
     describe('remove sub validator', () => {
         const $string2 = $string.lowercase().lowercase(false)
-        testValidator($string2, { input: 0, error: 'Must be string', transform: true })
+        testValidator($string2, { input: 0, error: 'Must be string', })
         testValidator($string2, { input: 'A', output: 'A', transform: false })
     })
 
@@ -292,9 +292,9 @@ describe('validtor ids on generic validators', () => {
 
     testValidator(
         $range,
-        { input: [1,2,3], output: [1,2], transform: true },
+        { input: [1,2,3], output: [1,2], },
         { input: [1,2,3], error: 'ust be a tuple', transform: false },
-        { input: [1], error: 'ust be a tuple', transform: true },
+        { input: [1], error: 'ust be a tuple', },
     )
 
     const $$positive = Symbol('positive-range-validator')
@@ -307,12 +307,12 @@ describe('validtor ids on generic validators', () => {
 
     testValidator(
         $positiveRange,
-        { input: [ -1, 1 ], error: 'must be positive', transform: true },
-        { input: [ 1, -1 ], error: 'must be positive', transform: true },
+        { input: [ -1, 1 ], error: 'must be positive', },
+        { input: [ 1, -1 ], error: 'must be positive', },
     )
 
     testValidator(
         $positiveRange.asserts(pass, $$positive), // disable it
-        { input: [ 1, -1 ], output: [1, -1], transform: true },
+        { input: [ 1, -1 ], output: [1, -1], },
     )
 })

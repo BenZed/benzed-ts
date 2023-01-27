@@ -29,7 +29,7 @@ describe('construct with default settings', () => {
     })
     expectTypeOf($trim).toEqualTypeOf<Validator<string, string>>()
     testValidator($trim,
-        { input: ' ace ', output: 'ace', transform: true },
+        { input: ' ace ', output: 'ace', },
         { input: ' ace ', error: 'ust be trimmed', transform: false }
     )
 
@@ -113,13 +113,13 @@ describe('construct with extra settings', () => {
         })
 
         testValidator($lowerCase, 
-            { input: 'Ace', output: 'ace', transform: true },
+            { input: 'Ace', output: 'ace', },
             { input: 'Ace', error: 'ust be lower case', transform: false }
         )
 
         const $upperCase = new Validator({ ...$lowerCase, case: 'upper' })
         testValidator($upperCase, 
-            { input: 'Ace', output: 'ACE', transform: true },
+            { input: 'Ace', output: 'ACE', },
             { input: 'Ace', error: 'ust be upper case', transform: false }
         )
 
@@ -152,7 +152,7 @@ describe('isValid typeguard option', () => {
         expectTypeOf($string).toEqualTypeOf<Validator<unknown,string>>()
     })
 
-    testValidator($string, { input: 'hello', output: 'hello', transform: true })
+    testValidator($string, { input: 'hello', output: 'hello', })
     testValidator($string, { input: 'world', output: 'world', transform: false })
     testValidator($string, { input: 0, error: 'Must be string', transform: false })
 
@@ -174,7 +174,7 @@ describe('isValid predicate option', () => {
     })
 
     testValidator($triangle, { input: { sides: 3 }, output: { sides: 3 }, transform: false })
-    testValidator($triangle, { input: { sides: 3 }, output: { sides: 3 }, transform: true })
+    testValidator($triangle, { input: { sides: 3 }, output: { sides: 3 }, })
     testValidator($triangle, { input: { sides: 4 }, error: 'Must be a triangle', transform: false })
 
     it('overridden methods are enumerable', () => {
@@ -194,7 +194,7 @@ describe('transform option', () => {
         expectTypeOf($lowerCaseString).toEqualTypeOf<Validator<string, string>>()
     })
 
-    testValidator($lowerCaseString, { input: 'Hello', output: 'hello', transform: true })
+    testValidator($lowerCaseString, { input: 'Hello', output: 'hello', })
     testValidator($lowerCaseString, { input: 'world', output: 'world', transform: false })
     testValidator($lowerCaseString, { input: 'WHAT', error: 'Must be lower case', transform: false })
 
@@ -223,8 +223,8 @@ describe('transform and isValid predicate', () => {
         expectTypeOf($arrayOfIntegers).toEqualTypeOf<Validator<number[], number[]>>()
     })
 
-    testValidator($arrayOfIntegers, { input: [0.5], output: [0], transform: true })
-    testValidator($arrayOfIntegers, { input: [1], output: [1], transform: true })
+    testValidator($arrayOfIntegers, { input: [0.5], output: [0], })
+    testValidator($arrayOfIntegers, { input: [1], output: [1], })
     testValidator($arrayOfIntegers, { input: [0.5], error: 'Must be an array of integers', transform: false })
 
     it('overridden methods are enumerable', () => {
@@ -253,8 +253,8 @@ describe('transform and isValid typeguard', () => {
         expectTypeOf($id).toEqualTypeOf<Validator<unknown, `id-${number}`>>()
     })
 
-    testValidator($id, { input: 100, output: 'id-100', transform: true })
-    testValidator($id, { input: 'id-100', output: 'id-100', transform: true })
+    testValidator($id, { input: 100, output: 'id-100', })
+    testValidator($id, { input: 'id-100', output: 'id-100', })
 
     it('overridden methods are enumerable', () => {
         expect({ ...$id }).toHaveProperty('transform', $id.transform)
@@ -316,7 +316,7 @@ describe('super validator', () => {
     })
 
     testValidator($buffer, { input: [0], output: [0], transform: false })
-    testValidator($buffer, { input: [5], output: [5], transform: true })
+    testValidator($buffer, { input: [5], output: [5], })
 })
 
 describe('spreading a super validator', () => {

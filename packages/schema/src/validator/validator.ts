@@ -1,13 +1,13 @@
 
 import { CallableStruct, StructAssignState, equals } from '@benzed/immutable'
-import { Empty, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
+import { defined, Empty, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
 
 import { AnyValidate, Validate, ValidateOptions, ValidateConstructor } from './validate'
 import { ValidationError, ValidationErrorInput } from './validate-error'
 import ValidateContext from './validate-context'
 import validatorFrom from './validator-from'
 import validatorMerge from './validator-merge'
-import { $$id } from '../symbols'
+import { $$constructor, $$id, defineSymbol } from '../symbols'
 
 //// EsLint ////
 
@@ -118,8 +118,9 @@ function validate<I, O>(this: Required<ValidatorSettings<I, O>>, input: I, optio
 
 const Validator = class extends Validate<unknown, unknown> {
 
-    static from = validatorFrom
-    static merge = validatorMerge
+    static readonly [$$constructor] = true
+    static readonly from = validatorFrom
+    static readonly merge = validatorMerge
 
     constructor(
         { name, id, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
@@ -128,13 +129,13 @@ const Validator = class extends Validate<unknown, unknown> {
         super(validate)
         this.name = name ?? this.constructor.name
 
-        Property.transpose(settings, this)
+        Property.transpose(defined(settings), this)
 
         // ensure error is counted as state if it wasn't provided
         Property.configure(this, 'error', { enumerable: true })
 
         if (id)
-            Property.configure(this, $$id, { value: id, enumerable: true })
+            defineSymbol(this, $$id, id)
     }
 
     override [CallableStruct.$$assign](state: StructAssignState<this>): StructAssignState<this> {

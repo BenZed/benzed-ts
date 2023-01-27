@@ -2,7 +2,7 @@ import Validator, { ValidatorSettings } from '../validator/validator'
 
 //// Types ////
 
-interface SubValidatorSettings<T> extends Pick<ValidatorSettings<T,T>, 'error' | 'name'> {}
+interface SubValidatorSettings<T> extends Pick<ValidatorSettings<T,T>, 'error' | 'name' | 'id'> {}
 
 //// Main ////
 

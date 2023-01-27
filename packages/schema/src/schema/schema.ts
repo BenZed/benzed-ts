@@ -17,7 +17,7 @@ import {
     provide,
     defined
 } from '@benzed/util'
-import { $$id, $$mainId, $$subConfig } from '../symbols'
+import { $$id, $$mainId, $$subConfig, defineSymbol } from '../symbols'
 
 import {
     AnyValidatorSettings, 
@@ -114,6 +114,8 @@ function upsertValidator(
 
 const withId = provide((id?: string | symbol) => (validator: AnyValidate) => resolveId(validator) === id)
 
+const isEnabled = provide((key: string) => (validator: AnyValidate) => $$subConfig in validator && validator[$$subConfig] === key)
+
 function upsertValidators(
     validators: AnyValidate[],
     inputs: (Partial<AnyValidatorSettings> | AnyValidate)[]
@@ -145,11 +147,12 @@ function schemaSettingsOutput(input: object, validators: AnyValidate[]): SchemaS
     const output = { ...input } as Record<string, object>
     for (const key of keysOf(output)) {
         const isValidator = output[key] instanceof Validate
-        const isEnabled = validators.some(v => $$subConfig in v && v[$$subConfig] === key)
+        const existing = validators.find(isEnabled(key))
 
-        if (isValidator && isEnabled)
-            output[key] = schemaSettingsOutput(output[key], validators)
-        else if (isValidator && !isEnabled)
+        if (isValidator && existing)
+            output[key] = schemaSettingsOutput(existing, validators)
+    
+        else if (isValidator && !existing)
             delete output[key]
     }
 
@@ -162,14 +165,7 @@ function schemaValidator <I,O>(this: { validate: Validate<I, O> }, i: I, options
 }
 
 function defineMainValidatorId(validator: AnyValidate): void {
-    Property.define(
-        validator, 
-        $$id,
-        { 
-            value: $$mainId, 
-            enumerable: false 
-        }
-    )
+    defineSymbol(validator, $$id, $$mainId)
 }
 
 //// Implementation ////
@@ -239,9 +235,9 @@ const Schema = class extends Validate<unknown, unknown> {
 
         const [ mainValidator, ...validators ] = this.validators
 
-        const [ subKey, subEnabled ] = $$subConfig in settings 
-            ? settings[$$subConfig] as [string, boolean]
-            : [nil, false] as const
+        const { key: subKey, enabled: subEnabled, construct } = $$subConfig in settings 
+            ? settings[$$subConfig] as { key?: string, enabled: boolean, construct?: unknown[] }
+            : { key: nil, enabled: true, construct: nil } as const
 
         const isModifyingSubValidator = subKey !== nil
         if (isModifyingSubValidator) {
@@ -250,27 +246,27 @@ const Schema = class extends Validate<unknown, unknown> {
             const newMainValidator = copy(mainValidator as any)
             defineMainValidatorId(newMainValidator)
 
-            // update the subValidator on the mainValidator
-            const newSubValidator = Validator.apply(newMainValidator[subKey], settings)
-            newMainValidator[subKey] = newSubValidator
+            const existingSubValidator = validators.find(isEnabled(subKey))
 
-            // update the refValidator pointing to the subValidator
-            const subValidator = subEnabled
-                ? Property.name(function (this: AnySchema, i: unknown, ctx?: ValidateOptions): unknown {
-                    const subKey = (subValidator as any)[$$subConfig]
-                    const [ mainValidator ] = this.validators
-                    return mainValidator[subKey](i, ctx)
-                }, `${subKey}SubValidatorRef`) as AnyValidate
-
+            const newSubValidator = subEnabled 
+                ? construct 
+                    ? new newMainValidator[subKey](...construct) as AnyValidate
+                    : existingSubValidator 
+                        ? Validator.apply(existingSubValidator, settings)
+                        : Validator.apply(newMainValidator[subKey], settings)
                 : nil
 
-            const id = $$id in newSubValidator ? newSubValidator[$$id] : subKey
-            if (subValidator) {
-                Property.define(subValidator, $$subConfig, { value: subKey, enumerable: false })
-                Property.define(subValidator, $$id, { value: id, enumerable: false })
+            const validatorWithId = existingSubValidator ?? newSubValidator
+            
+            const id = validatorWithId && $$id in validatorWithId 
+                ? validatorWithId[$$id] 
+                : subKey
+
+            if (newSubValidator) {
+                defineSymbol(newSubValidator, $$subConfig, subKey)
+                defineSymbol(newSubValidator, $$id, id)
             }
-                
-            upsertValidator(validators, subValidator, withId(id))
+            upsertValidator(validators, newSubValidator, withId(id)) 
 
             // upate the schema
             const validate = Pipe.from(newMainValidator, ...validators)

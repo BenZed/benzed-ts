@@ -13,7 +13,7 @@ import { expect, describe, it } from '@jest/globals'
 type ValidationTest<V extends AnyValidate> =
     ({ 
         input: ValidateInput<V>
-        transform: boolean 
+        transform?: boolean 
     } & ({ 
         output: ValidateOutput<V>
     } | { 
@@ -31,7 +31,9 @@ function runTests<V extends AnyValidate>(validator: V, ...tests: ValidationTest<
             ? `${safeJsonStringify(test.output)}`
             : `"${test.error}"`
 
-        const description = isOutput && test.transform ? 'transforms' : 'asserts'
+        const { transform = true } = test
+
+        const description = isOutput && transform ? 'transforms' : 'asserts'
 
         const title = `${inputStr} ${isOutput ? 'results in' : 'throws'} ${outputStr}`
 
@@ -41,7 +43,7 @@ function runTests<V extends AnyValidate>(validator: V, ...tests: ValidationTest<
                 let validated: any
     
                 try {
-                    validated = validator(test.input, { transform: test.transform })
+                    validated = validator(test.input, { transform })
                 } catch (e) {
                     validated = e
                 }

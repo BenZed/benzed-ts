@@ -27,11 +27,11 @@ const $trim = new Validator({
 describe('merge 2 validators', () => {
 
     const $lowerString = validatorMerge($string, $lower)
-    testValidator($lowerString, { input: 'Ace', output: 'ace', transform: true })
+    testValidator($lowerString, { input: 'Ace', output: 'ace', })
 
     testValidator($lowerString, { input: 'ace', output: 'ace', transform: false })
 
-    testValidator($lowerString, { input: 0, error: 'Must be string', transform: true })
+    testValidator($lowerString, { input: 0, error: 'Must be string', })
     testValidator($lowerString, { input: 'Ace', error: 'Must be lowercase', transform: false })
 
 })
@@ -39,14 +39,16 @@ describe('merge 2 validators', () => {
 describe('merge 3 validators', () => {
 
     const $lowerTrimString = validatorMerge($string, $trim, $lower)
-    testValidator($lowerTrimString, { input: 0, error: 'Must be string', transform: false })
-    testValidator($lowerTrimString, { input: 'Face', error: 'Must be lowercase', transform: false })
-    testValidator($lowerTrimString, { input: ' face ', error: 'Must be trimmed', transform: false })
+    testValidator($lowerTrimString, 
+        { input: 0, error: 'Must be string', transform: false },
+        { input: 'Face', error: 'Must be lowercase', transform: false },
+        { input: ' face ', error: 'Must be trimmed', transform: false },
+        { input: 'face', output: 'face', transform: false },
+        { input: ' face ', output: 'face', },
+        { input: ' FACE ', output: 'face', },
+        { input: 'FACE', output: 'face', }
+    )
 
-    testValidator($lowerTrimString, { input: 'face', output: 'face', transform: false })
-    testValidator($lowerTrimString, { input: ' face ', output: 'face', transform: true })
-    testValidator($lowerTrimString, { input: ' FACE ', output: 'face', transform: true })
-    testValidator($lowerTrimString, { input: 'FACE', output: 'face', transform: true })
 })
 
 describe('merge 3 settings', () => {
@@ -64,9 +66,11 @@ describe('merge 3 settings', () => {
         }
     )
 
-    testValidator($positiveInteger, { input: '0', error: 'Must be number', transform: false })
-    testValidator($positiveInteger, { input: 0, error: 'Must be positive', transform: false })
-    testValidator($positiveInteger, { input: 1.5, error: 'Must be integer', transform: false })
-    testValidator($positiveInteger, { input: 1.5, output: 1, transform: true })
+    testValidator($positiveInteger, 
+        { input: '0', error: 'Must be number', transform: false },
+        { input: 0, error: 'Must be positive', transform: false },
+        { input: 1.5, error: 'Must be integer', transform: false },
+        { input: 1.5, output: 1, }
+    )
 
 })

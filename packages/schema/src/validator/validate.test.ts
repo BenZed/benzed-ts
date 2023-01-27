@@ -31,12 +31,12 @@ const numericString = (i: string, options?: Partial<ValidateOptions>): `${number
 testValidator(
     numericString,
     'example validate method',
-    { input: '100', output: '100', transform: true },
+    { input: '100', output: '100', },
     { input: '100', output: '100', transform: false },
     { input: '100', output: '100', transform: false },
-    { input: '100.1', output: '100.1', transform: true }, 
+    { input: '100.1', output: '100.1', }, 
     { input: '100.1', output: '100.1', transform: false }, 
-    { input: ' 1 ', output: '1', transform: true },
+    { input: ' 1 ', output: '1', },
     { input: ' 1 ', error: 'must be a numeric string', transform: false },
     { input: 'Sup', error: 'could not be converted to a number', transform: false }
 )
