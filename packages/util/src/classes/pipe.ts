@@ -88,7 +88,7 @@ interface PipeConstructor {
 
 }
 
-////  ////
+//// Resolve ////
 
 function resolveTransforms(
     transforms: AnyTransform[], 
