@@ -8,15 +8,13 @@ import {
     ToValidator, 
     Validate, 
     ValidateInput, 
-    ValidationErrorInput, 
     Validator, 
-    ValidatorPredicate, 
+    ValidatorPipe, 
     ValidatorSettings, 
-    ValidatorTransform, 
     VALIDATOR_DISALLOWED_SETTINGS_KEYS 
 } from '../validator'
 
-import Schema, { ValidatorPipe } from './schema'
+import Schema from './schema'
 
 //// EsLint ////
 
@@ -33,12 +31,14 @@ const SCHEMA_DISALLOWED_SETTINGS = [
     'validates',
     'validators',
     'apply',
-    'settings'
+    'settings' 
 ] as const
 
-type _SchemaDisallowedSettingKeys = typeof SCHEMA_DISALLOWED_SETTINGS[number]
+type _SchemaDisallowedSettingKeys = 
+    typeof SCHEMA_DISALLOWED_SETTINGS[number]
 
-type _SchemaSettingKeys<T> = Exclude<KeysOf<T>, _SchemaDisallowedSettingKeys>
+type _SchemaSettingKeys<T> = 
+    Exclude<KeysOf<T>, _SchemaDisallowedSettingKeys>
 
 type _SchemaSettingInput<O> = 
     | SchemaProperties<O, O, any>
@@ -102,49 +102,12 @@ export type SchemaMainValidator<I,O,T extends SchemaSettingsInput<O> | Validator
 
 export type AnySchema = SchemaProperties<any,any,any>
 
-export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> extends 
-    Validate<I,O>, Struct, Iterable<Validate<unknown>>{
-    
-    get settings() : SchemaSettingsOutput<T>
-
-    readonly validate: ValidatorPipe<I,O>
+export interface SchemaProperties<I, O, T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> extends ValidatorPipe<I,O>, Struct {
 
     get name(): string 
 
-    //// Validation Interface ////
-    
-    validates(
-        input: Partial<ValidatorSettings<O,O>> | Validate<O>,
-        id?: symbol
-    ): this 
-
-    asserts(
-        isValid: ValidatorPredicate<O>,
-        id?: symbol
-    ): this 
-    asserts(
-        isValid: ValidatorPredicate<O>,
-        error?: ValidationErrorInput<O>,
-        id?: symbol
-    ): this 
-
-    transforms(
-        transform: ValidatorTransform<O>,
-        id?: symbol
-    ): this 
-    transforms(
-        transform: ValidatorTransform<O>,
-        error?: ValidationErrorInput<O>,
-        id?: symbol
-    ): this 
-
-    //// Apply ////
-    
+    get settings() : SchemaSettingsOutput<T>
     apply(settings: Partial<SchemaSettingsOutput<T>>): this
-
-    //// Iteration ////
-    
-    get validators(): [mainValidator: SchemaMainValidator<I,O,T>, ...genericValidators: Validate<O,O>[]]
 
 }
 
@@ -190,8 +153,6 @@ export type ToSchema<T extends AnyValidate | AnyValidatorSettings> = T extends V
         : never 
 
 export interface SchemaConstructor {
-
     new <V extends AnyValidate | AnyValidatorSettings>(validate: V): ToSchema<V>
     new <I, O, T extends ValidatorSettings<I,O>>(settings: T): Schema<I, O, T>
-
 }

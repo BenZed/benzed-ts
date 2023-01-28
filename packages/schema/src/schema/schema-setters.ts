@@ -44,7 +44,25 @@ function getSubValidatorOptions(input: SubValidatorInput = {}, setting: any): ob
     return options
 }
 
-function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: string, name: string): void {
+function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
+
+    const descriptors = Property.descriptorsOf(settings)
+
+    const nonAccessibleKeys = iterate(keysOf(descriptors), key => { 
+        const descriptor = descriptors[key]
+        const accessible = 
+            !VALIDATOR_DISALLOWED_SETTINGS_KEYS.includes(key as any) &&
+            descriptor.writable || 'getter' in descriptor && 'setter' in descriptor
+
+        return accessible ? nil : key
+    })
+
+    return omit(descriptors, ...nonAccessibleKeys)
+}
+
+//// Main //// 
+
+function addSchemaSetter(schema: object, descriptor: PropertyDescriptor, key: string, name: string): void {
 
     const setter = function (this: AnySchema, ...values: unknown[]): unknown {
 
@@ -81,25 +99,7 @@ function addAccessor(schema: AnySchema, descriptor: PropertyDescriptor, key: str
         })
 }
 
-function getAccessibleDescriptors(settings: object): PropertyDescriptorMap {
-
-    const descriptors = Property.descriptorsOf(settings)
-
-    const nonAccessibleKeys = iterate(keysOf(descriptors), key => { 
-        const descriptor = descriptors[key]
-        const accessible = 
-            !VALIDATOR_DISALLOWED_SETTINGS_KEYS.includes(key as any) &&
-            descriptor.writable || 'getter' in descriptor && 'setter' in descriptor
-
-        return accessible ? nil : key
-    })
-
-    return omit(descriptors, ...nonAccessibleKeys)
-}
-
-//// Main //// 
-
-function createAccessors(schema: AnySchema, settings: object): void {
+function createSchemaSetters(schema: object, settings: object): void {
 
     const descriptors = getAccessibleDescriptors(settings)
 
@@ -108,16 +108,16 @@ function createAccessors(schema: AnySchema, settings: object): void {
         const descriptor = descriptors[key]
 
         const name = key === 'name' ? 'named' : key
-        const hasAccessor = name in schema
-        if (!hasAccessor)
-            addAccessor(schema, descriptor, key, name)
+        const hasSetter = name in schema
+        if (!hasSetter)
+            addSchemaSetter(schema, descriptor, key, name)
     }
 }
 
 //// Exports ////
 
-export default createAccessors
+export default createSchemaSetters
 
 export {
-    createAccessors
+    createSchemaSetters
 }

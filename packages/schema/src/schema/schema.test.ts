@@ -2,7 +2,7 @@ import { Schema } from './schema'
 
 import { Infer, isFinite, isNumber, isString, pass } from '@benzed/util'
 
-import { 
+import {
     ValidationErrorMessage, 
     Validator  
 } from '../validator'
@@ -17,7 +17,7 @@ import { expectTypeOf } from 'expect-type'
     @typescript-eslint/ban-types
 */
 
-//// Tests ////
+//// Tests //// 
 
 describe('created from generic validate method', () => { 
 
@@ -81,8 +81,7 @@ describe('automatic setters for validator options', () => {
         { input: 'acer', output: 'acer', transform: false },
         { input: 'ace', error: 'See, you fucked up', transform: false }
     )
-  
-})  
+})
 
 describe('apply settings', () => {
 
@@ -160,6 +159,7 @@ describe('sub validators', () => {
     describe('add sub validator', () => {  
 
         const $lowerString = $string.lowercase()
+
         it('type match', () => {  
             expectTypeOf($lowerString).toEqualTypeOf($string)
         })

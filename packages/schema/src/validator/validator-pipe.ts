@@ -44,9 +44,9 @@ import ValidateContext from './validate-context'
 
 //// Helper ////
 
-const withId = provide((id?: string | symbol) => (validator: AnyValidate) => resolveId(validator) === id)
+const withId = provide((id?: string | symbol) => (validator: AnyValidate) => resolveSubvalidatorId(validator) === id)
 
-function resolveId(
+function resolveSubvalidatorId(
     input: object
 ): string | symbol | nil {
 
@@ -56,6 +56,16 @@ function resolveId(
         throw new Error('Invalid sub validator id value.')
 
     return id as string | symbol | nil
+}
+
+function assertSubvalidatorId(
+    input: object
+): string | symbol {
+    const id = resolveSubvalidatorId(input)
+    if (!id)
+        throw new Error('Input did not have an id')
+
+    return id
 }
 
 function sortIdErrorArgs<T>(
@@ -147,6 +157,7 @@ interface ValidatorPipeProperties<I, O> extends Validate<I,O> {
         id?: symbol
     ): this 
 
+    remove(id: symbol): this
 }
 
 type Validators<I,O> = [mainValidator: Validate<I,O>, ...genericValidators: Validate<O,O>[]]
@@ -173,7 +184,7 @@ class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProp
         const validator = Validator.from(input) as Validator<O>
 
         if (!id) 
-            id = resolveId(validator) as symbol
+            id = resolveSubvalidatorId(validator) as symbol
 
         if (id)
             defineSymbol(validator, $$id, id)
@@ -202,7 +213,7 @@ class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProp
         })
     }
 
-    removeValidator(
+    remove(
         id: symbol
     ): this {
         if (id === $$mainId)
@@ -219,6 +230,10 @@ class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProp
             : [this.validate]) as Iterable<Validators<I,O>[number]>
     }
 
+    get validators(): Validators<I,O> {
+        return [...this] as Validators<I,O>
+    }
+
 }
 
 //// Exports ////
@@ -228,5 +243,8 @@ export default ValidatorPipe
 export { 
     ValidatorPipeProperties,
     ValidatorPipe,
-    Validators
+    Validators,
+
+    resolveSubvalidatorId,
+    assertSubvalidatorId
 } 

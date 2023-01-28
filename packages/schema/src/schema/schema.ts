@@ -1,59 +1,47 @@
 
-import { pluck } from '@benzed/array'
-import { $$copy, copy } from '@benzed/immutable'
 import {
-    isFunc,
-    isString,
-    isSymbol,
-
-    keysOf,
-
-    ParamPipe,
-    Pipe,
-
     nil,
     omit,
+    keysOf,
     provide,
-    defined
 } from '@benzed/util'
-import { $$id, $$mainId, $$subConfig, defineSymbol } from '../symbols'
+
+import { 
+    $$copy 
+} from '@benzed/immutable'
+
+import { 
+    $$id, 
+    $$subConfig, 
+    defineSymbol 
+} from '../symbols'
 
 import {
-    AnyValidatorSettings, 
-    ValidateContext, 
-
-    ValidationErrorInput, 
+    assertSubvalidatorId,
+    resolveSubvalidatorId,
     Validator, 
-
-    ValidatorPredicate, 
+    ValidatorPipe, 
     ValidatorSettings, 
-    ValidatorTransform, 
     VALIDATOR_DISALLOWED_SETTINGS_KEYS
 } from '../validator'
 
 import {
     AnyValidate, 
     Validate, 
-    ValidateOptions
 } from '../validator/validate'
 
-import { createAccessors } from './create-accessors'
+import { createSchemaSetters } from './schema-setters'
 
 import { 
     SchemaConstructor, 
     SchemaProperties, 
     SchemaSetters, 
     SchemaSettingsInput,
-    SchemaSettingsOutput
+    SchemaSettingsOutput,
+    SubValidatorConstructor
 } from './schema-types'
-
-//// EsLint ////
-
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-*/
-
-//// Symbol ////
+import { E } from '@benzed/math'
+import { SubValidator } from '../validators'
 
 //// Type ////
 
@@ -61,84 +49,9 @@ type Schema<I, O, T extends SchemaSettingsInput<O> | ValidatorSettings<I,O>> =
     SchemaProperties<I, O, T> & 
     SchemaSetters<I,O,T>
 
-type ValidatorPipe<I, O> = ParamPipe<I, O, [options?: Partial<ValidateOptions>]>
-
-type AnyValidatorPipe = ValidatorPipe<unknown,unknown> 
-
 //// Helper ////
 
-function resolveId(
-    input: object
-): string | symbol | nil {
-
-    // resolve id
-    const id = $$id in input ? input[$$id] : nil
-    if (id && !isString(id) && !isSymbol(id))
-        throw new Error('Invalid sub validator id value.')
-
-    return id as string | symbol | nil
-}
-
-function sortIdErrorArgs(
-    args: [error?: ValidationErrorInput<unknown>, id?: symbol] | [id?: symbol]
-): { 
-        error?: ValidationErrorInput<unknown> 
-        id?: symbol 
-    } {
-    const [id] = pluck(args, isSymbol) as [symbol?]
-    const [error] = args as [ValidationErrorInput<unknown>?]
-
-    return defined({ id, error })
-}
-
-function upsertValidator(
-    validators: AnyValidate[],
-    validator?: AnyValidate,
-    find?: (validator: AnyValidate, index: number, validators: AnyValidate[]) => boolean
-): AnyValidate[] { 
-
-    const index = find ? validators.findIndex(find) : -1
-    const hasExisting = index >= 0
-
-    if (hasExisting && validator)
-        validators.splice(index, 1, validator)
-    else if (hasExisting)
-        validators.splice(index, 1)
-    else if (validator)
-        validators.push(validator)
-
-    return validators
-}
-
-const withId = provide((id?: string | symbol) => (validator: AnyValidate) => resolveId(validator) === id)
-
 const isEnabled = provide((key: string) => (validator: AnyValidate) => $$subConfig in validator && validator[$$subConfig] === key)
-
-function upsertValidators(
-    validators: AnyValidate[],
-    inputs: (Partial<AnyValidatorSettings> | AnyValidate)[]
-): AnyValidatorPipe {
-
-    for (const input of inputs) {
-
-        const validator = isFunc(input) 
-            ? input 
-            : Validator.from(input)
-
-        const id = resolveId(validator)
-
-        upsertValidator(
-            validators, 
-            validator, 
-            withId(id)
-        )
-    }
-
-    // merge validators into validate method
-    return Pipe.from(
-        Validator.merge(...validators)
-    )
-}
 
 function schemaSettingsOutput(input: object, validators: AnyValidate[]): SchemaSettingsOutput<object> {
 
@@ -157,32 +70,14 @@ function schemaSettingsOutput(input: object, validators: AnyValidate[]): SchemaS
     return omit(output, ...VALIDATOR_DISALLOWED_SETTINGS_KEYS)
 }
 
-function schemaValidator <I,O>(this: { validate: Validate<I, O> }, i: I, options?: Partial<ValidateOptions>): O {
-    const ctx = new ValidateContext(i, options)
-    return this.validate(i, ctx)
-}
-
-function defineMainValidatorId(validator: AnyValidate): void {
-    defineSymbol(validator, $$id, $$mainId)
-}
-
 //// Implementation ////
 
-const Schema = class extends Validate<unknown, unknown> {
-
-    static readonly $$id = $$id
-
-    readonly validate: ValidatorPipe<unknown,unknown>
+const Schema = class extends ValidatorPipe<unknown, unknown> {
 
     constructor(settings: object) {
-        super(schemaValidator)
-
-        const validator = Validator.from(settings) 
-        defineMainValidatorId(validator)
-        
-        this.validate = Pipe.from(validator)
-        createAccessors(this, validator)
-    }
+        super(settings)
+        createSchemaSetters(this, settings)
+    } 
 
     override get name(): string {
         const [ mainValidator ] = this.validators
@@ -193,45 +88,12 @@ const Schema = class extends Validate<unknown, unknown> {
         const [ mainValidator ] = this.validators
         return schemaSettingsOutput(mainValidator, this.validators)
     }
-
-    //// Validation Interface ////
     
-    validates(
-        input: Partial<AnyValidatorSettings> | AnyValidate,
-    ): this {
-
-        const validate = upsertValidators(this.validators, [input])
-
-        // update state
-        return Validator.apply(this, { validate } as any)
-    }
-
-    asserts(
-        isValid: ValidatorPredicate<unknown>,
-        ...args: [error?: ValidationErrorInput<unknown>, id?: symbol] | [id?: symbol]
-    ): this {
-        
-        return this.validates({
-            isValid,
-            ...sortIdErrorArgs(args)
-        })
-    }
-
-    transforms(
-        transform: ValidatorTransform<unknown>,
-        ...args: [error?: ValidationErrorInput<unknown>, id?: symbol] | [id?: symbol]
-    ): this {
-        return this.validates({
-            transform,
-            ...sortIdErrorArgs(args)
-        })
-    }
-
     //// Apply ////
     
     override apply(settings: object): this {
 
-        const [ mainValidator, ...validators ] = this.validators
+        const [ firstValidator, ...validators ] = this.validators
 
         const { key: subKey, enabled: subEnabled, construct } = $$subConfig in settings 
             ? settings[$$subConfig] as { key?: string, enabled: boolean, construct?: unknown[] }
@@ -240,19 +102,20 @@ const Schema = class extends Validate<unknown, unknown> {
         const isModifyingSubValidator = subKey !== nil
         if (isModifyingSubValidator) {
 
-            // copy mainValidator
-            const newMainValidator = copy(mainValidator as any)
-            defineMainValidatorId(newMainValidator)
-
             const existingSubValidator = validators.find(isEnabled(subKey))
+            if (!subEnabled && existingSubValidator) {
+                const id = assertSubvalidatorId(existingSubValidator)
+                return this.remove(id as symbol)
+            } else if (!subEnabled)
+                return this
 
-            const newSubValidator = subEnabled 
-                ? construct 
-                    ? new newMainValidator[subKey](...construct) as AnyValidate
-                    : existingSubValidator 
-                        ? Validator.apply(existingSubValidator, settings)
-                        : Validator.apply(newMainValidator[subKey], settings)
-                : nil
+            const mainValidator = firstValidator as any
+
+            const newSubValidator = construct 
+                ? new mainValidator[subKey](...construct)
+                : existingSubValidator 
+                    ? Validator.apply(existingSubValidator, settings)
+                    : Validator.apply(mainValidator[subKey], settings)
 
             const validatorWithId = existingSubValidator ?? newSubValidator
             
@@ -260,46 +123,26 @@ const Schema = class extends Validate<unknown, unknown> {
                 ? validatorWithId[$$id] 
                 : subKey
 
-            if (newSubValidator) {
-                defineSymbol(newSubValidator, $$subConfig, subKey)
-                defineSymbol(newSubValidator, $$id, id)
-            }
-            upsertValidator(validators, newSubValidator, withId(id)) 
-
-            // upate the schema
-            const validate = Pipe.from(newMainValidator, ...validators)
-            return Validator.apply(this, { validate } as any)
+            defineSymbol(newSubValidator, $$subConfig, subKey)
+            defineSymbol(newSubValidator, $$id, id)
+            return this.validates(newSubValidator, id)
         } else {
 
-            const newMainValidator = Validator.apply(mainValidator, settings)
+            const newMainValidator = Validator.apply(firstValidator, settings)
             return this.validates(newMainValidator)
         }
 
     }
 
+    //// Value Copy ////
+    
     protected [$$copy](): this {
         const clone = super[$$copy]()
 
         const [ mainValidator ] = this.validators
-        createAccessors(clone, mainValidator)
+        createSchemaSetters(clone, mainValidator)
 
         return clone
-    }
-
-    //// Iteration ////
-
-    get validators(): [AnyValidate, ...AnyValidate[]] {
-
-        const validators = this.validate.transforms
-        const index = this.validate.transforms.findIndex(v => $$id in v && v[$$id] === $$mainId)
-        if (index !== 0)
-            throw new Error(`main validator at invalid index: ${index}`)
-
-        return [...validators] as [AnyValidate, ...AnyValidate[]]
-    }
-
-    *[Symbol.iterator](): IterableIterator<AnyValidate> {
-        yield* (this as { validate: AnyValidatorPipe }).validate.transforms
     }
 
 } as unknown as SchemaConstructor
@@ -308,7 +151,6 @@ const Schema = class extends Validate<unknown, unknown> {
 
 export default Schema 
 
-export { 
-    Schema,
-    ValidatorPipe,
-} 
+export {
+    Schema
+}
