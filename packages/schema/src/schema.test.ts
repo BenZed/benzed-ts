@@ -1,12 +1,12 @@
-import { isBoolean, isNumber, isString, pass, swap } from '@benzed/util'
-import { ValidatorPipe } from './validator-pipe'
+import { isBoolean, isNumber, isString, pass } from '@benzed/util'
+import { Schema } from './schema'
 
-import { testValidator } from '../util.test'
+import { testValidator } from './util.test'
 
 //// Tests ////
 
 testValidator(
-    new ValidatorPipe({ isValid: isBoolean }).asserts(i => i, 'Must be true'),
+    new Schema({ isValid: isBoolean }).asserts(i => i, 'Must be true'),
 
     'add assertions',
 
@@ -15,7 +15,7 @@ testValidator(
 )
 
 testValidator(
-    new ValidatorPipe<{ foo: string }>({ 
+    new Schema<{ foo: string }>({ 
         isValid(i: { foo: string }) {
             return i.foo.length > 0
         },
@@ -31,7 +31,7 @@ testValidator(
 )
 
 testValidator(
-    new ValidatorPipe({ isValid: isString })
+    new Schema({ isValid: isString })
         .validates({ 
             transform(input: string) {
                 return input.toLowerCase()
@@ -51,7 +51,7 @@ const $$integer = Symbol('integer')
 const $$finite = Symbol('finite')
 const $$axis = Symbol('axis')
 
-const withIds = new ValidatorPipe({ isValid: isNumber })
+const withIds = new Schema({ isValid: isNumber })
     .transforms(Math.round, 'Must be an integer', $$integer)
     .asserts(Number.isFinite, 'Must be finite', $$finite)
     .validates({

@@ -16,7 +16,7 @@ import {
     $$mainId,
     defineMainValidatorId,
     defineSymbol
-} from '../symbols'
+} from './symbols'
 
 import {
     Validator, 
@@ -24,17 +24,17 @@ import {
     ValidatorSettings, 
     ValidatorTransform, 
     ValidatorTypeGuard, 
-} from './validator'
+} from './validator/validator'
 
 import {
     AnyValidate, 
     Validate, 
     ValidateOptions
-} from './validate'
+} from './validator/validate'
 
-import { ValidationErrorInput } from './validate-error'
+import { ValidationErrorInput } from './validator/validate-error'
 
-import ValidateContext from './validate-context'
+import ValidateContext from './validator/validate-context'
 
 //// EsLint ////
 
@@ -81,10 +81,10 @@ function sortIdErrorArgs<T>(
 }
 
 function spliceValidator<I, O, V extends Validator<O,O>>(
-    input: ValidatorPipe<I,O>,
+    input: Schema<I,O>,
     validator?: V,
     find?: (validator: Validators<I,O>[number], index: number) => boolean
-): ValidatorPipe<I,O> { 
+): Schema<I,O> { 
 
     const validators = Array.from(input)
 
@@ -126,45 +126,13 @@ function validateAll <I,O>(
     return this.validate(i, ctx)
 }
 
-//// Types ////
-
-interface ValidatorPipeProperties<I, O> extends Validate<I,O> {
-    
-    readonly validate: Validate<I,O>
-
-    validates(
-        input: Partial<ValidatorSettings<O,O>> | Validate<O>,
-        id?: symbol
-    ): this 
-
-    asserts(
-        isValid: ValidatorPredicate<O>,
-        id?: symbol
-    ): this 
-    asserts(
-        isValid: ValidatorPredicate<O>,
-        error?: ValidationErrorInput<O>,
-        id?: symbol
-    ): this 
-
-    transforms(
-        transform: ValidatorTransform<O>,
-        id?: symbol
-    ): this 
-    transforms(
-        transform: ValidatorTransform<O>,
-        error?: ValidationErrorInput<O>,
-        id?: symbol
-    ): this 
-
-    remove(id: symbol): this
-}
+//// Validators ////
 
 type Validators<I,O> = [mainValidator: Validate<I,O>, ...genericValidators: Validate<O,O>[]]
 
-//// Implementation ////
+//// Schema ////
 
-class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProperties<I,O> {
+class Schema<I, O = I> extends Validate<I,O> {
 
     readonly validate: Validate<I,O>
 
@@ -194,6 +162,15 @@ class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProp
 
     asserts(
         isValid: ValidatorPredicate<O>,
+        id?: symbol
+    ): this 
+    asserts(
+        isValid: ValidatorPredicate<O>,
+        error?: ValidationErrorInput<O>,
+        id?: symbol
+    ): this
+    asserts(
+        isValid: ValidatorPredicate<O>,
         ...args: [error?: ValidationErrorInput<O>, id?: symbol] | [id?: symbol]
     ): this {
         
@@ -203,6 +180,15 @@ class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProp
         })
     }
 
+    transforms(
+        transform: ValidatorTransform<O>,
+        id?: symbol
+    ): this 
+    transforms(
+        transform: ValidatorTransform<O>,
+        error?: ValidationErrorInput<O>,
+        id?: symbol
+    ): this 
     transforms(
         transform: ValidatorTransform<O>,
         ...args: [error?: ValidationErrorInput<O>, id?: symbol] | [id?: symbol]
@@ -238,13 +224,11 @@ class ValidatorPipe<I, O = I> extends Validate<I,O> implements ValidatorPipeProp
 
 //// Exports ////
 
-export default ValidatorPipe 
+export default Schema 
 
 export { 
-    ValidatorPipeProperties,
-    ValidatorPipe,
+    Schema,
     Validators,
-
     resolveSubvalidatorId,
     assertSubvalidatorId
 } 
