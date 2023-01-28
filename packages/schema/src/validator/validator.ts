@@ -1,218 +1,169 @@
 
-import {
-    $$equals,
-    $$copy,
-    equals,
-    CopyComparable,
+import { CallableStruct, StructAssignState, equals } from '@benzed/immutable'
+import { defined, Empty, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
 
-} from '@benzed/immutable'
+import { AnyValidate, Validate, ValidateOptions, ValidateConstructor } from './validate'
+import { ValidationError, ValidationErrorInput } from './validate-error'
+import ValidateContext from './validate-context'
+import validatorFrom from './validator-from'
+import validatorMerge from './validator-merge'
+import { $$constructor, $$id, defineSymbol } from '../symbols'
 
-import { is } from '@benzed/is'
+//// EsLint ////
 
-//// Linting ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+//// Helper Types ////
 
-//// Types ////
+const VALIDATOR_DISALLOWED_SETTINGS_KEYS = ['isValid', 'transform', 'id'] as const
+type _ValidatorDisallowedSettingsKeys = typeof VALIDATOR_DISALLOWED_SETTINGS_KEYS[number]
 
-interface NoSettings {
-    [key: string]: never
+type _ValidatorFromSettings<S extends AnyValidatorSettings> = 
+    Infer<Validator< ValidatorSettingsInput<S>, ValidatorSettingsOutput<S>>>
+
+type _ValidatorSettingExtensions<S extends AnyValidatorSettings> = Infer<{
+    [K in Exclude<KeysOf<S>, KeysOf<AnyValidatorSettings>>]: S[K]
+}, object>
+
+//// Settings Types ////
+
+interface ValidatorSettings<I, O> {
+    id?: symbol 
+    name?: string
+    error?: ValidationErrorInput<I>
+    isValid?: O extends I 
+        ? ValidatorPredicate<I> | ValidatorTypeGuard<I,O>
+        : ValidatorPredicate<I> 
+    transform?: ValidatorTransform<I, O>
 }
 
-type ErrorMethod<A extends any[] = any[]> = (...args: A) => string
-interface ErrorSettings<A extends any[] = any[]> {
-    readonly error?: string | ErrorMethod<A>
+type ValidatorSettingsInput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, any> ? I : unknown
+type ValidatorSettingsOutput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, infer O> 
+    ? unknown extends O 
+        ? I 
+        : O 
+    : unknown
+
+type AnyValidatorSettings = ValidatorSettings<any,any>
+
+//// Validator Types ////
+
+interface Validator<I, O = I> extends Validate<I,O> {
+    name: string
+    error(): string
+    isValid(input: I, ctx: ValidateContext<I>): boolean
+    transform(input: I, ctx: ValidateContext<I>): O | I
 }
 
-type ErrorArgs<T> = T extends ErrorSettings<infer A> ? A : []
+type AnyValidator = Validator<any,any>
 
-type ErrorDefault<T extends ErrorSettings> = NonNullable<T['error']>
+type AllowedValidatorSettings<T extends object> = Omit<StructAssignState<T>, _ValidatorDisallowedSettingsKeys>
+type ValidatorPredicate<I> = ParamTransform<I, boolean, [ctx: ValidateContext<I>]>
+type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ctx: ValidateContext<I>]>
+type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
 
-type ErrorDefaultAndArgs<T extends ErrorSettings> = [ErrorDefault<T>, ...ErrorArgs<T>]
+//// Validator Constructor Types ////
 
-//// Main ////
+type ToValidatorInput = Record<string, unknown>
 
-abstract class Validator<
-    I,
-    O extends I = I,
-    S extends object = object,
-/**/> implements CopyComparable {
+type ToValidator<S extends AnyValidatorSettings> = 
+    _ValidatorSettingExtensions<S> extends Empty 
+        ? _ValidatorFromSettings<S>
+        : _ValidatorFromSettings<S> & _ValidatorSettingExtensions<S>
 
-    //// State ////
+interface ValidatorConstructor extends Omit<ValidateConstructor, 'apply'> {
 
-    private _settings: S
-    get settings(): Readonly<S> {
-        return this._settings
-    }
+    apply<V extends AnyValidate>(
+        validator: V, 
+        settings: AllowedValidatorSettings<V>
+    ): V
 
-    //// Construction ////
+    from: typeof validatorFrom
+    merge: typeof validatorMerge
 
-    constructor (settings: S) {
-        this._settings = this._stripUndefinedSettings(settings) as S
-        this._onApplySettings(null)
-    }
-
-    //// Validation ////
-
-    abstract validate(input: I, allowTransform: boolean): I | O
-
-    //// Helpers ////
-
-    applySettings(nextSettings: Partial<S>): void {
-
-        const prevSettings = this._settings
-
-        this._settings = {
-            ...prevSettings,
-            ...this._stripUndefinedSettings(nextSettings)
-        }
-
-        this._onApplySettings(prevSettings ?? null)
-    }
-
-    protected _onApplySettings(previousSettings: S | null): void {
-        void previousSettings
-    }
-
-    //// CopyComparable Implementation ////
-
-    [$$equals](other: unknown): other is this {
-        return is.type(other, this.constructor) &&
-            equals(other.settings, this.settings)
-    }
-
-    [$$copy](): this {
-        const ThisValidator = this.constructor as new (settings: S) => this
-        return new ThisValidator(this.settings)
-    }
-
-    //// Helper ////
-
-    private _stripUndefinedSettings(settings: Partial<S>): Partial<S> {
-
-        const strippedSettings: Partial<S> = {}
-
-        for (const key in settings) {
-            if (settings[key] !== undefined)
-                strippedSettings[key] = settings[key]
-        }
-
-        return strippedSettings
-    }
-}
-
-/**
- * A transform validator manipulates data, potentially converting to the
- * expected output type. 
- * 
- * A transformation will only occur if they are allowed for a validation.
- */
-abstract class TransformValidator<I, O extends I = I, S extends object = NoSettings>
-    extends Validator<I, I | O, S> {
-
-    protected abstract _transform(input: I): I | O
-
-    validate(input: I, allowTransform: boolean): I | O {
-        return allowTransform ? this._transform(input) : input
-    }
+    new <S extends ToValidatorInput>(input: S): ToValidator<S>
+    new <I, O extends I = I>(settings: ValidatorSettings<I,O>): Validator<I,O>
 
 }
 
-/**
- * Extending on the transform validator, the assert-transform validator
- * asserts that data is of the expected output type, weather a transformation
- * has occured or not.
- */
-abstract class AssertTransformValidator<
-    I,
-    O extends I = I,
-    S extends ErrorSettings = ErrorSettings
->
-    extends TransformValidator<I, O, S> {
+//// Validator Method ////
 
-    protected abstract _assert(input: I): asserts input is O
+function validate<I, O>(this: Required<ValidatorSettings<I, O>>, input: I, options?: Partial<ValidateOptions>): O {
 
-    override validate(input: I, allowTransform: boolean): O {
-        const output = super.validate(input, allowTransform)
+    const ctx = new ValidateContext(input, options)
 
-        this._assert(output)
+    const transformed = this.transform(input, ctx)
 
-        return output
-    }
+    return new Resolver(transformed)
+        .then(resolved => {
 
-    //// Helpers ////
+            ctx.value = resolved as I
 
-    protected _throwWithErrorSetting(
-        errorDefault: ErrorDefault<S>,
-        ...args: ErrorArgs<S>
-    ): never {
+            const output = ctx.transform 
+                ? ctx.value
+                : input
 
-        const error = this.settings.error ?? errorDefault
+            if (!this.isValid(output, ctx))
+                throw new ValidationError(this, ctx)
 
-        throw new Error(
-            is.function<ErrorMethod<ErrorArgs<S>>>(error)
-                ? error(...args)
-                : error
-        )
-    }
+            return output
+        })
+        .value as O
+
 }
 
-/**
- * An assert-validator does not make transformations on data, just assertions.
- */
-abstract class AssertValidator<O, S extends ErrorSettings>
-    extends AssertTransformValidator<O, O, S> {
+function toName(constructor: { name: string }): string {
+    const { name } = constructor
+    return name.charAt(0).toLowerCase() + name.slice(1)
+}
 
-    protected _transform(input: O): O {
+//// Implementation ////
+
+const Validator = class extends Validate<unknown, unknown> {
+
+    static readonly [$$constructor] = true
+    static readonly from = validatorFrom
+    static readonly merge = validatorMerge
+
+    constructor(
+        { name, id, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
+    ) {
+
+        super(validate)
+        this.name = name ?? toName(this.constructor)
+
+        Property.transpose(defined(settings), this)
+
+        // ensure error is counted as state if it wasn't provided
+        Property.configure(this, 'error', { enumerable: true })
+
+        if (id)
+            defineSymbol(this, $$id, id)
+    }
+
+    override [CallableStruct.$$assign](state: StructAssignState<this>): StructAssignState<this> {
+        return omit(state, 'isValid', 'transform')
+    }
+
+    override readonly name: string
+
+    error(): string {
+        return this.name === toName(Validator) 
+            ? 'Validation failed.'
+            : `Must be ${this.name}.`
+    }
+    
+    isValid(input: unknown, ctx: ValidateContext<unknown>): input is unknown {
+        return equals(input, ctx.value)
+    }
+
+    transform(input: unknown, _ctx: ValidateContext<unknown>): unknown | unknown {
         return input
     }
 
-    override validate(input: O): O {
-        return super.validate(input, false)
-    }
-
-}
-
-/**
- * An assert-valid-transform is a convenience abstraction that transforms
- * data to the expected output type. If transforms are not allowed for validation,
- * it throws if the input is not the same was what the transformation would be.
- * 
- * Most validators will be this.
- */
-abstract class AssertValidTransformValidator<
-    O,
-    S extends ErrorSettings = ErrorSettings
->
-    extends AssertTransformValidator<O, O, S> {
-
-    //// AssertTransformValidator Implementation ////
-
-    protected _assert(
-        input: O
-    ): void {
-        if (!this._isValid(input)) {
-
-            const [errorDefault, ...errorArgs] = this._getErrorDefaultAndArgs(input)
-
-            this._throwWithErrorSetting(
-                errorDefault,
-                ...errorArgs
-            )
-        }
-    }
-
-    //// Helper ////
-
-    protected _isValid(input: O): boolean {
-        return equals(input, this._transform(input))
-    }
-
-    protected abstract _getErrorDefaultAndArgs(
-        input: O
-    ): ErrorDefaultAndArgs<S>
-
-}
+} as ValidatorConstructor
 
 //// Exports ////
 
@@ -220,14 +171,18 @@ export default Validator
 
 export {
     Validator,
+    ValidatorPredicate,
+    ValidatorTransform,
+    ValidatorTypeGuard,
+    ValidatorSettings,
+    ValidatorSettingsInput,
+    ValidatorSettingsOutput,
 
-    TransformValidator,
-    AssertValidator,
-    AssertTransformValidator,
-    AssertValidTransformValidator,
+    AllowedValidatorSettings,
+    AnyValidatorSettings,
+    AnyValidator,
+    ToValidator,
 
-    NoSettings,
-    ErrorSettings,
-    ErrorDefault,
-    ErrorDefaultAndArgs
+    VALIDATOR_DISALLOWED_SETTINGS_KEYS
+
 }

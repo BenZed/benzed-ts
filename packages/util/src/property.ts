@@ -1,7 +1,6 @@
 
 import { nil } from './types/nil'
 import { intersect } from './types/merge'
-import { iterate } from './methods'
 
 //// Type ////
 
@@ -15,6 +14,8 @@ interface Property {
 
     define<T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
     define<T extends object>(object: T, definitions: PropertyDescriptorMap): T
+
+    configure<T extends object>(object: T, property: string | number | symbol, definition: PropertyDescriptor): T
 
     /**
      * Apply all property descriptions from the source object onto the target object.
@@ -85,13 +86,23 @@ const Property = intersect(
 
         define,
 
+        configure(object: object, property: string | symbol, configuration: PropertyDescriptor): object {
+
+            const definition = this.descriptorOf(object, property)
+
+            return this.define(object, property, {
+                ...definition,
+                ...configuration
+            })
+        },
+
         transpose(source: object, target: object, blacklist = [Object.prototype]) {
             const descriptors: PropertyDescriptorMap = {}
 
             for (const template of [source, ...Property.prototypesOf(source, blacklist)]) {
                 const keys = Property.keysOf(template)
                 const symbols = Property.symbolsOf(template)
-                for (const keyOrSymbol of iterate<string | symbol>(keys, symbols)) {
+                for (const keyOrSymbol of [...keys, ...symbols]) {
                     const descriptor = Property.descriptorOf(template, keyOrSymbol)
                     if (descriptor)
                         descriptors[keyOrSymbol] = descriptor

@@ -1,6 +1,5 @@
-const InvalidTypeError = Symbol('invalid-type-error')
-const Type = Symbol('required-target-type')
+import { Empty } from './empty'
 
-export type Invalid<msg extends string = 'This is an invalid type.', T = never> = T extends never 
-    ? { [InvalidTypeError]: msg }
-    : { [InvalidTypeError]: msg, [Type]: T }
+const $$invalid = Symbol('invalid-type-error')
+
+export type Invalid<msg = 'This is an invalid type.'> = { readonly [$$invalid]: msg } & Empty

@@ -1,9 +1,10 @@
 import { Transform } from './classes/pipe'
-import { isFunc, isNumber, isString, isSymbol } from './types'
+import { isBoolean, isFunc, isNumber, isObject, isString, isSymbol } from './types'
 
 //// Types ////
 
-type Sortable = string | bigint | number | boolean | { valueOf(): number }
+type SortableObjects = { valueOf(): bigint | number | boolean } | { length: number }
+type Sortable = string | bigint | number | boolean | SortableObjects
 
 type SortableValues<T> = T extends string
     ? { length: number, [index: number]: unknown }
@@ -16,12 +17,31 @@ type SortableValues<T> = T extends string
  */
 type Sorter<T = Sortable> = (a: T, b: T) => number
 
+////  ////
+
+function toSubtractable<T extends Exclude<Sortable, string>>(input: T): Extract<T, number | bigint> {
+
+    if (isBoolean(input))
+        return (input ? 1 : 0) as Extract<T, number | bigint>
+        //            ^ I know booleans are subtractable, but typescript mad
+
+    if (isObject<SortableObjects>(input)) {
+        return ('length' in input && isNumber(input.length)
+            ? input.length
+            : input.valueOf()) as Extract<T, number | bigint>
+    }
+
+    return input
+}
+
 //// Helper ////
 
 /**
  * Compares inputs as values
  */
-const byValue: Sorter = (a, b) => (a as number) - (b as number)
+const byValue: Sorter = <T extends Sortable>(a: T, b: T) => isString(a)
+    ? a > b ? 1 : a < b ? -1 : 0
+    : toSubtractable(a) - toSubtractable(b)
 
 type ByTransform<T> = Transform<T, Sortable>
 

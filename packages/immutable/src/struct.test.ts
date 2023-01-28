@@ -1,97 +1,96 @@
-import { nil, toVoid } from '@benzed/util'
-import Struct, { CallableStruct } from './struct'
 
+import { CallableStruct, Struct, StructAssignState } from './struct'
+
+import { expectTypeOf } from 'expect-type'
 //// Setup ////
 
 class Scalar extends Struct {
-    constructor(protected value: number) {
+
+    constructor(readonly value: number) {
         super()
     }
 }  
 
-//// Data ////
-
-const scalar = new Scalar(10)
- 
 //// Tests //// 
 
-describe('copy()', () => {
-    test('copies', () => {
-        expect(scalar.copy()).not.toBe(scalar)
-    })
+it('state', () => { 
+    const scalar = new Scalar(5)
 
-    it('is bound', () => {
-        const [ s2 ] = [scalar].map(scalar.copy)
-        expect(s2.equals(scalar)).toBe(true)
-    })
-    
+    const state = { ...scalar }
+    expect(state).toEqual({ value: 5 })
+    expectTypeOf(state).toEqualTypeOf<{ value: number }>()
+
 })
 
-describe('equals()', () => {
-    it('compares', () => {
-        expect(scalar.copy().equals(scalar)).toBe(true)
-    })
+it('$$assign method', () => {
 
-    it('is bound', () => {
-        expect([scalar.copy()].some(scalar.equals)).toEqual(true)
-    })
-})
+    class Vector extends Scalar {
 
-test('instanceof', () => {
-    expect(scalar).toBeInstanceOf(scalar.constructor)
-    expect(scalar.copy()).toBeInstanceOf(scalar.constructor)
-})
+        static sum (values: readonly number[]): number {
+            return values.reduce((v,c) => v + c)
+        }
 
-it('Struct.bind', () => {
-    const dangly = new class Dangly extends Struct {
-        getThis(): this {
-            return this
+        constructor(readonly values: readonly number[]) {
+            super(Vector.sum(values))
+        }
+
+        protected [Struct.$$assign](state: StructAssignState<this>): StructAssignState<this> {
+
+            const values = 'values' in state
+                ? state.values as number[]
+                : this.values
+
+            return {
+                ...state,
+                value: Vector.sum(values)
+            }
         }
     }
 
-    const { getThis } = dangly 
-    expect(getThis()).toEqual(nil)
+    const avg3 = new Vector([1,2,3,6])
+    expect({ ...avg3 }).toEqual({ value: 12, values: [1,2,3,6] })
 
-    const getThisBound = Struct.bindMethods(dangly, 'getThis').getThis
-    expect(getThisBound()).toBe(dangly)
+    const avg4 = Vector.apply(avg3, { values: [1,2,3] })
+    expect({ ...avg4 }).toEqual({ values: [1,2,3], value: 6 })
 })
 
-//// Works with methods ////
+it('apply', () => {
 
-class Multiply extends CallableStruct<(i: number) => number> {
-    constructor(public by: number) {
-        super(i => i * this.by)
-    } 
-}
+    const scalar1 = new Scalar(0)
+    const scalar2 = Struct.apply(scalar1, { value: 10 })
+    expect(scalar2).toBeInstanceOf(Scalar)
+    expect(scalar2).toHaveProperty('value', 10)
+    expect(scalar1).not.toBe(scalar2)
 
-test('CallableStruct', () => {
-    const x2 = new Multiply(2)
-    expect(x2.by).toEqual(2)
-    expect(x2(2)).toEqual(4)
- 
-    expect(x2.copy()).not.toBe(x2) 
-    expect(x2).toBeInstanceOf(Multiply)
-    expect(x2).toBeInstanceOf(Struct)
+    const scalar3 = Struct.apply(scalar1, scalar2)
+    expect(scalar3).toBeInstanceOf(Scalar)
+    expect(scalar2).toHaveProperty('value', 10)
+    expect(scalar1).not.toBe(scalar2)
+})
 
-    expect(x2.copy().equals(x2)).toBe(true)
-})  
-
-it('CallableStruct.bindMethods', () => {
-    const dangly = new class Dangly extends CallableStruct<() => void> {
-
-        constructor() {
-            super(toVoid)
-        }
+it('callable', () => {
     
-        getThis(): this {
-            return this
-        }  
+    class Average extends CallableStruct<() => number> {
+
+        readonly values: number[]
+
+        constructor(...values: number[]) {
+            super(function () {
+                return this.values.reduce((a,c) => a + c) / this.values.length
+            })
+            this.values = values
+        }
+
     }
 
-    const { getThis } = dangly
-    expect(getThis()).toEqual(nil)
+    const two = new Average(1,2,3)
+    expect(two()).toEqual(2)
+    expect({ ...two }).toEqual({ values: [1,2,3 ]})
+    expectTypeOf({ ...two }).toEqualTypeOf({ values: [1,2,3 ]})
 
-    const getThisBound = Struct.bindMethods(dangly, 'getThis').getThis
+    const five = Average.apply(two, { values: [5] })
+    expect(five()).toEqual(5)
+    expect({ ...five }).toEqual({ values: [5] })
+    expectTypeOf({ ...five }).toEqualTypeOf({ values: [5] }) 
 
-    expect(getThisBound()).toBe(dangly) 
 })

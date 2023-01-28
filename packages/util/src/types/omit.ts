@@ -17,6 +17,7 @@ function _omit(input: object, ...keys: (symbol | string)[]): object {
 
 export function omit<T extends object, Tk extends KeysOf<T>[]>(...keys: Tk): (input: T) => Omit<T, Tk[number]>
 export function omit<T extends object, Tk extends KeysOf<T>[]>(input: T, ...keys: Tk): Omit<T, Tk[number]>
+export function omit(input: object, ...keys: string[]): object
 export function omit(...input: unknown[]): unknown {
     return typeof input[0] === 'object' 
       

@@ -14,7 +14,7 @@ class NestedMap<K extends unknown[], V> implements Map<K,V> {
     //// Interface ////
     
     get(refs: K): V | nil {
-        return this._get(refs)()
+        return this._get(refs).value
     }
 
     has(refs: K): boolean {
