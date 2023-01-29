@@ -1,4 +1,5 @@
-import { isNil } from './nil'
+import { TypeGuard } from './func'
+import { isNil, nil } from './nil'
 
 //// Basic ////
 
@@ -30,6 +31,11 @@ export const isPrimitive = (i: unknown): i is Primitive =>
     isBigInt(i) || 
     isSymbol(i) ||
     isNil(i)
+
+//// Opional ////
+    
+export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
+    (i: unknown): i is T | nil => i === nil || type(i)
 
 //// Symbol ////
     
