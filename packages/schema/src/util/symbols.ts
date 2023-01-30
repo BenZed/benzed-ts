@@ -1,5 +1,5 @@
 import { Property } from '@benzed/util'
-import { AnyValidate } from './validator'
+import { AnyValidate } from '../validator'
 
 /**
  * Place as a property on Validator constructors so that

@@ -1,4 +1,4 @@
-import { isString } from '@benzed/util'
+import { isFunc, isString } from '@benzed/util'
 import ValidateContext from './validate-context'
 
 //// Types ////
@@ -27,3 +27,7 @@ export class ValidationError<T = unknown> extends Error {
 export type ValidationErrorMessage<T = unknown> = (input: T, ctx: ValidateContext<T>) => string
 
 export type ValidationErrorInput<T> = string | ValidationErrorMessage<T> 
+
+export const isValidationErrorInput = 
+    <T>(input: unknown): input is ValidationErrorInput<T> => 
+        isString(input) || isFunc(input)

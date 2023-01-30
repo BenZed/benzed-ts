@@ -83,4 +83,4 @@ testValidator(
     { input: -3.5, output: -4 },
     { input: -3.5, error: 'Must be an integer', transform: false },
     { input: -Infinity, output: -Infinity }
-) 
+)

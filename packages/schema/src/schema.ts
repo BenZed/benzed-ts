@@ -1,14 +1,13 @@
 
-import { pluck } from '@benzed/array'
-
 import {
-    isString,
     isSymbol,
     Pipe,
 
     nil,
     provide,
-    defined,
+    isFunc,
+    SignatureParser,
+    isOptional
 } from '@benzed/util'
 
 import {
@@ -16,14 +15,15 @@ import {
     $$mainId,
     defineMainValidatorId,
     defineSymbol
-} from './symbols'
+} from './util/symbols'
 
 import {
+    AllowedValidatorSettings,
     Validator, 
     ValidatorPredicate, 
     ValidatorSettings, 
     ValidatorTransform, 
-    ValidatorTypeGuard, 
+    ValidatorTypeGuard
 } from './validator/validator'
 
 import {
@@ -32,7 +32,7 @@ import {
     ValidateOptions
 } from './validator/validate'
 
-import { ValidationErrorInput } from './validator/validate-error'
+import { isValidationErrorInput, ValidationErrorInput, ValidationErrorMessage } from './validator/validate-error'
 
 import ValidateContext from './validator/validate-context'
 
@@ -44,18 +44,25 @@ import ValidateContext from './validator/validate-context'
 
 //// Helper ////
 
+const toIdError = new SignatureParser({
+    error: isOptional(isValidationErrorInput<any>),
+    id: isOptional(isSymbol)
+})
+    .addLayout('error', 'id')
+    .addLayout('id')
+
 const withId = provide((id?: string | symbol) => (validator: AnyValidate) => resolveSubvalidatorId(validator) === id)
 
 function resolveSubvalidatorId(
     input: object
-): string | symbol | nil {
+): symbol | nil {
 
     // resolve id
     const id = $$id in input ? input[$$id] : nil
-    if (id && !isString(id) && !isSymbol(id))
+    if (id !== nil && !isSymbol(id))
         throw new Error('Invalid sub validator id value.')
 
-    return id as string | symbol | nil
+    return id
 }
 
 function assertSubvalidatorId(
@@ -66,18 +73,6 @@ function assertSubvalidatorId(
         throw new Error('Input did not have an id')
 
     return id
-}
-
-function sortIdErrorArgs<T>(
-    args: [error?: ValidationErrorInput<T>, id?: symbol] | [id?: symbol]
-): { 
-        error?: ValidationErrorInput<T> 
-        id?: symbol 
-    } {
-    const [id] = pluck(args, isSymbol) as [symbol?]
-    const [error] = args as [ValidationErrorInput<T>?]
-
-    return defined({ id, error })
 }
 
 function spliceValidator<I, O, V extends Validator<O,O>>(
@@ -117,7 +112,7 @@ function assertMainValidatorIndex<I,O>(
         throw new Error(`main validator at invalid index: ${index}`)
 }
 
-function validateAll <I,O>(
+function schemaValidate <I,O>(
     this: { validate: Validate<I, O> }, 
     i: I, 
     options?: Partial<ValidateOptions>
@@ -130,16 +125,46 @@ function validateAll <I,O>(
 
 type Validators<I,O> = [mainValidator: Validate<I,O>, ...genericValidators: Validate<O,O>[]]
 
+type UpdateValidatorSettings<I,O> = AllowedValidatorSettings<ValidatorSettings<I,O>>
+
+type AnySchema = Schema<any,any>
+
 //// Schema ////
 
 class Schema<I, O = I> extends Validate<I,O> {
 
+    constructor(settings: ValidatorSettings<I,O> | Validate<I,O>) {
+        super(schemaValidate)
+
+        const validator = Validator.from(settings)
+
+        if ($$id in validator)
+            defineSymbol(this, $$id, validator[$$id])
+
+        this.validate = defineMainValidatorId(validator) as Validate<I,O>
+    }
+
     readonly validate: Validate<I,O>
 
-    constructor(settings: ValidatorSettings<I,O>) {
-        super(validateAll)
-        const validator = Validator.from(settings) 
-        this.validate = defineMainValidatorId(validator) as Validate<I,O>
+    //// Main Validator Interface ////
+    
+    override get name(): string {
+        const [ mainValidator ] = this.validators
+        return mainValidator.name || Validator.name.toLowerCase()
+    }
+    
+    /**
+     * Change the name of the main validator
+     */
+    named(name: string): this {
+        return this._updateMainValidator({ name }) 
+    }
+        
+    /**
+     * Change the thrown error
+     */
+    error(error: string | ValidationErrorMessage<I>): this {
+        return this._updateMainValidator({ error })
     }
 
     //// Validation Interface ////
@@ -148,16 +173,7 @@ class Schema<I, O = I> extends Validate<I,O> {
         input: Partial<ValidatorSettings<O,O>> | Validate<O>,
         id?: symbol
     ): this {
-
-        const validator = Validator.from(input) as Validator<O>
-
-        if (!id) 
-            id = resolveSubvalidatorId(validator) as symbol
-
-        if (id)
-            defineSymbol(validator, $$id, id)
-
-        return spliceValidator(this, validator, withId(id)) as this
+        return this._upsertValidator(input, id)
     }
 
     asserts(
@@ -174,9 +190,9 @@ class Schema<I, O = I> extends Validate<I,O> {
         ...args: [error?: ValidationErrorInput<O>, id?: symbol] | [id?: symbol]
     ): this {
         
-        return this.validates({
+        return this._upsertValidator({
             isValid: isValid as O extends O ? ValidatorPredicate<O> | ValidatorTypeGuard<O, O> : ValidatorPredicate<O>,
-            ...sortIdErrorArgs(args)
+            ...toIdError(args)
         })
     }
 
@@ -193,19 +209,56 @@ class Schema<I, O = I> extends Validate<I,O> {
         transform: ValidatorTransform<O>,
         ...args: [error?: ValidationErrorInput<O>, id?: symbol] | [id?: symbol]
     ): this {
-        return this.validates({
+
+        return this._upsertValidator({
             transform,
-            ...sortIdErrorArgs(args)
+            ...toIdError(args)
         })
     }
 
-    remove(
+    removeValidator(
         id: symbol
     ): this {
         if (id === $$mainId)
-            throw new Error('Cannot removed the main validator')
+            throw new Error('Cannot remove the main validator')
 
         return spliceValidator(this, nil, withId(id)) as this
+    }
+
+    //// Helpers for extensions ////
+
+    protected _upsertValidator(
+        input: Partial<ValidatorSettings<O,O>> | Validate<O>,
+        id?: symbol
+    ): this {
+        const validator = Validator.from(input) as Validator<O>
+
+        if (!id) 
+            id = resolveSubvalidatorId(validator) as symbol
+
+        if (id)
+            defineSymbol(validator, $$id, id)
+
+        return spliceValidator(this, validator, withId(id)) as this
+    }
+    
+    protected _updateValidator(
+        id: symbol,
+        validator: UpdateValidatorSettings<O,O> | Validate<O,O>
+    ): this {
+        const oldValidator = Array.from(this).find(withId(id))
+        if (!oldValidator)
+            throw new Error(`No validator for id: ${String(id)}`)
+    
+        const newValidator = isFunc(validator) 
+            ? validator 
+            : Validator.apply(oldValidator, validator)
+        
+        return this._upsertValidator(newValidator as Validate<O,O>, id)
+    }
+
+    protected _updateMainValidator<V extends UpdateValidatorSettings<I,O>>(settings: V): this {
+        return this._updateValidator($$mainId, settings as UpdateValidatorSettings<O,O>)
     }
 
     //// Iteration ////
@@ -228,6 +281,7 @@ export default Schema
 
 export { 
     Schema,
+    AnySchema,
     Validators,
     resolveSubvalidatorId,
     assertSubvalidatorId

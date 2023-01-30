@@ -72,17 +72,17 @@ class SignatureParser<
     D extends Partial<Defaults<T>>,
     L extends Layout<T>[] = []
 >
-    extends Callable<(...args: Signature<T,L>) => Result<T, D>> {
+    extends Callable<(signature: Signature<T,L>) => Result<T, D>> {
 
     constructor(
         readonly types: Types<T>, 
         readonly defaults: D = {} as D, 
         readonly layouts: L = [] as unknown as L
     ) {
-        super((...args): Result<T, D> => {
+        super((signature): Result<T, D> => {
 
-            const output = this._parseEachLayout(args) ?? args[0] ?? {}
-            //                                         ^ if no layouts matched, 
+            const output = this._parseEachLayout(signature) ?? signature[0][0] ?? {}
+            //                                           if no layouts matched,    ^
             //                                           the first arg may be an 
             //                                           result object itself
 
@@ -93,7 +93,7 @@ class SignatureParser<
             if (this.isResult(outputWithDefaults))
                 return outputWithDefaults
 
-            throw new Error(`Signature not recognized: ${args}`)
+            throw new Error(`Signature not recognized: ${signature}`)
         })
     }
 

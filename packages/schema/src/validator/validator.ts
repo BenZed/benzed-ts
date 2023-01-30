@@ -7,7 +7,7 @@ import { ValidationError, ValidationErrorInput } from './validate-error'
 import ValidateContext from './validate-context'
 import validatorFrom from './validator-from'
 import validatorMerge from './validator-merge'
-import { $$constructor, $$id, defineSymbol } from '../symbols'
+import { $$constructor, $$id, defineSymbol } from '../util/symbols'
 
 //// EsLint ////
 
@@ -18,7 +18,7 @@ import { $$constructor, $$id, defineSymbol } from '../symbols'
 //// Helper Types ////
 
 const VALIDATOR_DISALLOWED_SETTINGS_KEYS = ['isValid', 'transform', 'id'] as const
-type _ValidatorDisallowedSettingsKeys = typeof VALIDATOR_DISALLOWED_SETTINGS_KEYS[number]
+type ValidatorDisallowedSettingsKeys = typeof VALIDATOR_DISALLOWED_SETTINGS_KEYS[number]
 
 type _ValidatorFromSettings<S extends AnyValidatorSettings> = 
     Infer<Validator< ValidatorSettingsInput<S>, ValidatorSettingsOutput<S>>>
@@ -59,10 +59,11 @@ interface Validator<I, O = I> extends Validate<I,O> {
 
 type AnyValidator = Validator<any,any>
 
-type AllowedValidatorSettings<T extends object> = Omit<StructAssignState<T>, _ValidatorDisallowedSettingsKeys>
-type ValidatorPredicate<I> = ParamTransform<I, boolean, [ctx: ValidateContext<I>]>
+type AllowedValidatorSettings<T extends object> = Omit<Partial<T>, ValidatorDisallowedSettingsKeys>
+
 type ValidatorTransform<I, O = I> = ParamTransform<I, I | O, [ctx: ValidateContext<I>]>
 type ValidatorTypeGuard<I, O extends I = I> = (input: I, ctx: ValidateContext<I>) => input is O
+type ValidatorPredicate<I> = ParamTransform<I, boolean, [ctx: ValidateContext<I>]>
 
 //// Validator Constructor Types ////
 
@@ -111,7 +112,6 @@ function validate<I, O>(this: Required<ValidatorSettings<I, O>>, input: I, optio
             return output
         })
         .value as O
-
 }
 
 function toName(constructor: { name: string }): string {
@@ -144,7 +144,7 @@ const Validator = class extends Validate<unknown, unknown> {
     }
 
     override [CallableStruct.$$assign](state: StructAssignState<this>): StructAssignState<this> {
-        return omit(state, 'isValid', 'transform')
+        return omit(state, ...VALIDATOR_DISALLOWED_SETTINGS_KEYS)
     }
 
     override readonly name: string
@@ -183,6 +183,5 @@ export {
     AnyValidator,
     ToValidator,
 
-    VALIDATOR_DISALLOWED_SETTINGS_KEYS
-
+    VALIDATOR_DISALLOWED_SETTINGS_KEYS,
 }

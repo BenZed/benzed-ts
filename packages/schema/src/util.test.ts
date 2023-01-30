@@ -1,11 +1,10 @@
-import { isPrimitive, isString } from '@benzed/util'
+import { isPrimitive, isString, nil } from '@benzed/util'
 import { pluck } from '@benzed/array'
 
 import { AnyValidate, ValidateInput, ValidateOutput } from './validator'
 import { ValidationError } from './validator/validate-error'
 
 import { expect, describe, it } from '@jest/globals'
-import { valid } from 'semver'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -17,6 +16,8 @@ type ValidationTest<V extends AnyValidate> =
         transform?: boolean 
     } & ({ 
         output: ValidateOutput<V>
+    } | {
+        outputSameAsInput: true
     } | { 
         error: string 
     }))
@@ -29,11 +30,18 @@ const print = (input: unknown):string => isPrimitive(input)
 
 function runTests<V extends AnyValidate>(validator: V, ...tests: ValidationTest<V>[]): void {
     for (const test of tests ) {
-        const isOutput = 'output' in test 
+        const isOutput = !('error' in test) 
 
         const inputStr = print(test.input)
+
+        const output = 'outputSameAsInput' in test 
+            ? test.input
+            : 'output' in test 
+                ? test.output
+                : nil
+
         const outputStr = isOutput 
-            ? `${print(test.output)}`
+            ? `${print(output)}`
             : `"${test.error}"`   
 
         const { transform = true } = test
@@ -53,7 +61,7 @@ function runTests<V extends AnyValidate>(validator: V, ...tests: ValidationTest<
             }
         
             if (isOutput) 
-                expect(validated).toEqual(test.output)
+                expect(validated).toEqual('output' in test ? test.output : test.input)
             else 
                 expect(validated?.message).toContain(test.error)
         })

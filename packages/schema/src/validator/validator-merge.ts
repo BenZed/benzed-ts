@@ -1,7 +1,8 @@
-import { isFunc, Pipe, Property } from '@benzed/util'
+import { Pipe, Property } from '@benzed/util'
 
-import Validate from './validate'
-import Validator, { ValidatorSettings } from './validator'
+import { Validate } from './validate'
+import { ValidatorSettings } from './validator'
+import validatorFrom from './validator-from'
 
 //// EsLint ////
 
@@ -11,7 +12,7 @@ import Validator, { ValidatorSettings } from './validator'
 
 //// Types ////
 
-type Mergable<I, O> = Validate<I,O> | Partial<ValidatorSettings<I, O>> 
+type Mergable<I, O> = Validate<I,O> | Partial<ValidatorSettings<I, O>>
 type Merge<I, O> = [
     Mergable<I, O>
 ] | [
@@ -24,20 +25,20 @@ type Merge<I, O> = [
 
 function validatorMerge<I, O>(...input: Merge<I,O>): Validate<I,O> {
 
-    const validators = input.map(v => isFunc<Validate<unknown>>(v) 
-        ? v 
-        : new Validator(v as ValidatorSettings<unknown>))
-    
+    const validators = input.map(validatorFrom)
+
     const validate = validators.length === 1 
         ? validators[0] 
-        : Pipe.from( ...validators)
+        : Pipe.from( ...validators )
 
     if (validators.length > 1) {
-        const name = (validators[0].name ?? 'validate').replaceAll('-merged', '')
+        const name = (validators[0].name ?? 'validate')
+            .replaceAll('-merged', '')
+
         Property.name(validate, name + '-merged')
     }
 
-    return validate as Validate<I, O>
+    return validate
 }
 
 //// Exports ////

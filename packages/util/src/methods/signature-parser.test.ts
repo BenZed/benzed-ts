@@ -26,12 +26,12 @@ describe('basic example', () => {
             error?: string
         }>()
 
-        expectTypeOf<ValueErrorSignature>().toEqualTypeOf<[{
+        expectTypeOf<ValueErrorSignature>().toEqualTypeOf<[[{
             value: number
             error?: string
-        }]>()
+        }]]>()
 
-        expect(toValueErrorNoLayout({ value: 0 })).toEqual({ value: 0 })
+        expect(toValueErrorNoLayout([{ value: 0 }])).toEqual({ value: 0 })
     })
 
     describe('layout', () => {
@@ -40,17 +40,17 @@ describe('basic example', () => {
             .addLayout('value', 'error')
 
         type ValueErrorSignature = Parameters<typeof toValueError>
-        expectTypeOf<ValueErrorSignature>().toEqualTypeOf<
-        [number, string?] |
-        [{
-            value: number
-            error?: string
-        }]
-        >()
+        expectTypeOf<ValueErrorSignature>().toEqualTypeOf<[
+            [number, string?] |
+            [{
+                value: number
+                error?: string
+            }]
+        ]>()
 
-        expect(toValueError(10)).toEqual({ value: 10 })
-        expect(toValueError(10, nil)).toEqual({ value: 10 })
-        expect(toValueError(10, 'Error')).toEqual({ value: 10, error: 'Error' })
+        expect(toValueError([10])).toEqual({ value: 10 })
+        expect(toValueError([10, nil])).toEqual({ value: 10 })
+        expect(toValueError([10, 'Error'])).toEqual({ value: 10, error: 'Error' })
     })
 
     describe('multiple layouts', () => {
@@ -64,9 +64,9 @@ describe('basic example', () => {
             .addLayout('min', 'comparator', 'max', 'error')
             .addLayout('min', 'max', 'error')
 
-        expect(toRangeSettings(0, 10)).toEqual({ min: 0, max: 10 })
-        expect(toRangeSettings(0, 10, 'Invalid')).toEqual({ min: 0, max: 10, error: 'Invalid' })
-        expect(toRangeSettings(0, '>', 10, 'Invalid')).toEqual({ min: 0, max: 10, error: 'Invalid', comparator: '>' })
+        expect(toRangeSettings([0, 10])).toEqual({ min: 0, max: 10 })
+        expect(toRangeSettings([0, 10, 'Invalid'])).toEqual({ min: 0, max: 10, error: 'Invalid' })
+        expect(toRangeSettings([0, '>', 10, 'Invalid'])).toEqual({ min: 0, max: 10, error: 'Invalid', comparator: '>' })
     })
 
     describe('defaults', () => {
@@ -79,7 +79,7 @@ describe('basic example', () => {
             .setDefaults({ error: 'Not in range.'})
             .addLayout('comparator', 'value', 'error')
 
-        const output = toCompareSettings('>', 0)
+        const output = toCompareSettings(['>', 0])
 
         expectTypeOf(output).toEqualTypeOf<{
             comparator: string
@@ -87,7 +87,7 @@ describe('basic example', () => {
             error: string
         }>()
 
-        expect(toCompareSettings('>', 0))
+        expect(toCompareSettings(['>', 0]))
             .toEqual({ comparator: '>', value: 0, error: 'Not in range.'})
     })
 
@@ -100,7 +100,7 @@ describe('basic example', () => {
             y: 0
         }).addLayout('x', 'y')
 
-        expect(toVector()).toEqual({ x: 0, y: 0 })
+        expect(toVector([])).toEqual({ x: 0, y: 0 })
     })
 
 })
