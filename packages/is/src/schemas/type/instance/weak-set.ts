@@ -1,10 +1,33 @@
-import Instance from './instance'
+import Instance, { InstanceExtendsSettings } from './instance'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Types ////
 
-const WeakSetConstructor = globalThis.WeakSet
+interface WeakSetSettings extends InstanceExtendsSettings<WeakSetConstructor> {}
 
 //// Exports ////
 
-export interface WeakSet extends Instance<WeakSetConstructor> {}
-export const isWeakSet: WeakSet = new Instance(WeakSetConstructor)
+class WeakSet extends Instance<WeakSetConstructor> {
+
+    constructor(settings?: WeakSetSettings) {
+        super({
+            Type: global.WeakSet,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default WeakSet
+
+export {
+    WeakSet,
+    WeakSetSettings
+}
+
+export const $weakset = new WeakSet()

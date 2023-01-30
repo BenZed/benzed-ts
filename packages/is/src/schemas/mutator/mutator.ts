@@ -1,3 +1,4 @@
+import { AnyValidate, Validate } from '@benzed/schema'
 import { KeysOf, merge, OutputOf, Property } from '@benzed/util'
 
 import { 
@@ -10,9 +11,6 @@ import {
     removeMutator,
     getMutators
 } from './mutator-operations'
-
-import { AnyValidate, Validate } from '../../../../schema/src/validator'
-import { SchemaValidate } from '../../../../schema/src/schema/_old-schema'
 
 //// Types ////
 
@@ -48,7 +46,7 @@ class Mutator<V extends AnyValidate, T extends MutatorType, O = OutputOf<V>> ext
         readonly target: V,
         readonly mutator: T
     ) {
-        super(target as SchemaValidate<O>)
+        super(target)
         this._mutate()
     }
 

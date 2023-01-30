@@ -1,10 +1,33 @@
-import Instance from './instance'
+import Instance, { InstanceExtendsSettings } from './instance'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Types ////
 
-const RegExpConstructor = globalThis.RegExp
+interface RegExpSettings extends InstanceExtendsSettings<RegExpConstructor> {}
 
 //// Exports ////
 
-export interface RegExp extends Instance<RegExpConstructor> {}
-export const isRegExp: RegExp = new Instance(RegExpConstructor)
+class RegExp extends Instance<RegExpConstructor> {
+
+    constructor(settings?: RegExpSettings) {
+        super({
+            Type: global.RegExp,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default RegExp
+
+export {
+    RegExp,
+    RegExpSettings
+}
+
+export const $regexp = new RegExp()

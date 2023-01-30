@@ -1,10 +1,33 @@
-import Instance from './instance'
+import Instance, { InstanceExtendsSettings } from './instance'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Types ////
 
-const WeakMapConstructor = globalThis.WeakMap
+interface WeakMapSettings extends InstanceExtendsSettings<WeakMapConstructor> {}
 
 //// Exports ////
 
-export interface WeakMap extends Instance<WeakMapConstructor> {}
-export const isWeakMap: WeakMap = new Instance(WeakMapConstructor)
+class WeakMap extends Instance<WeakMapConstructor> {
+
+    constructor(settings?: WeakMapSettings) {
+        super({
+            Type: global.WeakMap,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default WeakMap
+
+export {
+    WeakMap,
+    WeakMapSettings
+}
+
+export const $weakmap = new WeakMap()

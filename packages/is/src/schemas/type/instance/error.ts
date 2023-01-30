@@ -1,15 +1,33 @@
-import Instance from './instance'
+import Instance, { InstanceExtendsSettings } from './instance'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Types ////
 
-const ErrorConstructor = globalThis.Error
+interface ErrorSettings extends InstanceExtendsSettings<ErrorConstructor> {}
 
 //// Exports ////
 
-export class Error extends Instance<ErrorConstructor> {
-    constructor() {
-        super(ErrorConstructor)
+class Error extends Instance<ErrorConstructor> {
+
+    constructor(settings?: ErrorSettings) {
+        super({
+            Type: global.Error,
+            ...settings
+        })
     }
+
 }
 
-export const isError = new Error
+//// Exports ////
+
+export default Error
+
+export {
+    Error,
+    ErrorSettings
+}
+
+export const $error = new Error()

@@ -1,10 +1,33 @@
-import Instance from './instance'
+import Instance, { InstanceExtendsSettings } from './instance'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Types ////
 
-const DateConstructor = globalThis.Date
+interface DateSettings extends InstanceExtendsSettings<DateConstructor> {}
 
 //// Exports ////
 
-export interface Date extends Instance<DateConstructor> {}
-export const isDate: Date = new Instance(DateConstructor)
+class Date extends Instance<DateConstructor> {
+
+    constructor(settings?: DateSettings) {
+        super({
+            Type: global.Date,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default Date
+
+export {
+    Date,
+    DateSettings
+}
+
+export const $date = new Date()

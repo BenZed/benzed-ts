@@ -1,13 +1,13 @@
 
-import { isWeakSet } from './weak-set'
+import { $weakset } from './weak-set'
 
 //// Tests ////
 
 test('isWeakSet', () => {
-    expect(isWeakSet(new WeakSet())) 
+    expect($weakset(new WeakSet())) 
         .toEqual(true)
 
-    expect(() => isWeakSet.validate(''))
-        .toThrow('ust be type WeakSet') 
+    expect(() => $weakset.validate(''))
+        .toThrow('ust be WeakSet') 
 })
 

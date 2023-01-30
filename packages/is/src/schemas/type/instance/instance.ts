@@ -1,5 +1,5 @@
-import { TypeValidatorSettings } from '../../../../../schema/src/validator'
-import Type from '../type'
+import { ValidatorSettings } from '@benzed/schema'
+import Type, { TypeExtendSettings } from '../type'
 
 //// EsLint ////
 
@@ -13,16 +13,20 @@ export type InstanceInput =
     (new (...args: any) => object) |
     (abstract new (...args: any) => object)
 
-interface InstanceSettings<C extends InstanceInput> extends TypeValidatorSettings<InstanceType<C>> {
-    Type: C
+interface InstanceExtendsSettings<C extends InstanceInput> extends TypeExtendSettings<InstanceType<C>> {
+
 }
 
+interface InstanceSettings<C extends InstanceInput> extends InstanceExtendsSettings<C> {
+    Type: C
+}
 //// Main ////
 
 class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
 
     get Type(): C {
-        return (this.typeValidator as unknown as InstanceSettings<C>).Type
+        const [ main ] = this.validators
+        return (main as ValidatorSettings<InstanceType<C>> as { Type: C }).Type
     }
 
     override get name(): string {
@@ -30,23 +34,19 @@ class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
         return Type.name ? `isInstanceOf${Type.name}` : 'isInstance'
     }
 
-    constructor(Type: C) {
-
+    constructor(settings: InstanceSettings<C>) {
         super({
 
             name: Type.name,
 
-            is(i: unknown): i is InstanceType<C> {
+            ...settings,
+
+            isValid(this: InstanceSettings<C>, i: unknown): i is InstanceType<C> {
                 return i instanceof this.Type
-            },
+            }
 
-            Type
-
-        // TODO add support for implicit extended ValidatorSettings
-        } as InstanceSettings<C>)
-
+        })
     }
-
 }
 
 //// Exports ////
@@ -54,5 +54,7 @@ class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
 export default Instance
 
 export {
-    Instance
+    Instance,
+    InstanceSettings,
+    InstanceExtendsSettings
 }

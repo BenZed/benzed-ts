@@ -1,10 +1,33 @@
-import Instance from './instance'
+import Instance, { InstanceExtendsSettings } from './instance'
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Types ////
 
-const PromiseConstructor = globalThis.Promise
+interface PromiseSettings extends InstanceExtendsSettings<PromiseConstructor> {}
 
 //// Exports ////
 
-export interface Promise extends Instance<PromiseConstructor> {}
-export const isPromise: Promise = new Instance(PromiseConstructor)
+class Promise extends Instance<PromiseConstructor> {
+
+    constructor(settings?: PromiseSettings) {
+        super({
+            Type: global.Promise,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default Promise
+
+export {
+    Promise,
+    PromiseSettings
+}
+
+export const $promise = new Promise()

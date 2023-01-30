@@ -1,4 +1,4 @@
-import { Primitive, isDefined, nil } from '@benzed/util'
+import { Primitive, nil, isNil } from '@benzed/util'
 import Type, { TypeExtendSettings } from './type'
 
 /* eslint-disable 
@@ -20,7 +20,9 @@ class Defined extends Type<defined> {
     constructor(settings?: DefinedSettings) {
         super({
             name: 'defined',
-            isValid: isDefined,
+            isValid(input: unknown): input is defined {
+                return !isNil(input)
+            },
             ...settings
         })
     }

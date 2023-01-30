@@ -1,4 +1,4 @@
-import { isPrimitive, Primitive as Primitives } from '@benzed/util'
+import { Primitive as Primitives, isPrimitive } from '@benzed/util'
 import Type, { TypeExtendSettings } from './type'
 
 /* eslint-disable 
@@ -7,7 +7,7 @@ import Type, { TypeExtendSettings } from './type'
 
 //// Types ////
 
-interface PrimitiveSettings extends TypeExtendSettings<object> {}
+interface PrimitiveSettings extends TypeExtendSettings<Primitives> {}
 
 //// Exports ////
 

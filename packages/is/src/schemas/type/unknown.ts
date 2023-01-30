@@ -1,4 +1,4 @@
-import { isBoolean as isBoolean, isNil } from '@benzed/util'
+import { isUnknown } from '@benzed/util'
 import Type, { TypeExtendSettings } from './type'
 
 /* eslint-disable 
@@ -7,27 +7,16 @@ import Type, { TypeExtendSettings } from './type'
 
 //// Types ////
 
-interface UnknownSettings extends TypeExtendSettings<boolean> {}
-
-//// Helper ////
-
-const toBoolean = (
-    input: unknown
-): unknown => input === 'false' || input === 0 || input === BigInt(0) || isNil(input) 
-    ? false
-    : input === 'true' || input === 1 || input === BigInt(1)
-        ? true
-        : input
+interface UnknownSettings extends TypeExtendSettings<unknown> {}
 
 //// Exports ////
 
-class Boolean extends Type<boolean> {
+class Unknown extends Type<unknown> {
 
     constructor(settings?: UnknownSettings) {
         super({
-            name: 'boolean',
-            isValid: isBoolean,
-            cast: toBoolean,
+            name: 'unknown',
+            isValid: isUnknown,
             ...settings
         })
     }
@@ -36,11 +25,11 @@ class Boolean extends Type<boolean> {
 
 //// Exports ////
 
-export default Boolean
+export default Unknown
 
 export {
-    Boolean,
+    Unknown,
     UnknownSettings
 }
 
-export const $boolean = new Boolean()
+export const $unknown = new Unknown()

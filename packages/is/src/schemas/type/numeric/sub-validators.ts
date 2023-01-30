@@ -1,15 +1,15 @@
 import { ceil, floor, round } from '@benzed/math'
-import { 
-    toNameErrorId, 
-    ValidationErrorInput, 
-    SimpleValidator, 
+
+import {
+    toNameErrorId,
+    ValidationErrorInput,
+    SimpleValidator,
     SubValidator
 } from '@benzed/schema'
 
-import { 
-    isFinite, 
-    isNumber, 
-    
+import {
+    isFinite,
+    isNumber,
     SignatureParser 
 } from '@benzed/util'
 
@@ -22,7 +22,12 @@ const toPrecisionSettings = new SignatureParser({
     .addLayout('by', 'error', 'id')
     .addLayout('by', 'id') 
 
-type PrecisionSettingsSignature = [by: number, error?: ValidationErrorInput<number>, name?: string, id?: symbol]
+type PrecisionSettingsSignature = [
+    by: number, 
+    error?: ValidationErrorInput<number>, 
+    name?: string, 
+    id?: symbol
+]
 
 //// Helper ////
 
