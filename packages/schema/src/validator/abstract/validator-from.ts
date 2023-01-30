@@ -1,8 +1,8 @@
 import { isFunc } from '@benzed/util'
 
-import { AnyValidate } from './validate'
+import { AnyValidate } from '../validate'
 
-import { Validator, AnyValidatorSettings, ToValidator } from './validator'
+import { Validator, AnyValidatorSettings, ToValidator } from '../validator'
 
 //// EsLint ////
 

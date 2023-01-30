@@ -8,9 +8,9 @@
     },
     "include": [
         "./src"
-, "to"    ],
+    ],
     "exclude": [
         "./src/**/*.test.ts",
-        "./src/**/_old*"
+        "_old*"
     ]
 }

@@ -1,1 +1,1 @@
-export * from './range'
+export * from '@benzed/schema/src/validators/range'

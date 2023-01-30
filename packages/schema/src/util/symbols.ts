@@ -2,12 +2,6 @@ import { Property } from '@benzed/util'
 import { AnyValidate } from '../validator'
 
 /**
- * Place as a property on Validator constructors so that
- * a schema may create settings appliers for it.
- */
-export const $$constructor = Symbol('validator-constructor')
-
-/**
  * Id of a validator, used for cases where updating a validator
  * means replacing another one
  */

@@ -16,19 +16,21 @@ type ValidateConstructor<V extends AnyValidate = AnyValidate> = new (...args: an
 
 //// Main ////
 
+type SubSchema = Pick<AnySchema, 'validates' | 'removeValidator'>
+
 type SubValidationSignature<V extends ValidateConstructor> = 
     | [enabled: false] 
     | ConstructorParameters<V>
 
 interface SubValidatorConstructor {
-    new <V extends ValidateConstructor, S extends AnySchema>(
+    new <V extends ValidateConstructor, S extends SubSchema>(
         validateConstructor: V, 
         schema: S,
         id?: symbol
     ): SubValidation<SubValidationSignature<V>, S>
 }
 
-interface SubValidation<A extends any[], S extends AnySchema> {
+interface SubValidation<A extends any[], S extends SubSchema> {
     (this: S, ...args: A): S
 
     // TODO also add nested methods from SubValidator
@@ -38,12 +40,12 @@ interface SubValidation<A extends any[], S extends AnySchema> {
 /**
  * Helper class for adding sub valiators to Schemas
  */
-const SubValidation = class ConfigureSubValidator extends Callable<(...args: unknown[]) => AnySchema> { 
+const SubValidation = class ConfigureSubValidator extends Callable<(...args: unknown[]) => SubSchema> { 
 
-    constructor(readonly Type: ValidateConstructor, target: AnySchema, private _id?: symbol) {
+    constructor(readonly Type: ValidateConstructor, target: SubSchema, private _id?: symbol) {
         
         super(function configureSubValidator(
-            this: [AnySchema, ConfigureSubValidator], 
+            this: [SubSchema, ConfigureSubValidator], 
             ...args: unknown[]
         ) {
 
@@ -67,7 +69,7 @@ const SubValidation = class ConfigureSubValidator extends Callable<(...args: unk
                     resolveSubvalidatorId(newSubValidator) ?? 
                     Symbol(`sub-validator-${newSubValidator.name}`)
 
-                return schema['_upsertValidator'](newSubValidator, configurer._id)
+                return schema.validates(newSubValidator, configurer._id)
             }
 
             return schema

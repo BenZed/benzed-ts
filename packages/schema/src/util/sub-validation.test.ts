@@ -2,24 +2,25 @@ import { isInteger } from '@benzed/util'
 
 import { SubValidation } from './sub-validation'
 
-import { Schema, ValidationErrorInput, Validator } from '../validator'
+import { SubValidator, ValidationErrorInput } from '../validator'
 
 import { testValidator } from '../util.test'
+import Schema from '../schema'
 
 //// Types //// 
 
-class Length extends Validator<number[], number[]> {
+class Length extends SubValidator<number[]> {
     constructor(
         readonly length: number, 
         error?: ValidationErrorInput<number[]>
     ) {
-        super({
-            isValid(input: number[]) {
-                return this.length === input.length
-            },
-            error
-        })
+        super({ error })
     }
+
+    override isValid(input: number[]): boolean {
+        return this.length === input.length
+    }
+    
 }
 
 class AlphaNumeric extends Schema<number[]> {
@@ -52,7 +53,7 @@ class Buffer extends Schema<number[]> {
                 return input.every(isInteger) && 
                     input.every(n => n >= 0 && n <= 255)
             },
-            error
+            error 
         }) 
     } 
 

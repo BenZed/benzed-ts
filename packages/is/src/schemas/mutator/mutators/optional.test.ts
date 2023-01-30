@@ -1,10 +1,10 @@
 import { isArray, isString as _isString, nil } from '@benzed/util'
+import { Validator } from '@benzed/schema'
 
 import { Optional } from './optional'
 // import { isString } from '../schema'
 
 import { it, expect } from '@jest/globals'
-import { Validator } from '../../../../validator'
 import { expectTypeOf } from 'expect-type'
 import { ReadOnly } from './readonly'
 import { MutatorType } from '../mutator'

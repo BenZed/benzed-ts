@@ -1,13 +1,12 @@
 
-import { CallableStruct, StructAssignState, equals } from '@benzed/immutable'
-import { defined, Empty, Infer, KeysOf, omit, ParamTransform, Property, Resolver } from '@benzed/util'
+import { CallableStruct,StructAssignState } from '@benzed/immutable'
+import { defined, Empty, Infer, KeysOf, omit, ParamTransform, Property } from '@benzed/util'
 
-import { AnyValidate, Validate, ValidateOptions, ValidateConstructor } from './validate'
-import { ValidationError, ValidationErrorInput } from './validate-error'
+import { AbstractValidator } from './abstract'
+
+import Validate, { AnyValidate } from './validate'
 import ValidateContext from './validate-context'
-import validatorFrom from './validator-from'
-import validatorMerge from './validator-merge'
-import { $$constructor, $$id, defineSymbol } from '../util/symbols'
+import { ValidationErrorInput } from './validate-error'
 
 //// EsLint ////
 
@@ -50,11 +49,9 @@ type AnyValidatorSettings = ValidatorSettings<any,any>
 
 //// Validator Types ////
 
-interface Validator<I, O = I> extends Validate<I,O> {
+interface Validator<I, O = I> extends Validate<I,O>, Omit<AbstractValidator<I, O>, 'isValid' | 'name'> {
     name: string
-    error(): string
     isValid(input: I, ctx: ValidateContext<I>): boolean
-    transform(input: I, ctx: ValidateContext<I>): O | I
 }
 
 type AnyValidator = Validator<any,any>
@@ -74,93 +71,35 @@ type ToValidator<S extends AnyValidatorSettings> =
         ? _ValidatorFromSettings<S>
         : _ValidatorFromSettings<S> & _ValidatorSettingExtensions<S>
 
-interface ValidatorConstructor extends Omit<ValidateConstructor, 'apply'> {
+interface ValidatorConstructor extends Omit<typeof AbstractValidator, 'apply'> {
 
     apply<V extends AnyValidate>(
         validator: V, 
         settings: AllowedValidatorSettings<V>
     ): V
 
-    from: typeof validatorFrom
-    merge: typeof validatorMerge
-
     new <S extends ToValidatorInput>(input: S): ToValidator<S>
     new <I, O extends I = I>(settings: ValidatorSettings<I,O>): Validator<I,O>
 
 }
 
-//// Validator Method ////
-
-function validate<I, O>(this: Required<ValidatorSettings<I, O>>, input: I, options?: Partial<ValidateOptions>): O {
-
-    const ctx = new ValidateContext(input, options)
-
-    const transformed = this.transform(input, ctx)
-
-    return new Resolver(transformed)
-        .then(resolved => {
-
-            ctx.value = resolved as I
-
-            const output = ctx.transform 
-                ? ctx.value
-                : input
-
-            if (!this.isValid(output, ctx))
-                throw new ValidationError(this, ctx)
-
-            return output
-        })
-        .value as O
-}
-
-function toName(constructor: { name: string }): string {
-    const { name } = constructor
-    return name.charAt(0).toLowerCase() + name.slice(1)
-}
-
 //// Implementation ////
 
-const Validator = class extends Validate<unknown, unknown> {
-
-    static readonly [$$constructor] = true
-    static readonly from = validatorFrom
-    static readonly merge = validatorMerge
+const Validator = class extends AbstractValidator<unknown, unknown> {
 
     constructor(
-        { name, id, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
+        { id, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
     ) {
 
-        super(validate)
-        this.name = name ?? toName(this.constructor)
+        super(id)
 
         Property.transpose(defined(settings), this)
-
         // ensure error is counted as state if it wasn't provided
         Property.configure(this, 'error', { enumerable: true })
-
-        if (id)
-            defineSymbol(this, $$id, id)
     }
 
     override [CallableStruct.$$assign](state: StructAssignState<this>): StructAssignState<this> {
         return omit(state, ...VALIDATOR_DISALLOWED_SETTINGS_KEYS)
-    }
-
-    override readonly name: string
-
-    error(): string {
-        return this.name === toName(Validator) 
-            ? 'Validation failed.'
-            : `Must be ${this.name}.`
-    }
-    
-    isValid(input: unknown, ctx: ValidateContext<unknown>): input is unknown {
-        return equals(input, ctx.value)
-    }
-
-    transform(input: unknown, _ctx: ValidateContext<unknown>): unknown | unknown {
-        return input
     }
 
 } as ValidatorConstructor
