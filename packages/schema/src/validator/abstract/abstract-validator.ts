@@ -1,13 +1,12 @@
 
 import { equals } from '@benzed/immutable'
-
-import { assign, defined, isString, nil, Property, Resolver } from '@benzed/util'
+import { Resolver } from '@benzed/util'
 
 import ValidateContext from '../validate-context'
-import { Validate, ValidateOptions } from '../validate'
-import { ValidationError, ValidationErrorInput } from '../validate-error'
+import { ValidateOptions } from '../validate'
+import { ValidationError } from '../validate-error'
 
-import { $$id, defineSymbol } from '../../util/symbols'
+import { AbstractValidate, NameErrorIdSignature } from './abstract-validate'
 
 //// Validate ////
 
@@ -38,46 +37,16 @@ function validate<I, O = I>(
         .value as O
 }
 
-function setName(object: object): void {
-    let name = object.constructor.name
-    name = name
-        .charAt(0)
-        .toLowerCase() + name.slice(1)
-
-    Property.name(object, name)
-}
-
-function setError<T>(object: object, error: ValidationErrorInput<T> | nil): void {
-    assign(
-        object, 
-        defined({ 
-            error: isString(error) ? () => error : error 
-        })
-    )
-}
-
-function setId(object: object, id: symbol | nil): void {
-    // id, if provided
-    if (id)
-        defineSymbol(object, $$id, id)
-}
-
 //// Main ////
 
-abstract class AbstractValidator<I, O = I> extends Validate<I, O> {
+abstract class AbstractValidator<I, O = I> extends AbstractValidate<I, O> {
 
-    constructor(error?: ValidationErrorInput<I>, id?: symbol) {
-
-        super(validate)
-
-        setName(this)
-        setError(this, error)
-        setId(this, id)
-
+    constructor(...args: NameErrorIdSignature<I>) {
+        super(validate, ...args)
     }
 
-    error(): string {
-        return this.name === 'Vaildator'
+    override error(): string {
+        return this.name.includes('abstract')
             ? 'Validation failed.'
             : `Must be ${this.name}.`
     }

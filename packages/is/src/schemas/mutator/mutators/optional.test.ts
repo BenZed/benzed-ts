@@ -20,13 +20,13 @@ import { eachMutator } from '../mutator-operations'
 
 interface String extends Validator<unknown, string> {}
 
-const $string: String = new Validator({ is: _isString, error: 'Must be a string' })
+const $string: String = new Validator({ isValid: _isString, error: 'Must be a string' })
 const $optionalString = new Optional($string)
 
 interface ArrayOfString extends Validator<unknown, string[]> {}
 const $arrayOfString: ArrayOfString = new Validator({
     error: 'Must be an array of string',
-    is: (i): i is string[] => isArray(i, _isString)
+    isValid: (i: unknown): i is string[] => isArray(i, _isString)
 }) 
  
 //// Tests ////
@@ -51,11 +51,6 @@ it('doesnt nest', () => {
     expect(numOptionals).toBe(1)
 
 })
-
-// it('preserves defaults', () => {
-//     expect(OptionalString.default('Cake').validate(nil))
-//         .toEqual('Cake')
-// })
 
 it('required', () => {
     const $string = $optionalString.required

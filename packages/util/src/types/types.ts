@@ -148,3 +148,4 @@ export type Entries<T extends object> = keyof T extends infer K
         : never
     : never
 
+export type GenericObject = Record<string | symbol | number, unknown>

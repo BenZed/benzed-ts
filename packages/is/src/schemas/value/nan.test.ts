@@ -7,4 +7,4 @@ import { test, expect } from '@jest/globals'
 test('isValue', () => {
     expect($nan(NaN)).toEqual(NaN)
     expect(() => $nan(10)).toThrow('Must be NaN')
-})
+}) 

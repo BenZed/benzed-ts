@@ -2,6 +2,7 @@ import { Callable } from '../classes'
 
 import { 
     Compile, 
+    GenericObject, 
     indexesOf, 
     isObject, 
     KeysOf, 
@@ -43,8 +44,6 @@ type _LayoutToSignature<T extends GenericObject, L extends Layout<T>> =
         : []
 
 //// Types ////
-
-type GenericObject = Record<string, unknown> 
 
 type Result<T extends GenericObject, D extends Partial<Defaults<T>>> =
     Merge<[T,D]> extends infer O

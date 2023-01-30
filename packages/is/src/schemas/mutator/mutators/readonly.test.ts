@@ -1,16 +1,19 @@
 
 import { isArray as _isArray } from '@benzed/util'
+import { Validator } from '@benzed/schema'
 
 import { ReadOnly } from './readonly'
 
 import { it, expect } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
-import { Validator } from '../../../../validator'
 
 //// Setup ////
 
-const $array = new Validator({ is: (i): i is unknown[] => _isArray(i), 'error': 'Must be an array' })
+const $array = new Validator({ 
+    isValid: (i: unknown): i is unknown[] => _isArray(i), 
+    'error': 'Must be an array' 
+})
 
 const $readonlyArray = new ReadOnly($array)
 

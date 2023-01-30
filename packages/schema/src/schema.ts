@@ -2,15 +2,19 @@
 import AbstractSchema from './abstract-schema'
 
 import {
-    Validate, 
 
-    ValidatorPredicate, 
-    ValidatorSettings, 
-    ValidatorTransform, 
+    Validate,
+
+    ValidatorPredicate,
+    ValidatorSettings,
+    ValidatorTransform,
     ValidatorTypeGuard,
 
     NameErrorIdSignature,
-    toNameErrorId, 
+    toNameErrorId,
+    Validator,
+    ValidationErrorMessage,
+
 } from './validator'
 
 //// EsLint ////

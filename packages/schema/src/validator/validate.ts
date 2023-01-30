@@ -1,5 +1,4 @@
-import { CallableStruct, Struct } from '@benzed/immutable'
-import type { Infer, InputOf, OutputOf } from '@benzed/util'
+import type { InputOf, OutputOf } from '@benzed/util'
 
 import type { ValidateOptions } from './validate-options'
 
@@ -21,14 +20,6 @@ type ValidateOutput<V extends AnyValidate> = OutputOf<V>
 
 type AnyValidate = Validate<any>
 
-//// Constructor ////
-
-interface ValidateConstructor extends Infer<typeof CallableStruct> {
-    new <I,O>(validate: Validate<I,O>): Struct & Validate<I,O>
-}
-
-const Validate = class <I,O>extends CallableStruct<Validate<I,O>> {} as ValidateConstructor
-
 //// Exports ////
 
 export default Validate
@@ -39,6 +30,5 @@ export {
     ValidateInput,
     ValidateOutput,
 
-    ValidateConstructor,
     AnyValidate,
 }

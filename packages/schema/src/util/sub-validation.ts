@@ -2,10 +2,10 @@ import { Callable, OutputOf } from '@benzed/util'
 
 import { AnyValidate } from '../validator/validate'
 
-import type { Schema } from '../schema'
 import { resolveSubvalidatorId } from '../abstract-schema'
+import type { Schema } from '../schema'
 
-//// EsLint ////
+//// EsLint //// 
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -13,7 +13,8 @@ import { resolveSubvalidatorId } from '../abstract-schema'
 
 //// Types ////  
 
-type ValidateConstructor<V extends AnyValidate = AnyValidate> = new (...args: any) => V
+type ValidateConstructor<V extends AnyValidate = AnyValidate> = 
+    new (...args: any) => V
 
 //// Main ////
 

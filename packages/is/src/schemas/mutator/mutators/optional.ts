@@ -11,16 +11,6 @@ import { removeMutator, RemoveMutator } from '../mutator-operations'
     @typescript-eslint/no-explicit-any,
 */
 
-//// Helper Types ////
-
-// type _InheritOptional<T> = T extends AnyValidate
-//     ? Optional<T>
-//     : T extends Func
-//         ? ReturnType<T> extends AnyValidate 
-//             ? (...params: Parameters<T>) => Optional<ReturnType<T>>
-//             : T
-//         : T
-
 //// Types ////
 type Required<V extends AnyValidate> = RemoveMutator<V, MutatorType.Optional>
 

@@ -1,4 +1,4 @@
-import { AnyValidate, Validate } from '@benzed/schema'
+import { AbstractValidate, AnyValidate, Validate } from '@benzed/schema'
 import { KeysOf, merge, OutputOf, Property } from '@benzed/util'
 
 import { 
@@ -31,7 +31,11 @@ type MutatorProperties<V extends AnyValidate> = {
 
 //// Implementation ////
 
-class Mutator<V extends AnyValidate, T extends MutatorType, O = OutputOf<V>> extends Validate<unknown, O> {
+class Mutator<
+    V extends AnyValidate, 
+    T extends MutatorType, 
+    O = OutputOf<V>
+> extends AbstractValidate<unknown, O> {
 
     static readonly add = addMutators
     static readonly has = hasMutator

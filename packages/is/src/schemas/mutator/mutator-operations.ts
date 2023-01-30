@@ -40,7 +40,10 @@ export type AddMutator<V extends AnyValidate, T extends M> =
                 ? Async<Sync<V>> 
                 : V
 
-export function addMutator<V extends AnyValidate, T extends M>(validator: V, type: T): AddMutator<V,T> {
+export function addMutator<V extends AnyValidate, T extends M>(
+    validator: V, 
+    type: T
+): AddMutator<V,T> {
     return addMutators(validator, type) as AddMutator<V,T>
 }
                         

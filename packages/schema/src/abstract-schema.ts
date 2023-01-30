@@ -1,4 +1,5 @@
 
+import { CallableStruct } from '@benzed/immutable'
 import {
     isSymbol,
     Pipe,
@@ -36,7 +37,8 @@ import {
 
 //// Helper ////
 
-const withId = provide((id?: string | symbol) => (validator: AnyValidate) => resolveSubvalidatorId(validator) === id)
+const withId = provide((id?: string | symbol) => (validator: AnyValidate) => 
+    resolveSubvalidatorId(validator) === id)
 
 function resolveSubvalidatorId(
     input: object
@@ -114,7 +116,7 @@ type UpdateValidatorSettings<I,O> = AllowedValidatorSettings<ValidatorSettings<I
 
 //// Schema ////
 
-abstract class AbstractSchema<I, O = I> extends Validate<I,O> {
+abstract class AbstractSchema<I, O = I> extends CallableStruct<Validate<I,O>> {
 
     constructor(settings: ValidatorSettings<I,O> | Validate<I,O>) {
         super(schemaValidate)
@@ -130,10 +132,9 @@ abstract class AbstractSchema<I, O = I> extends Validate<I,O> {
     readonly validate: Validate<I,O>
 
     //// Main Validator Interface ////
-    
+
     override get name(): string {
-        const [ mainValidator ] = this.validators
-        return mainValidator.name || Validator.name.toLowerCase()
+        return this._mainValidator.name || Validator.name.toLowerCase()
     }
     
     /**
@@ -193,6 +194,10 @@ abstract class AbstractSchema<I, O = I> extends Validate<I,O> {
 
     protected _updateMainValidator<V extends UpdateValidatorSettings<I,O>>(settings: V): this {
         return this._updateValidator($$mainId, settings as UpdateValidatorSettings<O,O>)
+    }
+
+    protected get _mainValidator(): Validators<I,O>[0] {
+        return this.validators[0]
     }
 
     //// Iteration ////

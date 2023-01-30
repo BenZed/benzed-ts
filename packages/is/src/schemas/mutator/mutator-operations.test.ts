@@ -1,9 +1,7 @@
 
 import { it } from '@jest/globals'
-import { isArray, isString as _isString } from '@benzed/util'
+import { isArray, isString as isString } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
-
-import { Validate, Validator } from '../../../validator'
 
 import {
     AddMutator, 
@@ -21,6 +19,7 @@ import {
 
 import { Optional, ReadOnly } from './mutators'
 import { MutatorType as M, MutatorType } from './mutator'
+import { Validate, Validator } from '@benzed/schema'
 
 //// EsLint ////
 
@@ -36,13 +35,13 @@ interface To<O> extends Validate<unknown, O> {}
 interface String extends To<string> {}
 const $string: String = new Validator({
     error: 'Must be a string',
-    is: _isString
+    isValid: isString
 })
 
 interface ArrayOfString extends To<string[]> {}
 const $arrayOfString: ArrayOfString = new Validator({
     error: 'Must be an array of string',
-    is: (i): i is string[] => isArray(i, _isString)
+    isValid: (i): i is string[] => isArray(i, isString)
 })
 
 //// Tests ////
@@ -156,6 +155,26 @@ describe('HasMutator', () => {
 
         type IsReadonly = HasMutator<AsyncArrayOfString, M.ReadOnly>
         expectTypeOf<IsReadonly>().toEqualTypeOf<false>()
+    })
+
+    it('OptionalReadOnly', () => {
+
+        type OptionalReadOnlyArrayOfString = Optional<ReadOnly<ArrayOfString>>
+
+        type IsOptional = HasMutator<OptionalReadOnlyArrayOfString, M.Optional>
+        type IsReadOnly = HasMutator<OptionalReadOnlyArrayOfString, M.ReadOnly>
+        expectTypeOf<IsOptional>().toEqualTypeOf<true>()
+        expectTypeOf<IsReadOnly>().toEqualTypeOf<true>()
+    })
+
+    it('ReadOnlyOptional', () => {
+
+        type ReadOnlyOptionalArrayOfString = ReadOnly<Optional<ArrayOfString>>
+
+        type IsOptional = HasMutator<ReadOnlyOptionalArrayOfString, M.Optional>
+        type IsReadOnly = HasMutator<ReadOnlyOptionalArrayOfString, M.ReadOnly>
+        expectTypeOf<IsOptional>().toEqualTypeOf<true>()
+        expectTypeOf<IsReadOnly>().toEqualTypeOf<true>()
     })
 
 })
