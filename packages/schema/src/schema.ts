@@ -11,9 +11,7 @@ import {
     ValidatorTypeGuard,
 
     NameErrorIdSignature,
-    toNameErrorId,
-    Validator,
-    ValidationErrorMessage,
+    toNameErrorId
 
 } from './validator'
 

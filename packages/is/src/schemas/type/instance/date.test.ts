@@ -1,13 +1,13 @@
 
-import { isDate } from './date'
+import { $date } from './date'
 
-//// Tests ////
+import { testValidator } from '../../../util.test'
 
-test('isDate', () => {
-    expect(isDate(new Date()))
-        .toEqual(true)
+//// Tests //// 
 
-    expect(() => isDate.validate(''))
-        .toThrow('Must be type Date')
-})
-
+testValidator(
+    $date,
+    $date.name + ' instance',
+    { input: new $date.Type(), outputSameAsInput: true },
+    { input: 0, error: `ust be ${$date.name}` }
+)

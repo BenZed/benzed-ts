@@ -70,6 +70,9 @@ class Type<T> extends Schema<unknown, T> {
                 return input
             }
         })
+
+        if (this.constructor.name === 'WeakSet')
+            console.log(settings)
     }
 
     /**

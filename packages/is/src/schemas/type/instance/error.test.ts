@@ -1,11 +1,13 @@
 
-import { isError } from './error'
+import { $error } from './error'
 
-//// Tests ////
+import { testValidator } from '../../../util.test'
 
-test('isError', () => {
-    expect(isError(new Error())).toEqual(true)
+//// Tests //// 
 
-    expect(() => isError.validate('')).toThrow('Must be type Error')
-})
-
+testValidator(
+    $error,
+    $error.name + ' instance',
+    { input: new $error.Type(), outputSameAsInput: true },
+    { input: 0, error: `ust be ${$error.name}` }
+)

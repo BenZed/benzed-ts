@@ -1,13 +1,13 @@
 
-import { isRegExp } from './reg-exp'
+import { $regexp } from './reg-exp'
+
+import { testValidator } from '../../../util.test'
 
 //// Tests ////
 
-test('isRegExp', () => {
-    expect(isRegExp(/ace/))
-        .toEqual(true)
-
-    expect(() => isRegExp.validate(''))
-        .toThrow('Must be type RegExp')
-})
-
+testValidator(
+    $regexp,
+    $regexp.name + ' instance',
+    { input: new $regexp.Type('a|b'), outputSameAsInput: true },
+    { input: 0, error: `ust be ${$regexp.name}` }
+)

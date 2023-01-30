@@ -1,11 +1,14 @@
 
-import { isPromise } from './promise'
+import { $promise } from './promise'
 
-//// Tests ////
+import { testValidator } from '../../../util.test'
+import { pass } from '@benzed/util'
 
-test('isPromise', () => {
-    expect(isPromise(Promise.resolve())).toEqual(true)
+//// Tests //// 
 
-    expect(() => isPromise.validate('')).toThrow('Must be type Promise')
-})
-
+testValidator(
+    $promise,
+    $promise.name + ' instance',
+    { input: new Promise(pass), outputSameAsInput: true },
+    { input: 0, error: `ust be a ${$promise.name}` }
+)

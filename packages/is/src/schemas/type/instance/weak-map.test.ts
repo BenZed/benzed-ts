@@ -1,15 +1,13 @@
 
 import { $weakmap } from './weak-map'
 
-import { test, expect } from '@jest/globals'
+import { testValidator } from '../../../util.test'
 
 //// Tests ////
 
-test('isWeakMap', () => {
-    expect($weakmap(new WeakMap())) 
-        .toEqual(new WeakMap())
-
-    expect(() => $weakmap.validate(''))
-        .toThrow('ust be WeakMap') 
-})
-
+testValidator(
+    $weakmap,
+    $weakmap.name + ' instance',
+    { input: new $weakmap.Type(), outputSameAsInput: true },
+    { input: 0, error: `ust be ${$weakmap.name}` }
+)

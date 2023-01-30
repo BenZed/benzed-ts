@@ -1,4 +1,4 @@
-import { ValidatorSettings } from '@benzed/schema'
+import { Validate, ValidatorSettings } from '@benzed/schema'
 import Type, { TypeExtendSettings } from '../type'
 
 //// EsLint ////
@@ -20,24 +20,25 @@ interface InstanceExtendsSettings<C extends InstanceInput> extends TypeExtendSet
 interface InstanceSettings<C extends InstanceInput> extends InstanceExtendsSettings<C> {
     Type: C
 }
+
+interface InstanceValidator<C extends InstanceInput> extends Validate<unknown, InstanceType<C>>, InstanceSettings<C> {}
+
 //// Main ////
 
 class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
 
     get Type(): C {
-        const [ main ] = this.validators
-        return (main as ValidatorSettings<InstanceType<C>> as { Type: C }).Type
+        return this._mainValidator.Type
     }
 
-    override get name(): string {
-        const { Type } = this
-        return Type.name ? `isInstanceOf${Type.name}` : 'isInstance'
+    override get _mainValidator(): InstanceValidator<C> {
+        return this.validators[0] as InstanceValidator<C>
     }
 
     constructor(settings: InstanceSettings<C>) {
         super({
 
-            name: Type.name,
+            name: settings.Type.name,
 
             ...settings,
 

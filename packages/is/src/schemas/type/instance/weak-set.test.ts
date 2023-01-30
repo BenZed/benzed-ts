@@ -1,13 +1,13 @@
 
 import { $weakset } from './weak-set'
 
+import { testValidator } from '../../../util.test'
+
 //// Tests ////
 
-test('isWeakSet', () => {
-    expect($weakset(new WeakSet())) 
-        .toEqual(true)
-
-    expect(() => $weakset.validate(''))
-        .toThrow('ust be WeakSet') 
-})
-
+testValidator(
+    $weakset,
+    $weakset.name + ' instance',
+    { input: new $weakset.Type(), outputSameAsInput: true },
+    { input: 0, error: `ust be ${$weakset.name}` }
+)
