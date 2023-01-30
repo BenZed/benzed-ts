@@ -1,5 +1,5 @@
 import { indexesOf, keysOf } from '../types/keys-of'
-import { isBoolean, isNumber, isString } from './primitive'
+import { isBigInt, isBoolean, isNumber, isString } from './primitive'
 import { Func, isFunc, TypeGuard, TypeOf } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
 import { Sortable } from '../sort'
@@ -87,8 +87,19 @@ export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>
 
 export const isUnknown = (input: unknown): input is unknown => true
 
-export const isSortable = <T extends Sortable>(input: unknown): input is T =>
-    isNumber(input) && isFinite(input) || isString(input)
+export const isSortable = <T extends Sortable>(input: unknown): input is T => {
+
+    if (isObject(input)) {
+        input = 'length' in input && isNumber(input.length)
+            ? input.length 
+            : input.valueOf()
+    }
+
+    return isNumber(input) || 
+        isString(input) ||
+        isBigInt(input) || 
+        isBoolean(input)
+}
 
 const { isFinite } = Number 
 export { isFinite }

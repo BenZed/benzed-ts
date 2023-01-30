@@ -17,7 +17,7 @@ type SortableValues<T> = T extends string
  */
 type Sorter<T = Sortable> = (a: T, b: T) => number
 
-////  ////
+//// Helper ////
 
 function toSubtractable<T extends Exclude<Sortable, string>>(input: T): Extract<T, number | bigint> {
 
@@ -34,8 +34,12 @@ function toSubtractable<T extends Exclude<Sortable, string>>(input: T): Extract<
     return input
 }
 
-//// Helper ////
+function toComparable<T extends Sortable>(sortable: T): string | number | bigint {
+    if (isString(sortable))
+        return sortable 
 
+    return toSubtractable(sortable)
+}
 /**
  * Compares inputs as values
  */
@@ -103,6 +107,7 @@ export {
     Sorter,
     Sortable,
 
-    by
+    by,
+    toComparable
 
 }

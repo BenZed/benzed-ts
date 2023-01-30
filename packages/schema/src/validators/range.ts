@@ -11,10 +11,12 @@ import {
 } from '../validator/abstract'
 
 import {
-    isNumber,
     SignatureParser,
     isOptional,
-    assign
+    assign,
+    Sortable,
+    isSortable,
+    toComparable
 } from '@benzed/util'
 
 //// Internal Types ////
@@ -29,27 +31,40 @@ type UnaryComparator = typeof UNARY_COMPARATORS[number]
 const isUnaryComparator = (i: unknown): i is UnaryComparator => 
     UNARY_COMPARATORS.includes(i as UnaryComparator)
 
-interface UnarySettings {
+interface UnarySettings<T extends Sortable> {
     readonly comparator: UnaryComparator
-    readonly value: number
+    readonly value: T
 }
 
-interface BinarySettings {
+interface BinarySettings<T extends Sortable> {
 
     readonly comparator: BinaryComparator
-    readonly min: number
-    readonly max: number
+    readonly min: T
+    readonly max: T
 
-    readonly error?: ValidationErrorInput<number>
+    readonly error?: ValidationErrorInput<T>
     readonly id?: symbol
     readonly name?: string
 
 }
 
-//// External Types ////
+//// Settings Types ////
+
+type RangeSettings<T extends Sortable> = (UnarySettings<T> | BinarySettings<T>) & NameErrorId<T>
+ 
+type RangeSettingsSignature<T extends Sortable> = 
+    | [settings: RangeSettings<T>]
+    | [min: T, max: T] 
+    | [comparator: UnaryComparator, value: T]
+    | [min: T, comparator: BinaryComparator, max: T]
+
+const isComparable = (input: unknown): input is Sortable =>
+    isSortable(input) && 
+    !isUnaryComparator(input) && 
+    !isBinaryComparator(input)
 
 const toUnarySettings = new SignatureParser({
-    value: isNumber,
+    value: isComparable,
     comparator: isUnaryComparator,
     ...toNameErrorId.types
 })
@@ -57,8 +72,8 @@ const toUnarySettings = new SignatureParser({
     .addLayout('comparator', 'value')
 
 const toBinarySettings = new SignatureParser({
-    min: isNumber,
-    max: isNumber,
+    min: isComparable,
+    max: isComparable,
     comparator: isOptional(isBinaryComparator),
     ...toNameErrorId.types
 })
@@ -68,45 +83,48 @@ const toBinarySettings = new SignatureParser({
     .addLayout('min', 'comparator', 'max')
     .addLayout('min', 'max')
 
-type RangeSettings = (UnarySettings | BinarySettings) & NameErrorId<number>
-
 const toRangeSettings = SignatureParser.merge(
     toBinarySettings,
     toUnarySettings
 )
- 
-type RangeSettingsSignature = 
-    | [settings: RangeSettings]
-    | [min: number, max: number] 
-    | [comparator: UnaryComparator, value: number]
-    | [min: number, comparator: BinaryComparator, max: number]
 
 //// Helper ////
 
-function isInRange(input: number, settings: RangeSettings): boolean {
+function isInRange<T extends Sortable>(
+    input: T, 
+    settings: RangeSettings<T>
+): boolean {
 
     const { comparator } = settings
     switch (comparator) {
         case '>': {
-            return input > settings.value
+            return toComparable(input) > toComparable(settings.value)
         }
         case '>=': {
-            return input >= settings.value
+            return toComparable(input) >= toComparable(settings.value)
         }
         case '==': {
-            return input === settings.value
+            return toComparable(input) === toComparable(settings.value)
         }
         case '<': {
-            return input < settings.value
+            return toComparable(input) < toComparable(settings.value)
         }
         case '<=': {
-            return input <= settings.value
+            return toComparable(input) <= toComparable(settings.value)
         }
         case '..': {
-            return input >= settings.min && input < settings.max
+            const s = toComparable(input)
+            return (
+                s >= toComparable(settings.min) && 
+                s < toComparable(settings.max)
+            )
         }
         case '...': {
-            return input >= settings.min && input <= settings.max
+            const s = toComparable(input)
+            return (
+                s >= toComparable(settings.min) && 
+                s <= toComparable(settings.max)
+            )
         }
         default: {
             const badComparator: never = comparator
@@ -115,7 +133,7 @@ function isInRange(input: number, settings: RangeSettings): boolean {
     }
 }
 
-function rangeDescription(settings: RangeSettings): string {
+function rangeDescription<T extends Sortable>(settings: RangeSettings<T>): string {
     const { comparator } = settings
     switch (comparator) {
         case '>': {
@@ -148,48 +166,48 @@ function rangeDescription(settings: RangeSettings): string {
 
 //// Exports ////
 
-interface RangeValidatorBase extends Validate<number,number>, Omit<ValidatorSettings<number,number>, 'error' | 'id'> {
+interface RangeValidatorBase<T extends Sortable> extends Validate<T>, Omit<ValidatorSettings<T>, 'error' | 'id'> {
     detail(): string
-    isBinary(): this is BinaryRangeValidator
-    isUnary(): this is UnaryRangeValidator
+    isBinary(): this is BinaryRangeValidator<T>
+    isUnary(): this is UnaryRangeValidator<T>
 }
 
-interface BinaryRangeValidator extends RangeValidatorBase, BinarySettings {}
+interface BinaryRangeValidator<T extends Sortable> extends RangeValidatorBase<T>, BinarySettings<T> {}
 
-interface UnaryRangeValidator extends RangeValidatorBase, UnarySettings {}
+interface UnaryRangeValidator<T extends Sortable> extends RangeValidatorBase<T>, UnarySettings<T> {}
 
-type RangeValidator = BinaryRangeValidator | UnaryRangeValidator
+type RangeValidator<T extends Sortable> = BinaryRangeValidator<T> | UnaryRangeValidator<T>
 
 interface RangeValidatorConstructor {
-    new (...params: RangeSettingsSignature): RangeValidator
+    new <T extends Sortable>(...params: RangeSettingsSignature<T>): RangeValidator<T>
 }
 
-const RangeValidator = class extends SubValidator<number> {
+const RangeValidator = class extends SubValidator<Sortable> {
 
-    constructor (...params: RangeSettingsSignature) {
+    constructor (...params: RangeSettingsSignature<Sortable>) {
 
         const { id, ...settings } = toRangeSettings(...params)
         super(id)
         assign(this, settings)
     }
 
-    override error(this: RangeValidator): string {
+    override error(this: RangeValidator<Sortable>): string {
         return `Must be ${this.detail()}`
     }
 
-    override isValid(this: RangeValidator, input: number): boolean {
+    override isValid(this: RangeValidator<Sortable>, input: number): boolean {
         return isInRange(input, this)
     }
 
-    detail(this: RangeValidator): string {
+    detail(this: RangeValidator<Sortable>): string {
         return rangeDescription(this)
     }
 
-    isBinary(): this is BinaryRangeValidator {
+    isBinary(): this is BinaryRangeValidator<Sortable> {
         return !this.isUnary()
     }
 
-    isUnary(): this is UnaryRangeValidator {
+    isUnary(): this is UnaryRangeValidator<Sortable> {
         return 'value' in this
     }
 

@@ -45,7 +45,7 @@ type _ValidatorSettingExtensions<S extends AnyValidatorSettings> = Infer<{
 
 //// Settings Types ////
 
-interface ValidatorSettings<I, O> {
+interface ValidatorSettings<I, O = I> {
     readonly id?: symbol 
     readonly name?: string
     readonly error?: ValidationErrorInput<I>
