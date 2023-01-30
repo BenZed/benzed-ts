@@ -1,7 +1,7 @@
 import { CallableStruct, Struct } from '@benzed/immutable'
-import { Infer, InputOf, OutputOf } from '@benzed/util'
+import type { Infer, InputOf, OutputOf } from '@benzed/util'
 
-import { ValidateOptions } from './validate-options'
+import type { ValidateOptions } from './validate-options'
 
 //// EsLint ////
 

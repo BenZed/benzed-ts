@@ -2,7 +2,8 @@ import { Callable } from '@benzed/util'
 
 import { AnyValidate } from '../validator/validate'
 
-import { AnySchema, resolveSubvalidatorId } from '../schema'
+import type { AnySchema } from '../schema'
+import { resolveSubvalidatorId } from '../abstract-schema'
 
 //// EsLint ////
 
@@ -16,7 +17,7 @@ type ValidateConstructor<V extends AnyValidate = AnyValidate> = new (...args: an
 
 //// Main ////
 
-type SubSchema = Pick<AnySchema, 'validates' | 'removeValidator'>
+type SubSchema = Pick<AnySchema, 'validates' | 'remove'>
 
 type SubValidationSignature<V extends ValidateConstructor> = 
     | [enabled: false] 
@@ -57,7 +58,7 @@ const SubValidation = class ConfigureSubValidator extends Callable<(...args: unk
             // Remove if disabled
             const enabled = isDisableSignature ? false : true
             if (!enabled && configurer._id) 
-                return schema.removeValidator(configurer._id)
+                return schema.remove(configurer._id)
 
             // Upsert if enabled
             else if (enabled) {

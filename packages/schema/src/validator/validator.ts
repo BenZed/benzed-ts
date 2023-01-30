@@ -1,12 +1,29 @@
 
-import { CallableStruct,StructAssignState } from '@benzed/immutable'
-import { defined, Empty, Infer, KeysOf, omit, ParamTransform, Property } from '@benzed/util'
+import { 
+    $$assign, 
+    StructAssignState 
+} from '@benzed/immutable'
+
+import {
+
+    omit, 
+    defined, 
+
+    Empty, 
+    Infer, 
+    KeysOf, 
+    ParamTransform, 
+    Property
+
+} from '@benzed/util'
 
 import { AbstractValidator } from './abstract'
 
-import Validate, { AnyValidate } from './validate'
-import ValidateContext from './validate-context'
+import { Validate, AnyValidate } from './validate'
 import { ValidationErrorInput } from './validate-error'
+import { ValidateContext } from './validate-context'
+import validatorFrom from './validator-from'
+import validatorMerge from './validator-merge'
 
 //// EsLint ////
 
@@ -73,6 +90,9 @@ type ToValidator<S extends AnyValidatorSettings> =
 
 interface ValidatorConstructor extends Omit<typeof AbstractValidator, 'apply'> {
 
+    from: typeof validatorFrom
+    merge: typeof validatorMerge
+
     apply<V extends AnyValidate>(
         validator: V, 
         settings: AllowedValidatorSettings<V>
@@ -87,11 +107,14 @@ interface ValidatorConstructor extends Omit<typeof AbstractValidator, 'apply'> {
 
 const Validator = class extends AbstractValidator<unknown, unknown> {
 
+    static from = validatorFrom
+    static merge = validatorMerge
+
     constructor(
-        { id, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
+        { id, error, ...settings }: Partial<ValidatorSettings<unknown,unknown>>
     ) {
 
-        super(id)
+        super(error, id)
 
         if (this.constructor !== Validator)
             throw new Error('Validator class is sealed.')
@@ -101,7 +124,7 @@ const Validator = class extends AbstractValidator<unknown, unknown> {
         Property.configure(this, 'error', { enumerable: true })
     }
 
-    override [CallableStruct.$$assign](state: StructAssignState<this>): StructAssignState<this> {
+    override [$$assign](state: StructAssignState<this>): StructAssignState<this> {
         return omit(state, ...VALIDATOR_DISALLOWED_SETTINGS_KEYS)
     }
 

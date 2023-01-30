@@ -1,6 +1,15 @@
+
+import { NameErrorIdSignature } from '@benzed/schema'
 import Value from './value'
+
+//// Main ////
+
+export class NaN extends Value<number> {
+    constructor(...args: NameErrorIdSignature<unknown>) {
+        super(globalThis.NaN, ...args)
+    }
+}
 
 //// Exports ////
 
-export interface NaN extends Value<number> {}
-export const $nan: NaN = new Value(NaN)
+export const $nan = new NaN()

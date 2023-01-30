@@ -1,4 +1,5 @@
 export * from './schema' 
+export * from './abstract-schema'
 
 export * from './validator' 
 export * from './validators' 

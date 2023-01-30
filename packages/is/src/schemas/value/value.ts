@@ -1,5 +1,13 @@
-import { isSymbol, Primitive } from '@benzed/util'
-import { Schema, ValidationErrorMessage } from '@benzed/schema'
+import { 
+    Primitive 
+} from '@benzed/util'
+
+import { 
+    AbstractSchema,
+    NameErrorIdSignature,
+    toNameErrorId,
+    ValidatorSettings,
+} from '@benzed/schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -7,30 +15,18 @@ import { Schema, ValidationErrorMessage } from '@benzed/schema'
 
 //// Setup ////
 
-class Value<T extends Primitive> extends Schema<unknown, T> {
+class Value<T extends Primitive> extends AbstractSchema<unknown, T> {
 
-    constructor(readonly value: T, error?: string | ValidationErrorMessage<unknown>) {
-
-        const name = isSymbol(value) 
-            ? 'uniqueSymbol' 
-            : value?.toString() ?? 'undefined'
-        
+    constructor(readonly value: T, ...args: NameErrorIdSignature<unknown>) {
         super({
-
-            name,
-
-            error,
-
-            // @ts-expect-error it's fine
+            ...toNameErrorId(...args),
             isValid(
                 this: Value<T>, 
                 input: unknown
-            ): input is T {
+            ): boolean {
                 return Object.is(input, this.value)
             }
-        }) 
-
-        this.value = value
+        } as unknown as ValidatorSettings<unknown, T>)
     }
 
 }

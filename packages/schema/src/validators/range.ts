@@ -1,19 +1,24 @@
+import type {
+    Validate,
+    ValidationErrorInput,
+    ValidatorSettings,
+} from '../validator'
+
 import {
 
-    ValidationErrorInput,
-    Validate,
-    ValidatorSettings,
     SubValidator,
     toNameErrorId,
     NameErrorId
 
-} from '../'
+} from '../validator/abstract'
 
 import {
+
     isNumber,
     SignatureParser,
     isOptional,
-    assign,
+    assign
+
 } from '@benzed/util'
 
 //// Internal Types ////

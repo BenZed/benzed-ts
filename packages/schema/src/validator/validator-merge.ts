@@ -1,7 +1,7 @@
 import { Pipe, Property } from '@benzed/util'
 
-import { Validate } from '../validate'
-import { ValidatorSettings } from '../validator'
+import { Validate } from './validate'
+import { ValidatorSettings } from './validator'
 import validatorFrom from './validator-from'
 
 //// EsLint ////

@@ -16,5 +16,5 @@ abstract class ValueValidator<T> extends SubValidator<T> {
 export default ValueValidator
 
 export {
-    ValueValidator,
+    ValueValidator
 }

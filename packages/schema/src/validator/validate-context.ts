@@ -1,7 +1,7 @@
 import { copy, Struct } from '@benzed/immutable'
 import { assign, merge, omit } from '@benzed/util'
 
-import { ValidateOptions } from './validate'
+import type { ValidateOptions } from './validate'
 
 //// Main ////
 

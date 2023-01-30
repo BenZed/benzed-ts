@@ -1,5 +1,14 @@
-import { Schema, ValidationErrorMessage } from '@benzed/schema'
-import { asNil, isNil, nil } from '@benzed/util'
+import { 
+    AbstractSchema, 
+    NameErrorIdSignature, 
+    toNameErrorId
+} from '@benzed/schema'
+
+import { 
+    asNil, 
+    isNil, 
+    nil 
+} from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -7,14 +16,16 @@ import { asNil, isNil, nil } from '@benzed/util'
 
 //// Setup ////
 
-class Nil extends Schema<unknown, nil> {
-    constructor(error: string | ValidationErrorMessage<unknown> = 'Must be nil') {
+class Nil extends AbstractSchema<unknown, nil> {
+
+    constructor(...args: NameErrorIdSignature<unknown>) {
         super({
             isValid: isNil,
             transform: asNil,
-            error
+            ...toNameErrorId(...args)
         })
     }
+
 }
 
 //// Exports ////

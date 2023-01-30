@@ -1,15 +1,13 @@
 
 import { equals } from '@benzed/immutable'
 
-import { Property, Resolver } from '@benzed/util'
+import { assign, defined, isString, nil, Property, Resolver } from '@benzed/util'
 
 import ValidateContext from '../validate-context'
 import { Validate, ValidateOptions } from '../validate'
-import { ValidationError } from '../validate-error'
+import { ValidationError, ValidationErrorInput } from '../validate-error'
 
 import { $$id, defineSymbol } from '../../util/symbols'
-import validatorMerge from './validator-merge'
-import validatorFrom from './validator-from'
 
 //// Validate ////
 
@@ -49,22 +47,33 @@ function setName(object: object): void {
     Property.name(object, name)
 }
 
+function setError<T>(object: object, error: ValidationErrorInput<T> | nil): void {
+    assign(
+        object, 
+        defined({ 
+            error: isString(error) ? () => error : error 
+        })
+    )
+}
+
+function setId(object: object, id: symbol | nil): void {
+    // id, if provided
+    if (id)
+        defineSymbol(object, $$id, id)
+}
+
 //// Main ////
 
 abstract class AbstractValidator<I, O = I> extends Validate<I, O> {
 
-    static from = validatorFrom
-    static merge = validatorMerge
-
-    constructor(id?: symbol) {
+    constructor(error?: ValidationErrorInput<I>, id?: symbol) {
 
         super(validate)
 
         setName(this)
+        setError(this, error)
+        setId(this, id)
 
-        // id, if provided
-        if (id)
-            defineSymbol(this, $$id, id)
     }
 
     error(): string {

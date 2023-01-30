@@ -33,7 +33,7 @@ const toNameErrorId = new SignatureParser({
 type NameErrorId<T> = { error?: ValidationErrorInput<T>, name?: string, id?: symbol }
 
 type NameErrorIdSignature<T> = 
-    [ settings: NameErrorId<T> ] |
+    [ settings?: NameErrorId<T> ] |
     [ error?: ValidationErrorInput<T>, name?: string, id?: symbol ] | 
     [ error?: ValidationErrorInput<T>, id?: symbol ] | 
     [ id?: symbol ]
@@ -46,15 +46,10 @@ abstract class SubValidator<T> extends AbstractValidator<T,T> {
 
         const { error, name, id } = toNameErrorId(...args) ?? {}
 
-        super(id)
+        super(error, id)
 
-        assign(
-            this, 
-            defined({ 
-                name,
-                error: isString(error) ? () => error : error 
-            })
-        )
+        assign(this, defined({ name }))
+ 
     }
 }
 

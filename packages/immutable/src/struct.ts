@@ -141,4 +141,6 @@ export {
 
     StructState,
     StructAssignState,
+
+    $$assign
 }
