@@ -5,37 +5,37 @@ import type {
 } from '../validator'
 
 import {
-
     SubValidator,
     toNameErrorId,
     NameErrorId
-
 } from '../validator/abstract'
 
 import {
-
     isNumber,
     SignatureParser,
     isOptional,
     assign
-
 } from '@benzed/util'
 
 //// Internal Types ////
 
 const BINARY_COMPARATORS = ['..', '...'] as const
 type BinaryComparator = typeof BINARY_COMPARATORS[number]
-const isBinaryComparator = (i: unknown): i is BinaryComparator => BINARY_COMPARATORS.includes(i as BinaryComparator)
+const isBinaryComparator = (i: unknown): i is BinaryComparator =>
+    BINARY_COMPARATORS.includes(i as BinaryComparator)
 
 const UNARY_COMPARATORS = ['>=', '>', '==', '<', '<='] as const
 type UnaryComparator = typeof UNARY_COMPARATORS[number]
-const isUnaryComparator = (i: unknown): i is UnaryComparator => UNARY_COMPARATORS.includes(i as UnaryComparator)
+const isUnaryComparator = (i: unknown): i is UnaryComparator => 
+    UNARY_COMPARATORS.includes(i as UnaryComparator)
+
 interface UnarySettings {
     readonly comparator: UnaryComparator
     readonly value: number
 }
 
 interface BinarySettings {
+
     readonly comparator: BinaryComparator
     readonly min: number
     readonly max: number
@@ -43,6 +43,7 @@ interface BinarySettings {
     readonly error?: ValidationErrorInput<number>
     readonly id?: symbol
     readonly name?: string
+
 }
 
 //// External Types ////
