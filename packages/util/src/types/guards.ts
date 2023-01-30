@@ -1,8 +1,9 @@
 import { indexesOf, keysOf } from '../types/keys-of'
 import { isBoolean, isNumber, isString } from './primitive'
-import { Func, isFunc, TypeGuard } from './func'
+import { Func, isFunc, TypeGuard, TypeOf } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
 import { Sortable } from '../sort'
+import { nil } from './nil'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
@@ -77,6 +78,11 @@ export const isPromise = <T>(input: unknown): input is Promise<T> =>
 
 export const isAsync = isPromise
 
+//// Optional ////
+    
+export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
+    (i: unknown): i is T | nil => i === nil || type(i)
+
 //// Misc ////
 
 export const isUnknown = (input: unknown): input is unknown => true
@@ -87,8 +93,28 @@ export const isSortable = <T extends Sortable>(input: unknown): input is T =>
 const { isFinite } = Number 
 export { isFinite }
 
+//// Compound ////
+
+export type ShapeInput = Record<string | symbol, TypeGuard<unknown>>
+export type ShapeOutput<T extends ShapeInput> = {
+    [K in keyof T]: TypeOf<T[K]>
+}
+export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T>> => 
+    (input: unknown): input is ShapeOutput<T> => 
+        isObject<ShapeOutput<T>>(shape) && 
+        Object.entries(shape).every(([key, value]) => shape[key](value))
+
+export type TupleInput = TypeGuard<unknown>[]
+export type TupleOuput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
+    ? T1 extends TypeGuard<infer O> 
+        ? Tr extends TupleInput 
+            ? [O, ...TupleOuput<Tr>]
+            : [O]
+        : []
+    : []
+
 //// Json ////
-    
+
 export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
     isString(input) || isNumber(input) || isBoolean(input) || input === null
 
