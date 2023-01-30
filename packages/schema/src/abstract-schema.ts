@@ -214,8 +214,9 @@ abstract class AbstractSchema<I, O = I> extends Validate<I,O> {
 export default AbstractSchema 
 
 export { 
-    AbstractSchema,
     Validators,
+
+    AbstractSchema,
     resolveSubvalidatorId,
     assertSubvalidatorId,
 } 

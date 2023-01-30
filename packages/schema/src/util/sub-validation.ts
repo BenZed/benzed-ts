@@ -1,8 +1,8 @@
-import { Callable } from '@benzed/util'
+import { Callable, OutputOf } from '@benzed/util'
 
 import { AnyValidate } from '../validator/validate'
 
-import type { AnySchema } from '../schema'
+import type { Schema } from '../schema'
 import { resolveSubvalidatorId } from '../abstract-schema'
 
 //// EsLint ////
@@ -17,21 +17,24 @@ type ValidateConstructor<V extends AnyValidate = AnyValidate> = new (...args: an
 
 //// Main ////
 
-type SubSchema = Pick<AnySchema, 'validates' | 'remove'>
+type SubSchema<T> = Pick<Schema<any,T>, 'validates' | 'remove'>
 
 type SubValidationSignature<V extends ValidateConstructor> = 
     | [enabled: false] 
     | ConstructorParameters<V>
 
 interface SubValidatorConstructor {
-    new <V extends ValidateConstructor, S extends SubSchema>(
+
+    new <V extends ValidateConstructor, S extends SubSchema<OutputOf<InstanceType<V>>>>(
         validateConstructor: V, 
         schema: S,
         id?: symbol
     ): SubValidation<SubValidationSignature<V>, S>
+
 }
 
-interface SubValidation<A extends any[], S extends SubSchema> {
+interface SubValidation<A extends any[], S extends SubSchema<any>> {
+
     (this: S, ...args: A): S
 
     // TODO also add nested methods from SubValidator
@@ -41,12 +44,12 @@ interface SubValidation<A extends any[], S extends SubSchema> {
 /**
  * Helper class for adding sub valiators to Schemas
  */
-const SubValidation = class ConfigureSubValidator extends Callable<(...args: unknown[]) => SubSchema> { 
+const SubValidation = class ConfigureSubValidator extends Callable<(...args: unknown[]) => SubSchema<any>> { 
 
-    constructor(readonly Type: ValidateConstructor, target: SubSchema, private _id?: symbol) {
+    constructor(readonly Type: ValidateConstructor, target: SubSchema<any>, private _id?: symbol) {
         
         super(function configureSubValidator(
-            this: [SubSchema, ConfigureSubValidator], 
+            this: [SubSchema<any>, ConfigureSubValidator], 
             ...args: unknown[]
         ) {
 

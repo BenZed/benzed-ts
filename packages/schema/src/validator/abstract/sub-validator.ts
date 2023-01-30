@@ -33,7 +33,7 @@ const toNameErrorId = new SignatureParser({
 type NameErrorId<T> = { error?: ValidationErrorInput<T>, name?: string, id?: symbol }
 
 type NameErrorIdSignature<T> = 
-    [ settings?: NameErrorId<T> ] |
+    [ settings: NameErrorId<T> ] |
     [ error?: ValidationErrorInput<T>, name?: string, id?: symbol ] | 
     [ error?: ValidationErrorInput<T>, id?: symbol ] | 
     [ id?: symbol ]

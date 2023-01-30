@@ -1,11 +1,9 @@
 
 import Type from '../type'
 
-//// Boolean ////
+//// Numeric ////
 
-abstract class Numeric<N extends number | bigint> extends Type<N> { 
-
-}
+abstract class Numeric<N extends number | bigint> extends Type<N> { }
 
 //// Exports ////
 

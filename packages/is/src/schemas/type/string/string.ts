@@ -17,7 +17,7 @@ import {
     StartsWith,
     Trimmed,
     Upper
-} from './sub-validators'
+} from './string-sub-validators'
 
 //// EsLint ////
 

@@ -1,18 +1,21 @@
 import {
-    isNumber as _isNumber,
+    isNumber,
     isString,
     isNaN,
-    nil,
 } from '@benzed/util'
 
 import { 
-    RangeSettings,
-    RangeSettingsSignature, 
     RangeValidator,
-    toRangeSettings
-} from '@benzed/is/src/validators'
+    SubValidation,
+    ValidationErrorInput
+} from '@benzed/schema'
 
 import Numeric from './numeric'
+
+//// Data ////
+
+const $$finite = Symbol('infinite-validator')
+const $$range = Symbol('range-validator')
 
 //// Helper ////
 
@@ -34,51 +37,39 @@ class Number extends Numeric<number> {
     constructor() {
         super({
             name: 'number',
-            is: _isNumber,
-            cast: toNumber
+            cast: toNumber,
+            isValid: isNumber
         })
     }
 
     get finite(): this {
-        return this.asserts(isFinite, 'Must be finite', 'finite')
+        return this.asserts(isFinite, 'Must be finite', $$finite)
     }
 
     get infinite(): this {
-        return this._setValidatorById('infinite', nil)
+        return this.remove($$finite)
     }
 
-    range(...args: RangeSettingsSignature): this {
-        const settings = toRangeSettings(args)
-        return this._setRangeValidator(settings)
+    range = new SubValidation(RangeValidator, this, $$range)
+
+    above(value: number, error?: ValidationErrorInput<number>): this {
+        return this.range({ comparator: '>', value, error })
     }
 
-    above(value: number): this {
-        return this._setRangeValidator({ comparator: '>', value })
+    below(value: number, error?: ValidationErrorInput<number>): this {
+        return this.range({ comparator: '<', value, error })
     }
 
-    below(value: number): this {
-        return this._setRangeValidator({ comparator: '<', value })
+    equalOrBelow(value: number, error?: ValidationErrorInput<number>): this {
+        return this.range({ comparator: '<=', value, error })
     }
 
-    equalOrBelow(value: number): this {
-        return this._setRangeValidator({ comparator: '<=', value })
+    equalOrAbove(value: number, error?: ValidationErrorInput<number>): this {
+        return this.range({ comparator: '>=', value, error })
     }
 
-    equalOrAbove(value: number): this {
-        return this._setRangeValidator({ comparator: '>=', value })
-    }
-
-    between(min: number, max: number): this {
-        return this._setRangeValidator({ min, comparator: '..', max })
-    }
-
-    // 
-
-    protected _setRangeValidator(settings: RangeSettings): this {
-        return this._setValidatorByType(
-            RangeValidator, 
-            () => new RangeValidator(settings)
-        )
+    between(min: number, max: number, error?: ValidationErrorInput<number>): this {
+        return this.range({ min, comparator: '..', max, error })
     }
 
 }
@@ -91,4 +82,4 @@ export {
     Number
 }
 
-export const isNumber = new Number
+export const $number = new Number

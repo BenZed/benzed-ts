@@ -11,4 +11,4 @@ test('defined', () => {
     expect($defined({})).toEqual({})
     expect($defined(0)).toEqual(0)
     expect(() => $defined(nil)).toThrow('Must be defined')
-})
+})  

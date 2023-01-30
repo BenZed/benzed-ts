@@ -1,6 +1,6 @@
 import { RangeValidator } from './range'
 
-describe('unary comparators', () => {
+describe('unary comparators', () => {  
   
     it('== creates an equal-to validator', () => {  
         const equalTo10 = new RangeValidator('==', 10)

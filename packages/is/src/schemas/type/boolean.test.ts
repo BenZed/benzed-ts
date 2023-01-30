@@ -19,7 +19,7 @@ it('casts "true" to true', () => {
 
 it('casts "false" to false', () => {
     expect($boolean('false')) 
-        .toEqual(false)
+        .toEqual(false)  
 })
 
 it('default name', () => {

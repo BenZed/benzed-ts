@@ -1,4 +1,4 @@
-import { isBigInt as _isBigInt } from '@benzed/util'
+import { isBigInt } from '@benzed/util'
 
 import Numeric from './numeric'
 
@@ -8,7 +8,7 @@ class BigInt extends Numeric<bigint> {
     constructor() {
         super({
             name: 'bigint',
-            is: _isBigInt
+            isValid: isBigInt
         })
     }
 }
@@ -19,4 +19,4 @@ export default BigInt
 
 export { BigInt }
 
-export const isBigInt = new BigInt
+export const $bigint = new BigInt

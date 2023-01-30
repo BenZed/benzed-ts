@@ -1,6 +1,6 @@
-import { isBigInt } from './big-int'
+import { $bigint } from './big-int'
 
 it('big-int', () => {
-    expect(isBigInt(0.5)).toBe(false)
-    expect(isBigInt(0n)).toBe(true)
+    expect(() => $bigint(0.5)).toThrow('Must be bigint')
+    expect($bigint(0n)).toBe(0n)
 })

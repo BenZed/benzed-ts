@@ -6,8 +6,9 @@ import Value from './value'
 
 export class Undefined extends Value<undefined> {
     constructor(...args: NameErrorIdSignature<unknown>) {
-        super(undefined, ...args)
+        super(undefined, ...args)   
     }
+
 }
 
 //// Exports ////

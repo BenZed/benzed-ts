@@ -49,12 +49,9 @@ interface BinarySettings {
 
 const toUnarySettings = new SignatureParser({
     value: isNumber,
-    comparator: isOptional(isUnaryComparator),
+    comparator: isUnaryComparator,
     ...toNameErrorId.types
 })
-    .setDefaults({
-        comparator: '=='
-    })
     .addLayout('value')
     .addLayout('comparator', 'value')
 
@@ -73,12 +70,11 @@ const toBinarySettings = new SignatureParser({
 type RangeSettings = (UnarySettings | BinarySettings) & NameErrorId<number>
 
 const toRangeSettings = SignatureParser.merge(
-    toUnarySettings,
-    toBinarySettings
+    toBinarySettings,
+    toUnarySettings
 )
  
 type RangeSettingsSignature = 
-    | [equals: number] 
     | [settings: RangeSettings]
     | [min: number, max: number] 
     | [comparator: UnaryComparator, value: number]

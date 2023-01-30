@@ -21,8 +21,6 @@ import {
 
 //// Validators ////
 
-type Validators<I,O> = [mainValidator: Validate<I,O>, ...genericValidators: Validate<O,O>[]]
-
 type AnySchema = Schema<any,any>
 
 //// Schema ////
@@ -41,10 +39,10 @@ class Schema<I, O = I> extends AbstractSchema<I,O> {
         ...args: NameErrorIdSignature<I>
     ): this {
         return this._upsertValidator({
+            ...toNameErrorId(...args),
             isValid: isValid as O extends O 
                 ? ValidatorPredicate<O> | ValidatorTypeGuard<O, O> 
                 : ValidatorPredicate<O>,
-            ...toNameErrorId(...args)
         })
     }
 
@@ -53,8 +51,8 @@ class Schema<I, O = I> extends AbstractSchema<I,O> {
         ...args: NameErrorIdSignature<I>
     ): this {
         return this._upsertValidator({
-            transform,
-            ...toNameErrorId(...args)
+            ...toNameErrorId(...args),
+            transform
         })
     }
 
@@ -73,5 +71,4 @@ export default Schema
 export { 
     Schema,
     AnySchema,
-    Validators,
 } 

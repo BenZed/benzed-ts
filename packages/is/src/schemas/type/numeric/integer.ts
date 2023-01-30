@@ -1,5 +1,5 @@
 import {
-    isInteger as _isInteger, isString, 
+    isInteger, isString, TypeGuard, 
 } from '@benzed/util'
 
 import Numeric from './numeric'
@@ -14,7 +14,7 @@ class Integer extends Numeric<number> {
     constructor() {
         super({
             name: 'integer',
-            is: _isInteger,
+            isValid: isInteger as TypeGuard<number>,
             cast: toInteger
         })
     }
@@ -28,4 +28,4 @@ export {
     Integer
 }
 
-export const isInteger = new Integer
+export const $integer = new Integer
