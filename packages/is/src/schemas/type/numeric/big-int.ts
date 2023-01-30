@@ -1,10 +1,10 @@
 import { isBigInt } from '@benzed/util'
 
-import Numeric from './numeric'
+import AbstractNumeric from './numeric'
 
 //// Boolean ////
 
-class BigInt extends Numeric<bigint> {
+class BigInt extends AbstractNumeric<bigint> {
     constructor() {
         super({
             name: 'bigint',

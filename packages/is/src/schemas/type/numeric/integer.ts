@@ -2,7 +2,7 @@ import {
     isInteger, isString, TypeGuard, 
 } from '@benzed/util'
 
-import Numeric from './numeric'
+import { AbstractNumber } from './numeric'
 
 //// Helper ////
 
@@ -10,7 +10,8 @@ const toInteger = (i: unknown): unknown => isString(i) ? parseInt(i) : i
 
 //// Boolean ////
 
-class Integer extends Numeric<number> {
+class Integer extends AbstractNumber {
+
     constructor() {
         super({
             name: 'integer',
@@ -18,6 +19,7 @@ class Integer extends Numeric<number> {
             cast: toInteger
         })
     }
+
 }
 
 //// Exports ////

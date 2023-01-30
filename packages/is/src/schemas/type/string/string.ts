@@ -1,5 +1,5 @@
 
-import { SubValidation } from '@benzed/schema'
+import { RangeValidator, SubValidation } from '@benzed/schema'
 import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
 
 import {
@@ -49,6 +49,8 @@ class String extends Type<string> {
     }
 
     trim = new SubValidation(Trimmed, this)
+
+    override length = new SubValidation(RangeValidator<string>, this)
 
     lowerCase = new SubValidation(Lower, this)
     upperCase = new SubValidation(Upper, this)

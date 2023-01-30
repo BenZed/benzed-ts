@@ -4,11 +4,7 @@ import {
     isNaN,
 } from '@benzed/util'
 
-import Numeric from './numeric'
-
-//// Data ////
-
-const $$finite = Symbol('infinite-validator')
+import { AbstractNumber } from './numeric'
 
 //// Helper ////
 
@@ -25,7 +21,7 @@ const toNumber = (value: unknown): unknown => {
 
 //// Boolean ////
 
-class Number extends Numeric<number> {
+class Number extends AbstractNumber {
 
     constructor() {
         super({
@@ -33,14 +29,6 @@ class Number extends Numeric<number> {
             cast: toNumber,
             isValid: isNumber
         })
-    }
-
-    get finite(): this {
-        return this.asserts(isFinite, 'Must be finite', $$finite)
-    }
-
-    get infinite(): this {
-        return this.remove($$finite)
     }
 
 }

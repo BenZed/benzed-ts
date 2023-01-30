@@ -1,43 +1,40 @@
 
-import { RangeValidator, SubValidation, ValidationErrorInput } from '@benzed/schema'
+import { RangeValidator, SubValidation } from '@benzed/schema'
+import { Ceil, Finite, Floor, Round } from './sub-validators'
 import Type from '../type'
 
 //// Symbols ////
 
-const $$range = Symbol('range-validator')
+const $$finite = Symbol('infinite-validator')
+const $$round = Symbol('round-validator')
 
 //// Numeric ////
 
-abstract class Numeric<N extends number | bigint> extends Type<N> { 
+abstract class AbstractNumeric<N extends number | bigint> extends Type<N> { 
 
-    range = new SubValidation(RangeValidator<N>, this, $$range)
+    range = new SubValidation(RangeValidator<N>, this)
 
-    above(value: N, error?: ValidationErrorInput<N>): this {
-        return this.range({ comparator: '>', value, error })
+}
+
+abstract class AbstractNumber extends AbstractNumeric<number> {
+
+    finite = new SubValidation(Finite, this, $$finite)
+
+    infinite(): this {
+        return this.finite(false)
     }
 
-    below(value: N, error?: ValidationErrorInput<N>): this {
-        return this.range({ comparator: '<', value, error })
-    }
-
-    equalOrBelow(value: N, error?: ValidationErrorInput<N>): this {
-        return this.range({ comparator: '<=', value, error })
-    }
-
-    equalOrAbove(value: N, error?: ValidationErrorInput<N>): this {
-        return this.range({ comparator: '>=', value, error })
-    }
-
-    between(min: N, max: N, error?: ValidationErrorInput<N>): this {
-        return this.range({ min, comparator: '..', max, error })
-    }
+    round = new SubValidation(Round, this, $$round)
+    floor = new SubValidation(Floor, this, $$round)
+    ceil = new SubValidation(Ceil, this, $$round)
 
 }
 
 //// Exports ////
 
-export default Numeric
+export default AbstractNumeric
 
 export {
-    Numeric
+    AbstractNumeric,
+    AbstractNumber
 }

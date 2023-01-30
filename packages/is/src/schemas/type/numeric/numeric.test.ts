@@ -1,6 +1,8 @@
 import { $number } from './number'
 import * as Math from '@benzed/math' 
- 
+
+import { it, expect, describe } from '@jest/globals'
+
 //// Export ////
 
 it('validates number values', () => {
@@ -19,7 +21,7 @@ it('does not allow NaN', () => {
 })
 
 it('does not allow Infinity', () => {
-    expect(() => $number.finite(Infinity)) 
+    expect(() => $number.finite().validate(Infinity)) 
         .toThrow('Must be finite')
 })
 
@@ -79,21 +81,19 @@ describe('default()', () => {
         expect($number.default(5).validate(undefined)).toEqual(5)
     })
 
-    it.skip('defaults are respected across copies', () => {
-        expect(() => $number.validate(undefined)).toThrow('is required')
-        expect(() => $number.floor(1).validate(undefined)).toThrow('is required')
+    it('defaults are respected across copies', () => {
+        expect(() => $number.validate(undefined)).toThrow('Must be number')
+        expect(() => $number.floor(1).validate(undefined)).toThrow('Must be number')
     })
 
 })
 
 for (const method of ['round', 'floor', 'ceil'] as const) {
 
-    describe.skip(`${method}()`, () => {
-
-        const number = new Number
+    describe(`${method}()`, () => {
 
         it(`creates an instance of the schema with a ${method} validator`, () => {
-            const $evenNumber = number[method](2)
+            const $evenNumber = $number[method](2)
 
             const input = 3 
 
@@ -105,8 +105,7 @@ for (const method of ['round', 'floor', 'ceil'] as const) {
             const precision = 0.125
 
             const toEighths = [
-                number[method](precision),
-                number[method]({ precision })
+                $number[method](precision)
             ]
 
             const input = 0.1
