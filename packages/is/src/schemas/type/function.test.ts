@@ -1,14 +1,10 @@
-import { isFunction as isFunction } from './function'
+import { $function as $function } from './function'
 
 import { test, expect } from '@jest/globals'
 
 //// Tests ////
 
-test(`${isFunction.name}`, () => {
-    expect(isFunction({})).toBe(false)
-    expect(isFunction(parseInt)).toBe(true)
-    expect(isFunction(1)).toBe(false)
-    expect(isFunction(Symbol.iterator)).toBe(false)
-    expect(isFunction.validate(parseInt)).toEqual(parseInt)
-    expect(() => isFunction.validate(10)).toThrow('ust be type function') 
+test(`${$function.name}`, () => {
+    expect($function(parseInt)).toEqual(parseInt)
+    expect(() => $function(10)).toThrow('ust be function') 
 })

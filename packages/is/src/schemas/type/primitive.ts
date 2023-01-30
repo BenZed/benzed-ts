@@ -1,8 +1,34 @@
-import { Primitive as Primitives, isPrimitive as _isPrimitive } from '@benzed/util'
+import { isPrimitive, Primitive as Primitives } from '@benzed/util'
+import Type, { TypeExtendSettings } from './type'
 
-import Type from './type'
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
+
+//// Types ////
+
+interface PrimitiveSettings extends TypeExtendSettings<object> {}
 
 //// Exports ////
 
-export interface Primitive extends Type<Primitives> {}
-export const isPrimitive: Primitive = new Type({ name: 'unknown', is: _isPrimitive })
+class Primitive extends Type<Primitives> {
+
+    constructor(settings?: PrimitiveSettings) {
+        super({
+            name: 'primitive',
+            isValid: isPrimitive,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default Primitive
+
+export {
+    PrimitiveSettings
+}
+
+export const $object = new Primitive()

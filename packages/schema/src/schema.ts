@@ -192,7 +192,7 @@ class Schema<I, O = I> extends Validate<I,O> {
         
         return this._upsertValidator({
             isValid: isValid as O extends O ? ValidatorPredicate<O> | ValidatorTypeGuard<O, O> : ValidatorPredicate<O>,
-            ...toIdError(args)
+            ...toIdError(...args)
         })
     }
 
@@ -212,7 +212,7 @@ class Schema<I, O = I> extends Validate<I,O> {
 
         return this._upsertValidator({
             transform,
-            ...toIdError(args)
+            ...toIdError(...args)
         })
     }
 

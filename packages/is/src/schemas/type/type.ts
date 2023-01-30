@@ -1,35 +1,75 @@
-import { isFunc, isNil, nil, returns } from '@benzed/util'
+import { isFunc, isNil, nil, returns, through, toNil } from '@benzed/util'
 
 import { 
-    ValidationErrorMessage,
-} from '../../../../schema/src/validator'
-
-import {
-    TypeValidator,
-    TypeValidatorSettings,
-    TypeValidatorCast,
-    TypeValidatorDefault 
-} from '@benzed/is/src/validators'
-import Schema from '../../../../schema/src/schema/_old-schema'
-
-import Schema from '../../../../schema/src/schema/schema'
-
-//// Constants ////
-
-const $$type = Symbol('type-validator-id')
+    Schema, 
+    ValidateContext, 
+    ValidatorPredicate, 
+    ValidatorSettings, 
+    ValidatorTypeGuard 
+} from '@benzed/schema'
 
 //// Types ////
 
-class Type<T> extends Schema<T> {
+/**
+ * Method that potentially converts a value to the target type.
+ */
+type Cast<T> = (
+    i: unknown, 
+    ctx: ValidateContext<unknown>
+) => T | unknown
 
-    override get name(): string {
-        return this.validators.at(0)?.name ?? 'Type'
-    }
+/**
+ * Method that provides a default value, if the input was undefined or null
+ */
+type Default<T> = (ctx: ValidateContext<unknown>) => T | nil
 
-    constructor(input: TypeValidatorSettings<T> | TypeValidator<T>) {
-        super(
-            new TypeValidator(input)
-        )
+interface TypeExtendSettings<T> extends Omit<ValidatorSettings<unknown,T>, 'transform' | 'isValid'> {
+    
+    /**
+     * Method that potentially converts a value to the target type.
+     */
+    cast?: Cast<T>
+
+    /**
+     * Method that provides a default value, if the input is undefined
+     */
+    default?: Default<T>
+}
+
+interface TypeSettings<T> extends TypeExtendSettings<T> {
+    isValid: ValidatorTypeGuard<unknown, T>
+}
+
+//// Implementation ////
+
+class Type<T> extends Schema<unknown, T> {
+
+    constructor({ isValid, ...settings }: TypeSettings<T>) {
+
+        type IsValid = T extends unknown 
+            ? ValidatorTypeGuard<unknown, T> | ValidatorPredicate<unknown> 
+            : ValidatorPredicate<unknown>
+
+        super({
+            // Defaults
+            default: toNil,
+            cast: through,
+
+            // Settings
+            ...settings,
+
+            // Non Settable,
+            isValid: isValid as IsValid,
+            transform(this: TypeSettings<T>, input: unknown, ctx: ValidateContext<unknown>): unknown {
+                if (input === nil && this.default)
+                    input = this.default(ctx)
+
+                if (!this.isValid(input, ctx) && this.cast)
+                    input = this.cast(input, ctx)
+
+                return input
+            }
+        })
     }
 
     /**
@@ -38,64 +78,40 @@ class Type<T> extends Schema<T> {
      * 
      * Undefined will disable casting 
      */
-    cast(cast: TypeValidatorCast<T> | nil): this {
-        return this._setTypeValidator({ cast })
+    cast(cast: Cast<T> | nil): this {
+        return this._updateMainValidator({ cast })
     }
 
     /**
      * Provide a default value for this schema, in
      * the event it is
      *
-     * @param _default 
+     * @param defaulter 
      */
-    default(_default: TypeValidatorDefault<T> | T | nil): this {
-        return this._setTypeValidator({
-            default: isFunc(_default) || isNil(_default) 
-                ? _default 
-                : returns(_default)
+    default(defaulter: Default<T> | T | nil): this {
+        return this._updateMainValidator({
+            default: isFunc(defaulter) || isNil(defaulter) 
+                ? defaulter 
+                : returns(defaulter)
         })
     }
 
-    /**
-     * Change the name of the type when the error is thrown
-     */
-    named(name: string): this {
-        return this._setTypeValidator({ name: name }) 
-    }
-
-    /**
-     * Change the thrown error
-     */
-    error(error: string | ValidationErrorMessage<unknown>): this {
-        return this._setTypeValidator({ error })
-    }
-
-    //// Helper ////
+    //// Overrides ////
     
-    get typeValidator(): TypeValidator<T> {
-        const type = this.validators.find((v): v is TypeValidator<T> => v instanceof TypeValidator)
-        if (!type) 
-            throw new Error('Type validator missing.')
-        return type
+    protected override _updateMainValidator<V extends TypeExtendSettings<T>>(settings: V): this {
+        return super._updateMainValidator(settings)
     }
 
-    protected _setTypeValidator(
-        settings: Partial<TypeValidatorSettings<T>>
-    ): this {
-        return Schema.upsert(
-            this, 
-            (type?: TypeValidator<T>) => new TypeValidator({ 
-                ...(type as TypeValidatorSettings<T>), 
-                name: this.name, 
-                ...settings 
-            }),
-            $$type
-        )
-    }
 }
 
 //// Exports ////
 
 export default Type
 
-export { Type }
+export { 
+    Type,
+    Cast as TypeCast,
+    Default as TypeDefault,
+    TypeSettings,
+    TypeExtendSettings,
+}

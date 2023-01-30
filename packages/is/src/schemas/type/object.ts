@@ -1,14 +1,34 @@
-import { isFunc, isObject as _isObject } from '@benzed/util'
-import Type from './type'
+import { isFunc, isObject, isOneOf } from '@benzed/util'
+import Type, { TypeExtendSettings } from './type'
 
 /* eslint-disable 
     @typescript-eslint/ban-types
 */
 
+//// Types ////
+
+interface ObjSettings extends TypeExtendSettings<object> {}
+
 //// Exports ////
 
-export interface Object extends Type<object> {}
-export const isObject: Object = new Type({ 
-    name: 'object', 
-    is: (i: unknown): i is object => _isObject(i) || isFunc(i) 
-})
+class Obj extends Type<object> {
+
+    constructor(settings?: ObjSettings) {
+        super({
+            name: 'object',
+            isValid: isOneOf(isFunc, isObject),
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default Obj
+
+export {
+    ObjSettings
+}
+
+export const $object = new Obj()

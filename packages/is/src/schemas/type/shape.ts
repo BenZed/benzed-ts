@@ -1,11 +1,8 @@
-import { isObject, isString, keysOf, safeJsonParse, Infer, TypeOf, nil, TypeGuard, isArray, isNumber, isBoolean } from '@benzed/util'
+import { AnyValidate, ValidateContext, Validator } from '@benzed/schema'
+import { isObject, keysOf, safeJsonParse, TypeOf, isString } from '@benzed/util'
 
-import { TypeValidatorSettings, ValidateContext } from '../../../../schema/src/validator'
-import { AnySchematic } from '../../schematic'
-import { Number } from './numeric'
-import Type from './type'
-
-import { ReadOnly, Optional } from '../../../is'
+import { Optional, ReadOnly } from '../mutator/mutators'
+import Type, { TypeExtendSettings } from './type'
 
 //// EsLint ////
 
@@ -32,7 +29,7 @@ type ShapeNominalOutput<T extends ShapeInput> = {
     -readonly[K in keyof T as T[K] extends ReadOnly<any> ? never : T[K] extends Optional<any> ? never : K]-?: TypeOf<T[K]>
 }
 
-type ShapeOutputIntersection<T extends ShapeInput> = 
+type ShapeOutput<T extends ShapeInput> = 
     // ShapeReadOnlyOutput<T> &
     // ShapeReadOnlyOptionalOutput<T> &
     // ShapeOptionalOutput<T> &
@@ -41,21 +38,19 @@ type ShapeOutputIntersection<T extends ShapeInput> =
 //// Types //// 
 
 type ShapeInput = {
-    [key: string | number | symbol]: AnySchematic
+    [key: string | number | symbol]: AnyValidate
 }
-
-type ShapeOutput<T extends ShapeInput> = 
-    ShapeOutputIntersection<T> extends infer O ? O : never
 
 //// Tuple ////  
 
 class Shape<T extends ShapeInput> extends Type<ShapeOutput<T>> {
 
     get types(): T {
-        return (this.typeValidator as unknown as { types: T }).types
+        const [mainValidator] = this
+        return (mainValidator as Validator<unknown, ShapeOutput<T>> & { types: T }).types
     }
 
-    constructor(properties: T) {
+    constructor(types: T) {
 
         type O = ShapeOutput<T>
 
@@ -63,33 +58,33 @@ class Shape<T extends ShapeInput> extends Type<ShapeOutput<T>> {
 
             name: 'shape',
 
-            properties,
+            types,
 
-            is(input: unknown): input is ShapeOutput<T> {
+            isValid(this: Shape<T>, input: unknown): input is ShapeOutput<T> {
 
                 if (!isObject<O>(input))
                     return false 
 
-                for (const key of keysOf(this.properties)) {
-                    const property = this.properties[key]
-                    if (!property(input[key]))
+                for (const key of keysOf(this.types)) {
+                    const type = this.types[key]
+                    if (!type(types[key]))
                         return false
                 }
 
                 return true
             },
 
-            cast(input: unknown, ctx: ValidateContext<unknown>): unknown {
+            cast(this: Shape<T>, input: unknown, ctx: ValidateContext<unknown>): unknown {
                 if (isString(input)) 
                     return safeJsonParse(input)
 
                 if (!isObject<O>(input))
                     return input
 
-                const output = {} as O
-                for (const key of keysOf(this.properties)) {
+                const output = {} as any
+                for (const key of keysOf(this.types)) {
 
-                    const property = this.properties[key]
+                    const property = this.types[key]
 
                     output[key] = property instanceof Type && property.typeValidator.cast
                         ? property.typeValidator.cast(input[key], { ...ctx, path: [ ...ctx.path, key ], input: input[key] }) as O[keyof O]
@@ -132,7 +127,7 @@ class Shape<T extends ShapeInput> extends Type<ShapeOutput<T>> {
                 return output
             }
 
-        } as TypeValidatorSettings<ShapeOutput<T>> & { properties: T })
+        })
     }
 }
 

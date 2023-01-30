@@ -1,7 +1,7 @@
 import { RangeValidator } from './range'
 
 describe('unary comparators', () => {
-
+  
     it('== creates an equal-to validator', () => {  
         const equalTo10 = new RangeValidator('==', 10)
 
@@ -14,7 +14,7 @@ describe('unary comparators', () => {
         expect(lessThanOrEqualTo5(4)).toBe(4)
         expect(() => lessThanOrEqualTo5(6)).toThrow('Must be equal or below 5')
     })
-
+ 
     it('< creates a less-than validator', () => {
         const lessThan50 = new RangeValidator({ comparator: '<', value: 50 })
         expect(lessThan50(42)).toBe(42)
@@ -25,12 +25,12 @@ describe('unary comparators', () => {
         const moreThan25 = new RangeValidator({ comparator: '>', value: 25 })
         expect(moreThan25(42)).toBe(42)
         expect(() => moreThan25(24)).toThrow('Must be above 25')
-    })
+    }) 
 
     it('>= creates a more-than validator', () => {
         const moreThanOrEqual10 = new RangeValidator({ comparator: '>=', value: 10 })
         expect(moreThanOrEqual10(42)).toBe(42)
-        expect(() => moreThanOrEqual10(8)).toThrow('Must be above or equal 10')
+        expect(() => moreThanOrEqual10(8)).toThrow('Must be equal or above 10')
     })
 
 })
@@ -40,7 +40,7 @@ describe('binary comparators', () => {
     it('.. creates a non-inclusive between validator', () => {
         const between5and10 = new RangeValidator({ comparator: '..', min: 5, max: 10 })
         expect(between5and10(7)).toBe(7)
-        expect(() => between5and10(10)).toThrow('Must be between 5 and 10')
+        expect(() => between5and10(10)).toThrow('Must be equal or above 5 and below 10')
     })
 
     it('... creates an inclusive between validator', () => {
@@ -52,7 +52,7 @@ describe('binary comparators', () => {
         expect(between1and10(10)).toEqual(10)
 
         expect(() => between1and10(11))
-            .toThrow('Must be from 1 to 10')
+            .toThrow('ust be equal or above 1 and below or equal 10')
     })
 
 })

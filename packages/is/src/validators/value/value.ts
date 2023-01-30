@@ -1,46 +1,36 @@
-import { isSymbol, nil, Primitive } from '@benzed/util'
-import { capitalize } from '@benzed/string'
-
-import { Validate, ValidateOptions } from '../../../../schema/src/validator/validate'
-import { ValidationError, ValidationErrorMessage } from '../../../../schema/src/validator/validate-error'
+import { isSymbol, Primitive } from '@benzed/util'
+import { Schema, ValidationErrorMessage } from '@benzed/schema'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
 
-//// Validator ////
-
-function isValue<T extends Primitive>(
-    this: Value<T>, 
-    input: unknown, 
-    options?: ValidateOptions
-): T {
-
-    if (options?.transform && input === nil)
-        input = this.value
-
-    if (!Object.is(input, this.value))
-        ValidationError.throw(this, this.error)
-
-    return input as T
-}
-
 //// Setup ////
 
-class Value<T extends Primitive> extends Validate<unknown, T> {
-
-    override readonly name: string
-
-    readonly error: string | ValidationErrorMessage<unknown>
+class Value<T extends Primitive> extends Schema<unknown, T> {
 
     constructor(readonly value: T, error?: string | ValidationErrorMessage<unknown>) {
-        super(isValue)
+
+        const name = isSymbol(value) 
+            ? 'uniqueSymbol' 
+            : value?.toString() ?? 'undefined'
         
-        const name = isSymbol(this.value) ? 'uniqueSymbol' : this.value?.toString() ?? 'undefined'
+        super({
+
+            name,
+
+            error,
+
+            // @ts-expect-error it's fine
+            isValid(
+                this: Value<T>, 
+                input: unknown
+            ): input is T {
+                return Object.is(input, this.value)
+            }
+        }) 
 
         this.value = value
-        this.name = `is${capitalize(name)}`
-        this.error = error ?? `Must be ${name}`
     }
 
 }

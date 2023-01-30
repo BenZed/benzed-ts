@@ -1,30 +1,33 @@
-import { isBoolean } from './boolean'
+import { $boolean } from './boolean'
 
 import { nil } from '@benzed/util'
 
 //// Tests ////
 
 it('validates booleans', () => {
-    expect(isBoolean.validate(true)).toEqual(true)
-    expect(isBoolean.validate(false)).toEqual(false)
+    expect($boolean(true)).toEqual(true)
+    expect($boolean(false)).toEqual(false)
   
-    expect(() => isBoolean.validate('what'))
-        .toThrow('Must be type boolean')
+    expect(() => $boolean('what'))
+        .toThrow('Must be boolean')
 }) 
 
 it('casts "true" to true', () => { 
-    expect(isBoolean.validate('true'))
+    expect($boolean('true'))
         .toEqual(true)
-})  
+})
 
 it('casts "false" to false', () => {
-    expect(isBoolean.validate('false')) 
+    expect($boolean('false')) 
         .toEqual(false)
 })
 
-it('default()', () => {
+it('default name', () => {
+    expect($boolean).toHaveProperty('name', 'boolean')
+}) 
 
-    expect(isBoolean.default(false).validate(nil)).toBe(false)
-    expect(isBoolean.default(() => true).validate(nil)).toBe(true)
+it('default()', () => {
+    expect($boolean.default(false)(nil)).toBe(false)
+    expect($boolean.default(() => true)(nil)).toBe(true)
 })
  

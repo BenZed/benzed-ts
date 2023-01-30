@@ -3,4 +3,4 @@ import Value from './value'
 //// Exports ////
 
 export interface NaN extends Value<number> {}
-export const isNaN: NaN = new Value(NaN)
+export const $nan: NaN = new Value(NaN)

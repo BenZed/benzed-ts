@@ -1,18 +1,39 @@
-import { Primitive, isDefined as _isDefined, nil } from '@benzed/util'
-import SchemaBuilder from '../../../../schema/src/schema/_old-schema'
+import { Primitive, isDefined, nil } from '@benzed/util'
+import Type, { TypeExtendSettings } from './type'
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/ban-types
 */
 
 //// Setup ////
 
 type defined = Exclude<Primitive, nil | null> | object
 
+//// Types ////
+
+interface DefinedSettings extends TypeExtendSettings<defined> {}
+
 //// Exports ////
 
-export interface Defined extends SchemaBuilder<defined> {}
-export const isDefined: Defined = new SchemaBuilder({ 
-    is: (i: unknown): i is defined => _isDefined(i),
-    error: 'Must be defined'
-})
+class Defined extends Type<defined> {
+
+    constructor(settings?: DefinedSettings) {
+        super({
+            name: 'defined',
+            isValid: isDefined,
+            ...settings
+        })
+    }
+
+}
+
+//// Exports ////
+
+export default Defined
+
+export {
+    Defined,
+    DefinedSettings
+}
+
+export const $defined = new Defined()
