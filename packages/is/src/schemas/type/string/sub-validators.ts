@@ -1,7 +1,7 @@
 
 import { capitalize, toCamelCase } from '@benzed/string'
 
-import { $$id, SubValidator, Validator, ValueValidator } from '@benzed/schema'
+import { SubValidator, ValueValidator } from '@benzed/schema'
 
 //// EsLint ////
 
@@ -16,12 +16,11 @@ const $$case = Symbol('case-validator')
 
 //// Helper Types ////
 
-abstract class CaseValidator extends Validator<string, string> {
+abstract class CaseValidator extends SubValidator<string> {
 
-    /**
-     * @internal
-     */
-    readonly [$$id]: symbol = this[$$id] || $$case
+    constructor() {
+        super($$case)
+    }
 
     override error(): string {
         return `Must be in ${this.name} case `
@@ -95,7 +94,7 @@ export class StartsWith extends ValueValidator<string> {
 export class Includes extends ValueValidator<string> {
 
     override error(): string {
-        return `Must start with ${this.value}`
+        return `Must include ${this.value}`
     }
 
     override transform(input: string): string {

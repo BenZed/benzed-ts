@@ -1,7 +1,18 @@
 
-import { assign, defined, isOptional, isString, isSymbol, SignatureParser } from '@benzed/util'
+import { 
+    assign, 
+    defined, 
+    isOptional, 
+    isString, 
+    isSymbol,
+    SignatureParser 
+} from '@benzed/util'
 
-import { isValidationErrorInput, ValidationErrorInput } from '../validate-error'
+import { 
+    isValidationErrorInput, 
+    ValidationErrorInput 
+} from '../validate-error'
+
 import AbstractValidator from './abstract-validator'
 
 //// EsLint ////
@@ -19,8 +30,10 @@ const toNameErrorId = new SignatureParser({
     .addLayout('error', 'id')
     .addLayout('id')
 
+type NameErrorId<T> = { error?: ValidationErrorInput<T>, name?: string, id?: symbol }
+
 type NameErrorIdSignature<T> = 
-    [{ error?: ValidationErrorInput<T>, name?: string, id?: symbol }] |
+    [ settings: NameErrorId<T> ] |
     [ error?: ValidationErrorInput<T>, name?: string, id?: symbol ] | 
     [ error?: ValidationErrorInput<T>, id?: symbol ] | 
     [ id?: symbol ]
@@ -42,9 +55,7 @@ abstract class SubValidator<T> extends AbstractValidator<T,T> {
                 error: isString(error) ? () => error : error 
             })
         )
-
     }
-
 }
 
 //// Exports ////
@@ -54,5 +65,6 @@ export default SubValidator
 export {
     SubValidator,
     toNameErrorId,
+    NameErrorId,
     NameErrorIdSignature
 }

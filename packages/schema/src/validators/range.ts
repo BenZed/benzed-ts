@@ -1,10 +1,11 @@
 import {
 
     ValidationErrorInput,
-    isValidationErrorInput,
     Validate,
     ValidatorSettings,
-    AbstractValidator
+    SubValidator,
+    toNameErrorId,
+    NameErrorId
 
 } from '../'
 
@@ -27,8 +28,6 @@ const isUnaryComparator = (i: unknown): i is UnaryComparator => UNARY_COMPARATOR
 interface UnarySettings {
     readonly comparator: UnaryComparator
     readonly value: number
-
-    readonly error?: ValidationErrorInput<number>
 }
 
 interface BinarySettings {
@@ -37,6 +36,8 @@ interface BinarySettings {
     readonly max: number
 
     readonly error?: ValidationErrorInput<number>
+    readonly id?: symbol
+    readonly name?: string
 }
 
 //// External Types ////
@@ -44,7 +45,7 @@ interface BinarySettings {
 const toUnarySettings = new SignatureParser({
     value: isNumber,
     comparator: isOptional(isUnaryComparator),
-    error: isOptional(isValidationErrorInput<number>)
+    ...toNameErrorId.types
 })
     .setDefaults({
         comparator: '=='
@@ -56,7 +57,7 @@ const toBinarySettings = new SignatureParser({
     min: isNumber,
     max: isNumber,
     comparator: isOptional(isBinaryComparator),
-    error: isOptional(isValidationErrorInput<number>),
+    ...toNameErrorId.types
 })
     .setDefaults({
         comparator: '..'
@@ -64,7 +65,7 @@ const toBinarySettings = new SignatureParser({
     .addLayout('min', 'comparator', 'max')
     .addLayout('min', 'max')
 
-type RangeSettings = UnarySettings | BinarySettings
+type RangeSettings = (UnarySettings | BinarySettings) & NameErrorId<number>
 
 const toRangeSettings = SignatureParser.merge(
     toUnarySettings,
@@ -145,7 +146,7 @@ function rangeDescription(settings: RangeSettings): string {
 
 //// Exports ////
 
-interface RangeValidatorBase extends Validate<number,number>, Omit<ValidatorSettings<number,number>, 'error'> {
+interface RangeValidatorBase extends Validate<number,number>, Omit<ValidatorSettings<number,number>, 'error' | 'id'> {
     detail(): string
     isBinary(): this is BinaryRangeValidator
     isUnary(): this is UnaryRangeValidator
@@ -161,7 +162,7 @@ interface RangeValidatorConstructor {
     new (...params: RangeSettingsSignature): RangeValidator
 }
 
-const RangeValidator = class extends AbstractValidator<number, number> {
+const RangeValidator = class extends SubValidator<number> {
 
     constructor (...params: RangeSettingsSignature) {
 

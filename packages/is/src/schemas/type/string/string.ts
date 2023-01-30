@@ -2,8 +2,22 @@
 import { SubValidation } from '@benzed/schema'
 import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
 
-import { Type, TypeCast, TypeExtendSettings } from '../type'
-import { Camel, Capitalized, EndsWith, Includes, Lower, StartsWith, Trimmed, Upper } from './sub-validators'
+import {
+    Type,
+    TypeCast,
+    TypeExtendSettings
+} from '../type'
+
+import {
+    Camel,
+    Capitalized,
+    EndsWith,
+    Includes,
+    Lower,
+    StartsWith,
+    Trimmed,
+    Upper
+} from './sub-validators'
 
 //// EsLint ////
 
@@ -49,8 +63,6 @@ class String extends Type<string> {
 
 //// Exports ////
 
-export {
-    String,
-}
+export { String }
 
 export const $string = new String()

@@ -29,13 +29,13 @@ type _ValidatorSettingExtensions<S extends AnyValidatorSettings> = Infer<{
 //// Settings Types ////
 
 interface ValidatorSettings<I, O> {
-    id?: symbol 
-    name?: string
-    error?: ValidationErrorInput<I>
-    isValid?: O extends I 
+    readonly id?: symbol 
+    readonly name?: string
+    readonly error?: ValidationErrorInput<I>
+    readonly isValid?: O extends I 
         ? ValidatorPredicate<I> | ValidatorTypeGuard<I,O>
         : ValidatorPredicate<I> 
-    transform?: ValidatorTransform<I, O>
+    readonly transform?: ValidatorTransform<I, O>
 }
 
 type ValidatorSettingsInput<S extends AnyValidatorSettings> = S extends ValidatorSettings<infer I, any> ? I : unknown
@@ -92,6 +92,9 @@ const Validator = class extends AbstractValidator<unknown, unknown> {
     ) {
 
         super(id)
+
+        if (this.constructor !== Validator)
+            throw new Error('Validator class is sealed.')
 
         Property.transpose(defined(settings), this)
         // ensure error is counted as state if it wasn't provided

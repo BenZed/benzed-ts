@@ -40,6 +40,15 @@ function validate<I, O = I>(
         .value as O
 }
 
+function setName(object: object): void {
+    let name = object.constructor.name
+    name = name
+        .charAt(0)
+        .toLowerCase() + name.slice(1)
+
+    Property.name(object, name)
+}
+
 //// Main ////
 
 abstract class AbstractValidator<I, O = I> extends Validate<I, O> {
@@ -51,13 +60,7 @@ abstract class AbstractValidator<I, O = I> extends Validate<I, O> {
 
         super(validate)
 
-        // Name from constructor, instead of the 'validate' method
-        let name = this.constructor.name
-        name = name
-            .charAt(0)
-            .toLowerCase() + name.slice(1)
-
-        Property.name(this, name)
+        setName(this)
 
         // id, if provided
         if (id)
