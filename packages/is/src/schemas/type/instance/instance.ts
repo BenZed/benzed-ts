@@ -1,5 +1,5 @@
-import { Validate, ValidatorSettings } from '@benzed/schema'
-import Type, { TypeExtendSettings } from '../type'
+import { Validate } from '@benzed/schema'
+import { Type, TypeExtendSettings } from '../type'
 
 //// EsLint ////
 
@@ -39,13 +39,10 @@ class Instance<C extends InstanceInput> extends Type<InstanceType<C>> {
         super({
 
             name: settings.Type.name,
-
             ...settings,
-
             isValid(this: InstanceSettings<C>, i: unknown): i is InstanceType<C> {
                 return i instanceof this.Type
             }
-
         })
     }
 }

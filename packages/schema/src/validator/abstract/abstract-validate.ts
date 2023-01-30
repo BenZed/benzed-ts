@@ -24,6 +24,8 @@ import { isValidationErrorInput, ValidationErrorInput } from '../validate-error'
 
 //// Types ////
 
+type AbstractErrorInput<I> = { error?: ValidationErrorInput<I> }
+
 type NameErrorId<T> = { error?: ValidationErrorInput<T>, name?: string, id?: symbol }
 
 type NameErrorIdSignature<T> = 
@@ -51,7 +53,15 @@ function setName(object: object, name: string | nil): void {
             .toLowerCase() + name.slice(1)
     }
 
-    Property.name(object, name)
+    if (name) {
+        Property.configure(
+            object, 'name', {
+                value: name,
+                enumerable: true,
+                writable: true,
+                configurable: true
+            })
+    }
 }
 
 function setError<T>(
@@ -59,12 +69,14 @@ function setError<T>(
     error: ValidationErrorInput<T> | nil
 ): void {
 
-    assign(
-        object, 
-        defined({ 
-            error: isString(error) ? () => error : error 
-        })
-    )
+    if (error) {
+        assign(
+            object, 
+            { 
+                error
+            }
+        )
+    }
 
 }
 
@@ -76,21 +88,40 @@ function setId(object: object, id: symbol | nil): void {
 
 //// Exports ////
 
-export abstract class AbstractValidate<I,O> extends CallableStruct<Validate<I,O>> {
-    
-    constructor(validate: Validate<I,O>, ...args: NameErrorIdSignature<I>) {
+export abstract class AbstractValidateWithId<I,O> extends CallableStruct<Validate<I,O>> {
 
+    constructor(
+        validate: Validate<I,O>, 
+        id?: symbol
+    ) {
         super(validate)
-
-        const { name, error, id } = toNameErrorId(...args) ?? {}
-
-        setName(this, name)
-        setError(this, error)
-        setId(this, id)
+        setId(this, id) 
     }
+
+}
+
+export abstract class AbstractValidateWithIdNameError<I,O> 
+    extends AbstractValidateWithId<I,O> 
+    implements AbstractErrorInput<I> {
+
+    override name!: string
 
     error(): string {
         return 'Validation failed.'
+    }
+
+    constructor(
+        validate: Validate<I,O>, 
+        ...args: NameErrorIdSignature<I>
+    ) {
+
+        const { name, error, id } =
+        toNameErrorId(...args) ?? {}
+
+        super(validate, id)
+
+        setName(this, name)
+        setError(this, error)
     }
 
 }

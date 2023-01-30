@@ -1,27 +1,13 @@
-import { isSymbol } from './symbol'
 
-import { nil } from '@benzed/util'
+import { $symbol } from './symbol'
 
-//// Tests ////
+import { testValidator } from '../../util.test'
 
-it('validates symbols', () => {
-    expect(isSymbol(Symbol.iterator)).toEqual(true)
-    expect(isSymbol(false)).toEqual(false)
+//// Tests //// 
 
-    expect(() => isSymbol.validate('what'))
-        .toThrow('Must be type symbol')  
-})  
-
-it('default()', () => {
-
-    const $$default = Symbol('default') 
-
-    expect(isSymbol.default($$default)
-        .validate(nil))
-        .toBe($$default)
-    
-    expect(isSymbol.default(() => $$default)
-        .validate(nil))
-        .toBe($$default)
-})
- 
+testValidator(
+    $symbol,
+    $symbol.name + ' type',
+    { input: Symbol(), outputSameAsInput: true },
+    { input: 1, error: `ust be ${$symbol.name}` }
+)

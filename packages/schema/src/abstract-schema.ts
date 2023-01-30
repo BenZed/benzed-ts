@@ -1,5 +1,5 @@
 
-import { CallableStruct } from '@benzed/immutable'
+import { resolveIndex } from '@benzed/array'
 import {
     isSymbol,
     Pipe,
@@ -8,6 +8,7 @@ import {
     provide,
     isFunc,
 } from '@benzed/util'
+import { resolveObjectId } from '@feathersjs/mongodb/lib'
 
 import {
     $$id,
@@ -18,10 +19,12 @@ import {
 
 import {
     AnyValidate, 
+
+    AbstractValidateWithId,
+
     Validate, 
     ValidateOptions,
     ValidateContext,
-
     Validator,
     ValidatorSettings, 
     AllowedValidatorSettings,
@@ -116,15 +119,17 @@ type UpdateValidatorSettings<I,O> = AllowedValidatorSettings<ValidatorSettings<I
 
 //// Schema ////
 
-abstract class AbstractSchema<I, O = I> extends CallableStruct<Validate<I,O>> {
+abstract class AbstractSchema<I, O = I> extends AbstractValidateWithId<I,O> {
 
     constructor(settings: ValidatorSettings<I,O> | Validate<I,O>) {
-        super(schemaValidate)
+        
+        const id = 'id' in settings
+            ? settings.id 
+            : resolveSubvalidatorId(settings)
+        
+        super(schemaValidate, id)
 
         const validator = Validator.from(settings)
-
-        if ($$id in validator)
-            defineSymbol(this, $$id, validator[$$id])
 
         this.validate = defineMainValidatorId(validator) as Validate<I,O>
     }
@@ -134,7 +139,10 @@ abstract class AbstractSchema<I, O = I> extends CallableStruct<Validate<I,O>> {
     //// Main Validator Interface ////
 
     override get name(): string {
-        return this._mainValidator.name || Validator.name.toLowerCase()
+        return (
+            this._mainValidator.name || 
+            Validator.name.toLowerCase()
+        )
     }
     
     /**
@@ -181,7 +189,7 @@ abstract class AbstractSchema<I, O = I> extends CallableStruct<Validate<I,O>> {
         id: symbol,
         validator: UpdateValidatorSettings<O,O> | Validate<O,O>
     ): this {
-        const oldValidator = Array.from(this).find(withId(id))
+        const oldValidator = this.validators.find(withId(id))
         if (!oldValidator)
             throw new Error(`No validator for id: ${String(id)}`)
     

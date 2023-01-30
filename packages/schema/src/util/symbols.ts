@@ -21,11 +21,13 @@ export const $$subConfig = Symbol('apply-sub-validator-config')
 
 export const defineSymbol = <T extends object>(input: T, key: symbol, value: unknown): T => 
     Property.define(
-        input, 
-        key, { 
-            value, 
-            enumerable: true, 
-            configurable: true
+        input,
+        key, 
+        {
+            value,
+            enumerable: false,
+            configurable: true,
+            writable: false
         })
 
 export const defineMainValidatorId = <V extends AnyValidate>(input: V): V => 

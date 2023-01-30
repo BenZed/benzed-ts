@@ -6,20 +6,15 @@ import ValidateContext from './validate-context'
 export class ValidationError<T = unknown> extends Error {
 
     constructor(
-        error: ValidationErrorInput<T> | { error: ValidationErrorInput<T> },
-        readonly ctx: ValidateContext<T>
+        eCtx: { error?: ValidationErrorInput<T> },
+        readonly vCtx: ValidateContext<T>
     ) {
 
-        // untangle error message
-        const msg = isString(error)
-            ? error
-            : 'error' in error 
-                ? isString(error.error)
-                    ? error.error 
-                    : error.error(ctx.input, ctx)
-                : error(ctx.input, ctx)
+        const msg = isFunc(eCtx.error)
+            ? eCtx.error(vCtx.input, vCtx)
+            : eCtx.error ?? 'Validation failed.'   
 
-        super(`${ctx.path.join('\/')} ${msg}`.trim())
+        super(`${vCtx.path.join('\/')} ${msg}`.trim())
     }
 
 }

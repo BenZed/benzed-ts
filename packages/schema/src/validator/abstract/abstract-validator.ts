@@ -6,7 +6,7 @@ import ValidateContext from '../validate-context'
 import { ValidateOptions } from '../validate'
 import { ValidationError } from '../validate-error'
 
-import { AbstractValidate, NameErrorIdSignature } from './abstract-validate'
+import { AbstractValidateWithIdNameError, NameErrorIdSignature } from './abstract-validate'
 
 //// Validate ////
 
@@ -39,7 +39,7 @@ function validate<I, O = I>(
 
 //// Main ////
 
-abstract class AbstractValidator<I, O = I> extends AbstractValidate<I, O> {
+abstract class AbstractValidator<I, O = I> extends AbstractValidateWithIdNameError<I, O> {
 
     constructor(...args: NameErrorIdSignature<I>) {
         super(validate, ...args)
@@ -47,7 +47,7 @@ abstract class AbstractValidator<I, O = I> extends AbstractValidate<I, O> {
 
     override error(): string {
         return this.name.includes('abstract')
-            ? 'Validation failed.'
+            ? super.error()
             : `Must be ${this.name}.`
     }
 

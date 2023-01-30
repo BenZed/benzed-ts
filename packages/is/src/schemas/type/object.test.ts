@@ -1,10 +1,13 @@
+
 import { $object } from './object'
 
-import { test, expect } from '@jest/globals'
- 
-//// Tests ////
- 
-test(`${$object.name}`, () => {
-    expect($object({})).toEqual({})
-    expect(() => $object(10)).toThrow('ust be object') 
-})
+import { testValidator } from '../../util.test'
+
+//// Tests //// 
+
+testValidator(
+    $object,
+    $object.name + ' types',
+    { input: {}, outputSameAsInput: true },
+    { input: 1, error: `ust be ${$object.name}` }
+)

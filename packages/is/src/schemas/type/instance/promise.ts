@@ -1,6 +1,6 @@
 import { 
     AbstractSchema,
-    AbstractValidate, 
+    AbstractValidateWithIdNameError,
     NameErrorIdSignature,
     toNameErrorId,
     ValidateContext, 
@@ -24,8 +24,9 @@ function validatePromise(this: ValidatePromise, input: unknown, options?: Partia
     const ctx = new ValidateContext(input, options)
     throw new ValidationError(this, ctx)
 }
+ 
+class ValidatePromise extends AbstractValidateWithIdNameError<unknown, AnyPromise> {
 
-class ValidatePromise extends AbstractValidate<unknown, AnyPromise> {
     constructor(...args: NameErrorIdSignature<unknown>) {
 
         const { name = 'Promise', ...rest } = toNameErrorId(...args) ?? {}
@@ -36,6 +37,7 @@ class ValidatePromise extends AbstractValidate<unknown, AnyPromise> {
     override error(): string {
         return `Must be a ${this.name}`
     }
+
 }
 
 //// Exports ////

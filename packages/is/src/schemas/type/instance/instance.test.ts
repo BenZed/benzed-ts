@@ -1,14 +1,17 @@
 
 import { Instance } from './instance'
 
+import { testValidator } from '../../../util.test'
+
 //// Tests //// 
 
 class Foo {}
 
-test('isInstance', () => {
-    const isFoo = new Instance(Foo)   
-    expect(isFoo(new Foo())).toEqual(true)
+const $foo = new Instance({ Type: Foo })
 
-    expect(() => isFoo.validate('')).toThrow('Must be type Foo')
-})
-
+testValidator(
+    $foo,
+    $foo.name + ' instance',
+    { input: new Foo(), outputSameAsInput: true },
+    { input: 0, error: `ust be ${Foo.name}` }
+)

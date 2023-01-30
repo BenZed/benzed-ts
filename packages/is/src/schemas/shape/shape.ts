@@ -1,20 +1,21 @@
 import {
     Schema,
-    AbstractValidate,
     AnyValidate,
     NameErrorIdSignature,
     ValidateContext,
     ValidateOptions,
-    ValidationError
+    ValidationError,
+    toNameErrorId,
+    AbstractValidateWithIdNameError
 } from '@benzed/schema'
     
 import { GenericObject, isObject, keysOf, OutputOf } from '@benzed/util'
 
-import { MutatorType } from '../../mutator'
+import { MutatorType } from '../mutator'
 
 import { 
     HasMutator, 
-    RemoveMutator } from '../../mutator/mutator-operations'
+    RemoveMutator } from '../mutator/mutator-operations'
 
 //// EsLint ////
 
@@ -85,8 +86,8 @@ type ShapeInput = {
 
 //// Helper ////
 
-function shapeValidate<T extends ShapeInput>(
-    this: ShapeValidate<T>, 
+function validateShape<T extends ShapeInput>(
+    this: ValidateShape<T>, 
     input: unknown, 
     options?: Partial<ValidateOptions>
 ): ShapeOutput<T> {
@@ -104,14 +105,16 @@ function shapeValidate<T extends ShapeInput>(
     return output as ShapeOutput<T>
 }
 
-class ShapeValidate<T extends ShapeInput> extends AbstractValidate<unknown, ShapeOutput<T>> {
+class ValidateShape<T extends ShapeInput> 
+    extends AbstractValidateWithIdNameError<unknown, ShapeOutput<T>> {
 
     override error(): string {
-        return 'Must be an object'
+        return 'Must be an object' 
     }
 
     constructor(readonly properties: T, ...args: NameErrorIdSignature<unknown>) {
-        super(shapeValidate, ...args)
+        const { name = 'shape', ...rest } = toNameErrorId(...args) ?? {}
+        super(validateShape,{ name, ...rest })
     }
 
 }
@@ -120,8 +123,8 @@ class ShapeValidate<T extends ShapeInput> extends AbstractValidate<unknown, Shap
 
 class Shape<T extends ShapeInput> extends Schema<unknown, ShapeOutput<T>> {
 
-    protected override get _mainValidator(): ShapeValidate<T> {
-        return this.validators[0] as ShapeValidate<T>
+    protected override get _mainValidator(): ValidateShape<T> {
+        return this.validators[0] as ValidateShape<T>
     }
 
     get properties(): T {
@@ -129,7 +132,7 @@ class Shape<T extends ShapeInput> extends Schema<unknown, ShapeOutput<T>> {
     }
 
     constructor(properties: T) {
-        super(new ShapeValidate(properties))
+        super(new ValidateShape(properties))
     }
 
 }

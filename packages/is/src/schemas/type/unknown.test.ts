@@ -1,16 +1,13 @@
-import { isUnknown } from './unknown'
 
-import { test, expect } from '@jest/globals'
-import { nil } from '@benzed/util'
+import { $unknown } from './unknown'
 
-//// Tests ////
+import { testValidator } from '../../util.test'
 
-test('isUnknown', () => {
-    expect(isUnknown(NaN)).toBe(true)
-    expect(isUnknown(null)).toBe(true)
-    expect(isUnknown(nil)).toBe(true)
-    expect(isUnknown.validate(1)).toBe(1)
-    expect(isUnknown(1)).toBe(true)
+//// Tests //// 
 
-    expect(() => isUnknown.assert(1)).not.toThrow()
-})
+testValidator(
+    $unknown,
+    $unknown.name + ' type',
+    { input: 1, outputSameAsInput: true },
+    { input: 1, error: `ust be ${$unknown.name}` }
+)

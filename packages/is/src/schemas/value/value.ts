@@ -6,6 +6,7 @@ import {
     AbstractSchema,
     NameErrorIdSignature,
     toNameErrorId,
+    Validate,
     ValidatorSettings,
 } from '@benzed/schema'
 
@@ -17,11 +18,17 @@ import {
 
 class Value<T extends Primitive> extends AbstractSchema<unknown, T> {
 
-    constructor(readonly value: T, ...args: NameErrorIdSignature<unknown>) {
-        super({
+    get value(): T {
+        return (this._mainValidator as Validate<unknown, T> & { value: T }).value
+    }
+
+    constructor(value: T, ...args: NameErrorIdSignature<unknown>) {
+        super({ 
+            name: String(value),
             ...toNameErrorId(...args),
+            value,
             isValid(
-                this: Value<T>, 
+                this: { value: T }, 
                 input: unknown
             ): boolean {
                 return Object.is(input, this.value)

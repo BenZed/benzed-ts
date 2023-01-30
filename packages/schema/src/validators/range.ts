@@ -77,9 +77,7 @@ const toBinarySettings = new SignatureParser({
     comparator: isOptional(isBinaryComparator),
     ...toNameErrorId.types
 })
-    .setDefaults({
-        comparator: '..'
-    })
+    .setDefaults({ comparator: '..' })
     .addLayout('min', 'comparator', 'max')
     .addLayout('min', 'max')
 

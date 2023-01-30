@@ -13,7 +13,7 @@ it('validates number values', () => {
     expect($number(100))
         .toEqual(100)
  
-})
+}) 
 
 it('does not allow NaN', () => {
     expect(() => $number.validate(NaN))
