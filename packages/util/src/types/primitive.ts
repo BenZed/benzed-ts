@@ -1,4 +1,4 @@
-import { TypeGuard } from './func'
+import { TypeGuard, TypesOf } from './func'
 import { isNil } from './nil'
 
 //// Basic ////
@@ -32,12 +32,11 @@ export const isPrimitive = (i: unknown): i is Primitive =>
     isSymbol(i) ||
     isNil(i)
 
-export const isOneOf = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
+export const isEnum = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
     (i: unknown): i is T[number] => values.some(value => value === i)
 
-export {
-    isOneOf as isEnum 
-}
+export const isOneOf = <T extends TypeGuard<unknown>[]>(...types: T): TypeGuard<TypesOf<T>[number]> =>
+    (i: unknown): i is TypesOf<T>[number] => types.some(type => type(i))
 
 //// Symbol ////
     

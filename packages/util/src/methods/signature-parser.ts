@@ -10,6 +10,11 @@ import {
     TypeGuard
 } from '../types'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Helper Types ////
 
 type _RequiredValues<T> = {
@@ -72,37 +77,36 @@ class SignatureParser<
     D extends Partial<Defaults<T>>,
     L extends Layout<T>[] = []
 >
-    extends Callable<(signature: Signature<T,L>) => Result<T, D>> {
+    extends Callable<(...signature: Signature<T,L>) => Result<T, D>> {
+
+    static merge<P extends AnySignatureParser[]>(...parsers: P): MergedSignatureParser<P> {
+        return new MergedSignatureParser(...parsers)
+    }
 
     constructor(
         readonly types: Types<T>, 
         readonly defaults: D = {} as D, 
         readonly layouts: L = [] as unknown as L
     ) {
-        super((signature): Result<T, D> => {
-
-            const output = this._parseEachLayout(signature) ?? signature[0][0] ?? {}
-            //                                           if no layouts matched,    ^
-            //                                           the first arg may be an 
-            //                                           result object itself
+        super((...signature): Result<T, D> => {
+            const output = this._parseEachLayout(signature) ?? signature[0] ?? {}
+            //                                       if no layouts matched,    ^
+            //                                       the first arg may be an 
+            //                                       result object itself
 
             const outputWithDefaults = isObject(output)
                 ? { ...this.defaults, ...output }
-                : { ...this.defaults }
+                : nil
 
             if (this.isResult(outputWithDefaults))
                 return outputWithDefaults
-
+    
             throw new Error(`Signature not recognized: ${signature}`)
         })
     }
 
-    isResult(input: unknown): input is Result<T, D> {
-        return isObject(input) && Object
-            .entries(input)
-            .every(([key, value]) => this.types[key](value))
-    }
-
+    //// Builder Pattern ////
+    
     setDefaults<Dx extends Partial<Defaults<T>>>(defaults: Dx): SignatureParser<T,Dx,L> {
         return new SignatureParser(this.types, defaults, this.layouts)
     }
@@ -111,11 +115,26 @@ class SignatureParser<
         return new SignatureParser(this.types, this.defaults, [...this.layouts, layout])
     }
 
+    //// Convenience Methods ////
+    
+    isSignature(input: unknown[]): input is Signature<T,L> {
+        return (
+            !!this._parseEachLayout(input as Signature<T,L>) ||
+            isObject(input[0]) && this.isResult({ ...this.defaults, ...input[0] })
+        )
+    }
+
+    isResult(input: unknown): input is Result<T, D> {
+        return isObject(input) && Object
+            .entries(input)
+            .every(([key, value]) => key in this.types && this.types[key](value))
+    }
+
     // Helper 
 
-    private _parseEachLayout(args: unknown[]): Result<T, D> | nil {
+    private _parseEachLayout(signature: unknown[]): Result<T, D> | nil {
         for (const layout of this.layouts) {
-            const layoutMatch = layout.every((key, i) => this.types[key](args[i]))
+            const layoutMatch = layout.every((key, i) => this.types[key](signature[i]))
             if (!layoutMatch)
                 continue
 
@@ -123,14 +142,55 @@ class SignatureParser<
 
             for (const index of indexesOf(layout)) {
                 const key = layout[index]
-                if (args[index] !== nil)
-                    output[key] = args[index]
+                if (signature[index] !== nil)
+                    output[key] = signature[index]
             }
             return output as Result<T, D>
         }
 
         return nil
     }
+}
+
+//// Merged Signature Parser////
+
+type AnySignatureParser = SignatureParser<any,any,any>
+
+type Signatures<P extends AnySignatureParser> = P extends SignatureParser<infer T, any, infer L> 
+    ? Signature<T, L>
+    : never 
+
+type Results<P extends AnySignatureParser> = 
+    P extends SignatureParser<infer T, infer D, any> 
+        ? Result<T, D>
+        : never 
+
+class MergedSignatureParser<P extends AnySignatureParser[]>
+
+    extends Callable<(...signature: Signatures<P[number]>) => Results<P[number]>>{
+
+    readonly parsers: P 
+
+    constructor(...parsers: P) {
+        super((...signature): Results<P[number]> => {
+            for (const parser of this.parsers) {
+                if (parser.isSignature(signature))
+                    return parser(...signature) as Results<P[number]>
+            }
+
+            throw new Error(`Signature not recognized: ${signature}`)
+        })
+        this.parsers = parsers
+    }
+
+    isSignature(input: unknown[]): input is Signatures<P[number]> {
+        return this.parsers.some(p => p.isSignature(input))
+    }
+
+    isResult(input: unknown): input is Results<P[number]> {
+        return this.parsers.some(p => p.isResult(input))
+    }
+
 }
 
 //// Exports ////
@@ -140,7 +200,12 @@ export default SignatureParser
 export {
     SignatureParser,
     Signature,
-    Defaults as SigantureDefaults,
-    Types as SignatureTypes,
-    Layout as SignatureLayout,
+    Defaults as SigantureParserDefaults,
+    Types as SignatureParserTypes,
+    Layout as SignatureParserLayout,
+    Result as SignatureParserResult,
+
+    MergedSignatureParser,
+    Signatures,
+    Results as SigantureParserResults
 }
