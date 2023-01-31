@@ -3,7 +3,8 @@ import { assign, KeysOf, omit } from '@benzed/util'
 import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import ValidationError from '../validation-error'
-import { ValidateState, ValidatorStruct } from './validator'
+import { ValidateUpdateState } from './validate-struct'
+import { ValidatorStruct } from './validator-struct'
 
 //// Types ////
 
@@ -55,10 +56,7 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
 
     /**
      * Method that attempts to partially or completely change it's input
-     * into it's desired output, if it isn't already. Should never throw 
-     * any errors.
-     * 
-     * TODO: make this optionally asyncronous
+     * into it's desired output. Should never throw any errors.
      */
     transform(input: I | O, context: ValidationContext<I>): I | O {
         void context
@@ -123,7 +121,9 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
      * The validate method should never need to change, as it's logic will be based
      * on the configuration of the rest of the properties of the validator.
      */
-    protected override [ValidatorStruct.$$assign](state: ValidateState<this>): ValidateState<this> {
+    protected override [ValidatorStruct.$$assign](
+        state: ValidateUpdateState<this>
+    ): ValidateUpdateState<this> {
         return omit(state, 'validate')
     }
         

@@ -1,8 +1,9 @@
-import { MainValidator, Schema, SubValidator } from './schema'
+import { MainValidator, Schema } from './schema'
 
 import { it, describe } from '@jest/globals'
 
 import { Struct } from '@benzed/immutable'
+import { SubValidator } from './sub-validator'
 
 //// Tests ////
 
@@ -26,7 +27,12 @@ describe('Schema Setters Type Tests', () => {
         readonly count: number 
     }
 
-    interface Positive extends SubValidator<bignumber> {}
+    interface Positive extends SubValidator<bignumber> {
+
+        // Custom configuration signature
+        configure(enabled?: boolean): { enabled: boolean }
+
+    }
 
     /* eslint-disable @typescript-eslint/indent */
     type BigDecimalSchema =
@@ -45,7 +51,12 @@ describe('Schema Setters Type Tests', () => {
         const $bigDecimal = null as unknown as BigDecimalSchema
 
         $bigDecimal.leadingZeros({ count: 10 })
+        $bigDecimal.positive()
         $bigDecimal.parse(true)
+
+        $bigDecimal
+            .leadingZeros({ count: 10 })
+            .positive()
 
     })
 

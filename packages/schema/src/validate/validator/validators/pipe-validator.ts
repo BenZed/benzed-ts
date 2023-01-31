@@ -1,5 +1,7 @@
 import { ParamPipe, pick, Pipe } from '@benzed/util'
 import { Validate, ValidateOptions } from '../../validate'
+import { ValidateUpdateState } from '../validate-struct'
+import { ValidatorStruct } from '../validator-struct'
 
 //// Types ////
 
@@ -27,7 +29,9 @@ class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
      * Contrary to the contract validator, ONLY the validate method 
      * of the pipe validator needs to change.
      */
-    protected override [ValidatorStruct.$$assign](state: ValidateState<this>): ValidateState<this> {
+    protected override [ValidatorStruct.$$assign](
+        state: ValidateUpdateState<this>
+    ): ValidateUpdateState<this> {
         return pick(state, 'validate')
     }
 
