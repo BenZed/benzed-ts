@@ -20,7 +20,7 @@ export interface OutputContractValidatorSettings<O> extends Omit<ContractValidat
 //// PipeValidatorBuilder ////
 
 /**
- * Pipe validator with a convenience interface for adding applicable validators.
+ * Pipe validator with an interface for manipulating output validators.
  */
 export abstract class PipeValidatorBuilder<I, O extends I = I> extends PipeValidator<I,O> {
 

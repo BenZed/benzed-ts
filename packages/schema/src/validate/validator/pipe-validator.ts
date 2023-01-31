@@ -1,12 +1,14 @@
-import { ParamPipe, pick, Pipe } from '@benzed/util/src'
+import { ParamPipe, pick, Pipe } from '@benzed/util'
 import { Validate, ValidateOptions } from '../validate'
 import { ValidateState, ValidatorStruct } from './validator'
 
 //// Types ////
 
+type InputValidator<I, O extends I> = Validate<I, O>
+
 type OutputValidator<O> = Validate<O, O>
 
-type Validators<I, O extends I> = [input: Validate<I,O>, ...output: OutputValidator<O>[]]
+type Validators<I, O extends I> = [input: InputValidator<I,O>, ...output: OutputValidator<O>[]]
 
 //// Main ////
 
@@ -49,6 +51,7 @@ export default PipeValidator
 
 export {
     PipeValidator,
+    InputValidator,
     OutputValidator,
     Validators
 }

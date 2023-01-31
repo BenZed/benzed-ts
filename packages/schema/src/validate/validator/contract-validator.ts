@@ -15,11 +15,11 @@ type ContractValidatorSettings<I, O extends I> = Partial<{
 
 /**
  * A versatile implementation of the validate contract.
- * At least one method would need to be overrided for the validator to actually do anything,
- * because with it's default configuration any input is considered valid, so it's marked 
- * as abstract despite that it has no relevent abstract methods.
+ * At least one method would need to be overrided for the validator to actually 
+ * do anything, because with it's default configuration any input is considered 
+ * valid, so it's marked as abstract despite that it has no relevent abstract 
+ * methods.
  * 
- * TODO: description of the transform, isValid and error methods
  */
 abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
 
