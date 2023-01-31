@@ -1,5 +1,5 @@
 import { equals } from '@benzed/immutable'
-import { assign, KeysOf, omit } from '@benzed/util/src'
+import { assign, KeysOf, omit } from '@benzed/util'
 import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import ValidationError from '../validation-error'
@@ -27,14 +27,15 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
      * Create a new validator by providing settings to manually override one or many
      * of the contract validators properties.
      */
-    static generic<Ix,Ox extends Ix>({ name: _name = 'validator', ...settings }: ContractValidatorSettings<Ix,Ox>): ContractValidator<Ix,Ox> {
+    static generic<Ix,Ox extends Ix>(
+        { name: _name = 'validator', ...settings }: ContractValidatorSettings<Ix,Ox>
+    ): ContractValidator<Ix,Ox> {
         return new class extends ContractValidator<Ix,Ox> {
             constructor(readonly name = _name) {
                 super()
                 assign(this, settings)
             }
         }
-
     }
 
     /**

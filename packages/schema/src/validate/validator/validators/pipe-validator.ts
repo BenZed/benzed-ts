@@ -1,6 +1,5 @@
 import { ParamPipe, pick, Pipe } from '@benzed/util'
-import { Validate, ValidateOptions } from '../validate'
-import { ValidateState, ValidatorStruct } from './validator'
+import { Validate, ValidateOptions } from '../../validate'
 
 //// Types ////
 

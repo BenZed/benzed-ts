@@ -1,6 +1,6 @@
 
-import ValidationContext from '../validation-context'
-import { ContractValidatorSettings } from './contract-validator'
+import ValidationContext from '../../validation-context'
+import { ContractValidatorSettings } from '../contract-validator'
 import PipeValidator, { OutputValidator } from './pipe-validator'
 
 //// Types ////

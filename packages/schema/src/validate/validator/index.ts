@@ -1,8 +1,10 @@
 
-export * from './validator'
-
 export * from './contract-validator'
 
-export * from './pipe-validator'
+export * from './validate-struct'
 
-export * from './pipe-validator-builder'
+export * from './validator-struct'
+
+export * from './validator'
+
+export * from './validators'

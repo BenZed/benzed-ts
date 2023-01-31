@@ -3,7 +3,7 @@ import Struct, { StructState } from './struct'
 
 //// Symbols ////
 
-const $$nonStateKey = Symbol('do-not-create-setter-for-these-keys')
+export const $$nonStateKey = Symbol('do-not-create-setter-for-these-keys')
 
 //// Helper Types ////
 
@@ -25,16 +25,17 @@ type _StructSetter<S extends Structs, Si extends Struct> = {
         : never
 }
 
-// TODO: convert name to named
-
 //// Types ////
 
-type StateKeys<S extends Struct> = S extends { [$$nonStateKey]: infer K }
+export type StateKeys<S extends Struct> = S extends { [$$nonStateKey]: infer K }
     ? K extends readonly string[]
         ? Exclude<KeysOf<StructState<S>>, K[number]>
         : KeysOf<StructState<S>>
     : KeysOf<StructState<S>>
 
-type Structs = Struct[]
+export type Structs = Struct[]
 
-type StructSetters<S extends Structs> = Intersect<_StructSetters<S>>
+export type StructSetters<S extends Structs> = Intersect<_StructSetters<S>>
+
+//// Implementation ////
+
