@@ -17,20 +17,24 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
 
     const context = new ValidationContext(i, options)
 
-    const digits = parseFloat(i)
-    if (Number.isNaN(digits))
-        throw new Error(`${i} could not be converted to a number`)
+    const digits = parseFloat(i) 
+    if (Number.isNaN(digits)) {
+        throw new ValidationError(
+            `${i} could not be converted to a number`, 
+            context
+        )
+    }
 
-    const transformed = `${digits}`
+    context.transformed = `${digits}`
  
-    const output = options?.transform ? transformed : i
-    if (output !== transformed) {
+    const output = context?.transform ? context.transformed : i
+    if (output !== context.transformed) {
         throw new ValidationError(
             `${i} must be a numeric string.`, 
             context
         )
     }
- 
+
     return output as `${number}`
 }
 

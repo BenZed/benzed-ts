@@ -185,7 +185,6 @@ export function testValidateContract<I, O extends I>(
         })
 
         it('#1 converts given options into ValidateContext object.', () => {
-            console.log(assertFail.error?.context)
             expect(assertFail.error?.context).toBeInstanceOf(ValidationContext)
             expect(assertFail.error?.context).toHaveProperty('transform', false)
     
@@ -199,7 +198,7 @@ export function testValidateContract<I, O extends I>(
 
         it('#3 throws validation errors on failed transformations or assertions', () => {
             expect(assertFail.error).toBeInstanceOf(ValidationError)
-            expect(transformFail.error).toBeInstanceOf(ValidationContext)
+            expect(transformFail.error).toBeInstanceOf(ValidationError)
 
         })
 
@@ -218,7 +217,7 @@ export function testValidateContract<I, O extends I>(
             expect(assertPass.test).toHaveProperty('asserts', validInput)
 
             // proves that the test.transforms input is the same as the transformedOutput, and thus not mutated
-            expect(transformPass.test).toHaveProperty('transforms', transformedOutput)
+            expect(transformPass.test).toHaveProperty('transforms', transformableInput)
         })
 
     })

@@ -17,7 +17,7 @@ class ValidationContext<T> implements ValidateOptions {
      * output during this 
      */
     readonly transform: boolean
-    readonly transformed?: T
+    transformed?: T
 
     // readonly parent?: ValidateContext<T>
 
