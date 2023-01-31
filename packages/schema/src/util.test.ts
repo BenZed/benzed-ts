@@ -48,8 +48,7 @@ export type ValidationTestOutput<O> = {
  * will be the same as the input.
  */
 export type ValidationTransformTest<I,O> = 
-    ValidationTestTransformsInput<I> & 
-    (ValidationTestError | Partial<ValidationTestOutput<O>>)
+    ValidationTestTransformsInput<I> & (ValidationTestError | Partial<ValidationTestOutput<O>>)
 
 /**
  * Peform a trasnform assertion test.
@@ -57,7 +56,7 @@ export type ValidationTransformTest<I,O> =
  * be the same as the input.
  */
 export type ValidationAssertTest<I> = 
-    ValidationTestAssertsInput<I> & Partial<ValidationError<I>>
+    ValidationTestAssertsInput<I> & Partial<ValidationTestError>
 
 export type ValidationTest<I,O> = 
     ValidationTransformTest<I,O> | ValidationAssertTest<I>
@@ -95,7 +94,7 @@ export function testValidator<I,O extends I>(
         // prepare test
         const applyTransforms = 'transforms' in test 
         const expectingError = 'error' in test
-        const expectOutputDifferentFromInput = 'output' in test
+        const expectOutputDifferentFromInput = 'output' in test && applyTransforms
 
         const input = applyTransforms ? test.transforms : test.asserts
 
@@ -112,6 +111,12 @@ export function testValidator<I,O extends I>(
         it(testTitle, () => {
 
             const result = runValidationTest(validate, test)
+            if (!expectingError && result.error) {
+                throw new Error(
+                    `Received error "${result.error.message}" when ` + 
+                    `expecting output ${expectOutputDifferentFromInput ? test.output : input}`
+                )
+            }
 
             if (expectingError && isString(test.error)) 
                 expect(result.error?.message).toContain(test.error)
@@ -160,66 +165,62 @@ export function testValidateContract<I, O extends I>(
     }
 ): void {
 
-    describe(`valdator${validate.name} validation contract`, () => {
+    const { validInput, invalidInput, transformableInput, transformedOutput } = config
 
-        const { validInput, invalidInput, transformableInput, transformedOutput } = config
+    const assertPass = runValidationTest(validate, { asserts: copy(validInput) })
 
-        const assertPass = runValidationTest(validate, { asserts: copy(validInput) })
+    const assertFail = runValidationTest(validate, { asserts: invalidInput, error: true })
 
-        const assertFail = runValidationTest(validate, { asserts: invalidInput, error: true })
+    const assertWithTransformableInput = runValidationTest(validate, { asserts: transformableInput })
 
-        const assertWithTransformableInput = runValidationTest(validate, { asserts: transformableInput })
+    const transformPass = runValidationTest(validate, { 
+        transforms: copy(transformableInput), 
+        output: transformedOutput 
+    })
 
-        const transformPass = runValidationTest(validate, { 
-            transforms: copy(transformableInput), 
-            output: transformedOutput 
-        })
+    const transformFail = runValidationTest(validate, { transforms: invalidInput, error: true})
 
-        const transformFail = runValidationTest(validate, { transforms: invalidInput, error: true})
+    it('expected test results', () => {
+        expect(assertFail).toHaveProperty('error')
+        expect(assertPass).toHaveProperty('output')
+        expect(transformPass).toHaveProperty('output')
+        expect(transformFail).toHaveProperty('error')
+    })
 
-        it('expected test results', () => {
-            expect(assertFail).toHaveProperty('error')
-            expect(assertPass).toHaveProperty('output')
-            expect(transformPass).toHaveProperty('output')
-            expect(transformFail).toHaveProperty('error')
-        })
-
-        it('#1 converts given options into ValidateContext object.', () => {
-            expect(assertFail.error?.context).toBeInstanceOf(ValidationContext)
-            expect(assertFail.error?.context).toHaveProperty('transform', false)
+    it('#1 converts given options into ValidateContext object.', () => {
+        expect(assertFail.error?.context).toBeInstanceOf(ValidationContext)
+        expect(assertFail.error?.context).toHaveProperty('transform', false)
     
-            expect(transformFail.error?.context).toBeInstanceOf(ValidationContext)
-            expect(transformFail.error?.context).toHaveProperty('transform', true)
-        })
+        expect(transformFail.error?.context).toBeInstanceOf(ValidationContext)
+        expect(transformFail.error?.context).toHaveProperty('transform', true)
+    })
 
-        it('#2 transform is true by default', () => {
-            expect(validate(transformableInput)).toEqual(transformedOutput)
-        })
+    it('#2 transform is true by default', () => {
+        expect(validate(transformableInput)).toEqual(transformedOutput)
+    })
 
-        it('#3 throws validation errors on failed transformations or assertions', () => {
-            expect(assertFail.error).toBeInstanceOf(ValidationError)
-            expect(transformFail.error).toBeInstanceOf(ValidationError)
+    it('#3 throws validation errors on failed transformations or assertions', () => {
+        expect(assertFail.error).toBeInstanceOf(ValidationError)
+        expect(transformFail.error).toBeInstanceOf(ValidationError)
 
-        })
+    })
 
-        it('#4 converts transformable input into valid output when transformations are enabled', () => {
-            expect(transformPass.output).toEqual(transformedOutput)
-            expect(transformFail.error).toBeInstanceOf(ValidationError)
+    it('#4 converts transformable input into valid output when transformations are enabled', () => {
+        expect(transformPass.output).toEqual(transformedOutput)
+        expect(transformFail.error).toBeInstanceOf(ValidationError)
 
-            if ('output' in assertWithTransformableInput)
-                expect(assertWithTransformableInput.output).toEqual(transformableInput)
-        })
+        if ('output' in assertWithTransformableInput)
+            expect(assertWithTransformableInput.output).toEqual(transformableInput)
+    })
 
-        it('#5 provides transformed input to context without mutating the given input', () => {
-            expect(transformFail.error?.context).toBeInstanceOf(ValidationContext)
+    it('#5 provides transformed input to context without mutating the given input', () => {
+        expect(transformFail.error?.context).toBeInstanceOf(ValidationContext)
 
-            // proves that the test.asserts input is the same as the validInput, and thus not mutated
-            expect(assertPass.test).toHaveProperty('asserts', validInput)
+        // proves that the test.asserts input is the same as the validInput, and thus not mutated
+        expect(assertPass.test).toHaveProperty('asserts', validInput)
 
-            // proves that the test.transforms input is the same as the transformedOutput, and thus not mutated
-            expect(transformPass.test).toHaveProperty('transforms', transformableInput)
-        })
-
+        // proves that the test.transforms input is the same as the transformedOutput, and thus not mutated
+        expect(transformPass.test).toHaveProperty('transforms', transformableInput)
     })
 
 }

@@ -4,10 +4,14 @@
 		"scope": "javascript,typescript",
 		"prefix": "t-v",
 		"body": [
-			"testValidator(",
-			"    $1,",
-			"    $0",
-			")",
+			"describe(`\\${$1.name} validator tests`, () => {",
+			"",
+			"    testValidator(",
+			"        $1,",
+			"        $0",
+			"    )",
+			"",
+			"})"
 		],
 	},
 
@@ -15,7 +19,7 @@
 		"scope": "javascript,typescript",
 		"prefix": "t-v-t",
 		"body": [
-			"{ input: $1, transforms: $2 },",
+			"{ transforms: $1 },",
 			"$0"
 		],
 	},
@@ -24,7 +28,7 @@
 		"scope": "javascript,typescript",
 		"prefix": "t-v-a",
 		"body": [
-			"{ input: $1, asserts: $2 },",
+			"{ asserts: $1 },",
 			"$0"
 		],
 	}

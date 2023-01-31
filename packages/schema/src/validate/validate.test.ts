@@ -1,22 +1,22 @@
 
 import { Validate } from './validate'
 
-import { testValidateContract } from '../util.test'
+import { testValidateContract, testValidator } from '../util.test'
 import ValidationError from './validation-error'
 import ValidationContext from './validation-context'
 
 //// EsLint ////
-
+    
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
- 
+    
 //// Setup //// 
-
+    
 const $numeric: Validate<string, `${number}`> = (i, options) => {
-
+    
     const context = new ValidationContext(i, options)
-
+    
     const digits = parseFloat(i) 
     if (Number.isNaN(digits)) {
         throw new ValidationError(
@@ -24,9 +24,9 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
             context
         )
     }
-
+    
     context.transformed = `${digits}`
- 
+    
     const output = context?.transform ? context.transformed : i
     if (output !== context.transformed) {
         throw new ValidationError(
@@ -34,18 +34,36 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
             context
         )
     }
-
+    
     return output as `${number}`
 }
-
+    
 //// Tests ////
 
-testValidateContract(
-    $numeric, 
-    {
-        validInput: '100',
-        invalidInput: 'not-a-number',
-        transformableInput: ' 150',
-        transformedOutput: '150'
-    }
-)
+describe('$numeric example validator contract', () => {
+    testValidateContract(
+        $numeric, 
+        {
+            validInput: '100',
+            invalidInput: 'not-a-number',
+            transformableInput: ' 150',
+            transformedOutput: '150'
+        }
+    )
+    
+})
+    
+describe('$numeric example validation tests', () => {
+    testValidator(
+        $numeric,
+        { asserts: '0' },
+        { asserts: '100' },
+        { asserts: 'nun', error: 'could not be converted to a number' },
+        { asserts: ' 150', error: 'must be a numeric string' },
+        { transforms: '75' },
+        { transforms: ' 124', output: '124' },
+        { transforms: '~15-', error: 'could not be converted to a number' },
+    
+    )
+})
+
