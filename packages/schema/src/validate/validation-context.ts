@@ -17,12 +17,13 @@ class ValidationContext<T> implements ValidateOptions {
      * output during this 
      */
     readonly transform: boolean
-    transformed?: T
+    transformed: T
 
     // readonly parent?: ValidateContext<T>
 
     constructor(input: T, options?: ValidateOptions) {
         this.input = input
+        this.transformed = input
         this.transform = options?.transform ?? true
     }
 
