@@ -4,9 +4,9 @@ import { ValidateState, ValidatorStruct } from './validator'
 
 //// Types ////
 
-type SubValidator<O> = Validate<O, O>
+type OutputValidator<O> = Validate<O, O>
 
-type Validators<I, O extends I> = [main: Validate<I,O>, ...sub: SubValidator<O>[]]
+type Validators<I, O extends I> = [input: Validate<I,O>, ...output: OutputValidator<O>[]]
 
 //// Main ////
 
@@ -49,6 +49,6 @@ export default PipeValidator
 
 export {
     PipeValidator,
-    SubValidator,
+    OutputValidator,
     Validators
 }
