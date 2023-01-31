@@ -1,8 +1,15 @@
 import { equals } from '@benzed/immutable'
+import { assign, KeysOf, omit } from '@benzed/util/src'
 import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import ValidationError from '../validation-error'
-import { ValidatorStruct } from './validator'
+import { ValidateState, ValidatorStruct } from './validator'
+
+//// Types ////
+
+type ContractValidatorSettings<I, O extends I> = Partial<{
+    [K in KeysOf<ContractValidator<I,O>>]: ContractValidator<I,O>[K]
+}>
 
 //// Main ////
 
@@ -15,6 +22,20 @@ import { ValidatorStruct } from './validator'
  * TODO: description of the transform, isValid and error methods
  */
 abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
+
+    /**
+     * Create a new validator by providing settings to manually override one or many
+     * of the contract validators properties.
+     */
+    static generic<Ix,Ox extends Ix>({ name: _name = 'validator', ...settings }: ContractValidatorSettings<Ix,Ox>): ContractValidator<Ix,Ox> {
+        return new class extends ContractValidator<Ix,Ox> {
+            constructor(readonly name = _name) {
+                super()
+                assign(this, settings)
+            }
+        }
+
+    }
 
     /**
      * Should have something to do with the output type.
@@ -97,6 +118,14 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
         return output
     }
 
+    /**
+     * The validate method should never need to change, as it's logic will be based
+     * on the configuration of the rest of the properties of the validator.
+     */
+    protected override [ValidatorStruct.$$assign](state: ValidateState<this>): ValidateState<this> {
+        return omit(state, 'validate')
+    }
+        
 }
 
 //// Exports ////
@@ -104,5 +133,6 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
 export default ContractValidator
 
 export {
-    ContractValidator
+    ContractValidator,
+    ContractValidatorSettings
 }

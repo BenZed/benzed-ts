@@ -1,5 +1,5 @@
 import { CallableStruct, Struct, StructAssignState } from '@benzed/immutable'
-import { omit, provideCallableContext } from '@benzed/util'
+import { provideCallableContext } from '@benzed/util'
 
 import { Validate, ValidateOptions } from '../validate'
 
@@ -22,11 +22,11 @@ export interface Validator<I, O extends I> {
 
 }
 
-type AnyValidator= Validator<any,any>
+export type AnyValidator= Validator<any,any>
 
-type ValidateState<V extends AnyValidator> = StructAssignState<V>
+export type ValidateState<V extends AnyValidator> = StructAssignState<V>
 
-type ValidateUpdateState<V extends AnyValidator> = Partial<ValidateState<V>>
+export type ValidateUpdateState<V extends AnyValidator> = Partial<ValidateState<V>>
 
 //// ValidateStruct////
 
@@ -37,7 +37,7 @@ export abstract class ValidateStruct<I, O extends I = I> extends CallableStruct<
 
 //// ValidatorStruct ////
 
-function validate<I,O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
+function validate<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
     return this.validate(input, options)
 }
 
@@ -46,7 +46,7 @@ function validate<I,O extends I>(this: Validator<I,O>, input: I, options?: Valid
  * a validate method and a validator, making it the base class for the most widely applicable object for fulfilling 
  * validation interface related contracts.
  */
-export abstract class ValidatorStruct<I,O extends I = I> extends ValidateStruct<I,O> implements Validator<I,O> {
+export abstract class ValidatorStruct<I, O extends I = I> extends ValidateStruct<I,O> implements Validator<I,O> {
 
     constructor() {
         super(validate, provideCallableContext)
@@ -62,14 +62,6 @@ export abstract class ValidatorStruct<I,O extends I = I> extends ValidateStruct<
      */
     override apply(state: ValidateUpdateState<this>): this {
         return Struct.apply(this, state)
-    }
-
-    /**
-     * The validate method should never need to change, as it's logic will be based
-     * on the configuration of the rest of the properties of the validator.
-     */
-    protected override [CallableStruct.$$assign](state: ValidateState<this>): ValidateState<this> {
-        return omit(state, 'validate')
     }
 
 }
