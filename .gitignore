@@ -5,6 +5,8 @@ packages/*/lib
 storage/*
 _old*
 
+schema-old*
+
 .idea
 
 .DS_Store
