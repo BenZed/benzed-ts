@@ -124,6 +124,12 @@ export type TupleOuput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
         : []
     : []
 
+export const isTuple = <T extends TupleInput>(...types: T): TypeGuard<TupleOuput<T>> => 
+    (input: unknown): input is TupleOuput<T> => 
+        isArray(input) &&
+        input.length === types.length &&
+        types.every((type, i) => type(input[i]))
+
 //// Json ////
 
 export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
