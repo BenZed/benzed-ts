@@ -1,4 +1,4 @@
-import { CallableStruct, Struct, StructAssignState } from '@benzed/immutable'
+import { CallableStruct, Struct, StructAssignState, StructState } from '@benzed/immutable'
 
 import { Validate } from '../validate'
 
@@ -18,6 +18,6 @@ export abstract class ValidateStruct<I, O extends I = I>
 
 export type AnyValidateStruct = ValidateStruct<any,any>
 
-export type ValidateState<V extends AnyValidateStruct> = StructAssignState<V>
+export type ValidateState<V extends AnyValidateStruct> = StructState<Omit<V, 'equal' | 'validate'>>
 
 export type ValidateUpdateState<V extends AnyValidateStruct> = Partial<ValidateState<V>>

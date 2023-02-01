@@ -5,6 +5,8 @@ import { it, describe } from '@jest/globals'
 import { Struct } from '@benzed/immutable'
 import { SubValidator } from './sub-validator'
 
+import { expectTypeOf } from 'expect-type'
+
 //// Tests ////
 
 describe('Schema Setters Type Tests', () => {
@@ -44,8 +46,28 @@ describe('Schema Setters Type Tests', () => {
             }
         >
 
+    type ParseSetter = BigDecimalSchema['parse']
+    type LeadingZerosSetter = BigDecimalSchema['leadingZeros']
+    type PositiveSetter = BigDecimalSchema['positive']
+
     /* eslint-enable @typescript-eslint/indent */
 
-    it.todo('has expected types')
+    it('creates setter methods for main validator state properties', () => {
+        expectTypeOf<ParseSetter>()
+            .toEqualTypeOf<(i: boolean) => BigDecimalSchema>()
+    })
+
+    it('creates setter methods for sub validators', () => {
+        expectTypeOf<LeadingZerosSetter>()
+            .toEqualTypeOf<(state: Partial<{
+            count: number
+            enabled: boolean
+        }>) => BigDecimalSchema>()
+    })
+
+    it('setter methods for sub validators use configure parameters, if provided', () => {
+        expectTypeOf<PositiveSetter>()
+            .toEqualTypeOf<(enabled?: boolean) => BigDecimalSchema>()
+    })
 
 })
