@@ -1,8 +1,7 @@
-import { Struct } from '@benzed/immutable'
 import { provideCallableContext } from '@benzed/util'
 
 import { ValidateOptions } from '../validate'
-import { ValidateStruct, ValidateUpdateState } from './validate-struct'
+import { ValidateStruct } from './validate-struct'
 import { Validator } from './validator'
 
 //// EsLint ////

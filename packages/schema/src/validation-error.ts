@@ -1,7 +1,7 @@
 import { assign } from '@benzed/util'
 import ValidationContext from './validation-context'
 
-//// Main ////
+//// Main ////  
 
 class ValidationError<T> extends Error implements ValidationContext<T> {
 

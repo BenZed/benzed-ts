@@ -8,13 +8,13 @@ import ValidationContext from './validation-context'
 import { describe } from '@jest/globals'
 
 //// EsLint ////
-    
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any
 */
 
-//// Setup //// 
-    
+//// Setup ////
+
 const $numeric: Validate<string, `${number}`> = (i, options) => {
     
     const context = new ValidationContext(i, options)
@@ -42,18 +42,18 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
 
 //// Tests ////
 
-// describe('$numeric example validator contract', () => {
-//     testValidateContract(
-//         $numeric, 
-//         {
-//             validInput: '100',
-//             invalidInput: 'not-a-number',
-//             transformableInput: ' 150',
-//             transformedOutput: '150'
-//         }
-//     )
+describe('$numeric example validator contract', () => { 
+    testValidateContract(
+        $numeric, 
+        {
+            validInput: '100',
+            invalidInput: 'not-a-number',
+            transformableInput: ' 150',
+            transformedOutput: '150'
+        }
+    )
     
-// }) 
+}) 
 
 describe('$numeric example validation tests', () => {
     testValidator(

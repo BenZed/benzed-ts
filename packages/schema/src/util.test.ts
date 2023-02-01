@@ -1,16 +1,14 @@
-import { isPrimitive } from '@benzed/util'
-import { copy } from '@benzed/immutable'
-import { it, expect } from '@jest/globals'
+import { isPrimitive, keysOf } from '@benzed/util'
+import { it } from '@jest/globals'
 
-import { Validate } from './validate'
-import ValidationError from './validation-error'
-import ValidationContext from './validation-context'
+import { Validate } from './validate' 
 
-import {
+import type {
     ValidationTest,
-    runValidationTest,
     ValidationTestResult,
-    ValidationContractViolations
+    ValidationContractViolations,
+    runValidatorContractTests as RunValidatorContractTests,
+    ValidatorContractTestSettings
 } from './validation-test'
 
 //// Helper Method ////
@@ -59,6 +57,9 @@ export function testValidator<I,O extends I>(
                     : ' is valid'
             )
 
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { runValidationTest } = require('./validation-test') as typeof import('./validation-test')
+
         // run test
         it(testTitle, () => {
             const { grade, output, error } = runValidationTest(validate, test)
@@ -78,88 +79,25 @@ export function testValidator<I,O extends I>(
  * of the validation contract.
  */
 export function testValidateContract<I, O extends I>(
-    validate: Validate<I, O>,
-    config: {
-
-        /**
-         * Valid input that does not require transformation
-         */
-        validInput: I
-
-        /**
-         * Invalid input that will result in an error weather transforms
-         * are enabled or not
-         */
-        invalidInput: I
-
-        /**
-         * An input requiring transformation.
-         */
-        transformableInput: I
-
-        /**
-         * Valid transformed result of the transformable input
-         */
-        transformedOutput: O
-    }
+    validate: Validate<I,O>,
+    settings: ValidatorContractTestSettings<I,O>
 ): void {
 
-    const { validInput, invalidInput, transformableInput, transformedOutput } = config
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { runValidatorContractTests, ValidationContractViolations } = require('./validation-test') as typeof import('./validation-test')
+        
+    const results = runValidatorContractTests(validate, settings)
 
-    const assertPass = runValidationTest(validate, { asserts: copy(validInput) })
+    for (const name in keysOf(ValidationContractViolations)) {
 
-    const assertFail = runValidationTest(validate, { asserts: invalidInput, error: true })
+        const description = (ValidationContractViolations as 
+                Record<string,ValidationContractViolations>)[name]
 
-    const assertWithTransformableInput = runValidationTest(validate, { asserts: transformableInput })
-
-    const transformPass = runValidationTest(validate, { 
-        transforms: copy(transformableInput), 
-        output: transformedOutput 
-    })
-
-    const transformFail = runValidationTest(validate, { transforms: invalidInput, error: true})
-
-    it('expected test results', () => {
-        expect(assertFail).toHaveProperty('error')
-        expect(assertPass).toHaveProperty('output')
-        expect(transformPass).toHaveProperty('output')
-        expect(transformFail).toHaveProperty('error')
-    })
-
-    it('#1 converts given options into ValidateContext object.', () => {
-        expect(assertFail.error).toBeInstanceOf(ValidationContext)
-        expect(assertFail.error).toHaveProperty('transform', false)
-    
-        expect(transformFail.error).toBeInstanceOf(ValidationContext)
-        expect(transformFail.error).toHaveProperty('transform', true)
-    })
-
-    it('#2 transform is true by default', () => {
-        expect(validate(transformableInput)).toEqual(transformedOutput)
-    }) 
- 
-    it('#3 throws validation errors on failed transformations or assertions', () => {
-        expect(assertFail.error).toBeInstanceOf(ValidationError)
-        expect(transformFail.error).toBeInstanceOf(ValidationError)
-    })
-
-    it('#4 converts transformable input into valid output when transformations are enabled', () => {
-        expect(transformPass.output).toEqual(transformedOutput)
-        expect(transformFail.error).toBeInstanceOf(ValidationError)
-
-        if ('output' in assertWithTransformableInput)
-            expect(assertWithTransformableInput.output).toEqual(transformableInput)
-    })
-
-    it('#5 provides transformed input to context without mutating the given input', () => {
-        expect(transformFail.error).toBeInstanceOf(ValidationContext)
-
-        // proves that the test.asserts input is the same as the validInput, and thus not mutated
-        expect(assertPass.test).toHaveProperty('asserts', validInput)
-
-        // proves that the test.transforms input is the same as the transformedOutput, and thus not mutated
-        expect(transformPass.test).toHaveProperty('transforms', transformableInput)
-    })
+        it(`${name}: ${description}`, () => {
+            if (results.violations.includes(description))
+                throw new Error(`${name} violated.`)
+        })
+    }
 
 }
 

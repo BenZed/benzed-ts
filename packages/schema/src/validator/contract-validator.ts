@@ -1,8 +1,8 @@
 import { equals } from '@benzed/immutable'
 import { assign, KeysOf, omit } from '@benzed/util'
 import { ValidateOptions } from '../validate'
-import ValidationContext from '../validation-context'
-import ValidationError from '../validation-error'
+import { ValidationContext } from '../validation-context'
+import { ValidationError } from '../validation-error'
 import { ValidateUpdateState } from './validate-struct'
 import { ValidatorStruct } from './validator-struct'
 

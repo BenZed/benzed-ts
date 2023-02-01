@@ -1,5 +1,4 @@
 
-import { copy } from '@benzed/immutable'
 import { isString, Mutable, nil } from '@benzed/util'
 
 import { Validate } from './validate'
@@ -77,10 +76,45 @@ export type ValidationTestResult<I, O extends I> = {
 
 export enum ValidationContractViolations {
 
-    TransitiveEquality = 'If defined, a validate function\'s equal() method ' + 
-        'must have transitive logic; a valid input should be equal to a valid ' + 
-        'output and vice versa.',
-    
+    OptionsToValidateContext = 'A validator will create a ValidationContext ' +
+        'out of a provided input and options.',
+
+    TransformEnabledByDefault = 'Transform option is considered enabled by default ' +
+        'if not provided.',
+
+    ImmutableTransforms = 'Weather or not transformations are enabled, input will ' +
+        'be immutably transformed and provided to the context.',
+
+    ThrowsValidationErrors = 'Throws validation errors when validation fails.',
+
+    TransitiveEquality = 'If defined, a validate function\'s equal() method ' +
+        'must have transitive logic; a valid input should be equal to a valid ' +
+        'output and vice versa.'
+
+}
+
+export type ValidatorContractTestSettings<I, O extends I> = {
+
+    /**
+     * Valid input that does not require transformation
+     */
+    validInput: I
+
+    /**
+     * Invalid input that will result in an error weather transforms
+     * are enabled or not
+     */
+    invalidInput: I
+
+    /**
+     * An input requiring transformation.
+     */
+    transformableInput: I
+
+    /**
+     * Valid transformed result of the transformable input
+     */
+    transformedOutput: O
 }
 
 //// Main ////
@@ -135,7 +169,7 @@ export function runValidationTest<I,O extends I>(
     if (violations.length > 0 && !failReason)
         failReason = 'Validation contract violations.'
 
-    // Grade 
+    // Grade
 
     const grade = (
         failReason 
@@ -147,7 +181,7 @@ export function runValidationTest<I,O extends I>(
         ...result,
         grade
     }
-}
+} 
 
 /**
  * Run a series of tests to ensure the given validator fulfills
@@ -155,29 +189,7 @@ export function runValidationTest<I,O extends I>(
  */
 export function runValidatorContractTests<I, O extends I>(
     validate: Validate<I, O>,
-    config: {
-
-        /**
-         * Valid input that does not require transformation
-         */
-        validInput: I
-
-        /**
-         * Invalid input that will result in an error weather transforms
-         * are enabled or not
-         */
-        invalidInput: I
-
-        /**
-         * An input requiring transformation.
-         */
-        transformableInput: I
-
-        /**
-         * Valid transformed result of the transformable input
-         */
-        transformedOutput: O
-    }
+    config: ValidatorContractTestSettings<I,O>
 ): { 
         results: ValidationTestResult<I,O>[] 
 
