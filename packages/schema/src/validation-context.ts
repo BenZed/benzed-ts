@@ -1,4 +1,5 @@
-import { ValidateOptions } from './validate'
+import { GenericObject, isBoolean, isObject } from '@benzed/util'
+import type { ValidateOptions } from './validate'
 
 //// Main ////
 
@@ -6,6 +7,13 @@ import { ValidateOptions } from './validate'
  * An object containing data related to a validation call.
  */
 class ValidationContext<T> implements ValidateOptions {
+
+    static is <Tx>(object: object): object is ValidationContext<Tx> {
+        return isObject<GenericObject>(object)
+        && isBoolean(object.transform) 
+        && 'transformed' in object
+        && 'input' in object
+    }
 
     /**
      * Input received by the current validation

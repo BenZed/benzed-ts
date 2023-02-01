@@ -1,18 +1,18 @@
 
-import { isString, Mutable, nil } from '@benzed/util'
+import { isFunc, isObject, isString, Mutable, nil } from '@benzed/util'
 
 import { Validate } from './validate'
 import { ValidationError } from './validation-error'
 import { ContractValidator } from './validator'
 
-//// Types ////
+//// ValidationTest types ////
 
 export type ValidationTestTransformsInput<I> = {
     /**
      * Perform a test with transforms enabled,
      * with the provided value as input.
      */
-    readonly transforms: I
+    readonly transforms: I 
 }
 
 export type ValidationTestAssertsInput<I> = {
@@ -69,55 +69,12 @@ export type ValidationTestResult<I, O extends I> = {
 
     readonly error?: ValidationError<I>
 
-    readonly grade: 
+    readonly grade:
     | { pass: true }
-    | { pass: false, reason: string, violations: ValidationContractViolations[] }
+    | { pass: false, reason: string }
 }
 
-export enum ValidationContractViolations {
-
-    OptionsToValidateContext = 'A validator will create a ValidationContext ' +
-        'out of a provided input and options.',
-
-    TransformEnabledByDefault = 'Transform option is considered enabled by default ' +
-        'if not provided.',
-
-    ImmutableTransforms = 'Weather or not transformations are enabled, input will ' +
-        'be immutably transformed and provided to the context.',
-
-    ThrowsValidationErrors = 'Throws validation errors when validation fails.',
-
-    TransitiveEquality = 'If defined, a validate function\'s equal() method ' +
-        'must have transitive logic; a valid input should be equal to a valid ' +
-        'output and vice versa.'
-
-}
-
-export type ValidatorContractTestSettings<I, O extends I> = {
-
-    /**
-     * Valid input that does not require transformation
-     */
-    validInput: I
-
-    /**
-     * Invalid input that will result in an error weather transforms
-     * are enabled or not
-     */
-    invalidInput: I
-
-    /**
-     * An input requiring transformation.
-     */
-    transformableInput: I
-
-    /**
-     * Valid transformed result of the transformable input
-     */
-    transformedOutput: O
-}
-
-//// Main ////
+//// ValidationTest ////
 
 export function runValidationTest<I,O extends I>(
     validate: Validate<I,O>,
@@ -136,20 +93,26 @@ export function runValidationTest<I,O extends I>(
         result.error = e as ValidationError<I>
     }
 
-    // Analyze Test
+    // Analyze Test 
 
     const expectingError = 'error' in test
     const expectOutputDifferentFromInput = 'output' in test && applyTransforms
     let failReason: string | nil = nil
-    const violations: ValidationContractViolations[] = []
 
-    if (!expectingError && result.error) 
-        failReason = 'Received unexpected error.'
-
-    else if (expectingError && !(result.error instanceof ValidationError))
+    if (expectingError && result.error && !ValidationError.is(result.error)) 
         failReason = `Received error, but it is not an instance of expected ${ValidationError.name} class`
-        
-    else if (expectingError && isString(test.error) && !result.error?.message.includes(test.error)) 
+
+    if (expectingError && !result.error) 
+        failReason = 'Did not receive expected error.'
+
+    else if (!expectingError && result.error)
+        failReason = 'Received unexpected error.'
+    
+    else if (
+        expectingError && 
+        isString(test.error) && 
+        !result.error?.message.includes(test.error)
+    )
         failReason = 'Received error, but it did not contain expected error message.'
 
     else if (!expectingError) {
@@ -161,19 +124,13 @@ export function runValidationTest<I,O extends I>(
         const isOutputValid = equal(i, o)
         if (!isOutputValid)
             failReason = 'Expected output is invalid.'
-
-        if (isOutputValid && !equal(o, i))
-            violations.push(ValidationContractViolations.TransitiveEquality)
     }
-
-    if (violations.length > 0 && !failReason)
-        failReason = 'Validation contract violations.'
 
     // Grade
 
     const grade = (
         failReason 
-            ? { pass: false, reason: failReason, violations } 
+            ? { pass: false, reason: failReason } 
             : { pass: true }
     ) satisfies ValidationTestResult<I,O>['grade']
 
@@ -183,46 +140,147 @@ export function runValidationTest<I,O extends I>(
     }
 } 
 
+//// ValidationContractTestTypes ////
+
+export enum ValidationContractViolations {
+
+    ValidatesValidInput = 'Validation will succeed if provided with valid input',
+
+    AssertsInvalidInput = 'Valididation will fail if provided with invalid input',
+
+    AssertsTransformableInput = 'Validation will fail if provided with transformable ' + 
+        'input, but transformations are disabled',
+
+    TransformsTransformableInput = 'Validation will succeed with transformed output ' + 
+        'if transformations are enabled and transformation succeeds in creating a valid' + 
+        'output.',
+
+    TransformEnabledByDefault = 'Transform option is considered enabled by default ' +
+        'if not provided.',
+
+    ImmutableTransforms = 'Weather or not transformations are enabled, input will ' +
+        'be immutably transformed and provided to the context.',
+
+    ThrowsValidationErrors = 'Errors thrown during failed validation will have the structure' + 
+        'of a ValidationError',
+
+    AppliesValidationContextToErrors = 'When a validation error occurs, it will' + 
+        'contain expected validation context properties',
+
+    TransitiveEquality = 'If defined, a validate function\'s equal() method ' +
+        'must have transitive logic; a valid input should be equal to a valid ' +
+        'output and vice versa.'
+
+}
+
+export type ValidatorContractTestSettings<I, O extends I> = {
+
+    /**
+     * Valid input that does not require transformation
+     */
+    readonly validInput: I
+
+    /**
+     * Invalid input that will result in an error weather transforms
+     * are enabled or not
+     */
+    readonly invalidInput: I
+
+    /**
+     * An input requiring transformation.
+     */
+    readonly transformableInput: I
+
+    /**
+     * Valid transformed result of the transformable input
+     */
+    readonly transformedOutput: O
+}
+
+export interface ValidationContractTestResults {
+
+    readonly grade: boolean
+
+    readonly violations: readonly ValidationContractViolations[]
+
+}
+
+//// ValidationContractTests ////
+
 /**
  * Run a series of tests to ensure the given validator fulfills
  * all of the tenants of the validate contract
  */
-export function runValidatorContractTests<I, O extends I>(
+export function runValidationContractTests<I, O extends I>(
     validate: Validate<I, O>,
     config: ValidatorContractTestSettings<I,O>
-): { 
-        results: ValidationTestResult<I,O>[] 
+): ValidationContractTestResults {
 
-        get grade(): boolean 
-
-        get violations(): ValidationContractViolations[]
-
-    } {
-
+    const equal = (validate.equal ?? ContractValidator.prototype.equal).bind(validate)
+    
     const { validInput, invalidInput, transformableInput, transformedOutput } = config
 
+    const violations = new Set<ValidationContractViolations>
+    
     const results = [
         runValidationTest(validate, { asserts: validInput }),
         runValidationTest(validate, { asserts: invalidInput, error: true }),
-        runValidationTest(validate, { asserts: transformableInput }),
+        runValidationTest(validate, { asserts: transformableInput, error: true }),
         runValidationTest(validate, { transforms: transformableInput, output: transformedOutput }),
-        runValidationTest(validate, { transforms: invalidInput, error: true})
+        runValidationTest(validate, { transforms: invalidInput, error: true })
     ]
 
-    return {
+    const [ assertPass, assertFail, assertTransformFail, transformPass, transformFail ] = results
 
-        results,
+    // ValidatesValidInput
+    if (!assertPass.grade.pass)
+        violations.add(ValidationContractViolations.ValidatesValidInput)
 
-        get grade(): boolean {
-            return this.results.every(result => result.grade)
-        },
+    // AssertsInvalidInput
+    if (!assertFail.grade.pass || !transformFail.grade.pass)
+        violations.add(ValidationContractViolations.AssertsInvalidInput)
 
-        get violations(): ValidationContractViolations[] {
-            return this
-                .results
-                .flatMap(({ grade }) => grade.pass ? [] : grade.violations)
-        }
+    // AssertsTransformableInput
+    if (!assertTransformFail.grade.pass)
+        violations.add(ValidationContractViolations.AssertsTransformableInput)
 
+    // TransformsTransformableInput
+    if (!transformPass.grade.pass)
+        violations.add(ValidationContractViolations.TransformsTransformableInput)
+
+    // TransformsEnabledByDefault
+    try {
+        const output = validate(transformableInput)
+        if (!equal(output, transformedOutput))
+            throw new Error('Transforms must not be enabled by default.')
+
+    } catch {
+        violations.add(ValidationContractViolations.TransformEnabledByDefault)
     }
 
+    // ImmutableTransforms
+    if ((isObject(validInput) || isFunc(validInput)) && assertFail.error?.transformed === validInput) 
+        violations.add(ValidationContractViolations.ImmutableTransforms)
+
+    // ThrowsValidationErrors
+    if (results.some(r => !r.grade.pass && r.grade.reason.includes(ValidationError.name))) 
+        violations.add(ValidationContractViolations.ThrowsValidationErrors)
+
+    // AppliesValidationContextToErrors
+    if (
+        !equal(transformFail.error?.input as I, invalidInput) 
+        || !transformFail.error?.transform 
+        || !equal(assertFail.error?.input as I, invalidInput) 
+        || assertFail.error?.transform
+    )
+        violations.add(ValidationContractViolations.AppliesValidationContextToErrors)
+
+    // TransitiveEquality
+    if (equal(validInput, transformedOutput) !== equal(transformedOutput, validInput))
+        violations.add(ValidationContractViolations.TransitiveEquality)
+
+    return {
+        grade: violations.size === 0,
+        violations: [...violations]
+    }
 }

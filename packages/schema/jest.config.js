@@ -15,8 +15,7 @@ module.exports = {
     },
 
     modulePathIgnorePatterns: [
-        'util.test.ts',
-        '_old-schema/*'
+        'util.test.ts'
     ]
 
 }

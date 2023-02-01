@@ -1,17 +1,20 @@
+import { describe } from '@jest/globals'
 
 import { Validate } from './validate'
-
-import { testValidateContract, testValidator } from './util.test'
-import ValidationError from './validation-error'
+ 
 import ValidationContext from './validation-context'
+import ValidationError from './validation-error'
 
-import { describe } from '@jest/globals'
+import {
+    testValidationContract,
+    testValidator
+} from './util.test'
 
 //// EsLint ////
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any
-*/
+*/ 
 
 //// Setup ////
 
@@ -38,13 +41,13 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
     }
     
     return output as `${number}`
-} 
+}
 
 //// Tests ////
 
 describe('$numeric example validator contract', () => { 
-    testValidateContract(
-        $numeric, 
+    testValidationContract( 
+        $numeric,
         {
             validInput: '100',
             invalidInput: 'not-a-number',
@@ -52,8 +55,7 @@ describe('$numeric example validator contract', () => {
             transformedOutput: '150'
         }
     )
-    
-}) 
+})
 
 describe('$numeric example validation tests', () => {
     testValidator(
@@ -67,4 +69,3 @@ describe('$numeric example validation tests', () => {
         { transforms: '~15-', error: 'could not be converted to a number' },
     )
 })
-

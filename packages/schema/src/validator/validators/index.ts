@@ -1,4 +1,6 @@
 
+export * from './generic-validator'
+
 export * from './pipe-validator'
 
 export * from './pipe-validator-builder'

@@ -1,4 +1,5 @@
 import { ParamPipe, pick, Pipe } from '@benzed/util'
+
 import { Validate, ValidateOptions } from '../../validate'
 import { ValidateUpdateState } from '../validate-struct'
 import { ValidatorStruct } from '../validator-struct'
@@ -11,6 +12,11 @@ type OutputValidator<O> = Validate<O, O>
 
 type Validators<I, O extends I> = [input: InputValidator<I,O>, ...output: OutputValidator<O>[]]
 
+/**
+ * The validate method used by a pipe validator. Specifically
+ */
+type PipeValidate<I, O extends I> = ParamPipe<I, O, [options?: ValidateOptions]>
+
 //// Main ////
 
 /**
@@ -18,11 +24,11 @@ type Validators<I, O extends I> = [input: InputValidator<I,O>, ...output: Output
  */
 class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
 
-    readonly validate: ParamPipe<I,O,[options?: ValidateOptions]>
+    readonly validate: PipeValidate<I,O>
 
     constructor(...validators: Validators<I,O>) {
         super()
-        this.validate = Pipe.from(...validators) as ParamPipe<I,O,[options?: ValidateOptions]>
+        this.validate = Pipe.from(...validators) as PipeValidate<I,O>
     }
 
     /**
@@ -38,9 +44,11 @@ class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
     //// Iteration ////
     
     *[Symbol.iterator](): IterableIterator<Validators<I,O>[number]> {
-        yield* (this.validate instanceof Pipe 
-            ? this.validate.transforms
-            : [this.validate]) as Iterable<Validators<I,O>[number]>
+        yield* (
+            this.validate instanceof Pipe 
+                ? this.validate.transforms
+                : [this.validate]
+        ) as Iterable<Validators<I,O>[number]>
     }
     
     get validators(): Validators<I,O> {
@@ -54,6 +62,7 @@ export default PipeValidator
 
 export {
     PipeValidator,
+    PipeValidate,
     InputValidator,
     OutputValidator,
     Validators

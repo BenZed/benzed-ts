@@ -1,27 +1,41 @@
-import { isPrimitive, keysOf } from '@benzed/util'
+import { ansi, isPrimitive, keysOf } from '@benzed/util'
 import { it } from '@jest/globals'
 
-import { Validate } from './validate' 
+import { Validate } from './validate'
 
-import type {
+import {
     ValidationTest,
     ValidationTestResult,
     ValidationContractViolations,
-    runValidatorContractTests as RunValidatorContractTests,
-    ValidatorContractTestSettings
+    ValidatorContractTestSettings,
+    runValidationContractTests, 
+    runValidationTest
 } from './validation-test'
 
-//// Helper Method ////
+//// Helper////
 
 class FailedValidationTest extends Error {
     constructor(
         reason: string,
-        readonly violations: ValidationContractViolations[],
-        readonly expected: Pick<ValidationTestResult<unknown,unknown>, 'error' | 'output'>
+        readonly result: Pick<ValidationTestResult<unknown,unknown>, 'error' | 'output'>
     ) {
-        super(reason)
+
+        const lines: string[] = [
+            ansi('Validation test failed', 'red'),
+            'reason: ' + ansi(reason, 'yellow'),
+            'error' in result 
+                ? 'validation error: ' + ansi(result.error?.message ?? '', 'yellow')
+                : 'validation output: ' + print(result.output)
+        ]
+
+        super(lines.join('\n'))
     }
 }
+
+// Pretty-print method for making the title readable
+const print = (input: unknown):string => isPrimitive(input) 
+    ? String(input) 
+    : JSON.stringify(input)
 
 //// Implementations ////
 
@@ -33,11 +47,6 @@ export function testValidator<I,O extends I>(
     ...tests: ValidationTest<I,O>[]
 
 ): void {
-
-    // Pretty-print method for making the title readable
-    const print = (input: unknown):string => isPrimitive(input) 
-        ? String(input) 
-        : JSON.stringify(input)
 
     for (const test of tests) {
 
@@ -57,48 +66,44 @@ export function testValidator<I,O extends I>(
                     : ' is valid'
             )
 
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { runValidationTest } = require('./validation-test') as typeof import('./validation-test')
-
         // run test
         it(testTitle, () => {
             const { grade, output, error } = runValidationTest(validate, test)
             if (!grade.pass) {
                 throw new FailedValidationTest(
                     grade.reason, 
-                    grade.violations,
                     { output, error }
                 )
             }
         })
     }
-} 
+}
 
 /**
  * Test that a validator fulfills all of the tenants 
  * of the validation contract.
  */
-export function testValidateContract<I, O extends I>(
+export function testValidationContract<I, O extends I>(
     validate: Validate<I,O>,
     settings: ValidatorContractTestSettings<I,O>
 ): void {
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { runValidatorContractTests, ValidationContractViolations } = require('./validation-test') as typeof import('./validation-test')
-        
-    const results = runValidatorContractTests(validate, settings)
+    const results = runValidationContractTests(validate, settings)
 
-    for (const name in keysOf(ValidationContractViolations)) {
+    for (const name of keysOf(ValidationContractViolations)) {
 
-        const description = (ValidationContractViolations as 
-                Record<string,ValidationContractViolations>)[name]
+        const description = (
+            ValidationContractViolations as Record<string,ValidationContractViolations>
+        )[name]
 
-        it(`${name}: ${description}`, () => {
-            if (results.violations.includes(description))
-                throw new Error(`${name} violated.`)
+        it(`${name}:\n\t${description}`, () => {
+            if (results.violations.includes(description)) {
+                throw new Error(
+                    `${name} violation`
+                )
+            }
         })
     }
-
 }
 
 //// Helper ////

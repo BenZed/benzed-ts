@@ -1,15 +1,9 @@
 import { isString, Property } from '@benzed/util'
 
-import { ContractValidator, ContractValidatorSettings } from '../../contract-validator'
-
-import { ValidateUpdateState } from '../../validate-struct'
-
 import { SubValidatorConfigure } from './sub-validator'
-
-import { 
-    SimpleSubValidator, 
-    ValidateErrorMethod 
-} from './simple-sub-validator'
+import { ValidateUpdateState } from '../../validate-struct'
+import { SimpleSubValidator, ValidateErrorMethod } from './simple-sub-validator'
+import { ContractValidator, ContractValidatorSettings } from '../../contract-validator'
 
 //// Main ////
 
@@ -25,17 +19,19 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
         error: string | ValidateErrorMethod = 'Validation failed.'
     ) {
         super()
-
         // mix-in configurer
-
         this._applyError(error)
         this._applyConfigurer()
+    }
+
+    override get name(): string {
+        return this.constructor.name
     }
 
     readonly configure!: SubValidatorConfigure<T>['configure']
 
     //// Helper ////
-    
+
     private _applyError(error: string | ValidateErrorMethod): void {
 
         const errorMethod = isString(error) ? () => error : error
@@ -53,7 +49,7 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
         Property.define(
             this, 
             'configure', 
-            { 
+            {
                 value: SimpleSubValidator.prototype.configure,
                 enumerable: false,
                 writable: true,
@@ -66,7 +62,9 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
      * Update our state assignment signature to handle error configuration
      * coming from SimpleSubValidator, as it needs to be converted to a function.
      */
-    override [ContractValidator.$$assign](state: ContractValidatorSettings<T,T>): ValidateUpdateState<this> {
+    override [ContractValidator.$$assign](
+        state: ContractValidatorSettings<T,T>
+    ): ValidateUpdateState<this> {
 
         const { error, ...rest } = state
         if (error)
@@ -75,6 +73,3 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
         return super[ContractValidator.$$assign](rest as ValidateUpdateState<this>)
     }
 }
-
-//// Exports ////
-

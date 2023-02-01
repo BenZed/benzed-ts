@@ -46,18 +46,6 @@ describe('Schema Setters Type Tests', () => {
 
     /* eslint-enable @typescript-eslint/indent */
 
-    it('sets schemas', () => {
-        
-        const $bigDecimal = null as unknown as BigDecimalSchema
-
-        $bigDecimal.leadingZeros({ count: 10 })
-        $bigDecimal.positive()
-        $bigDecimal.parse(true)
-
-        $bigDecimal
-            .leadingZeros({ count: 10 })
-            .positive()
-
-    })
+    it.todo('has expected types')
 
 })

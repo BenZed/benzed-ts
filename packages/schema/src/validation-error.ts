@@ -1,9 +1,17 @@
-import { assign } from '@benzed/util'
+import { assign, isString } from '@benzed/util'
 import ValidationContext from './validation-context'
 
-//// Main ////  
+//// Main ////
 
 class ValidationError<T> extends Error implements ValidationContext<T> {
+
+    static is<T>(input: object): input is ValidationError<T> {
+        return ValidationContext.is(input)
+        && 'message' in input
+        && isString(input.message)
+        && 'name' in input
+        && input.name === ValidationError.name
+    } 
 
     readonly input!: T
     readonly transform!: boolean
@@ -14,7 +22,7 @@ class ValidationError<T> extends Error implements ValidationContext<T> {
         ctx: ValidationContext<T>
     ) {
         super(message)
-        assign(this, ctx)
+        assign(this, { ...ctx, name: ValidationError.name })
     }
 
 }
