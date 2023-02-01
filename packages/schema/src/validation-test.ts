@@ -186,15 +186,20 @@ export type ValidatorContractTestSettings<I, O extends I> = {
      */
     readonly invalidInput: I
 
-    /**
-     * An input requiring transformation.
-     */
-    readonly transformableInput: I
+    // Optional value. If omitted, it is assumed that this validator
+    // does not use transformations. (An asserter)
+    readonly transforms?: {
+        /**
+         * An input requiring transformation.
+         * 
+         */
+        invalidInput: I
 
-    /**
-     * Valid transformed result of the transformable input
-     */
-    readonly transformedOutput: O
+        /**
+         * Valid transformed result of the transformable input
+         */
+        validOutput: O
+    }
 }
 
 export interface ValidationContractTestResults {
@@ -218,15 +223,15 @@ export function runValidationContractTests<I, O extends I>(
 
     const equal = (validate.equal ?? ContractValidator.prototype.equal).bind(validate)
     
-    const { validInput, invalidInput, transformableInput, transformedOutput } = config
+    const { validInput, invalidInput, transforms } = config
 
     const violations = new Set<ValidationContractViolations>
     
     const results = [
         runValidationTest(validate, { asserts: validInput }),
         runValidationTest(validate, { asserts: invalidInput, error: true }),
-        runValidationTest(validate, { asserts: transformableInput, error: true }),
-        runValidationTest(validate, { transforms: transformableInput, output: transformedOutput }),
+        runValidationTest(validate, { asserts: transforms?.invalidInput as I, error: true }),
+        runValidationTest(validate, { transforms: transforms?.invalidInput as I, output: transforms?.validOutput as O }),
         runValidationTest(validate, { transforms: invalidInput, error: true })
     ]
 
@@ -245,17 +250,19 @@ export function runValidationContractTests<I, O extends I>(
         violations.add(ValidationContractViolations.AssertsTransformableInput)
 
     // TransformsTransformableInput
-    if (!transformPass.grade.pass)
+    if (transforms && !transformPass.grade.pass)
         violations.add(ValidationContractViolations.TransformsTransformableInput)
 
     // TransformsEnabledByDefault
-    try {
-        const output = validate(transformableInput)
-        if (!equal(output, transformedOutput))
-            throw new Error('Transforms must not be enabled by default.')
+    if (transforms) {
+        try {
+            const output = validate(transforms.invalidInput)
+            if (!equal(output, transforms.validOutput))
+                throw new Error('Transforms must not be enabled by default.')
 
-    } catch {
-        violations.add(ValidationContractViolations.TransformEnabledByDefault)
+        } catch {
+            violations.add(ValidationContractViolations.TransformEnabledByDefault)
+        }
     }
 
     // ImmutableTransforms
@@ -276,8 +283,10 @@ export function runValidationContractTests<I, O extends I>(
         violations.add(ValidationContractViolations.AppliesValidationContextToErrors)
 
     // TransitiveEquality
-    if (equal(validInput, transformedOutput) !== equal(transformedOutput, validInput))
-        violations.add(ValidationContractViolations.TransitiveEquality)
+    if (transforms) {
+        if (equal(validInput, transforms.validOutput) !== equal(transforms.validOutput, validInput))
+            violations.add(ValidationContractViolations.TransitiveEquality)
+    }
 
     return {
         grade: violations.size === 0,

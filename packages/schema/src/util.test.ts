@@ -60,7 +60,7 @@ export function testValidator<I,O extends I>(
         const testTitle = 
             `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
             (expectingError  
-                ? ` is invalid: "${test.error}"`
+                ? ' is invalid' + (test.error === true ? '' : `"${test.error}"`)
                 : expectOutputDifferentFromInput 
                     ? ` to ${print(test.output)}`
                     : ' is valid'
@@ -90,16 +90,16 @@ export function testValidationContract<I, O extends I>(
 
     const results = runValidationContractTests(validate, settings)
 
-    for (const name of keysOf(ValidationContractViolations)) {
+    for (const tenant of keysOf(ValidationContractViolations)) {
 
         const description = (
             ValidationContractViolations as Record<string,ValidationContractViolations>
-        )[name]
+        )[tenant]
 
-        it(`${name}:\n\t${description}`, () => {
+        it(tenant, () => {
             if (results.violations.includes(description)) {
                 throw new Error(
-                    `${name} violation`
+                    `${tenant} violation`
                 )
             }
         })
