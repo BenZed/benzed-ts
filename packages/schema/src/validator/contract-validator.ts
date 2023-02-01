@@ -83,11 +83,9 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
      * vise versa, so overridden implementations should be transitive.
      *
      * This defaults to a deep equality check according to the
-     * default @benzed/immutable $$equals algorithm.
-     *
-     * TODO: said algorithm needs an update
+     * default @benzed/immutable $$equal algorithm.
      */
-    equal<T extends I | O>(input: I | O, output: T): input is T {
+    override equal<T extends I | O>(input: I | O, output: T): input is T {
         return equals(input, output)
     }
 

@@ -3,8 +3,8 @@ import { StateKeys } from '@benzed/immutable'
 import { KeysOf } from '@benzed/util'
 
 import {
-    PipeValidatorBuilder,
-} from '../pipe-validator-builder'
+    PipeValidator,
+} from '../pipe-validator'
 
 import {
     Validate, 
@@ -68,7 +68,11 @@ M extends ValidatorStruct<infer I, infer O>
     : Validate<unknown,unknown> 
 
 /**
- * A schematic is a 
+ * A schema is comprised of a main validator and an optional
+ * number of sub validators. 
+ * 
+ * It creates setter methods to update the configuration of
+ * these validators immutably.
  */
 export type Schema<
     M extends AnyValidatorStruct, 
@@ -80,10 +84,16 @@ export type Schema<
 
 type _SchemaBuilder<O> = 
     Pick<
-    PipeValidatorBuilder<O,O>, 
+    PipeValidator<O,O>,
     'asserts' | 'transforms' | 'validates'
     >
 
+/**
+ * A schema builder is a schema that also has a pipe builder
+ * interface.
+ * 
+ * This would be the primary class
+ */
 export type SchemaBuilder<
     M extends AnyValidatorStruct, 
     S extends SubValidators<ValidateOutput<M>>

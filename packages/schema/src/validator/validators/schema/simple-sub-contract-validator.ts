@@ -1,21 +1,28 @@
 import { isString, Property } from '@benzed/util'
+
+import { ContractValidator, ContractValidatorSettings } from '../../contract-validator'
+
 import { ValidateUpdateState } from '../../validate-struct'
-import { ValidateErrorMethod } from './simple-sub-validator'
-import { SubContractValidator } from './sub-contract-validator'
+
 import { SubValidatorConfigure } from './sub-validator'
+
+import { 
+    SimpleSubValidator, 
+    ValidateErrorMethod 
+} from './simple-sub-validator'
 
 //// Main ////
 
 /**
- * Convenience class for sub validators that only take
+ * Convenience class for creating contract sub validators that only take
  * an error as configuration
  */
-export abstract class SimpleSubContractValidator<T> extends SubContractValidator<T>
+export abstract class SimpleSubContractValidator<T> extends ContractValidator<T, T>
     implements SubValidatorConfigure<T> {
 
     constructor(
         readonly enabled: boolean,
-        error: string | ValidateErrorMethod
+        error: string | ValidateErrorMethod = 'Validation failed.'
     ) {
         super()
 
@@ -29,7 +36,7 @@ export abstract class SimpleSubContractValidator<T> extends SubContractValidator
 
     //// Helper ////
     
-    private _applyError(error : string | ValidateErrorMethod): void {
+    private _applyError(error: string | ValidateErrorMethod): void {
 
         const errorMethod = isString(error) ? () => error : error
 
@@ -47,7 +54,7 @@ export abstract class SimpleSubContractValidator<T> extends SubContractValidator
             this, 
             'configure', 
             { 
-                value: SimpleSubContractValidator.prototype.configure,
+                value: SimpleSubValidator.prototype.configure,
                 enumerable: false,
                 writable: true,
                 configurable: true
@@ -55,14 +62,17 @@ export abstract class SimpleSubContractValidator<T> extends SubContractValidator
         )
     }
 
-    // Update our state-assignment behaviour 
-    override [SubContractValidator.$$assign](state: ValidateUpdateState<this>): ValidateUpdateState<this> {
+    /**
+     * Update our state assignment signature to handle error configuration
+     * coming from SimpleSubValidator, as it needs to be converted to a function.
+     */
+    override [ContractValidator.$$assign](state: ContractValidatorSettings<T,T>): ValidateUpdateState<this> {
 
-        const { error, ...rest } = state as unknown as this
+        const { error, ...rest } = state
+        if (error)
+            this._applyError(error)
 
-        this._applyError(error)
-
-        return super[SubContractValidator.$$assign](rest as ValidateUpdateState<this>)
+        return super[ContractValidator.$$assign](rest as ValidateUpdateState<this>)
     }
 }
 

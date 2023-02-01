@@ -43,6 +43,13 @@ export interface ValidateOptions {
  */
 export interface Validate<I, O extends I = I> {
     (input: I, options?: ValidateOptions): O
+
+    /**
+     * Logic for determining if a validators input is equal to it's 
+     * output and vise versa, so implementations must be transitive.
+     */
+    equal?<T extends I | O>(input: I | O, output: T): input is T
+
 }
 
 /**
