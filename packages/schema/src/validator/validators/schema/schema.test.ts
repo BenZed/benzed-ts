@@ -1,4 +1,4 @@
-import { MainValidator, Schema } from './schema'
+import { MainValidator, PipeSchema, Schema } from './schema'
 
 import { it, describe } from '@jest/globals'
 
@@ -6,6 +6,13 @@ import { Struct } from '@benzed/immutable'
 import { SubValidator } from './sub-validator'
 
 import { expectTypeOf } from 'expect-type'
+import { ValidatorStruct } from '../../validator-struct'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 
 //// Tests ////
 
@@ -68,6 +75,19 @@ describe('Schema Setters Type Tests', () => {
     it('setter methods for sub validators use configure parameters, if provided', () => {
         expectTypeOf<PositiveSetter>()
             .toEqualTypeOf<(enabled?: boolean) => BigDecimalSchema>()
+    })
+
+})
+
+describe('pipe schema setters', () => {
+
+    it('creates option setters for every validator in the pipe', () => {
+        type String = ValidatorStruct<unknown, string> & { cast: boolean}
+        type Path = ValidatorStruct<string, `/${string}`> & { protocol: string }
+
+        type StringToPath = PipeSchema<[String, Path]>
+
+        expectTypeOf<StringToPath['cast']>().toEqualTypeOf<(cast: boolean) => PipeSchema<[String, Path]>>()
     })
 
 })

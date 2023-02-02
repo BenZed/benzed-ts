@@ -1,4 +1,6 @@
 import { Primitive } from '@benzed/util'
+import { capitalize } from '@benzed/string'
+
 import { ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
 import ValidationError from '../../validation-error'
@@ -19,6 +21,10 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
         readonly force = false
     ) {
         super()
+    }
+
+    override get name(): string {
+        return capitalize(String(this.value))
     }
 
     error(): string {

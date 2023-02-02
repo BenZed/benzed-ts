@@ -1,5 +1,4 @@
 import { StateKeys } from '@benzed/immutable'
-
 import { KeysOf } from '@benzed/util'
 
 import {
@@ -19,7 +18,12 @@ import { SubValidator, SubValidatorConfigure } from './sub-validator'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types,
 */
+
+//// Data ////
+
+const $$schema = Symbol('temp-return-type')
 
 //// Sub Validator Types ////
 
@@ -33,15 +37,19 @@ export type AnySubValidators = SubValidators<any>
 
 //// Schema Helper Types ////
 
-const $$schema = Symbol('temp-return-type')
+/**
+ * @internal
+ */
+export type _SchemaSetterRequiringRemap<A extends any[]> = (...args: A) => typeof $$schema
 
-type _SchemaSetterRequiringRemap<A extends any[]> = (...args: A) => typeof $$schema
-
-type _SchemaMainSetters<T extends AnyValidatorStruct> = {
-    [K in StateKeys<T>]: _SchemaMainOptionSetter<T[K]>
+/**
+ * @internal
+ */
+export type _SchemaOptionSetters<T extends AnyValidatorStruct> = {
+    [K in StateKeys<T>]: _SchemaOptionSetter<T[K]>
 }
 
-type _SchemaMainOptionSetter<T> = (option: T) => typeof $$schema
+type _SchemaOptionSetter<T> = (option: T) => typeof $$schema
 
 type _SchemaSubSetters<S extends AnySubValidators> = {
     [K in KeysOf<S>]: _SchemaSubSetter<S[K]>
@@ -60,9 +68,9 @@ type _SchemaSubSetter<T extends AnyValidatorStruct> =
 type _SchemaSetters<
     M extends AnyValidatorStruct, 
     S extends SubValidators<ValidateOutput<M>>
-> = (_SchemaMainSetters<M> & _SchemaSubSetters<S>) extends infer O 
+> = (_SchemaOptionSetters<M> & _SchemaSubSetters<S>) extends infer O 
     ? {
-        // Remapping this way to prevent circular references :(
+        // Remapping this way to prevent circular references
         [K in KeysOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
             ? (...args: A) => Schema<M,S>
             : O[K]
@@ -72,9 +80,9 @@ type _SchemaSetters<
 //// Schema Types ////
     
 export type SchemaValidate<M extends AnyValidatorStruct> = 
-M extends ValidatorStruct<infer I, infer O> 
-    ? Validate<I,O> 
-    : Validate<unknown,unknown> 
+    M extends ValidatorStruct<infer I, infer O> 
+        ? Validate<I,O> 
+        : Validate<unknown,unknown> 
 
 /**
  * A schema is comprised of a main validator and an optional
@@ -84,6 +92,4 @@ export type Schema<
     M extends AnyValidatorStruct,
     S extends SubValidators<ValidateOutput<M>>
 > = 
-    SchemaValidate<M> & 
-    _SchemaSetters<M,S>
-
+    SchemaValidate<M> & _SchemaSetters<M,S>
