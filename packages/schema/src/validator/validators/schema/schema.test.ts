@@ -2,7 +2,7 @@ import { Struct } from '@benzed/immutable'
 import { isNumber, isString, nil } from '@benzed/util'
 import { it, describe } from '@jest/globals'
 
-import { MainValidator, Schema } from './schema'
+import { MainValidator, Schema, _SchemaSetters } from './schema'
 import { SubValidator } from './sub-validator'
 import { TypeValidator } from '../type-validator'
 
@@ -100,6 +100,10 @@ describe('Schema implementation', () => {
     describe('main validator only', () => {
 
         const $number = new Schema(number)
+
+        console.log($number)
+
+        type _NumberSetters = keyof _SchemaSetters<typeof $number, {}>
 
         testValidationContract<unknown, number>($number, {
             invalidInput: NaN,

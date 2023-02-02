@@ -19,6 +19,7 @@ import { ValidationError } from '../../../validation-error'
 import { ValidateUpdateState } from '../../validate-struct'
 import { getAllProperties, hideProperty } from './property-helpers'
 import { ValidateErrorMethod } from './simple-sub-validator'
+import { capitalize } from '@benzed/string'
 
 //// EsLint ////
 
@@ -73,7 +74,7 @@ type _SchemaSubSetter<T extends AnyValidatorStruct> =
         // otherwise it will accept a state object
         : (state: ValidateUpdateState<T>) => typeof $$schema
 
-type _SchemaSetters<
+export type _SchemaSetters<
     M extends AnyValidatorStruct, 
     S extends SubValidators<ValidateOutput<M>>
 > = (_SchemaOptionSetters<M> & _SchemaSubSetters<S>) extends infer O 
@@ -163,7 +164,13 @@ const Schema = class Schema extends SchemaValidator {
         this._createSubValidatorSetters()
     }
 
-    //// Universal ////
+    //// Name ////
+    
+    override get name(): string {
+        return this[$$main].name
+    }
+
+    //// Universal Setters ////
     
     named(name: string): this {
         return this._setMainValidatorOption('name', name)
@@ -190,17 +197,17 @@ const Schema = class Schema extends SchemaValidator {
                 k !== 'error'
         )
 
-        console.log(allEnumerable)
-
         for (const key in allEnumerable) {
 
             const descriptor = allEnumerable[key]
 
+            const setter = Property.name(function(this: Schema, value: unknown) {
+                return this._setMainValidatorOption(key, value)
+            }, `set${capitalize(key)}` )
+
             Property.define(this, key, {
                 ...descriptor,
-                value(this: Schema, value: unknown) {
-                    return this._setMainValidatorOption(key, value)
-                } 
+                value: setter
             })
         }
 
