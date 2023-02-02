@@ -221,7 +221,7 @@ export function runValidationContractTests<I, O extends I>(
     config: ValidatorContractTestSettings<I,O>
 ): ValidationContractTestResults {
 
-    const equal = (validate.equal ?? ContractValidator.prototype.equal).bind(validate)
+    const equal = validate instanceof ValidatorStruct ? validate.equal.bind(validate) : ValidatorStruct.prototype.equal
     
     const { validInput, invalidInput, transforms } = config
 

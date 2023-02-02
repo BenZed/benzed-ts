@@ -1,3 +1,4 @@
+import { $$assign, StructAssignState } from '@benzed/immutable'
 import { 
     isBoolean, 
     isFunc, 
@@ -10,6 +11,7 @@ import {
 import { 
     ContractValidatorSettings 
 } from '../../contract-validator'
+import { $$state, ValidatorStruct } from '../../validator-struct'
 
 import { 
     SubValidator, 
@@ -25,40 +27,61 @@ import {
 //// Helper ////
 
 // TODO move me
-type ValidateErrorMethod = NonNullable<ContractValidatorSettings<unknown, unknown>['error']>
+
+type MessageMethod<I> = ValidatorStruct<I,any>['message']
 
 const toEnabledError = new SignatureParser({
     enabled: isOptional(isBoolean),
-    error: isOptional(isOneOf(isString, isFunc<ValidateErrorMethod>))
+    message: isOptional(isOneOf(isString, isFunc<MessageMethod<unknown>>))
 }).setDefaults({
     enabled: true
-}).addLayout('enabled', 'error')
-    .addLayout('error')
+}).addLayout('enabled', 'message')
+    .addLayout('message')
 
 type EnabledErrorSignature = Parameters<typeof toEnabledError>
 
 //// Main ////
 
+type SimpleSubValidatorState<T> = { enabled: boolean, message: string | MessageMethod<T> }
 /**
  * Convenience class for sub validators that only take
  * an error as configuration
  */
 abstract class SimpleSubValidator<T> extends SubValidator<T>
-    implements SubValidatorConfigure<T> {
+    implements SubValidatorConfigure<T, SimpleSubValidatorState<T>> {
 
     constructor(
         readonly enabled: boolean, 
-        readonly error: string | ValidateErrorMethod
+        message: string | MessageMethod<T>
     ) {
         super()
+        this._applyMessage(message)
     }
 
     configure(
         ...args: EnabledErrorSignature
-    ): { enabled: boolean, error: string | ValidateErrorMethod } {
+    ): SimpleSubValidatorState<T> {
+        return toEnabledError(...args) as SimpleSubValidatorState<T>
+    }
 
-        const { error = this.error, enabled } = toEnabledError(...args)
-        return { error, enabled }
+    get [$$state](): SimpleSubValidatorState<T> {
+        const { enabled, message } = this 
+        return { enabled, message }
+    }
+
+    override [$$assign](state: StructAssignState<this>): StructAssignState<this> {
+        
+        const { enabled } = state 
+
+        if (state.message)
+            this._applyMessage(state.message)
+
+        return { enabled } as unknown as StructAssignState<this>
+
+    }
+
+    private _applyMessage(msg: string | MessageMethod<T>): void {
+        this.message = isString(msg) ? () => msg : msg
     }
 
 }
@@ -71,5 +94,5 @@ export {
     SimpleSubValidator,
     EnabledErrorSignature,
     toEnabledError,
-    ValidateErrorMethod
+    MessageMethod
 }

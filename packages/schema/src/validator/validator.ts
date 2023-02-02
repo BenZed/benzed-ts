@@ -1,4 +1,5 @@
 import { Validate } from '../validate'
+import ValidationContext from '../validation-context'
 
 //// EsLint ////
 
@@ -25,7 +26,9 @@ export interface Validator<I, O extends I> {
     /**
      * Optional method for creating an error message when validation fails.
      */
-    // message?(ctx: ValidationContext<I>): string 
+    message?(ctx: ValidationContext<I>): string 
+
+    readonly name?: string
 
 }
 

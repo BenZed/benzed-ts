@@ -1,6 +1,5 @@
 
-import { GenericObject } from '@benzed/util'
-import { ValidatorStruct } from '../../validator-struct'
+import { ValidatorState, ValidatorStruct } from '../../validator-struct'
 
 //// EsLint ////
 
@@ -14,12 +13,13 @@ import { ValidatorStruct } from '../../validator-struct'
  * An interface sub validators may implement to customize
  * it's own sub-setter configuration signature.
  */
-export interface SubValidatorConfigure<O> extends SubValidator<O> {
+export interface SubValidatorConfigure<T, S extends object> 
+    extends SubValidator<T>, ValidatorState<S> {
 
     /**
      * May return any generic 
      */
-    configure(...args: unknown[]): GenericObject
+    configure(...args: unknown[]): S
 
 }
 

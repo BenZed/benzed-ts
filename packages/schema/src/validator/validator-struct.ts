@@ -1,15 +1,31 @@
-import { equals } from '@benzed/immutable'
-import { provideCallableContext } from '@benzed/util'
+import { $$assign, equals, StructAssignState } from '@benzed/immutable'
+import { isArray, isObject, isString, keysOf, nil, pick, provideCallableContext } from '@benzed/util'
 
 import { ValidateOptions } from '../validate'
+import ValidationContext from '../validation-context'
 import { ValidateStruct } from './validate-struct'
 import { Validator } from './validator'
+import { showProperty } from './validators/schema/property-helpers'
 
 //// EsLint ////
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any
 */
+
+//// Symbol ////
+
+export const $$state = Symbol('validate-state-keys')
+
+/**
+ * Implementing this interface on validators will allow
+ * schemas to create state setters.
+ */
+export interface ValidatorState<T extends object> {
+
+    get [$$state](): T
+
+}
 
 //// ValidatorStruct ////
 
@@ -18,7 +34,7 @@ import { Validator } from './validator'
  * it's own validate method, and we never have to worry about passing a
  * different callable signature into any extended classes.
  */
-function validate<I, O extends I>(
+export function validate<I, O extends I>(
     this: Validator<I,O>, 
     input: I, 
     options?: ValidateOptions
@@ -38,6 +54,17 @@ export abstract class ValidatorStruct<I, O extends I = I>
 
     constructor() {
         super(validate, provideCallableContext)
+
+        // make all custom state properties enumerable
+        if ($$state in this && isObject(this[$$state])) {
+            for (const key of keysOf(this[$$state])) {
+                if (key in this) // may not be initialized yet
+                    showProperty(this, key)
+            }
+        }
+
+        // message is always a state property
+        showProperty(this, 'message')
     }
 
     abstract validate(input: I, options?: ValidateOptions): O
@@ -49,8 +76,22 @@ export abstract class ValidatorStruct<I, O extends I = I>
      * This defaults to a deep equality check according to the
      * default @benzed/immutable $$equal algorithm.
      */
-    override equal<T extends I | O>(input: I | O, output: T): input is T {
+    equal<T extends I | O>(input: I | O, output: T): input is T {
         return equals(input, output)
+    }
+
+    message(ctx: ValidationContext<I>): string {
+        void ctx
+        return `${this.name} validation failed.`
+    }
+
+    protected override [$$assign](state: StructAssignState<this>): StructAssignState<this> {
+
+        const keys = $$state in this && isArray(this[$$state], isString) 
+            ? [...this[$$state], 'enabled', 'message', 'name']
+            : nil
+
+        return keys ? pick(state, ...keys) : state
     }
 
 }

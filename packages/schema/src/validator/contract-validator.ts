@@ -1,11 +1,8 @@
-import { equals } from '@benzed/immutable'
-import { assign, KeysOf, omit } from '@benzed/util'
+import { assign, KeysOf } from '@benzed/util'
 import { ValidateOptions } from '../validate'
 import { ValidationContext } from '../validation-context'
 import { ValidationError } from '../validation-error'
-import { ValidateUpdateState } from './validate-struct'
 import { ValidatorStruct } from './validator-struct'
-import { showProperty } from './validators/schema/property-helpers'
 
 //// Types ////
 
@@ -40,25 +37,10 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
         }
     }
 
-    constructor() {
-        super()
-        showProperty(this, 'error')
-    }
-
     /**
      * Should have something to do with the output type.
      */
     abstract override get name(): string
-    
-    /**
-     * Given an invalid input and a context object,
-     * receive an error message to be put in a validation error.
-     */
-    error(input: I, context: ValidationContext<I>): string {
-        void input 
-        void context
-        return `${this.name} validation failed.`
-    }
 
     /**
      * Method that attempts to partially or completely change it's input
@@ -102,7 +84,7 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
             
         if (!this.isValid(output, ctx)) {
             throw new ValidationError(
-                this.error(input, ctx), 
+                this.message(ctx),
                 ctx
             )
         }
@@ -110,16 +92,6 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
         return output
     }
 
-    /**
-     * The validate method should never need to change, as it's logic will be based
-     * on the configuration of the rest of the properties of the validator.
-     */
-    protected override [ValidatorStruct.$$assign](
-        state: ValidateUpdateState<this>
-    ): ValidateUpdateState<this> {
-        return omit(state, 'validate')
-    }
-        
 }
 
 //// Exports ////

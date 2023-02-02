@@ -45,13 +45,9 @@ class TupleValidator<T extends TupleInput> extends ValidatorStruct<unknown[], Tu
 
         ctx.transformed = output
         if (!ctx.transformed && !this.equal(input, output))
-            throw new ValidationError(this.error(), ctx)
+            throw new ValidationError(this.message(ctx), ctx)
 
         return output as TupleOutput<T>
-    }
-
-    error(): string {
-        return 'Must be a tuple.'
     }
 
 }

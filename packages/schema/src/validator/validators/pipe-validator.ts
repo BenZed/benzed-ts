@@ -1,7 +1,6 @@
-import { ParamPipe, pick, Pipe } from '@benzed/util'
+import { ParamPipe, Pipe } from '@benzed/util'
 
 import { Validate, ValidateOptions } from '../../validate'
-import { ValidateUpdateState } from '../validate-struct'
 import { ValidatorStruct } from '../validator-struct'
 
 //// Types ////
@@ -31,18 +30,8 @@ class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
         this.validate = Pipe.from(...validators) as PipeValidate<I,O>
     }
 
-    /**
-     * Contrary to the contract validator, ONLY the validate method 
-     * of the pipe validator needs to change.
-     */
-    protected override [ValidatorStruct.$$assign](
-        state: ValidateUpdateState<this>
-    ): ValidateUpdateState<this> {
-        return pick(state, 'validate')
-    }
-
     //// Iteration ////
-    
+
     *[Symbol.iterator](): IterableIterator<Validators<I,O>[number]> {
         yield* (
             this.validate instanceof Pipe 
@@ -50,9 +39,9 @@ class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
                 : [this.validate]
         ) as Iterable<Validators<I,O>[number]>
     }
-    
+
     get validators(): Validators<I,O> {
-        return [...this] as Validators<I,O>
+        return [ ...this ] as Validators<I,O>
     }
 }
 

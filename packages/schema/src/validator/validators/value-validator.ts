@@ -27,7 +27,8 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
         return capitalize(String(this.value))
     }
 
-    error(): string {
+    override message(ctx: ValidationContext<unknown>): string {
+        void ctx
         return `Must be ${String(this.value)}`
     }
 
@@ -40,7 +41,7 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
             !this.equal(input, this.value) && 
             !(this.force && ctx.transform)
         )
-            throw new ValidationError(this.error(), ctx)
+            throw new ValidationError(this.message(ctx), ctx)
 
         return this.value
     }

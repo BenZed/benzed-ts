@@ -27,9 +27,9 @@ const $$assign = Symbol('struct-state-assign')
 
 //// Helper ////
 
-type StructState<T extends object> = Infer<{
+type StructState<T extends object> = {
     [K in KeysOf<T>]: T[K]
-}, object>
+}
 
 type StructAssignState<T extends object> = Partial<StructState<T>>
 

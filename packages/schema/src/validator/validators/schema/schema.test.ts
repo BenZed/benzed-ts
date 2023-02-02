@@ -1,14 +1,13 @@
-import { Struct } from '@benzed/immutable'
 import { isNumber, isString, nil } from '@benzed/util'
 import { it, describe } from '@jest/globals'
 
-import { MainValidator, Schema, _SchemaSetters } from './schema'
+import { MainValidator, Schema } from './schema'
 import { SubValidator } from './sub-validator'
 import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
 import { testValidator, testValidationContract } from '../../../util.test'
-import { ValidateInput, ValidateOutput } from '../../../validate'
+import { $$state, ValidatorState } from '../../validator-struct'
 
 //// EsLint ////
 
@@ -23,14 +22,14 @@ describe('Schema Setters Type Tests', () => {
     // Hypothetical big number data type.
     type bignumber = `${number}`
 
-    interface BigDecimal extends MainValidator<string, bignumber> { 
+    interface BigDecimal extends MainValidator<string, bignumber>, ValidatorState<{ parse: boolean }> { 
         
         // hypothetical optional transformation configuration;
         // if transforms are enabled, it'll try to parse invalid strings.
         readonly parse: boolean 
     }
 
-    interface LeadingZeros extends SubValidator<bignumber>, Struct { 
+    interface LeadingZeros extends SubValidator<bignumber>, ValidatorState<{ parse: boolean }> { 
     
         // hypothetical validation configuration:
         // big number must have at least this many leading zeros.
@@ -83,27 +82,37 @@ describe('Schema Setters Type Tests', () => {
 
 describe('Schema implementation', () => {
 
-    const number = new class NumberValidator extends TypeValidator<number> {
+    type NumberState = {
+        cast: TypeValidator<number>['cast']
+        default: TypeValidator<number>['default']
+        finite: boolean
+    }
+
+    const number = new class NumberValidator extends TypeValidator<number> 
+        implements ValidatorState<NumberState> {
+
+        get [$$state](): NumberState {
+            return {
+                cast: this.cast,
+                default: this.default,
+                finite: this.finite
+            }
+        }
 
         isValid(input: unknown): input is number {
             return isNumber(input) && (isFinite(input) || !this.finite)
         }
 
-        error(): string {
+        message(): string {
             return `Must be a ${this.finite ? 'finite ' : ''}number`
         }
 
         readonly finite: boolean = false
-
     }
 
     describe('main validator only', () => {
 
         const $number = new Schema(number)
-
-        console.log($number)
-
-        type _NumberSetters = keyof _SchemaSetters<typeof $number, {}>
 
         testValidationContract<unknown, number>($number, {
             invalidInput: NaN,
@@ -115,7 +124,7 @@ describe('Schema implementation', () => {
             { asserts: Infinity },
             { transforms: '100', error: 'Must be a number' },
             { transforms: nil, error: 'Must be a number' }
-        )
+        ) 
 
         testValidator(
             $number.finite(true),
@@ -125,7 +134,7 @@ describe('Schema implementation', () => {
         testValidator<unknown, number>(
             $number.cast(i => isString(i) ? parseFloat(i) : i),
             { transforms: '100', output: 100 }
-        )
+        ) 
 
         testValidator<unknown,number>(
             $number.default(() => 0),
@@ -133,10 +142,24 @@ describe('Schema implementation', () => {
         )
 
         testValidator<unknown,number>(
-            $number.error(() => 'Numbers only'),
+            $number.message(() => 'Numbers only'),
             { transforms: nil, error: 'Numbers only' }
         )
 
+    })
+
+    describe('with subvalidator', () => {
+
+        class StringValidator extends TypeValidator<string> {
+            isValid(input: unknown): input is string {
+                return typeof input === 'string'
+            }
+        }
+
+        class Capitalize extends SubValidator<string> {
+
+        }
+        
     })
 
 })
