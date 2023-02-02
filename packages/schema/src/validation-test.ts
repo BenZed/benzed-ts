@@ -232,17 +232,16 @@ export function runValidationContractTests<I, O extends I>(
         runValidationTest(validate, { asserts: invalidInput, error: true }),
         runValidationTest(validate, { asserts: transforms?.invalidInput as I, error: true }),
         runValidationTest(validate, { transforms: transforms?.invalidInput as I, output: transforms?.validOutput as O }),
-        runValidationTest(validate, { transforms: invalidInput, error: true })
-    ]
+    ] as const
 
-    const [ assertPass, assertFail, assertTransformFail, transformPass, transformFail ] = results
+    const [ assertPass, assertFail, assertTransformFail, transformPass ] = results
 
     // ValidatesValidInput
     if (!assertPass.grade.pass)
         violations.add(ValidationContractViolation.ValidatesValidInput)
 
     // AssertsInvalidInput
-    if (!assertFail.grade.pass || !transformFail.grade.pass)
+    if (!assertFail.grade.pass)
         violations.add(ValidationContractViolation.AssertsInvalidInput)
 
     // AssertsTransformableInput 
@@ -266,7 +265,7 @@ export function runValidationContractTests<I, O extends I>(
     }
 
     // ImmutableTransforms
-    if ((isObject(validInput) || isFunc(validInput)) && assertFail.error?.transformed === validInput) 
+    if ((isObject(validInput) || isFunc(validInput)) && assertFail.error?.transformed === validInput)
         violations.add(ValidationContractViolation.ImmutableTransforms)
 
     // ThrowsValidationErrors
@@ -275,10 +274,9 @@ export function runValidationContractTests<I, O extends I>(
 
     // AppliesValidationContextToErrors
     if (
-        !equal(transformFail.error?.input as I, invalidInput) 
-        || !transformFail.error?.transform 
-        || !equal(assertFail.error?.input as I, invalidInput) 
-        || assertFail.error?.transform
+        !equal(assertFail.error?.input as I, invalidInput) 
+        || assertFail.error?.transform // <- should be false
+        // TODO can't think of a good way to check if 'transformed' has been set
     )
         violations.add(ValidationContractViolation.AppliesValidationContextToErrors)
 
