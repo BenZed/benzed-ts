@@ -57,6 +57,8 @@ class Mutator<
         this._mutate()
     }
 
+    readonly validate!: V
+
     //// ValueCopy ////
 
     override [$$copy](): this {

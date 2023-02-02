@@ -26,7 +26,7 @@ abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
         if (!this.isValid(input, ctx))
             input = this.cast(input, ctx)
 
-        return input 
+        return input
     }
 
     override error(): string {

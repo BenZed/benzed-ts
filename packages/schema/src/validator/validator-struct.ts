@@ -1,3 +1,4 @@
+import { equals } from '@benzed/immutable'
 import { provideCallableContext } from '@benzed/util'
 
 import { ValidateOptions } from '../validate'
@@ -22,7 +23,7 @@ function validate<I, O extends I>(
     input: I, 
     options?: ValidateOptions
 ): O {
-    return this.target(input, options)
+    return this.validate(input, options)
 }
 
 /**
@@ -39,7 +40,18 @@ export abstract class ValidatorStruct<I, O extends I = I>
         super(validate, provideCallableContext)
     }
 
-    abstract target(input: I, options?: ValidateOptions): O
+    abstract validate(input: I, options?: ValidateOptions): O
+
+    /**
+     * Logic for determining if an input is equal to it's output and
+     * vise versa, so overridden implementations should be transitive.
+     *
+     * This defaults to a deep equality check according to the
+     * default @benzed/immutable $$equal algorithm.
+     */
+    override equal<T extends I | O>(input: I | O, output: T): input is T {
+        return equals(input, output)
+    }
 
 }
 

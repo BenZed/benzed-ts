@@ -1,4 +1,4 @@
-import { MainValidator, PipeSchema, Schema } from './schema'
+import { MainValidator, Schema } from './schema'
 
 import { it, describe } from '@jest/globals'
 
@@ -75,19 +75,6 @@ describe('Schema Setters Type Tests', () => {
     it('setter methods for sub validators use configure parameters, if provided', () => {
         expectTypeOf<PositiveSetter>()
             .toEqualTypeOf<(enabled?: boolean) => BigDecimalSchema>()
-    })
-
-})
-
-describe('pipe schema setters', () => {
-
-    it('creates option setters for every validator in the pipe', () => {
-        type String = ValidatorStruct<unknown, string> & { cast: boolean}
-        type Path = ValidatorStruct<string, `/${string}`> & { protocol: string }
-
-        type StringToPath = PipeSchema<[String, Path]>
-
-        expectTypeOf<StringToPath['cast']>().toEqualTypeOf<(cast: boolean) => PipeSchema<[String, Path]>>()
     })
 
 })

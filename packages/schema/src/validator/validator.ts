@@ -14,7 +14,18 @@ import { Validate } from '../validate'
  */
 export interface Validator<I, O extends I> {
 
-    readonly target: Validate<I,O>
+    readonly validate: Validate<I,O>
+
+    /**
+     * Logic for determining if a validators input is equal to it's 
+     * output and vise versa, so implementations must be transitive.
+     */
+    equal?<T extends I | O>(input: I | O, output: T): input is T
+
+    /**
+     * Optional method for creating an error message when validation fails.
+     */
+    // message?(ctx: ValidationContext<I>): string 
 
 }
 

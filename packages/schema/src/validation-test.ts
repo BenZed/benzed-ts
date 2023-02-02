@@ -3,7 +3,7 @@ import { isFunc, isObject, isString, Mutable, nil } from '@benzed/util'
 
 import { Validate } from './validate'
 import { ValidationError } from './validation-error'
-import { ContractValidator } from './validator'
+import { ValidatorStruct } from './validator'
 
 //// ValidationTest types ////
 
@@ -119,7 +119,7 @@ export function runValidationTest<I,O extends I>(
         const o = result.output as O
         const i = expectOutputDifferentFromInput ? test.output as I : input
 
-        const equal = (validate.equal ?? ContractValidator.prototype.equal).bind(validate)
+        const equal = (validate.equal ?? ValidatorStruct.prototype.equal).bind(validate)
 
         const isOutputValid = equal(i, o)
         if (!isOutputValid)

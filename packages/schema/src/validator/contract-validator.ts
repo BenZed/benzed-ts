@@ -79,20 +79,9 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
     }
 
     /**
-     * Logic for determining if an input is equal to it's output and
-     * vise versa, so overridden implementations should be transitive.
-     *
-     * This defaults to a deep equality check according to the
-     * default @benzed/immutable $$equal algorithm.
-     */
-    override equal<T extends I | O>(input: I | O, output: T): input is T {
-        return equals(input, output)
-    }
-
-    /**
      * Implementation of the validate contract.
      */
-    target(
+    validate(
         input: I, 
         options?: Partial<ValidateOptions>
     ): O {

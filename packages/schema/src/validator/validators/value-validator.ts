@@ -31,7 +31,7 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
         return `Must be ${String(this.value)}`
     }
 
-    target(input: unknown, options?: ValidateOptions | undefined): T {
+    validate(input: unknown, options?: ValidateOptions | undefined): T {
         
         const ctx = new ValidationContext(input, options)
         ctx.transformed = this.value
