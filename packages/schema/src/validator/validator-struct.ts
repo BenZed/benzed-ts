@@ -13,7 +13,7 @@ import { Validator } from './validator'
 //// ValidatorStruct ////
 
 /**
- * Default for Callable Validator structs. Quite simply, it calls the
+ * Default for Callable Validator structs. Quite simply, it calls
  * it's own validate method, and we never have to worry about passing a
  * different callable signature into any extended classes.
  */
@@ -22,7 +22,7 @@ function validate<I, O extends I>(
     input: I, 
     options?: ValidateOptions
 ): O {
-    return this.validate(input, options)
+    return this.target(input, options)
 }
 
 /**
@@ -39,7 +39,7 @@ export abstract class ValidatorStruct<I, O extends I = I>
         super(validate, provideCallableContext)
     }
 
-    abstract validate(input: I, options?: ValidateOptions): O
+    abstract target(input: I, options?: ValidateOptions): O
 
 }
 

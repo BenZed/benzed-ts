@@ -92,7 +92,7 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
     /**
      * Implementation of the validate contract.
      */
-    validate(
+    target(
         input: I, 
         options?: Partial<ValidateOptions>
     ): O {

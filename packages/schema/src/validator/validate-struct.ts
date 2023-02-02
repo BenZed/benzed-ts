@@ -1,4 +1,4 @@
-import { CallableStruct, Struct, StructAssignState, StructState } from '@benzed/immutable'
+import { CallableStruct, Struct, StructState } from '@benzed/immutable'
 
 import { Validate } from '../validate'
 

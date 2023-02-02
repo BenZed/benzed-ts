@@ -13,4 +13,4 @@ export * from './type-validator'
 
 export * from './value-validator'
 
-// export * from './schema'
+export * from './schema'

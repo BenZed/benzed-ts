@@ -24,11 +24,11 @@ type PipeValidate<I, O extends I> = ParamPipe<I, O, [options?: ValidateOptions]>
  */
 class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
 
-    readonly validate: PipeValidate<I,O>
+    readonly target: PipeValidate<I,O>
 
     constructor(...validators: Validators<I,O>) {
         super()
-        this.validate = Pipe.from(...validators) as PipeValidate<I,O>
+        this.target = Pipe.from(...validators) as PipeValidate<I,O>
     }
 
     /**
@@ -45,9 +45,9 @@ class PipeValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
     
     *[Symbol.iterator](): IterableIterator<Validators<I,O>[number]> {
         yield* (
-            this.validate instanceof Pipe 
-                ? this.validate.transforms
-                : [this.validate]
+            this.target instanceof Pipe 
+                ? this.target.transforms
+                : [this.target]
         ) as Iterable<Validators<I,O>[number]>
     }
     

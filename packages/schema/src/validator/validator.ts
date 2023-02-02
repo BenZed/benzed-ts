@@ -14,7 +14,7 @@ import { Validate } from '../validate'
  */
 export interface Validator<I, O extends I> {
 
-    readonly validate: Validate<I,O>
+    readonly target: Validate<I,O>
 
 }
 
