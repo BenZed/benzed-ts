@@ -142,7 +142,7 @@ export function runValidationTest<I,O extends I>(
 
 //// ValidationContractTestTypes ////
 
-export enum ValidationContractViolations {
+export enum ValidationContractViolation {
 
     ValidatesValidInput = 'Validation will succeed if provided with valid input',
 
@@ -206,7 +206,7 @@ export interface ValidationContractTestResults {
 
     readonly grade: boolean
 
-    readonly violations: readonly ValidationContractViolations[]
+    readonly violations: readonly ValidationContractViolation[]
 
 }
 
@@ -225,7 +225,7 @@ export function runValidationContractTests<I, O extends I>(
     
     const { validInput, invalidInput, transforms } = config
 
-    const violations = new Set<ValidationContractViolations>
+    const violations = new Set<ValidationContractViolation>
     
     const results = [
         runValidationTest(validate, { asserts: validInput }),
@@ -239,19 +239,19 @@ export function runValidationContractTests<I, O extends I>(
 
     // ValidatesValidInput
     if (!assertPass.grade.pass)
-        violations.add(ValidationContractViolations.ValidatesValidInput)
+        violations.add(ValidationContractViolation.ValidatesValidInput)
 
     // AssertsInvalidInput
     if (!assertFail.grade.pass || !transformFail.grade.pass)
-        violations.add(ValidationContractViolations.AssertsInvalidInput)
+        violations.add(ValidationContractViolation.AssertsInvalidInput)
 
-    // AssertsTransformableInput
+    // AssertsTransformableInput 
     if (!assertTransformFail.grade.pass)
-        violations.add(ValidationContractViolations.AssertsTransformableInput)
+        violations.add(ValidationContractViolation.AssertsTransformableInput)
 
     // TransformsTransformableInput
     if (transforms && !transformPass.grade.pass)
-        violations.add(ValidationContractViolations.TransformsTransformableInput)
+        violations.add(ValidationContractViolation.TransformsTransformableInput)
 
     // TransformsEnabledByDefault
     if (transforms) {
@@ -261,17 +261,17 @@ export function runValidationContractTests<I, O extends I>(
                 throw new Error('Transforms must not be enabled by default.')
 
         } catch {
-            violations.add(ValidationContractViolations.TransformEnabledByDefault)
+            violations.add(ValidationContractViolation.TransformEnabledByDefault)
         }
     }
 
     // ImmutableTransforms
     if ((isObject(validInput) || isFunc(validInput)) && assertFail.error?.transformed === validInput) 
-        violations.add(ValidationContractViolations.ImmutableTransforms)
+        violations.add(ValidationContractViolation.ImmutableTransforms)
 
     // ThrowsValidationErrors
     if (results.some(r => !r.grade.pass && r.grade.reason.includes(ValidationError.name))) 
-        violations.add(ValidationContractViolations.ThrowsValidationErrors)
+        violations.add(ValidationContractViolation.ThrowsValidationErrors)
 
     // AppliesValidationContextToErrors
     if (
@@ -280,12 +280,12 @@ export function runValidationContractTests<I, O extends I>(
         || !equal(assertFail.error?.input as I, invalidInput) 
         || assertFail.error?.transform
     )
-        violations.add(ValidationContractViolations.AppliesValidationContextToErrors)
+        violations.add(ValidationContractViolation.AppliesValidationContextToErrors)
 
     // TransitiveEquality
     if (transforms) {
         if (equal(validInput, transforms.validOutput) !== equal(transforms.validOutput, validInput))
-            violations.add(ValidationContractViolations.TransitiveEquality)
+            violations.add(ValidationContractViolation.TransitiveEquality)
     }
 
     return {

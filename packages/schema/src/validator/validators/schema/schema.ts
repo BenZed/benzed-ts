@@ -14,7 +14,6 @@ import {
 
 import { ValidateUpdateState } from '../../validate-struct'
 import { SubValidator, SubValidatorConfigure } from './sub-validator'
-import { PipeValidatorBuilder } from '../pipe-validator-builder'
 
 //// EsLint ////
 
@@ -70,24 +69,6 @@ type _SchemaSetters<
     }
     : never
 
-type _SchemaBuilderSetters<
-    M extends AnyValidatorStruct, 
-    S extends SubValidators<ValidateOutput<M>>
-> = (_SchemaMainSetters<M> & _SchemaSubSetters<S>) extends infer O 
-    ? {
-        // Remapping this way to prevent circular references :(
-        [K in KeysOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
-            ? (...args: A) => SchemaBuilder<M,S>
-            : O[K]
-    }
-    : never
-
-type _SchemaBuilder<O> = 
-    Pick<
-    PipeValidatorBuilder<O,O>,
-    'asserts' | 'transforms' | 'validates'
-    >
-
 //// Schema Types ////
     
 export type SchemaValidate<M extends AnyValidatorStruct> = 
@@ -97,34 +78,12 @@ M extends ValidatorStruct<infer I, infer O>
 
 /**
  * A schema is comprised of a main validator and an optional
- * number of sub validators. 
- * 
- * It creates setter methods to update the configuration of
- * these validators immutably.
+ * number of sub validators.
  */
 export type Schema<
-    M extends AnyValidatorStruct, 
+    M extends AnyValidatorStruct,
     S extends SubValidators<ValidateOutput<M>>
 > = 
     SchemaValidate<M> & 
     _SchemaSetters<M,S>
 
-/**
- * A schema builder is a schema that also has a pipe builder
- * interface.
- * 
- * This would be the primary class
- */
-export type SchemaBuilder<
-    M extends AnyValidatorStruct, 
-    S extends SubValidators<ValidateOutput<M>>
-> = 
-    SchemaValidate<M> & 
-    _SchemaBuilder<ValidateOutput<M>> & 
-    _SchemaBuilderSetters<M,S>
-
-// export interface SchemaConstructor {
-//     new <I, O extends I, T extends Schematic<I,O>>(
-//         ...schematic: T
-//     ): Schema<I,O,T>
-// }

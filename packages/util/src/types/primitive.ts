@@ -3,13 +3,17 @@ import { isNil } from './nil'
 
 //// Basic ////
 
-export const isString = <S extends string = string>(i: unknown): i is S => typeof i === 'string'
+export const isString = (i: unknown): i is string => 
+    typeof i === 'string'
 
-export const isNumber = <N extends number = number>(i: unknown): i is N => typeof i === 'number' && !isNaN(i)
+export const isNumber =(i: unknown): i is number => 
+    typeof i === 'number' && !isNaN(i)
 
-export const isBoolean = <B extends boolean = boolean>(i: unknown): i is B => typeof i === 'boolean'
+export const isBoolean = (i: unknown): i is boolean =>
+    typeof i === 'boolean'
 
-export const isBigInt = <N extends bigint = bigint>(i: unknown): i is N => typeof i === 'bigint'
+export const isBigInt =(i: unknown): i is bigint => 
+    typeof i === 'bigint'
 
 //// Falsy ////
 

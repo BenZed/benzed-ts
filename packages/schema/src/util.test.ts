@@ -6,7 +6,7 @@ import { Validate } from './validate'
 import {
     ValidationTest,
     ValidationTestResult,
-    ValidationContractViolations,
+    ValidationContractViolation,
     ValidatorContractTestSettings,
     runValidationContractTests, 
     runValidationTest
@@ -14,7 +14,7 @@ import {
 
 //// Helper////
 
-class FailedValidationTest extends Error {
+class FailedValidationTestError extends Error {
     constructor(
         reason: string,
         readonly result: Pick<ValidationTestResult<unknown,unknown>, 'error' | 'output'>
@@ -29,6 +29,14 @@ class FailedValidationTest extends Error {
         ]
 
         super(lines.join('\n'))
+    }
+}
+
+class ValidationContractViolationError extends Error {
+    constructor(
+        readonly violation: ValidationContractViolation,
+    ) {
+        super(violation)
     }
 }
 
@@ -60,7 +68,7 @@ export function testValidator<I,O extends I>(
         const testTitle = 
             `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
             (expectingError  
-                ? ' is invalid' + (test.error === true ? '' : `"${test.error}"`)
+                ? ' is invalid' + (test.error === true ? '' : ` "${test.error}"`)
                 : expectOutputDifferentFromInput 
                     ? ` to ${print(test.output)}`
                     : ' is valid'
@@ -70,7 +78,7 @@ export function testValidator<I,O extends I>(
         it(testTitle, () => {
             const { grade, output, error } = runValidationTest(validate, test)
             if (!grade.pass) {
-                throw new FailedValidationTest(
+                throw new FailedValidationTestError(
                     grade.reason, 
                     { output, error }
                 )
@@ -90,18 +98,12 @@ export function testValidationContract<I, O extends I>(
 
     const results = runValidationContractTests(validate, settings)
 
-    for (const tenant of keysOf(ValidationContractViolations)) {
-
-        const description = (
-            ValidationContractViolations as Record<string,ValidationContractViolations>
-        )[tenant]
-
+    for (const tenant of keysOf(ValidationContractViolation)) {
         it(tenant, () => {
-            if (results.violations.includes(description)) {
-                throw new Error(
-                    `${tenant} violation`
-                )
-            }
+            const violation = ValidationContractViolation[tenant]
+            if (results.violations.includes(violation)) 
+                throw new ValidationContractViolationError(violation)
+            
         })
     }
 }
