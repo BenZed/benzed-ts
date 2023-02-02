@@ -5,6 +5,7 @@ import { ValidationContext } from '../validation-context'
 import { ValidationError } from '../validation-error'
 import { ValidateUpdateState } from './validate-struct'
 import { ValidatorStruct } from './validator-struct'
+import { showProperty } from './validators/schema/property-helpers'
 
 //// Types ////
 
@@ -37,6 +38,11 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
                 assign(this, settings)
             }
         }
+    }
+
+    constructor() {
+        super()
+        showProperty(this, 'error')
     }
 
     /**

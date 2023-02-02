@@ -1,6 +1,8 @@
+import { $$nonStateKey } from '@benzed/immutable'
 import { nil } from '@benzed/util'
 import ValidationContext from '../../validation-context'
 import ContractValidator from '../contract-validator'
+import { showProperty } from './schema/property-helpers'
 
 //// Implementation ////
 
@@ -12,6 +14,12 @@ abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
 
     override get name(): string {
         return this.constructor.name.replace('Validator', '')
+    }
+
+    constructor() {
+        super()
+        showProperty(this, 'cast')
+        showProperty(this, 'default')
     }
 
     abstract override isValid(

@@ -1,12 +1,14 @@
-import { MainValidator, Schema } from './schema'
-
+import { Struct } from '@benzed/immutable'
+import { isNumber, isString, nil } from '@benzed/util'
 import { it, describe } from '@jest/globals'
 
-import { Struct } from '@benzed/immutable'
+import { MainValidator, Schema } from './schema'
 import { SubValidator } from './sub-validator'
+import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
-import { ValidatorStruct } from '../../validator-struct'
+import { testValidator, testValidationContract } from '../../../util.test'
+import { ValidateInput, ValidateOutput } from '../../../validate'
 
 //// EsLint ////
 
@@ -75,6 +77,62 @@ describe('Schema Setters Type Tests', () => {
     it('setter methods for sub validators use configure parameters, if provided', () => {
         expectTypeOf<PositiveSetter>()
             .toEqualTypeOf<(enabled?: boolean) => BigDecimalSchema>()
+    })
+
+})
+
+describe('Schema implementation', () => {
+
+    const number = new class NumberValidator extends TypeValidator<number> {
+
+        isValid(input: unknown): input is number {
+            return isNumber(input) && (isFinite(input) || !this.finite)
+        }
+
+        error(): string {
+            return `Must be a ${this.finite ? 'finite ' : ''}number`
+        }
+
+        readonly finite: boolean = false
+
+    }
+
+    describe('main validator only', () => {
+
+        const $number = new Schema(number)
+
+        testValidationContract<unknown, number>($number, {
+            invalidInput: NaN,
+            validInput: 10
+        })
+        
+        testValidator<unknown,number>(
+            $number,
+            { asserts: Infinity },
+            { transforms: '100', error: 'Must be a number' },
+            { transforms: nil, error: 'Must be a number' }
+        )
+
+        testValidator(
+            $number.finite(true),
+            { asserts: Infinity, error: 'Must be a finite number' }
+        )
+
+        testValidator<unknown, number>(
+            $number.cast(i => isString(i) ? parseFloat(i) : i),
+            { transforms: '100', output: 100 }
+        )
+
+        testValidator<unknown,number>(
+            $number.default(() => 0),
+            { transforms: nil, output: 0 }
+        )
+
+        testValidator<unknown,number>(
+            $number.error(() => 'Numbers only'),
+            { transforms: nil, error: 'Numbers only' }
+        )
+
     })
 
 })
