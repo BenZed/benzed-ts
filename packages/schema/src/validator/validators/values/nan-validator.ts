@@ -4,8 +4,8 @@ import { ValueValidator } from '../value-validator'
 
 export class NaNValidator extends ValueValidator<number> {
 
-    constructor() {
-        super(NaN)
+    constructor(force: boolean) {
+        super(NaN, force)
     }
 
 }

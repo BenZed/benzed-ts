@@ -4,8 +4,8 @@ import { ValueValidator } from '../value-validator'
 
 export class NullValidator extends ValueValidator<null> {
 
-    constructor() {
-        super(null)
+    constructor(force: boolean) {
+        super(null, force)
     }
 
 }

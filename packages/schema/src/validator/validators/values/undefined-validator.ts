@@ -4,8 +4,8 @@ import { ValueValidator } from '../value-validator'
 
 export class UndefinedValidator extends ValueValidator<undefined> {
 
-    constructor() {
-        super(undefined)
+    constructor(force: boolean) {
+        super(undefined, force)
     }
 
 }

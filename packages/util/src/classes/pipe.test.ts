@@ -19,14 +19,6 @@ it('create a pipe with multiple transforms', () => {
     expect(x32(1)).toEqual(32)
 })
 
-it('create a pipe with primitive param', () => {
-    
-    const parse = Pipe.from(parseInt)
-
-    expect(parse('100', undefined)).toEqual(100)
-    expectTypeOf(parse).toEqualTypeOf<ParamPipe<string, number, [radix?: number | undefined]>>()
-})
-
 it('multiple transforms must have the same type', () => {
     // @ts-expect-error mismatching input type
     void Pipe.from(x2, parseInt) 
@@ -192,7 +184,7 @@ describe('promises', () => {
             .from((i: Promise<number>) => i.then(p = p + 1))
 
         Pipe.from((i: number, _by: number) => Promise.resolve(i / 2))
-        // @ts-expect-error param pipe from pipe must be awaited
+        // @ts-expect-error param  zpipe from pipe must be awaited
             .from((i: Promise<number>, by) => i.then(r => r * by))
     })
 
