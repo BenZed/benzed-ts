@@ -162,5 +162,6 @@ export {
     CallableContextProvider,
 
     provideCallableContext,
-    provideDynamicContext
+    provideDynamicContext,
+    provideTupleContext
 }
