@@ -1,4 +1,4 @@
-import { OutputOf, nil, KeysOf, Func } from '@benzed/util'
+import { OutputOf, nil, KeysOf } from '@benzed/util'
 import { AnyValidate, ValidateOptions } from '../../../validate'
 
 import { Mutator, MutatorType, $$target } from '../mutator'

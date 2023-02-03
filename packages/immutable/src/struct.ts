@@ -7,7 +7,6 @@ import {
     provideCallableContext, 
     Callable, 
     isFunc, 
-    PrivateState,
     GenericObject
 } from '@benzed/util'
 
@@ -111,17 +110,6 @@ function initStruct(newStruct: Struct, signature?: Func, state?: GenericObject):
 
     const initStruct = initStateLogic(newStruct)
 
-    // exchange private signature
-    if (signature) {
-
-        const newStructCallableState = PrivateState.for(Callable).get(newStruct as Func) 
-
-        PrivateState.for(Callable).set(
-            initStruct as Func,
-            newStructCallableState
-        )
-    }
-
     if (state)
         (initStruct as StructStateLogic<GenericObject>)[$$state] = state
     
@@ -130,6 +118,8 @@ function initStruct(newStruct: Struct, signature?: Func, state?: GenericObject):
 }
 
 const Struct = class {
+
+    static [Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
     static $$state = $$state
 

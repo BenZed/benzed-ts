@@ -1,4 +1,4 @@
-import { KeysOf, OutputOf } from '@benzed/util'
+import { Callable, KeysOf, OutputOf } from '@benzed/util'
 
 import { AnyValidate } from '../../validate'
 import { ValidatorStruct } from '../validator-struct'
@@ -74,6 +74,7 @@ abstract class Mutator<
             // set: this[$$set],
             // ownKeys: this[$$ownKeys],
             // apply: this[$$apply]
+
         }) as this
     }
 
@@ -83,11 +84,15 @@ abstract class Mutator<
         proxy: typeof Proxy
     ): unknown {
 
-        const target = key in mutator
+        const target = Reflect.has(mutator, key)
             ? mutator 
             : mutator[$$target]
 
         return Reflect.get(target, key, proxy)
+    }
+
+    override get name(): string {
+        return this.constructor.name
     }
 
 }

@@ -1,7 +1,7 @@
 import { Struct, $$state, StructState, StructStateLogic } from './struct'
 
 import { test } from '@jest/globals'
-import { assign, Func, pick, Property } from '@benzed/util'
+import { assign, Func, pick } from '@benzed/util'
 
 import { expectTypeOf } from 'expect-type'
 import { unique } from '@benzed/array'
@@ -9,10 +9,10 @@ import { unique } from '@benzed/array'
 //// EsLint ////
 
 /* eslint-disable 
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types 
 */
 
-//// Tests ////
+//// Tests //// 
 
 test('spread state matches struct state', () => {
 

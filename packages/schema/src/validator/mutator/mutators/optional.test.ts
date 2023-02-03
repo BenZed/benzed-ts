@@ -19,8 +19,6 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
     readonly enabled = true
 
     toggleEnabled(): this {
-
-        console.log(this)
         return TypeValidator.applyState(
             this, 
             { enabled: !this.enabled } as StructState<this>
@@ -58,7 +56,7 @@ describe('removable', () => {
 
 })
 
-describe('effect on target', () => {
+describe('effect on target', () => { 
 
     it('has target properties', () => {
         expect($maybeCookieJar.cast).toBe($cookieJar.cast)
@@ -68,19 +66,20 @@ describe('effect on target', () => {
 
     it('favours own properties', () => {
         expect($maybeCookieJar.required).toEqual($cookieJar)
+        expect($maybeCookieJar.required).toBeInstanceOf(CookieJar)
     })
 
-    it('wraps build method resuilts in Optional', () => { 
+    it('wraps build method resuilts in Optional', () => {  
 
         const $disabledCookieJar = $cookieJar.toggleEnabled()
+        expect($disabledCookieJar).toBeInstanceOf(CookieJar)
+        const $disabledMaybeCookieJar = $maybeCookieJar.toggleEnabled()  
 
-        const $disabledMaybeCookieJar = $maybeCookieJar.toggleEnabled()
-
-        expect($disabledMaybeCookieJar.enabled).toBeInstanceOf(false)
+        expect($disabledMaybeCookieJar.enabled).toEqual(false) 
         expect($disabledMaybeCookieJar).toBeInstanceOf(Optional)
 
         expectTypeOf($disabledMaybeCookieJar)
-            .toEqualTypeOf<Optional<CookieJar>>()
+            .toEqualTypeOf<Optional<CookieJar>>() 
 
     })
 
