@@ -1,12 +1,10 @@
-import { pick, Property } from '@benzed/util'
+import { Property } from '@benzed/util'
 
 import { SimpleSubValidator, MessageMethod, EnabledErrorSignature } from './simple-sub-validator'
 import { ContractValidator } from '../../contract-validator'
 import { $$state } from '../../validator-struct'
 
 //// Main ////
-
-type SimpleSubContractValidatorState<T> = { enabled: boolean, message: string | MessageMethod<T>}
 
 /**
  * Convenience class for creating contract sub validators that only take
@@ -42,8 +40,8 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
     define(
         SimpleSubContractValidator.prototype, 
         {  
-            _applyMessage: descriptorOf(SimpleSubValidator.prototype, '_applyMessage') as PropertyDescriptor,
             configure: descriptorOf(SimpleSubValidator.prototype, 'configure') as PropertyDescriptor,
+            _applyMessage: descriptorOf(SimpleSubValidator.prototype, '_applyMessage') as PropertyDescriptor,
             [$$state]: descriptorOf(SimpleSubValidator.prototype, $$state) as PropertyDescriptor,
         }
     )

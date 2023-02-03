@@ -36,7 +36,7 @@ interface To<O> extends Validate<unknown, O> {}
 
 interface String extends To<string> {}
 const $string: String = ContractValidator.generic({
-    error() {
+    message() {
         return 'Must be a string'
     },
     isValid: isString
@@ -44,7 +44,7 @@ const $string: String = ContractValidator.generic({
 
 interface ArrayOfString extends To<string[]> {}
 const $arrayOfString: ArrayOfString = ContractValidator.generic({
-    error() {
+    message() {
         return 'Must be an array of string'
     },
     isValid: (i): i is string[] => isArray(i, isString)
@@ -63,7 +63,8 @@ describe('AddMutator', () => {
             addMutators($string, M.Optional), 
             addMutators($string, M.Optional, M.Optional)
         ]) {
-            expect($optionalString).toBeInstanceOf(Optional)
+
+            expect($optionalString.constructor).toBe(Optional)
             expect($optionalString).toHaveProperty('target', $string) 
             expectTypeOf($optionalString).toEqualTypeOf<Optional<String>>()
         }
@@ -80,7 +81,7 @@ describe('AddMutator', () => {
             addMutators($arrayOfString, M.ReadOnly, M.ReadOnly)
         ]) {
             expectTypeOf($readonlyArrayOfString).toEqualTypeOf<ReadOnly<ArrayOfString>>()
-            expect($readonlyArrayOfString).toBeInstanceOf(ReadOnly)
+            expect($readonlyArrayOfString.constructor).toBe(ReadOnly)
             expect($readonlyArrayOfString).toHaveProperty('target', $arrayOfString) 
         }
     })
@@ -205,7 +206,7 @@ describe('mutatorsOf', () => {
 
 describe('isMutator', () => {
 
-    it('returns true if validator is a mutator', () => {
+    it('returns true if validator is a mutator', () => { 
         expect(isMutator($arrayOfString)).toBe(false)
         expect(isMutator(new Optional($arrayOfString))).toBe(true)
     })

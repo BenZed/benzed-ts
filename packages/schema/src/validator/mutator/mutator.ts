@@ -1,7 +1,7 @@
-import { $$copy } from '@benzed/immutable'
-import { KeysOf, OutputOf, Property } from '@benzed/util'
+import { $$copy, $$state } from '@benzed/immutable'
+import { assign, KeysOf, OutputOf, Property } from '@benzed/util'
 
-import { AnyValidate } from '../../validate'
+import { AnyValidate, Validate } from '../../validate'
 import { ValidatorStruct } from '../validator-struct'
 
 import { 
@@ -54,17 +54,17 @@ class Mutator<
         readonly mutator: T
     ) {
         super()
+        this.validate = this.target
         this._mutate()
     }
 
-    readonly validate!: V
+    readonly validate: Validate<unknown, O>
 
     //// ValueCopy ////
 
-    override [$$copy](): this {
-        const copy = super[$$copy]()
-        copy._mutate()
-        return copy
+    override set [$$state](state: Partial<this>) {
+        assign(this, state)
+        this._mutate()
     }
 
     //// Mutator ////

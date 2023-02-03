@@ -48,7 +48,7 @@ const Optional = class extends Mutator<AnyValidate, MutatorType.Optional, unknow
     }
 
     //// Convenience ////
-    get required(): AnyValidate { 
+    get required(): AnyValidate {
         return this.target
     }
 
@@ -57,7 +57,8 @@ const Optional = class extends Mutator<AnyValidate, MutatorType.Optional, unknow
         return {
             validate: {
                 value: validateOptional,
-                enumerable: true
+                configurable: true,
+                writable: true
             }
         }
     }
