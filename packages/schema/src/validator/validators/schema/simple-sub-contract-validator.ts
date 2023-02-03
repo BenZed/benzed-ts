@@ -1,9 +1,8 @@
-import { isString, pick, Property } from '@benzed/util'
+import { pick, Property } from '@benzed/util'
 
-import { SimpleSubValidator, MessageMethod, EnabledErrorSignature, toEnabledError } from './simple-sub-validator'
+import { SimpleSubValidator, MessageMethod, EnabledErrorSignature } from './simple-sub-validator'
 import { ContractValidator } from '../../contract-validator'
 import { $$state } from '../../validator-struct'
-import { Struct, StructState } from '@benzed/immutable'
 
 //// Main ////
 
@@ -22,55 +21,30 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
         super()
         // mix-in configurer
         this._applyMessage(error)
-        this._applyConfigurer()
     }
 
     override get name(): string {
         return this.constructor.name
     }
 
-    configure(
-        ...args: EnabledErrorSignature
-    ): this {
-        const { enabled, message } = toEnabledError(...args)
-        const next = Struct.applyState(this, { enabled } as StructState<this>)
-
-        if (message)
-            next._applyMessage(message)
-
-        return next
-    }
-
-    get [$$state](): SimpleSubContractValidatorState<T> {
-        return pick(this, 'message', 'enabled') as SimpleSubContractValidatorState<T>
-    }
+    configure = SimpleSubValidator.prototype.configure as unknown as (...args: EnabledErrorSignature) => this
 
     //// Helper ////
 
-    private _applyMessage(error: string | MessageMethod<T>): void {
+    protected _applyMessage = SimpleSubValidator.prototype['_applyMessage']
 
-        const errorMethod = isString(error) ? () => error : error
+}
 
-        Property.configure(
-            this,
-            'error',
-            {
-                value: errorMethod
-            }
-        )
-    }
+//// Mixin ////
 
-    private _applyConfigurer(): void {
-        Property.define(
-            this, 
-            'configure', 
-            {
-                value: SimpleSubValidator.prototype.configure,
-                enumerable: false,
-                writable: true,
-                configurable: true
-            }
-        )
-    }
-
+{
+    const { define, descriptorOf } = Property
+    define(
+        SimpleSubContractValidator.prototype, 
+        {  
+            _applyMessage: descriptorOf(SimpleSubValidator.prototype, '_applyMessage') as PropertyDescriptor,
+            configure: descriptorOf(SimpleSubValidator.prototype, 'configure') as PropertyDescriptor,
+            [$$state]: descriptorOf(SimpleSubValidator.prototype, $$state) as PropertyDescriptor,
+        }
+    )
 }

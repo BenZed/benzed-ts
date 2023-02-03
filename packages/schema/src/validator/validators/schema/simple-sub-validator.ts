@@ -1,10 +1,12 @@
 import { Struct, StructState } from '@benzed/immutable'
 import { 
+    assign,
     isBoolean, 
     isFunc, 
     isOneOf, 
     isOptional, 
     isString, 
+    pick, 
     SignatureParser 
 } from '@benzed/util'
 
@@ -38,7 +40,7 @@ type EnabledErrorSignature = Parameters<typeof toEnabledError>
 
 //// Main ////
 
-type SimpleSubValidatorState<T> = { enabled: boolean, message: MessageMethod<T> }
+type SimpleSubValidatorState<T> = { enabled: boolean, message: string | MessageMethod<T> }
 /**
  * Convenience class for sub validators that only take
  * an error as configuration
@@ -58,21 +60,27 @@ abstract class SimpleSubValidator<T>
     configure(
         ...args: EnabledErrorSignature
     ): this {
-        const { enabled, message } = toEnabledError(...args)
-        const next = Struct.applyState(this, { enabled } as StructState<this>)
-
-        if (message)
-            next._applyMessage(message)
-
-        return next
+        const newState = toEnabledError(...args) as StructState<this>
+        const newStruct = Struct.applyState(this, newState)
+        return newStruct
     }
+
+    // State  
 
     get [$$state](): SimpleSubValidatorState<T> {
-        const { enabled, message } = this 
-        return { enabled, message }
-    }
+        return pick(this, 'enabled', 'message')
+    }  
 
-    private _applyMessage(message: string | MessageMethod<T>): void {
+    set [$$state](state: SimpleSubValidatorState<T>) {
+        const { enabled, message } = state
+        
+        assign(this, { enabled })
+        this._applyMessage(message)
+    } 
+
+    // Helper
+
+    protected _applyMessage(message: string | MessageMethod<T>): void {
         this.message = isString(message) ? () => message : message
     }
 
