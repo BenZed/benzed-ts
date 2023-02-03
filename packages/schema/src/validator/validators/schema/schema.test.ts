@@ -8,6 +8,7 @@ import { TypeValidator } from '../type-validator'
 import { expectTypeOf } from 'expect-type'
 import { testValidator, testValidationContract } from '../../../util.test'
 import { $$state, ValidatorState } from '../../validator-struct'
+import { SimpleSubContractValidator } from './simple-sub-contract-validator'
 
 //// EsLint ////
 
@@ -40,7 +41,7 @@ describe('Schema Setters Type Tests', () => {
     interface Positive extends SubValidator<bignumber> {
 
         // Custom configuration signature
-        configure(enabled?: boolean): { enabled: boolean }
+        configure(enabled?: boolean): this
 
     }
 
@@ -156,10 +157,28 @@ describe('Schema implementation', () => {
             }
         }
 
-        class Capitalize extends SubValidator<string> {
+        class Capitalize extends SimpleSubContractValidator<string> {
 
-        }
+            transform(input: string): string {
+                return input.charAt(0).toUpperCase() + input.slice(1)
+            }
+
+            message(): string {
+                return 'Must be capitalized.'
+            } 
+ 
+        } 
+
+        const $string = new Schema(new StringValidator(), {
+            captialize: new Capitalize(false)
+        })
         
+        testValidator<unknown,string>(
+            $string.captialize(),
+            { transforms: 'ace', output: 'Ace' },
+            { asserts: 'ace', error: 'Must be capitalized' },
+            { transforms: 0, error: 'Must be a String' },
+        )
     })
 
-})
+})  

@@ -1,5 +1,5 @@
 
-import { ValidatorState, ValidatorStruct } from '../../validator-struct'
+import { ValidatorStruct } from '../../validator-struct'
 
 //// EsLint ////
 
@@ -8,20 +8,6 @@ import { ValidatorState, ValidatorStruct } from '../../validator-struct'
 */
 
 //// Sub Validator Types ////
-
-/**
- * An interface sub validators may implement to customize
- * it's own sub-setter configuration signature.
- */
-export interface SubValidatorConfigure<T, S extends object> 
-    extends SubValidator<T>, ValidatorState<S> {
-
-    /**
-     * May return any generic 
-     */
-    configure(...args: unknown[]): S
-
-}
 
 /**
  * A sub validator is an immutably configurable addition to a schema

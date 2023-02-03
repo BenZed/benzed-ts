@@ -1,11 +1,9 @@
-import { $$assign, equals, StructAssignState } from '@benzed/immutable'
-import { isArray, isObject, isString, keysOf, nil, pick, provideCallableContext } from '@benzed/util'
+import { equals, } from '@benzed/immutable'
 
 import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import { ValidateStruct } from './validate-struct'
 import { Validator } from './validator'
-import { showProperty } from './validators/schema/property-helpers'
 
 //// EsLint ////
 
@@ -53,18 +51,7 @@ export abstract class ValidatorStruct<I, O extends I = I>
     implements Validator<I,O> {
 
     constructor() {
-        super(validate, provideCallableContext)
-
-        // make all custom state properties enumerable
-        if ($$state in this && isObject(this[$$state])) {
-            for (const key of keysOf(this[$$state])) {
-                if (key in this) // may not be initialized yet
-                    showProperty(this, key)
-            }
-        }
-
-        // message is always a state property
-        showProperty(this, 'message')
+        super(validate)
     }
 
     abstract validate(input: I, options?: ValidateOptions): O
@@ -83,15 +70,6 @@ export abstract class ValidatorStruct<I, O extends I = I>
     message(ctx: ValidationContext<I>): string {
         void ctx
         return `${this.name} validation failed.`
-    }
-
-    protected override [$$assign](state: StructAssignState<this>): StructAssignState<this> {
-
-        const keys = $$state in this && isArray(this[$$state], isString) 
-            ? [...this[$$state], 'enabled', 'message', 'name']
-            : nil
-
-        return keys ? pick(state, ...keys) : state
     }
 
 }

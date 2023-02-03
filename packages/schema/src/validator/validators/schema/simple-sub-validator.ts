@@ -1,4 +1,4 @@
-import { $$assign, StructAssignState } from '@benzed/immutable'
+import { Struct, StructState } from '@benzed/immutable'
 import { 
     isBoolean, 
     isFunc, 
@@ -8,14 +8,10 @@ import {
     SignatureParser 
 } from '@benzed/util'
 
-import { 
-    ContractValidatorSettings 
-} from '../../contract-validator'
-import { $$state, ValidatorStruct } from '../../validator-struct'
+import { $$state, ValidatorState, ValidatorStruct } from '../../validator-struct'
 
 import { 
     SubValidator, 
-    SubValidatorConfigure 
 } from './sub-validator'
 
 //// EsLint ////
@@ -42,13 +38,14 @@ type EnabledErrorSignature = Parameters<typeof toEnabledError>
 
 //// Main ////
 
-type SimpleSubValidatorState<T> = { enabled: boolean, message: string | MessageMethod<T> }
+type SimpleSubValidatorState<T> = { enabled: boolean, message: MessageMethod<T> }
 /**
  * Convenience class for sub validators that only take
  * an error as configuration
  */
-abstract class SimpleSubValidator<T> extends SubValidator<T>
-    implements SubValidatorConfigure<T, SimpleSubValidatorState<T>> {
+abstract class SimpleSubValidator<T> 
+    extends SubValidator<T> 
+    implements ValidatorState<SimpleSubValidatorState<T>> {
 
     constructor(
         readonly enabled: boolean, 
@@ -60,8 +57,14 @@ abstract class SimpleSubValidator<T> extends SubValidator<T>
 
     configure(
         ...args: EnabledErrorSignature
-    ): SimpleSubValidatorState<T> {
-        return toEnabledError(...args) as SimpleSubValidatorState<T>
+    ): this {
+        const { enabled, message } = toEnabledError(...args)
+        const next = Struct.applyState(this, { enabled } as StructState<this>)
+
+        if (message)
+            next._applyMessage(message)
+
+        return next
     }
 
     get [$$state](): SimpleSubValidatorState<T> {
@@ -69,19 +72,8 @@ abstract class SimpleSubValidator<T> extends SubValidator<T>
         return { enabled, message }
     }
 
-    override [$$assign](state: StructAssignState<this>): StructAssignState<this> {
-        
-        const { enabled } = state 
-
-        if (state.message)
-            this._applyMessage(state.message)
-
-        return { enabled } as unknown as StructAssignState<this>
-
-    }
-
-    private _applyMessage(msg: string | MessageMethod<T>): void {
-        this.message = isString(msg) ? () => msg : msg
+    private _applyMessage(message: string | MessageMethod<T>): void {
+        this.message = isString(message) ? () => message : message
     }
 
 }

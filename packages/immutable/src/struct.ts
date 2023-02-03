@@ -1,135 +1,166 @@
-import {
-    assign,
-    Callable,
-    CallableContextProvider,
-
-    Func,
-    Infer,
-    keysOf,
-    KeysOf,
-    pick,
-    provideCallableContext,
-
+import { 
+    assign, 
+    Func, 
+    KeysOf, 
+    Property, 
+    nil, 
+    provideCallableContext, 
+    Callable, 
+    isFunc, 
+    PrivateState,
+    GenericObject
 } from '@benzed/util'
 
 import { $$copy } from './copy'
+
 import equals, { $$equals } from './equals'
 
-//// EsLint ////
+//// Setup ////
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-*/
+const $$state = Symbol('struct-state')
 
-//// Symbols ////
+//// Helper Types ////
 
-const $$assign = Symbol('struct-state-assign')
+type _NonFuncKey<T, K extends keyof T> = T[K] extends Func ? never : K
+
+type _DefaultStructState<T> = {
+    [K in KeysOf<T> as _NonFuncKey<T,K>]: T[K]
+}
+
+//// Main Types ////
+
+interface Struct {
+    // [$$copy](): this
+    // [$$equals](other: unknown): other is this
+}
+
+type StructState<T> = T extends StructStateLogic<infer S> 
+    ? S 
+    : _DefaultStructState<T>
+
+interface StructStateLogic<T extends object> {
+
+    get [$$state](): T
+
+    set [$$state](value: T)
+
+}
+
+interface StructConstructor {
+
+    readonly $$state: typeof $$state
+
+    applyState<T extends Struct>(struct: T, state: StructState<T>): T
+
+    new (): Struct
+    new <F extends Func>(signature: F): Struct & F
+}
 
 //// Helper ////
 
-type StructState<T extends object> = {
-    [K in KeysOf<T>]: T[K]
+function initStateLogic<T extends Struct>(struct: T): T {
+    return new Proxy(struct, {
+
+        ownKeys(struct) {
+
+            const state = $$state in struct
+                ? struct[$$state] as object
+                : struct
+
+            return Reflect.ownKeys(state)
+        },
+
+        get(struct, prop, value) {
+
+            const isGenericStateGet = 
+                prop === $$state && !($$state in struct)
+
+            return isGenericStateGet 
+                ? { ...struct }
+                : Reflect.get(struct, prop, value)
+        },
+
+        set(struct, prop, value) {
+
+            const isStateKey = prop === $$state 
+
+            const stateDescriptor = isStateKey 
+                ? Property.descriptorOf(struct.constructor.prototype, $$state) 
+                : nil
+
+            const isGenericStateSet = isStateKey && 
+                !stateDescriptor?.writable && 
+                !stateDescriptor?.set
+
+            if (isGenericStateSet) {
+                assign(struct, value)
+                return true
+            }
+
+            return Reflect.set(struct, prop, value)
+        }
+
+    })
 }
 
-type StructAssignState<T extends object> = Partial<StructState<T>>
+function initStruct(newStruct: Struct, signature?: Func, state?: GenericObject): Struct {
 
-//// Helper ////
+    newStruct = signature     
+        ? Callable.create(signature, newStruct, provideCallableContext) as Struct
+        : newStruct
 
-function applyExistingState<S extends Struct>(struct: S, state: StructAssignState<S>): S {
+    const initStruct = initStateLogic(newStruct)
 
-    const previousState = { ...struct }
-    const validState = pick(state, ...keysOf(previousState)) as StructAssignState<S>
-    return applyNewState(struct, validState)
+    // exchange private signature
+    if (signature) {
+
+        const newStructCallableState = PrivateState.for(Callable).get(newStruct as Func) 
+
+        PrivateState.for(Callable).set(
+            initStruct as Func,
+            newStructCallableState
+        )
+    }
+
+    if (state)
+        (initStruct as StructStateLogic<GenericObject>)[$$state] = state
+    
+    return initStruct
+
 }
 
-function applyNewState<S extends Struct>(struct: S, state: Partial<StructState<S>>): S {
-    const newState = struct[$$assign](state)
-    return assign(struct, newState) as S
-}
+const Struct = class {
 
-//// StructBase ////
+    static $$state = $$state
 
-abstract class Struct {
+    static applyState(struct: Struct, state: StructState<Struct>): Struct {
+        const newStruct = Object.create(struct.constructor.prototype)
 
-    static readonly $$assign: typeof $$assign = $$assign
+        const signature = isFunc(struct)
+            ? Callable.signatureOf(struct)
+            : nil
 
-    static clone<S extends Struct>(struct: S): S {
-        return Object.create(struct)
+        return initStruct(newStruct, signature, state)
     }
 
-    static apply<S extends Struct>(
-        struct: S,
-        newState: StructAssignState<S>
-    ): S {
-        const newStruct = struct[$$copy]()
-
-        const assignedStruct = applyExistingState(newStruct, newState)
-        return assignedStruct
+    constructor(signature?: Func) {
+        return initStruct(this, signature) as this
     }
 
-    static [Symbol.hasInstance](input: unknown): boolean {
-        // So that Structs are also instances of CallableStructs
-        return Callable[Symbol.hasInstance].call(this, input)
-    }
-
-    //// Symbolic ////
- 
-    protected [$$assign](state: StructAssignState<this>): StructAssignState<this> {
-        return state
-    }
- 
     protected [$$copy](): this {
-
-        const state = { ...this } as unknown as StructAssignState<this>
-        const newStruct = Struct.clone(this)
-
-        const appliedStruct = applyNewState(newStruct, state)
-        return appliedStruct
+        const state = { ...this } as unknown as StructState<this>
+        return Struct.applyState(this, state)
     }
     
     protected [$$equals](other: unknown): other is this {
-        return other instanceof Struct && equals(
-            { ...this },
-            { ...other }
+        return (
+            other instanceof Struct && 
+            other.constructor === this.constructor &&
+            equals({ ...this }, { ...other })
         )
     }
-}
 
-//// CallableStruct ////
-
-type CallableStruct = typeof Struct & (
-    abstract new <F extends Func>(
-        signature: F, 
-        ctxProvider?: CallableContextProvider<F>
-    ) => F & Struct
-)
-
-const CallableStruct = class extends Struct {
-
-    constructor(
-        signature: Func, 
-        ctxProvider: CallableContextProvider<Func> = provideCallableContext
-    ) {
-        super()
-        return Callable.create(signature, this, ctxProvider) as this
-    }
-
-    override [$$copy](): this {
-
-        const callable = this as unknown as Func
-        const signature = Callable.signatureOf(callable)
-        const ctxProvider = Callable.contextProviderOf(callable)
-
-        const struct = super[$$copy]()
-        
-        return Callable.create(
-            signature, 
-            struct,
-            ctxProvider
-        ) as this
-    }
-
-} as unknown as CallableStruct
+} as StructConstructor
 
 //// Exports ////
 
@@ -137,10 +168,7 @@ export default Struct
 
 export {
     Struct,
-    CallableStruct,
-
     StructState,
-    StructAssignState,
-
-    $$assign
+    StructStateLogic,
+    $$state
 }

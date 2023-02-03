@@ -1,96 +1,204 @@
+import { Struct, $$state, StructState, StructStateLogic } from './struct'
 
-import { CallableStruct, Struct, StructAssignState } from './struct'
+import { test } from '@jest/globals'
+import { assign, Func, pick, Property } from '@benzed/util'
 
 import { expectTypeOf } from 'expect-type'
-//// Setup ////
+import { unique } from '@benzed/array'
 
-class Scalar extends Struct {
+//// EsLint ////
 
-    constructor(readonly value: number) {
-        super()
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
+
+//// Tests ////
+
+test('spread state matches struct state', () => {
+
+    class Person extends Struct implements StructStateLogic<{ age: number }> {
+
+        constructor(readonly name: string, readonly age: number) { 
+            super()
+        }
+
+        speak(): string {
+            return `My name is ${this.name}, I am ${this.age} years old.`
+        }
+
+        get [$$state](): { age: number } {
+            return pick(this, 'age')
+        }
     }
-}  
 
-//// Tests //// 
+    const jerry = new Person('jerry', 35)  
+    expect({ ...jerry }).toEqual({ age: 35 })
 
-it('state', () => { 
-    const scalar = new Scalar(5)
-
-    const state = { ...scalar }
-    expect(state).toEqual({ value: 5 })
-    expectTypeOf(state).toEqualTypeOf<{ value: number }>()
-
+    expect(jerry[$$state]).toEqual({ age: 35 }) 
 })
 
-it('$$assign method', () => {
+test('overridden state setter', () => {
+    
+    const $$cost = Symbol('animal cost')
+    let customStateReads = 0
+    let customStateSets = 0 
+    class Jewelry extends Struct implements StructStateLogic<{ [$$cost]: number }> {
 
-    class Vector extends Scalar {
+        protected [$$cost]: number
 
-        static sum (values: readonly number[]): number {
-            return values.reduce((v,c) => v + c)
+        constructor(cost: number) {
+            super()
+
+            this[$$cost] = cost
         }
 
-        constructor(readonly values: readonly number[]) {
-            super(Vector.sum(values))
-        }
-
-        protected [Struct.$$assign](state: StructAssignState<this>): StructAssignState<this> {
-
-            const values = 'values' in state
-                ? state.values as number[]
-                : this.values
-
+        get [$$state](): { [$$cost]: number } {
+            customStateReads++
             return {
-                ...state,
-                value: Vector.sum(values)
+                [$$cost]: this[$$cost]
             }
         }
+
+        set [$$state](state: { [$$cost]: number }) {
+            customStateSets++
+            this[$$cost] = state[$$cost]
+        }  
+
+    } 
+
+    const cheap = new Jewelry(10) 
+    expect({ ...cheap }).toEqual({ [$$cost]: 10 })
+
+    const expensive = Jewelry.applyState(cheap, { [$$cost]: 50 })
+    expect({ ...expensive }).toEqual({ [$$cost]: 50 })
+
+    expect(customStateReads).toEqual(2)
+    expect(customStateSets).toEqual(1)
+
+})
+
+test('state logic is overridable', () => {
+
+    class Ticker extends Struct {
+        constructor(public seconds: number) {
+            super()
+        }
     }
 
-    const avg3 = new Vector([1,2,3,6])
-    expect({ ...avg3 }).toEqual({ value: 12, values: [1,2,3,6] })
+    const t1 = new Ticker(60)
+    const t1State = { ...t1 }
+    expect(t1State).toEqual({ seconds: 60 })
+    expectTypeOf<typeof t1State>().toEqualTypeOf<{ seconds: number }>()
+    expectTypeOf<StructState<typeof t1>>().toEqualTypeOf<{ seconds: number }>()
 
-    const avg4 = Vector.apply(avg3, { values: [1,2,3] })
-    expect({ ...avg4 }).toEqual({ values: [1,2,3], value: 6 })
-})
+    class Timer extends Ticker implements StructStateLogic<{ seconds: number }> {
 
-it('apply', () => {
+        get minutes(): number {
+            return Math.floor(this.seconds / 60)
+        }
 
-    const scalar1 = new Scalar(0)
-    const scalar2 = Struct.apply(scalar1, { value: 10 })
-    expect(scalar2).toBeInstanceOf(Scalar)
-    expect(scalar2).toHaveProperty('value', 10)
-    expect(scalar1).not.toBe(scalar2)
+        get [$$state](): { seconds: number } {
+            return pick(this, 'seconds')
+        }
 
-    const scalar3 = Struct.apply(scalar1, scalar2)
-    expect(scalar3).toBeInstanceOf(Scalar)
-    expect(scalar2).toHaveProperty('value', 10)
-    expect(scalar1).not.toBe(scalar2)
-})
-
-it('callable', () => {
-    
-    class Average extends CallableStruct<() => number> {
-
-        readonly values: number[]
-
-        constructor(...values: number[]) {
-            super(function () {
-                return this.values.reduce((a,c) => a + c) / this.values.length
-            })
-            this.values = values
+        set [$$state](state) {
+            assign(this, pick(state, 'seconds'))
         }
 
     }
 
-    const two = new Average(1,2,3)
-    expect(two()).toEqual(2)
-    expect({ ...two }).toEqual({ values: [1,2,3 ]})
-    expectTypeOf({ ...two }).toEqualTypeOf({ values: [1,2,3 ]})
+    const t2 = new Timer(120)
+    const t2State = { ...t2 }
+    expect(t2State).toEqual({ seconds: 120 })
+    expectTypeOf<typeof t2State>().toEqualTypeOf<{ seconds: number }>()
+    expectTypeOf<StructState<typeof t2>>().toEqualTypeOf<{ seconds: number }>()
 
-    const five = Average.apply(two, { values: [5] })
-    expect(five()).toEqual(5)
-    expect({ ...five }).toEqual({ values: [5] })
-    expectTypeOf({ ...five }).toEqualTypeOf({ values: [5] }) 
+    class Clock extends Timer implements StructStateLogic<{ seconds: number, dark: boolean }> {
+
+        get hours(): number {
+            return Math.floor(this.minutes / 60)
+        }
+
+        get [$$state](): { seconds: number, dark: boolean } {
+
+            const { seconds } = this
+            const dark = this.hours > 12 
+ 
+            return {
+                seconds,
+                dark
+            }
+        } 
+
+        set [$$state](state: { seconds: number, dark: boolean }) {
+            assign(this, pick(state, 'seconds'))
+        }
+    }
+
+    const t3 = new Clock(120)
+    const t3State = { ...t2 }
+    expect(t3State).toEqual({ seconds: 120 })
+    expectTypeOf<typeof t3State>().toEqualTypeOf<{ seconds: number }>()
+    expectTypeOf<StructState<typeof t3>>().toEqualTypeOf<{ seconds: number, dark: boolean }>()
+
+})
+
+test('callable', () => {
+
+    class Multiplier extends Struct<(i: number) => number> {
+        constructor(readonly by: number) {
+            super(function mulitply(this: Multiplier, i: number) {
+                return i * this.by
+            })
+        }
+    }
+
+    const x2 = new Multiplier(2)
+    expect(x2(2)).toEqual(4)
+
+    const x4 = Struct.applyState(x2, { by: 4 })
+    expect(x4(4)).toEqual(16)
+
+})
+
+test('callable wth proxies', () => {
+
+    const callable = <O extends object, F extends Func>(
+        object: O,
+        func: F
+    ): F & O => {
+        return new Proxy(func, {
+            apply(func, _, args) {
+                return Reflect.apply(func, object, args)
+            },
+            ownKeys(_) {
+                return [
+                    ...Reflect.ownKeys(object),
+                    'prototype'
+                ].filter(unique)
+            },
+            get(_, key, proxy) {
+                return Reflect.get(object, key, proxy)
+            },
+            set(_, key, proxy) {
+                return Reflect.set(object, key, proxy)
+            }
+        }) as F & O
+    }
+
+    class By {
+        constructor(public by: number) {}
+    }
+
+    const by5 = new By(5)
+
+    const multiplier = callable(
+        by5, 
+        function multiply(input: number) {
+            return input * this.by
+        }
+    )
+
+    multiplier.by = 10
 
 })

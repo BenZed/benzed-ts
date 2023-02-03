@@ -1,9 +1,9 @@
 import { isString, pick, Property } from '@benzed/util'
 
-import { SubValidatorConfigure } from './sub-validator'
-import { SimpleSubValidator, MessageMethod } from './simple-sub-validator'
+import { SimpleSubValidator, MessageMethod, EnabledErrorSignature, toEnabledError } from './simple-sub-validator'
 import { ContractValidator } from '../../contract-validator'
 import { $$state } from '../../validator-struct'
+import { Struct, StructState } from '@benzed/immutable'
 
 //// Main ////
 
@@ -13,8 +13,7 @@ type SimpleSubContractValidatorState<T> = { enabled: boolean, message: string | 
  * Convenience class for creating contract sub validators that only take
  * an error as configuration
  */
-export abstract class SimpleSubContractValidator<T> extends ContractValidator<T, T>
-    implements SubValidatorConfigure<T, SimpleSubContractValidatorState<T>> {
+export abstract class SimpleSubContractValidator<T> extends ContractValidator<T, T> {
 
     constructor(
         readonly enabled: boolean,
@@ -30,7 +29,17 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
         return this.constructor.name
     }
 
-    readonly configure!: SubValidatorConfigure<T, SimpleSubContractValidatorState<T>>['configure']
+    configure(
+        ...args: EnabledErrorSignature
+    ): this {
+        const { enabled, message } = toEnabledError(...args)
+        const next = Struct.applyState(this, { enabled } as StructState<this>)
+
+        if (message)
+            next._applyMessage(message)
+
+        return next
+    }
 
     get [$$state](): SimpleSubContractValidatorState<T> {
         return pick(this, 'message', 'enabled') as SimpleSubContractValidatorState<T>
