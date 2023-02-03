@@ -19,7 +19,7 @@ it('create a pipe with multiple transforms', () => {
     expect(x32(1)).toEqual(32)
 })
 
-it('multiple transforms must have the same type', () => {
+it('multiple transforms must have the same type', () => { 
     // @ts-expect-error mismatching input type
     void Pipe.from(x2, parseInt) 
 })

@@ -112,8 +112,8 @@ export type ShapeOutput<T extends ShapeInput> = {
 }
 export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T>> => 
     (input: unknown): input is ShapeOutput<T> => 
-        isObject<ShapeOutput<T>>(shape) && 
-        Object.entries(shape).every(([key, value]) => shape[key](value))
+        isObject<ShapeOutput<T>>(input) && 
+        Object.entries(shape).every(([key, type]) => type(input[key]))
 
 export type TupleInput = TypeGuard<unknown>[]
 export type TupleOuput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
