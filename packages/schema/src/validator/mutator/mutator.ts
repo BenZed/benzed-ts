@@ -1,7 +1,6 @@
-import { $$copy, $$state } from '@benzed/immutable'
-import { assign, KeysOf, OutputOf, Property } from '@benzed/util'
+import { KeysOf, OutputOf } from '@benzed/util'
 
-import { AnyValidate, Validate } from '../../validate'
+import { AnyValidate } from '../../validate'
 import { ValidatorStruct } from '../validator-struct'
 
 import { 
@@ -14,6 +13,15 @@ import {
     removeMutator,
     getMutators
 } from './mutator-operations'
+
+//// Symbol ////
+
+const $$target = Symbol('mutate-target')
+const $$type = Symbol('mutate-type')
+
+const $$get = Symbol('mutator-get')
+const $$set = Symbol('mutator-set')
+const $$apply = Symbol('mutator-apply')
 
 //// Types ////
 
@@ -34,11 +42,14 @@ type MutatorProperties<V extends AnyValidate> = {
 
 //// Implementation ////
 
-class Mutator<
+abstract class Mutator<
     V extends AnyValidate, 
     T extends MutatorType, 
     O = OutputOf<V>
 > extends ValidatorStruct<unknown, O> {
+
+    static $$type = $$type
+    static $$target = $$target
 
     static readonly add = addMutators
     static readonly has = hasMutator
@@ -49,38 +60,34 @@ class Mutator<
     static readonly get = getMutators
     static readonly is = isMutator
 
-    constructor(
-        readonly target: V,
-        readonly mutator: T
-    ) {
+    protected readonly [$$type]: T
+    protected readonly [$$target]: V
+
+    constructor(validate: V, type: T) {
         super()
-        this.validate = this.target
-        this._mutate()
+
+        this[$$target] = validate
+        this[$$type] = type
+
+        return new Proxy(this, {
+            get: this[$$get],
+            // set: this[$$set],
+            // ownKeys: this[$$ownKeys],
+            // apply: this[$$apply]
+        }) as this
     }
 
-    readonly validate: Validate<unknown, O>
+    protected [$$get](
+        mutator: this, 
+        key: string | symbol, 
+        proxy: typeof Proxy
+    ): unknown {
 
-    //// ValueCopy ////
+        const target = key in mutator
+            ? mutator 
+            : mutator[$$target]
 
-    override set [$$state](state: Partial<this>) {
-        assign(this, state)
-        this._mutate()
-    }
-
-    //// Mutator ////
-
-    private _mutate(): void {
-        Property.define(this, this._createMutation())
-    }
-
-    protected _createMutation(): PropertyDescriptorMap {
-        return {
-            validate: {
-                get(this: Mutator<V,T,O>) {
-                    return this.target
-                }
-            }
-        }
+        return Reflect.get(target, key, proxy)
     }
 
 }
@@ -88,8 +95,13 @@ class Mutator<
 //// Exports ////
 
 export {
+
     AnyMutator,
+
     Mutator,
     MutatorType,
-    MutatorProperties
+    MutatorProperties,
+
+    $$target,
+    $$type
 }

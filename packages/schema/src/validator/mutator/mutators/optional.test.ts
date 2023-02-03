@@ -1,25 +1,88 @@
+import { isBoolean, isNumber, isShape, nil } from '@benzed/util'
+import { StructState } from '@benzed/immutable'
+
 import { Optional } from './optional'
+import { testValidator } from '../../../util.test'
+import { TypeValidator } from '../../validators'
 
-import { it } from '@jest/globals'
-import ContractValidator from '../../contract-validator'
-import { isString, nil } from '@benzed/util'
-
-import { testValidator, testValidationContract } from '../../../util.test'
+import { expectTypeOf } from 'expect-type'
 
 //// Tests ////
 
-const $string = ContractValidator.generic({
-    isValid: isString
+class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
+
+    isValid = isShape({
+        cookies: isNumber,
+        open: isBoolean
+    })
+
+    readonly enabled = true
+
+    toggleEnabled(): this {
+
+        console.log(this)
+        return TypeValidator.applyState(
+            this, 
+            { enabled: !this.enabled } as StructState<this>
+        )
+    }
+}
+
+const $cookieJar = new CookieJar
+
+const $maybeCookieJar = new Optional($cookieJar)
+
+describe('Optional validation mutation', () => {
+
+    expectTypeOf($maybeCookieJar)
+        .toEqualTypeOf<Optional<CookieJar>>()
+
+    testValidator<unknown, { cookies: number, open: boolean }>(
+        $cookieJar,
+        { asserts: nil, error: true }
+    )
+    
+    testValidator<unknown, { cookies: number, open: boolean } | undefined>(
+        $maybeCookieJar,
+        { asserts: nil },
+    )
+
 })
 
-testValidator<unknown, string>(
-    $string,
-    { asserts: nil, error: true }
-)
+describe('removable', () => {
 
-const $optString = new Optional($string)
+    testValidator<unknown, { cookies: number, open: boolean }>(
+        $maybeCookieJar.required,
+        { asserts: nil, error: true }
+    )
 
-testValidator<unknown, string | undefined>(
-    $optString,
-    { asserts: nil } 
-)
+})
+
+describe('effect on target', () => {
+
+    it('has target properties', () => {
+        expect($maybeCookieJar.cast).toBe($cookieJar.cast)
+        expect($maybeCookieJar.default).toBe($cookieJar.default)
+        expect($maybeCookieJar.enabled).toBe($cookieJar.enabled)
+    })
+
+    it('favours own properties', () => {
+        expect($maybeCookieJar.required).toEqual($cookieJar)
+    })
+
+    it('wraps build method resuilts in Optional', () => { 
+
+        const $disabledCookieJar = $cookieJar.toggleEnabled()
+
+        const $disabledMaybeCookieJar = $maybeCookieJar.toggleEnabled()
+
+        expect($disabledMaybeCookieJar.enabled).toBeInstanceOf(false)
+        expect($disabledMaybeCookieJar).toBeInstanceOf(Optional)
+
+        expectTypeOf($disabledMaybeCookieJar)
+            .toEqualTypeOf<Optional<CookieJar>>()
+
+    })
+
+})
+

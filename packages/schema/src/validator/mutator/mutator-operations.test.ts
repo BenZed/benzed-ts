@@ -18,7 +18,7 @@ import {
 } from './mutator-operations'
 
 import { Optional, ReadOnly } from './mutators'
-import { MutatorType as M, MutatorType } from './mutator'
+import { $$target, MutatorType as M, MutatorType } from './mutator'
 import { Validate } from '../../validate'
 
 import { ContractValidator } from '../contract-validator'
@@ -65,7 +65,7 @@ describe('AddMutator', () => {
         ]) {
 
             expect($optionalString.constructor).toBe(Optional)
-            expect($optionalString).toHaveProperty('target', $string) 
+            expect($optionalString[$$target]).toBe($string) 
             expectTypeOf($optionalString).toEqualTypeOf<Optional<String>>()
         }
 
@@ -82,7 +82,7 @@ describe('AddMutator', () => {
         ]) {
             expectTypeOf($readonlyArrayOfString).toEqualTypeOf<ReadOnly<ArrayOfString>>()
             expect($readonlyArrayOfString.constructor).toBe(ReadOnly)
-            expect($readonlyArrayOfString).toHaveProperty('target', $arrayOfString) 
+            expect($readonlyArrayOfString[$$target]).toBe($arrayOfString) 
         }
     })
 

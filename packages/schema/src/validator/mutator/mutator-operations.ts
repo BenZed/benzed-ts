@@ -2,7 +2,7 @@
 import { OutputOf } from '@benzed/util'
 import { AnyValidate } from '../../validate'
 
-import { MutatorType as M } from './mutator'
+import { $$target, $$type, MutatorType as M } from './mutator'
 import type { AnyMutator, Mutator, MutatorProperties } from './mutator'
 
 import type { Optional, Required, ReadOnly, Writable } from './mutators'
@@ -17,13 +17,13 @@ import type { Optional, Required, ReadOnly, Writable } from './mutators'
 //// Helper ////
 
 export function isMutator(target: AnyValidate): target is AnyMutator {
-    return 'target' in target && 'mutator' in target
+    return $$target in target && $$type in target
 }
 
 export function * eachMutator(validator: AnyValidate): Generator<AnyMutator> {
     while (isMutator(validator)) {
         yield validator
-        validator = validator.target
+        validator = validator[$$target]
     }
 }
 
@@ -103,7 +103,7 @@ export function hasMutator<Vx extends AnyValidate, Tx extends M>(
     type: Tx
 ): HasMutator<Vx, Tx> {
     for (const mutator of eachMutator(validate)) {
-        if (mutator['mutator'] === type)
+        if (mutator[$$type] === type)
             return true as HasMutator<Vx, Tx>
     }
     return false as HasMutator<Vx, Tx>
@@ -131,7 +131,7 @@ export type MutatorsOf<V extends AnyValidate> =
         : []
 
 export function mutatorsOf<V extends AnyValidate>(validate: V): MutatorsOf<V> {
-    return getMutators(validate).map(v => v.mutator) as MutatorsOf<V> 
+    return getMutators(validate).map(v => v[$$type]) as MutatorsOf<V> 
 }
 
 //// RemoveMutator ////
@@ -149,7 +149,7 @@ export function removeMutator<V extends AnyValidate, T extends M>(
 
     const mutators = getMutators(mutator)
 
-    const types = mutators.map(mutator => mutator.mutator)
+    const types = mutators.map(mutator => mutator[$$type])
     const typeIndex = types.indexOf(type)
     // No type to remove
     if (typeIndex < 0)
@@ -159,7 +159,7 @@ export function removeMutator<V extends AnyValidate, T extends M>(
     types.splice(types.indexOf(type), 1)
 
     // Rebuild the mutator stack
-    const validate = mutators.at(-1)?.target ?? mutator
+    const validate = mutators.at(-1)?.[$$target] ?? mutator
     return addMutators(validate, ...types) as RemoveMutator<V,T>
 }
 
@@ -174,7 +174,7 @@ export function removeAllMutators<V extends AnyValidate>(
 ): RemoveAllMutators<V> {
         
     const stack = getMutators(mutator)
-    const validate = stack.at(-1)?.target ?? mutator
+    const validate = stack.at(-1)?.[$$target] ?? mutator
     return validate as RemoveAllMutators<V>
 }
 
