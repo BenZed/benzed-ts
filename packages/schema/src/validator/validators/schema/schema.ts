@@ -1,5 +1,5 @@
 import { capitalize } from '@benzed/string'
-import { $$state, copy, StructState, StructStateLogic } from '@benzed/immutable'
+import { $$state, copy, StructState, StructStateShape } from '@benzed/immutable'
 import { isFunc, isString, keysOf, KeysOf, Mutable, Property } from '@benzed/util'
 
 import {
@@ -51,7 +51,7 @@ export type AnySubValidators = SubValidators<any>
  * @internal
  */
 export type _StateKeysOf<V extends AnyValidatorStruct> = 
-    Extract<'name' | 'message' | 'enabled' | (V extends StructStateLogic<infer K> ? KeysOf<K> : never), KeysOf<V>>
+    Extract<'name' | 'message' | 'enabled' | (V extends StructStateShape<infer K> ? KeysOf<K> : never), KeysOf<V>>
 
 /**
  * @internal

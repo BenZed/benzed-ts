@@ -1,5 +1,5 @@
-import { $$state, Struct, StructStateLogic } from '@benzed/immutable'
-import { KeysOf, OutputOf } from '@benzed/util'
+import { $$copy, $$state, StructState } from '@benzed/immutable'
+import { KeysOf, Mutable, OutputOf } from '@benzed/util'
 
 import { AnyValidatorStruct, ValidatorStruct } from '../validator-struct'
 
@@ -46,7 +46,23 @@ type MutatorProperties<V extends AnyValidatorStruct> = {
     [K in Exclude<keyof V, KeysOf<Mutator<V, MutatorType>>>]: V[K]
 }
 
+type MutatorState<V extends AnyValidatorStruct, T extends MutatorType> = 
+    StructState<V> & {
+        [$$target]: V
+        [$$type]: T
+    }
+
 //// Implementation ////
+
+function mutate<M extends AnyMutator>(mutator: M): M {
+    return new Proxy(mutator, {
+        get: mutator[$$get],
+        set: mutator[$$set],
+        // ownKeys: this[$$ownKeys],
+        // apply: this[$$apply]
+
+    }) as M
+}
 
 abstract class Mutator<
     V extends AnyValidatorStruct, 
@@ -75,22 +91,22 @@ abstract class Mutator<
         this[$$target] = validate
         this[$$type] = type
 
-        return new Proxy(this, {
-            get: this[$$get],
-            set: this[$$set],
-            // ownKeys: this[$$ownKeys],
-            // apply: this[$$apply]
-
-        }) as this
+        return mutate(this)
     }
 
+    //// ValidatorStruct Implementation ////
+    
+    override get name(): string {
+        return this.constructor.name
+    }
+
+    //// Mutations ////
+    
     protected [$$get](
         mutator: this, 
         key: string | symbol, 
         proxy: typeof Proxy
     ): unknown {
-
-        console.log(key)
 
         const target = Reflect.has(mutator, key)
             ? mutator 
@@ -106,11 +122,6 @@ abstract class Mutator<
         proxy: typeof Proxy
     ): boolean {
 
-        if (key === $$state) {
-            mutator[$$state] = value
-            return true
-        }
-
         const target = key === $$state
             ? mutator 
             : mutator[$$target]
@@ -118,13 +129,16 @@ abstract class Mutator<
         return Reflect.set(target, key, value, proxy)
     }
 
-    override get name(): string {
-        return this.constructor.name
+    //// Struct ////
+
+    protected override [$$copy](): this {
+        const clone = super[$$copy]()
+        return mutate(clone)
     }
 
-    override get [$$state](): any {
+    override get [$$state](): MutatorState<V,T> {
 
-        const target = this[$$target] as unknown as StructStateLogic<V>
+        const target = this[$$target]
         const targetState = target[$$state]
 
         const state = { 
@@ -136,10 +150,16 @@ abstract class Mutator<
         return state
     }
 
-    override set [$$state](state: any) {
+    override set [$$state](state: MutatorState<V,T>) {
 
-        console.log(this.name, 'SET STATE', state)
+        const { [$$target]: target, [$$type]: main, ...targetState } = state
 
+        const that = this as any
+        that[$$type] = main
+        that[$$target] = ValidatorStruct.applyState(
+            target, 
+            targetState as StructState<V>
+        )
     }
 
 }

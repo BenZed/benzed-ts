@@ -1,4 +1,4 @@
-import { $$state, Struct, StructState, StructStateLogic } from '@benzed/immutable'
+import { $$state, Struct, StructState, StructStateShape } from '@benzed/immutable'
 import { 
     assign,
     isBoolean, 
@@ -47,14 +47,14 @@ type SimpleSubValidatorState<T> = { enabled: boolean, message: string | MessageM
  */
 abstract class SimpleSubValidator<T> 
     extends SubValidator<T> 
-    implements StructStateLogic<SimpleSubValidatorState<T>> {
+    implements StructStateShape<SimpleSubValidatorState<T>> {
 
     constructor(
         readonly enabled: boolean, 
-        message: string | MessageMethod<T>
+        error?: string | MessageMethod<T>
     ) {
         super()
-        this._applyMessage(message)
+        this._applyMessage(error)
     }
 
     configure(
@@ -80,8 +80,9 @@ abstract class SimpleSubValidator<T>
 
     // Helper
 
-    protected _applyMessage(message: string | MessageMethod<T>): void {
-        this.message = isString(message) ? () => message : message
+    protected _applyMessage(error?: string | MessageMethod<T>): void {
+        if (error)
+            this.message = isString(error) ? () => error : error
     }
 
 }

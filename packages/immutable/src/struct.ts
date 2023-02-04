@@ -4,8 +4,7 @@ import {
     nil, 
     provideCallableContext, 
     Callable, 
-    isFunc, 
-    GenericObject
+    isFunc 
 } from '@benzed/util'
 
 import copy, { $$copy } from './copy'
@@ -19,6 +18,10 @@ const $$state = Symbol('struct-state')
 //// Types ////
 
 type StructState<T extends Struct> = T[typeof $$state]
+
+interface StructStateShape<T extends object> {
+    [$$state]: T
+}
 
 type Struct = Structural
 
@@ -34,7 +37,7 @@ interface StructConstructor {
 
 //// Initialization ////
 
-function initialize(struct: Struct, signature?: Func, state?: GenericObject): Struct {
+function initialize(struct: Struct, signature?: Func, state?: object): Struct {
 
     struct = signature     
         ? Callable.create(signature, struct, provideCallableContext) as Struct
@@ -53,11 +56,11 @@ abstract class Structural {
 
     static [Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
-    get [$$state](): GenericObject {
-        return { ...this } as GenericObject
+    get [$$state](): object {
+        return { ...this } as object
     }
 
-    set [$$state](state: GenericObject) {
+    set [$$state](state: object) {
         assign(this, state)
     }
 
@@ -103,5 +106,6 @@ export default Struct
 export {
     Struct,
     StructState,
+    StructStateShape,
     $$state
 }

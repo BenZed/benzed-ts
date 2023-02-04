@@ -2,7 +2,7 @@ import { Property } from '@benzed/util'
 
 import { SimpleSubValidator, MessageMethod, EnabledErrorSignature } from './simple-sub-validator'
 import { ContractValidator } from '../../contract-validator'
-import { $$state } from '@benzed/immutable/src'
+import { $$state } from '@benzed/immutable'
 
 //// Main ////
 
@@ -14,7 +14,7 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
 
     constructor(
         readonly enabled: boolean,
-        error: string | MessageMethod<T> = 'Validation failed.'
+        error?: string | MessageMethod<T>
     ) {
         super()
         // mix-in configurer
@@ -29,7 +29,7 @@ export abstract class SimpleSubContractValidator<T> extends ContractValidator<T,
 
     //// Helper ////
 
-    protected _applyMessage = SimpleSubValidator.prototype['_applyMessage']
+    protected _applyMessage = SimpleSubValidator.prototype['_applyMessage'] 
 
 }
 

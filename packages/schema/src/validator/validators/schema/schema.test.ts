@@ -1,5 +1,5 @@
-import { isNumber, isString, nil } from '@benzed/util'
-import { $$state, StructStateLogic } from '@benzed/immutable'
+import { assign, isNumber, isString, nil } from '@benzed/util'
+import { $$state, StructStateShape } from '@benzed/immutable'
 
 import { it, describe } from '@jest/globals'
 
@@ -8,8 +8,16 @@ import { SubValidator } from './sub-validator'
 import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
-import { testValidator, testValidationContract } from '../../../util.test'
-import { SimpleSubContractValidator } from './simple-sub-contract-validator'
+
+import { 
+    testValidator, 
+    testValidationContract 
+} from '../../../util.test'
+
+import { 
+    SimpleSubContractValidator 
+} from './simple-sub-contract-validator'
+import { MessageMethod } from './simple-sub-validator'
 
 //// EsLint ////
 
@@ -24,14 +32,17 @@ describe('Schema Setters Type Tests', () => {
     // Hypothetical big number data type.
     type bignumber = `${number}`
 
-    interface BigDecimal extends MainValidator<string, bignumber>, StructStateLogic<{ parse: boolean }> { 
+    interface BigDecimal extends MainValidator<string, bignumber> { 
         
         // hypothetical optional transformation configuration;
         // if transforms are enabled, it'll try to parse invalid strings.
         readonly parse: boolean 
+
+        [$$state]: { parse: boolean }
+
     }
 
-    interface LeadingZeros extends SubValidator<bignumber>, StructStateLogic<{ parse: boolean }> { 
+    interface LeadingZeros extends SubValidator<bignumber> { 
     
         // hypothetical validation configuration:
         // big number must have at least this many leading zeros.
@@ -85,20 +96,26 @@ describe('Schema Setters Type Tests', () => {
 describe('Schema implementation', () => {
 
     type NumberState = {
+        message: MessageMethod<number>
         cast: TypeValidator<number>['cast']
         default: TypeValidator<number>['default']
         finite: boolean
     }
 
     const number = new class NumberValidator extends TypeValidator<number> 
-        implements StructStateLogic<NumberState> {
+        implements StructStateShape<NumberState> {
 
         get [$$state](): NumberState {
             return {
+                message: this.message,
                 cast: this.cast,
                 default: this.default,
                 finite: this.finite
             }
+        }
+
+        set [$$state](state: NumberState) {
+            assign(this, state)
         }
 
         isValid(input: unknown): input is number {
@@ -158,13 +175,13 @@ describe('Schema implementation', () => {
             }
         }
 
-        class Capitalize extends SimpleSubContractValidator<string> {
+        class Capitalize extends SimpleSubContractValidator<string> { 
 
             transform(input: string): string {
                 return input.charAt(0).toUpperCase() + input.slice(1)
             }
 
-            message(): string {
+            override message(): string {
                 return 'Must be capitalized.'
             } 
  
@@ -182,4 +199,4 @@ describe('Schema implementation', () => {
         )
     })
 
-})  
+})

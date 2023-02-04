@@ -1,5 +1,5 @@
 import { isBoolean, isNumber, isShape, nil } from '@benzed/util'
-import { $$state, StructState } from '@benzed/immutable'
+import { StructState } from '@benzed/immutable'
 
 import { Optional } from './optional'
 import { testValidator } from '../../../util.test'
@@ -20,12 +20,9 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
     readonly enabled = true
 
     toggleEnabled(): this {
-
-        console.log('TOGGLE', this[$$state])
-
-        return TypeValidator.applyState(
+        return TypeValidator.applyState( 
             this, 
-            { ...this[$$state], enabled: !this.enabled } as StructState<this>
+            { enabled: !this.enabled } as unknown as StructState<this>
         )
     }
 }
@@ -83,28 +80,18 @@ describe('effect on target', () => {
         expect($disabledMaybeCookieJar).toBeInstanceOf(Optional)
 
         expectTypeOf($disabledMaybeCookieJar)
-            .toEqualTypeOf<Optional<CookieJar>>() 
-
-    }) 
-
-    it.only('result instances retain mutator properties', () => {  
-
-        const $maybeCookieJar2 = Object.create($maybeCookieJar)
-
-        console.log($maybeCookieJar2) 
+            .toEqualTypeOf<Optional<CookieJar>>()  
  
-        // expect($maybeCookieJar[$$target]).toEqual($cookieJar)
+    })
 
-        // console.log('PRE TOGGLE', $maybeCookieJar)
+    it('result instances retain mutator properties', () => {  
+ 
+        expect($maybeCookieJar[$$target]).toEqual($cookieJar)
 
-        // const $disabledMaybeCookieJar = $maybeCookieJar.toggleEnabled() 
+        const $disabledMaybeCookieJar = $maybeCookieJar.toggleEnabled()
 
-        // console.log('POST TOGGLE', $disabledMaybeCookieJar)
-
-        // $maybeCookieJar[$$state] = {}
-
-        // expect($disabledMaybeCookieJar.required).toEqual($cookieJar)
-        // expect($disabledMaybeCookieJar[$$target]).toEqual($cookieJar)
+        expect($disabledMaybeCookieJar.required).toBeInstanceOf(CookieJar)
+        expect($disabledMaybeCookieJar[$$target]).toBeInstanceOf(CookieJar)
 
     }) 
 

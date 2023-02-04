@@ -1,5 +1,5 @@
-import { $$state, StructStateLogic } from '@benzed/immutable'
-import { nil } from '@benzed/util'
+import { $$state } from '@benzed/immutable'
+import { assign, nil } from '@benzed/util'
 import ValidationContext from '../../validation-context'
 import ContractValidator from '../contract-validator'
 
@@ -14,14 +14,17 @@ type TypeValidatorState<T> = {
  * Type validator is a ContractValidator that validates unknown values, 
  * with some sensible default transformation options.
  */
-abstract class TypeValidator<T> extends ContractValidator<unknown, T>
-    implements StructStateLogic<TypeValidatorState<T>> {
+abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
 
     get [$$state](): TypeValidatorState<T> {
         return {
             default: this.default,
             cast: this.cast
         }
+    }
+
+    set [$$state](value: TypeValidatorState<T>) {
+        assign(this, value)
     }
 
     override get name(): string {
