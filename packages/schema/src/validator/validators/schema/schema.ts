@@ -1,5 +1,5 @@
 import { capitalize } from '@benzed/string'
-import { $$state, copy, StructState, StructStateShape } from '@benzed/immutable'
+import { $$state, copy, StructState } from '@benzed/immutable'
 import { isFunc, isString, keysOf, KeysOf, Mutable, Property } from '@benzed/util'
 
 import {
@@ -12,7 +12,10 @@ import {
 import { 
     AnyValidatorStruct,
     validate,
-    ValidatorStruct
+    ValidatorErrorMessage,
+    ValidatorState,
+    ValidatorStruct,
+    ValidatorUpdateState
 } from '../../validator-struct'
 
 import { getAllProperties } from './property-helpers'
@@ -53,14 +56,7 @@ export type AnySubValidators = SubValidators<any>
  * @internal
  */
 export type _StateKeysOf<V extends AnyValidatorStruct> = 
-    Extract<'name' | 'message' | 'enabled' | (V extends StructStateShape<infer K> ? KeysOf<K> : never), KeysOf<V>>
-
-/**
- * @internal
- */
-export type _ValidatorState<V extends AnyValidatorStruct> = Partial<{
-    [K in _StateKeysOf<V>]: V[K]
-}>
+    Extract<'name' | 'message' | 'enabled' | KeysOf<ValidatorState<V>>, KeysOf<V>>
 
 /**
  * @internal
@@ -89,7 +85,7 @@ type _SchemaSubSetter<T extends AnyValidatorStruct> =
         ? (...args: A) => typeof $$schema
 
         // otherwise it will accept a state object
-        : (state: _ValidatorState<T>) => typeof $$schema
+        : (state: ValidatorUpdateState<T>) => typeof $$schema
 
 export type _SchemaSetters<
     M extends AnyValidatorStruct, 
@@ -206,7 +202,7 @@ const Schema = class Schema extends SchemaValidator {
         return this._setMainValidatorOption('name', name)
     }
 
-    message(error: string | MessageMethod<unknown>): this {
+    message(error: string | ValidatorErrorMessage<unknown>): this {
 
         const errorMethod = isString(error)
             ? () => error 

@@ -68,9 +68,7 @@ describe('removable', () => {
 describe('effect on target', () => { 
 
     it('cannot be stacked', () => {
-        const $stacked = new ReadOnly(new ReadOnly($buffer))
-        expect($stacked[$$target]).toBe($buffer)
-        expectTypeOf($stacked).toMatchTypeOf<ReadOnly<Buffer>>()
+        expect(() => new ReadOnly(new ReadOnly($buffer))).toThrow('already has mutator')
     })
 
     it('has target properties', () => {

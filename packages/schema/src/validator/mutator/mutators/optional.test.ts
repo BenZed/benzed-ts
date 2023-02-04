@@ -69,9 +69,7 @@ describe('removable', () => {
 describe('effect on target', () => { 
 
     it('cannot be stacked', () => {
-        const $stacked = new Optional(new Optional($cookieJar))
-        expect($stacked[$$target]).toBe($cookieJar)
-        expectTypeOf($stacked).toMatchTypeOf<Optional<CookieJar>>()
+        expect(() => new Optional(new Optional($cookieJar))).toThrow('already has mutator')
     })
 
     it('has target properties', () => {

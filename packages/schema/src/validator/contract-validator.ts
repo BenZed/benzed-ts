@@ -1,8 +1,15 @@
 import { assign, KeysOf } from '@benzed/util'
+
 import { ValidateOptions } from '../validate'
 import { ValidationContext } from '../validation-context'
 import { ValidationError } from '../validation-error'
 import { ValidatorStruct } from './validator-struct'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// Types ////
 
@@ -54,7 +61,7 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
     /**
      * Method determines if a given input is valid
      */
-    isValid(value: I | O, context: ValidationContext<I>): boolean {
+    isValid(value: I | O, context: ValidationContext<I>): value is O {
         /**
          * By default, a output is considered valid if it is equal
          * to it's transformed input.
@@ -97,6 +104,8 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
 //// Exports ////
 
 export default ContractValidator
+
+export type AnyContractValidator = ContractValidator<any,any>
 
 export {
     ContractValidator,

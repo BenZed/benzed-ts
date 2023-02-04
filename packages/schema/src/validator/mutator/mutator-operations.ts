@@ -1,11 +1,25 @@
 
-import { OutputOf } from '@benzed/util'
+import { 
+    $$target, 
+    $$type, 
+    MutatorType as M, 
+    AnyMutator, 
+    Mutator, 
+    MutatorType
+} from './mutator'
 
-import { $$target, $$type, MutatorType as M } from './mutator'
-import type { AnyMutator, Mutator, MutatorProperties } from './mutator'
+import { 
+    Optional, 
+    Required, 
+    ReadOnly, 
+    Writable, 
+    ToggleNot, 
+    Not 
+} from './mutators'
 
-import type { Optional, Required, ReadOnly, Writable } from './mutators'
-import { AnyValidatorStruct } from '../validator-struct'
+import { 
+    AnyValidatorStruct 
+} from '../validator-struct'
 
 //// EsLint ////
 /* eslint-disable 
@@ -31,6 +45,11 @@ export function getMutators(target: AnyValidatorStruct): AnyMutator[] {
     return Array.from(eachMutator(target))
 }
 
+export function assertUnMutated(target: AnyValidatorStruct, type: M): void {
+    if (hasMutator(target, type))
+        throw new Error(`Target already has mutator ${MutatorType[type]}`)
+}
+
 //// Mutator Operators ////
 
 export type AddMutator<V extends AnyValidatorStruct, T extends M> =
@@ -38,8 +57,8 @@ export type AddMutator<V extends AnyValidatorStruct, T extends M> =
         ? Optional<Required<V>> 
         : T extends M.ReadOnly
             ? ReadOnly<Writable<V>> 
-            : T extends M.Async
-                ? Async<Sync<V>> 
+            : T extends M.Not
+                ? ToggleNot<V> 
                 : V
 
 export function addMutator<V extends AnyValidatorStruct, T extends M>(
@@ -64,21 +83,25 @@ export function addMutators <V extends AnyValidatorStruct, T extends M[]>(
 
     let current = validator as AnyValidatorStruct
 
-    const { Optional, ReadOnly } = require('./mutators') as typeof import('./mutators')
+    const { Optional, ReadOnly, Not } = require('./mutators') as typeof import('./mutators')
     for (const type of types) {
         switch (type) {
             case M.Optional: {
-                current = new Optional(current)
+                current = hasMutator(current, MutatorType.Optional)
+                    ? current
+                    : new Optional(current)
                 break
             }
             case M.ReadOnly: {
-                current = new ReadOnly(current)
+                current = hasMutator(current, MutatorType.ReadOnly)
+                    ? current
+                    : new ReadOnly(current)
                 break
             }
-            case M.Async: {
-                throw new Error(`${M[type]} not yet implemented`)
-                // return new Async(validate)
-                break
+            case M.Not: {
+                current = hasMutator(current, MutatorType.Not)
+                    ? (current as Not<V>)[$$target] 
+                    : new Not(current)
             }
             default: {
                 const badType: never = type
@@ -117,8 +140,8 @@ export type EnsureMutator<V extends AnyValidatorStruct, T extends M> = HasMutato
 
 export function ensureMutator<V extends AnyValidatorStruct, T extends M>(validate: V, type: T): EnsureMutator<V,T> {
     const applied = hasMutator(validate, type) 
-        ? validate : 
-        addMutator(validate, type)
+        ? validate  
+        : addMutator(validate, type)
 
     return applied as EnsureMutator<V,T>
 }
@@ -190,7 +213,7 @@ export function removeAllMutators<V extends AnyValidatorStruct>(
 //     Mutator<Writable<V>, M.ReadOnly, Readonly<OutputOf<Writable<V>>>> &
 //     MutatorProperties<Writable<V>>
 
-export type Sync<V extends AnyValidatorStruct> = RemoveMutator<V, M.Async>
-export type Async<V extends AnyValidatorStruct> =
-    Mutator<Sync<V>, M.Async, Promise<OutputOf<Sync<V>>>> &
-    MutatorProperties<Sync<V>>
+// export type Sync<V extends AnyValidatorStruct> = RemoveMutator<V, M.Async>
+// export type Async<V extends AnyValidatorStruct> =
+//     Mutator<Sync<V>, M.Async, Promise<OutputOf<Sync<V>>>> &
+//     MutatorProperties<Sync<V>>

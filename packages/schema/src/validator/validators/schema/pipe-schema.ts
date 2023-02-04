@@ -27,32 +27,35 @@ import {
 //// Schema Helper Types ////
 
 type _SchemaPipeSetters<
-    V extends AnyValidatorStruct[], 
+    V extends AnyValidatorStruct[],
+    VA extends AnyValidatorStruct[] = V
 > = 
     (V extends [infer V1, ...infer Vr]
         ? V1 extends AnyValidatorStruct
             ? Vr extends AnyValidatorStruct[]
-                ? _SchemaOptionSetters<V1> & _SchemaPipeSetters<Vr>
+                ? _SchemaOptionSetters<V1> & _SchemaPipeSetters<Vr, VA>
                 : _SchemaOptionSetters<V1>
             : {}
         : {}) extends infer O 
         ? {
             // Remapping this way to prevent circular references
             [K in KeysOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
-                ? (...args: A) => PipeSchema<V>
+                ? (...args: A) => PipeSchema<VA>
                 : O[K]
         }
         : never
 
 //// Pipe Schema Types ////
     
-export type PipeSchemaInput<V extends AnyValidatorStruct[]> = First<V> extends AnyValidatorStruct
-    ? ValidateInput<First<V>>
-    : unknown
+export type PipeSchemaInput<V extends AnyValidatorStruct[]> = 
+    First<V> extends AnyValidatorStruct
+        ? ValidateInput<First<V>>
+        : unknown
 
-export type PipeSchemaOutput<V extends AnyValidatorStruct[]> = Last<V> extends AnyValidatorStruct
-    ? ValidateOutput<Last<V>>
-    : unknown
+export type PipeSchemaOutput<V extends AnyValidatorStruct[]> = 
+    Last<V> extends AnyValidatorStruct
+        ? ValidateOutput<Last<V>>
+        : unknown
 
 export type PipeSchema<
     V extends AnyValidatorStruct[],
@@ -65,3 +68,7 @@ export type PipeSchema<
             Vx extends ValidatorStruct<PipeSchemaOutput<V>, Ox>
         >(next: Vx): PipeSchema<[...V, Vx]>
     }
+
+//// Implementation ////
+
+// TODO

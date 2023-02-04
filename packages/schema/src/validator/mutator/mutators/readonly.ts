@@ -1,9 +1,8 @@
 import { KeysOf, OutputOf } from '@benzed/util'
-import { ValidateOptions } from '../../../validate'
 import { AnyValidatorStruct } from '../../validator-struct'
 
 import { $$target, Mutator, MutatorType } from '../mutator'
-import { removeMutator, RemoveMutator } from '../mutator-operations'
+import { assertUnMutated, removeMutator, RemoveMutator } from '../mutator-operations'
 
 //// EsLint ////
 
@@ -16,7 +15,7 @@ import { removeMutator, RemoveMutator } from '../mutator-operations'
 type _ReadOnlyProperties<V extends AnyValidatorStruct> = 
     Mutator<V, MutatorType.ReadOnly, Readonly<OutputOf<V>>> 
     & {
-        writable: V
+        get writable(): V
     }
 
 type _ReadOnlyInheritKeys<V extends AnyValidatorStruct> = 
@@ -42,7 +41,7 @@ type ReadOnly<V extends AnyValidatorStruct> =
     _ReadOnlyInherit<V>
 
 interface ReadOnlyConstructor {
-    new <V extends AnyValidatorStruct>(validator: V): ReadOnly<Writable<V>>
+    new <V extends AnyValidatorStruct>(validator: V): ReadOnly<V>
 }
 
 //// Implementation ////  
@@ -50,8 +49,8 @@ interface ReadOnlyConstructor {
 const ReadOnly = class extends Mutator<AnyValidatorStruct, MutatorType.ReadOnly, unknown> {
 
     constructor(target: AnyValidatorStruct) {
-        const writableTarget = removeMutator(target, MutatorType.ReadOnly)
-        super(writableTarget, MutatorType.ReadOnly)
+        assertUnMutated(target, MutatorType.ReadOnly)
+        super(target, MutatorType.ReadOnly)
     }
 
     get writable(): AnyValidatorStruct {

@@ -3,7 +3,7 @@ import { ValidateOptions } from '../../../validate'
 import { AnyValidatorStruct } from '../../validator-struct'
 
 import { Mutator, MutatorType, $$target } from '../mutator'
-import { removeMutator, RemoveMutator } from '../mutator-operations'
+import { assertUnMutated, removeMutator, RemoveMutator } from '../mutator-operations'
 
 //// EsLint ////
 
@@ -16,7 +16,7 @@ import { removeMutator, RemoveMutator } from '../mutator-operations'
 type _OptionalProperties<V extends AnyValidatorStruct> = 
     Mutator<V, MutatorType.Optional, OutputOf<V> | nil> 
     & {
-        required: V
+        get required(): V
     }
 
 type _OptionalInheritKeys<V extends AnyValidatorStruct> = 
@@ -41,7 +41,7 @@ type Optional<V extends AnyValidatorStruct> =
     _OptionalInherit<V>
 
 interface OptionalConstructor {
-    new <V extends AnyValidatorStruct>(validator: V): Optional<Required<V>>
+    new <V extends AnyValidatorStruct>(validator: V): Optional<V>
 }
 
 //// Implementation ////
@@ -50,9 +50,9 @@ const Optional = class Optional extends Mutator<AnyValidatorStruct, MutatorType.
     //// Constructor ////
 
     constructor(target: AnyValidatorStruct) {
-        const requiredTarget = removeMutator(target, MutatorType.Optional)
+        assertUnMutated(target, MutatorType.Optional)
         super(
-            requiredTarget,
+            target,
             MutatorType.Optional
         )
     }

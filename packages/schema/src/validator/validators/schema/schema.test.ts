@@ -13,6 +13,7 @@ import {
     testValidationContract 
 } from '../../../util.test'
 import ContractValidator from '../../contract-validator'
+import { ValidatorErrorMessage } from '../../validator-struct'
 
 //// EsLint ////
 
@@ -91,7 +92,7 @@ describe('Schema Setters Type Tests', () => {
 describe('Schema implementation', () => {
 
     type NumberState = {
-        message: MessageMethod<number>
+        message: ValidatorErrorMessage<number>
         cast: TypeValidator<number>['cast']
         default: TypeValidator<number>['default']
         finite: boolean

@@ -38,7 +38,7 @@ enum MutatorType {
     Not,
     // And,
     // Or,
-    Async
+    // Async
 }
 
 type AnyMutator = Mutator<AnyValidatorStruct, MutatorType, unknown>
