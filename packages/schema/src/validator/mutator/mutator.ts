@@ -1,7 +1,7 @@
-import { Callable, KeysOf, OutputOf } from '@benzed/util'
+import { $$state, Struct, StructStateLogic } from '@benzed/immutable'
+import { KeysOf, OutputOf } from '@benzed/util'
 
-import { AnyValidate } from '../../validate'
-import { ValidatorStruct } from '../validator-struct'
+import { AnyValidatorStruct, ValidatorStruct } from '../validator-struct'
 
 import { 
     isMutator,
@@ -13,6 +13,12 @@ import {
     removeMutator,
     getMutators
 } from './mutator-operations'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// Symbol ////
 
@@ -34,16 +40,16 @@ enum MutatorType {
     Async
 }
 
-type AnyMutator = Mutator<AnyValidate, MutatorType, unknown>
+type AnyMutator = Mutator<AnyValidatorStruct, MutatorType, unknown>
 
-type MutatorProperties<V extends AnyValidate> = {
+type MutatorProperties<V extends AnyValidatorStruct> = {
     [K in Exclude<keyof V, KeysOf<Mutator<V, MutatorType>>>]: V[K]
 }
 
 //// Implementation ////
 
 abstract class Mutator<
-    V extends AnyValidate, 
+    V extends AnyValidatorStruct, 
     T extends MutatorType, 
     O = OutputOf<V>
 > extends ValidatorStruct<unknown, O> {
@@ -71,7 +77,7 @@ abstract class Mutator<
 
         return new Proxy(this, {
             get: this[$$get],
-            // set: this[$$set],
+            set: this[$$set],
             // ownKeys: this[$$ownKeys],
             // apply: this[$$apply]
 
@@ -84,6 +90,8 @@ abstract class Mutator<
         proxy: typeof Proxy
     ): unknown {
 
+        console.log(key)
+
         const target = Reflect.has(mutator, key)
             ? mutator 
             : mutator[$$target]
@@ -91,8 +99,47 @@ abstract class Mutator<
         return Reflect.get(target, key, proxy)
     }
 
+    protected [$$set](
+        mutator: this, 
+        key: string | symbol, 
+        value: unknown,
+        proxy: typeof Proxy
+    ): boolean {
+
+        if (key === $$state) {
+            mutator[$$state] = value
+            return true
+        }
+
+        const target = key === $$state
+            ? mutator 
+            : mutator[$$target]
+
+        return Reflect.set(target, key, value, proxy)
+    }
+
     override get name(): string {
         return this.constructor.name
+    }
+
+    override get [$$state](): any {
+
+        const target = this[$$target] as unknown as StructStateLogic<V>
+        const targetState = target[$$state]
+
+        const state = { 
+            ...targetState, 
+            [$$target]: this[$$target],
+            [$$type]: this[$$type]
+        }
+
+        return state
+    }
+
+    override set [$$state](state: any) {
+
+        console.log(this.name, 'SET STATE', state)
+
     }
 
 }
@@ -100,7 +147,7 @@ abstract class Mutator<
 //// Exports ////
 
 export {
-
+ 
     AnyMutator,
 
     Mutator,

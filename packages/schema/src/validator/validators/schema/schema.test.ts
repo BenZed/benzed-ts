@@ -1,4 +1,6 @@
 import { isNumber, isString, nil } from '@benzed/util'
+import { $$state, StructStateLogic } from '@benzed/immutable'
+
 import { it, describe } from '@jest/globals'
 
 import { MainValidator, Schema } from './schema'
@@ -7,12 +9,11 @@ import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
 import { testValidator, testValidationContract } from '../../../util.test'
-import { $$state, ValidatorState } from '../../validator-struct'
 import { SimpleSubContractValidator } from './simple-sub-contract-validator'
 
 //// EsLint ////
 
-/* eslint-disable 
+/* eslint-disable  
     @typescript-eslint/ban-types
 */
 
@@ -23,14 +24,14 @@ describe('Schema Setters Type Tests', () => {
     // Hypothetical big number data type.
     type bignumber = `${number}`
 
-    interface BigDecimal extends MainValidator<string, bignumber>, ValidatorState<{ parse: boolean }> { 
+    interface BigDecimal extends MainValidator<string, bignumber>, StructStateLogic<{ parse: boolean }> { 
         
         // hypothetical optional transformation configuration;
         // if transforms are enabled, it'll try to parse invalid strings.
         readonly parse: boolean 
     }
 
-    interface LeadingZeros extends SubValidator<bignumber>, ValidatorState<{ parse: boolean }> { 
+    interface LeadingZeros extends SubValidator<bignumber>, StructStateLogic<{ parse: boolean }> { 
     
         // hypothetical validation configuration:
         // big number must have at least this many leading zeros.
@@ -90,7 +91,7 @@ describe('Schema implementation', () => {
     }
 
     const number = new class NumberValidator extends TypeValidator<number> 
-        implements ValidatorState<NumberState> {
+        implements StructStateLogic<NumberState> {
 
         get [$$state](): NumberState {
             return {

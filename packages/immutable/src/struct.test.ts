@@ -1,204 +1,242 @@
-import { Struct, $$state, StructState, StructStateLogic } from './struct'
+import { $$state, Struct } from './struct'
 
-import { test } from '@jest/globals'
-import { assign, Func, pick } from '@benzed/util'
+import { assign, pick } from '@benzed/util'
 
-import { expectTypeOf } from 'expect-type'
-import { unique } from '@benzed/array'
+import { it, expect, describe } from '@jest/globals'
 
-//// EsLint ////
+import { copy } from './copy'
+import { equals } from './equals'
 
-/* eslint-disable 
-    @typescript-eslint/ban-types 
-*/
+//// Tests ////
 
-//// Tests //// 
+describe('basic object struct, no state overrides', () => {
 
-test('spread state matches struct state', () => {
+    class Value<T> extends Struct {
 
-    class Person extends Struct implements StructStateLogic<{ age: number }> {
-
-        constructor(readonly name: string, readonly age: number) { 
+        constructor(readonly value: T) {
             super()
         }
-
-        speak(): string {
-            return `My name is ${this.name}, I am ${this.age} years old.`
-        }
-
-        get [$$state](): { age: number } {
-            return pick(this, 'age')
-        }
-    }
-
-    const jerry = new Person('jerry', 35)  
-    expect({ ...jerry }).toEqual({ age: 35 })
-
-    expect(jerry[$$state]).toEqual({ age: 35 }) 
-})
-
-test('overridden state setter', () => {
     
-    const $$cost = Symbol('animal cost')
-    let customStateReads = 0
-    let customStateSets = 0 
-    class Jewelry extends Struct implements StructStateLogic<{ [$$cost]: number }> {
+    }
 
-        protected [$$cost]: number
+    const f1 = new Value(5)
+    const f2 = copy(f1)
 
-        constructor(cost: number) {
-            super()
+    it('get state', () => {
+        expect(f1[$$state]).toEqual({ value: 5})
+    })
 
-            this[$$cost] = cost
-        }
+    it('set state', () => {
+        const f3 = new Value(2)
 
-        get [$$state](): { [$$cost]: number } {
-            customStateReads++
-            return {
-                [$$cost]: this[$$cost]
-            }
-        }
+        f3[$$state] = { value: 5 }
 
-        set [$$state](state: { [$$cost]: number }) {
-            customStateSets++
-            this[$$cost] = state[$$cost]
-        }  
+        expect(f3).toEqual(f1)
+    })
 
-    } 
+    it('apply state', () => {
+        const f3 = Struct.applyState(f2, { value: 5 })
+        expect(f3[$$state]).toEqual({ value: 5 })
+    })
+    
+    it('copyable', () => {
 
-    const cheap = new Jewelry(10) 
-    expect({ ...cheap }).toEqual({ [$$cost]: 10 })
+        expect(f2).toEqual(f1)
+        expect(f2).not.toBe(f1)
+    })
 
-    const expensive = Jewelry.applyState(cheap, { [$$cost]: 50 })
-    expect({ ...expensive }).toEqual({ [$$cost]: 50 })
+    it('equalable', () => {
+        expect(equals(f1,f2)).toBe(true)
 
-    expect(customStateReads).toEqual(2)
-    expect(customStateSets).toEqual(1)
+        const s1 = new Value(6)
+
+        expect(equals(s1,f1)).not.toBe(true)
+    })
 
 })
 
-test('state logic is overridable', () => {
+describe('basic object struct, with overrides', () => {
 
-    class Ticker extends Struct {
-        constructor(public seconds: number) {
+    class Average extends Struct {
+
+        readonly scores: number[]
+
+        readonly average: number
+
+        constructor(...scores: number[]) {
             super()
-        }
-    }
-
-    const t1 = new Ticker(60)
-    const t1State = { ...t1 }
-    expect(t1State).toEqual({ seconds: 60 })
-    expectTypeOf<typeof t1State>().toEqualTypeOf<{ seconds: number }>()
-    expectTypeOf<StructState<typeof t1>>().toEqualTypeOf<{ seconds: number }>()
-
-    class Timer extends Ticker implements StructStateLogic<{ seconds: number }> {
-
-        get minutes(): number {
-            return Math.floor(this.seconds / 60)
+            this.scores = scores
+            this.average = 0
+            this._updateAverage()
         }
 
-        get [$$state](): { seconds: number } {
-            return pick(this, 'seconds')
+        override get [$$state](): { scores: number[] } {
+            return pick(this, 'scores')
         }
 
-        set [$$state](state) {
-            assign(this, pick(state, 'seconds'))
+        override set [$$state](state: { scores: number[] }) {
+            assign(this, pick(state, 'scores'))
+            this._updateAverage()
+        }
+
+        // 
+
+        private _updateAverage(): void {
+            const average = this.scores.reduce((sum, val) => val + sum) / this.scores.length
+            assign(this, { average })
         }
 
     }
 
-    const t2 = new Timer(120)
-    const t2State = { ...t2 }
-    expect(t2State).toEqual({ seconds: 120 })
-    expectTypeOf<typeof t2State>().toEqualTypeOf<{ seconds: number }>()
-    expectTypeOf<StructState<typeof t2>>().toEqualTypeOf<{ seconds: number }>()
+    const a1 = new Average(5, 10, 15)
+    const a2 = copy(a1)
 
-    class Clock extends Timer implements StructStateLogic<{ seconds: number, dark: boolean }> {
+    it('get state', () => {
+        expect(a1[$$state]).toEqual({ scores: [ 5, 10, 15 ] })
+        expect(a1.average).toEqual(10)
+    })
 
-        get hours(): number {
-            return Math.floor(this.minutes / 60)
-        }
+    it('set state', () => {
+        const a3 = new Average(2)
 
-        get [$$state](): { seconds: number, dark: boolean } {
+        a3[$$state] = { scores: [7,7,7] }
 
-            const { seconds } = this
-            const dark = this.hours > 12 
- 
-            return {
-                seconds,
-                dark
-            }
-        } 
+        expect(a3.average).toEqual(7)
+        expect(a3[$$state]).toEqual({ scores: [7,7,7] })
+    })
 
-        set [$$state](state: { seconds: number, dark: boolean }) {
-            assign(this, pick(state, 'seconds'))
-        }
-    }
+    it('apply state', () => {
+        const a3 = Struct.applyState(a2, { scores: [4,4,4] })
+        expect(a3[$$state]).toEqual({ scores: [ 4,4,4 ]})
+        expect(a3).not.toBe(a2)
+    })
 
-    const t3 = new Clock(120)
-    const t3State = { ...t2 }
-    expect(t3State).toEqual({ seconds: 120 })
-    expectTypeOf<typeof t3State>().toEqualTypeOf<{ seconds: number }>()
-    expectTypeOf<StructState<typeof t3>>().toEqualTypeOf<{ seconds: number, dark: boolean }>()
+    it('copyable', () => {
+        expect(a2).toEqual(a1)
+        expect(a2).not.toBe(a1)
+    })
+
+    it('equalable', () => {
+        expect(equals(a1,a2)).toBe(true)
+        const a3 = new Average(6)
+        expect(equals(a3,a1)).not.toBe(true)
+    })
 
 })
 
-test('callable', () => {
+describe('callable struct, no overrides', () => {
 
-    class Multiplier extends Struct<(i: number) => number> {
+    class Multiply extends Struct<(input: number) => number> {
         constructor(readonly by: number) {
-            super(function mulitply(this: Multiplier, i: number) {
+            super(function(i) {
                 return i * this.by
             })
         }
     }
+    const x2a = new Multiply(2)
+    const x2b = copy(x2a)
 
-    const x2 = new Multiplier(2)
-    expect(x2(2)).toEqual(4)
+    it('callable', () => {
+        const x2 = new Multiply(2)
+        expect(x2(5)).toEqual(10)
+    })
 
-    const x4 = Struct.applyState(x2, { by: 4 })
-    expect(x4(4)).toEqual(16)
+    it('get state', () => {
+        expect(x2a[$$state]).toEqual({ by: 2 })
+    })
+    
+    it('set state', () => {
+
+        const x4 = new Multiply(2)
+
+        x4[$$state] = { by: 4 }
+    
+        expect(x4(5)).toEqual(20)
+        expect(x4[$$state]).toEqual({ by: 4 })
+    })
+
+    it('apply state', () => {
+
+        const x4c = Struct.applyState(x2a, { by: 4 })
+
+        expect(x4c[$$state]).toEqual({ by: 4 })
+        expect(x4c(5)).toEqual(20)
+        expect(x4c).not.toBe(x2a)
+
+    })
+
+    it('equalable', () => {
+        expect(equals(x2b, x2a)).toBe(true)
+    })
+
+    it('copyable', () => {
+        expect(equals(x2b, x2a)).toBe(true)
+        expect(x2b).not.toBe(x2a)
+    })
 
 })
 
-test('callable wth proxies', () => {
+describe('callable struct, no overrides', () => {
 
-    const callable = <O extends object, F extends Func>(
-        object: O,
-        func: F
-    ): F & O => {
-        return new Proxy(func, {
-            apply(func, _, args) {
-                return Reflect.apply(func, object, args)
-            },
-            ownKeys(_) {
-                return [
-                    ...Reflect.ownKeys(object),
-                    'prototype'
-                ].filter(unique)
-            },
-            get(_, key, proxy) {
-                return Reflect.get(object, key, proxy)
-            },
-            set(_, key, proxy) {
-                return Reflect.set(object, key, proxy)
-            }
-        }) as F & O
-    }
+    class Task extends Struct<() => boolean> {
 
-    class By {
-        constructor(public by: number) {}
-    }
-
-    const by5 = new By(5)
-
-    const multiplier = callable(
-        by5, 
-        function multiply(input: number) {
-            return input * this.by
+        constructor(
+            readonly complete: boolean,
+            readonly description: string,
+            public observerIds: number[]
+        ) {
+            super(function () {
+                return this.complete
+            })
         }
-    )
+        
+        get [$$state](): { complete: boolean, description: string } {
+            return pick(this, 'complete', 'description')
+        }
 
-    multiplier.by = 10
+        set [$$state](state: { complete: boolean, description: string }) {
+            assign(this, pick(state, 'complete', 'description'))
+        }
+
+    }
+
+    const t1 = new Task(false, 'Complete Struct class', [])
+
+    const t2 = copy(t1)
+
+    it('callable', () => {
+        expect(t1()).toBe(false)
+        expect(t2()).toBe(false)
+    })
+
+    it('get state', () => {
+        expect(t1[$$state]) 
+            .toEqual({ complete: false, description: 'Complete Struct class'})
+    })
+    
+    it('set state', () => {
+
+        const t3 = new Task(false, 'Salt the plants', [1,2,3])
+
+        t3[$$state] = { complete: true, description: 'water the plants' }
+        expect(t3[$$state]).toEqual({ complete: true, description: 'water the plants' })
+    })
+
+    it('apply state', () => {
+
+        const t4 = Struct.applyState(t2, { complete: true })
+
+        expect(t4()).toEqual(true)
+        expect(t4[$$state]).toEqual({ complete: true, description: t2.description })
+ 
+    })
+
+    it('equalable', () => {
+        expect(equals(t2, t1)).toBe(true)
+    })
+
+    it('copyable', () => {
+        expect(t1).not.toBe(t2)
+    })
 
 })

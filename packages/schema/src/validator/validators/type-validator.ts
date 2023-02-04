@@ -1,7 +1,7 @@
-import { Func, nil } from '@benzed/util'
+import { $$state, StructStateLogic } from '@benzed/immutable'
+import { nil } from '@benzed/util'
 import ValidationContext from '../../validation-context'
 import ContractValidator from '../contract-validator'
-import { $$state, ValidatorState } from '../validator-struct'
 
 //// Implementation ////
 
@@ -15,7 +15,7 @@ type TypeValidatorState<T> = {
  * with some sensible default transformation options.
  */
 abstract class TypeValidator<T> extends ContractValidator<unknown, T>
-    implements ValidatorState<TypeValidatorState<T>> {
+    implements StructStateLogic<TypeValidatorState<T>> {
 
     get [$$state](): TypeValidatorState<T> {
         return {

@@ -1,4 +1,4 @@
-import { Struct, StructState } from '@benzed/immutable'
+import { $$state, Struct, StructState, StructStateLogic } from '@benzed/immutable'
 import { 
     assign,
     isBoolean, 
@@ -10,7 +10,7 @@ import {
     SignatureParser 
 } from '@benzed/util'
 
-import { $$state, ValidatorState, ValidatorStruct } from '../../validator-struct'
+import { ValidatorStruct } from '../../validator-struct'
 
 import { 
     SubValidator, 
@@ -47,7 +47,7 @@ type SimpleSubValidatorState<T> = { enabled: boolean, message: string | MessageM
  */
 abstract class SimpleSubValidator<T> 
     extends SubValidator<T> 
-    implements ValidatorState<SimpleSubValidatorState<T>> {
+    implements StructStateLogic<SimpleSubValidatorState<T>> {
 
     constructor(
         readonly enabled: boolean, 

@@ -1,11 +1,12 @@
 import { isBoolean, isNumber, isShape, nil } from '@benzed/util'
-import { StructState } from '@benzed/immutable'
+import { $$state, StructState } from '@benzed/immutable'
 
 import { Optional } from './optional'
 import { testValidator } from '../../../util.test'
 import { TypeValidator } from '../../validators'
 
 import { expectTypeOf } from 'expect-type'
+import { $$target } from '../mutator'
 
 //// Tests ////
 
@@ -19,9 +20,12 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
     readonly enabled = true
 
     toggleEnabled(): this {
+
+        console.log('TOGGLE', this[$$state])
+
         return TypeValidator.applyState(
             this, 
-            { enabled: !this.enabled } as StructState<this>
+            { ...this[$$state], enabled: !this.enabled } as StructState<this>
         )
     }
 }
@@ -53,7 +57,7 @@ describe('removable', () => {
         $maybeCookieJar.required,
         { asserts: nil, error: true }
     )
-
+ 
 })
 
 describe('effect on target', () => { 
@@ -63,13 +67,13 @@ describe('effect on target', () => {
         expect($maybeCookieJar.default).toBe($cookieJar.default)
         expect($maybeCookieJar.enabled).toBe($cookieJar.enabled)
     })
-
+  
     it('favours own properties', () => {
         expect($maybeCookieJar.required).toEqual($cookieJar)
         expect($maybeCookieJar.required).toBeInstanceOf(CookieJar)
     })
 
-    it('wraps build method resuilts in Optional', () => {  
+    it('wraps result instances in self', () => {  
 
         const $disabledCookieJar = $cookieJar.toggleEnabled()
         expect($disabledCookieJar).toBeInstanceOf(CookieJar)
@@ -81,7 +85,28 @@ describe('effect on target', () => {
         expectTypeOf($disabledMaybeCookieJar)
             .toEqualTypeOf<Optional<CookieJar>>() 
 
-    })
+    }) 
+
+    it.only('result instances retain mutator properties', () => {  
+
+        const $maybeCookieJar2 = Object.create($maybeCookieJar)
+
+        console.log($maybeCookieJar2) 
+ 
+        // expect($maybeCookieJar[$$target]).toEqual($cookieJar)
+
+        // console.log('PRE TOGGLE', $maybeCookieJar)
+
+        // const $disabledMaybeCookieJar = $maybeCookieJar.toggleEnabled() 
+
+        // console.log('POST TOGGLE', $disabledMaybeCookieJar)
+
+        // $maybeCookieJar[$$state] = {}
+
+        // expect($disabledMaybeCookieJar.required).toEqual($cookieJar)
+        // expect($disabledMaybeCookieJar[$$target]).toEqual($cookieJar)
+
+    }) 
 
 })
 

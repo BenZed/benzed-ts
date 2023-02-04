@@ -10,7 +10,7 @@ import {
     Async,
     Sync,
     addMutators,
-    removeMutator,
+    removeMutator, 
     hasMutator,
     ensureMutator,
     mutatorsOf,
@@ -61,10 +61,10 @@ describe('AddMutator', () => {
         // Doesn't nest
         for (const $optionalString of [
             addMutators($string, M.Optional), 
-            addMutators($string, M.Optional, M.Optional)
+            addMutators($string, M.Optional, M.Optional) 
         ]) {
 
-            expect($optionalString.constructor).toBe(Optional)
+            expect($optionalString).toBeInstanceOf(Optional)
             expect($optionalString[$$target]).toBe($string) 
             expectTypeOf($optionalString).toEqualTypeOf<Optional<String>>()
         }
@@ -81,7 +81,7 @@ describe('AddMutator', () => {
             addMutators($arrayOfString, M.ReadOnly, M.ReadOnly)
         ]) {
             expectTypeOf($readonlyArrayOfString).toEqualTypeOf<ReadOnly<ArrayOfString>>()
-            expect($readonlyArrayOfString.constructor).toBe(ReadOnly)
+            expect($readonlyArrayOfString).toBeInstanceOf(ReadOnly)
             expect($readonlyArrayOfString[$$target]).toBe($arrayOfString) 
         }
     })

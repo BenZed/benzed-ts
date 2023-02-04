@@ -1,4 +1,4 @@
-import { equals, } from '@benzed/immutable'
+import { equals } from '@benzed/immutable'
 
 import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
@@ -10,20 +10,6 @@ import { Validator } from './validator'
 /* eslint-disable
     @typescript-eslint/no-explicit-any
 */
-
-//// Symbol ////
-
-export const $$state = Symbol('validate-state-keys')
-
-/**
- * Implementing this interface on validators will allow
- * schemas to create state setters.
- */
-export interface ValidatorState<T extends object> {
-
-    get [$$state](): T
-
-}
 
 //// ValidatorStruct ////
 

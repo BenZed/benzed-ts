@@ -2,7 +2,7 @@ import { Property } from '@benzed/util'
 
 import { SimpleSubValidator, MessageMethod, EnabledErrorSignature } from './simple-sub-validator'
 import { ContractValidator } from '../../contract-validator'
-import { $$state } from '../../validator-struct'
+import { $$state } from '@benzed/immutable/src'
 
 //// Main ////
 

@@ -1,5 +1,6 @@
 import { OutputOf, nil, KeysOf } from '@benzed/util'
 import { AnyValidate, ValidateOptions } from '../../../validate'
+import { AnyValidatorStruct } from '../../validator-struct'
 
 import { Mutator, MutatorType, $$target } from '../mutator'
 import { removeMutator, RemoveMutator } from '../mutator-operations'
@@ -44,14 +45,14 @@ interface OptionalConstructor {
 }
 
 //// Implementation ////
-const Optional = class Optional extends Mutator<AnyValidate, MutatorType.Optional, unknown> {
+const Optional = class Optional extends Mutator<AnyValidatorStruct, MutatorType.Optional, unknown> {
 
     //// Constructor ////
 
     constructor(target: AnyValidate) {
         const requiredTarget = removeMutator(target, MutatorType.Optional)
         super(
-            requiredTarget, 
+            requiredTarget,
             MutatorType.Optional
         )
     }
