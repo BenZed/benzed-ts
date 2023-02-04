@@ -1,7 +1,7 @@
 import { $$copy, $$state, StructState } from '@benzed/immutable'
-import { InputOf, OutputOf } from '@benzed/util/src'
+import { InputOf, OutputOf } from '@benzed/util'
 
-import { AnyValidatorStruct, ValidatorStruct } from '../validator-struct'
+import { AnyValidatorStruct, ValidatorStruct } from './validator-struct'
 
 //// EsLint ////
 
@@ -18,6 +18,8 @@ const $$set = Symbol('proxy-set')
 // const $$ownKeys = Symbol('proxy-ownKeys')
 // const $$apply = Symbol('proxy-apply')
 
+//// Types ////
+
 type ValidatorProxyState<V extends AnyValidatorStruct> = 
     StructState<V> & {
         [$$target]: V
@@ -25,7 +27,7 @@ type ValidatorProxyState<V extends AnyValidatorStruct> =
 
 type AnyValidatorProxy = ValidatorProxy<any,any,any>
 
-//// Implementation ////
+//// Helper ////
 
 function proxify<V extends AnyValidatorProxy>(validatorProxy: V): V {
     return new Proxy(validatorProxy, {
@@ -37,12 +39,15 @@ function proxify<V extends AnyValidatorProxy>(validatorProxy: V): V {
     }) as V
 }
 
+//// ValidaotProxy ////
+
+/**
+ * A validator that wraps another to change it's functionlity.
+ */
 abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O extends I = OutputOf<V>> 
     extends ValidatorStruct<I, O> {
 
     static $$target = $$target
-
-    protected readonly [$$target]: V
 
     constructor(validate: V) {
         super()
@@ -50,11 +55,9 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
         return proxify(this)
     }
 
-    //// ValidatorStruct Implementation ////
+    //// Construct ////
     
-    override get name(): string {
-        return this.constructor.name
-    }
+    protected readonly [$$target]: V
 
     //// Mutations ////
     

@@ -10,7 +10,7 @@ import {
 import {
     $$target,
     ValidatorProxy
-} from './validator-proxy'
+} from '../validator-proxy'
 
 import {
 

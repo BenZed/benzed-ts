@@ -99,6 +99,10 @@ const Struct = class extends Structural {
 
 } as StructConstructor
 
+//// TODO ////
+
+// Add StructProxy class
+
 //// Exports ////
 
 export default Struct

@@ -5,4 +5,4 @@ export * from './mutator'
 
 export * from './mutators'
 
-export * from './validator-proxy'
+export * from '../validator-proxy'

@@ -118,6 +118,7 @@ type Schema<
 
 // Schema Validator
 
+// TODO maybe this should be a validator proxy
 class SchemaValidator extends ValidateStruct<unknown,unknown> {
 
     readonly [$$main]: AnyValidatorStruct
