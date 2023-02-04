@@ -1,28 +1,27 @@
 
-import { 
-    $$target, 
-    $$type, 
-    MutatorType as M, 
-    AnyMutator, 
-    Mutator, 
+import {
+    $$target,
+    $$type,
+    MutatorType as M,
+    AnyMutator,
+    Mutator,
     MutatorType
 } from './mutator'
 
-import { 
-    Optional, 
-    Required, 
-    ReadOnly, 
-    Writable, 
-    ToggleNot, 
-    Not 
+import {
+    Optional,
+    Required,
+    ReadOnly,
+    Writable,
+    ToggleNot,
+    Not
 } from './mutators'
 
-import { 
-    AnyValidatorStruct 
-} from '../validator-struct'
+import { AnyValidatorStruct } from '../validator-struct'
 
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types,
     @typescript-eslint/no-var-requires
@@ -86,23 +85,28 @@ export function addMutators <V extends AnyValidatorStruct, T extends M[]>(
     const { Optional, ReadOnly, Not } = require('./mutators') as typeof import('./mutators')
     for (const type of types) {
         switch (type) {
+
             case M.Optional: {
                 current = hasMutator(current, MutatorType.Optional)
                     ? current
                     : new Optional(current)
                 break
             }
+
             case M.ReadOnly: {
                 current = hasMutator(current, MutatorType.ReadOnly)
                     ? current
                     : new ReadOnly(current)
                 break
             }
+
             case M.Not: {
                 current = hasMutator(current, MutatorType.Not)
                     ? (current as Not<V>)[$$target] 
                     : new Not(current)
+                break
             }
+
             default: {
                 const badType: never = type
                 throw new Error(`${badType} is an invalid option.`)
@@ -200,20 +204,3 @@ export function removeAllMutators<V extends AnyValidatorStruct>(
     const validate = stack.at(-1)?.[$$target] ?? mutator
     return validate as RemoveAllMutators<V>
 }
-
-//// Mutators ////
-
-// export type Required<V extends AnyValidatorStruct> = RemoveMutator<V, M.Optional>
-// export type Optional<V extends AnyValidatorStruct> =
-//     Mutator<Required<V>, M.Optional, OutputOf<Required<V>> | nil> &
-//     MutatorProperties<Required<V>>
-
-// export type Writable<V extends AnyValidatorStruct> = RemoveMutator<V, M.ReadOnly>
-// export type ReadOnly<V extends AnyValidatorStruct> =
-//     Mutator<Writable<V>, M.ReadOnly, Readonly<OutputOf<Writable<V>>>> &
-//     MutatorProperties<Writable<V>>
-
-// export type Sync<V extends AnyValidatorStruct> = RemoveMutator<V, M.Async>
-// export type Async<V extends AnyValidatorStruct> =
-//     Mutator<Sync<V>, M.Async, Promise<OutputOf<Sync<V>>>> &
-//     MutatorProperties<Sync<V>>

@@ -1,17 +1,22 @@
 import { InputOf, KeysOf } from '@benzed/util'
+
+import { 
+    $$target, 
+    Mutator, 
+    MutatorType 
+} from '../mutator'
+
+import {
+    AddMutator,
+    assertUnMutated,
+    HasMutator,
+    RemoveMutator
+} from '../mutator-operations'
+
 import { ValidateOptions } from '../../../validate'
 import ValidationContext from '../../../validation-context'
 import ValidationError from '../../../validation-error'
 import { AnyValidatorStruct } from '../../validator-struct'
-
-import { $$target, Mutator, MutatorType } from '../mutator'
-
-import { 
-    AddMutator, 
-    assertUnMutated, 
-    HasMutator, 
-    RemoveMutator
-} from '../mutator-operations'
 
 //// EsLint ////
 
@@ -75,8 +80,8 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
             // be a validation  option that only returns validation errors.
             // validator.report() or something
             void this[$$target].validate(input, { transform: false })
-            //                                  ^ not validations should never
-            //                                    be transformed.
+            //                                    ^ not validations should 
+            //                                    never be transformed.
 
         } catch (e) {
             if (e instanceof ValidationError)

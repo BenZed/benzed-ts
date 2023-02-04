@@ -1,10 +1,19 @@
-import { $$copy, $$state, StructState } from '@benzed/immutable'
-import { KeysOf, OutputOf } from '@benzed/util'
+import { $$state, StructState } from '@benzed/immutable'
+import { InputOf, OutputOf } from '@benzed/util'
 import { ValidateOptions } from '../../validate'
 
-import { AnyValidatorStruct, ValidatorStruct } from '../validator-struct'
-
 import { 
+    AnyValidatorStruct, 
+    ValidatorStruct 
+} from '../validator-struct'
+
+import {
+    $$target,
+    ValidatorProxy
+} from './validator-proxy'
+
+import {
+
     isMutator,
     addMutators, 
     ensureMutator, 
@@ -13,6 +22,7 @@ import {
     removeAllMutators,
     removeMutator,
     getMutators
+
 } from './mutator-operations'
 
 //// EsLint ////
@@ -23,12 +33,7 @@ import {
 
 //// Symbol ////
 
-const $$target = Symbol('mutate-target')
 const $$type = Symbol('mutate-type')
-
-const $$get = Symbol('mutator-get')
-const $$set = Symbol('mutator-set')
-// const $$apply = Symbol('mutator-apply')
 
 //// Types ////
 
@@ -36,16 +41,11 @@ enum MutatorType {
     Optional,
     ReadOnly,
     Not,
-    // And,
-    // Or,
     // Async
+    // ArrayOf
 }
 
 type AnyMutator = Mutator<AnyValidatorStruct, MutatorType, unknown>
-
-type MutatorProperties<V extends AnyValidatorStruct> = {
-    [K in Exclude<keyof V, KeysOf<Mutator<V, MutatorType>>>]: V[K]
-}
 
 type MutatorState<V extends AnyValidatorStruct, T extends MutatorType> = 
     StructState<V> & {
@@ -55,24 +55,13 @@ type MutatorState<V extends AnyValidatorStruct, T extends MutatorType> =
 
 //// Implementation ////
 
-function mutate<M extends AnyMutator>(mutator: M): M {
-    return new Proxy(mutator, {
-        get: mutator[$$get],
-        set: mutator[$$set],
-        // ownKeys: this[$$ownKeys],
-        // apply: this[$$apply]
-
-    }) as M
-}
-
 abstract class Mutator<
     V extends AnyValidatorStruct, 
     T extends MutatorType, 
-    O = OutputOf<V>
-> extends ValidatorStruct<unknown, O> {
+    O extends InputOf<V> = OutputOf<V> extends InputOf<V> ? OutputOf<V> : never
+> extends ValidatorProxy<V, InputOf<V>, O> {
 
     static $$type = $$type
-    static $$target = $$target
 
     static readonly add = addMutators
     static readonly has = hasMutator
@@ -83,17 +72,15 @@ abstract class Mutator<
     static readonly get = getMutators
     static readonly is = isMutator
 
-    protected readonly [$$type]: T
-    protected readonly [$$target]: V
-
+    //// Constructor ////
+    
     constructor(validate: V, type: T) {
-        super()
+        super(validate)
 
-        this[$$target] = validate
         this[$$type] = type
-
-        return mutate(this)
     }
+
+    protected readonly [$$type]: T
 
     //// ValidatorStruct Implementation ////
     
@@ -105,41 +92,7 @@ abstract class Mutator<
         return this[$$target](input, options)
     }
 
-    //// Mutations ////
-    
-    protected [$$get](
-        mutator: this, 
-        key: string | symbol, 
-        proxy: typeof Proxy
-    ): unknown {
-
-        const target = Reflect.has(mutator, key)
-            ? mutator 
-            : mutator[$$target]
-
-        return Reflect.get(target, key, proxy)
-    }
-
-    protected [$$set](
-        mutator: this, 
-        key: string | symbol, 
-        value: unknown,
-        proxy: typeof Proxy
-    ): boolean {
-
-        const target = key === $$state
-            ? mutator 
-            : mutator[$$target]
-
-        return Reflect.set(target, key, value, proxy)
-    }
-
     //// Struct ////
-
-    protected override [$$copy](): this {
-        const clone = super[$$copy]()
-        return mutate(clone)
-    }
 
     override get [$$state](): MutatorState<V,T> {
 
@@ -157,16 +110,15 @@ abstract class Mutator<
 
     override set [$$state](state: MutatorState<V,T>) {
 
-        const { [$$target]: target, [$$type]: main, ...targetState } = state
+        const { [$$target]: target, [$$type]: type, ...targetState } = state
 
         const that = this as any
-        that[$$type] = main
+        that[$$type] = type
         that[$$target] = ValidatorStruct.applyState(
             target, 
             targetState as StructState<V>
         )
     }
-
 }
 
 //// Exports ////
@@ -177,7 +129,6 @@ export {
 
     Mutator,
     MutatorType,
-    MutatorProperties,
 
     $$target,
     $$type

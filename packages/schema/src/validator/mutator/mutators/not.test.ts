@@ -82,7 +82,6 @@ describe('Not validation mutation', () => {
 describe('removable', () => {
 
     it('output type', () => {
-
         const $id2 = $notId.not
 
         expectTypeOf<ReturnType<typeof $id2>>()
@@ -95,6 +94,7 @@ describe('effect on target', () => {
     it('cannot be stacked', () => {
         expect(() => new Not(new Not($id))).toThrow('already has mutator')
     })
+
     it('has target properties', () => {
         expect($notId.minId).toBe($id.minId)
     })
