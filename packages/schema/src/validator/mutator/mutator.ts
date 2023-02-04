@@ -1,5 +1,6 @@
 import { $$copy, $$state, StructState } from '@benzed/immutable'
-import { KeysOf, Mutable, OutputOf } from '@benzed/util'
+import { KeysOf, OutputOf } from '@benzed/util'
+import { ValidateOptions } from '../../validate'
 
 import { AnyValidatorStruct, ValidatorStruct } from '../validator-struct'
 
@@ -27,7 +28,7 @@ const $$type = Symbol('mutate-type')
 
 const $$get = Symbol('mutator-get')
 const $$set = Symbol('mutator-set')
-const $$apply = Symbol('mutator-apply')
+// const $$apply = Symbol('mutator-apply')
 
 //// Types ////
 
@@ -98,6 +99,10 @@ abstract class Mutator<
     
     override get name(): string {
         return this.constructor.name
+    }
+
+    validate(input: unknown, options?: ValidateOptions): O {
+        return this[$$target](input, options)
     }
 
     //// Mutations ////

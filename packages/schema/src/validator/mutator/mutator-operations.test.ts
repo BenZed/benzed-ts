@@ -22,6 +22,7 @@ import { $$target, MutatorType as M, MutatorType } from './mutator'
 import { Validate } from '../../validate'
 
 import { ContractValidator } from '../contract-validator'
+import { AnyValidatorStruct, ValidatorStruct } from '../validator-struct'
 
 //// EsLint ////
 
@@ -32,7 +33,7 @@ import { ContractValidator } from '../contract-validator'
 
 //// Test ////
 
-interface To<O> extends Validate<unknown, O> {}
+interface To<O> extends ValidatorStruct<unknown, O> {}
 
 interface String extends To<string> {}
 const $string: String = ContractValidator.generic({

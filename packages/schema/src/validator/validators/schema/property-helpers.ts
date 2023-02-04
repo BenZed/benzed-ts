@@ -1,5 +1,7 @@
 import { Property } from '@benzed/util'
 
+//// Exports ////
+
 export function getAllProperties(
     object: object, 
     filter?: (
@@ -21,19 +23,4 @@ export function getAllProperties(
     }
 
     return filteredDescriptors
-}
-
-export function hideProperty(
-    object: object,
-    key: string | symbol
-): PropertyDescriptor {
-    Property.configure(object, key, { enumerable: false })
-    return Property.descriptorOf(object, key) as PropertyDescriptor
-}
-export function showProperty(
-    object: object,
-    key: string | symbol
-): PropertyDescriptor {
-    Property.configure(object, key, { enumerable: true })
-    return Property.descriptorOf(object, key) as PropertyDescriptor
 }

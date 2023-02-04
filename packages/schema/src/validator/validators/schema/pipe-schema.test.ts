@@ -17,7 +17,7 @@ describe('pipe schema setters', () => {
 
     it('creates option setters for every validator in the pipe', () => {
 
-        type String = ValidatorStruct<unknown, string> & { cast: boolean}
+        type String = ValidatorStruct<unknown, string> & { cast: boolean }
 
         type Path = ValidatorStruct<string, `/${string}`> & { protocol: string }
 

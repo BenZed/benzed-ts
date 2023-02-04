@@ -15,10 +15,8 @@ import {
     ValidatorStruct
 } from '../../validator-struct'
 
-import { SubValidator} from './sub-validator'
 import { getAllProperties } from './property-helpers'
 import { ValidationContext } from '../../../validation-context'
-import { MessageMethod } from './simple-sub-validator'
 import { ValidationError } from '../../../validation-error'
 import { ValidateStruct } from '../../validate-struct'
 
@@ -38,6 +36,10 @@ const $$sub = Symbol('sub-validators')
 //// Sub Validator Types ////
 
 export type MainValidator<I, O extends I> = ValidatorStruct<I,O>
+
+export interface SubValidator<O> extends ValidatorStruct<O,O> {
+    readonly enabled: boolean
+}
 
 export type SubValidators<O> = {
     [key: string]: SubValidator<O>

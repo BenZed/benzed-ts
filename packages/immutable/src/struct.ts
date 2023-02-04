@@ -60,7 +60,7 @@ abstract class Structural {
         return { ...this } as object
     }
 
-    set [$$state](state: object) {
+    protected set [$$state](state: object) {
         assign(this, state)
     }
 

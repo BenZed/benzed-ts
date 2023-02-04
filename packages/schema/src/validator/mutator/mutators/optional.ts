@@ -41,7 +41,7 @@ type Optional<V extends AnyValidatorStruct> =
     _OptionalInherit<V>
 
 interface OptionalConstructor {
-    new <V extends AnyValidatorStruct>(validator: V): Optional<V>
+    new <V extends AnyValidatorStruct>(validator: V): Optional<Required<V>>
 }
 
 //// Implementation ////
@@ -57,7 +57,7 @@ const Optional = class Optional extends Mutator<AnyValidatorStruct, MutatorType.
         )
     }
 
-    validate(input: unknown, options?: ValidateOptions): unknown | nil {
+    override validate(input: unknown, options?: ValidateOptions): unknown | nil {
         try {
             return this[$$target](input, options)
         } catch (e) {

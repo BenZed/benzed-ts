@@ -3,8 +3,7 @@ import { $$state, StructStateShape } from '@benzed/immutable'
 
 import { it, describe } from '@jest/globals'
 
-import { MainValidator, Schema } from './schema'
-import { SubValidator } from './sub-validator'
+import { MainValidator, Schema, SubValidator } from './schema'
 import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
@@ -13,11 +12,7 @@ import {
     testValidator, 
     testValidationContract 
 } from '../../../util.test'
-
-import { 
-    SimpleSubContractValidator 
-} from './simple-sub-contract-validator'
-import { MessageMethod } from './simple-sub-validator'
+import ContractValidator from '../../contract-validator'
 
 //// EsLint ////
 
@@ -175,7 +170,13 @@ describe('Schema implementation', () => {
             }
         }
 
-        class Capitalize extends SimpleSubContractValidator<string> { 
+        class Capitalize extends ContractValidator<string, string> { 
+
+            get name(): string {
+                return this.constructor.name
+            }
+
+            enabled = false
 
             transform(input: string): string {
                 return input.charAt(0).toUpperCase() + input.slice(1)
@@ -184,15 +185,15 @@ describe('Schema implementation', () => {
             override message(): string {
                 return 'Must be capitalized.'
             } 
- 
+
         } 
 
         const $string = new Schema(new StringValidator(), {
-            captialize: new Capitalize(false)
+            captialize: new Capitalize()
         })
         
         testValidator<unknown,string>(
-            $string.captialize(),
+            $string.captialize({ enabled: true }),
             { transforms: 'ace', output: 'Ace' },
             { asserts: 'ace', error: 'Must be capitalized' },
             { transforms: 0, error: 'Must be a String' },

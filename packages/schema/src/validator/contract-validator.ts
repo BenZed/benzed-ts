@@ -54,7 +54,7 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
     /**
      * Method determines if a given input is valid
      */
-    isValid(value: I | O, context: ValidationContext<I>): value is O {
+    isValid(value: I | O, context: ValidationContext<I>): boolean {
         /**
          * By default, a output is considered valid if it is equal
          * to it's transformed input.
@@ -89,7 +89,7 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
             )
         }
     
-        return output
+        return output as O
     }
 
 }

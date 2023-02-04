@@ -1,14 +1,21 @@
-import { isBoolean, isNumber, isShape, nil } from '@benzed/util'
+import { 
+    isBoolean, 
+    isNumber, 
+    isShape, 
+    nil 
+} from '@benzed/util'
+
 import { StructState } from '@benzed/immutable'
 
 import { Optional } from './optional'
 import { testValidator } from '../../../util.test'
 import { TypeValidator } from '../../validators'
 
-import { expectTypeOf } from 'expect-type'
 import { $$target } from '../mutator'
 
-//// Tests ////
+import { expectTypeOf } from 'expect-type'
+
+//// Setup ////
 
 class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
 
@@ -30,6 +37,8 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
 const $cookieJar = new CookieJar
 
 const $maybeCookieJar = new Optional($cookieJar)
+
+//// Tests ////
 
 describe('Optional validation mutation', () => {
 
@@ -59,6 +68,12 @@ describe('removable', () => {
 
 describe('effect on target', () => { 
 
+    it('cannot be stacked', () => {
+        const $stacked = new Optional(new Optional($cookieJar))
+        expect($stacked[$$target]).toBe($cookieJar)
+        expectTypeOf($stacked).toMatchTypeOf<Optional<CookieJar>>()
+    })
+
     it('has target properties', () => {
         expect($maybeCookieJar.cast).toBe($cookieJar.cast)
         expect($maybeCookieJar.default).toBe($cookieJar.default)
@@ -81,7 +96,6 @@ describe('effect on target', () => {
 
         expectTypeOf($disabledMaybeCookieJar)
             .toEqualTypeOf<Optional<CookieJar>>()  
- 
     })
 
     it('result instances retain mutator properties', () => {  
@@ -92,8 +106,6 @@ describe('effect on target', () => {
 
         expect($disabledMaybeCookieJar.required).toBeInstanceOf(CookieJar)
         expect($disabledMaybeCookieJar[$$target]).toBeInstanceOf(CookieJar)
-
-    }) 
-
+    })
 })
 
