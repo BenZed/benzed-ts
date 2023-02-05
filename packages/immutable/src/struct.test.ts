@@ -9,7 +9,8 @@ import {
 
     Struct, 
     StructState, 
-    hideNonStateKeys
+    hideNonStateKeys,
+    StructStateApply
 } from './struct'
 
 import { 
@@ -226,9 +227,11 @@ describe('stateful convention', () => {
 
     type DamageSettings<T extends Damage> = StructState<T>
 
+    type DamageSettingsApply<T extends Damage> = StructStateApply<T>
+
     abstract class Damage extends Struct<() => number> {
 
-        static applySettings<T extends Damage>(damage: T, settings: Partial<DamageSettings<T>>): T {
+        static applySettings<T extends Damage>(damage: T, settings: DamageSettingsApply<T>): T {
             return applyState(damage, settings)
         }
 
@@ -451,7 +454,7 @@ describe('set/get nested state', () => {
         readonly king = 13
     }
 
-    const five = new class extends LiteralValue {
+    const five = new class Five extends LiteralValue {
         readonly value = 5 as const
     }
 
@@ -471,7 +474,7 @@ describe('set/get nested state', () => {
             super()
         }
 
-        set [$$state](state: { by: number, value: number }) {
+        set [$$state](state: { value: Multiplier['value'], by: number }) {
             assign(this, state)
         }
 
@@ -506,7 +509,7 @@ describe('set/get nested state', () => {
         expect(ten()).toEqual(10)
         expect(getState(ten)).toEqual({ by: 2 })
 
-        // @ts-expect-error 'value' is not a state key
+        // @ts-expect-error 'by' is not a state key
         applyState(ten, { by: 2 })
 
         type TenState = StructState<typeof ten>
@@ -551,7 +554,10 @@ describe('set/get nested state', () => {
         expect({ ...six }).toEqual({ value: 2, by: 3 })
 
         type SixState = StructState<typeof six>
-        expectTypeOf<SixState>().toEqualTypeOf<{ by: number, value: number }>()
+        expectTypeOf<SixState>().toEqualTypeOf<{ 
+            by: number
+            value: number | { valueOf(): number }
+        }>()
 
         const twelve = applyState(six, { value: 4 })
         expect(twelve()).toEqual(12)
@@ -560,4 +566,133 @@ describe('set/get nested state', () => {
 
     })
 
+    const composite = new class Composite extends PropertySum {
+
+        readonly cards = cards
+
+        readonly five = five 
+
+        readonly custom = new CustomMultiplier(new X2(2), 2)
+
+        get [$$state](): Pick<this, 'cards' | 'five' | 'custom'> {
+            return { ...this }
+        }
+    } 
+
+    test('deep getState()', () => {
+
+        expect(getState(composite)).toEqual({
+            cards: {
+                ace: 1,
+                jack: 11,
+                king: 13,
+                queen: 12
+            },
+            five: { value: 5 },
+            custom: { value: { by: 2 }, by: 2 }
+        })
+
+        type CompositeState = StructState<typeof composite>
+        expectTypeOf<CompositeState>().toEqualTypeOf<{
+            readonly cards: Empty
+            readonly five: Empty
+            readonly custom: {
+                by: number
+                value: number | { valueOf(): number }
+            }
+        }>()
+
+        expect(composite()).toEqual(50)
+
+    })
+
+    test('deep setState()', () => {
+
+        const composite2 = applyState(composite, {
+            custom: {
+                value: 15,
+            }
+        })
+
+        expect(composite2()).toBe(72)
+        expect(getState(composite2)).toEqual({
+            cards: {
+                ace: 1,
+                jack: 11,
+                king: 13,
+                queen: 12
+            },
+            five: { value: 5 },
+            custom: { value: 15, by: 2 }
+        })
+
+    }) 
+
+    test('double deep setState()', () => {
+
+        const fifty = new class CashDrawer extends PropertySum {
+            readonly wallet = new class TenDollaBillz extends Multiplier {
+
+                readonly by = 5
+                readonly value = new class Dollars extends LiteralValue {
+                    readonly value: number = 10
+
+                    get [$$state](): Pick<this, 'value'> {
+                        return { ...this }
+                    }
+                }
+
+                get [$$state](): Pick<this, 'value'> {
+                    return { ...this }
+                }
+
+            }
+
+            get [$$state](): Omit<this, 'valueOf' | typeof $$state | 'name'> {
+                return { ...this }
+            }
+        }
+
+        expect(getState(fifty)).toEqual({
+            wallet: {
+                by: 5,
+                value: {
+                    value: 10
+                }
+            }
+        })
+
+        const oneTwentyFive = applyState(
+            fifty, 
+            {
+                wallet: {
+                    value: { 
+                        value: 25
+                    }
+                }
+            }
+        )
+
+        type CashDrawerState = StructState<typeof fifty>
+        expectTypeOf<CashDrawerState>().toEqualTypeOf<{
+            readonly wallet: {
+                readonly value: {
+                    readonly value: number
+                }
+                readonly by: 5
+            }
+        }>
+
+        const oneTwentyFiveState = getState(oneTwentyFive)
+        expect(fifty()).toEqual(50)
+        expect(oneTwentyFive()).toEqual(125)
+        expect(oneTwentyFiveState).toEqual({
+            wallet: {
+                value: { 
+                    value: 25
+                },
+                by: 5
+            }
+        })
+    })
 })

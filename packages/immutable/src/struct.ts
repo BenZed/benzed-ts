@@ -8,7 +8,9 @@ import {
     Property,
     Empty,
     keysOf,
-    symbolsOf
+    symbolsOf,
+    Infer,
+    GenericObject as State
 } from '@benzed/util'
 
 import { $$copy } from './copy'
@@ -16,18 +18,39 @@ import { equals, $$equals } from './equals'
 
 //// EsLint ////
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
 */
 
 //// Symbols ////
 
 const $$state = Symbol('state')
 
+//// Helper Types ////
+
+type _StructState<T extends State> = Infer<{
+    [K in keyof T]: T[K] extends Struct 
+        ? StructState<T[K]>
+        : T[K]
+}, State>
+
+type _StructStateApply<T extends State> = Partial<{
+    [K in keyof T]: T[K] extends Struct 
+        ? StructStateApply<T[K]>
+        : T[K]
+}>
+
 //// Types ////
 
-type StructState<T extends Struct> = T extends StatefulStruct<infer S> ? S : Empty
+type StructState<T extends Struct> = T extends StatefulStruct<infer S> 
+    ? _StructState<S> 
+    : Empty
 
-type StatefulStruct<T extends object> = {
+type StructStateApply<T extends Struct> = T extends StatefulStruct<infer S> 
+    ? _StructStateApply<S> 
+    : Empty
+
+type StatefulStruct<T extends State> = {
     get [$$state](): T
 }
 
@@ -53,7 +76,7 @@ function getStateDescriptor<T extends Struct>(struct: T): PropertyDescriptor | n
 
 function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
 
-    const state = getState(struct)
+    const state = getShallowState(struct)
 
     for (const stateKey of stateKeys as (string | symbol)[]) {
 
@@ -76,11 +99,33 @@ function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stat
 
 }
 
+function getState<T extends Struct>(struct: T, deep: boolean): StructState<T> {
+
+    const stateDescriptor = getStateDescriptor(struct)
+
+    const state = stateDescriptor && (stateDescriptor.value || stateDescriptor.get)
+        ? (struct as any)[$$state]
+        : { ...struct }
+
+    if (deep) {
+        for (const key of keysOf(state)) {
+            if (state[key] instanceof Struct) 
+                state[key] = getState(state[key], deep)
+        }
+    }
+
+    return state
+}
+
+function getShallowState<T extends Struct>(struct: T): StructState<T> {
+    return getState(struct, false)
+}
+
 //// Utility ////
 
 function matchKeyVisibility<T extends Struct>(source: T, target: T): void {
 
-    const state = getState(source)
+    const state = getShallowState(source)
 
     for (const stateKey of [...keysOf(state), ...symbolsOf(state)]) {
 
@@ -109,17 +154,10 @@ function hideNonStateKeys<T extends Struct>(struct: T, ...keys: (string | symbol
 }
 
 /**
- * Retreive the state of a struct.
+ * Retreive the deep state of a struct.
  */
-function getState<T extends Struct>(struct: T): StructState<T> {
-
-    const stateDescriptor = getStateDescriptor(struct)
-
-    return (
-        stateDescriptor && (stateDescriptor.value || stateDescriptor.get)
-            ? (struct as any)[$$state]
-            : { ...struct }
-    )
+function getDeepState<T extends Struct>(struct: T): StructState<T> {
+    return getState(struct, true)
 }
 
 /**
@@ -131,20 +169,39 @@ function setState<T extends Struct>(struct: T, state: StructState<T>): void {
 
     if (stateDescriptor?.writable || stateDescriptor?.set)
         (struct as any)[$$state] = state
-    else
+
+    else {
+        for (const key of keysOf(state)) {
+            const structKey = key as unknown as keyof typeof struct
+            const structValue = struct[structKey] as unknown
+            const stateValue = state[key] as unknown
+            if (
+                !(stateValue instanceof Struct) && 
+                structValue instanceof Struct
+            ) {
+                state[key] = applyState(
+                    structValue, 
+                    stateValue as object
+                )
+            }
+        }
         assign(struct, state)
+    }
 
 }
 
 /**
  * Given a struct and state, receive a new struct with the state applied.
  */
-function applyState<T extends Struct>(struct: T, state: Partial<StructState<T>>): T {
+function applyState<T extends Struct>(struct: T, state: StructStateApply<T>): T {
+
+    const previousState = getShallowState(struct)
 
     const newStruct = copyWithoutState(struct)
+    // first apply old state, in case of nested structs
+    setState(newStruct, previousState)
 
-    const previousState = getState(struct)
-
+    // apply state again, mixedm so that any nested structs 
     setState(newStruct, { ...previousState, ...state })
 
     matchKeyVisibility(struct, newStruct)
@@ -177,7 +234,7 @@ abstract class Structural {
     }
 
     protected [$$copy](): this {
-        return applyState(this, getState(this))
+        return applyState(this, getShallowState(this))
     }
     
     protected [$$equals](other: unknown): other is this {
@@ -185,8 +242,8 @@ abstract class Structural {
             other instanceof Struct && 
             other.constructor === this.constructor &&
             equals(
-                getState(this),
-                getState(other)
+                getShallowState(this),
+                getShallowState(other)
             )
         )
     }
@@ -204,11 +261,14 @@ export {
 
     Struct,
     StructState,
+    StructStateApply,
     StatefulStruct,
 
     $$state,
+    State,
 
-    getState,
+    getDeepState as getState,
+    getShallowState,
     setState,
     applyState,
     copyWithoutState,
