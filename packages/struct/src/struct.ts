@@ -10,7 +10,6 @@ import {
     keysOf,
     symbolsOf,
     Infer,
-    GenericObject as State,
     KeysOf,
     omit,
     isObject
@@ -25,6 +24,12 @@ import {
 //// Symbols ////
 
 const $$state = Symbol('state')
+
+//// Hero Types ////
+
+type State = Record<string | symbol, unknown>
+
+type Struct = State
 
 //// Helper Types ////
 
@@ -76,8 +81,6 @@ type StructDeepStateApply<T extends Struct, P extends StructDeepPaths<T>> =
     [...keys: P, state: _StructStateAtPath<T, P>]
 
 interface StatefulStruct<T extends State> extends _StateFul<T> {}
-
-type Struct = Structural
 
 interface StructConstructor {
     new (): Struct
@@ -314,17 +317,15 @@ function equals<T extends Struct>(a: T, b: Struct): b is T {
 
 //// Implementation ////
 
-abstract class Structural {
+const Struct = class Struct {
 
     static [Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
     constructor(signature?: Func) {
-        return applySignature(this, signature)
+        return applySignature(this as any, signature)
     }
 
-}
-
-const Struct = class Struct extends Structural {} as StructConstructor
+} as StructConstructor
 
 //// Presets ////
 

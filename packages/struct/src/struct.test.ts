@@ -13,14 +13,13 @@ import {
     StructStateApply,
     PublicStruct,
     copy, 
-    equals
+    equals,
 } from './struct'
 
 import { 
     assign,
     Empty,
     isNumber, 
-    isObject, 
     isString, 
     keysOf, 
 } from '@benzed/util'
@@ -227,7 +226,7 @@ describe('stateful convention', () => {
         return this.damage()
     }
 
-    type DamageSettings<T extends Damage> = StructState<T>
+    // type DamageSettings<T extends Damage> = StructState<T>
 
     type DamageSettingsApply<T extends Damage> = StructStateApply<T>
 
@@ -596,9 +595,9 @@ describe('set/get nested state', () => {
 
         type CompositeState = StructState<typeof composite>
         expectTypeOf<CompositeState>().toEqualTypeOf<{
-            readonly cards: Empty
-            readonly five: Empty
-            readonly custom: {
+            cards: Empty
+            five: Empty
+            custom: {
                 by: number
                 value: number | { valueOf(): number }
             }
