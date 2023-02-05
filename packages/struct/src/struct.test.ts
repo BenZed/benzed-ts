@@ -11,10 +11,7 @@ import {
     StructState, 
     hideNonStateKeys,
     StructStateApply,
-    PublicState,
     PublicStruct,
-    StructDeepStateApply,
-    StructDeepPaths,
 } from './struct'
 
 import { 
@@ -22,16 +19,13 @@ import {
     Empty,
     isNumber, 
     isString, 
-    KeysOf, 
     keysOf, 
 } from '@benzed/util'
 
 import { it, expect, describe } from '@jest/globals'
 
-import { copy } from './copy'
-import { equals } from './equals'
-
 import { expectTypeOf } from 'expect-type'
+import { copy, equals } from '@benzed/immutable'
 
 //// Tests ////
 

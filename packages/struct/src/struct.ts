@@ -16,8 +16,7 @@ import {
     isObject
 } from '@benzed/util'
 
-import { $$copy } from './copy'
-import { equals, $$equals } from './equals'
+import { equals, $$copy , $$equals } from '@benzed/immutable' 
 
 //// EsLint ////
 /* eslint-disable 
