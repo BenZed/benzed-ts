@@ -1,7 +1,11 @@
 
+export * from './mutator'
+
 export * from './contract-validator'
 
 export * from './validate-struct'
+
+export * from './validator-proxy'
 
 export * from './validator-struct'
 

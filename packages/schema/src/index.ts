@@ -1,4 +1,4 @@
-export * from './validate'
+export * from './validate'  
 
 export * from './validator'
 

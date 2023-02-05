@@ -29,6 +29,14 @@ interface StructConstructor {
 
     readonly $$state: typeof $$state
 
+    /**
+     * Create a clone of a struct without applying any state
+     */
+    statelessClone<T extends Struct>(struct: T): T
+
+    /**
+     * Given a struct and state, receive a new struct with the state applied.
+     */
     applyState<T extends Struct>(struct: T, state: Partial<StructState<T>>): T
 
     new (): Struct
@@ -37,17 +45,30 @@ interface StructConstructor {
 
 //// Initialization ////
 
-function initialize(struct: Struct, signature?: Func, state?: object): Struct {
+function applyCallable<T extends Struct>(struct: T, signature?: Func): T {
 
-    struct = signature     
-        ? Callable.create(signature, struct, provideCallableContext) as Struct
+    return signature 
+        ? Callable.create(signature, struct, provideCallableContext) as T
         : struct
+}
 
-    if (state)
-        struct[$$state] = { ...state }
+function applyState<T extends Struct>(struct: T, state: Partial<StructState<T>>): T {
+    const newStruct = copy(struct)
+
+    newStruct[$$state] = { ...struct[$$state], ...state }
+
+    return newStruct
+}
+
+function statelessClone<T extends Struct>(struct: T): T {
     
-    return struct
+    const newStruct = Object.create(struct.constructor.prototype)
 
+    const signature = isFunc(struct)
+        ? Callable.signatureOf(struct)
+        : nil 
+
+    return applyCallable(newStruct, signature)
 }
 
 //// Implementation ////
@@ -56,6 +77,10 @@ abstract class Structural {
 
     static [Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
+    constructor(signature?: Func) {
+        return applyCallable(this, signature)
+    }
+    
     get [$$state](): object {
         return { ...this } as object
     }
@@ -65,12 +90,11 @@ abstract class Structural {
     }
 
     protected [$$copy](): this {
-        const clone = Object.create(this.constructor.prototype)
-        const signature = isFunc(this)
-            ? Callable.signatureOf(this)
-            : nil 
+        const newStruct = statelessClone(this)
 
-        return initialize(clone, signature, this[$$state]) as this
+        newStruct[$$state] = this[$$state]
+
+        return newStruct
     }
     
     protected [$$equals](other: unknown): other is this {
@@ -86,16 +110,9 @@ const Struct = class extends Structural {
 
     static $$state = $$state
 
-    static applyState(struct: Struct, state: Partial<StructState<Struct>>): Struct {
-        const newStruct = copy(struct)
-        newStruct[$$state] = { ...struct[$$state], ...state }
-        return newStruct
-    }
+    static statelessClone = statelessClone
 
-    constructor(signature?: Func) {
-        super()
-        return initialize(this, signature) as this
-    }
+    static applyState = applyState
 
 } as StructConstructor
 

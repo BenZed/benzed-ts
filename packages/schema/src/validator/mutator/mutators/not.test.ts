@@ -63,7 +63,7 @@ describe('Not validation mutation', () => {
     testValidator(
         $notId,
         { transforms: '1', output: '1' },
-        { asserts: '#id-2', error: 'Must not be an id' },
+        { asserts: '#id-2', error: 'Must not be id' },
         { asserts: '2' },
     )
 

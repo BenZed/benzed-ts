@@ -1,5 +1,6 @@
 
 import { GenericObject, keysOf, OutputOf } from '@benzed/util'
+
 import { AnyValidate, ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
 import ValidationError from '../../validation-error'
@@ -87,6 +88,7 @@ class ShapeValidator<T extends ShapeValidatorInput> extends ValidatorStruct<obje
         super()
     }
 
+    // TODO
     // readonly strict = true // <- only defined properties
     // pick() // <- create a new shape validator with a subset of properties
     // omit() // <- create a new shape validator with an exclusive subset of properties

@@ -1,5 +1,5 @@
-import { $$copy, $$state, StructState } from '@benzed/immutable'
-import { InputOf, OutputOf } from '@benzed/util'
+import { $$copy, $$state } from '@benzed/immutable'
+import { InputOf, isEmpty, OutputOf } from '@benzed/util'
 
 import { AnyValidatorStruct, ValidatorStruct } from './validator-struct'
 
@@ -20,10 +20,9 @@ const $$set = Symbol('proxy-set')
 
 //// Types ////
 
-type ValidatorProxyState<V extends AnyValidatorStruct> = 
-    StructState<V> & {
-        [$$target]: V
-    }
+type ValidatorProxyState<V extends AnyValidatorStruct> = {
+    [$$target]: V
+}
 
 type AnyValidatorProxy = ValidatorProxy<any,any,any>
 
@@ -57,7 +56,7 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
 
     //// Construct ////
     
-    protected readonly [$$target]: V
+    protected [$$target]: V
 
     //// Mutations ////
     
@@ -91,32 +90,39 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
     //// Struct ////
 
     protected override [$$copy](): this {
-        const clone = super[$$copy]()
-        return proxify(clone)
+        const validator = ValidatorProxy.statelessClone(this)
+
+        validator[$$target] = this[$$target]
+        // Due do the patchy nature of proxy state assignments,
+        // we want the proxification to happen *before* state is
+        // applied.
+        const proxy = proxify(validator)
+        
+        proxy[$$state] = this[$$state]
+
+        return proxy
     }
 
     override get [$$state](): ValidatorProxyState<V> {
-
-        const target = this[$$target]
-        const targetState = target[$$state]
-
-        const state = { 
-            ...targetState, 
+        return { 
             [$$target]: this[$$target]
-        }
-
-        return state
+        } as ValidatorProxyState<V>
     }
 
-    override set [$$state](state: ValidatorProxyState<V>) {
+    override set [$$state](state: ValidatorProxyState<V> ) {
 
-        const { [$$target]: target, ...targetState } = state
+        // As a result of the wrapping we're doing, the state object 
+        // we receive may have other properties on it that should be
+        // applied to the target
 
-        const that = this as any
-        that[$$target] = ValidatorStruct.applyState(
-            target, 
-            targetState as StructState<V>
-        )
+        const { [$$target]: target = this[$$target], ...additionalTargetState } = state 
+
+        const newTarget = isEmpty(additionalTargetState)
+            ? target
+            : ValidatorProxy.applyState(target, additionalTargetState)
+
+        this[$$target] = newTarget 
+        
     }
 }
 
@@ -125,6 +131,7 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
 export {
 
     ValidatorProxy,
+    ValidatorProxyState,
     AnyValidatorProxy,
     $$target
 

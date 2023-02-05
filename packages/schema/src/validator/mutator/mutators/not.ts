@@ -2,6 +2,7 @@ import { InputOf, KeysOf } from '@benzed/util'
 
 import { 
     $$target, 
+    $$type, 
     Mutator, 
     MutatorType 
 } from '../mutator'
@@ -14,8 +15,8 @@ import {
 } from '../mutator-operations'
 
 import { ValidateOptions } from '../../../validate'
-import ValidationContext from '../../../validation-context'
-import ValidationError from '../../../validation-error'
+import { ValidationContext } from '../../../validation-context'
+import { ValidationError } from '../../../validation-error'
 import { AnyValidatorStruct } from '../../validator-struct'
 
 //// EsLint ////
@@ -60,16 +61,35 @@ interface NotConstructor {
     new <V extends AnyValidatorStruct>(validator: V): Not<V>
 }
 
-//// Implementation ////  
+//// Implementation ////
 
 const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> {
 
+    //// Construct ////
+    
     constructor(target: AnyValidatorStruct) {
 
         assertUnMutated(target, MutatorType.Not)
 
-        super(target, MutatorType.Not)
+        super(target)
     }
+
+    protected get [$$type](): MutatorType.Not {
+        return MutatorType.Not
+    }
+
+    //// Not Properties ////
+    
+    get not(): AnyValidatorStruct {
+        return this[$$target]
+    }
+
+    override message(ctx: ValidationContext<unknown>): string {
+        void ctx
+        return `Must not be ${this[$$target].name}`
+    }
+
+    //// Not Mutation ////
 
     override validate(input: unknown, options?: ValidateOptions | undefined): unknown {
         const ctx = new ValidationContext(input, options)
@@ -80,7 +100,7 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
             // be a validation  option that only returns validation errors.
             // validator.report() or something
             void this[$$target].validate(input, { transform: false })
-            //                                    ^ not validations should 
+            //                                    ^ not validations should
             //                                    never be transformed.
 
         } catch (e) {
@@ -91,14 +111,6 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
         }
 
         throw new ValidationError(this.message(ctx), ctx)
-    }
-
-    override message(ctx: ValidationContext<unknown>): string {
-        return this[$$target].message(ctx).replace('ust', 'ust not')
-    }
-
-    get not(): AnyValidatorStruct {
-        return this[$$target]
     }
 
 } as unknown as NotConstructor

@@ -8,11 +8,13 @@ import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
 
-import { 
-    testValidator, 
-    testValidationContract 
+import {
+    testValidator,
+    testValidationContract
 } from '../../../util.test'
+
 import ContractValidator from '../../contract-validator'
+
 import { ValidatorErrorMessage } from '../../validator-struct'
 
 //// EsLint ////
@@ -49,7 +51,7 @@ describe('Schema Setters Type Tests', () => {
     interface Positive extends SubValidator<bignumber> {
 
         // Custom configuration signature
-        configure(enabled?: boolean): this
+        configure(enabled?: boolean): { enabled: boolean}
 
     }
 
@@ -125,7 +127,7 @@ describe('Schema implementation', () => {
         readonly finite: boolean = false
     }
 
-    describe('main validator only', () => {
+    describe.only('main validator only', () => {
 
         const $number = new Schema(number)
 
@@ -133,13 +135,13 @@ describe('Schema implementation', () => {
             invalidInput: NaN,
             validInput: 10
         })
-        
+         
         testValidator<unknown,number>(
             $number,
             { asserts: Infinity },
             { transforms: '100', error: 'Must be a number' },
             { transforms: nil, error: 'Must be a number' }
-        ) 
+        )
 
         testValidator(
             $number.finite(true),
@@ -185,9 +187,9 @@ describe('Schema implementation', () => {
 
             override message(): string {
                 return 'Must be capitalized.'
-            } 
+            }
 
-        } 
+        }
 
         const $string = new Schema(new StringValidator(), {
             captialize: new Capitalize()

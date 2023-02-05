@@ -2,8 +2,8 @@ import { OutputOf, nil, KeysOf } from '@benzed/util'
 import { ValidateOptions } from '../../../validate'
 import { AnyValidatorStruct } from '../../validator-struct'
 
-import { Mutator, MutatorType, $$target } from '../mutator'
-import { assertUnMutated, removeMutator, RemoveMutator } from '../mutator-operations'
+import { Mutator, MutatorType, $$target, $$type } from '../mutator'
+import { assertUnMutated, RemoveMutator } from '../mutator-operations'
 
 //// EsLint ////
 
@@ -51,10 +51,11 @@ const Optional = class Optional extends Mutator<AnyValidatorStruct, MutatorType.
 
     constructor(target: AnyValidatorStruct) {
         assertUnMutated(target, MutatorType.Optional)
-        super(
-            target,
-            MutatorType.Optional
-        )
+        super(target)
+    }
+
+    get [$$type](): MutatorType.Optional {
+        return MutatorType.Optional
     }
 
     override validate(input: unknown, options?: ValidateOptions): unknown | nil {

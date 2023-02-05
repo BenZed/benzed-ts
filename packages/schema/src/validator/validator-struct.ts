@@ -1,7 +1,7 @@
-import { $$state, equals } from '@benzed/immutable'
+import { $$state, equals, Struct } from '@benzed/immutable'
 import { KeysOf } from '@benzed/util'
 
-import { ValidateOptions } from '../validate'
+import { Validate, ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import { ValidateStruct } from './validate-struct'
 import { Validator } from './validator'
@@ -61,13 +61,17 @@ export abstract class ValidatorStruct<I, O extends I = I>
 
 }
 
-export type AnyValidatorStruct= ValidatorStruct<any,any>
+export type AnyValidatorStruct = 
+    Struct
+    & Validate<any,any>
+    & Required<Omit<Validator<any,any>, 'message'>>
 
-export type ValidatorState<V extends AnyValidatorStruct> = object extends V[typeof $$state]
-    ? {
-        [K in KeysOf<V>]: V[K]
-    }
-    : V[typeof $$state]
+export type ValidatorState<V extends AnyValidatorStruct> = 
+    object extends V[typeof $$state]
+        ? {
+            [K in KeysOf<V>]: V[K]
+        }
+        : V[typeof $$state]
 
 export type ValidatorUpdateState<V extends AnyValidatorStruct> = Partial<ValidatorState<V>>
 

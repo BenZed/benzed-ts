@@ -1,8 +1,8 @@
 import { KeysOf, OutputOf } from '@benzed/util'
 import { AnyValidatorStruct } from '../../validator-struct'
 
-import { $$target, Mutator, MutatorType } from '../mutator'
-import { assertUnMutated, removeMutator, RemoveMutator } from '../mutator-operations'
+import { $$target, $$type, Mutator, MutatorType } from '../mutator'
+import { assertUnMutated, RemoveMutator } from '../mutator-operations'
 
 //// EsLint ////
 
@@ -50,7 +50,11 @@ const ReadOnly = class extends Mutator<AnyValidatorStruct, MutatorType.ReadOnly,
 
     constructor(target: AnyValidatorStruct) {
         assertUnMutated(target, MutatorType.ReadOnly)
-        super(target, MutatorType.ReadOnly)
+        super(target)
+    }
+
+    protected get [$$type](): MutatorType.ReadOnly {
+        return MutatorType.ReadOnly
     }
 
     get writable(): AnyValidatorStruct {
