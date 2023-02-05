@@ -15,8 +15,10 @@ import { AnyValidatorStruct, ValidatorStruct } from './validator-struct'
 const $$target = Symbol('proxy-target')
 
 const $$get = Symbol('proxy-get')
+
 const $$set = Symbol('proxy-set')
-const $$ownKeys = Symbol('proxy-ownKeys')
+
+const $$ownKeys = Symbol('proxy-own-keys')
 
 //// Types ////
 
@@ -37,10 +39,10 @@ function proxify<V extends AnyValidatorProxy>(validatorProxy: V): V {
     }) as V
 }
 
-//// ValidaotProxy ////
+//// ValidatorProxy ////
 
 /**
- * A validator that wraps another to change it's functionlity.
+ * A validator that wraps another to change it's functionality.
  */
 abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O extends I = OutputOf<V>> 
     extends ValidatorStruct<I, O> {
@@ -129,7 +131,7 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
             : ValidatorProxy.applyState(target, additionalTargetState)
 
         this[$$target] = newTarget 
-        
+
     }
 }
 

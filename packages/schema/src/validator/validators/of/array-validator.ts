@@ -1,9 +1,10 @@
-import { isArray, OutputOf } from '@benzed/util'
+import { indexesOf, isArray, OutputOf } from '@benzed/util'
 
 import { ValidateOptions } from '../../../validate'
 import { ValidationError } from '../../../validation-error'
 import { AnyValidatorStruct } from '../../validator-struct'
 import { ValidationContext } from '../../../validation-context'
+
 import OfValidator from '../of-validator'
 
 //// Main ////
@@ -17,12 +18,23 @@ class ArrayValidator<V extends AnyValidatorStruct> extends OfValidator<V, Output
         if (!isArray(input))
             throw new ValidationError(this.message(ctx), ctx)
         
-        return this.of(input, options)
-    }
+        try {
 
-    override message(ctx: ValidationContext<unknown>): string {
-        void ctx
-        return `Must be an array of ${this.of.name}`
+            ctx.transformed = [ ...input ]
+            const output = [...input]
+            for (const index of indexesOf(output)) 
+                output[index] = this.of(output[index], ctx)
+
+            return output as OutputOf<V>[]
+
+        } catch (e) {
+
+            if (!(e instanceof ValidationError))
+                throw e
+
+            throw new ValidationError(e.message, ctx)
+        }
+
     }
 
 }

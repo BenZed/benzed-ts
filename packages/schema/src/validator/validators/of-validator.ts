@@ -1,44 +1,27 @@
 
-import { $$state } from '@benzed/immutable'
 import { OutputOf } from '@benzed/util'
-import ValidationContext from '../../validation-context'
 
-import { $$target, ValidatorProxy, ValidatorProxyState } from '../validator-proxy'
-import { AnyValidatorStruct, ValidatorErrorMessage } from '../validator-struct'
-
-//// Type ////
-
-type OfValidatorState<V extends AnyValidatorStruct> = 
-    ValidatorProxyState<V> & { 
-        message: ValidatorErrorMessage<V>
-        name: string 
-    }
+import { $$target, ValidatorProxy } from '../validator-proxy'
+import { AnyValidatorStruct } from '../validator-struct'
 
 //// Setup ////
 
+/**
+ * An array that validates a collection data type that contains a sub data type
+ */
 abstract class OfValidator<
     V extends AnyValidatorStruct,
     O = OutputOf<V>
 > extends ValidatorProxy<V, unknown, O> {
 
+    override get name(): string {
+        return this.constructor.name.replace('Validator', '') || 'Validator'
+    }
+
     get of(): V {
         return this[$$target]
     }
 
-    override message(ctx: ValidationContext<unknown>): string {
-        void ctx
-        return `Must be ${this.name} of ${this.of.name}`
-    }
-
-    //// State ////
-    
-    get [$$state](): OfValidatorState<V> {
-        return {
-            [$$target]: this[$$target],
-            message: this.message,
-            name: this.name
-        }
-    }
 }
 
 //// Exports ////
@@ -46,6 +29,5 @@ abstract class OfValidator<
 export default OfValidator
 
 export {
-    OfValidator,
-    OfValidatorState
+    OfValidator
 }
