@@ -13,7 +13,8 @@ import {
     StructStateApply,
     PublicState,
     PublicStruct,
-    StructDeepStateApply
+    StructDeepStateApply,
+    StructDeepPaths,
 } from './struct'
 
 import { 
@@ -701,7 +702,7 @@ describe('set/get nested state', () => {
     })
 })
 
-describe('setInState', () => {
+describe('applyState deep keys', () => {
 
     it('allows deep setting of a state via a path', () => {
 
@@ -737,6 +738,12 @@ describe('setInState', () => {
         })
 
         const red = applyState(black, 'red', { value: 255 })
+        expect(getState(red)).toEqual({
+            red: { value: 255 },
+            green: { value: 0 },
+            blue: { value: 0 },
+            alpha: { alpha: 255 },
+        })
 
         const green = applyState(black, 'green', 'value', 255)
         expect(getState(green)).toEqual({
@@ -745,9 +752,6 @@ describe('setInState', () => {
             blue: { value: 0 },
             alpha: { alpha: 255 },
         })
-
-        type ColorDeepStateApply = StructDeepStateApply<typeof black, ['red']>
-        console.log({ ...red })  
 
     })
 

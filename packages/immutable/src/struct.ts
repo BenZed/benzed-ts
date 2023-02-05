@@ -43,15 +43,21 @@ type _StructStateApply<T extends object> = Partial<{
         : T[K]
 }>
 
-type _StructDeepStateApply<T extends object, K extends (string | symbol)[]> = K extends [infer A1, ...infer Ar]
-    ? A1 extends keyof T
-        ? Ar extends (string | symbol)[]
-            ? T[A1] extends object 
-                ? [A1, ..._StructDeepStateApply<T[A1], Ar>]
-                : [A1, T[A1]]
-            : [T]
-        : [_StructState<T>]
-    : [_StructState<T>]
+type _StructDeepPaths<T extends object> = {
+    [K in keyof T]: T[K] extends object 
+        ? [K] | [K, ..._StructDeepPaths<T[K]>]
+        : [K]
+}[keyof T]
+
+type _StructStateAtPath<T extends object, P> = P extends [infer P1, ...infer Pr]    
+    ? P1 extends keyof T 
+        ? T[P1] extends object 
+            ? Pr extends []
+                ? _StructState<T[P1]>
+                : _StructStateAtPath<T[P1], Pr>
+            : T[P1]
+        : _StructState<T>
+    : never
 
 interface _StateFul<T extends object> {
     get [$$state](): T
@@ -67,7 +73,10 @@ type StructStateApply<T extends Struct> = T extends _StateFul<infer S>
     ? _StructStateApply<S> 
     : Empty
 
-type StructDeepStateApply<T extends Struct, K extends (string | symbol)[]> = _StructDeepStateApply<T, K>
+type StructDeepPaths<T extends Struct> = _StructDeepPaths<StructState<T>>
+
+type StructDeepStateApply<T extends Struct, P extends StructDeepPaths<T>> = 
+    [...keys: P, state: _StructStateAtPath<T, P>]
 
 interface StatefulStruct<T extends State> extends _StateFul<T> {}
 
@@ -211,7 +220,10 @@ function setState<T extends Struct>(struct: T, state: StructState<T>): void {
  * Given a struct and state, receive a new struct with the state applied.
  */
 function applyState<T extends Struct>(struct: T, state: StructStateApply<T>): T 
-function applyState<T extends Struct, A extends (string | symbol)[]>(struct: T, ...deepState: StructDeepStateApply<T, A>): T 
+function applyState<T extends Struct, P extends StructDeepPaths<T>>(
+    struct: T, 
+    ...deepState: StructDeepStateApply<T, P>
+): T 
 function applyState(struct: Struct, ...args: unknown[]): Struct {
 
     const previousState = getShallowState(struct)
@@ -330,8 +342,9 @@ export {
     StructState,
     StructStateApply,
     StructDeepStateApply,
-    StatefulStruct,
+    StructDeepPaths,
 
+    StatefulStruct,
     State,
     $$state,
 
