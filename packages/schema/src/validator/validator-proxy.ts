@@ -1,3 +1,4 @@
+import { unique } from '@benzed/array'
 import { $$copy, $$state } from '@benzed/immutable'
 import { InputOf, isEmpty, OutputOf } from '@benzed/util'
 
@@ -15,8 +16,7 @@ const $$target = Symbol('proxy-target')
 
 const $$get = Symbol('proxy-get')
 const $$set = Symbol('proxy-set')
-// const $$ownKeys = Symbol('proxy-ownKeys')
-// const $$apply = Symbol('proxy-apply')
+const $$ownKeys = Symbol('proxy-ownKeys')
 
 //// Types ////
 
@@ -32,8 +32,7 @@ function proxify<V extends AnyValidatorProxy>(validatorProxy: V): V {
     return new Proxy(validatorProxy, {
         get: validatorProxy[$$get],
         set: validatorProxy[$$set],
-        // ownKeys: validatorProxy[$$ownKeys],
-        // apply: validatorProxy[$$apply]
+        ownKeys: validatorProxy[$$ownKeys],
 
     }) as V
 }
@@ -87,6 +86,14 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
         return Reflect.set(target, key, value, proxy)
     }
 
+    protected [$$ownKeys](
+        mutator: this, 
+    ): (string | symbol)[] {
+        return [
+            ...Reflect.ownKeys(mutator),
+            ...Reflect.ownKeys(mutator[$$target]),
+        ].filter(unique)
+    }
     //// Struct ////
 
     protected override [$$copy](): this {
