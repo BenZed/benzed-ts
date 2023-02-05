@@ -10,7 +10,10 @@ import {
     keysOf,
     symbolsOf,
     Infer,
-    GenericObject as State
+    GenericObject as State,
+    KeysOf,
+    omit,
+    isObject
 } from '@benzed/util'
 
 import { $$copy } from './copy'
@@ -28,31 +31,45 @@ const $$state = Symbol('state')
 
 //// Helper Types ////
 
-type _StructState<T extends State> = Infer<{
-    [K in keyof T]: T[K] extends Struct 
+type _StructState<T extends object> = Infer<{
+    [K in Exclude<keyof T, typeof $$state>]: T[K] extends Struct 
         ? StructState<T[K]>
         : T[K]
 }, State>
 
-type _StructStateApply<T extends State> = Partial<{
-    [K in keyof T]: T[K] extends Struct 
+type _StructStateApply<T extends object> = Partial<{
+    [K in Exclude<keyof T, typeof $$state>]: T[K] extends Struct 
         ? StructStateApply<T[K]>
         : T[K]
 }>
 
+type _StructDeepStateApply<T extends object, K extends (string | symbol)[]> = K extends [infer A1, ...infer Ar]
+    ? A1 extends keyof T
+        ? Ar extends (string | symbol)[]
+            ? T[A1] extends object 
+                ? [A1, ..._StructDeepStateApply<T[A1], Ar>]
+                : [A1, T[A1]]
+            : [T]
+        : [_StructState<T>]
+    : [_StructState<T>]
+
+interface _StateFul<T extends object> {
+    get [$$state](): T
+}
+
 //// Types ////
 
-type StructState<T extends Struct> = T extends StatefulStruct<infer S> 
+type StructState<T extends Struct> = T extends _StateFul<infer S> 
     ? _StructState<S> 
     : Empty
 
-type StructStateApply<T extends Struct> = T extends StatefulStruct<infer S> 
+type StructStateApply<T extends Struct> = T extends _StateFul<infer S> 
     ? _StructStateApply<S> 
     : Empty
 
-type StatefulStruct<T extends State> = {
-    get [$$state](): T
-}
+type StructDeepStateApply<T extends Struct, K extends (string | symbol)[]> = _StructDeepStateApply<T, K>
+
+interface StatefulStruct<T extends State> extends _StateFul<T> {}
 
 type Struct = Structural
 
@@ -193,16 +210,26 @@ function setState<T extends Struct>(struct: T, state: StructState<T>): void {
 /**
  * Given a struct and state, receive a new struct with the state applied.
  */
-function applyState<T extends Struct>(struct: T, state: StructStateApply<T>): T {
+function applyState<T extends Struct>(struct: T, state: StructStateApply<T>): T 
+function applyState<T extends Struct, A extends (string | symbol)[]>(struct: T, ...deepState: StructDeepStateApply<T, A>): T 
+function applyState(struct: Struct, ...args: unknown[]): Struct {
 
     const previousState = getShallowState(struct)
-
     const newStruct = copyWithoutState(struct)
     // first apply old state, in case of nested structs
     setState(newStruct, previousState)
 
-    // apply state again, mixedm so that any nested structs 
-    setState(newStruct, { ...previousState, ...state })
+    // Nest state if it is being deeply set
+    let state = args.pop()
+    const deepKeys = args.reverse() as (keyof Struct)[]
+    for (const deepKey of deepKeys) 
+        state = { [deepKey]: state }
+
+    // apply state again, mixed so that any nested structs
+    if (isObject(state)) 
+        setState(newStruct, { ...previousState, ...state as object })
+    else 
+        throw new Error('Scalar state not yet implemented.')
 
     matchKeyVisibility(struct, newStruct)
 
@@ -249,9 +276,49 @@ abstract class Structural {
     }
 }
 
-const Struct = class Struct extends Structural {
+const Struct = class Struct extends Structural {} as StructConstructor
 
-} as StructConstructor
+//// Presets ////
+
+/**
+ * State preset for a generic objects.
+ * Any property is considered state, so long as it isn't an object prototype property.
+ */
+type PublicState<T extends Struct> = Pick<T, Exclude<KeysOf<T>, 'toString' | 'valueOf'>>
+
+/**
+ * In a public struct any property is considered state, so long as it isn't an object 
+ * prototype property.
+ */
+abstract class PublicStruct extends Struct {
+    get [$$state](): PublicState<this> {
+        return omit(this, 'toString', 'valueOf') as PublicState<this>
+    }
+}
+
+/**
+ * State preset for generic data objects.
+ * Any property that isn't a method is considered state.
+ */
+type DataState<T extends Struct> = {
+    [K in KeysOf<T> as T[K] extends Func ? never : K]: T[K]
+}
+
+abstract class DataStruct extends Struct {
+
+    get [$$state](): DataState<this> {
+
+        const state = {} as DataState<this>
+
+        for (const key of keysOf(this)) {
+            if (!isFunc(this[key]))
+                (state as any)[key] = this[key]
+        }
+
+        return state
+    }
+
+}
 
 //// Exports ////
 
@@ -262,10 +329,17 @@ export {
     Struct,
     StructState,
     StructStateApply,
+    StructDeepStateApply,
     StatefulStruct,
 
-    $$state,
     State,
+    $$state,
+
+    PublicState,
+    PublicStruct,
+
+    DataState,
+    DataStruct,
 
     getDeepState as getState,
     getShallowState,

@@ -10,7 +10,10 @@ import {
     Struct, 
     StructState, 
     hideNonStateKeys,
-    StructStateApply
+    StructStateApply,
+    PublicState,
+    PublicStruct,
+    StructDeepStateApply
 } from './struct'
 
 import { 
@@ -18,6 +21,7 @@ import {
     Empty,
     isNumber, 
     isString, 
+    KeysOf, 
     keysOf, 
 } from '@benzed/util'
 
@@ -695,4 +699,56 @@ describe('set/get nested state', () => {
             }
         })
     })
+})
+
+describe('setInState', () => {
+
+    it('allows deep setting of a state via a path', () => {
+
+        class Value extends PublicStruct {
+            constructor(readonly value: number) {
+                super()
+            }
+        }
+
+        const black = new class Color extends PublicStruct {
+
+            readonly red = new Value(0)
+
+            readonly green = new Value(0)
+
+            readonly blue = new Value(0)
+
+            readonly alpha = new class Alpha extends PublicStruct {
+                readonly alpha: number = 255
+            }
+
+            toString(): `rgb(${number}, ${number}, ${number})` {
+                return `rgb(${this.red.value}, ${this.green.value}, ${this.blue.value})`
+            }
+        }
+
+        const blue = applyState(black, { blue: { value: 255 } })
+        expect(getState(blue)).toEqual({
+            red: { value: 0 },
+            green: { value: 0 },
+            blue: { value: 255 },
+            alpha: { alpha: 255 }
+        })
+
+        const red = applyState(black, 'red', { value: 255 })
+
+        const green = applyState(black, 'green', 'value', 255)
+        expect(getState(green)).toEqual({
+            red: { value: 0 },
+            green: { value: 255 },
+            blue: { value: 0 },
+            alpha: { alpha: 255 },
+        })
+
+        type ColorDeepStateApply = StructDeepStateApply<typeof black, ['red']>
+        console.log({ ...red })  
+
+    })
+
 })
