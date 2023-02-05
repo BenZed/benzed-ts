@@ -95,7 +95,7 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
         validator[$$target] = this[$$target]
         // Due do the patchy nature of proxy state assignments,
         // we want the proxification to happen *before* state is
-        // applied.
+        // applied, so that sub state assignments are sorted
         const proxy = proxify(validator)
         
         proxy[$$state] = this[$$state]

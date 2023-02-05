@@ -5,8 +5,6 @@ import {
     nil 
 } from '@benzed/util'
 
-import { StructState } from '@benzed/immutable'
-
 import { Optional } from './optional'
 import { testValidator } from '../../../util.test'
 import { TypeValidator } from '../../validators'
@@ -14,6 +12,7 @@ import { TypeValidator } from '../../validators'
 import { $$target } from '../mutator'
 
 import { expectTypeOf } from 'expect-type'
+import { ValidatorState } from '../../validator-struct'
 
 //// Setup ////
 
@@ -29,7 +28,7 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
     toggleEnabled(): this {
         return TypeValidator.applyState( 
             this, 
-            { enabled: !this.enabled } as unknown as StructState<this>
+            { enabled: !this.enabled } as unknown as ValidatorState<this>
         )
     }
 }

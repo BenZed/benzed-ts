@@ -2,12 +2,11 @@ import { isArray, isNumber, isInteger } from '@benzed/util'
 
 import { ReadOnly } from './readonly'
 
-import { $$target, MutatorType } from '../mutator'
+import { $$target } from '../mutator'
 
 import { expectTypeOf } from 'expect-type'
-import { StructState } from '@benzed/immutable'
 import { SubValidator, TypeValidator } from '../../validators'
-import { addMutator } from '../mutator-operations'
+import { ValidatorState } from '../../validator-struct'
 
 //// Tests ////
 
@@ -27,7 +26,7 @@ class Buffer extends TypeValidator<number[]> implements SubValidator<number[]> {
     toggleEnabled(): this {
         return TypeValidator.applyState( 
             this, 
-            { enabled: !this.enabled } as unknown as StructState<this>
+            { enabled: !this.enabled } as unknown as ValidatorState<this>
         )
     }
 }

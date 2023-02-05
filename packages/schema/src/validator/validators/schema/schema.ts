@@ -1,5 +1,5 @@
 import { capitalize } from '@benzed/string'
-import { $$copy, $$state, copy, StructState } from '@benzed/immutable'
+import { $$copy, $$state, copy } from '@benzed/immutable'
 import {isFunc, isString, keysOf, KeysOf, Property } from '@benzed/util'
 
 import {

@@ -1,5 +1,5 @@
 import { assign, isNumber, isString, nil } from '@benzed/util'
-import { $$state, StructStateShape } from '@benzed/immutable'
+import { $$state } from '@benzed/immutable'
 
 import { it, describe } from '@jest/globals'
 
@@ -100,8 +100,7 @@ describe('Schema implementation', () => {
         finite: boolean
     }
 
-    const number = new class NumberValidator extends TypeValidator<number> 
-        implements StructStateShape<NumberState> {
+    const number = new class NumberValidator extends TypeValidator<number> {
 
         get [$$state](): NumberState {
             return {
