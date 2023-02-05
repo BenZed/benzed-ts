@@ -30,22 +30,12 @@ type _StatePathKeys<T> = Exclude<keyof T, typeof $$state | typeof $$struct>
 
 type _StatePaths<T> = {
     [K in _StatePathKeys<T>]: T[K] extends object 
-        ? [K] | [K, ..._StatePaths<T[K]>]
-        : [K]
+        ? [K, T[K] extends Struct ? State<T[K]> : T[K]] | [K, ..._StatePaths<T[K]>] 
+        : [K, T[K]]
 }[_StatePathKeys<T>]
 
-export type _StateAtPath<T, P> = P extends [infer P1, ...infer Pr]    
-    ? P1 extends keyof T 
-        ? T[P1] extends Struct 
-            ? Pr extends []
-                ? State<T[P1]>
-                : _StateAtPath<T[P1], Pr>
-            : T[P1]
-        : _State<T>
-    : never
-
 type _StateFul<T> = { 
-    [$$state]: T 
+    [$$state]: T
 }
 
 //// Types ////
@@ -58,15 +48,9 @@ type StateApply<T extends Struct> = T extends _StateFul<infer S>
     ? _StateApply<S>
     : Empty
 
-type StatePaths<T extends Struct> = T extends _StateFul<infer S>
+type StatePathApply<T extends Struct> = T extends _StateFul<infer S>
     ? _StatePaths<S>
     : never
-
-type StateAtPath<T extends Struct, P extends StatePaths<T>> = 
-    _StateAtPath<T,P>
-
-type StatePathApply<T extends Struct, P extends StatePaths<T>> = 
-    [...keys: P, state: StateAtPath<T, P>]
 
 //// Exports ////
 
@@ -75,10 +59,7 @@ export {
     State,
     StateApply,
 
-    StatePaths,
-    StateAtPath,
     StatePathApply,
-
     $$state,
 
 }

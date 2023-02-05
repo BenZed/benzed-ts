@@ -21,7 +21,7 @@ export {
     State as StructState,
     StateApply as StructStateApply,
     StatePathApply as StructStatePathApply,
-    StatePaths as StructStatePaths,
+    StatePathApply as StructStatePaths,
 
     getShallowState,
     getDeepState as getState,

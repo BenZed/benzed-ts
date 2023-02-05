@@ -6,9 +6,8 @@ import { getShallowState } from './get-state'
 import { setState } from './set-state'
 
 import { 
-    StateApply, 
-    StatePathApply, 
-    StatePaths 
+    State,
+    StateApply, StatePathApply, 
 } from './state'
 
 import { matchKeyVisibility } from './state-keys'
@@ -18,10 +17,7 @@ import { matchKeyVisibility } from './state-keys'
 /**
  * Given a struct and state, receive a new struct with the state applied.
  */
-export function applyState<T extends Struct, P extends StatePaths<T>>(
-    struct: T, 
-    ...deep: StatePathApply<T, P>
-): T
+export function applyState<T extends Struct>(struct: T, ...deep: StatePathApply<T>): T
 export function applyState<T extends Struct>(struct: T, state: StateApply<T>): T 
 export function applyState(struct: Struct, ...args: unknown[]): Struct {
 
@@ -36,13 +32,20 @@ export function applyState(struct: Struct, ...args: unknown[]): Struct {
     for (const deepKey of deepKeys) 
         state = { [deepKey]: state }
 
-    // apply state again, mixed so that any nested structs
-    if (isObject(state)) 
-        setState(newStruct, { ...previousState, ...state as object })
-    else 
-        throw new Error('Scalar state not yet implemented.')
+    const isScalarState = !isObject(state)
 
-    matchKeyVisibility(struct, newStruct)
+    // apply state again, mixed so that any nested structs
+    setState(
+        newStruct, 
+        (
+            isScalarState
+                ? state
+                : { ...previousState, ...state as object }
+        ) as State<Struct>
+    )
+
+    if (!isScalarState)
+        matchKeyVisibility(struct, newStruct)
 
     return newStruct
 }

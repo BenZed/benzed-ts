@@ -2,7 +2,8 @@
 import Struct from '../struct/struct'
 import { getNamesAndSymbols } from '../util'
 import { getStateDescriptor } from './state-keys'
-import { AnyState, $$state, State } from './state'
+import { $$state, State } from './state'
+import { isObject } from '@benzed/util'
 
 //// EsLint ////
 /* eslint-disable 
@@ -11,34 +12,35 @@ import { AnyState, $$state, State } from './state'
 
 //// Helper ////
 
-function getState<T extends AnyState>(input: T, deep: boolean): State<T> {
+function getState<T extends Struct>(struct: T, deep: boolean): State<T> {
 
-    const stateDescriptor = getStateDescriptor(input)
+    const stateDescriptor = getStateDescriptor(struct)
 
-    const output = stateDescriptor && (stateDescriptor.value || stateDescriptor.get)
-        ? (input as any)[$$state]
-        : { ...input }
+    const state = stateDescriptor && ('value' in stateDescriptor || stateDescriptor.get)
+        ? (struct as any)[$$state]
+        : { ...struct }
 
-    if (deep) {
-        for (const key of getNamesAndSymbols(output)) {
-            if (output[key] instanceof Struct) 
-                output[key] = getState(output[key], deep)
+    const isScalarState = !isObject<any>(state)
+    if (!isScalarState && deep) {
+        for (const key of getNamesAndSymbols(state)) {
+            if (state[key] instanceof Struct) 
+                state[key] = getState(state[key], deep)
         }
     }
 
-    return output
+    return state
 }
 
 //// Main ////
 
-function getShallowState<T extends AnyState>(struct: T): State<T> {
+function getShallowState<T extends Struct>(struct: T): State<T> {
     return getState(struct, false)
 }
 
 /**
  * Retreive the deep state of a struct.
  */
-function getDeepState<T extends AnyState>(struct: T): State<T> {
+function getDeepState<T extends Struct>(struct: T): State<T> {
     return getState(struct, true)
 }
 

@@ -3,7 +3,7 @@ import { assign, keysOf } from '@benzed/util'
 import { applyState } from './apply-state'
 import { Struct } from '../struct/struct'
 import { getStateDescriptor } from './state-keys'
-import { AnyState, $$state, State } from './state'
+import { $$state, State } from './state'
 
 //// EsLint ////
 /* eslint-disable 
@@ -15,7 +15,7 @@ import { AnyState, $$state, State } from './state'
 /**
  * Over-write the state of a struct without creating a copy of it.
  */
-export function setState<T extends AnyState>(struct: T, state: State<T>): void {
+export function setState<T extends Struct>(struct: T, state: State<T>): void {
 
     const stateDescriptor = getStateDescriptor(struct)
 

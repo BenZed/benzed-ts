@@ -1,15 +1,23 @@
 import { nil, Property } from '@benzed/util'
+import { Struct } from '../struct'
 import { getNamesAndSymbols } from '../util'
 import { getShallowState } from './get-state'
-import { AnyState, $$state, State } from './state'
+import { $$state, State } from './state'
 
 //// Exports ////
 
-export function getStateDescriptor<T extends AnyState>(struct: T): PropertyDescriptor | nil {
-    return Property.descriptorOf(struct, $$state)
+export function getStateDescriptor<T extends Struct>(struct: T): PropertyDescriptor | nil {
+
+    for (const proto of Property.eachPrototype(struct)) {
+        const stateDescriptor = Property.descriptorOf(proto, $$state)
+        if (stateDescriptor)
+            return stateDescriptor
+    }
+
+    return nil
 }
 
-export function setKeyEnumerable<T extends AnyState>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
+export function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
 
     const state = getShallowState(struct)
 
@@ -34,7 +42,7 @@ export function setKeyEnumerable<T extends AnyState>(struct: T, enumerable: bool
 
 }
 
-export function matchKeyVisibility<T extends AnyState>(source: T, target: T): void {
+export function matchKeyVisibility<T extends Struct>(source: T, target: T): void {
 
     const state = getShallowState(source)
 
@@ -53,13 +61,13 @@ export function matchKeyVisibility<T extends AnyState>(source: T, target: T): vo
 /**
  * Turn on enumerability of the provided struct keys.
  */
-export function showStateKeys<T extends AnyState>(struct: T, ...keys: (keyof State<T>)[]): void {
+export function showStateKeys<T extends Struct>(struct: T, ...keys: (keyof State<T>)[]): void {
     setKeyEnumerable(struct, true, keys as (keyof T)[])
 }
 
 /**
  * Turn off enumerability of the provided struct keys.
  */
-export function hideNonStateKeys<T extends AnyState>(struct: T, ...keys: (string | symbol)[]): void {
+export function hideNonStateKeys<T extends Struct>(struct: T, ...keys: (string | symbol)[]): void {
     setKeyEnumerable(struct, false, keys as (keyof T)[])
 }

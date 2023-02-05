@@ -28,4 +28,5 @@ export abstract class PublicStruct extends Struct {
     get [$$state](): PublicState<this> {
         return omit(this, 'toString', 'valueOf') as PublicState<this>
     }
+
 }
