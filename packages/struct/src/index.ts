@@ -17,8 +17,6 @@ export {
 
 export {
 
-    AnyState as State,
-
     $$state,
     State as StructState,
     StateApply as StructStateApply,

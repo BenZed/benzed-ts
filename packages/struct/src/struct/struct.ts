@@ -1,5 +1,4 @@
 import { Callable, Func } from '@benzed/util'
-import { AnyState } from '../state'
 import { applySignature } from '../util'
 
 //// EsLint ////
@@ -8,13 +7,17 @@ import { applySignature } from '../util'
     @typescript-eslint/no-explicit-any,
 */
 
+const $$struct = Symbol('struct-name')
+
 //// Types ////
 
-interface Struct extends AnyState {}
+interface Struct { 
+    [$$struct]: string
+}
 
 interface StructConstructor {
-    new (): AnyState
-    new <F extends Func>(signature: F): AnyState & F
+    new (): Struct
+    new <F extends Func>(signature: F): Struct & F
 }
 
 //// Implementation ////
@@ -23,8 +26,12 @@ const Struct = class Struct {
 
     static [Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
+    get [$$struct](): string {
+        return this.constructor.name
+    }
+
     constructor(signature?: Func) {
-        return applySignature(this as AnyState, signature)
+        return applySignature(this as Struct, signature)
     }
 
 } as StructConstructor
@@ -34,6 +41,7 @@ const Struct = class Struct {
 export default Struct 
 
 export {
+    $$struct,
     Struct,
     StructConstructor
 }

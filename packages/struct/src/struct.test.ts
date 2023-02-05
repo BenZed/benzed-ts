@@ -1,13 +1,9 @@
-import { 
-
+import {
     PublicStruct,
     Struct,
-
-    copy, 
+    copy,
     copyWithoutState,
-
     equals,
-
 } from './struct'
 
 import {
@@ -20,6 +16,8 @@ import {
     showStateKeys,
     hideNonStateKeys,
     State,
+    StateApply,
+    StateAtPath
 
 } from './state'
 
@@ -237,7 +235,7 @@ describe('stateful convention', () => {
 
     // type DamageSettings<T extends Damage> = StructState<T>
 
-    type DamageSettingsApply<T extends Damage> = State<T>
+    type DamageSettingsApply<T extends Damage> = StateApply<T>
 
     abstract class Damage extends Struct<() => number> {
 
@@ -604,9 +602,9 @@ describe('set/get nested state', () => {
 
         type CompositeState = State<typeof composite>
         expectTypeOf<CompositeState>().toEqualTypeOf<{
-            cards: Empty
-            five: Empty
-            custom: {
+            readonly cards: Empty
+            readonly five: Empty
+            readonly custom: {
                 by: number
                 value: number | { valueOf(): number }
             }
@@ -720,9 +718,7 @@ describe('applyState deep keys', () => {
         const black = new class Color extends PublicStruct {
 
             readonly red = new Value(0)
-
             readonly green = new Value(0)
-
             readonly blue = new Value(0)
 
             readonly alpha = new class Alpha extends PublicStruct {
@@ -742,6 +738,14 @@ describe('applyState deep keys', () => {
             alpha: { alpha: 255 }
         })
 
+        type ColorState = State<typeof black>
+        type RedColorState = StateAtPath<typeof black, ['red']>
+        type RedColorValueState = StateAtPath<typeof black, ['red']>
+
+        type S = StateAtPath<typeof black, ['red']>
+
+        // type _P = //
+        
         const red = applyState(black, 'red', { value: 255 })
         expect(getState(red)).toEqual({
             red: { value: 255 },
@@ -750,7 +754,7 @@ describe('applyState deep keys', () => {
             alpha: { alpha: 255 },
         })
 
-        const green = applyState(black, 'green', 'value', 255)
+        const green = applyState(black, 'green', 0)
         expect(getState(green)).toEqual({
             red: { value: 0 },
             green: { value: 255 },

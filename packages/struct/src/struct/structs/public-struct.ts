@@ -1,6 +1,6 @@
 import { KeysOf, omit } from '@benzed/util'
 
-import { AnyState, $$state } from '../../state'
+import { $$state } from '../../state'
 
 import Struct from '../struct'
 
@@ -16,13 +16,15 @@ import Struct from '../struct'
  * State preset for a generic objects.
  * Any property is considered state, so long as it isn't an object prototype property.
  */
-export type PublicState<T extends AnyState> = Pick<T, Exclude<KeysOf<T>, 'toString' | 'valueOf'>>
+export type PublicState<T extends object> = 
+    Pick<T, Exclude<KeysOf<T>, 'toString' | 'valueOf'>>
 
 /**
  * In a public struct any property is considered state, so long as it isn't an object 
  * prototype property.
  */
 export abstract class PublicStruct extends Struct {
+
     get [$$state](): PublicState<this> {
         return omit(this, 'toString', 'valueOf') as PublicState<this>
     }

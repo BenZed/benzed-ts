@@ -1,12 +1,11 @@
 import { isObject } from '@benzed/util'
 
-import { copyWithoutState } from '../struct'
+import { copyWithoutState, Struct } from '../struct'
 
 import { getShallowState } from './get-state'
 import { setState } from './set-state'
 
 import { 
-    AnyState, 
     StateApply, 
     StatePathApply, 
     StatePaths 
@@ -19,12 +18,12 @@ import { matchKeyVisibility } from './state-keys'
 /**
  * Given a struct and state, receive a new struct with the state applied.
  */
-export function applyState<T extends AnyState>(struct: T, state: StateApply<T>): T 
-export function applyState<T extends AnyState, P extends StatePaths<T>>(
+export function applyState<T extends Struct, P extends StatePaths<T>>(
     struct: T, 
-    ...deepState: StatePathApply<T, P>
-): T 
-export function applyState(struct: AnyState, ...args: unknown[]): AnyState {
+    ...deep: StatePathApply<T, P>
+): T
+export function applyState<T extends Struct>(struct: T, state: StateApply<T>): T 
+export function applyState(struct: Struct, ...args: unknown[]): Struct {
 
     const previousState = getShallowState(struct)
     const newStruct = copyWithoutState(struct)
@@ -33,7 +32,7 @@ export function applyState(struct: AnyState, ...args: unknown[]): AnyState {
 
     // Nest state if it is being deeply set
     let state = args.pop()
-    const deepKeys = args.reverse() as (keyof AnyState)[]
+    const deepKeys = args.reverse() as (keyof Struct)[]
     for (const deepKey of deepKeys) 
         state = { [deepKey]: state }
 

@@ -1,4 +1,5 @@
 import { Empty, Infer } from '@benzed/util'
+import { $$struct, Struct } from '../struct'
 
 //// EsLint ////
 /* eslint-disable 
@@ -13,67 +14,69 @@ const $$state = Symbol('state')
 
 //// Helper Types ////
 
-type _StructState<T extends object> = Infer<{
-    [K in Exclude<keyof T, typeof $$state>]: T[K] extends AnyState 
+type _State<T> = Infer<{
+    [K in keyof T]: T[K] extends Struct
         ? State<T[K]>
         : T[K]
-}, object>
+}>
 
-type _StructStateApply<T extends object> = Partial<{
-    [K in Exclude<keyof T, typeof $$state>]: T[K] extends AnyState 
+type _StateApply<T> = Partial<{
+    [K in keyof T]: T[K] extends Struct
         ? StateApply<T[K]>
         : T[K]
 }>
 
-type _StructDeepPaths<T extends object> = {
-    [K in keyof T]: T[K] extends object 
-        ? [K] | [K, ..._StructDeepPaths<T[K]>]
-        : [K]
-}[keyof T]
+type _StatePathKeys<T> = Exclude<keyof T, typeof $$state | typeof $$struct>
 
-type _StructStateAtPath<T extends object, P> = P extends [infer P1, ...infer Pr]    
+type _StatePaths<T> = {
+    [K in _StatePathKeys<T>]: T[K] extends object 
+        ? [K] | [K, ..._StatePaths<T[K]>]
+        : [K]
+}[_StatePathKeys<T>]
+
+export type _StateAtPath<T, P> = P extends [infer P1, ...infer Pr]    
     ? P1 extends keyof T 
-        ? T[P1] extends object 
+        ? T[P1] extends Struct 
             ? Pr extends []
-                ? _StructState<T[P1]>
-                : _StructStateAtPath<T[P1], Pr>
+                ? State<T[P1]>
+                : _StateAtPath<T[P1], Pr>
             : T[P1]
-        : _StructState<T>
+        : _State<T>
     : never
 
-interface _StateFul<T extends object> {
-    get [$$state](): T
+type _StateFul<T> = { 
+    [$$state]: T 
 }
 
 //// Types ////
 
-interface AnyState extends Record<string | symbol, unknown> {}
-
-type State<T extends AnyState> = T extends _StateFul<infer S> 
-    ? _StructState<S> 
+type State<T extends Struct> = T extends _StateFul<infer S>
+    ? _State<S>
     : Empty
 
-type StateApply<T extends AnyState> = T extends _StateFul<infer S> 
-    ? _StructStateApply<S> 
+type StateApply<T extends Struct> = T extends _StateFul<infer S>
+    ? _StateApply<S>
     : Empty
 
-type StatePaths<T extends AnyState> = _StructDeepPaths<State<T>>
+type StatePaths<T extends Struct> = T extends _StateFul<infer S>
+    ? _StatePaths<S>
+    : never
 
-type StatePathApply<T extends AnyState, P extends StatePaths<T>> = 
-    [...keys: P, state: _StructStateAtPath<T, P>]
+type StateAtPath<T extends Struct, P extends StatePaths<T>> = 
+    _StateAtPath<T,P>
+
+type StatePathApply<T extends Struct, P extends StatePaths<T>> = 
+    [...keys: P, state: StateAtPath<T, P>]
 
 //// Exports ////
 
-export default AnyState
-
 export {
-
-    AnyState,
 
     State,
     StateApply,
 
     StatePaths,
+    StateAtPath,
     StatePathApply,
 
     $$state,
