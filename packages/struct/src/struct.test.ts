@@ -1,30 +1,36 @@
-import Struct, { 
-    applyState, 
-    getState, 
-    setState, 
-    
-    showStateKeys, 
+import { 
+
+    PublicStruct,
+    Struct,
+
+    copy, 
     copyWithoutState,
 
-    hideNonStateKeys,
-    copy, 
     equals,
+
 } from './struct'
 
-import { 
-    $$state, 
-    StructState, 
-    StructStateApply,
+import {
+
+    $$state,
+    applyState,
+    getDeepState as getState,
+    setState,
+    
+    showStateKeys,
+    hideNonStateKeys,
+    State,
+
 } from './state'
 
-import { PublicStruct } from './presets'
+import {
 
-import { 
     assign,
     Empty,
     isNumber, 
     isString, 
-    keysOf, 
+    keysOf,
+
 } from '@benzed/util'
 
 import { it, expect, describe } from '@jest/globals'
@@ -231,7 +237,7 @@ describe('stateful convention', () => {
 
     // type DamageSettings<T extends Damage> = StructState<T>
 
-    type DamageSettingsApply<T extends Damage> = StructStateApply<T>
+    type DamageSettingsApply<T extends Damage> = State<T>
 
     abstract class Damage extends Struct<() => number> {
 
@@ -491,7 +497,7 @@ describe('set/get nested state', () => {
         // @ts-expect-error 'ace' is not a state key
         applyState(cards, { ace: 1 })
 
-        type CardState = StructState<typeof cards>
+        type CardState = State<typeof cards>
         expectTypeOf<CardState>().toEqualTypeOf<Empty>()
     })
 
@@ -502,7 +508,7 @@ describe('set/get nested state', () => {
         // @ts-expect-error 'value' is not a state key
         applyState(five, { value: 5 })
 
-        type FiveState = StructState<typeof five>
+        type FiveState = State<typeof five>
         expectTypeOf<FiveState>().toEqualTypeOf<Empty>()
     })
 
@@ -516,7 +522,7 @@ describe('set/get nested state', () => {
         // @ts-expect-error 'by' is not a state key
         applyState(ten, { by: 2 })
 
-        type TenState = StructState<typeof ten>
+        type TenState = State<typeof ten>
         expectTypeOf<TenState>().toEqualTypeOf<Empty>()
 
         const x2Cards = new X2(cards)
@@ -537,14 +543,14 @@ describe('set/get nested state', () => {
         expect(fifteen()).toEqual(15)
         expect(getState(fifteen)).toEqual({ by: 3 })
 
-        type FifteenState = StructState<typeof fifteen>
+        type FifteenState = State<typeof fifteen>
         expectTypeOf<FifteenState>().toEqualTypeOf<{ by: number }>()
 
         const ten = applyState(fifteen, { by: 2 })
         expect(ten()).toEqual(10)
         expect({ ...ten }).toEqual({ by: 2 })
 
-        type TenState = StructState<typeof ten>
+        type TenState = State<typeof ten>
         expectTypeOf<TenState>().toEqualTypeOf<{ by: number }>()
 
     })
@@ -557,7 +563,7 @@ describe('set/get nested state', () => {
         expect(getState(six)).toEqual({ value: 2, by: 3 })
         expect({ ...six }).toEqual({ value: 2, by: 3 })
 
-        type SixState = StructState<typeof six>
+        type SixState = State<typeof six>
         expectTypeOf<SixState>().toEqualTypeOf<{ 
             by: number
             value: number | { valueOf(): number }
@@ -596,7 +602,7 @@ describe('set/get nested state', () => {
             custom: { value: { by: 2 }, by: 2 }
         })
 
-        type CompositeState = StructState<typeof composite>
+        type CompositeState = State<typeof composite>
         expectTypeOf<CompositeState>().toEqualTypeOf<{
             cards: Empty
             five: Empty
@@ -677,7 +683,7 @@ describe('set/get nested state', () => {
             }
         )
 
-        type CashDrawerState = StructState<typeof fifty>
+        type CashDrawerState = State<typeof fifty>
         expectTypeOf<CashDrawerState>().toEqualTypeOf<{
             readonly wallet: {
                 readonly value: {

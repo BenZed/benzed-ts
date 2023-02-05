@@ -1,7 +1,4 @@
-import { 
-    Empty,
-    Infer,
-} from '@benzed/util'
+import { Empty, Infer } from '@benzed/util'
 
 //// EsLint ////
 /* eslint-disable 
@@ -9,21 +6,22 @@ import {
     @typescript-eslint/ban-types
 */
 
-//// Symbols ////
-
+/**
+ * Struct state symbol
+ */
 const $$state = Symbol('state')
 
 //// Helper Types ////
 
 type _StructState<T extends object> = Infer<{
-    [K in Exclude<keyof T, typeof $$state>]: T[K] extends State 
-        ? StructState<T[K]>
+    [K in Exclude<keyof T, typeof $$state>]: T[K] extends AnyState 
+        ? State<T[K]>
         : T[K]
 }, object>
 
 type _StructStateApply<T extends object> = Partial<{
-    [K in Exclude<keyof T, typeof $$state>]: T[K] extends State 
-        ? StructStateApply<T[K]>
+    [K in Exclude<keyof T, typeof $$state>]: T[K] extends AnyState 
+        ? StateApply<T[K]>
         : T[K]
 }>
 
@@ -49,36 +47,34 @@ interface _StateFul<T extends object> {
 
 //// Types ////
 
-type State = Record<string | symbol, unknown>
+interface AnyState extends Record<string | symbol, unknown> {}
 
-type StructState<T extends State> = T extends _StateFul<infer S> 
+type State<T extends AnyState> = T extends _StateFul<infer S> 
     ? _StructState<S> 
     : Empty
 
-type StructStateApply<T extends State> = T extends _StateFul<infer S> 
+type StateApply<T extends AnyState> = T extends _StateFul<infer S> 
     ? _StructStateApply<S> 
     : Empty
 
-type StructStatePaths<T extends State> = _StructDeepPaths<StructState<T>>
+type StatePaths<T extends AnyState> = _StructDeepPaths<State<T>>
 
-type StructStatePathApply<T extends State, P extends StructStatePaths<T>> = 
+type StatePathApply<T extends AnyState, P extends StatePaths<T>> = 
     [...keys: P, state: _StructStateAtPath<T, P>]
-
-// interface StatefulStruct<T extends object> extends _StateFul<T> {}
 
 //// Exports ////
 
-export default State
+export default AnyState
 
 export {
 
+    AnyState,
+
     State,
+    StateApply,
 
-    StructState,
-    StructStateApply,
-
-    StructStatePaths,
-    StructStatePathApply,
+    StatePaths,
+    StatePathApply,
 
     $$state,
 
