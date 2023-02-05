@@ -6,14 +6,19 @@ import {
     Callable, 
     isFunc, 
     Property,
-    Empty,
     keysOf,
     symbolsOf,
-    Infer,
-    KeysOf,
-    omit,
     isObject
 } from '@benzed/util'
+
+import {
+    State, 
+    $$state, 
+    StructState,
+    StructStateApply, 
+    StructStatePaths,
+    StructStatePathApply 
+} from './state'
 
 //// EsLint ////
 /* eslint-disable 
@@ -21,70 +26,9 @@ import {
     @typescript-eslint/ban-types
 */
 
-//// Symbols ////
-
-const $$state = Symbol('state')
-
-//// Hero Types ////
-
-type State = Record<string | symbol, unknown>
-
-type Struct = State
-
-//// Helper Types ////
-
-type _StructState<T extends object> = Infer<{
-    [K in Exclude<keyof T, typeof $$state>]: T[K] extends Struct 
-        ? StructState<T[K]>
-        : T[K]
-}, State>
-
-type _StructStateApply<T extends object> = Partial<{
-    [K in Exclude<keyof T, typeof $$state>]: T[K] extends Struct 
-        ? StructStateApply<T[K]>
-        : T[K]
-}>
-
-type _StructDeepPaths<T extends object> = {
-    [K in keyof T]: T[K] extends object 
-        ? [K] | [K, ..._StructDeepPaths<T[K]>]
-        : [K]
-}[keyof T]
-
-type _StructStateAtPath<T extends object, P> = P extends [infer P1, ...infer Pr]    
-    ? P1 extends keyof T 
-        ? T[P1] extends object 
-            ? Pr extends []
-                ? _StructState<T[P1]>
-                : _StructStateAtPath<T[P1], Pr>
-            : T[P1]
-        : _StructState<T>
-    : never
-
-interface _StateFul<T extends object> {
-    get [$$state](): T
-}
-
-//// Types ////
-
-type StructState<T extends Struct> = T extends _StateFul<infer S> 
-    ? _StructState<S> 
-    : Empty
-
-type StructStateApply<T extends Struct> = T extends _StateFul<infer S> 
-    ? _StructStateApply<S> 
-    : Empty
-
-type StructDeepPaths<T extends Struct> = _StructDeepPaths<StructState<T>>
-
-type StructDeepStateApply<T extends Struct, P extends StructDeepPaths<T>> = 
-    [...keys: P, state: _StructStateAtPath<T, P>]
-
-interface StatefulStruct<T extends State> extends _StateFul<T> {}
-
 interface StructConstructor {
-    new (): Struct
-    new <F extends Func>(signature: F): Struct & F
+    new (): State
+    new <F extends Func>(signature: F): State & F
 }
 
 //// Helper ////
@@ -96,7 +40,7 @@ function getNamesAndSymbols(object: object): Set<symbol | string> {
     ])
 }
 
-function applySignature<T extends Struct>(struct: T, signature?: Func): T {
+function applySignature<T extends State>(struct: T, signature?: Func): T {
     return signature
 
         ? Callable.create(
@@ -108,11 +52,11 @@ function applySignature<T extends Struct>(struct: T, signature?: Func): T {
         : struct
 }
 
-function getStateDescriptor<T extends Struct>(struct: T): PropertyDescriptor | nil {
+function getStateDescriptor<T extends State>(struct: T): PropertyDescriptor | nil {
     return Property.descriptorOf(struct, $$state)
 }
 
-function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
+function setKeyEnumerable<T extends State>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
 
     const state = getShallowState(struct)
 
@@ -137,7 +81,7 @@ function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stat
 
 }
 
-function getState<T extends Struct>(struct: T, deep: boolean): StructState<T> {
+function getState<T extends State>(struct: T, deep: boolean): StructState<T> {
 
     const stateDescriptor = getStateDescriptor(struct)
 
@@ -177,13 +121,13 @@ function stateEquals(a: unknown, b: unknown): boolean {
     return true
 }
 
-function getShallowState<T extends Struct>(struct: T): StructState<T> {
+function getShallowState<T extends State>(struct: T): StructState<T> {
     return getState(struct, false)
 }
 
 //// Utility ////
 
-function matchKeyVisibility<T extends Struct>(source: T, target: T): void {
+function matchKeyVisibility<T extends State>(source: T, target: T): void {
 
     const state = getShallowState(source)
 
@@ -202,28 +146,28 @@ function matchKeyVisibility<T extends Struct>(source: T, target: T): void {
 /**
  * Turn on enumerability of the provided struct keys.
  */
-function showStateKeys<T extends Struct>(struct: T, ...keys: (keyof StructState<T>)[]): void {
+function showStateKeys<T extends State>(struct: T, ...keys: (keyof StructState<T>)[]): void {
     setKeyEnumerable(struct, true, keys as (keyof T)[])
 }
 
 /**
  * Turn off enumerability of the provided struct keys.
  */
-function hideNonStateKeys<T extends Struct>(struct: T, ...keys: (string | symbol)[]): void {
+function hideNonStateKeys<T extends State>(struct: T, ...keys: (string | symbol)[]): void {
     setKeyEnumerable(struct, false, keys as (keyof T)[])
 }
 
 /**
  * Retreive the deep state of a struct.
  */
-function getDeepState<T extends Struct>(struct: T): StructState<T> {
+function getDeepState<T extends State>(struct: T): StructState<T> {
     return getState(struct, true)
 }
 
 /**
  * Over-write the state of a struct without creating a copy of it.
  */
-function setState<T extends Struct>(struct: T, state: StructState<T>): void {
+function setState<T extends State>(struct: T, state: StructState<T>): void {
 
     const stateDescriptor = getStateDescriptor(struct)
 
@@ -252,12 +196,12 @@ function setState<T extends Struct>(struct: T, state: StructState<T>): void {
 /**
  * Given a struct and state, receive a new struct with the state applied.
  */
-function applyState<T extends Struct>(struct: T, state: StructStateApply<T>): T 
-function applyState<T extends Struct, P extends StructDeepPaths<T>>(
+function applyState<T extends State>(struct: T, state: StructStateApply<T>): T 
+function applyState<T extends State, P extends StructStatePaths<T>>(
     struct: T, 
-    ...deepState: StructDeepStateApply<T, P>
+    ...deepState: StructStatePathApply<T, P>
 ): T 
-function applyState(struct: Struct, ...args: unknown[]): Struct {
+function applyState(struct: State, ...args: unknown[]): State {
 
     const previousState = getShallowState(struct)
     const newStruct = copyWithoutState(struct)
@@ -266,7 +210,7 @@ function applyState(struct: Struct, ...args: unknown[]): Struct {
 
     // Nest state if it is being deeply set
     let state = args.pop()
-    const deepKeys = args.reverse() as (keyof Struct)[]
+    const deepKeys = args.reverse() as (keyof State)[]
     for (const deepKey of deepKeys) 
         state = { [deepKey]: state }
 
@@ -284,7 +228,7 @@ function applyState(struct: Struct, ...args: unknown[]): Struct {
 /**
  * Create a clone of a struct without applying any state
  */
-function copyWithoutState<T extends Struct>(struct: T): T {
+function copyWithoutState<T extends State>(struct: T): T {
     
     const newStruct = Object.create(struct.constructor.prototype)
 
@@ -298,14 +242,14 @@ function copyWithoutState<T extends Struct>(struct: T): T {
 /**
  * Create an immutable copy of a struct
  */
-function copy<T extends Struct>(struct: T): T {
+function copy<T extends State>(struct: T): T {
     return applyState(struct, getShallowState(struct))
 }
 
 /**
  * Do two structs have the same constructor and state?
  */
-function equals<T extends Struct>(a: T, b: Struct): b is T {
+function equals<T extends State>(a: T, b: State): b is T {
     return (
         b.constructor === a.constructor &&
         stateEquals(
@@ -327,48 +271,6 @@ const Struct = class Struct {
 
 } as StructConstructor
 
-//// Presets ////
-
-/**
- * State preset for a generic objects.
- * Any property is considered state, so long as it isn't an object prototype property.
- */
-type PublicState<T extends Struct> = Pick<T, Exclude<KeysOf<T>, 'toString' | 'valueOf'>>
-
-/**
- * In a public struct any property is considered state, so long as it isn't an object 
- * prototype property.
- */
-abstract class PublicStruct extends Struct {
-    get [$$state](): PublicState<this> {
-        return omit(this, 'toString', 'valueOf') as PublicState<this>
-    }
-}
-
-/**
- * State preset for generic data objects.
- * Any property that isn't a method is considered state.
- */
-type DataState<T extends Struct> = {
-    [K in KeysOf<T> as T[K] extends Func ? never : K]: T[K]
-}
-
-abstract class DataStruct extends Struct {
-
-    get [$$state](): DataState<this> {
-
-        const state = {} as DataState<this>
-
-        for (const key of keysOf(this)) {
-            if (!isFunc(this[key]))
-                (state as any)[key] = this[key]
-        }
-
-        return state
-    }
-
-}
-
 //// Exports ////
 
 export default Struct
@@ -376,20 +278,6 @@ export default Struct
 export {
 
     Struct,
-    StructState,
-    StructStateApply,
-    StructDeepStateApply,
-    StructDeepPaths,
-
-    StatefulStruct,
-    State,
-    $$state,
-
-    PublicState,
-    PublicStruct,
-
-    DataState,
-    DataStruct,
 
     getNamesAndSymbols,
     getDeepState as getState,

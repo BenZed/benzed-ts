@@ -1,5 +1,4 @@
-import { 
-    $$state, 
+import Struct, { 
     applyState, 
     getState, 
     setState, 
@@ -7,14 +6,18 @@ import {
     showStateKeys, 
     copyWithoutState,
 
-    Struct, 
-    StructState, 
     hideNonStateKeys,
-    StructStateApply,
-    PublicStruct,
     copy, 
     equals,
 } from './struct'
+
+import { 
+    $$state, 
+    StructState, 
+    StructStateApply,
+} from './state'
+
+import { PublicStruct } from './presets'
 
 import { 
     assign,
