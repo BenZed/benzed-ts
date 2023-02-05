@@ -12,12 +12,15 @@ import {
     hideNonStateKeys,
     StructStateApply,
     PublicStruct,
+    copy, 
+    equals
 } from './struct'
 
 import { 
     assign,
     Empty,
     isNumber, 
+    isObject, 
     isString, 
     keysOf, 
 } from '@benzed/util'
@@ -25,7 +28,6 @@ import {
 import { it, expect, describe } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
-import { copy, equals } from '@benzed/immutable'
 
 //// Tests ////
 
@@ -54,6 +56,7 @@ describe('basic object struct, no state', () => {
         expect(equals(s1,f1)).toBe(true)
 
         s1.value = 6
+
         expect(equals(s1,f1)).not.toBe(true)
     })
 
@@ -198,7 +201,7 @@ describe('callable struct with state', () => {
         expect(getState(t3)).toEqual({ ...t3 })
     })
 
-    it('apply state', () => {
+    it('apply state', () => {  
 
         const t4 = applyState(t2, { complete: true })
 

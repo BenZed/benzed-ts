@@ -16,8 +16,6 @@ import {
     isObject
 } from '@benzed/util'
 
-import { equals, $$copy , $$equals } from '@benzed/immutable' 
-
 //// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -88,10 +86,22 @@ interface StructConstructor {
 
 //// Helper ////
 
-function applySignature<T extends Struct>(struct: T, signature?: Func): T {
+function getNamesAndSymbols(object: object): Set<symbol | string> {
+    return new Set([
+        ...keysOf(object),
+        ...symbolsOf(object)
+    ])
+}
 
-    return signature 
-        ? Callable.create(signature, struct, provideCallableContext) as T
+function applySignature<T extends Struct>(struct: T, signature?: Func): T {
+    return signature
+
+        ? Callable.create(
+            signature,
+            struct,
+            provideCallableContext
+        ) as T
+
         : struct
 }
 
@@ -140,6 +150,28 @@ function getState<T extends Struct>(struct: T, deep: boolean): StructState<T> {
     }
 
     return state
+}
+
+function stateEquals(a: unknown, b: unknown): boolean {
+    if (Object.is(a, b)) 
+        return true 
+
+    if (!isObject(a) || !isObject(b))
+        return false
+
+    const namesAndSymbols = getNamesAndSymbols(a)
+    if (namesAndSymbols.size !== getNamesAndSymbols(b).size)
+        return false 
+
+    for (const nameOrSymbol of namesAndSymbols) {
+        if (!stateEquals(
+            a[nameOrSymbol as keyof typeof a],
+            b[nameOrSymbol as keyof typeof b]
+        ))
+            return false
+    }
+
+    return true
 }
 
 function getShallowState<T extends Struct>(struct: T): StructState<T> {
@@ -212,7 +244,6 @@ function setState<T extends Struct>(struct: T, state: StructState<T>): void {
         }
         assign(struct, state)
     }
-
 }
 
 /**
@@ -261,6 +292,26 @@ function copyWithoutState<T extends Struct>(struct: T): T {
     return applySignature(newStruct, signature)
 }
 
+/**
+ * Create an immutable copy of a struct
+ */
+function copy<T extends Struct>(struct: T): T {
+    return applyState(struct, getShallowState(struct))
+}
+
+/**
+ * Do two structs have the same constructor and state?
+ */
+function equals<T extends Struct>(a: T, b: Struct): b is T {
+    return (
+        b.constructor === a.constructor &&
+        stateEquals(
+            getDeepState(a),
+            getDeepState(b)
+        )
+    )
+}
+
 //// Implementation ////
 
 abstract class Structural {
@@ -271,20 +322,6 @@ abstract class Structural {
         return applySignature(this, signature)
     }
 
-    protected [$$copy](): this {
-        return applyState(this, getShallowState(this))
-    }
-    
-    protected [$$equals](other: unknown): other is this {
-        return (
-            other instanceof Struct && 
-            other.constructor === this.constructor &&
-            equals(
-                getShallowState(this),
-                getShallowState(other)
-            )
-        )
-    }
 }
 
 const Struct = class Struct extends Structural {} as StructConstructor
@@ -353,12 +390,19 @@ export {
     DataState,
     DataStruct,
 
+    getNamesAndSymbols,
     getDeepState as getState,
     getShallowState,
     setState,
     applyState,
+
+    equals,
+
+    copy,
     copyWithoutState,
+
     showStateKeys,
     hideNonStateKeys,
-    matchKeyVisibility
+    matchKeyVisibility,
+
 }
