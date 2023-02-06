@@ -1,9 +1,9 @@
 import { Callable, Func, provideCallableContext } from '@benzed/util'
-import { AnyState } from '../state'
+import { Struct } from '../struct'
 
 //// Main ////
 
-function applySignature<T extends AnyState>(struct: T, signature?: Func): T {
+function applySignature<T extends Struct>(struct: T, signature?: Func): T {
     return signature
 
         ? Callable.create(

@@ -1,6 +1,7 @@
 import { Func, isFunc, keysOf, KeysOf } from '@benzed/util'
 
-import { AnyState, $$state } from '../../state'
+import { $$state } from '../../state'
+
 import Struct from '../struct'
 
 //// EsLint ////
@@ -15,7 +16,7 @@ import Struct from '../struct'
  * State preset for generic data objects.
  * Any property that isn't a method is considered state.
  */
-export type DataState<T extends AnyState> = {
+export type DataState<T extends Struct> = {
     [K in KeysOf<T> as T[K] extends Func ? never : K]: T[K]
 }
 

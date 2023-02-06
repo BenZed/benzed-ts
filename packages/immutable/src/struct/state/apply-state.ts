@@ -7,7 +7,8 @@ import { setState } from './set-state'
 
 import { 
     State,
-    StateApply, StatePathApply, 
+    StateApply,
+    StatePathApply
 } from './state'
 
 import { matchKeyVisibility } from './state-keys'
@@ -17,13 +18,13 @@ import { matchKeyVisibility } from './state-keys'
 /**
  * Given a struct and state, receive a new struct with the state applied.
  */
-export function applyState<T extends Struct>(struct: T, ...deep: StatePathApply<T>): T
+export function applyState<T extends Struct, P extends StatePathApply<T>>(struct: T, ...deep: P): T
 export function applyState<T extends Struct>(struct: T, state: StateApply<T>): T 
 export function applyState(struct: Struct, ...args: unknown[]): Struct {
 
     const previousState = getShallowState(struct)
     const newStruct = copyWithoutState(struct)
-    // first apply old state, in case of nested structs
+    // first apply previous state
     setState(newStruct, previousState)
 
     // Nest state if it is being deeply set
@@ -33,8 +34,6 @@ export function applyState(struct: Struct, ...args: unknown[]): Struct {
         state = { [deepKey]: state }
 
     const isScalarState = !isObject(state)
-
-    // apply state again, mixed so that any nested structs
     setState(
         newStruct, 
         (

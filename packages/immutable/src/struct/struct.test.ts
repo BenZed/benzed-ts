@@ -1,9 +1,7 @@
 import {
     PublicStruct,
     Struct,
-    copy,
     copyWithoutState,
-    equals,
 } from './struct'
 
 import {
@@ -33,10 +31,12 @@ import {
 import { it, expect, describe } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
+import copy from '../copy'
+import equals from '../equals'
 
 //// Tests ////
 
-describe('basic object struct, no state', () => {
+describe('basic object struct, no state', () => { 
 
     abstract class Value<T> extends Struct {
 
@@ -136,18 +136,20 @@ describe('callable struct no state', () => {
             super(function(i) {
                 return i * this.by
             })
-        }
+        } 
     }
     const x2a = new Multiply(2)
     const x2b = copy(x2a)
 
     it('callable', () => {
         const x2 = new Multiply(2)
+
         expect(x2(5)).toEqual(10)
     })
 
     it('equalable', () => {
         const x2c = copy(x2b)
+
         expect(equals(x2c, x2a)).toBe(true)
 
         x2c.by = 5
@@ -407,7 +409,7 @@ describe('set/get nested state', () => {
 
     abstract class PropertySum extends NumericValue {
         valueOf(): number {
-            let sum = 0
+            let sum = 0   
             for (const key of keysOf(this)) {
 
                 const value = isNumber(this[key]) 

@@ -1,3 +1,4 @@
+
 export {
     Struct,
     StructConstructor,
@@ -8,10 +9,7 @@ export {
     PublicState,
     PublicStruct,
 
-    copy,
     copyWithoutState,
-
-    equals
 
 } from './struct'
 
