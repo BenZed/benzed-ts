@@ -18,8 +18,8 @@ export {
     $$state,
     State as StructState,
     StateApply as StructStateApply,
-    StatePathApply as StructStatePathApply,
-    StatePathApply as StructStatePaths,
+    StateDeepApply as StructStatePathApply,
+    StateDeepApply as StructStatePaths,
 
     getShallowState,
     getDeepState as getState,

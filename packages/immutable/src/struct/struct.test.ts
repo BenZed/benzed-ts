@@ -15,6 +15,7 @@ import {
     hideNonStateKeys,
     State,
     StateApply,
+    applyDeepState,
 
 } from './state'
 
@@ -31,7 +32,7 @@ import {
 import { it, expect, describe } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
-import copy from '../copy'
+import copy, { $$copy } from '../copy'
 import equals from '../equals'
 
 //// Tests ////
@@ -387,6 +388,23 @@ describe('stateful convention', () => {
         expect(getState(skyDamage2)).toEqual({ ...skyDamage, min: 10 })
     })
 
+    test('applyState calls [$$copy] method', () => {
+        let calls = 0
+
+        class CopySpy extends Struct {
+
+            protected [$$copy](): this {
+                calls++
+                return super[$$copy]()
+            }
+        }
+
+        void applyState(new CopySpy(), {})
+
+        expect(calls).toEqual(1)
+
+    })
+
 })
 
 describe('set/get nested state', () => {
@@ -641,22 +659,17 @@ describe('set/get nested state', () => {
 
         const fifty = new class CashDrawer extends PropertySum {
             readonly wallet = new class TenDollaBillz extends Multiplier {
-
                 readonly by = 5
                 readonly value = new class Dollars extends LiteralValue {
                     readonly value: number = 10
-
                     get [$$state](): Pick<this, 'value'> {
                         return { ...this }
                     }
                 }
-
                 get [$$state](): Pick<this, 'value'> {
                     return { ...this }
                 }
-
             }
-
             get [$$state](): Omit<this, 'valueOf' | typeof $$state | 'name'> {
                 return { ...this }
             }
@@ -739,7 +752,7 @@ describe('applyState deep keys', () => {
             alpha: { alpha: 255 }
         })
 
-        const red = applyState(black, 'red', { value: 255 })
+        const red = applyDeepState(black, 'red', { value: 255 })
         expect(getState(red)).toEqual({
             red: { value: 255 },
             green: { value: 0 },
@@ -747,7 +760,7 @@ describe('applyState deep keys', () => {
             alpha: { alpha: 255 },
         })
 
-        const green = applyState(black, 'green', 'value', 255)
+        const green = applyDeepState(black, 'green', 'value', 255)
         expect(getState(green)).toEqual({
             red: { value: 0 },
             green: { value: 255 },
@@ -825,7 +838,7 @@ describe('scalar state', () => {
             description: 'a couple of scalar values'
         })
 
-        const scalarAbbrev1 = applyState(scalars, 'description', 'short')
+        const scalarAbbrev1 = applyDeepState(scalars, 'description', 'short')
         expect(getState(scalarAbbrev1)).toEqual({ 
             min: 100,
             max: 150,
@@ -838,6 +851,5 @@ describe('scalar state', () => {
             max: 150,
             description: 'and sweet'
         })
-
     })
 })

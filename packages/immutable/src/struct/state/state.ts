@@ -1,5 +1,7 @@
 import { Empty, Infer } from '@benzed/util'
-import { $$struct, Struct } from '../struct'
+import { $$copy } from '../../copy'
+import { $$equals } from '../../equals'
+import { Struct } from '../struct'
 
 //// EsLint ////
 /* eslint-disable 
@@ -26,7 +28,7 @@ type _StateApply<T> = Partial<{
         : T[K]
 }>
 
-type _StatePathKeys<T> = Exclude<keyof T, typeof $$state | typeof $$struct>
+type _StatePathKeys<T> = Exclude<keyof T, typeof $$state | typeof $$copy | typeof $$equals>
 
 type _StatePaths<T> = {
     [K in _StatePathKeys<T>]: T[K] extends object 
@@ -34,21 +36,32 @@ type _StatePaths<T> = {
         : [K, T[K]]
 }[_StatePathKeys<T>]
 
-type _StateFul<T> = { 
+//// Types ////
+
+/**
+ * An object with state
+ */
+interface StateFul<T> { 
     [$$state]: T
 }
 
-//// Types ////
+interface StateSetter<T> {
+    set [$$state](value: T)
+}
 
-type State<T extends Struct> = T extends _StateFul<infer S>
+interface StateGetter<T> {
+    get [$$state](): T
+}
+
+type State<T extends Struct> = T extends StateFul<infer S>
     ? _State<S>
     : Empty
 
-type StateApply<T extends Struct> = T extends _StateFul<infer S>
+type StateApply<T extends Struct> = T extends StateFul<infer S>
     ? _StateApply<S>
     : Empty
 
-type StatePathApply<T extends Struct> = T extends _StateFul<infer S>
+type StateDeepApply<T extends Struct> = T extends StateFul<infer S>
     ? _StatePaths<S>
     : never
 
@@ -57,9 +70,12 @@ type StatePathApply<T extends Struct> = T extends _StateFul<infer S>
 export {
 
     State,
+    StateFul,
+    StateGetter,
+    StateSetter,
     StateApply,
 
-    StatePathApply,
+    StateDeepApply,
     $$state,
 
 }

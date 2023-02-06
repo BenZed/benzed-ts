@@ -1,50 +1,47 @@
-import { isObject } from '@benzed/util'
+import { GenericObject } from '@benzed/util'
 
-import { copyWithoutState, Struct } from '../struct'
-
-import { getShallowState } from './get-state'
+import { copy } from '../../copy'
+import { Struct } from '../struct'
 import { setState } from './set-state'
 
 import { 
     State,
     StateApply,
-    StatePathApply
+    StateDeepApply
 } from './state'
-
-import { matchKeyVisibility } from './state-keys'
 
 //// Exports ////
 
 /**
- * Given a struct and state, receive a new struct with the state applied.
+ * Given a struct, a path and a state at that path, receive a new struct
+ * with the state applied at that path.
  */
-export function applyState<T extends Struct, P extends StatePathApply<T>>(struct: T, ...deep: P): T
-export function applyState<T extends Struct>(struct: T, state: StateApply<T>): T 
-export function applyState(struct: Struct, ...args: unknown[]): Struct {
+export function applyDeepState<T extends Struct, P extends StateDeepApply<T>>(
+    struct: T, 
+    ...params: P
+): T {
 
-    const previousState = getShallowState(struct)
-    const newStruct = copyWithoutState(struct)
-    // first apply previous state
-    setState(newStruct, previousState)
+    const [ state, ...keys ] = [...params].reverse() as P as [unknown, ...(string | symbol)[]]
 
-    // Nest state if it is being deeply set
-    let state = args.pop()
-    const deepKeys = args.reverse() as (keyof Struct)[]
-    for (const deepKey of deepKeys) 
-        state = { [deepKey]: state }
+    // create deep state from params
+    let deepState = state as GenericObject
+    for (const key of keys) 
+        deepState = { [key]: deepState }
 
-    const isScalarState = !isObject(state)
-    setState(
-        newStruct, 
-        (
-            isScalarState
-                ? state
-                : { ...previousState, ...state as object }
-        ) as State<Struct>
-    )
+    return applyState(struct, deepState as StateApply<T>)
+}
 
-    if (!isScalarState)
-        matchKeyVisibility(struct, newStruct)
+/**
+ * Given a struct and state, receive a new struct with 
+ * the state applied.
+ */
+export function applyState<T extends Struct>(
+    struct: T, 
+    state: StateApply<T>
+): T {
 
+    const newStruct = copy(struct)
+    setState(newStruct, state as State<T>)
     return newStruct
+
 }

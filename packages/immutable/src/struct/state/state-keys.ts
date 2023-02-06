@@ -1,12 +1,19 @@
-import { nil, Property } from '@benzed/util'
-import { Struct } from '../struct'
+import { isObject, nil, Property } from '@benzed/util'
 import { getNamesAndSymbols } from '../util'
+import { Struct } from '../struct'
+
 import { getShallowState } from './get-state'
-import { $$state, State } from './state'
 
-//// Exports ////
+import {
+    $$state,
+    State,
+    StateGetter,
+    StateSetter
+} from './state'
 
-export function getStateDescriptor<T extends Struct>(struct: T): PropertyDescriptor | nil {
+//// Helper ////
+
+function getStateDescriptor<T extends Struct>(struct: T): PropertyDescriptor | nil {
 
     for (const proto of Property.eachPrototype(struct)) {
         const stateDescriptor = Property.descriptorOf(proto, $$state)
@@ -15,6 +22,25 @@ export function getStateDescriptor<T extends Struct>(struct: T): PropertyDescrip
     }
 
     return nil
+}
+
+//// Exports ////
+
+export function hasStateGetter<T = object>(struct: Struct): struct is Struct & StateGetter<T> {
+    const stateDescriptor = getStateDescriptor(struct)
+    if (!stateDescriptor)
+        return false
+
+    return 'value' in stateDescriptor || !!stateDescriptor.get
+}
+
+/**
+ * Returns true if the given struct has bespoke state
+ * application logic.
+ */
+export function hasStateSetter<T = object>(struct: Struct): struct is Struct & StateSetter<T> {
+    const stateDescriptor = getStateDescriptor(struct)
+    return stateDescriptor?.writable ?? !!stateDescriptor?.set
 }
 
 export function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
@@ -45,6 +71,10 @@ export function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolea
 export function matchKeyVisibility<T extends Struct>(source: T, target: T): void {
 
     const state = getShallowState(source)
+    
+    // Scalar states would have no key visibility to share
+    if (!isObject(state))
+        return
 
     for (const stateKey of getNamesAndSymbols(state)) {
 

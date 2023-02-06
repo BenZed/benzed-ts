@@ -1,8 +1,20 @@
 import { Callable, Func } from '@benzed/util'
-import { $$copy } from '../../copy'
-import { equals, $$equals } from '../../equals'
-import { applyState, getDeepState, getShallowState, StateApply } from '../state'
+
 import { applySignature } from '../util'
+
+import { equals, $$equals } from '../../equals'
+import { $$copy } from '../../copy'
+
+import {
+    getDeepState,
+    getShallowState,
+    matchKeyVisibility,
+    setState,
+} from '../state'
+
+import {
+    copyWithoutState
+} from './copy-without-state'
 
 //// EsLint ////
 
@@ -12,16 +24,25 @@ import { applySignature } from '../util'
 
 //// Base Implementation ////
 
-abstract class Structural { 
-    
+abstract class Structural {
+
     static [Symbol.hasInstance] = Callable[Symbol.hasInstance]
 
     constructor(signature?: Func) {
-        return applySignature(this, signature) as this
+        return applySignature(
+            this,
+            signature
+        ) as this
     }
-    
+
     protected [$$copy](): this {
-        return applyState(this, getShallowState(this) as StateApply<this>)
+
+        const struct = copyWithoutState(this)
+        const state = getShallowState(this)
+        setState(struct, state)
+        matchKeyVisibility(this, struct)
+
+        return struct
     }
 
     protected [$$equals](other: unknown): other is this {
@@ -46,7 +67,7 @@ interface StructConstructor {
 
 //// Main Implementation ////
 
-const Struct = class Struct extends Structural { } as StructConstructor
+const Struct = class Struct extends Structural {} as StructConstructor
 
 //// Exports ////
 
