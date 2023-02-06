@@ -1,4 +1,4 @@
-import { isArray, isNumber, isInteger } from '@benzed/util'
+import { isArray, isNumber, isInteger, pick } from '@benzed/util'
 
 import { ReadOnly } from './readonly'
 
@@ -6,7 +6,7 @@ import { $$target } from '../mutator'
 
 import { expectTypeOf } from 'expect-type'
 import { SubValidator, TypeValidator } from '../../validators'
-import { ValidatorState } from '../../validator-struct'
+import { $$settings, ValidatorUpdateSettings } from '../../validate-struct'
 
 //// Tests ////
 
@@ -24,10 +24,14 @@ class Buffer extends TypeValidator<number[]> implements SubValidator<number[]> {
     readonly enabled = true
     
     toggleEnabled(): this {
-        return TypeValidator.applyState( 
+        return TypeValidator.applySettings( 
             this, 
-            { enabled: !this.enabled } as unknown as ValidatorState<this>
+            { enabled: !this.enabled } as ValidatorUpdateSettings<this>
         )
+    }
+
+    get [$$settings](): { minSize: number, enabled: boolean} {
+        return pick(this, 'minSize', 'enabled')
     }
 }
 
@@ -83,6 +87,8 @@ describe('effect on target', () => {
 
         const $disabledBuffer = $buffer.toggleEnabled()
         expect($disabledBuffer).toBeInstanceOf(Buffer)
+        expect($disabledBuffer.enabled).toEqual(false)
+
         const $disabledReadOnlyBuffer = $readOnlyBuffer.toggleEnabled()
 
         expect($disabledReadOnlyBuffer.enabled).toEqual(false)

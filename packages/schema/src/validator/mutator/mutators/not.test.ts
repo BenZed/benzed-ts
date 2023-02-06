@@ -6,7 +6,7 @@ import { Not } from './not'
 import { testValidator } from '../../../util.test'
 
 import { expectTypeOf } from 'expect-type'
-import { ValidatorUpdateState } from '../../validator-struct'
+import { ValidatorUpdateSettings } from '../../validate-struct'
 
 //// Tests ////
 
@@ -31,9 +31,9 @@ class Id extends ContractValidator<string, id> {
     readonly minId = 0
 
     setMinId(to: number): this {
-        return ContractValidator.applyState(
+        return ContractValidator.applySettings(
             this, 
-            { minId: to } as unknown as ValidatorUpdateState<this>
+            { minId: to } as unknown as ValidatorUpdateSettings<this>
         )
     }
 

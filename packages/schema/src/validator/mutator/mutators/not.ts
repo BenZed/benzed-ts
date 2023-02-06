@@ -84,7 +84,7 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
         return this[$$target]
     }
 
-    override message(ctx: ValidationContext<unknown>): string {
+    message(ctx: ValidationContext<unknown>): string {
         void ctx
         return `Must not be ${this[$$target].name}`
     }

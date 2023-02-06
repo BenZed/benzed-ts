@@ -25,8 +25,7 @@ describe(`${$example.name} validator contract tests`, () => {
             invalidInput: 0,
         }
     )
-
-})
+}) 
 
 describe(`${$example.name} validator tests`, () => {
 

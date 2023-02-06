@@ -1,9 +1,13 @@
-import { assign, isNumber, isString, nil } from '@benzed/util'
-import { $$state } from '@benzed/immutable'
+import { assign, isNumber, isString, nil, pick } from '@benzed/util'
 
 import { it, describe } from '@jest/globals'
 
-import { MainValidator, Schema, SubValidator } from './schema'
+import { 
+    MainValidator,
+    SubValidator,
+    Schema
+} from './schema'
+
 import { TypeValidator } from '../type-validator'
 
 import { expectTypeOf } from 'expect-type'
@@ -14,7 +18,7 @@ import {
 } from '../../../util.test'
 
 import ContractValidator from '../../contract-validator'
-
+import { $$settings } from '../../validate-struct'
 import { ValidatorErrorMessage } from '../../validator-struct'
 
 //// EsLint ////
@@ -36,7 +40,7 @@ describe('Schema Setters Type Tests', () => {
         // if transforms are enabled, it'll try to parse invalid strings.
         readonly parse: boolean 
 
-        [$$state]: { parse: boolean }
+        [$$settings]: { parse: boolean }
 
     }
 
@@ -46,6 +50,8 @@ describe('Schema Setters Type Tests', () => {
         // big number must have at least this many leading zeros.
         // Will transform. 
         readonly count: number 
+
+        [$$settings]: { count: number, enabled: boolean }
     }
 
     interface Positive extends SubValidator<bignumber> {
@@ -102,7 +108,7 @@ describe('Schema implementation', () => {
 
     const number = new class NumberValidator extends TypeValidator<number> {
 
-        get [$$state](): NumberState {
+        get [$$settings](): NumberState {
             return {
                 message: this.message,
                 cast: this.cast,
@@ -111,7 +117,7 @@ describe('Schema implementation', () => {
             }
         }
 
-        set [$$state](state: NumberState) {
+        set [$$settings](state: NumberState) {
             assign(this, state)
         }
 
@@ -126,7 +132,7 @@ describe('Schema implementation', () => {
         readonly finite: boolean = false
     }
 
-    describe.only('main validator only', () => {
+    describe('main validator only', () => {
 
         const $number = new Schema(number)
 
@@ -188,6 +194,13 @@ describe('Schema implementation', () => {
                 return 'Must be capitalized.'
             }
 
+            get [$$settings](): { enabled: boolean } {
+                return pick(this, 'enabled')
+            }
+
+            configure(enabled = true): { enabled: boolean } {
+                return { enabled }
+            }
         }
 
         const $string = new Schema(new StringValidator(), {
@@ -195,7 +208,7 @@ describe('Schema implementation', () => {
         })
         
         testValidator<unknown,string>(
-            $string.captialize({ enabled: true }),
+            $string.captialize(),
             { transforms: 'ace', output: 'Ace' },
             { asserts: 'ace', error: 'Must be capitalized' },
             { transforms: 0, error: 'Must be a String' },

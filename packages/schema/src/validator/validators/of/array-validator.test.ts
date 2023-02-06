@@ -1,12 +1,18 @@
+import { isNumber, isString, nil, pick } from '@benzed/util'
+
 import { ArrayValidator } from './array-validator'
+import { TypeValidator } from '../type-validator'
 
 import { describe } from '@jest/globals'
 
-import { TypeValidator } from '../type-validator'
-import { isNumber, isString, nil } from '@benzed/util'
-
-import { testValidator, testValidationContract } from '../../../util.test'
 import { Schema } from '../schema'
+
+import { 
+    testValidator, 
+    testValidationContract 
+} from '../../../util.test'
+
+import { $$settings, ValidatorSettings } from '../../validate-struct'
 
 //// Setup ////
 
@@ -18,6 +24,10 @@ const $number = new class NumberValidator extends TypeValidator<number> {
 
     cast(input: unknown): unknown {
         return isString(input) ? parseFloat(input) : input
+    }
+
+    get [$$settings](): Pick<this, 'cast' | 'default'> {
+        return pick(this, 'cast', 'default')
     }
 
 }
@@ -58,11 +68,14 @@ describe('retains wrapped validator properties', () => {
         { asserts: [nil, nil], error: true },
     ) 
 
+    type AONS = ValidatorSettings<typeof $arrayOfNumber>
+    type NONS = ValidatorSettings<typeof $number>
+
     const $arrayOfDefaultZeros = $arrayOfNumber.default(() => 0)
 
     testValidator<unknown, number[]>(
         $arrayOfDefaultZeros,
-        { asserts: [nil, nil], output: true },
+        { asserts: [nil, nil], error: true },
         { transforms: [nil, nil], output: [0, 0] },
     )
 

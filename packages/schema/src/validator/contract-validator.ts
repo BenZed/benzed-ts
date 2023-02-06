@@ -88,14 +88,14 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
         const output = ctx.transform 
             ? ctx.transformed
             : input
-            
+
         if (!this.isValid(output, ctx)) {
             throw new ValidationError(
                 this.message(ctx),
                 ctx
             )
         }
-    
+
         return output as O
     }
 

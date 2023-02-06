@@ -12,7 +12,7 @@ import { TypeValidator } from '../../validators'
 import { $$target } from '../mutator'
 
 import { expectTypeOf } from 'expect-type'
-import { ValidatorState } from '../../validator-struct'
+import { ValidatorUpdateSettings } from '../../validate-struct'
 
 //// Setup ////
 
@@ -26,9 +26,9 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
     readonly enabled = true
 
     toggleEnabled(): this {
-        return TypeValidator.applyState( 
+        return TypeValidator.applySettings( 
             this, 
-            { enabled: !this.enabled } as unknown as ValidatorState<this>
+            { enabled: !this.enabled } as unknown as ValidatorUpdateSettings<this>
         )
     }
 }

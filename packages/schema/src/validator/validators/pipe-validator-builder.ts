@@ -5,7 +5,7 @@ import PipeValidator, { OutputValidator } from './pipe-validator'
 
 //// Types ////
 
-export type OutputContractValidatorOutputError<O> = string | NonNullable<ContractValidatorSettings<O,O>['error']> 
+export type OutputContractValidatorOutputError<O> = string | NonNullable<ContractValidatorSettings<O,O>['message']> 
 
 export type OutputContractValidatorTransform<O> = NonNullable<ContractValidatorSettings<O, O>['transform']>
 

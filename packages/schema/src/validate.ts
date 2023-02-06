@@ -34,8 +34,8 @@ export interface ValidateOptions {
  * 4) If transformations are enabled, the validator will attempt to 
  *    transform an input into an expected output. If that transformation 
  *    fails, the validator will throw a validation error, asserting 
- *    that the input data is invalid. 
- * 
+ *    that the input data is invalid.
+ *
  * 5) Weather transformations are enabled or not, the validator will
  *    apply any transformations to the input and assign the 'transformed'
  *    property of it's context object in an immutable way that does 

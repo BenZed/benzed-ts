@@ -1,9 +1,9 @@
-import { $$state, equals, Struct } from '@benzed/immutable'
-import { KeysOf } from '@benzed/util'
 
-import { Validate, ValidateOptions } from '../validate'
+import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
+
 import { ValidateStruct } from './validate-struct'
+
 import { Validator } from './validator'
 
 //// EsLint ////
@@ -51,28 +51,16 @@ export abstract class ValidatorStruct<I, O extends I = I>
      * default @benzed/immutable $$equal algorithm.
      */
     equal<T extends I | O>(input: I | O, output: T): input is T {
-        return equals(input, output)
+        return ValidateStruct.deepEqual(input, output)
     }
 
     message(ctx: ValidationContext<I>): string {
-        void ctx
-        return `${this.name} validation failed.`
+        void ctx 
+        return 'Validation failed.'
     }
 
 }
 
-export type AnyValidatorStruct = 
-    Struct
-    & Validate<any,any>
-    & Required<Omit<Validator<any,any>, 'message'>>
+export type AnyValidatorStruct = ValidatorStruct<any>
 
-export type ValidatorState<V extends AnyValidatorStruct> = 
-    object extends V[typeof $$state]
-        ? {
-            [K in KeysOf<V>]: V[K]
-        }
-        : V[typeof $$state]
-
-export type ValidatorUpdateState<V extends AnyValidatorStruct> = Partial<ValidatorState<V>>
-
-export type ValidatorErrorMessage<T> = ValidatorStruct<T>['message']
+export type ValidatorErrorMessage<T> = (ctx: ValidationContext<T>) => string

@@ -17,6 +17,7 @@ export function getAllProperties(
     const descriptors = Property.descriptorsOf(...prototypes)
 
     const filteredDescriptors: PropertyDescriptorMap = {}
+
     for (const key in descriptors) {
         if (!filter || filter(descriptors[key], key))
             filteredDescriptors[key] = descriptors[key]
