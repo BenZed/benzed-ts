@@ -1,7 +1,7 @@
 import { RecordStruct } from './record-struct'
 
 import { test } from '@jest/globals'
-import { applyState } from '../../state'
+import { applyState } from '../state'
 import { getState } from '../..'
 
 //// Tests ////

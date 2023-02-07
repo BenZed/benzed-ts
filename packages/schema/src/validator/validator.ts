@@ -26,7 +26,7 @@ export interface Validator<I, O extends I> {
     /**
      * Optional method for creating an error message when validation fails.
      */
-    message?: string | ValidationErrorMessage<I>
+    readonly message?: string | ValidationErrorMessage<I>
 
     readonly name: string
 

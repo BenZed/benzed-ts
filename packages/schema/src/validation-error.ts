@@ -36,7 +36,7 @@ type ResolveErrorMessageParams<T> =
 //// Helper ////
 
 const isFuncNotStruct = (i: AnyValidatorStruct | Func): i is Func => 
-    i instanceof Struct === false && isFunc(i)
+    !Struct.is(i) && isFunc(i)
 
 const isErrorMessage: <T>(i: unknown) => i is string | ValidationErrorMessage<T> = 
     isUnion(

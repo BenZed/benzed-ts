@@ -1,11 +1,11 @@
-import { KeysOf, omit } from '@benzed/util'
+import { NamesOf, omit } from '@benzed/util'
 
 import Struct from '../struct'
 
-import { copy } from '../../../copy'
-import { equals } from '../../../equals'
+import { copy } from '../copy'
+import { equals } from '../equals'
 
-import { $$state, applyDeepState, applyState, StateApply, SubStateApply } from '../../state'
+import { $$state, applyDeepState, applyState, StateApply, SubStateApply } from '../state'
 
 //// EsLint ////
 
@@ -22,7 +22,7 @@ import { $$state, applyDeepState, applyState, StateApply, SubStateApply } from '
 export type PublicState<T extends object> = 
     Pick<
     T, 
-    Exclude<KeysOf<T>, 'toString' | 'valueOf' | 'apply' | 'applyIn' | 'copy' | 'equal'>
+    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'apply' | 'applyIn' | 'copy' | 'equal'>
     >
 
 /**

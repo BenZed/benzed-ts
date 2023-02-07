@@ -1,16 +1,16 @@
 
-import ValidationContext from '../../validation-context'
+import { ValidationContext } from '../../validation-context'
 import { ValidationErrorMessage } from '../../validation-error'
-import { ContractValidatorSettings } from '../contract-validator'
-import PipeValidator, { OutputValidator } from './pipe-validator'
+import { ContractValidator } from '../contract-validator'
+import { PipeValidator, OutputValidator } from './pipe-validator'
 
 //// Types ////
 
-export type OutputContractValidatorTransform<O> = NonNullable<ContractValidatorSettings<O, O>['transform']>
+export type OutputContractValidatorTransform<O> = NonNullable<ContractValidator<O, O>['transform']>
 
 export type OutputContractValidatorPredicate<O> = (input: O, context: ValidationContext<O>) => boolean
 
-export interface OutputContractValidatorSettings<O> extends Omit<ContractValidatorSettings<O, O>, 'isValid' | 'error'> {
+export interface OutputContractValidatorSettings<O> extends Omit<Partial<ContractValidator<O, O>>, 'isValid' | 'error'> {
 
     isValid: OutputContractValidatorPredicate<O>
     message?: string | ValidationErrorMessage<O>

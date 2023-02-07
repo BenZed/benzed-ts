@@ -1,6 +1,6 @@
 import { GenericObject } from '@benzed/util'
 
-import { copy } from '../../copy'
+import { copy } from '../copy'
 import { Struct } from '../struct'
 import { setState } from './set-state'
 
@@ -17,7 +17,7 @@ import {
  * with the state applied at that path.
  */
 export function applyDeepState<T extends Struct, P extends SubStateApply<T>>(
-    struct: T, 
+    struct: T,
     ...params: P
 ): T {
 

@@ -1,6 +1,6 @@
 
 import { it } from '@jest/globals'
-import { isArray, isString as isString } from '@benzed/util'
+import { isArrayOf, isString as isString } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import {
@@ -28,25 +28,27 @@ import { ValidatorStruct } from '../validator-struct'
     @typescript-eslint/ban-types
 */
 
-//// Test ////
+//// Setup ////
 
 interface To<O> extends ValidatorStruct<unknown, O> {}
 
 interface String extends To<string> {}
-const $string: String = ContractValidator.generic({
-    message() {
-        return 'Must be a string'
-    },
-    isValid: isString
-})
+const $string: String = new class extends ContractValidator<unknown, string> {
+
+    message = 'Must be a string'
+
+    isValid = isString
+
+}
 
 interface ArrayOfString extends To<string[]> {}
-const $arrayOfString: ArrayOfString = ContractValidator.generic({
-    message() {
-        return 'Must be an array of string'
-    },
-    isValid: (i): i is string[] => isArray(i, isString)
-})
+const $arrayOfString: ArrayOfString = new class extends ContractValidator<unknown, string[]> {
+
+    message = 'Must be an array of string'
+
+    isValid = isArrayOf(isString)
+
+}
 
 //// Tests ////
 
@@ -67,7 +69,7 @@ describe('AddMutator', () => {
             expectTypeOf($optionalString).toEqualTypeOf<Optional<String>>()
         }
 
-    }) 
+    })
 
     it('ReadOnly', () => {
         type ReadonlyArrayOfString = AddMutator<ArrayOfString, M.ReadOnly>

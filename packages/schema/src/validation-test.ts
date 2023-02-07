@@ -1,5 +1,5 @@
 
-import { isFunc, isObject, isString, Mutable, nil } from '@benzed/util'
+import { isFunc, isRecord, isString, Mutable, nil } from '@benzed/util'
 
 import { Validate } from './validate'
 import { ValidationError } from './validation-error'
@@ -261,7 +261,7 @@ export function runValidationContractTests<I, O extends I>(
     }
 
     // ImmutableTransforms
-    if ((isObject(validInput) || isFunc(validInput)) && assertFail.error?.transformed === validInput)
+    if ((isRecord(validInput) || isFunc(validInput)) && assertFail.error?.transformed === validInput)
         violations.add(ValidationContractViolation.ImmutableTransforms)
 
     // ThrowsValidationErrors

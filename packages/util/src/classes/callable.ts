@@ -1,6 +1,6 @@
 
 import { Property } from '../property'
-import { Func, Infer, isFunc, isObject, isShape, TypeGuard } from '../types'
+import { Func, Infer, isFunc, isRecord, isShape, TypeGuard } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -33,7 +33,7 @@ type CallableData = {
 
 const isCallableData: TypeGuard<CallableData> = isShape({
     signature: isFunc,
-    template: isObject,
+    template: isRecord,
     ctxProvider: isFunc
 })
 
@@ -154,7 +154,7 @@ const Callable = class {
 
     static [Symbol.hasInstance](instance: unknown): boolean {
 
-        if (!(isFunc(instance) || isObject(instance)) || !isFunc(instance?.constructor))
+        if (!(isFunc(instance) || isRecord(instance)) || !isFunc(instance?.constructor))
             return false 
 
         if (Object.is(instance.constructor, this))

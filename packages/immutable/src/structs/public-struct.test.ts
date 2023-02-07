@@ -8,11 +8,9 @@ import {
     getDeepState as getState,
     State
 
-} from '../../state'
+} from '../state'
 
-import {
-    assign,
-} from '@benzed/util'
+import { assign } from '@benzed/util'
 
 import { it, expect, describe } from '@jest/globals'
 
@@ -34,6 +32,7 @@ test(`${PublicStruct.name}`, () => {
     }
 
     const le1 = edge.applyIn('b', { y: 10 })
+
     const le2 = edge.applyIn('b', 'y', 10)
 
     expect(getState(le1)).toEqual({
@@ -43,7 +42,19 @@ test(`${PublicStruct.name}`, () => {
 
     expect(getState(le1)).toEqual(getState(le2))
 
-    expect(le1).not.toBe(edge)
+    expect(le1).not.toBe(edge)  
+})
+
+describe('isStructural', () => {
+    it('returns true for any structural body, doesn\'t need to inherit from struct', () => {
+        class TwinTurbo extends Struct {
+            readonly turbos: number = 2
+        }
+
+        expect(Struct.is(new TwinTurbo())).toBe(true)
+
+        expect(Struct.is({ x: 0 })).toBe(false)  
+    })
 })
 
 describe('applyState deep keys', () => {

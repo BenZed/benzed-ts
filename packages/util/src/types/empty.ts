@@ -1,5 +1,5 @@
-import { keysOf, symbolsOf } from '../types'
-import { isObject } from './guards'
+import { namesOf, symbolsOf } from '../types'
+import { isRecord } from './guards'
 
 /**
  * Object with no properties
@@ -7,6 +7,6 @@ import { isObject } from './guards'
 export type Empty = { [key: string]: never }
 
 export const isEmpty = (input: unknown): input is Empty => 
-    isObject(input) && 
-    keysOf.count(input) === 0 && 
+    isRecord(input) && 
+    namesOf.count(input) === 0 && 
     symbolsOf.count(input) === 0

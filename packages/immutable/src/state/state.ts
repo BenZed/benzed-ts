@@ -1,6 +1,6 @@
 import { Empty, Infer } from '@benzed/util'
-import { $$copy } from '../../copy'
-import { $$equals } from '../../equals'
+import { $$copy } from '../copy'
+import { $$equals } from '../equals'
 import { Struct } from '../struct'
 
 //// EsLint ////
@@ -34,20 +34,6 @@ type _StateApply<T> = T extends object
     }>
     : T
 
-type _SubStateApply<T> = T extends StateFul<infer S>
-    ? _StateApply<S>
-    : _StateApply<T>
-
-type _SubStatePath<S> = {
-    [K in _StateKeys<S>]: S[K] extends object 
-        ? [ K, _SubStateApply<S[K]> ] | [ K, ..._SubStatePaths<S[K]> ]
-        : [ K, S[K] ]
-}[_StateKeys<S>]
-
-type _SubStatePaths<T> = T extends StateFul<infer S>
-    ? _SubStatePath<S>
-    : _SubStatePath<T>
-
 //// Types ////
 
 /**
@@ -73,7 +59,7 @@ type StateApply<T extends Struct> = T extends StateFul<infer S>
     ? _StateApply<S> 
     : Empty
 
-type SubStateApply<T extends Struct> = _SubStatePaths<T>
+type SubStateApply<T extends Struct> = any
 
 //// Exports ////
 

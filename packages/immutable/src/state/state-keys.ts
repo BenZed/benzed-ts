@@ -1,5 +1,4 @@
-import { nil, Property } from '@benzed/util'
-import { getNamesAndSymbols } from '../util'
+import { keysOf, nil, Property } from '@benzed/util'
 import { Struct } from '../struct'
 
 import { getShallowState, isScalarState } from './get-state'
@@ -76,9 +75,9 @@ export function matchKeyVisibility<T extends Struct>(source: T, target: T): void
     if (isScalarState(state))
         return
 
-    for (const stateKey of getNamesAndSymbols(state)) {
+    for (const stateKey of keysOf(state)) {
 
-        const aDescriptor = Property.descriptorOf(source, stateKey)
+        const aDescriptor = Property.descriptorOf(source, stateKey as string | symbol)
         if (!aDescriptor)
             throw new Error(`${String(stateKey)} is not a valid key in struct ${source}`)
 

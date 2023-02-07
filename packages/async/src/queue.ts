@@ -1,4 +1,4 @@
-import { EventEmitter, isArray, isInteger, isObject, LinkedList } from '@benzed/util'
+import { EventEmitter, isArray, isInteger, isRecord, LinkedList } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
@@ -31,7 +31,7 @@ function isQueuePayload<V, T extends object | void>(
     input: unknown
 ): input is QueuePayload<V, T> {
 
-    return isObject<{ [key: string]: unknown }>(input) &&
+    return isRecord<{ [key: string]: unknown }>(input) &&
         input.time instanceof Date &&
         input.queue instanceof Queue
 }

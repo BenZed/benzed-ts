@@ -1,4 +1,3 @@
-import { assign, KeysOf } from '@benzed/util'
 
 import { ValidateOptions } from '../validate'
 import { ValidationContext } from '../validation-context'
@@ -11,12 +10,6 @@ import { ValidatorStruct } from './validator-struct'
     @typescript-eslint/no-explicit-any
 */
 
-//// Types ////
-
-type ContractValidatorSettings<I, O extends I> = Partial<{
-    [K in KeysOf<ContractValidator<I,O>>]: ContractValidator<I,O>[K]
-}>
-
 //// Main ////
 
 /**
@@ -28,26 +21,6 @@ type ContractValidatorSettings<I, O extends I> = Partial<{
  * 
  */
 abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
-
-    /**
-     * Create a new validator by providing settings to manually override one or many
-     * of the contract validators properties.
-     */
-    static generic<Ix,Ox extends Ix>(
-        { name: _name = 'validator', ...settings }: ContractValidatorSettings<Ix,Ox>
-    ): ContractValidator<Ix,Ox> {
-        return new class extends ContractValidator<Ix,Ox> {
-            constructor(readonly name = _name) {
-                super()
-                assign(this, settings)
-            }
-        }
-    }
-
-    /**
-     * Should have something to do with the output type.
-     */
-    abstract override get name(): string
 
     /**
      * Method that attempts to partially or completely change it's input
@@ -108,6 +81,5 @@ export default ContractValidator
 export type AnyContractValidator = ContractValidator<any,any>
 
 export {
-    ContractValidator,
-    ContractValidatorSettings
+    ContractValidator
 }

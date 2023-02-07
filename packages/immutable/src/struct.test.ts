@@ -1,6 +1,6 @@
 import {
     Struct,
-    copyWithoutState,
+    copyWithoutState
 } from './struct'
 
 import {
@@ -29,16 +29,16 @@ import {
 
 import { it, expect, describe } from '@jest/globals'
 
+import { copy, $$copy } from './copy'
+import { equals } from './equals'
+
 import { expectTypeOf } from 'expect-type'
-import copy, { $$copy } from '../copy'
-import equals from '../equals'
 
 //// Tests ////
 
 describe('basic object struct, no state', () => { 
 
     abstract class Value<T> extends Struct {
-
         abstract get value(): T
     }
 
@@ -177,7 +177,7 @@ describe('callable struct with state', () => {
 
             hideNonStateKeys(this, 'observerIds')
         }
-        
+
         get [$$state](): { complete: boolean, description: string } {
             return { ...this }
         }
@@ -194,10 +194,10 @@ describe('callable struct with state', () => {
     })
 
     it('get state', () => {
-        expect(getState(t1)) 
+        expect(getState(t1))
             .toEqual({ complete: false, description: 'Complete Struct class'})
     })
-    
+
     it('set state', () => {
 
         const t3 = new Task(false, 'Salt the plants', [1,2,3])
@@ -205,6 +205,7 @@ describe('callable struct with state', () => {
         setState(t3, { complete: true, description: 'water the plants' })
         expect(getState(t3)).toEqual({ complete: true, description: 'water the plants' })
         expect(getState(t3)).toEqual({ ...t3 })
+
     })
 
     it('apply state', () => {  
@@ -364,8 +365,8 @@ describe('stateful convention', () => {
         })
 
         expect(getState(skyDamage2)).toEqual({ 
-            min: 5, 
-            max: 100 
+            min: 5,
+            max: 100
             // no description because state key visibility was not matched
         })
 
@@ -425,7 +426,7 @@ describe('set/get nested state', () => {
 
     abstract class PropertySum extends NumericValue {
         valueOf(): number {
-            let sum = 0   
+            let sum = 0
             for (const key of keysOf(this)) {
 
                 const value = isNumber(this[key]) 
@@ -714,5 +715,14 @@ describe('set/get nested state', () => {
                 by: 5
             }
         })
+    })
+})
+
+describe('isStructural', () => {
+    it('returns true for any structural body, doesn\'t need to inherit from struct', () => {
+        class TwinTurbo extends Struct {
+            readonly turbos: number = 2
+        }
+        expect(Struct.is(new TwinTurbo())).toBe(true)
     })
 })

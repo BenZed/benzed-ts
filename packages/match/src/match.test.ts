@@ -9,7 +9,7 @@ import {
 } from './error'
 
 import { expectTypeOf } from 'expect-type'
-import { isBoolean, isNumber, isObject, isString } from '@benzed/util'
+import { isBoolean, isNumber, isRecord, isString } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -130,7 +130,7 @@ describe('method input', () => {
 
     it('all typeguards', () => {
 
-        const isFoo = (i: unknown): i is { foo: 'bar' } => isObject<{foo: string}>(i) && i.foo === 'bar'
+        const isFoo = (i: unknown): i is { foo: 'bar' } => isRecord<{foo: string}>(i) && i.foo === 'bar'
 
         const sort = match()
             .case(isNumber, 'Number')

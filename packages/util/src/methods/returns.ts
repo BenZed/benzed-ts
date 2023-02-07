@@ -1,4 +1,4 @@
-import { isObject } from '../types/guards'
+import { isRecord } from '../types/guards'
 
 //// Implementation ////
 
@@ -7,7 +7,7 @@ import { isObject } from '../types/guards'
  */
 export function returns<T>(input: T): () => T {
 
-    const cache = isObject(input) 
+    const cache = isRecord(input) 
         ? returns.cache.objects 
         : returns.cache.primitives
 

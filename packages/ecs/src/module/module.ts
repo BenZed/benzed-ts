@@ -1,5 +1,5 @@
 import { $$copy, $$equals, CopyComparable, equals } from '@benzed/immutable'
-import { callable, isObject } from '@benzed/util'
+import { callable, isRecord } from '@benzed/util'
 
 import type { Node } from '../node'
 
@@ -114,7 +114,7 @@ export class Module<T = unknown> implements CopyComparable {
     //// CopyComparable Interface ////
 
     [$$equals](input: unknown): input is this {
-        return isObject(input) && 
+        return isRecord(input) && 
             input instanceof Module && 
             input.constructor === this.constructor && 
             equals(this.data, input.data)

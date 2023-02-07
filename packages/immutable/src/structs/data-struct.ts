@@ -1,6 +1,6 @@
-import { Func, isFunc, keysOf, KeysOf } from '@benzed/util'
+import { Func, isFunc, namesOf, NamesOf } from '@benzed/util'
 
-import { $$state } from '../../state'
+import { $$state } from '../state'
 
 import { Struct } from '../struct'
 
@@ -17,7 +17,7 @@ import { Struct } from '../struct'
  * Any property that isn't a method is considered state.
  */
 export type DataState<T extends Struct> = {
-    [K in KeysOf<T> as T[K] extends Func ? never : K]: T[K]
+    [K in NamesOf<T> as T[K] extends Func ? never : K]: T[K]
 }
 
 export abstract class DataStruct extends Struct {
@@ -26,7 +26,7 @@ export abstract class DataStruct extends Struct {
 
         const state = {} as DataState<this>
 
-        for (const key of keysOf(this)) {
+        for (const key of namesOf(this)) {
             if (!isFunc(this[key]))
                 (state as any)[key] = this[key]
         }

@@ -1,11 +1,11 @@
-import { keysOf, symbolsOf } from './keys-of'
+import { namesOf, symbolsOf } from './keys-of'
 
 //// Helper ////
 
 function _omit(input: object, ...keys: (symbol | string)[]): object {
     const output: object = {}
 
-    for (const key of keysOf(input)) {
+    for (const key of namesOf(input)) {
         if (!keys.includes(key))
             output[key] = input[key]
     }
