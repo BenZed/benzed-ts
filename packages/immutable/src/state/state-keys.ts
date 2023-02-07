@@ -1,7 +1,7 @@
 import { keysOf, nil, Property } from '@benzed/util'
 import { Struct } from '../struct'
 
-import { getShallowState, isScalarState } from './get-state'
+import { getState, isScalarState } from './get-state'
 
 import {
     $$state,
@@ -44,7 +44,7 @@ export function hasStateSetter<T = object>(struct: Struct): struct is Struct & S
 
 export function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
 
-    const state = getShallowState(struct)
+    const state = getState(struct)
 
     for (const stateKey of stateKeys as (string | symbol)[]) {
 
@@ -69,7 +69,7 @@ export function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolea
 
 export function matchKeyVisibility<T extends Struct>(source: T, target: T): void {
 
-    const state = getShallowState(source)
+    const state = getState(source)
     
     // Scalar states would have no key visibility to share
     if (isScalarState(state))

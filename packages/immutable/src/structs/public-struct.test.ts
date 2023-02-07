@@ -3,10 +3,10 @@ import { PublicStruct } from './public-struct'
 import {
 
     $$state,
-    applyDeepState,
+    applySubState,
     applyState,
     getDeepState as getState,
-    State
+    State,
 
 } from '../state'
 
@@ -37,7 +37,7 @@ test(`${PublicStruct.name}`, () => {
 
     expect(getState(le1)).toEqual({
         a: { x: 0, y: 0 },
-        b: { x: 0, y: 10 }
+        b: { x: 0, y: 10 } 
     })
 
     expect(getState(le1)).toEqual(getState(le2))
@@ -85,14 +85,14 @@ describe('applyState deep keys', () => {
             blue: { value: 255 },
         })
 
-        const red = applyDeepState(black, 'red', { value: 255 })
+        const red = applySubState(black, 'red', { value: 255 })
         expect(getState(red)).toEqual({
             red: { value: 255 },
             green: { value: 0 },
             blue: { value: 0 },
         })
 
-        const green = applyDeepState(black, 'green', 'value', 255)
+        const green = applySubState(black, 'green', 'value', 255)
         expect(getState(green)).toEqual({
             red: { value: 0 },
             green: { value: 255 },
@@ -104,10 +104,10 @@ describe('applyState deep keys', () => {
         try {
 
             // @ts-expect-error Bad path
-            void applyState(black, 'green', 255)
+            void applySubState(black, 'green', 255)
 
             // @ts-expect-error Bad value
-            void applyState(black, 'red', 'value', { value: 1000 })
+            void applySubState(black, 'red', 'value', { value: 1000 })
 
         } catch {} 
     })
@@ -169,7 +169,7 @@ describe('scalar state', () => {
             description: 'a couple of scalar values'
         })
 
-        const scalarAbbrev1 = applyDeepState(scalars, 'description', 'short')
+        const scalarAbbrev1 = applySubState(scalars, 'description', 'short')
         expect(getState(scalarAbbrev1)).toEqual({ 
             min: 100,
             max: 150,

@@ -20,11 +20,14 @@ export {
     StateGetter as StructStateGetter,
     StateSetter as StructStateSetter,
 
-    getShallowState,
-    getDeepState as getState,
+    getState,
+    getDeepState,
+
     setState,
     setDeepState,
+
     applyState,
+    applySubState,
 
     showStateKeys,
     hideNonStateKeys,

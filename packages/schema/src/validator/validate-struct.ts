@@ -12,9 +12,9 @@ import {
     $$copy,
     copy,
     copyWithoutState,
+    getDeepState,
 
 } from '@benzed/immutable'
-import { getDeepState } from '@benzed/immutable/src/struct/state'
 
 import {
     Validate

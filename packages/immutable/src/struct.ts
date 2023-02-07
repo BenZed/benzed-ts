@@ -14,7 +14,7 @@ import { $$copy, isCopyable } from './copy'
 
 import {
     getDeepState,
-    getShallowState,
+    getState,
     matchKeyVisibility,
     setState,
 } from './state'
@@ -69,7 +69,7 @@ abstract class Structural {
     protected [$$copy](): this {
 
         const struct = copyWithoutState(this)
-        const state = getShallowState(this)
+        const state = getState(this)
         setState(struct, state)
         matchKeyVisibility(this, struct)
 

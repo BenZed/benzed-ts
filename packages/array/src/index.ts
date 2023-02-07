@@ -30,7 +30,7 @@ export {
     first,
     last,
     wrap,
-    unwrap,
+    unwrap
 
 }
 

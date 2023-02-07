@@ -15,7 +15,7 @@ import { $$state, State } from './state'
 /**
  * Receive the state of the struct.
  */
-export function getShallowState<T extends Struct>(struct: T): State<T> {
+export function getState<T extends Struct>(struct: T): State<T> {
     const state = hasStateGetter(struct)
         ? struct[$$state]
         : { ...struct }
@@ -29,8 +29,8 @@ export function getShallowState<T extends Struct>(struct: T): State<T> {
  * be converted into their own state.
  */
 export function getDeepState<T extends Struct>(struct: T): State<T> {
-    
-    const state = getShallowState(struct) as any
+
+    const state = getState(struct) as any
 
     if (!isScalarState(state)) {
         for (const key of keysOf(state)) {
@@ -40,10 +40,12 @@ export function getDeepState<T extends Struct>(struct: T): State<T> {
     }
 
     return state
-
 }
 
 export function isScalarState(input: unknown): boolean {
-    return !isRecord(input) && !isFunc(input)
+    return (
+        !isRecord(input) &&
+        !isFunc(input)
+    )
 }
 

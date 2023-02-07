@@ -34,6 +34,16 @@ type _StateApply<T> = T extends object
     }>
     : T
 
+type _StateAtPath<T, P extends SubStatePath> = P extends [infer P1, ...infer Pr]
+    ? P1 extends _StateKeys<T>
+        ? Pr extends SubStatePath 
+            ? _StateAtPath<T[P1], Pr>
+            : T[P1]
+        : never
+    : T extends StateFul<infer S> 
+        ? _StateApply<S>
+        : _StateApply<T>
+
 //// Types ////
 
 /**
@@ -59,7 +69,16 @@ type StateApply<T extends Struct> = T extends StateFul<infer S>
     ? _StateApply<S> 
     : Empty
 
-type SubStateApply<T extends Struct> = any
+type SubState<T extends Struct, P extends SubStatePath> = T extends StateFul<infer S>
+    ? _StateAtPath<S, P>
+    : Empty
+
+type SubStateApply<T extends Struct, P extends SubStatePath> = [
+    ...P,
+    SubState<T,P>
+]
+
+type SubStatePath = (string | symbol)[] | readonly (string | symbol)[]
 
 //// Exports ////
 
@@ -71,7 +90,9 @@ export {
     StateSetter,
     StateApply,
 
+    SubState,
     SubStateApply,
+    SubStatePath,
     $$state,
 
 }

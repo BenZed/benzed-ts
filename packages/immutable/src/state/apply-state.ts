@@ -7,7 +7,8 @@ import { setState } from './set-state'
 import { 
     State,
     StateApply,
-    SubStateApply
+    SubStateApply,
+    SubStatePath
 } from './state'
 
 //// Exports ////
@@ -16,12 +17,12 @@ import {
  * Given a struct, a path and a state at that path, receive a new struct
  * with the state applied at that path.
  */
-export function applyDeepState<T extends Struct, P extends SubStateApply<T>>(
+export function applySubState<T extends Struct, P extends SubStatePath>(
     struct: T,
-    ...params: P
+    ...params: SubStateApply<T,P>
 ): T {
 
-    const [ state, ...keys ] = [...params].reverse() as P as [unknown, ...(string | symbol)[]]
+    const [ state, ...keys ] = [...params].reverse() as unknown as [State<T>, ...P]
 
     // create deep state from params
     let deepState = state as GenericObject
