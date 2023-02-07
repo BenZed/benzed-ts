@@ -1,4 +1,5 @@
 import { capitalize } from '@benzed/string'
+import { RecordStruct } from '@benzed/immutable'
 import { isFunc, isString, keysOf, KeysOf, pick, Property } from '@benzed/util'
 
 import {
@@ -8,9 +9,8 @@ import {
     ValidateOutput
 } from '../../../validate'
 
-import { ValidatorStruct } from '../../validator-struct'
-
 import { getAllProperties } from './property-helpers'
+
 import { ValidationContext } from '../../../validation-context'
 
 import {
@@ -23,11 +23,10 @@ import {
     ValidateStruct, 
     ValidateSettings, 
     ValidateUpdateSettings,
-    
     AnyValidateStruct
 } from '../../validate-struct'
 
-import { RecordStruct } from '@benzed/immutable'
+import { ValidatorStruct } from '../../validator-struct'
 
 //// EsLint ////
 

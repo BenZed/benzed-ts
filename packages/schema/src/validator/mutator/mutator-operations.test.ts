@@ -84,13 +84,6 @@ describe('AddMutator', () => {
         }
     })
 
-    it.skip('Async', () => {
-        type AsyncArrayOfString = AddMutator<ArrayOfString, M.Async>
-        expectTypeOf<AsyncArrayOfString>().toEqualTypeOf<To<Promise<string[]>>>()
-
-        type ArrayOfString2 = Async<AsyncArrayOfString>
-        expectTypeOf<ArrayOfString2>().toEqualTypeOf<To<Promise<string[]>>>()
-    })
 })
 
 describe('RemoveMutator', () => {
@@ -114,12 +107,6 @@ describe('RemoveMutator', () => {
         expectTypeOf<ArrayOfString1>().toEqualTypeOf($arrayOfString1)
     })
 
-    it.skip('Async', () => {
-        type AsyncArrayOfString = Async<ArrayOfString>
-        type ArrayOfString1 = RemoveMutator<AsyncArrayOfString, M.Async>
-        expectTypeOf<ArrayOfString1>().toEqualTypeOf<Sync<AsyncArrayOfString>>()
-    })
-
 })
 
 describe('HasMutator', () => {
@@ -135,9 +122,6 @@ describe('HasMutator', () => {
         type IsReadonly = HasMutator<OptionalString, M.ReadOnly>
         expectTypeOf<IsReadonly>().toEqualTypeOf<false>()
 
-        type AsyncOptionalString = Async<Optional<String>>
-        expectTypeOf<HasMutator<AsyncOptionalString, M.Async>>().toEqualTypeOf<true>()
-        expectTypeOf<HasMutator<AsyncOptionalString, M.Optional>>().toEqualTypeOf<true>()
     })
 
     it('ReadOnly', () => {
@@ -151,15 +135,6 @@ describe('HasMutator', () => {
         type IsReadonly = HasMutator<ReadonlyArrayOfString, M.ReadOnly>
         expectTypeOf<IsReadonly>().toEqualTypeOf<true>()
         expect(hasMutator($readOnlyArrayOfString, M.ReadOnly)).toBe(true)
-    })
-
-    it.skip('Async', () => {
-        type AsyncArrayOfString = Async<ArrayOfString>
-        type IsAsync = HasMutator<AsyncArrayOfString, M.Async>
-        expectTypeOf<IsAsync>().toEqualTypeOf<true>()
-
-        type IsReadonly = HasMutator<AsyncArrayOfString, M.ReadOnly>
-        expectTypeOf<IsReadonly>().toEqualTypeOf<false>()
     })
 
     it('OptionalReadOnly', () => {

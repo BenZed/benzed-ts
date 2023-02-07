@@ -202,9 +202,11 @@ describe('Schema implementation', () => {
             }
         }
 
-        const $string = new Schema(new StringValidator(), {
-            captialize: new Capitalize()
-        })
+        const $string = new Schema(
+            new StringValidator(), {
+                captialize: new Capitalize()
+            }
+        )
 
         testValidator<unknown,string>(
             $string.captialize(),
