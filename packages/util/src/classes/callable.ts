@@ -29,6 +29,8 @@ type CallableData = {
     ctxProvider: CallableContextProvider<Func>
 }
 
+//// Helpers ////
+
 const isCallableData: TypeGuard<CallableData> = isShape({
     signature: isFunc,
     template: isObject,
@@ -37,9 +39,9 @@ const isCallableData: TypeGuard<CallableData> = isShape({
 
 const hasCallableData = <F extends Func>(
     input: F
-): input is F & { [$$callable]: CallableData} => {
-    return $$callable in input && isCallableData(input[$$callable])
-}
+): input is F & { [$$callable]: CallableData} => 
+    $$callable in input && 
+    isCallableData(input[$$callable])
 
 interface Callable extends CallableConstructor {
 
@@ -76,11 +78,14 @@ interface CallableContextProvider<F extends Func, T = ThisType<F>> {
 
 //// Default Context Providers ////
 
-const provideDynamicContext: CallableContextProvider<Func> = (ctx, callable) => ctx ?? callable
+const provideDynamicContext: CallableContextProvider<Func> = 
+    (ctx, callable) => ctx ?? callable
 
-const provideCallableContext: CallableContextProvider<Func> = (_, callable) => callable
+const provideCallableContext: CallableContextProvider<Func> = 
+    (_, callable) => callable
 
-const provideTupleContext = (ctx: unknown, callable: Func): unknown => [ctx, callable]
+const provideTupleContext = (ctx: unknown, callable: Func): unknown => 
+    [ctx, callable]
 
 //// Main ////
 

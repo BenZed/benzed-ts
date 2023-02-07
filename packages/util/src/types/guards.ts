@@ -1,10 +1,15 @@
 import { indexesOf, keysOf } from '../types/keys-of'
 import { isBigInt, isBoolean, isNumber, isString } from './primitive'
-import { Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
+import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
 import { Sortable } from '../sort'
 import { nil } from './nil'
 import { Intersect } from './merge'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
@@ -106,7 +111,7 @@ export type ShapeOutput<T extends ShapeInput> = {
 }
 export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T>> => 
     (input: unknown): input is ShapeOutput<T> => 
-        isObject<ShapeOutput<T>>(input) && 
+        (isObject(input) || isFunc<any>(input)) && 
         Object.entries(shape).every(([key, type]) => type(input[key]))
 
 export type TupleInput = TypeGuard<unknown>[]
@@ -124,12 +129,12 @@ export const isTuple = <T extends TupleInput>(...types: T): TypeGuard<TupleOuput
         input.length === types.length &&
         types.every((type, i) => type(input[i]))
 
-export const isUnion = <T extends TypeGuard<unknown>[]>(...types: T): TypeGuard<TypesOf<T>[number]> =>
+export const isUnion = <T extends AnyTypeGuard[]>(...types: T): TypeGuard<TypesOf<T>[number]> =>
     (i: unknown): i is TypesOf<T>[number] => types.some(type => type(i))
 
-export const isIntersection = <T extends TypeGuard<unknown>[]>(...types: T): TypeGuard<Intersect<TypesOf<T>>> =>
-    (i: unknown): i is TypesOf<T>[number] => types.every(type => type(i))
-        
+export const isIntersection = <T extends AnyTypeGuard[]>(...types: T): TypeGuard<Intersect<TypesOf<T>>> =>
+    (i: unknown): i is Intersect<TypesOf<T>> => types.every(type => type(i))
+
 export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
     (i: unknown): i is T | nil => i === nil || type(i)
 
@@ -145,7 +150,9 @@ export const isJsonArray = (input: unknown): input is JsonArray =>
     isArrayOf(isJson)(input)
 
 export const isJson = (input: unknown): input is Json => 
-    isJsonPrimitive(input) || isJsonArray(input) || isJsonObject(input)
+    isJsonPrimitive(input) ||
+    isJsonArray(input) ||
+    isJsonObject(input)
 
 isJson.Array = isJsonArray
 isJson.Object = isJsonObject

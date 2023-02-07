@@ -36,7 +36,7 @@ export const isPrimitive = (i: unknown): i is Primitive =>
     isSymbol(i) ||
     isNil(i)
 
-export const isIdentical = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
+export const isEqual = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
     (i: unknown): i is T[number] => values.some(value => Object.is(i, value))
 
 //// Symbol ////
