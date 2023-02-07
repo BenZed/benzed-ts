@@ -6,6 +6,7 @@ import {
     StructState, 
     StructStateApply,
 
+    $$equals,
     equals, 
 
     $$copy,
@@ -17,6 +18,10 @@ import {
 import {
     Validate
 } from '../validate'
+
+import {
+    ValidatorProxy
+} from './validator-proxy'
 
 //// EsLint ////
 
@@ -31,38 +36,55 @@ import {
  */
 export abstract class ValidateStruct<I, O extends I = I> extends Struct<Validate<I,O>> { 
 
+    static $$clone = $$copy
+    static $$equal = $$equals
     static $$settings = $$state
 
-    static deepEqual = equals
-
-    static applySettings<T extends AnyValidateStruct>(
-        validator: T, 
-        state: ValidatorUpdateSettings<T>
-    ): T {
-        return applyState(validator, state)
-    }
-
+    /**
+     * Create a deep clone of a value
+     */
     static clone<T>(
         value: T
     ): T {
         return copy(value)
     }
 
+    /**
+     * Determine if two values are deeply value equal
+     */
+    static equal = equals
+
+    /**
+     * Clone a validator without any state.
+     */
     static cloneWithoutState<T extends AnyValidateStruct>(
         validator: T
     ): T {
         return copyWithoutState(validator)
     }
 
+    /**
+     * Apply settings to a validator
+     */
+    static applySettings<T extends AnyValidateStruct>(
+        validator: T, 
+        state: ValidateUpdateSettings<T>
+    ): T {
+        return applyState(validator, state)
+    }
+
 }
 
 export type AnyValidateStruct = ValidateStruct<any,any>
 
-export type ValidatorSettings<V extends AnyValidateStruct> = StructState<V>
+export type ValidateSettings<V extends AnyValidateStruct> = V extends ValidatorProxy<infer Vx, any,any> 
+    ? ValidateSettings<Vx>
+    : StructState<V>
 
-export type ValidatorUpdateSettings<V extends AnyValidateStruct> = StructStateApply<V>
+export type ValidateUpdateSettings<V extends AnyValidateStruct> = StructStateApply<V>
 
 export {
     $$state as $$settings,
-    $$copy as $$clone
+    $$copy as $$clone,
+    $$equals as $$equal
 }

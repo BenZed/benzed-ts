@@ -1,6 +1,6 @@
 import { OutputOf, nil, KeysOf } from '@benzed/util'
 import { ValidateOptions } from '../../../validate'
-import { AnyValidatorStruct } from '../../validator-struct'
+import { AnyValidateStruct } from '../../validate-struct'
 
 import { Mutator, MutatorType, $$target, $$type } from '../mutator'
 import { assertUnMutated, RemoveMutator } from '../mutator-operations'
@@ -13,43 +13,43 @@ import { assertUnMutated, RemoveMutator } from '../mutator-operations'
 
 //// Helper Types ////
 
-type _OptionalProperties<V extends AnyValidatorStruct> = 
+type _OptionalProperties<V extends AnyValidateStruct> = 
     Mutator<V, MutatorType.Optional, OutputOf<V> | nil> 
     & {
         get required(): V
     }
 
-type _OptionalInheritKeys<V extends AnyValidatorStruct> = 
+type _OptionalInheritKeys<V extends AnyValidateStruct> = 
     Exclude<KeysOf<V>, KeysOf<_OptionalProperties<V>>>
 
-type _OptionalWrapBuilderOutput<V extends AnyValidatorStruct, P> = P extends V
+type _OptionalWrapBuilderOutput<V extends AnyValidateStruct, P> = P extends V
     ? Optional<V>
     : P extends (...args: infer A) => V 
         ? (...args: A) => Optional<V> 
         : P
 
-type _OptionalInherit<V extends AnyValidatorStruct> = {
+type _OptionalInherit<V extends AnyValidateStruct> = {
     [K in _OptionalInheritKeys<V>]: _OptionalWrapBuilderOutput<V, V[K]>
 }
 
 //// Types ////
 
-type Required<V extends AnyValidatorStruct> = RemoveMutator<V, MutatorType.Optional>
+type Required<V extends AnyValidateStruct> = RemoveMutator<V, MutatorType.Optional>
 
-type Optional<V extends AnyValidatorStruct> = 
+type Optional<V extends AnyValidateStruct> = 
     _OptionalProperties<V> &
     _OptionalInherit<V>
 
 interface OptionalConstructor {
-    new <V extends AnyValidatorStruct>(validator: V): Optional<V>
+    new <V extends AnyValidateStruct>(validator: V): Optional<V>
 }
 
 //// Implementation ////
-const Optional = class Optional extends Mutator<AnyValidatorStruct, MutatorType.Optional, unknown> {
+const Optional = class Optional extends Mutator<AnyValidateStruct, MutatorType.Optional, unknown> {
 
     //// Constructor ////
 
-    constructor(target: AnyValidatorStruct) {
+    constructor(target: AnyValidateStruct) {
         assertUnMutated(target, MutatorType.Optional)
         super(target)
     }
@@ -70,7 +70,7 @@ const Optional = class Optional extends Mutator<AnyValidatorStruct, MutatorType.
 
     //// Convenience ////
 
-    get required(): AnyValidatorStruct {
+    get required(): AnyValidateStruct {
         return this[$$target]
     }
 

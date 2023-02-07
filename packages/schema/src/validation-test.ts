@@ -3,7 +3,7 @@ import { isFunc, isObject, isString, Mutable, nil } from '@benzed/util'
 
 import { Validate } from './validate'
 import { ValidationError } from './validation-error'
-import { ValidatorStruct } from './validator'
+import { ValidateStruct, ValidatorStruct } from './validator'
 
 //// ValidationTest types ////
 
@@ -119,9 +119,7 @@ export function runValidationTest<I,O extends I>(
         const o = result.output as O
         const i = expectOutputDifferentFromInput ? test.output as I : input
 
-        const equal = (validate.equal ?? ValidatorStruct.prototype.equal).bind(validate)
-
-        const isOutputValid = equal(i, o)
+        const isOutputValid = ValidateStruct.equal(i, o)
         if (!isOutputValid)
             failReason = 'Expected output is invalid.'
     }
@@ -167,9 +165,9 @@ export enum ValidationContractViolation {
     AppliesValidationContextToErrors = 'When a validation error occurs, it will' + 
         'contain expected validation context properties',
 
-    TransitiveEquality = 'If defined, a validate function\'s equal() method ' +
-        'must have transitive logic; a valid input should be equal to a valid ' +
-        'output and vice versa.'
+    // TransitiveEquality = 'If defined, a validate function\'s equal() method ' +
+    //     'must have transitive logic; a valid input should be equal to a valid ' +
+    //     'output and vice versa.'
 
 }
 
@@ -220,8 +218,6 @@ export function runValidationContractTests<I, O extends I>(
     validate: Validate<I, O>,
     config: ValidatorContractTestSettings<I,O>
 ): ValidationContractTestResults {
-
-    const equal = validate instanceof ValidatorStruct ? validate.equal.bind(validate) : ValidatorStruct.prototype.equal
     
     const { validInput, invalidInput, transforms } = config
 
@@ -256,7 +252,7 @@ export function runValidationContractTests<I, O extends I>(
     if (transforms) {
         try {
             const output = validate(transforms.invalidInput)
-            if (!equal(output, transforms.validOutput))
+            if (!ValidatorStruct.equal(output, transforms.validOutput))
                 throw new Error('Transforms must not be enabled by default.')
 
         } catch {
@@ -274,17 +270,17 @@ export function runValidationContractTests<I, O extends I>(
 
     // AppliesValidationContextToErrors
     if (
-        !equal(assertFail.error?.input as I, invalidInput) 
+        !ValidatorStruct.equal(assertFail.error?.input as I, invalidInput) 
         || assertFail.error?.transform // <- should be false
-        // TODO can't think of a good way to check if 'transformed' has been set
+        // TODO check for transform set once we have a "report()" method that returns a validation context rather than an output
     )
         violations.add(ValidationContractViolation.AppliesValidationContextToErrors)
 
-    // TransitiveEquality
-    if (transforms) {
-        if (equal(validInput, transforms.validOutput) !== equal(transforms.validOutput, validInput))
-            violations.add(ValidationContractViolation.TransitiveEquality)
-    }
+    // TransitiveEquality // TODO? Currently no interface for this
+    // if (transforms) {
+    //     if (equal(validInput, transforms.validOutput) !== equal(transforms.validOutput, validInput))
+    //         violations.add(ValidationContractViolation.TransitiveEquality)
+    // }
 
     return {
         grade: violations.size === 0,

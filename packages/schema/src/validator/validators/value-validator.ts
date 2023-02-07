@@ -2,9 +2,10 @@ import { Primitive } from '@benzed/util'
 import { capitalize } from '@benzed/string'
 
 import { ValidateOptions } from '../../validate'
-import ValidationContext from '../../validation-context'
-import ValidationError from '../../validation-error'
+import { ValidationContext } from '../../validation-context'
+import { ValidationError } from '../../validation-error'
 import { ValidatorStruct } from '../validator-struct'
+import { ValidateStruct } from '../validate-struct'
 
 /**
  * Validate an exact primitive value
@@ -27,7 +28,7 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
         return capitalize(String(this.value))
     }
 
-    override message(ctx: ValidationContext<unknown>): string {
+    message(ctx: ValidationContext<unknown>): string {
         void ctx
         return `Must be ${String(this.value)}`
     }
@@ -38,16 +39,12 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
         ctx.transformed = this.value
 
         if (
-            !this.equal(input, this.value) && 
+            !ValidateStruct.equal(input, this.value) && 
             !(this.force && ctx.transform)
         )
-            throw new ValidationError(this.message(ctx), ctx)
+            throw new ValidationError(this, ctx)
 
         return this.value
-    }
-
-    override equal<T>(input: unknown, output: T): input is T {
-        return Object.is(input, output)
     }
 
 }

@@ -3,27 +3,29 @@ import {isFunc, isString, keysOf, KeysOf, Property } from '@benzed/util'
 
 import {
     AnyValidate,
-    Validate, 
-    ValidateOptions, 
+    Validate,
+    ValidateOptions,
     ValidateOutput
 } from '../../../validate'
 
-import {
-    validate,
-    ValidatorStruct,
-    AnyValidatorStruct,
-    ValidatorErrorMessage
-} from '../../validator-struct'
+import { ValidatorStruct } from '../../validator-struct'
 
 import { getAllProperties } from './property-helpers'
 import { ValidationContext } from '../../../validation-context'
-import { ValidationError } from '../../../validation-error'
+
+import {
+    ValidationError,
+    ValidationErrorMessage
+} from '../../../validation-error'
+
 import { 
     $$clone,
     $$settings,
     ValidateStruct, 
-    ValidatorSettings, 
-    ValidatorUpdateSettings 
+    ValidateSettings, 
+    ValidateUpdateSettings,
+    
+    AnyValidateStruct
 } from '../../validate-struct'
 
 //// EsLint ////
@@ -60,8 +62,8 @@ export type AnySubValidators = SubValidators<any>
 /**
  * @internal
  */
-export type _SettingsKeysOf<V extends AnyValidatorStruct> = 
-    Extract<'name' | 'message' | 'enabled' | KeysOf<ValidatorSettings<V>>, KeysOf<V>>
+export type _SettingsKeysOf<V extends AnyValidateStruct> = 
+    Extract<'name' | 'message' | 'enabled' | KeysOf<ValidateSettings<V>>, KeysOf<V>>
 
 /**
  * @internal
@@ -72,7 +74,7 @@ export type _SchemaSetterRequiringRemap<A extends any[]> =
 /**
  * @internal
  */
-export type _SchemaOptionSetters<T extends AnyValidatorStruct> = {
+export type _SchemaOptionSetters<T extends AnyValidateStruct> = {
     [K in _SettingsKeysOf<T>]: _SchemaOptionSetter<T[K]>
 }
 
@@ -82,7 +84,7 @@ type _SchemaSubSetters<S extends AnySubValidators> = {
     [K in KeysOf<S>]: _SchemaSubSetter<S[K]>
 }
 
-type _SchemaSubSetter<T extends AnyValidatorStruct> = 
+type _SchemaSubSetter<T extends AnyValidateStruct> = 
     T extends { configure: (...args: infer A) => object }
 
         // If the sub valiator defines a configuration signature, 
@@ -90,10 +92,10 @@ type _SchemaSubSetter<T extends AnyValidatorStruct> =
         ? (...args: A) => typeof $$schema
 
         // otherwise it will accept a state object
-        : (state: ValidatorUpdateSettings<T>) => typeof $$schema
+        : (state: ValidateUpdateSettings<T>) => typeof $$schema
 
 export type _SchemaSetters<
-    M extends AnyValidatorStruct, 
+    M extends AnyValidateStruct, 
     S extends SubValidators<ValidateOutput<M>>
 > = (_SchemaOptionSetters<M> & _SchemaSubSetters<S>) extends infer O 
     ? {
@@ -116,25 +118,21 @@ export type SchemaValidate<M extends AnyValidate> =
  * number of sub validators.
  */
 type Schema<
-    M extends AnyValidatorStruct,
+    M extends AnyValidateStruct,
     S extends SubValidators<ValidateOutput<M>>
 > = 
-    SchemaValidate<M> & 
-    _SchemaSetters<M,S> & 
-    {
-        validate: M['validate']
-        equal: M['equal']
-    }
+    & SchemaValidate<M>
+    & _SchemaSetters<M,S>
 
 // TODO maybe this should be a validator proxy
-abstract class SchemaValidator extends ValidateStruct<unknown,unknown> {
+abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
 
-    protected [$$main]: AnyValidatorStruct
+    protected [$$main]: AnyValidateStruct
 
     protected [$$sub]: AnySubValidators
 
-    constructor(main: AnyValidatorStruct, sub: AnySubValidators = {}) {
-        super(validate)
+    constructor(main: AnyValidateStruct, sub: AnySubValidators = {}) {
+        super()
 
         this[$$main] = main
         this[$$sub] = sub
@@ -157,9 +155,14 @@ abstract class SchemaValidator extends ValidateStruct<unknown,unknown> {
         }
 
         // valid?
-        ctx.transformed = output 
-        if (!ctx.transform && !this[$$main].equal(output, input))
-            throw new ValidationError('Validation failed.', ctx)
+        ctx.transformed = output
+
+        if (!ctx.transform && !ValidateStruct.equal(output, input)) {
+            throw new ValidationError(
+                this[$$main],
+                ctx
+            )
+        }
 
         return output
     }
@@ -192,7 +195,7 @@ abstract class SchemaValidator extends ValidateStruct<unknown,unknown> {
         const sub = state[$$sub]
 
         if (main) {
-            this[$$main] = isFunc<AnyValidatorStruct>(main) 
+            this[$$main] = isFunc<AnyValidateStruct>(main) 
                 // may be a validator (if $$state is being set via copy)
                 ? main 
 
@@ -224,8 +227,8 @@ abstract class SchemaValidator extends ValidateStruct<unknown,unknown> {
 
 export interface SchemaConstructor {
 
-    new <M extends AnyValidatorStruct>(main: M): Schema<M, {}>
-    new <M extends AnyValidatorStruct, S extends AnySubValidators>(
+    new <M extends AnyValidateStruct>(main: M): Schema<M, {}>
+    new <M extends AnyValidateStruct, S extends AnySubValidators>(
         main: M,
         sub: S
     ): Schema<M, S>
@@ -234,31 +237,31 @@ export interface SchemaConstructor {
 
 const Schema = class Schema extends SchemaValidator {
 
-    constructor(main: AnyValidatorStruct, sub: AnySubValidators) {
+    constructor(main: AnyValidateStruct, sub: AnySubValidators) {
         super(main, sub)
         this._createOptionSetters()
         this._createSubValidatorSetters()
     }
 
     //// Name ////
-    
+
     override get name(): string {
         return this[$$main]?.name ?? this.constructor.name
     }
 
     //// Universal Setters ////
-    
+
     named(name: string): this {
         return this._setMainValidatorOption('name', name)
     }
 
-    message(error: string | ValidatorErrorMessage<unknown>): this {
+    message(error: string | ValidationErrorMessage<unknown>): this {
 
-        const errorMethod = isString(error)
+        const validationErrorMethod = isString(error)
             ? () => error 
             : error
 
-        return this._setMainValidatorOption('message', errorMethod)
+        return this._setMainValidatorOption('message', validationErrorMethod)
     }
 
     //// Helper ////
@@ -270,7 +273,7 @@ const Schema = class Schema extends SchemaValidator {
             : []
 
         const stateDescriptors = getAllProperties(
-            this[$$main], 
+            this[$$main],
             (_d, k) => settingsKey.includes(k))
 
         for (const key in stateDescriptors) {
@@ -283,11 +286,15 @@ const Schema = class Schema extends SchemaValidator {
 
             Property.name(optionSetter, `set${capitalize(key)}`)
 
-            Property.define(this, key, {
-                ...descriptor,
-                enumerable: true,
-                value: optionSetter
-            })
+            Property.define(
+                this,
+                key,
+                {
+                    ...descriptor,
+                    enumerable: true,
+                    value: optionSetter
+                }
+            )
         }
     }
 
@@ -312,7 +319,7 @@ const Schema = class Schema extends SchemaValidator {
             this, 
             {
                 [$$main]: { [key]: value }
-            } as ValidatorUpdateSettings<this>
+            } as ValidateUpdateSettings<this>
         )
     }
 
@@ -328,7 +335,7 @@ const Schema = class Schema extends SchemaValidator {
             this, 
             { 
                 [$$sub]: { [key]: nextState } 
-            } as ValidatorUpdateSettings<this>
+            } as ValidateUpdateSettings<this>
         )
     }
 

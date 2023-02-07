@@ -17,7 +17,7 @@ import {
     Not
 } from './mutators'
 
-import { AnyValidatorStruct } from '../validator-struct'
+import { AnyValidateStruct } from '../validate-struct'
 
 //// EsLint ////
 
@@ -29,29 +29,29 @@ import { AnyValidatorStruct } from '../validator-struct'
 
 //// Helper ////
 
-export function isMutator(target: AnyValidatorStruct): target is AnyMutator {
+export function isMutator(target: AnyValidateStruct): target is AnyMutator {
     return $$target in target && $$type in target
 }
 
-export function * eachMutator(validator: AnyValidatorStruct): Generator<AnyMutator> {
+export function * eachMutator(validator: AnyValidateStruct): Generator<AnyMutator> {
     while (isMutator(validator)) {
         yield validator
         validator = validator[$$target]
     }
 }
 
-export function getMutators(target: AnyValidatorStruct): AnyMutator[] {
+export function getMutators(target: AnyValidateStruct): AnyMutator[] {
     return Array.from(eachMutator(target))
 }
 
-export function assertUnMutated(target: AnyValidatorStruct, type: M): void {
+export function assertUnMutated(target: AnyValidateStruct, type: M): void {
     if (hasMutator(target, type))
         throw new Error(`Target already has mutator ${MutatorType[type]}`)
 }
 
 //// Mutator Operators ////
 
-export type AddMutator<V extends AnyValidatorStruct, T extends M> =
+export type AddMutator<V extends AnyValidateStruct, T extends M> =
     T extends M.Optional
         ? Optional<Required<V>> 
         : T extends M.ReadOnly
@@ -60,14 +60,14 @@ export type AddMutator<V extends AnyValidatorStruct, T extends M> =
                 ? ToggleNot<V> 
                 : V
 
-export function addMutator<V extends AnyValidatorStruct, T extends M>(
+export function addMutator<V extends AnyValidateStruct, T extends M>(
     validator: V, 
     type: T
 ): AddMutator<V,T> {
     return addMutators(validator, type) as AddMutator<V,T>
 }
                         
-export type AddMutators<V extends AnyValidatorStruct, T extends M[]> = T extends [infer T1, ...infer Tr]
+export type AddMutators<V extends AnyValidateStruct, T extends M[]> = T extends [infer T1, ...infer Tr]
     ? T1 extends M 
         ? Tr extends M[]
             ? AddMutators<AddMutator<V, T1>, Tr>
@@ -75,12 +75,12 @@ export type AddMutators<V extends AnyValidatorStruct, T extends M[]> = T extends
         : V
     : V
 
-export function addMutators <V extends AnyValidatorStruct, T extends M[]>(
+export function addMutators <V extends AnyValidateStruct, T extends M[]>(
     validator: V,
     ...types: T // TODO update to consider other mutator state
 ): AddMutators<V,T> {
 
-    let current = validator as AnyValidatorStruct
+    let current = validator as AnyValidateStruct
 
     const { Optional, ReadOnly, Not } = require('./mutators') as typeof import('./mutators')
     for (const type of types) {
@@ -118,14 +118,14 @@ export function addMutators <V extends AnyValidatorStruct, T extends M[]>(
 
 //// Has Mutator ////
 
-export type HasMutator<V extends AnyValidatorStruct, T extends M> = 
+export type HasMutator<V extends AnyValidateStruct, T extends M> = 
     V extends Mutator<infer Vx, infer Tx, any>
         ? T extends Tx  
             ? true
             : HasMutator<Vx, T>
         : false
 
-export function hasMutator<Vx extends AnyValidatorStruct, Tx extends M>(
+export function hasMutator<Vx extends AnyValidateStruct, Tx extends M>(
     validate: Vx, 
     type: Tx
 ): HasMutator<Vx, Tx> {
@@ -138,11 +138,11 @@ export function hasMutator<Vx extends AnyValidatorStruct, Tx extends M>(
 
 //// Ensure Mutator ////
         
-export type EnsureMutator<V extends AnyValidatorStruct, T extends M> = HasMutator<V,T> extends true
+export type EnsureMutator<V extends AnyValidateStruct, T extends M> = HasMutator<V,T> extends true
     ? V
     : AddMutator<V, T>
 
-export function ensureMutator<V extends AnyValidatorStruct, T extends M>(validate: V, type: T): EnsureMutator<V,T> {
+export function ensureMutator<V extends AnyValidateStruct, T extends M>(validate: V, type: T): EnsureMutator<V,T> {
     const applied = hasMutator(validate, type) 
         ? validate  
         : addMutator(validate, type)
@@ -152,24 +152,24 @@ export function ensureMutator<V extends AnyValidatorStruct, T extends M>(validat
 
 //// Mutators Of ////
 
-export type MutatorsOf<V extends AnyValidatorStruct> = 
+export type MutatorsOf<V extends AnyValidateStruct> = 
     V extends Mutator<infer Vx, infer Tx, any> 
         ? [Tx, ...MutatorsOf<Vx>]
         : []
 
-export function mutatorsOf<V extends AnyValidatorStruct>(validate: V): MutatorsOf<V> {
+export function mutatorsOf<V extends AnyValidateStruct>(validate: V): MutatorsOf<V> {
     return getMutators(validate).map(v => v[$$type]) as MutatorsOf<V> 
 }
 
 //// RemoveMutator ////
 
-export type RemoveMutator<V extends AnyValidatorStruct, T extends M> = 
+export type RemoveMutator<V extends AnyValidateStruct, T extends M> = 
     V extends Mutator<infer Vx, infer Tx, any>
         ? T extends Tx  
             ? Vx
             : AddMutator<RemoveMutator<Vx, T>, Tx>
         : V
-export function removeMutator<V extends AnyValidatorStruct, T extends M>(
+export function removeMutator<V extends AnyValidateStruct, T extends M>(
     mutator: V, 
     type: T
 ): RemoveMutator<V,T> {
@@ -192,11 +192,11 @@ export function removeMutator<V extends AnyValidatorStruct, T extends M>(
 
 //// RemoveAllMutators ////
 
-export type RemoveAllMutators<V extends AnyValidatorStruct> = V extends Mutator<infer Vx, any, any>
+export type RemoveAllMutators<V extends AnyValidateStruct> = V extends Mutator<infer Vx, any, any>
     ? RemoveAllMutators<Vx>
     : V
 
-export function removeAllMutators<V extends AnyValidatorStruct>(
+export function removeAllMutators<V extends AnyValidateStruct>(
     mutator: V
 ): RemoveAllMutators<V> {
         

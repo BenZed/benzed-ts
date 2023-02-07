@@ -1,4 +1,4 @@
-import { isArray, isNumber, isInteger, pick } from '@benzed/util'
+import { isArrayOf, isNumber, isInteger, pick } from '@benzed/util'
 
 import { ReadOnly } from './readonly'
 
@@ -6,14 +6,14 @@ import { $$target } from '../mutator'
 
 import { expectTypeOf } from 'expect-type'
 import { SubValidator, TypeValidator } from '../../validators'
-import { $$settings, ValidatorUpdateSettings } from '../../validate-struct'
+import { $$settings, ValidateUpdateSettings } from '../../validate-struct'
 
 //// Tests ////
 
 class Buffer extends TypeValidator<number[]> implements SubValidator<number[]> {
 
     isValid(input: unknown): input is number[] {
-        return isArray(input, isNumber) && 
+        return isArrayOf(isNumber)(input) && 
             input.every(isInteger) &&
             input.every(v => v >= 0 && v < 256) && 
             input.length > this.minSize
@@ -26,7 +26,7 @@ class Buffer extends TypeValidator<number[]> implements SubValidator<number[]> {
     toggleEnabled(): this {
         return TypeValidator.applySettings( 
             this, 
-            { enabled: !this.enabled } as ValidatorUpdateSettings<this>
+            { enabled: !this.enabled } as ValidateUpdateSettings<this>
         )
     }
 

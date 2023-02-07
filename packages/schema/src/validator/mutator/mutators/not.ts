@@ -17,7 +17,7 @@ import {
 import { ValidateOptions } from '../../../validate'
 import { ValidationContext } from '../../../validation-context'
 import { ValidationError } from '../../../validation-error'
-import { AnyValidatorStruct } from '../../validator-struct'
+import { AnyValidateStruct } from '../../validate-struct'
 
 //// EsLint ////
 
@@ -27,47 +27,47 @@ import { AnyValidatorStruct } from '../../validator-struct'
 
 //// Helper Types ////
 
-type _NotProperties<V extends AnyValidatorStruct> = 
+type _NotProperties<V extends AnyValidateStruct> = 
     Mutator<V, MutatorType.Not, InputOf<V>> 
     & {
         get not(): V
     }
 
-type _NotInheritKeys<V extends AnyValidatorStruct> = 
+type _NotInheritKeys<V extends AnyValidateStruct> = 
     Exclude<KeysOf<V>, KeysOf<_NotProperties<V>>>
 
-type _NotWrapBuilderOutput<V extends AnyValidatorStruct, P> = P extends V
+type _NotWrapBuilderOutput<V extends AnyValidateStruct, P> = P extends V
     ? Not<V>
     : P extends (...args: infer A) => V 
         ? (...args: A) => Not<V> 
         : P
 
-type _NotInherit<V extends AnyValidatorStruct> = {
+type _NotInherit<V extends AnyValidateStruct> = {
     [K in _NotInheritKeys<V>]: _NotWrapBuilderOutput<V, V[K]>
 }
 
 //// Types ////
 
-type ToggleNot<V extends AnyValidatorStruct> =
+type ToggleNot<V extends AnyValidateStruct> =
     HasMutator<V, MutatorType.Not> extends true 
         ? RemoveMutator<V, MutatorType.Not>
         : AddMutator<V, MutatorType.Not>
 
-type Not<V extends AnyValidatorStruct> = 
+type Not<V extends AnyValidateStruct> = 
     _NotProperties<V> &
     _NotInherit<V>
 
 interface NotConstructor {
-    new <V extends AnyValidatorStruct>(validator: V): Not<V>
+    new <V extends AnyValidateStruct>(validator: V): Not<V>
 }
 
 //// Implementation ////
 
-const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> {
+const Not = class extends Mutator<AnyValidateStruct, MutatorType.Not, unknown> {
 
     //// Construct ////
     
-    constructor(target: AnyValidatorStruct) {
+    constructor(target: AnyValidateStruct) {
 
         assertUnMutated(target, MutatorType.Not)
 
@@ -80,7 +80,7 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
 
     //// Not Properties ////
     
-    get not(): AnyValidatorStruct {
+    get not(): AnyValidateStruct {
         return this[$$target]
     }
 
@@ -99,7 +99,7 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
             // TODO rather than catching and interpreting errors, there should
             // be a validation  option that only returns validation errors.
             // validator.report() or something
-            void this[$$target].validate(input, { transform: false })
+            void this[$$target](input, { transform: false })
             //                                    ^ not validations should
             //                                    never be transformed.
 
@@ -110,7 +110,7 @@ const Not = class extends Mutator<AnyValidatorStruct, MutatorType.Not, unknown> 
             throw e // Some other error
         }
 
-        throw new ValidationError(this.message(ctx), ctx)
+        throw new ValidationError(this, ctx)
     }
 
 } as unknown as NotConstructor

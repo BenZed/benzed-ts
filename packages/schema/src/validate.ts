@@ -9,28 +9,26 @@ import type { InputOf, OutputOf } from '@benzed/util'
 //// Types ////
 
 export interface ValidateOptions {
-
     /**
      * True if transformations are to be applied
      * during in the validation call, false if not.
      */
     readonly transform?: boolean
-
 }
 
 /**
  * A method that takes an input and returns a valid output.
- * 
+ *
  * The validate contract:
- * 
+ *
  * 1) A validator will convert the given input and options
  *    into a ValidateContext object.
- * 
+ *
  * 2) If a transform option is not specified, it is true by default.
- * 
+ *
  * 3) If transformations are disabled, the validator will throw a 
  *    validation error if the input is not a valid output.
- * 
+ *
  * 4) If transformations are enabled, the validator will attempt to 
  *    transform an input into an expected output. If that transformation 
  *    fails, the validator will throw a validation error, asserting 

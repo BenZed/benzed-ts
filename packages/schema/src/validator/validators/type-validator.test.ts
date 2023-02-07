@@ -19,7 +19,7 @@ class BigIntValidator extends TypeValidator<bigint> {
 
         return input
     } 
-}
+}  
 
 const $bigint = new BigIntValidator()
 

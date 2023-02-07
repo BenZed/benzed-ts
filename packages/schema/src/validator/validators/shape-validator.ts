@@ -107,8 +107,8 @@ class ShapeValidator<T extends ShapeValidatorInput> extends ValidatorStruct<obje
         }
 
         ctx.transformed = output
-        if (!ctx.transformed && !this.equal(input, output))
-            throw new ValidationError(this.message(ctx), ctx)
+        if (!ctx.transformed && !ValidatorStruct.equal(input, output))
+            throw new ValidationError(this, ctx)
 
         return output as ShapeValidatorOutput<T>
     }

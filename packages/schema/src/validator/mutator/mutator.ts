@@ -2,7 +2,7 @@ import { OutputOf } from '@benzed/util'
 
 import { ValidateOptions } from '../../validate'
 
-import { AnyValidatorStruct } from '../validator-struct'
+import { AnyValidateStruct } from '../validate-struct'
 
 import {
     $$target,
@@ -42,12 +42,12 @@ enum MutatorType {
     // ArrayOf
 }
 
-type AnyMutator = Mutator<AnyValidatorStruct, MutatorType, unknown>
+type AnyMutator = Mutator<AnyValidateStruct, MutatorType, unknown>
 
 //// Implementation ////
 
 abstract class Mutator<
-    V extends AnyValidatorStruct, 
+    V extends AnyValidateStruct, 
     T extends MutatorType, 
     O = OutputOf<V>
 > extends ValidatorProxy<V, unknown, O> {

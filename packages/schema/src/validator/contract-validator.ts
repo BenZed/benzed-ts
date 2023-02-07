@@ -62,15 +62,16 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
      * Method determines if a given input is valid
      */
     isValid(value: I | O, context: ValidationContext<I>): value is O {
+
         /**
          * By default, a output is considered valid if it is equal
          * to it's transformed input.
-         * 
+         *  
          * This default logic allows for extended implementations
          * to acheive the validation trifecta by only extending the
          * transform method.
          */
-        return this.equal(value, context.transformed)
+        return ValidatorStruct.equal(value, context.transformed)
     }
 
     /**
@@ -91,14 +92,13 @@ abstract class ContractValidator<I, O extends I> extends ValidatorStruct<I,O> {
 
         if (!this.isValid(output, ctx)) {
             throw new ValidationError(
-                this.message(ctx),
+                this,
                 ctx
             )
         }
 
         return output as O
     }
-
 }
 
 //// Exports ////

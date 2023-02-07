@@ -8,7 +8,10 @@ import {
 } from '../../../validate'
 
 import { 
-    AnyValidatorStruct,
+    AnyValidateStruct,
+} from '../../validate-struct'
+
+import { 
     ValidatorStruct
 } from '../../validator-struct'
 
@@ -27,12 +30,12 @@ import {
 //// Schema Helper Types ////
 
 type _SchemaPipeSetters<
-    V extends AnyValidatorStruct[],
-    VA extends AnyValidatorStruct[] = V
+    V extends AnyValidateStruct[],
+    VA extends AnyValidateStruct[] = V
 > = 
     (V extends [infer V1, ...infer Vr]
-        ? V1 extends AnyValidatorStruct
-            ? Vr extends AnyValidatorStruct[]
+        ? V1 extends AnyValidateStruct
+            ? Vr extends AnyValidateStruct[]
                 ? _SchemaOptionSetters<V1> & _SchemaPipeSetters<Vr, VA>
                 : _SchemaOptionSetters<V1>
             : {}
@@ -47,18 +50,18 @@ type _SchemaPipeSetters<
 
 //// Pipe Schema Types ////
     
-export type PipeSchemaInput<V extends AnyValidatorStruct[]> = 
-    First<V> extends AnyValidatorStruct
+export type PipeSchemaInput<V extends AnyValidateStruct[]> = 
+    First<V> extends AnyValidateStruct
         ? ValidateInput<First<V>>
         : unknown
 
-export type PipeSchemaOutput<V extends AnyValidatorStruct[]> = 
-    Last<V> extends AnyValidatorStruct
+export type PipeSchemaOutput<V extends AnyValidateStruct[]> = 
+    Last<V> extends AnyValidateStruct
         ? ValidateOutput<Last<V>>
         : unknown
 
 export type PipeSchema<
-    V extends AnyValidatorStruct[],
+    V extends AnyValidateStruct[],
 > = 
     ((input: PipeSchemaInput<V>, options?: ValidateOptions) => PipeSchemaOutput<V>) & 
     _SchemaPipeSetters<V> & 
@@ -70,5 +73,3 @@ export type PipeSchema<
     }
 
 //// Implementation ////
-
-// TODO

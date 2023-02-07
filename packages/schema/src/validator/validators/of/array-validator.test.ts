@@ -12,7 +12,7 @@ import {
     testValidationContract 
 } from '../../../util.test'
 
-import { $$settings, ValidatorSettings } from '../../validate-struct'
+import { $$settings, ValidateSettings } from '../../validate-struct'
 
 //// Setup ////
 
@@ -38,8 +38,7 @@ const $arrayOfNumber = new ArrayValidator($numberSchema)
 
 //// Tests ////
 
-describe(`${$arrayOfNumber.name} validator tests`, () => {
-
+describe.only(`${$arrayOfNumber.name} validator tests`, () => {
     testValidator<unknown, number[]>(
         $arrayOfNumber,
         { asserts: [] },
@@ -49,7 +48,9 @@ describe(`${$arrayOfNumber.name} validator tests`, () => {
         { transforms: ['0'], output: [0] },
         { transforms: ['atr'], error: true },
     )
-    
+})
+
+describe.only(`${$arrayOfNumber.name} contract validator tests`, () => {
     testValidationContract(
         $arrayOfNumber,
         {
@@ -58,7 +59,6 @@ describe(`${$arrayOfNumber.name} validator tests`, () => {
             transforms: { invalidInput: ['0'], validOutput: [0] },
         }
     )
-    
 })
 
 describe('retains wrapped validator properties', () => {
@@ -68,8 +68,8 @@ describe('retains wrapped validator properties', () => {
         { asserts: [nil, nil], error: true },
     ) 
 
-    type AONS = ValidatorSettings<typeof $arrayOfNumber>
-    type NONS = ValidatorSettings<typeof $number>
+    type AONS = ValidateSettings<typeof $arrayOfNumber>
+    type NONS = ValidateSettings<typeof $number>
 
     const $arrayOfDefaultZeros = $arrayOfNumber.default(() => 0)
 

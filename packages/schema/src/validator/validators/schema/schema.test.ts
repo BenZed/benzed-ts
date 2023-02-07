@@ -8,8 +8,6 @@ import {
     Schema
 } from './schema'
 
-import { TypeValidator } from '../type-validator'
-
 import { expectTypeOf } from 'expect-type'
 
 import {
@@ -17,9 +15,12 @@ import {
     testValidationContract
 } from '../../../util.test'
 
-import ContractValidator from '../../contract-validator'
 import { $$settings } from '../../validate-struct'
-import { ValidatorErrorMessage } from '../../validator-struct'
+
+import { TypeValidator } from '../type-validator'
+
+import { ContractValidator } from '../../contract-validator'
+import { ValidationErrorMessage } from '../../../validation-error'
 
 //// EsLint ////
 
@@ -41,7 +42,6 @@ describe('Schema Setters Type Tests', () => {
         readonly parse: boolean 
 
         [$$settings]: { parse: boolean }
-
     }
 
     interface LeadingZeros extends SubValidator<bignumber> { 
@@ -58,7 +58,6 @@ describe('Schema Setters Type Tests', () => {
 
         // Custom configuration signature
         configure(enabled?: boolean): { enabled: boolean}
-
     }
 
     /* eslint-disable @typescript-eslint/indent */
@@ -100,7 +99,7 @@ describe('Schema Setters Type Tests', () => {
 describe('Schema implementation', () => {
 
     type NumberState = {
-        message: ValidatorErrorMessage<number>
+        message: ValidationErrorMessage<number>
         cast: TypeValidator<number>['cast']
         default: TypeValidator<number>['default']
         finite: boolean
@@ -140,7 +139,7 @@ describe('Schema implementation', () => {
             invalidInput: NaN,
             validInput: 10
         })
-         
+
         testValidator<unknown,number>(
             $number,
             { asserts: Infinity },
@@ -190,7 +189,7 @@ describe('Schema implementation', () => {
                 return input.charAt(0).toUpperCase() + input.slice(1)
             }
 
-            override message(): string {
+            message(): string {
                 return 'Must be capitalized.'
             }
 
@@ -206,7 +205,7 @@ describe('Schema implementation', () => {
         const $string = new Schema(new StringValidator(), {
             captialize: new Capitalize()
         })
-        
+
         testValidator<unknown,string>(
             $string.captialize(),
             { transforms: 'ace', output: 'Ace' },
@@ -214,5 +213,4 @@ describe('Schema implementation', () => {
             { transforms: 0, error: 'Must be a String' },
         )
     })
-
 })

@@ -1,5 +1,14 @@
-import { GenericObject, isBoolean, isObject } from '@benzed/util'
+import { AnyTypeGuard, isBoolean, isShape, isUnknown } from '@benzed/util'
 import type { ValidateOptions } from './validate'
+
+//// Helper ////
+
+const isValidationContext : <T>(input: unknown) => input is ValidationContext<T> =
+    isShape({
+        transform: isBoolean,
+        transformed: isUnknown as AnyTypeGuard,
+        input: isUnknown as AnyTypeGuard
+    })
 
 //// Main ////
 
@@ -8,12 +17,7 @@ import type { ValidateOptions } from './validate'
  */
 class ValidationContext<T> implements ValidateOptions {
 
-    static is <Tx>(object: object): object is ValidationContext<Tx> {
-        return isObject<GenericObject>(object)
-        && isBoolean(object.transform) 
-        && 'transformed' in object
-        && 'input' in object
-    }
+    static is = isValidationContext
 
     /**
      * Input received by the current validation
@@ -42,5 +46,6 @@ class ValidationContext<T> implements ValidateOptions {
 export default ValidationContext
 
 export {
-    ValidationContext
+    ValidationContext,
+    isValidationContext
 }

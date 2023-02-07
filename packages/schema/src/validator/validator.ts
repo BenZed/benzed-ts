@@ -1,5 +1,5 @@
 import { Validate } from '../validate'
-import ValidationContext from '../validation-context'
+import { ValidationErrorMessage } from '../validation-error'
 
 //// EsLint ////
 
@@ -17,18 +17,18 @@ export interface Validator<I, O extends I> {
 
     readonly validate: Validate<I,O>
 
-    /**
-     * Logic for determining if a validators input is equal to it's 
-     * output and vise versa, so implementations must be transitive.
-     */
-    equal?<T extends I | O>(input: I | O, output: T): input is T
+    // /**
+    //  * Logic for determining if a validators input is equal to it's 
+    //  * output and vise versa, so implementations must be transitive.
+    //  */
+    // equal?<T extends I | O>(input: I | O, output: T): input is T
 
     /**
      * Optional method for creating an error message when validation fails.
      */
-    message?(ctx: ValidationContext<I>): string 
+    message?: string | ValidationErrorMessage<I>
 
-    readonly name?: string
+    readonly name: string
 
 }
 

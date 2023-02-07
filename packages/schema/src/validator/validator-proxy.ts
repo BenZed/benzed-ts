@@ -1,9 +1,9 @@
 import { unique } from '@benzed/array'
 import { InputOf, isEmpty, OutputOf } from '@benzed/util'
 
-import { ValidateStruct, $$settings, $$clone, ValidatorSettings } from './validate-struct'
+import { ValidateStruct, $$settings, $$clone, ValidateSettings, AnyValidateStruct } from './validate-struct'
 
-import { AnyValidatorStruct, ValidatorStruct } from './validator-struct'
+import { ValidatorStruct } from './validator-struct'
 
 //// EsLint ////
 
@@ -21,8 +21,8 @@ const $$ownKeys = Symbol('proxy-own-keys')
 
 //// Types ////
 
-type ValidatorProxySettings<V extends AnyValidatorStruct> = {
-    [$$target]: ValidatorSettings<V>
+type ValidatorProxySettings<V extends AnyValidateStruct> = {
+    [$$target]: ValidateSettings<V>
 }
 
 type AnyValidatorProxy = ValidatorProxy<any,any,any>
@@ -43,7 +43,7 @@ function proxify<V extends AnyValidatorProxy>(validatorProxy: V): V {
 /**
  * A validator that wraps another to change it's functionality.
  */
-abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O extends I = OutputOf<V>> 
+abstract class ValidatorProxy<V extends AnyValidateStruct, I = InputOf<V>, O extends I = OutputOf<V>> 
     extends ValidatorStruct<I, O> {
 
     static $$target = $$target
@@ -132,11 +132,11 @@ abstract class ValidatorProxy<V extends AnyValidatorStruct, I = InputOf<V>, O ex
         const newTarget = isEmpty(additionalTargetState)
             ? target
             : ValidateStruct.applySettings(
-                target,
+                target as V,
                 additionalTargetState
             )
 
-        this[$$target] = newTarget 
+        this[$$target] = newTarget as V
 
     }
 }

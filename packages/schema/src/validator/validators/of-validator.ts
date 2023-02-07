@@ -2,7 +2,7 @@
 import { OutputOf } from '@benzed/util'
 
 import { $$target, ValidatorProxy } from '../validator-proxy'
-import { AnyValidatorStruct } from '../validator-struct'
+import { AnyValidateStruct } from '../validate-struct'
 
 //// Setup ////
 
@@ -10,7 +10,7 @@ import { AnyValidatorStruct } from '../validator-struct'
  * An array that validates a collection data type that contains a sub data type
  */
 abstract class OfValidator<
-    V extends AnyValidatorStruct,
+    V extends AnyValidateStruct,
     O = OutputOf<V>
 > extends ValidatorProxy<V, unknown, O> {
 

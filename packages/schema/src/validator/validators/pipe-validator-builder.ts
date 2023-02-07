@@ -1,11 +1,10 @@
 
 import ValidationContext from '../../validation-context'
+import { ValidationErrorMessage } from '../../validation-error'
 import { ContractValidatorSettings } from '../contract-validator'
 import PipeValidator, { OutputValidator } from './pipe-validator'
 
 //// Types ////
-
-export type OutputContractValidatorOutputError<O> = string | NonNullable<ContractValidatorSettings<O,O>['message']> 
 
 export type OutputContractValidatorTransform<O> = NonNullable<ContractValidatorSettings<O, O>['transform']>
 
@@ -14,7 +13,7 @@ export type OutputContractValidatorPredicate<O> = (input: O, context: Validation
 export interface OutputContractValidatorSettings<O> extends Omit<ContractValidatorSettings<O, O>, 'isValid' | 'error'> {
 
     isValid: OutputContractValidatorPredicate<O>
-    error?: OutputContractValidatorOutputError<O>
+    message?: string | ValidationErrorMessage<O>
 }
 
 //// PipeValidatorBuilder ////
@@ -27,19 +26,20 @@ export abstract class PipeValidatorBuilder<I, O extends I = I> extends PipeValid
     abstract validates(
         validator: OutputValidator<O>
     ): this
+
     abstract validates(
         settings: OutputContractValidatorSettings<O>
     ): this
 
     abstract asserts(
         isValid: OutputContractValidatorPredicate<O>,
-        error?: string | OutputContractValidatorOutputError<O>,
+        message?: string | ValidationErrorMessage<O>,
         name?: string // | symbol
     ): this 
 
     abstract transforms(
         transform: OutputContractValidatorTransform<O>,
-        error?: string | OutputContractValidatorOutputError<O>,
+        message?: string | ValidationErrorMessage<O>,
         name?: string // | symbol
     ): this 
 
