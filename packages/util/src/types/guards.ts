@@ -1,9 +1,10 @@
 import { indexesOf, keysOf } from '../types/keys-of'
 import { isBigInt, isBoolean, isNumber, isString } from './primitive'
-import { Func, isFunc, TypeGuard, TypeOf } from './func'
+import { Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
 import { Sortable } from '../sort'
 import { nil } from './nil'
+import { Intersect } from './merge'
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
@@ -11,19 +12,15 @@ export const isObject = <T extends object = object>(
     i: unknown
 ): i is T => typeof i === 'object' && i !== null
 
-export const isArray = <T = unknown>(
-    i: unknown, 
-    ofType?: TypeGuard<T>
-): i is T[] => 
-    Array.isArray(i) && (!ofType || i.every(ofType))
+export const isArray = <T = unknown>(i: unknown): i is T[] => Array.isArray(i)
 
-export const isArrayLike = <T = unknown>(
-    i: unknown, 
-    ofType?: TypeGuard<T>
-): i is ArrayLike<T> => {
+export const isArrayOf = <T>(type: TypeGuard<T>): TypeGuard<T[]> =>  
+    (i: unknown): i is T[] => isArray(i) && i.every(type)
+
+export const isArrayLike = <T = unknown>(i: unknown): i is ArrayLike<T> => {
 
     if (isString(i))
-        return !ofType || i.split('').every(ofType) // <- lol
+        return true
     
     if (!isObject<ArrayLike<unknown>>(i))
         return false 
@@ -31,33 +28,37 @@ export const isArrayLike = <T = unknown>(
     if (!isNumber(i.length))
         return false 
 
-    if (ofType) {
-        for (const index of indexesOf(i)) {
-            if (!ofType(i[index]))
-                return false
-        }
-    } 
-                
     return true
 }
 
-export const isRecord = <K extends string | number | symbol, V = unknown>(
-    i: unknown, 
-    ofType?: TypeGuard<V>
-): i is Record<K,V> => {
+export const isArrayLikeOf = <T>(type: TypeGuard<T>): TypeGuard<ArrayLike<T>> => (i: unknown): i is ArrayLike<T> => {
 
-    if (!isObject<Record<K,V>>(i))
-        return false 
+    if (!isArrayLike(i)) 
+        return false
 
-    if (ofType) {
-        for (const key of keysOf(i)) {
-            if (!ofType(i[key]))
-                return false
-        }
+    for (const index of indexesOf(i)) {
+        if (!type(i[index]))
+            return false
     }
 
     return true
 }
+
+export const isRecord = <K extends string | number | symbol, V = unknown>(i: unknown): i is Record<K,V> => isObject<Record<K,V>>(i)
+
+// TODO add key type guard
+export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard<V>): TypeGuard<Record<K, V>> =>  
+    (i: unknown): i is Record<K, V> => {
+        if (!isRecord(i))
+            return false
+
+        for (const key of keysOf(i)) {
+            if (!type(i[key]))
+                return false
+        }
+
+        return true
+    }
 
 export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
@@ -76,16 +77,9 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 export const isPromise = <T>(input: unknown): input is Promise<T> => 
     input instanceof Promise
 
-export const isAsync = isPromise
+export const isAsync = isPromise //
 
-//// Optional ////
-    
-export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
-    (i: unknown): i is T | nil => i === nil || type(i)
-
-//// Misc ////
-
-export const isUnknown = (input: unknown): input is unknown => true
+export const isUnknown = (input: unknown): input is unknown => void input ?? true
 
 export const isSortable = <T extends Sortable>(input: unknown): input is T => {
 
@@ -130,16 +124,25 @@ export const isTuple = <T extends TupleInput>(...types: T): TypeGuard<TupleOuput
         input.length === types.length &&
         types.every((type, i) => type(input[i]))
 
+export const isUnion = <T extends TypeGuard<unknown>[]>(...types: T): TypeGuard<TypesOf<T>[number]> =>
+    (i: unknown): i is TypesOf<T>[number] => types.some(type => type(i))
+
+export const isIntersection = <T extends TypeGuard<unknown>[]>(...types: T): TypeGuard<Intersect<TypesOf<T>>> =>
+    (i: unknown): i is TypesOf<T>[number] => types.every(type => type(i))
+        
+export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
+    (i: unknown): i is T | nil => i === nil || type(i)
+
 //// Json ////
 
 export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
     isString(input) || isNumber(input) || isBoolean(input) || input === null
 
 export const isJsonObject = (input: unknown): input is JsonRecord => 
-    isRecord(input, isJson)
+    isRecordOf(isJson)(input)
 
 export const isJsonArray = (input: unknown): input is JsonArray => 
-    isArray(input, isJson)
+    isArrayOf(isJson)(input)
 
 export const isJson = (input: unknown): input is Json => 
     isJsonPrimitive(input) || isJsonArray(input) || isJsonObject(input)
