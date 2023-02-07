@@ -7,7 +7,7 @@ import { Schema, TypeValidator } from '../validators'
 
 import {
     testValidator,
-    testValidationContract 
+    testValidationContract
 } from '../../util.test'
 
 //// Setup ////
@@ -87,7 +87,7 @@ describe(`${$integer.name} validator tests`, () => {
 describe(`positive ${$integer.name} validator tests`, () => { 
 
     testValidationContract<unknown, number>(
-        $integer.positive(),      
+        $integer.positive(),
         {
             validInput: 0,
             invalidInput: 'string',
@@ -113,36 +113,37 @@ describe('stacking', () => {
     testValidator<unknown, number | nil> (
         $optionalInteger,
         { transforms: nil },
-        { asserts: nil }, 
+        { asserts: nil },
     )
- 
+
     testValidator<unknown, number | nil> (
         $optionalPositiveInteger,
         { transforms: nil },
-        { asserts: -1, error: 'Must be positive' }, 
+        { asserts: -1, error: 'Must be positive' },
+        { transforms: -1, output: 0 },
         { asserts: nil },
         { asserts: 1 },
-    )    
- 
+    )
+
     const $optionalNotInteger = new Optional(new Not($integer))
-  
-    testValidator<unknown, unknown> (  
-        $optionalNotInteger, 
+
+    testValidator<unknown, unknown> (
+        $optionalNotInteger,
         { asserts: nil },
         { asserts: 'string' },
         { asserts: 1, error: 'Must not be Integer' },
         { asserts: 2.5 },
-    )  
+    )
 
     const $optionalNotPositiveInteger = $optionalNotInteger.positive()
 
     testValidator<unknown, unknown> (
         $optionalNotPositiveInteger,
-        { asserts: nil }, 
+        { asserts: 1, error: 'Must not be Integer' },
         { asserts: 'string' },
-        { asserts: 1, error: 'Must not be Integer' }, 
+        { asserts: nil },
         { asserts: 2.5 },
-        { asserts: -1 },  
-    ) 
-
+        { asserts: -1 }
+    )
 })
+

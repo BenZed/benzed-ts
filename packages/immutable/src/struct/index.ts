@@ -2,28 +2,28 @@
 export {
     Struct,
     StructConstructor,
-    
-    DataState,
-    DataStruct,
-
-    PublicState,
-    PublicStruct,
 
     copyWithoutState,
 
 } from './struct'
 
-export {
+export * from './struct/structs'
+
+export { 
 
     $$state,
     State as StructState,
     StateApply as StructStateApply,
-    StateDeepApply as StructStatePathApply,
-    StateDeepApply as StructStatePaths,
+    SubStateApply as StructStatePathApply,
+    SubStateApply as StructStatePaths,
+    StateFul as StructStateful,
+    StateGetter as StructStateGetter,
+    StateSetter as StructStateSetter,
 
     getShallowState,
     getDeepState as getState,
     setState,
+    setDeepState,
     applyState,
 
     showStateKeys,

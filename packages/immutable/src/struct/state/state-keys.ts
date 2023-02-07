@@ -1,8 +1,8 @@
-import { isObject, nil, Property } from '@benzed/util'
+import { nil, Property } from '@benzed/util'
 import { getNamesAndSymbols } from '../util'
 import { Struct } from '../struct'
 
-import { getShallowState } from './get-state'
+import { getShallowState, isScalarState } from './get-state'
 
 import {
     $$state,
@@ -73,7 +73,7 @@ export function matchKeyVisibility<T extends Struct>(source: T, target: T): void
     const state = getShallowState(source)
     
     // Scalar states would have no key visibility to share
-    if (!isObject(state))
+    if (isScalarState(state))
         return
 
     for (const stateKey of getNamesAndSymbols(state)) {

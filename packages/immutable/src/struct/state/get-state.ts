@@ -1,4 +1,4 @@
-import { isObject } from '@benzed/util'
+import { isFunc, isObject } from '@benzed/util'
 
 import Struct from '../struct/struct'
 import { getNamesAndSymbols } from '../util'
@@ -15,7 +15,7 @@ import { $$state, State } from './state'
 /**
  * Receive the state of the struct.
  */
-function getShallowState<T extends Struct>(struct: T): State<T> {
+export function getShallowState<T extends Struct>(struct: T): State<T> {
     const state = hasStateGetter(struct)
         ? struct[$$state]
         : { ...struct }
@@ -28,10 +28,10 @@ function getShallowState<T extends Struct>(struct: T): State<T> {
  * Any structs that exist in the state of the source struct will
  * be converted into their own state.
  */
-function getDeepState<T extends Struct>(struct: T): State<T> {
+export function getDeepState<T extends Struct>(struct: T): State<T> {
     
     const state = getShallowState(struct) as any
-    if (!isObject<any>(state))
+    if (isScalarState(state))
         return state // scalar states are as deep as they got
 
     for (const key of getNamesAndSymbols(state)) {
@@ -43,9 +43,7 @@ function getDeepState<T extends Struct>(struct: T): State<T> {
 
 }
 
-//// Exports ////
-
-export {
-    getShallowState,
-    getDeepState
+export function isScalarState(input: unknown): boolean {
+    return !isObject(input) && !isFunc(input)
 }
+

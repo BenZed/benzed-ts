@@ -68,8 +68,9 @@ describe('retains wrapped validator properties', () => {
         { asserts: [nil, nil], error: true },
     ) 
 
-    type AONS = ValidateSettings<typeof $arrayOfNumber>
-    type NONS = ValidateSettings<typeof $number>
+    type AONSS = ValidateSettings<typeof $arrayOfNumber>
+    type NSS = ValidateSettings<typeof $numberSchema>
+    type NS = ValidateSettings<typeof $number>
 
     const $arrayOfDefaultZeros = $arrayOfNumber.default(() => 0)
 
@@ -77,6 +78,6 @@ describe('retains wrapped validator properties', () => {
         $arrayOfDefaultZeros,
         { asserts: [nil, nil], error: true },
         { transforms: [nil, nil], output: [0, 0] },
-    )
+    )  
 
 })

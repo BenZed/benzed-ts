@@ -2,7 +2,7 @@ import { Func, isFunc, keysOf, KeysOf } from '@benzed/util'
 
 import { $$state } from '../../state'
 
-import Struct from '../struct'
+import { Struct } from '../struct'
 
 //// EsLint ////
 

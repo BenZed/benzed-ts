@@ -50,7 +50,6 @@ function copyObjectWithoutCircularRefs<T extends object>(value: T, refs: Refs = 
     const clone = {} as T
 
     for (const key of keysOf(value)) {
-
         if (!hasCircularRef(value[key], refs))
             clone[key] = copyWithoutCircularRef(value[key], refs)
     }

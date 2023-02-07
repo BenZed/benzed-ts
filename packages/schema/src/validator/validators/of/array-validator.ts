@@ -5,14 +5,14 @@ import { ValidationError } from '../../../validation-error'
 import { AnyValidateStruct } from '../../validate-struct'
 import { ValidationContext } from '../../../validation-context'
 
-import OfValidator from '../of-validator'
+import OfValidator from '../of-validator' 
 
 //// Main ////
 
 class ArrayValidator<V extends AnyValidateStruct> extends OfValidator<V, OutputOf<V>[]> {
 
     validate(input: unknown, options?: ValidateOptions): OutputOf<V>[] {
-        
+
         const ctx = new ValidationContext(input, options)
 
         if (!isArray(input))
@@ -32,7 +32,6 @@ class ArrayValidator<V extends AnyValidateStruct> extends OfValidator<V, OutputO
             throw new ValidationError(e.message, ctx)
         }
     }
-
 }
 
 //// Exports ////

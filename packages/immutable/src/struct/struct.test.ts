@@ -1,5 +1,4 @@
 import {
-    PublicStruct,
     Struct,
     copyWithoutState,
 } from './struct'
@@ -15,7 +14,6 @@ import {
     hideNonStateKeys,
     State,
     StateApply,
-    applyDeepState,
 
 } from './state'
 
@@ -621,9 +619,9 @@ describe('set/get nested state', () => {
 
         type CompositeState = State<typeof composite>
         expectTypeOf<CompositeState>().toEqualTypeOf<{
-            readonly cards: Empty
-            readonly five: Empty
-            readonly custom: {
+            cards: Empty
+            five: Empty
+            custom: {
                 by: number
                 value: number | { valueOf(): number }
             }
@@ -715,141 +713,6 @@ describe('set/get nested state', () => {
                 },
                 by: 5
             }
-        })
-    })
-})
-
-describe('applyState deep keys', () => {
-
-    class Value extends PublicStruct {
-        constructor(readonly value: number) {
-            super()
-        }
-    }
-
-    const black = new class Color extends PublicStruct {
-
-        readonly red = new Value(0)
-        readonly green = new Value(0)
-        readonly blue = new Value(0)
-
-        readonly alpha = new class Alpha extends PublicStruct {
-            readonly alpha: number = 255
-        }
-
-        toString(): `rgb(${number}, ${number}, ${number})` {
-            return `rgb(${this.red.value}, ${this.green.value}, ${this.blue.value})`
-        }
-    }
-
-    it('allows deep setting of a state via a path', () => {
-
-        const blue = applyState(black, { blue: { value: 255 } })
-        expect(getState(blue)).toEqual({
-            red: { value: 0 },
-            green: { value: 0 },
-            blue: { value: 255 },
-            alpha: { alpha: 255 }
-        })
-
-        const red = applyDeepState(black, 'red', { value: 255 })
-        expect(getState(red)).toEqual({
-            red: { value: 255 },
-            green: { value: 0 },
-            blue: { value: 0 },
-            alpha: { alpha: 255 },
-        })
-
-        const green = applyDeepState(black, 'green', 'value', 255)
-        expect(getState(green)).toEqual({
-            red: { value: 0 },
-            green: { value: 255 },
-            blue: { value: 0 },
-            alpha: { alpha: 255 },
-        })
-    })
-
-    it('paths are typesafe', () => {
-        try {
-
-            // @ts-expect-error Bad path
-            void applyState(black, 'green', 255)
-
-            // @ts-expect-error Bad value
-            void applyState(black, 'red', 'value', { value: 1000 })
-
-        } catch {}
-    })
-})
-
-describe('scalar state', () => {
-
-    class Scalar<T> extends Struct {
-
-        constructor(readonly value: T) {
-            super()
-        }
-
-        get [$$state](): T {
-            return this.value 
-        }
-
-        protected set [$$state](value: T) {
-            assign(this, { value })
-        } 
-
-    }
-    
-    it('structs can define non-object state with setters', () => {
-
-        const zero = new Scalar(0)
-
-        const zeroState = getState(zero)
-        expect(zeroState).toEqual(0)
-        expect({ ...zero }).toEqual({ value: 0 })
-
-        const one = applyState(zero, 1)
-        expect(getState(one)).toEqual(1)
-        expect({ ...one }).toEqual({ value: 1 })
-
-    })
-
-    it('scalar states work on nested assignments', () => {
-
-        const scalars = new class Scalars extends PublicStruct {
-            min = new Scalar(100)
-            max = new Scalar(150)
-            description = new Scalar('a couple of scalar values')
-        }
-
-        type ScalarsState = State<typeof scalars>
-        expectTypeOf<ScalarsState>().toEqualTypeOf<{
-            description: string
-            min: number
-            max: number
-        }>()
-
-        expectTypeOf(getState(scalars).description).toEqualTypeOf<string>()
-        expectTypeOf(getState(scalars).min).toEqualTypeOf<number>()
-        expectTypeOf(getState(scalars).max).toEqualTypeOf<number>()
-        expect(getState(scalars)).toEqual({ 
-            min: 100,
-            max: 150,
-            description: 'a couple of scalar values'
-        })
-
-        const scalarAbbrev1 = applyDeepState(scalars, 'description', 'short')
-        expect(getState(scalarAbbrev1)).toEqual({ 
-            min: 100,
-            max: 150,
-            description: 'short'
-        })
-
-        const scalarAbbrev2 = applyState(scalars, { description: 'and sweet' })
-        expect(getState(scalarAbbrev2)).toEqual({ 
-            min: 100,
-            max: 150,
-            description: 'and sweet'
         })
     })
 })

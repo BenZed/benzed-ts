@@ -2,6 +2,7 @@ import { Property } from '@benzed/util'
 
 //// Exports ////
 
+// TODO move me
 export function getAllProperties(
     object: object, 
     filter?: (

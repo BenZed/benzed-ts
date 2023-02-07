@@ -16,25 +16,37 @@ const $$state = Symbol('state')
 
 //// Helper Types ////
 
-type _State<T> = Infer<{
-    [K in keyof T]: T[K] extends Struct
-        ? State<T[K]>
-        : T[K]
-}>
+type _StateKeys<T> = Exclude<keyof T, typeof $$state | typeof $$copy | typeof $$equals>
 
-type _StateApply<T> = Partial<{
-    [K in keyof T]: T[K] extends Struct
-        ? StateApply<T[K]>
-        : T[K]
-}>
+type _State<T> = T extends object 
+    ? Infer<{
+        [K in _StateKeys<T>]: T[K] extends Struct
+            ? State<T[K]>
+            : T[K]
+    }, object>
+    : T 
 
-type _StatePathKeys<T> = Exclude<keyof T, typeof $$state | typeof $$copy | typeof $$equals>
+type _StateApply<T> = T extends object
+    ? Partial<{
+        [K in _StateKeys<T>]: T[K] extends Struct
+            ? StateApply<T[K]>
+            : T[K]
+    }>
+    : T
 
-type _StatePaths<T> = {
-    [K in _StatePathKeys<T>]: T[K] extends object 
-        ? [K, T[K] extends Struct ? State<T[K]> : T[K]] | [K, ..._StatePaths<T[K]>] 
-        : [K, T[K]]
-}[_StatePathKeys<T>]
+type _SubStateApply<T> = T extends StateFul<infer S>
+    ? _StateApply<S>
+    : _StateApply<T>
+
+type _SubStatePath<S> = {
+    [K in _StateKeys<S>]: S[K] extends object 
+        ? [ K, _SubStateApply<S[K]> ] | [ K, ..._SubStatePaths<S[K]> ]
+        : [ K, S[K] ]
+}[_StateKeys<S>]
+
+type _SubStatePaths<T> = T extends StateFul<infer S>
+    ? _SubStatePath<S>
+    : _SubStatePath<T>
 
 //// Types ////
 
@@ -54,16 +66,14 @@ interface StateGetter<T> {
 }
 
 type State<T extends Struct> = T extends StateFul<infer S>
-    ? _State<S>
+    ? _State<S> 
     : Empty
 
 type StateApply<T extends Struct> = T extends StateFul<infer S>
-    ? _StateApply<S>
+    ? _StateApply<S> 
     : Empty
 
-type StateDeepApply<T extends Struct> = T extends StateFul<infer S>
-    ? _StatePaths<S>
-    : never
+type SubStateApply<T extends Struct> = _SubStatePaths<T>
 
 //// Exports ////
 
@@ -75,7 +85,7 @@ export {
     StateSetter,
     StateApply,
 
-    StateDeepApply,
+    SubStateApply,
     $$state,
 
 }

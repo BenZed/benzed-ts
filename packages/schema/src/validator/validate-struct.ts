@@ -14,14 +14,11 @@ import {
     copyWithoutState,
 
 } from '@benzed/immutable'
+import { getDeepState } from '@benzed/immutable/src/struct/state'
 
 import {
     Validate
 } from '../validate'
-
-import {
-    ValidatorProxy
-} from './validator-proxy'
 
 //// EsLint ////
 
@@ -73,13 +70,17 @@ export abstract class ValidateStruct<I, O extends I = I> extends Struct<Validate
         return applyState(validator, state)
     }
 
+    static getSettings<T extends AnyValidateStruct>(
+        validator: T
+    ): ValidateSettings<T> {
+        return getDeepState(validator)
+    }
+
 }
 
 export type AnyValidateStruct = ValidateStruct<any,any>
 
-export type ValidateSettings<V extends AnyValidateStruct> = V extends ValidatorProxy<infer Vx, any,any> 
-    ? ValidateSettings<Vx>
-    : StructState<V>
+export type ValidateSettings<V extends AnyValidateStruct> = StructState<V>
 
 export type ValidateUpdateSettings<V extends AnyValidateStruct> = StructStateApply<V>
 

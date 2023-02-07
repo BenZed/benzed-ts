@@ -7,7 +7,7 @@ import { setState } from './set-state'
 import { 
     State,
     StateApply,
-    StateDeepApply
+    SubStateApply
 } from './state'
 
 //// Exports ////
@@ -16,7 +16,7 @@ import {
  * Given a struct, a path and a state at that path, receive a new struct
  * with the state applied at that path.
  */
-export function applyDeepState<T extends Struct, P extends StateDeepApply<T>>(
+export function applyDeepState<T extends Struct, P extends SubStateApply<T>>(
     struct: T, 
     ...params: P
 ): T {
