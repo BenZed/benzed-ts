@@ -9,11 +9,12 @@ import OfValidator from '../of-validator'
 
 //// HelperTypes ////
 
-type _ArrayValidatorWrapBuilderOutput<V extends AnyValidateStruct, P> = P extends V
-    ? ArrayValidator<V>
-    : P extends (...args: infer A) => V 
-        ? (...args: A) => ArrayValidator<V> 
-        : P
+type _ArrayValidatorWrapBuilderOutput<V extends AnyValidateStruct, P> = 
+    P extends V
+        ? ArrayValidator<V>
+        : P extends (...args: infer A) => V 
+            ? (...args: A) => ArrayValidator<V> 
+            : P
 
 type _ArrayValidatorProperties<V extends AnyValidateStruct> = {
     [K in keyof V]: _ArrayValidatorWrapBuilderOutput<V, V[K]>

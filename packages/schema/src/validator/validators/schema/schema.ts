@@ -1,6 +1,6 @@
 import { capitalize } from '@benzed/string'
 import { RecordStruct } from '@benzed/immutable'
-import { isFunc, isString, keysOf, KeysOf, pick, Property } from '@benzed/util'
+import { isFunc, isString, keysOf, NamesOf, pick, Property } from '@benzed/util'
 
 import {
     AnyValidate,
@@ -47,7 +47,7 @@ const $$sub = Symbol('sub-validators')
  * @internal
  */
 export type _SettingsKeysOf<V extends AnyValidateStruct> = 
-    Extract<'name' | 'message' | 'enabled' | KeysOf<ValidateSettings<V>>, KeysOf<V>>
+    Extract<'name' | 'message' | 'enabled' | NamesOf<ValidateSettings<V>>, NamesOf<V>>
 
 /**
  * @internal
@@ -65,7 +65,7 @@ export type _SchemaOptionSetters<T extends AnyValidateStruct> = {
 type _SchemaOptionSetter<T> = (option: T) => typeof $$schema
 
 type _SchemaSubSetters<S extends AnySubValidators> = {
-    [K in KeysOf<S>]: _SchemaSubSetter<S[K]>
+    [K in NamesOf<S>]: _SchemaSubSetter<S[K]>
 }
 
 type _SchemaSubSetter<T extends AnyValidateStruct> = 
@@ -84,7 +84,7 @@ type _SchemaSetters<
 > = (_SchemaOptionSetters<M> & _SchemaSubSetters<S>) extends infer O 
     ? {
         // Remapping this way to prevent circular references
-        [K in KeysOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
+        [K in NamesOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
             ? (...args: A) => Schema<M,S>
             : O[K]
     }

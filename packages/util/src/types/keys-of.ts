@@ -16,7 +16,7 @@ const count = (iterator: Iterator<unknown>): number => {
     return count
 }
 
-//// KeysOf ////
+//// NamesOf ////
 
 export type NamesOf<T> = Extract<keyof T, string>
 
@@ -78,6 +78,8 @@ export function * symbolsOf<T extends object[] | readonly object[]> (
     }
 }
 symbolsOf.count = (...objects: object[]): number => count(symbolsOf(...objects))
+
+//// Keys Of ////
 
 /**
  * Iteration of enumerable symbol keys on any number of objects

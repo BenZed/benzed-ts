@@ -10,7 +10,7 @@ import { ValidatorStruct } from './validator-struct'
     @typescript-eslint/no-explicit-any
 */
 
-//// Main ////
+//// Main //// 
 
 /**
  * A versatile implementation of the validate contract.

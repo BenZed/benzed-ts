@@ -39,6 +39,7 @@ const $arrayOfNumber = new ArrayValidator($numberSchema)
 //// Tests ////
 
 describe(`${$arrayOfNumber.name} validator tests`, () => {
+
     testValidator<unknown, number[]>(
         $arrayOfNumber,
         { asserts: [] },
@@ -48,9 +49,11 @@ describe(`${$arrayOfNumber.name} validator tests`, () => {
         { transforms: ['0'], output: [0] },
         { transforms: ['atr'], error: true },
     )
+
 })
 
 describe(`${$arrayOfNumber.name} contract validator tests`, () => {
+
     testValidationContract(
         $arrayOfNumber,
         {
@@ -59,6 +62,7 @@ describe(`${$arrayOfNumber.name} contract validator tests`, () => {
             transforms: { invalidInput: ['0'], validOutput: [0] },
         }
     )
+
 })
 
 describe('retains wrapped validator properties', () => {
@@ -74,6 +78,18 @@ describe('retains wrapped validator properties', () => {
         $arrayOfDefaultZeros,
         { asserts: [nil, nil], error: true },
         { transforms: [nil, nil], output: [0, 0] },
+    )
+
+})
+
+describe('nestable', () => {
+
+    const $arrayOfArrayOfNumber = new ArrayValidator(new ArrayValidator($numberSchema))
+
+    testValidator(
+        $arrayOfArrayOfNumber,
+        { asserts: [[0]] },
+        { asserts: [0], error: true }
     )
 
 })

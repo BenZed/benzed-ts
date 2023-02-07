@@ -1,5 +1,5 @@
 import { First, Last } from '@benzed/array'
-import { KeysOf } from '@benzed/util'
+import { NamesOf } from '@benzed/util'
 
 import {
     ValidateInput, 
@@ -42,7 +42,7 @@ type _SchemaPipeSetters<
         : {}) extends infer O 
         ? {
             // Remapping this way to prevent circular references
-            [K in KeysOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
+            [K in NamesOf<O>]: O[K] extends _SchemaSetterRequiringRemap<infer A>
                 ? (...args: A) => PipeSchema<VA>
                 : O[K]
         }

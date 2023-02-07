@@ -1,4 +1,4 @@
-import { OutputOf, nil, KeysOf } from '@benzed/util'
+import { OutputOf, nil, NamesOf } from '@benzed/util'
 import { ValidateOptions } from '../../../validate'
 import { AnyValidateStruct } from '../../validate-struct'
 
@@ -20,7 +20,7 @@ type _OptionalProperties<V extends AnyValidateStruct> =
     }
 
 type _OptionalInheritKeys<V extends AnyValidateStruct> = 
-    Exclude<KeysOf<V>, KeysOf<_OptionalProperties<V>>>
+    Exclude<NamesOf<V>, NamesOf<_OptionalProperties<V>>>
 
 type _OptionalWrapBuilderOutput<V extends AnyValidateStruct, P> = P extends V
     ? Optional<V>
