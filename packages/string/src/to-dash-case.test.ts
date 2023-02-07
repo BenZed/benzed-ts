@@ -1,5 +1,6 @@
 import toDashCase from './to-dash-case'
 import { expectTypeOf } from 'expect-type'
+import { test, it, expect } from '@jest/globals'
 
 //// Setup ////
 

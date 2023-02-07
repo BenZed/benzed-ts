@@ -1,6 +1,5 @@
 import { isPrime, primes } from './prime'
-
-/* global describe it */
+import { it, expect, describe } from '@jest/globals'
 
 describe('isPrime($value)', () => {
 

@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { cpus } from 'os'
+import { it, expect, describe } from '@jest/globals'
 
 import { $renderSetting } from './render-settings'
 import { Renderer, RenderItem } from './renderer'

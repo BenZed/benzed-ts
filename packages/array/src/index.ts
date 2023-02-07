@@ -1,6 +1,4 @@
 
-// TODO clean this up
-
 import adjacent from './adjacent'
 import shuffle from './shuffle'
 import unique from './unique'

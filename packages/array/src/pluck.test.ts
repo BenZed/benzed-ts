@@ -1,4 +1,4 @@
-import { isRecord, isString } from '@benzed/util'
+import { isRecordOf, isString } from '@benzed/util'
 import pluck from './pluck'
 
 import { expectTypeOf } from 'expect-type'
@@ -73,7 +73,7 @@ describe('typeguard filter', () => {
         const arr = [{ foo: 'string' }, { foo: 'bar' }, { bar: 0 }] as const
 
         const isFoo = (i: unknown): i is { foo: string } => 
-            isRecord(i, isString)
+            isRecordOf(isString)(i)
 
         const foos = pluck(arr, isFoo)
         expect(foos).toHaveLength(2)
