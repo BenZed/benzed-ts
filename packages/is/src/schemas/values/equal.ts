@@ -9,7 +9,7 @@ import { pick, Primitive } from '@benzed/util'
 
 //// Validator ////
 
-class Value <T extends Primitive> extends ValueValidator<T> {
+class ConfigurableValueValidator <T extends Primitive> extends ValueValidator<T> {
 
     override readonly name: string
 
@@ -26,17 +26,17 @@ class Value <T extends Primitive> extends ValueValidator<T> {
 
 //// Schema ////
 
-interface Equal<T extends Primitive> extends Schema<Value<T>, {}> {
+interface Equal<T extends Primitive> extends Schema<ConfigurableValueValidator<T>, {}> {
 
     force(force: boolean): this
 
 }
 
-const Equal = class Equal <T extends Primitive> extends Schema<Value<T>, {}> {
+const Equal = class Equal <T extends Primitive> extends Schema<ConfigurableValueValidator<T>, {}> {
 
     constructor(value: T) {
         super(
-            new Value(value, false), 
+            new ConfigurableValueValidator(value, false), 
             {}
         )
     }

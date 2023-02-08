@@ -237,7 +237,9 @@ const Schema = class Schema extends SchemaValidator {
 
         const stateDescriptors = getAllProperties(
             this[$$main],
-            (_d, k) => settingsKey.includes(k))
+            (_d, k) => settingsKey.includes(k) && k !== 'name' && k !== 'message'
+        //                                        ^ static
+        )
 
         for (const key in stateDescriptors) {
 
@@ -307,5 +309,5 @@ const Schema = class Schema extends SchemaValidator {
 export default Schema
 
 export {
-    Schema
+    Schema,
 }

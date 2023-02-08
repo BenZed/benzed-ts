@@ -1,5 +1,5 @@
 import { $$settings, InstanceValidator, InstanceValidatorInput, Schema } from '@benzed/schema'
-import { assign, pick } from '@benzed/util'
+import { pick } from '@benzed/util'
 
 //// EsLint ////
 
@@ -9,25 +9,27 @@ import { assign, pick } from '@benzed/util'
 
 //// Validator ////
 
-class InstanceOf <T extends InstanceValidatorInput> extends InstanceValidator<T> {
+class ConfigurableInstanceValidator <T extends InstanceValidatorInput> extends InstanceValidator<T> {
 
     get [$$settings](): Pick<this, 'name' | 'message'> {
         return pick(this, 'name', 'message', 'Type')
     }
 
+    override name: string
+
     constructor(Type: T) {
         super(Type)
-        assign(this, { name: Type.name })
+        this.name = Type.name
     }
 
 }
 
 //// Schema ////
 
-class Instance <T extends InstanceValidatorInput> extends Schema<InstanceOf<T>, {}> {
+class Instance <T extends InstanceValidatorInput> extends Schema<ConfigurableInstanceValidator<T>, {}> {
 
     constructor(Type: T) {
-        super(new InstanceOf(Type), {})
+        super(new ConfigurableInstanceValidator(Type), {})
     }
 
 }
