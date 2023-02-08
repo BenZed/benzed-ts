@@ -1,10 +1,11 @@
 import { capitalize } from '@benzed/string'
 import { RecordStruct } from '@benzed/immutable'
-import { isFunc, isString, keysOf, NamesOf, pick, Property } from '@benzed/util'
+import { isFunc, isString, namesOf, NamesOf, pick, Property } from '@benzed/util'
 
 import {
     AnyValidate,
     Validate,
+    ValidateInput,
     ValidateOptions,
     ValidateOutput
 } from '../../../validate'
@@ -47,7 +48,7 @@ const $$sub = Symbol('sub-validators')
  * @internal
  */
 export type _SettingsKeysOf<V extends AnyValidateStruct> = 
-    Extract<'name' | 'message' | 'enabled' | NamesOf<ValidateSettings<V>>, NamesOf<V>>
+    Exclude<Extract<'enabled' | NamesOf<ValidateSettings<V>>, NamesOf<V>>, 'name' | 'message'>
 
 /**
  * @internal
@@ -66,6 +67,11 @@ type _SchemaOptionSetter<T> = (option: T) => typeof $$schema
 
 type _SchemaSubSetters<S extends AnySubValidators> = {
     [K in NamesOf<S>]: _SchemaSubSetter<S[K]>
+}
+
+interface _SchemaStaticOptionSetters<M extends AnyValidateStruct,> {
+    named(name: string): this
+    message(ctx: ValidationContext<ValidateInput<M>>): this
 }
 
 type _SchemaSubSetter<T extends AnyValidateStruct> = 
@@ -132,6 +138,7 @@ type Schema<
     & SchemaValidate<M>
     & { [$$settings]: SchemaSettings<M,S> }
     & _SchemaSetters<M,S>
+    & _SchemaStaticOptionSetters<M>
 
 // TODO maybe this should be a validator proxy
 abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
@@ -148,7 +155,7 @@ abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
     }
 
     //// Validation ////
-    
+
     validate(input: unknown, options?: ValidateOptions): unknown {
         const ctx = new ValidationContext(input, options)
 
@@ -158,7 +165,7 @@ abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
         output = this[$$main](output, ctx)
 
         // run enabled sub validators
-        for (const key of keysOf(this[$$sub])) {
+        for (const key of namesOf(this[$$sub])) {
             if (this[$$sub][key].enabled)
                 output = this[$$sub][key](output, ctx)
         }
@@ -170,7 +177,6 @@ abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
                 ctx
             )
         }
-
         return output
     }
 
@@ -200,12 +206,12 @@ const Schema = class Schema extends SchemaValidator {
         super(main, sub)
         this._createOptionSetters()
         this._createSubValidatorSetters()
-    }
 
-    //// Name ////
-
-    override get name(): string {
-        return this[$$main]?.name ?? this.constructor.name
+        Property.define(this, 'name', {
+            get(this: Schema) {
+                return this[$$main]?.name ?? this.constructor.name
+            }
+        })
     }
 
     //// Universal Setters ////

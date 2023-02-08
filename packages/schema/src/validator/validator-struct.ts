@@ -1,5 +1,6 @@
 
 import { ValidateOptions } from '../validate'
+import { ValidationErrorMessage } from '../validation-error'
 
 import { ValidateStruct } from './validate-struct'
 
@@ -40,17 +41,19 @@ export abstract class ValidatorStruct<I, O extends I = I>
 
     constructor() {
         super(validate)
-    }
 
-    override get name(): string {
-        
         // IntegerValidator -> Integer 
-        // Validator -> Validate 
-        return this.constructor
+        // IntegerValidatorStruct -> Integer
+        // ValidatorStruct -> Validate 
+        // 
+        this.name = this.constructor
             .name
             .replace('Validator', '')
+            .replace('Struct', '') 
             || 'Validate'
     }
+
+    override readonly name: string
 
     abstract validate(input: I, options?: ValidateOptions): O
 

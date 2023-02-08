@@ -1,12 +1,8 @@
-import { RegExpValidator } from './regexp-validator'
+import { $regexp } from './regexp'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $regexp = new RegExpValidator()
 
 //// Tests ////
 

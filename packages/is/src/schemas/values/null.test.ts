@@ -1,12 +1,8 @@
-import { NullValidator } from './null-validator'
+import { $null } from './null'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $null = new NullValidator(true)
 
 //// Tests ////
 
@@ -21,11 +17,10 @@ describe(`${$null.name} validator contract tests`, () => {
         }
     )
 
-    describe(`${$null.name} validator tests`, () => {
-        testValidator(
-            $null,
-            { asserts: null },
-        )
-    })
+    testValidator(
+        $null,
+        { asserts: null },
+    )
+
 })
 

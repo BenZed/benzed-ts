@@ -61,17 +61,13 @@ abstract class Mutator<
     static readonly removeAll = removeAllMutators
     static readonly each = eachMutator
     static readonly get = getMutators
-    static readonly is = isMutator
+    static override readonly is = isMutator
 
     //// Constructor ////
 
     protected abstract get [$$type](): T
  
     //// ValidatorStruct Implementation ////
-    
-    override get name(): string {
-        return this.constructor.name
-    }
 
     validate(input: unknown, options?: ValidateOptions): O {
         return this[$$target](input, options)

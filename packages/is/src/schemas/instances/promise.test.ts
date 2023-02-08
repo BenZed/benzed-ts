@@ -1,12 +1,8 @@
-import { PromiseValidator } from './promise-validator'
+import { $promise } from './promise'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $promise = new PromiseValidator()
 
 //// Tests ////
 

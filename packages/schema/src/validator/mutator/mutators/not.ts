@@ -1,4 +1,4 @@
-import { InputOf, KeysOf } from '@benzed/util'
+import { InputOf, NamesOf } from '@benzed/util'
 
 import { 
     $$target, 
@@ -34,7 +34,7 @@ type _NotProperties<V extends AnyValidateStruct> =
     }
 
 type _NotInheritKeys<V extends AnyValidateStruct> = 
-    Exclude<KeysOf<V>, KeysOf<_NotProperties<V>>>
+    Exclude<NamesOf<V>, NamesOf<_NotProperties<V>>>
 
 type _NotWrapBuilderOutput<V extends AnyValidateStruct, P> = P extends V
     ? Not<V>

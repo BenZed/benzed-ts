@@ -1,12 +1,8 @@
-import { WeakMapValidator } from './weakmap-validator'
+import { $weakmap } from './weakmap'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $weakmap = new WeakMapValidator()
 
 //// Tests ////
 

@@ -10,10 +10,6 @@ import ContractValidator from '../contract-validator'
  */
 abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
 
-    override get name(): string {
-        return this.constructor.name.replace('Validator', '')
-    }
-
     abstract override isValid(
         value: unknown, 
         context: ValidationContext<unknown>

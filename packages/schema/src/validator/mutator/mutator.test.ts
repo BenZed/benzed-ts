@@ -29,10 +29,6 @@ class IntegerValidator extends TypeValidator<number> {
 
 class PositiveValidator extends ContractValidator<number, number> {
 
-    get name(): string {
-        return 'positive'
-    } 
-
     readonly enabled = false 
 
     transform(input: number): number {

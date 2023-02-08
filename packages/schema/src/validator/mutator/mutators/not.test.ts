@@ -6,17 +6,13 @@ import { Not } from './not'
 import { testValidator } from '../../../util.test'
 
 import { expectTypeOf } from 'expect-type'
-import { ValidatorUpdateSettings } from '../../validate-struct'
+import { ValidateUpdateSettings } from '../../validate-struct'
 
 //// Tests ////
 
 type id = `#id-${number}`
 
 class Id extends ContractValidator<string, id> {
-
-    get name(): string {
-        return 'id'
-    }
 
     transform(input: string): `#id-${number}` {
         const digits = input.replace('#id-', '')
@@ -33,12 +29,12 @@ class Id extends ContractValidator<string, id> {
     setMinId(to: number): this {
         return ContractValidator.applySettings(
             this, 
-            { minId: to } as unknown as ValidatorUpdateSettings<this>
+            { minId: to } as unknown as ValidateUpdateSettings<this>
         )
     }
 
     message(): string {
-        return 'Must be an id'
+        return `Must be ${this.name}`
     }
 
 }
@@ -57,13 +53,13 @@ describe('Not validation mutation', () => {
         $id,
         { transforms: '1', output: '#id-1' },
         { asserts: '#id-2', output: '#id-2' },
-        { asserts: '2', error: 'Must be an id' },
+        { asserts: '2', error: 'Must be Id' },
     )
 
     testValidator(
         $notId,
         { transforms: '1', output: '1' },
-        { asserts: '#id-2', error: 'Must not be id' },
+        { asserts: '#id-2', error: 'Must not be Id' },
         { asserts: '2' },
     )
 
@@ -89,7 +85,7 @@ describe('removable', () => {
     })
 })
 
-describe('effect on target', () => { 
+describe('effect on target', () => {
 
     it('cannot be stacked', () => {
         expect(() => new Not(new Not($id))).toThrow('already has mutator')

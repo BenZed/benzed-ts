@@ -104,6 +104,7 @@ abstract class ValidatorProxy<V extends AnyValidateStruct, I = InputOf<V>, O ext
     }
 
     override set [$$settings](input: ValidateSettings<V>) {
+
         this[$$target] = ValidatorStruct.applySettings(this[$$target], input)
     }
 

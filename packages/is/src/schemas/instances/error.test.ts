@@ -1,4 +1,4 @@
-import { ErrorValidator } from './error-validator'
+import { ErrorValidator } from './error'
 
 import { describe } from '@jest/globals'
 

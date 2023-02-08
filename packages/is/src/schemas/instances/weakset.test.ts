@@ -1,12 +1,8 @@
-import { WeakSetValidator } from './weakset-validator'
+import { $weakset } from './weakset'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $weakset = new WeakSetValidator()
 
 //// Tests ////
 

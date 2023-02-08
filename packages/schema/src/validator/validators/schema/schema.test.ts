@@ -179,11 +179,7 @@ describe('Schema implementation', () => {
 
         class Capitalize extends ContractValidator<string, string> { 
 
-            get name(): string {
-                return this.constructor.name
-            }
-
-            enabled = false
+            readonly enabled = false
 
             transform(input: string): string {
                 return input.charAt(0).toUpperCase() + input.slice(1)

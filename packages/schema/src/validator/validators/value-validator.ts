@@ -1,5 +1,4 @@
 import { Primitive } from '@benzed/util'
-import { capitalize } from '@benzed/string'
 
 import { ValidateOptions } from '../../validate'
 import { ValidationContext } from '../../validation-context'
@@ -24,13 +23,9 @@ export class ValueValidator<T extends Primitive> extends ValidatorStruct<unknown
         super()
     }
 
-    override get name(): string {
-        return capitalize(String(this.value))
-    }
-
     message(ctx: ValidationContext<unknown>): string {
         void ctx
-        return `Must be ${String(this.value)}`
+        return `Must be ${this.name}` 
     }
 
     validate(input: unknown, options?: ValidateOptions | undefined): T {

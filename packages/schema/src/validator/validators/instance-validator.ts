@@ -20,10 +20,6 @@ class InstanceValidator<T extends InstanceValidatorInput> extends TypeValidator<
         super()
     }
 
-    override get name(): string {
-        return this.Type.name
-    }
-
     isValid(value: unknown): value is InstanceType<T> {
         return value instanceof this.Type
     }

@@ -12,10 +12,12 @@ export * from './structs'
 export {
 
     $$state,
+
     State as StructState,
     StateApply as StructStateApply,
     SubStateApply as StructStatePathApply,
     SubStateApply as StructStatePaths,
+
     StateFul as StructStateful,
     StateGetter as StructStateGetter,
     StateSetter as StructStateSetter,

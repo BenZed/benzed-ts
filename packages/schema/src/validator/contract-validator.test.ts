@@ -17,7 +17,6 @@ const $example = new class extends ContractValidator<unknown, string> {
 }
 
 describe(`${$example.name} validator contract tests`, () => {
-
     testValidationContract<unknown, string>(
         $example,
         {
@@ -28,12 +27,10 @@ describe(`${$example.name} validator contract tests`, () => {
 })
 
 describe(`${$example.name} validator tests`, () => {
-
     testValidator<unknown, string>(
         $example,
         { transforms: '0' },
         { asserts: '0' },
         { asserts: false, error: true },
     )
-
 })

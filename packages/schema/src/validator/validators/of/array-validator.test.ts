@@ -7,12 +7,9 @@ import { describe } from '@jest/globals'
 
 import { Schema } from '../schema'
 
-import { 
-    testValidator, 
-    testValidationContract 
-} from '../../../util.test'
-
 import { $$settings } from '../../validate-struct'
+
+import { testValidator, testValidationContract } from '../../../util.test'
 
 //// Setup ////
 

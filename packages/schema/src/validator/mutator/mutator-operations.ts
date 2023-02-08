@@ -30,7 +30,7 @@ import { AnyValidateStruct } from '../validate-struct'
 //// Helper ////
 
 export function isMutator(target: AnyValidateStruct): target is AnyMutator {
-    return $$target in target && $$type in target
+    return $$target in target
 }
 
 export function * eachMutator(validator: AnyValidateStruct): Generator<AnyMutator> {

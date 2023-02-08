@@ -1,12 +1,8 @@
-import { DateValidator } from './date-validator'
+import { $date } from './date'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $date = new DateValidator() 
 
 //// Tests ////
 

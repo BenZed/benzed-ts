@@ -139,6 +139,10 @@ const Callable = class {
             : (...args: unknown[]) => signature(...args)
 
         Property.transpose(signatureProperties, callable, [Object.prototype, Function.prototype])
+        Property.configure(callable, 'name', {
+            writable: true,
+            configurable: true
+        })
         Property.transpose(template, callable, [Object.prototype, Function.prototype])
         Property.define(callable, $$callable, {
             value: {

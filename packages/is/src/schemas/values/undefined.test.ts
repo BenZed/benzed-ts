@@ -1,12 +1,8 @@
-import { UndefinedValidator } from './undefined-validator'
+import { $undefined } from './undefined'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $undefined = new UndefinedValidator(true)
 
 //// Tests ////
 

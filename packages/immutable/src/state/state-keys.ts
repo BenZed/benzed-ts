@@ -39,7 +39,7 @@ export function hasStateGetter<T = object>(struct: Struct): struct is Struct & S
  */
 export function hasStateSetter<T = object>(struct: Struct): struct is Struct & StateSetter<T> {
     const stateDescriptor = getStateDescriptor(struct)
-    return stateDescriptor?.writable ?? !!stateDescriptor?.set
+    return !!stateDescriptor?.writable || !!stateDescriptor?.set
 }
 
 export function setKeyEnumerable<T extends Struct>(struct: T, enumerable: boolean, stateKeys: (keyof T)[]): void {
