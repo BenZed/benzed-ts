@@ -2,20 +2,20 @@ import { $nan } from './nan'
 
 import { describe } from '@jest/globals'
 
-import { testValidator } from '../../util.test'
+import { testValidator, testValidationContract } from '../../util.test'
 
 //// Tests ////
 
 describe(`${$nan.name} validator contract tests`, () => {
 
-    // testValidationContract( 
-    //     $nan.force(true),
-    //     {
-    //         validInput: NaN,
-    //         invalidInput: 0,
-    //         transforms: { invalidInput: 0, validOutput: NaN },
-    //     }
-    // )
+    testValidationContract( 
+        $nan.force(true),
+        {
+            validInput: NaN,
+            invalidInput: 0,
+            transforms: { invalidInput: 0, validOutput: NaN },
+        }
+    )
 
     testValidator(
         $nan,

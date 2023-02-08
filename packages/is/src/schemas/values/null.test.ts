@@ -9,7 +9,7 @@ import { testValidator, testValidationContract } from '../../util.test'
 describe(`${$null.name} validator contract tests`, () => {
 
     testValidationContract(
-        $null,
+        $null.force(true),
         {
             validInput: null,
             invalidInput: 0,

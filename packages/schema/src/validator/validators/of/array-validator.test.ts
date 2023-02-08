@@ -1,15 +1,17 @@
 import { isNumber, isString, nil, pick } from '@benzed/util'
+import { describe } from '@jest/globals'
 
 import { ArrayValidator } from './array-validator'
 import { TypeValidator } from '../type-validator'
-
-import { describe } from '@jest/globals'
 
 import { Schema } from '../schema'
 
 import { $$settings } from '../../validate-struct'
 
-import { testValidator, testValidationContract } from '../../../util.test'
+import {
+    testValidator,
+    testValidationContract
+} from '../../../util.test'
 
 //// Setup ////
 
@@ -36,7 +38,6 @@ const $arrayOfNumber = new ArrayValidator($numberSchema)
 //// Tests ////
 
 describe(`${$arrayOfNumber.name} validator tests`, () => {
-
     testValidator<unknown, number[]>(
         $arrayOfNumber,
         { asserts: [] },
@@ -46,11 +47,9 @@ describe(`${$arrayOfNumber.name} validator tests`, () => {
         { transforms: ['0'], output: [0] },
         { transforms: ['atr'], error: true },
     )
-
 })
 
 describe(`${$arrayOfNumber.name} contract validator tests`, () => {
-
     testValidationContract(
         $arrayOfNumber,
         {
@@ -59,7 +58,6 @@ describe(`${$arrayOfNumber.name} contract validator tests`, () => {
             transforms: { invalidInput: ['0'], validOutput: [0] },
         }
     )
-
 })
 
 describe('retains wrapped validator properties', () => {

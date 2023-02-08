@@ -1,5 +1,5 @@
 import { $$settings, Schema, ValueValidator } from '@benzed/schema'
-import { assign, pick, Primitive } from '@benzed/util'
+import { pick, Primitive } from '@benzed/util'
 
 //// EsLint ////
 
@@ -11,13 +11,15 @@ import { assign, pick, Primitive } from '@benzed/util'
 
 class Value <T extends Primitive> extends ValueValidator<T> {
 
+    override readonly name: string
+
     get [$$settings](): Pick<this, 'name' | 'message' | 'force'> {
         return pick(this, 'name', 'message', 'force', 'value')
     }
 
     constructor(value: T, force: boolean) {
         super(value, force)
-        assign(this, { name: String(value) })
+        this.name = String(value)
     }
 
 }
@@ -34,7 +36,9 @@ const Equal = class Equal <T extends Primitive> extends Schema<Value<T>, {}> {
 
     constructor(value: T) {
         super(
-            new Value(value, false), {})
+            new Value(value, false), 
+            {}
+        )
     }
 
 } as new <T extends Primitive>(value: T) => Equal<T>

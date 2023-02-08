@@ -5,7 +5,14 @@ import Struct from '../struct'
 import { copy } from '../copy'
 import { equals } from '../equals'
 
-import { $$state, applySubState, applyState, StateApply, SubStateApply } from '../state'
+import { 
+    $$state, 
+    applySubState,
+    applyState,
+    StateApply, 
+    SubStateApply, 
+    SubStatePath 
+} from '../state'
 
 //// EsLint ////
 
@@ -34,7 +41,7 @@ export abstract class PublicStruct extends Struct {
         return applyState(this, state)
     }
 
-    applyIn(...state: SubStateApply<this>): this {
+    applyIn<P extends SubStatePath>(...state: SubStateApply<this, P>): this {
         return applySubState(this, ...state)
     }
 

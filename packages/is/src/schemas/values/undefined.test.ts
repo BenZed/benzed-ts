@@ -9,7 +9,7 @@ import { testValidator, testValidationContract } from '../../util.test'
 describe(`${$undefined.name} validator contract tests`, () => {
 
     testValidationContract<unknown, undefined>(
-        $undefined,
+        $undefined.force(true),
         {
             validInput: undefined,
             invalidInput: 0,
