@@ -101,7 +101,7 @@ const Not = class extends Mutator<AnyValidateStruct, MutatorType.Not, unknown> {
             // validator.report() or something
             void this[$$target](input, { transform: false })
             //                                    ^ not validations should
-            //                                    never be transformed.
+            //                                      never be transformed.
 
         } catch (e) {
             if (e instanceof ValidationError)

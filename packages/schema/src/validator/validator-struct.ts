@@ -46,14 +46,14 @@ export abstract class ValidatorStruct<I, O extends I = I>
         // IntegerValidatorStruct -> Integer
         // ValidatorStruct -> Validate 
         // 
-        this.name = this.constructor
-            .name
-            .replace('Validator', '')
-            .replace('Struct', '') 
-            || 'Validate'
+        // this.name = this.constructor
+        //     .name
+        //     .replace('Validator', '')
+        //     .replace('Struct', '') 
+        //     || 'Validate'
     }
 
-    override readonly name: string
+    // override readonly name: string
 
     abstract validate(input: I, options?: ValidateOptions): O
 

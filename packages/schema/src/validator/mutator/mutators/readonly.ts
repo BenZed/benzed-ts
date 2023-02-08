@@ -1,4 +1,4 @@
-import { KeysOf, OutputOf } from '@benzed/util'
+import { NamesOf, OutputOf } from '@benzed/util'
 import { AnyValidateStruct } from '../../validate-struct'
 
 import { $$target, $$type, Mutator, MutatorType } from '../mutator'
@@ -19,7 +19,7 @@ type _ReadOnlyProperties<V extends AnyValidateStruct> =
     }
 
 type _ReadOnlyInheritKeys<V extends AnyValidateStruct> = 
-    Exclude<KeysOf<V>, KeysOf<_ReadOnlyProperties<V>>>
+    Exclude<NamesOf<V>, NamesOf<_ReadOnlyProperties<V>>>
 
 type _ReadOnlyWrapBuilderOutput<V extends AnyValidateStruct, P> = P extends V
     ? ReadOnly<V>

@@ -13,7 +13,7 @@ import { expectTypeOf } from 'expect-type'
 import {
     testValidator,
     testValidationContract
-} from '../../../util.test'
+} from '../../../util.test'  
 
 import { $$settings } from '../../validate-struct'
 
@@ -105,7 +105,7 @@ describe('Schema implementation', () => {
         finite: boolean
     }
 
-    const number = new class NumberValidator extends TypeValidator<number> {
+    const $number = new class NumberValidator extends TypeValidator<number> {
 
         get [$$settings](): NumberState {
             return {
@@ -133,37 +133,37 @@ describe('Schema implementation', () => {
 
     describe('main validator only', () => {
 
-        const $number = new Schema(number)
+        const $numberSchema = new Schema($number)
 
-        testValidationContract<unknown, number>($number, {
+        testValidationContract<unknown, number>($numberSchema, {
             invalidInput: NaN,
             validInput: 10
         })
 
         testValidator<unknown,number>(
-            $number,
+            $numberSchema,
             { asserts: Infinity },
             { transforms: '100', error: 'Must be a number' },
             { transforms: nil, error: 'Must be a number' }
         )
 
         testValidator(
-            $number.finite(true),
+            $numberSchema.finite(true),
             { asserts: Infinity, error: 'Must be a finite number' }
         )
 
         testValidator<unknown, number>(
-            $number.cast(i => isString(i) ? parseFloat(i) : i),
+            $numberSchema.cast(i => isString(i) ? parseFloat(i) : i),
             { transforms: '100', output: 100 }
         ) 
 
         testValidator<unknown,number>(
-            $number.default(() => 0),
+            $numberSchema.default(() => 0),
             { transforms: nil, output: 0 }
         )
 
         testValidator<unknown,number>(
-            $number.message(() => 'Numbers only'),
+            $numberSchema.message(() => 'Numbers only'),
             { transforms: nil, error: 'Numbers only' }
         )
 
@@ -172,12 +172,17 @@ describe('Schema implementation', () => {
     describe('with subvalidator', () => {
 
         class StringValidator extends TypeValidator<string> {
+
+            name = 'String'
+
             isValid(input: unknown): input is string {
                 return typeof input === 'string'
             }
         }
 
         class Capitalize extends ContractValidator<string, string> { 
+
+            name = 'Captalized'
 
             readonly enabled = false
 

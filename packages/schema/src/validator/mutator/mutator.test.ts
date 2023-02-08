@@ -14,6 +14,8 @@ import {
 
 class IntegerValidator extends TypeValidator<number> {
 
+    override name = 'Integer'
+
     isValid(value: unknown): value is number {
         return isInteger(value)
     }
@@ -67,7 +69,7 @@ describe(`${$integer.name} validator tests`, () => {
     testValidationContract<unknown, number>(
         $integer,
         {
-            validInput: 0,
+            validInput: 0,  
             invalidInput: 'oy',
         }
     )

@@ -60,7 +60,7 @@ abstract class ValidatorProxy<V extends AnyValidateStruct, I = InputOf<V>, O ext
         proxy: typeof Proxy
     ): unknown {
 
-        const target = Reflect.has(mutator, key)
+        const target = Reflect.has(mutator, key) || key === 'name'
             ? mutator 
             : mutator[$$target]
 

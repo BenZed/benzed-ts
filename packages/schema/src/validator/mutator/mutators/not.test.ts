@@ -14,6 +14,8 @@ type id = `#id-${number}`
 
 class Id extends ContractValidator<string, id> {
 
+    override name = 'Id'
+
     transform(input: string): `#id-${number}` {
         const digits = input.replace('#id-', '')
 

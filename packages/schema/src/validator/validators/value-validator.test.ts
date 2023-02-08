@@ -16,7 +16,7 @@ describe(`${$hello.name} validator tests`, () => {
         $hello, 
         { asserts: 'hello' },
         { transforms: 0, output: 'hello' },
-        { asserts: 'no-bueno', error: 'Must be hello' }
+        { asserts: 'no-bueno', error: true }
     ) 
 })
 

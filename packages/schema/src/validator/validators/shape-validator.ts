@@ -1,7 +1,7 @@
 
 import { GenericObject, keysOf, OutputOf } from '@benzed/util'
 
-import { AnyValidate, ValidateOptions } from '../../validate'
+import { ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
 import ValidationError from '../../validation-error'
 
@@ -10,6 +10,8 @@ import {
     HasMutator,
     RemoveMutator
 } from '../mutator'
+
+import { AnyValidateStruct } from '../validate-struct'
 
 import { ValidatorStruct } from '../validator-struct'
 
@@ -22,20 +24,20 @@ import { ValidatorStruct } from '../validator-struct'
 
 //// Helper Types ////
 
-type _HasReadOnly<T extends AnyValidate> = HasMutator<T, MutatorType.ReadOnly>
+type _HasReadOnly<T extends AnyValidateStruct> = HasMutator<T, MutatorType.ReadOnly>
 
-type _HasOptional<T extends AnyValidate> = HasMutator<T, MutatorType.Optional>
+type _HasOptional<T extends AnyValidateStruct> = HasMutator<T, MutatorType.Optional>
 
-type _OnRequiredWritable<T extends AnyValidate, Y, N = never> = 
+type _OnRequiredWritable<T extends AnyValidateStruct, Y, N = never> = 
     _HasOptional<T> extends false ? _HasReadOnly<T> extends false ? Y : N : N
 
-type _OnRequiredReadOnly<T extends AnyValidate, Y, N = never> = 
+type _OnRequiredReadOnly<T extends AnyValidateStruct, Y, N = never> = 
     _HasOptional<T> extends false ? _HasReadOnly<T> extends true ? Y : N : N
 
-type _OnOptionalWritable<T extends AnyValidate, Y, N = never> = 
+type _OnOptionalWritable<T extends AnyValidateStruct, Y, N = never> = 
     _HasOptional<T> extends true ? _HasReadOnly<T> extends false ? Y : N : N
 
-type _OnOptionalReadOnly<T extends AnyValidate, Y, N = never> = 
+type _OnOptionalReadOnly<T extends AnyValidateStruct, Y, N = never> = 
     _HasOptional<T> extends true ? _HasReadOnly<T> extends true ? Y : N : N
 
 type _RequiredWritableProperties<T extends ShapeValidatorInput> = {
@@ -60,7 +62,7 @@ type _ShapeProperties<T extends ShapeValidatorInput> =
     _OptionalWritableProperties<T> &
     _OptionalReadOnlyProperties<T>
 
-type _ShapePropertyOutput<T extends AnyValidate> = 
+type _ShapePropertyOutput<T extends AnyValidateStruct> = 
     OutputOf<
     // GOTCHA: We're not actually removing the mutators 
     // in implementation. This is only to clean up the
@@ -77,7 +79,7 @@ type ShapeValidatorOutput<T extends ShapeValidatorInput> = {
 }
 
 type ShapeValidatorInput = {
-    [key: string | number | symbol]: AnyValidate
+    [key: string | number | symbol]: AnyValidateStruct
 }
 
 //// Tuple ////  

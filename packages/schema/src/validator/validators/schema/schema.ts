@@ -71,7 +71,7 @@ type _SchemaSubSetters<S extends AnySubValidators> = {
 
 interface _SchemaStaticOptionSetters<M extends AnyValidateStruct,> {
     named(name: string): this
-    message(ctx: ValidationContext<ValidateInput<M>>): this
+    message(error: string | ValidationErrorMessage<ValidateInput<M>>): this
 }
 
 type _SchemaSubSetter<T extends AnyValidateStruct> = 
@@ -206,12 +206,10 @@ const Schema = class Schema extends SchemaValidator {
         super(main, sub)
         this._createOptionSetters()
         this._createSubValidatorSetters()
+    }
 
-        Property.define(this, 'name', {
-            get(this: Schema) {
-                return this[$$main]?.name ?? this.constructor.name
-            }
-        })
+    override get name(): string {
+        return this[$$main].name || this.constructor.name
     }
 
     //// Universal Setters ////

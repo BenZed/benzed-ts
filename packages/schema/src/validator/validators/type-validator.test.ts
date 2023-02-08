@@ -9,6 +9,8 @@ import { testValidator, testValidationContract } from '../../util.test'
 
 class BigIntValidator extends TypeValidator<bigint> {
 
+    name = 'BigInt' 
+
     isValid(value: unknown): value is bigint {
         return isBigInt(value)
     }
