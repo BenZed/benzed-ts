@@ -34,15 +34,23 @@ type _StateApply<T> = T extends object
     }>
     : T
 
-type _StateAtPath<T, P extends SubStatePath> = P extends [infer P1, ...infer Pr]
-    ? P1 extends _StateKeys<T>
-        ? Pr extends SubStatePath 
+type _StateApplyAtPath<T, P extends unknown[] | readonly unknown[]> = 
+    P extends [infer P1, ...infer Pr]
+        ? P1 extends _StateKeys<T>
+            ? _StateApplyAtPath<T[P1], Pr>
+            : never
+        : T extends StateFul<infer S> 
+            ? _StateApply<S>
+            : _StateApply<T>
+
+type _StateAtPath<T, P extends unknown[] | readonly unknown[]> =
+    P extends [infer P1, ...infer Pr]
+        ? P1 extends _StateKeys<T>
             ? _StateAtPath<T[P1], Pr>
-            : T[P1]
-        : never
-    : T extends StateFul<infer S> 
-        ? _StateApply<S>
-        : _StateApply<T>
+            : never
+        : T extends StateFul<infer S> 
+            ? _State<S>
+            : _State<T>
 
 //// Types ////
 
@@ -53,30 +61,27 @@ interface StateFul<T> {
     [$$state]: T
 }
 
+/**
+ * An object with a state setter
+ */
 interface StateSetter<T> {
     set [$$state](value: T)
 }
 
+/**
+ * An object with a state getter
+ */
 interface StateGetter<T> {
     get [$$state](): T
 }
 
-type State<T extends Struct> = T extends StateFul<infer S>
-    ? _State<S> 
-    : Empty
-
-type StateApply<T extends Struct> = T extends StateFul<infer S>
-    ? _StateApply<S> 
-    : Empty
-
-type SubState<T extends Struct, P extends SubStatePath> = T extends StateFul<infer S>
+type State<T extends Struct, P extends SubStatePath = []> = T extends StateFul<infer S>
     ? _StateAtPath<S, P>
     : Empty
 
-type SubStateApply<T extends Struct, P extends SubStatePath> = [
-    ...P,
-    SubState<T,P>
-]
+type StateApply<T extends Struct, P extends SubStatePath = []> = T extends StateFul<infer S>
+    ? _StateApplyAtPath<S, P>
+    : Empty
 
 type SubStatePath = (string | symbol)[] | readonly (string | symbol)[]
 
@@ -85,14 +90,13 @@ type SubStatePath = (string | symbol)[] | readonly (string | symbol)[]
 export {
 
     State,
+    StateApply,
+
+    SubStatePath,
+
     StateFul,
     StateGetter,
     StateSetter,
-    StateApply,
-
-    SubState,
-    SubStateApply,
-    SubStatePath,
     $$state,
 
 }

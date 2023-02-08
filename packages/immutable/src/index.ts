@@ -7,7 +7,7 @@ export {
 
 } from './struct'
 
-export * from './structs'
+export * from './structs' 
 
 export {
 
@@ -15,21 +15,18 @@ export {
 
     State as StructState,
     StateApply as StructStateApply,
-    SubStateApply as StructStatePathApply,
-    SubStateApply as StructStatePaths,
 
     StateFul as StructStateful,
     StateGetter as StructStateGetter,
     StateSetter as StructStateSetter,
 
     getState,
-    getDeepState,
+    getShallowState,
 
     setState,
     setDeepState,
 
     applyState,
-    applySubState,
 
     showStateKeys,
     hideNonStateKeys,

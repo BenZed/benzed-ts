@@ -1,4 +1,4 @@
-import { assign, keysOf } from '@benzed/util'
+import { assign, isObject, keysOf } from '@benzed/util'
 
 import { applyState } from './apply-state'
 
@@ -9,7 +9,6 @@ import {
 
 import { Struct } from '../struct'
 import { hasStateSetter } from './state-keys'
-import { isScalarState } from './get-state'
 
 //// EsLint ////
 
@@ -25,7 +24,7 @@ import { isScalarState } from './get-state'
  */
 export function setDeepState<T extends Struct>(struct: T, state: State<T>): void {
 
-    if (isScalarState(state))
+    if (!isObject(state))
         throw new Error('Cannot deep-set a scalar state.')
 
     for (const key of keysOf(state)) {

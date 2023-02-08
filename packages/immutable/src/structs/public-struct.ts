@@ -7,11 +7,11 @@ import { equals } from '../equals'
 
 import { 
     $$state, 
-    applySubState,
     applyState,
-    StateApply, 
-    SubStateApply, 
-    SubStatePath 
+    SubStatePath, 
+    State,
+    getState,
+    StateApply
 } from '../state'
 
 //// EsLint ////
@@ -28,8 +28,8 @@ import {
  */
 export type PublicState<T extends object> = 
     Pick<
-    T, 
-    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'apply' | 'applyIn' | 'copy' | 'equal'>
+    T,
+    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'copy' | 'equal' | 'get' | 'set'>
     >
 
 /**
@@ -37,12 +37,12 @@ export type PublicState<T extends object> =
  */
 export abstract class PublicStruct extends Struct {
 
-    apply(state: StateApply<this>): this {
-        return applyState(this, state)
+    set<P extends SubStatePath>(...pathAndState: [...path: P, state: StateApply<this, P>]): this {
+        return applyState(this, ...pathAndState)
     }
 
-    applyIn<P extends SubStatePath>(...state: SubStateApply<this, P>): this {
-        return applySubState(this, ...state)
+    get<P extends SubStatePath>(...path: P): State<this, P> {
+        return getState(this, ...path)
     }
 
     copy(): this {
@@ -58,8 +58,8 @@ export abstract class PublicStruct extends Struct {
             this, 
             'toString', 
             'valueOf',
-            'apply',
-            'applyIn',
+            'get',
+            'set',
             'copy',
             'equal'
         ) as PublicState<this>

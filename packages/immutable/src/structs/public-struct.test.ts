@@ -3,9 +3,8 @@ import { PublicStruct } from './public-struct'
 import {
 
     $$state,
-    applySubState,
     applyState,
-    getDeepState as getState,
+    getDeepState,
     State,
 
 } from '../state'
@@ -31,16 +30,16 @@ test(`${PublicStruct.name}`, () => {
         readonly b = v1
     }
 
-    const le1 = edge.applyIn('b', { y: 10 })
+    const le1 = edge.set('b', { y: 10 })
 
-    const le2 = edge.applyIn('b', 'y', 10)
+    const le2 = edge.set('b', 'y', 10)
 
-    expect(getState(le1)).toEqual({
+    expect(getDeepState(le1)).toEqual({
         a: { x: 0, y: 0 },
         b: { x: 0, y: 10 } 
     })
 
-    expect(getState(le1)).toEqual(getState(le2))
+    expect(getDeepState(le1)).toEqual(getDeepState(le2))
 
     expect(le1).not.toBe(edge)  
 })
@@ -79,35 +78,37 @@ describe('applyState deep keys', () => {
     it('allows deep setting of a state via a path', () => {
 
         const blue = applyState(black, { blue: { value: 255 } })
-        expect(getState(blue)).toEqual({
+        expect(getDeepState(blue)).toEqual({
             red: { value: 0 },
             green: { value: 0 },
             blue: { value: 255 },
         })
 
-        const red = applySubState(black, 'red', { value: 255 })
-        expect(getState(red)).toEqual({
+        const red = applyState(black, 'red', { value: 255 })
+
+        expect(getDeepState(red)).toEqual({
             red: { value: 255 },
             green: { value: 0 },
             blue: { value: 0 },
         })
 
-        const green = applySubState(black, 'green', 'value', 255)
-        expect(getState(green)).toEqual({
+        const green = applyState(black, 'green', 'value', 255)
+        expect(getDeepState(green)).toEqual({
             red: { value: 0 },
             green: { value: 255 },
             blue: { value: 0 },
         })
+
     })
 
     it('paths are typesafe', () => {
         try {
 
             // @ts-expect-error Bad path
-            void applySubState(black, 'green', 255)
+            void applyState(black, 'green', 255)
 
             // @ts-expect-error Bad value
-            void applySubState(black, 'red', 'value', { value: 1000 })
+            void applyState(black, 'red', 'value', { value: 1000 })
 
         } catch {} 
     })
@@ -135,12 +136,12 @@ describe('scalar state', () => {
 
         const zero = new Scalar(0)
 
-        const zeroState = getState(zero)
+        const zeroState = getDeepState(zero)
         expect(zeroState).toEqual(0)
         expect({ ...zero }).toEqual({ value: 0 })
 
         const one = applyState(zero, 1)
-        expect(getState(one)).toEqual(1)
+        expect(getDeepState(one)).toEqual(1)
         expect({ ...one }).toEqual({ value: 1 })
 
     })
@@ -160,24 +161,24 @@ describe('scalar state', () => {
             max: number
         }>()
 
-        expectTypeOf(getState(scalars).description).toEqualTypeOf<string>()
-        expectTypeOf(getState(scalars).min).toEqualTypeOf<number>()
-        expectTypeOf(getState(scalars).max).toEqualTypeOf<number>()
-        expect(getState(scalars)).toEqual({ 
+        expectTypeOf(getDeepState(scalars).description).toEqualTypeOf<string>()
+        expectTypeOf(getDeepState(scalars).min).toEqualTypeOf<number>()
+        expectTypeOf(getDeepState(scalars).max).toEqualTypeOf<number>()
+        expect(getDeepState(scalars)).toEqual({
             min: 100,
             max: 150,
             description: 'a couple of scalar values'
         })
 
-        const scalarAbbrev1 = applySubState(scalars, 'description', 'short')
-        expect(getState(scalarAbbrev1)).toEqual({ 
+        const scalarAbbrev1 = applyState(scalars, 'description', 'short')
+        expect(getDeepState(scalarAbbrev1)).toEqual({ 
             min: 100,
             max: 150,
             description: 'short'
         })
 
         const scalarAbbrev2 = applyState(scalars, { description: 'and sweet' })
-        expect(getState(scalarAbbrev2)).toEqual({ 
+        expect(getDeepState(scalarAbbrev2)).toEqual({ 
             min: 100,
             max: 150,
             description: 'and sweet'
