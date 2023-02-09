@@ -1,4 +1,4 @@
 
-// export * from './mutator' 
-export * from './type'
-export * from './value'
+export * from './instances'
+
+export * from './values'

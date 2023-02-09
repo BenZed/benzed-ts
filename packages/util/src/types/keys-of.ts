@@ -3,7 +3,7 @@ import { Property } from '../property'
 import defined from './defined'
 
 import { isBoolean, isInteger, isNumber } from './primitive'
-import { isObject } from './guards'
+import { isRecord } from './guards'
 import { ToNumber } from './types'
 
 //// Helper ////
@@ -16,27 +16,27 @@ const count = (iterator: Iterator<unknown>): number => {
     return count
 }
 
-//// KeysOf ////
+//// NamesOf ////
 
-export type KeysOf<T> = Extract<keyof T, string>
+export type NamesOf<T> = Extract<keyof T, string>
 
-export type KeysOfType<T,V> = keyof {
+export type NamesOfType<T,V> = keyof {
     [K in keyof T as T[K] extends V ? K : never]: never
 } extends infer Tk extends keyof T ? Tk : never
 
 /**
  * Iteration of enumerable string keys on any number of objects
  */
-export function * keysOf<T extends object[] | readonly object[]> (
+export function * namesOf<T extends object[] | readonly object[]> (
     ...objects: T
-): Generator<KeysOf<T[number]>> {
+): Generator<NamesOf<T[number]>> {
 
     const keys: Set<string> = new Set()
 
     for (const object of objects) {
     
         for (const string in object) {
-            const key = string as KeysOf<T[number]>
+            const key = string as NamesOf<T[number]>
             if (keys.has(key))
                 continue 
             else {
@@ -46,7 +46,7 @@ export function * keysOf<T extends object[] | readonly object[]> (
         }
     }
 }
-keysOf.count = (...objects: object[]): number => count(keysOf(...objects))
+namesOf.count = (...objects: object[]): number => count(namesOf(...objects))
 
 //// SymbolsOf ////
 
@@ -78,6 +78,19 @@ export function * symbolsOf<T extends object[] | readonly object[]> (
     }
 }
 symbolsOf.count = (...objects: object[]): number => count(symbolsOf(...objects))
+
+//// Keys Of ////
+
+/**
+ * Iteration of enumerable symbol keys on any number of objects
+ */
+export function * keysOf<T extends object[] | readonly object[]> (
+    ...objects: T
+): Generator<keyof T[number]> {
+    yield* namesOf(...objects)
+    yield* symbolsOf(...objects)
+}
+keysOf.count = (...objects: object[]): number => count(keysOf(...objects))
 
 //// IndexesOf ////
 
@@ -153,7 +166,7 @@ indexesOf.fromTuple = <T extends unknown[] | readonly unknown[]>(...array: T): I
 indexesOf.options = (...options: IndexesOfOptionsSignature): IndexesOfOptions => {
 
     let option: Partial<IndexesOfOptions>
-    if (isObject<Partial<IndexesOfOptions>>(options[0])) 
+    if (isRecord(options[0])) 
         option = options[0]
     else {
         const args = options as (number | boolean)[]

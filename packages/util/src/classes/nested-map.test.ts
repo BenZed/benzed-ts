@@ -1,4 +1,4 @@
-import { isArray, isNumber, isObject, nil } from '../types'
+import { isArray, isNumber, isRecord, nil } from '../types'
 import { NestedMap } from './nested-map'
 
 ////  ////
@@ -45,7 +45,7 @@ it('keys', () => {
 
 it('values', () => {
     expect(Array.from(ref.values())).toHaveLength(ref.size)
-    expect(Array.from(ref.values()).every(isObject)).toBe(true)
+    expect(Array.from(ref.values()).every(isRecord)).toBe(true)
 })
 
 it('entries', () => {

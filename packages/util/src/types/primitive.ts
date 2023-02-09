@@ -1,15 +1,19 @@
-import { TypeGuard, TypesOf } from './func'
+import { TypeGuard } from './func'
 import { isNil } from './nil'
 
 //// Basic ////
 
-export const isString = <S extends string = string>(i: unknown): i is S => typeof i === 'string'
+export const isString = (i: unknown): i is string => 
+    typeof i === 'string'
 
-export const isNumber = <N extends number = number>(i: unknown): i is N => typeof i === 'number' && !isNaN(i)
+export const isNumber =(i: unknown): i is number => 
+    typeof i === 'number' && !isNaN(i)
 
-export const isBoolean = <B extends boolean = boolean>(i: unknown): i is B => typeof i === 'boolean'
+export const isBoolean = (i: unknown): i is boolean =>
+    typeof i === 'boolean'
 
-export const isBigInt = <N extends bigint = bigint>(i: unknown): i is N => typeof i === 'bigint'
+export const isBigInt =(i: unknown): i is bigint => 
+    typeof i === 'bigint'
 
 //// Falsy ////
 
@@ -25,18 +29,15 @@ export const isTruthy = (input: unknown): input is Truthy => !!input
 
 export type Primitive = string | number | boolean | bigint | symbol | null | undefined 
 export const isPrimitive = (i: unknown): i is Primitive => 
-    isBoolean(i) || 
-    isString(i) || 
-    isNumber(i) || 
-    isBigInt(i) || 
+    isBoolean(i) ||
+    isString(i) ||
+    isNumber(i) ||
+    isBigInt(i) ||
     isSymbol(i) ||
     isNil(i)
 
-export const isEnum = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
-    (i: unknown): i is T[number] => values.some(value => value === i)
-
-export const isOneOf = <T extends TypeGuard<unknown>[]>(...types: T): TypeGuard<TypesOf<T>[number]> =>
-    (i: unknown): i is TypesOf<T>[number] => types.some(type => type(i))
+export const isEqual = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
+    (i: unknown): i is T[number] => values.some(value => Object.is(i, value))
 
 //// Symbol ////
     

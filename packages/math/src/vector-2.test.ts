@@ -1,5 +1,6 @@
 
 import V2 from './vector-2'
+import { it, expect, describe } from '@jest/globals'
 
 describe('V2', () => {
     //

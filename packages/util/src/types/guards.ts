@@ -1,63 +1,68 @@
 import { indexesOf, keysOf } from '../types/keys-of'
 import { isBigInt, isBoolean, isNumber, isString } from './primitive'
-import { Func, isFunc, TypeGuard, TypeOf } from './func'
-import { Json, JsonArray, JsonRecord, JsonPrimitive } from './types'
+import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
+import { Json, JsonArray, JsonRecord, JsonPrimitive, GenericObject } from './types'
 import { Sortable } from '../sort'
 import { nil } from './nil'
+import { Intersect } from './merge'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any
+*/
 
 //// These are here instead of `is` to resolve conflicting dependencies ////
 
-export const isObject = <T extends object = object>(
-    i: unknown
-): i is T => typeof i === 'object' && i !== null
+export const isArray = <T = unknown>(i: unknown): i is T[] => Array.isArray(i)
 
-export const isArray = <T = unknown>(
-    i: unknown, 
-    ofType?: TypeGuard<T>
-): i is T[] => 
-    Array.isArray(i) && (!ofType || i.every(ofType))
+export const isArrayOf = <T>(type: TypeGuard<T>): TypeGuard<T[]> =>  
+    (i: unknown): i is T[] => isArray(i) && i.every(type)
 
-export const isArrayLike = <T = unknown>(
-    i: unknown, 
-    ofType?: TypeGuard<T>
-): i is ArrayLike<T> => {
+export const isArrayLike = <T = unknown>(i: unknown): i is ArrayLike<T> => {
 
     if (isString(i))
-        return !ofType || i.split('').every(ofType) // <- lol
+        return true
     
-    if (!isObject<ArrayLike<unknown>>(i))
+    if (!isRecord(i))
         return false 
 
     if (!isNumber(i.length))
         return false 
 
-    if (ofType) {
-        for (const index of indexesOf(i)) {
-            if (!ofType(i[index]))
-                return false
-        }
-    } 
-                
     return true
 }
 
-export const isRecord = <K extends string | number | symbol, V = unknown>(
-    i: unknown, 
-    ofType?: TypeGuard<V>
-): i is Record<K,V> => {
+export const isArrayLikeOf = <T>(type: TypeGuard<T>): TypeGuard<ArrayLike<T>> => (i: unknown): i is ArrayLike<T> => {
 
-    if (!isObject<Record<K,V>>(i))
-        return false 
+    if (!isArrayLike(i)) 
+        return false
 
-    if (ofType) {
-        for (const key of keysOf(i)) {
-            if (!ofType(i[key]))
-                return false
-        }
+    for (const index of indexesOf(i)) {
+        if (!type(i[index]))
+            return false
     }
 
     return true
 }
+
+export const isRecord = <K extends string | number | symbol, V = unknown>(i: unknown): i is Record<K,V> => 
+    typeof i === 'object' && i !== null
+
+export const isGenericObject: (i: unknown) => i is GenericObject = isRecord
+
+// TODO add key type guard
+export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard<V>): TypeGuard<Record<K, V>> =>  
+    (i: unknown): i is Record<K, V> => {
+        if (!isRecord(i))
+            return false
+
+        for (const key of keysOf(i)) {
+            if (!type(i[key]))
+                return false
+        }
+
+        return true
+    }
 
 export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
@@ -65,31 +70,24 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
     return isString(input) ||
 
-        (
-            isObject<SymbolIterator>(input) || 
-            isFunc<Func & SymbolIterator>(input)
-        ) && 
+        isObject<SymbolIterator>(input) && 
         
         isFunc(input[Symbol.iterator])
 }
 
+export const isObject = <T extends object = object>(input: unknown): input is T => 
+    isRecord(input) || isFunc(input)
+
 export const isPromise = <T>(input: unknown): input is Promise<T> => 
     input instanceof Promise
 
-export const isAsync = isPromise
+export const isAsync = isPromise //
 
-//// Optional ////
-    
-export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
-    (i: unknown): i is T | nil => i === nil || type(i)
-
-//// Misc ////
-
-export const isUnknown = (input: unknown): input is unknown => true
+export const isUnknown = (input: unknown): input is unknown => void input ?? true
 
 export const isSortable = <T extends Sortable>(input: unknown): input is T => {
 
-    if (isObject(input)) {
+    if (isRecord(input)) {
         input = 'length' in input && isNumber(input.length)
             ? input.length 
             : input.valueOf()
@@ -111,9 +109,17 @@ export type ShapeOutput<T extends ShapeInput> = {
     [K in keyof T]: TypeOf<T[K]>
 }
 export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T>> => 
-    (input: unknown): input is ShapeOutput<T> => 
-        isObject<ShapeOutput<T>>(shape) && 
-        Object.entries(shape).every(([key, value]) => shape[key](value))
+    (input: unknown): input is ShapeOutput<T> => {
+        if (!isObject(input))
+            return false 
+
+        for (const key of keysOf(shape)) {
+            if (!shape[key](input[key as keyof typeof input]))
+                return false
+        } 
+
+        return true
+    }
 
 export type TupleInput = TypeGuard<unknown>[]
 export type TupleOuput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
@@ -124,19 +130,36 @@ export type TupleOuput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
         : []
     : []
 
+export const isTuple = <T extends TupleInput>(...types: T): TypeGuard<TupleOuput<T>> => 
+    (input: unknown): input is TupleOuput<T> => 
+        isArray(input) &&
+        input.length === types.length &&
+        types.every((type, i) => type(input[i]))
+
+export const isUnion = <T extends AnyTypeGuard[]>(...types: T): TypeGuard<TypesOf<T>[number]> =>
+    (i: unknown): i is TypesOf<T>[number] => types.some(type => type(i))
+
+export const isIntersection = <T extends AnyTypeGuard[]>(...types: T): TypeGuard<Intersect<TypesOf<T>>> =>
+    (i: unknown): i is Intersect<TypesOf<T>> => types.every(type => type(i))
+
+export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
+    (i: unknown): i is T | nil => i === nil || type(i)
+
 //// Json ////
 
 export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
     isString(input) || isNumber(input) || isBoolean(input) || input === null
 
 export const isJsonObject = (input: unknown): input is JsonRecord => 
-    isRecord(input, isJson)
+    isRecordOf(isJson)(input)
 
 export const isJsonArray = (input: unknown): input is JsonArray => 
-    isArray(input, isJson)
+    isArrayOf(isJson)(input)
 
 export const isJson = (input: unknown): input is Json => 
-    isJsonPrimitive(input) || isJsonArray(input) || isJsonObject(input)
+    isJsonPrimitive(input) ||
+    isJsonArray(input) ||
+    isJsonObject(input)
 
 isJson.Array = isJsonArray
 isJson.Object = isJsonObject

@@ -1,6 +1,4 @@
 
-// TODO clean this up
-
 import adjacent from './adjacent'
 import shuffle from './shuffle'
 import unique from './unique'
@@ -32,7 +30,7 @@ export {
     first,
     last,
     wrap,
-    unwrap,
+    unwrap
 
 }
 

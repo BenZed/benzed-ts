@@ -1,4 +1,4 @@
-import { isEnum, isNumber, isOptional, isString, nil } from '../types'
+import { isEqual, isNumber, isOptional, isString, nil } from '../types'
 import SignatureParser from './signature-parser'
 
 import { test, describe, expect } from '@jest/globals'
@@ -58,7 +58,7 @@ describe('basic example', () => {
         const toRangeSettings = new SignatureParser({
             min: isNumber,
             max: isNumber,
-            comparator: isOptional(isEnum('>', '>=', '<', '<=')),
+            comparator: isOptional(isEqual('>', '>=', '<', '<=')),
             error: isOptional(isString)
         })
             .addLayout('min', 'comparator', 'max', 'error')
@@ -73,7 +73,7 @@ describe('basic example', () => {
 
         const toCompareSettings = new SignatureParser({
             value: isNumber,
-            comparator: isEnum('>', '>=', '<', '<='),
+            comparator: isEqual('>', '>=', '<', '<='),
             error: isOptional(isString)
         })
             .setDefaults({ error: 'Not in range.'})

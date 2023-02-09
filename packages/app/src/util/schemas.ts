@@ -1,5 +1,5 @@
 import $, { SchemaFor, Schematic } from '@benzed/schema'
-import { isFunc, isObject } from '@benzed/util'
+import { isFunc, isRecord } from '@benzed/util'
 
 import { path } from './types'
 
@@ -12,7 +12,7 @@ type ShapeSchemaInput<T extends object> = {
 export type SchemaHook<T extends object = object> = Schematic<T> | ShapeSchemaInput<T>
 
 export const isSchematic = <T extends object> (input: unknown): input is SchemaHook<T> => 
-    isObject<Partial<Schematic<T>>>(input) && 
+    isRecord<Partial<Schematic<T>>>(input) && 
     isFunc(input.validate) && 
     isFunc(input.assert) && 
     isFunc(input.is)

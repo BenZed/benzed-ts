@@ -1,42 +1,56 @@
 {
-	// Place your benzed-ts workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
-	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
-	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
-	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
-	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
-	// Placeholders with the same ids are connected.
-	// Example:
-	"New Type Schema": {
+
+	"Begin Validation Test": {
 		"scope": "javascript,typescript",
-		"prefix": "new-type-schema-file",
-		"description": "Log output to console",
+		"prefix": "t-v",
 		"body": [
-			"import IsType from './is-type'",
+			"describe(`\\${$1.name} validator tests`, () => {",
 			"",
-			"//// Types ////",
+			"    testValidator(",
+			"        $1,",
+			"        $0",
+			"    )",
 			"",
-			"export type ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}Input = ${1:unknown}",
+			"})"
+		],
+	},
+
+	"Validation Contract Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v-c",
+		"body": [
+			"describe(`\\${$1.name} validator contract tests`, () => {",
 			"",
-			"//// Exports ////",
+			"    testValidationContract(",
+			"        $1,",
+			"        {",
+			"         validInput: $2,",
+			"         invalidInput: $3,",
+			"         transforms: { invalidInput: $4, validOutput: $5 },",
+			"        }",
+			"    )",
 			"",
-			"class ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}<T extends ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}Input> extends IsType<${1:unknown}> {",
-			"",
-			"    constructor(input: T) {",
-			"        super({",
-			"            type: '${1:unknown}',",
-			"            is: (i: unknown): i is ${1:unknown} => ${2:false}",
-			"        })",
-			"    }",
-			"",
-			"}",
-			"",
-			"//// Exports ////",
-			"",
-			"export default ${TM_FILENAME_BASE/(.+)/${1:/pascalcase}/}",
-			"",
-			"export {",
-			"    ${TM_FILENAME_BASE/(.+)/${1:/pascalcase}/}",
-			"}"
+			"})",
+			"$0"
+		],
+	},
+
+	"Validation Transform Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v-t",
+		"body": [
+			"{ transforms: $1 },",
+			"$0"
+		],
+	},
+
+	"Validation Assert Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v-a",
+		"body": [
+			"{ asserts: $1 },",
+			"$0"
 		],
 	}
+
 }

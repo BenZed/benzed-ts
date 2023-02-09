@@ -1,6 +1,5 @@
 import { random, round, floor, ceil } from './overrides'
-
-/* global describe it */
+import { it, expect, describe } from '@jest/globals'
 
 describe('overridden methods', () => {
 

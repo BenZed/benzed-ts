@@ -4,8 +4,8 @@ import {
     Compile, 
     GenericObject, 
     indexesOf, 
-    isObject, 
-    KeysOf, 
+    isRecord, 
+    NamesOf, 
     Merge, 
     nil,
     TypeGuard
@@ -19,11 +19,11 @@ import {
 //// Helper Types ////
 
 type _RequiredValues<T> = {
-    [K in KeysOf<T> as nil extends T[K] ? never : K]: T[K]
+    [K in NamesOf<T> as nil extends T[K] ? never : K]: T[K]
 }
 
 type _OptionalValues<T> = {
-    [K in KeysOf<T> as nil extends T[K] ? K : never]?: T[K]
+    [K in NamesOf<T> as nil extends T[K] ? K : never]?: T[K]
 }
 
 type _NilToOptional<T> = T extends [infer T1] 
@@ -36,7 +36,7 @@ type _EveryValueIsOptional<T> = keyof _RequiredValues<T> extends never
 
 type _LayoutToSignature<T extends GenericObject, L extends Layout<T>> =
     L extends [infer L1, ...infer Lr]
-        ? L1 extends KeysOf<T> 
+        ? L1 extends NamesOf<T> 
             ? Lr extends Layout<T> 
                 ? [..._NilToOptional<[T[L1]]>, ..._LayoutToSignature<T, Lr>]
                 : [..._NilToOptional<[T[L1]]>]
@@ -56,7 +56,7 @@ type Types<T extends GenericObject> = {
     [K in keyof T]: TypeGuard<T[K]>
 }
 
-type Layout<T extends GenericObject> = KeysOf<T>[]
+type Layout<T extends GenericObject> = NamesOf<T>[]
 
 type Defaults<T extends GenericObject> = _OptionalValues<T>
 
@@ -93,7 +93,7 @@ class SignatureParser<
             //                                       the first arg may be an 
             //                                       result object itself
 
-            const outputWithDefaults = isObject(output)
+            const outputWithDefaults = isRecord(output)
                 ? { ...this.defaults, ...output }
                 : nil
 
@@ -119,12 +119,12 @@ class SignatureParser<
     isSignature(input: unknown[]): input is Signature<T,L> {
         return (
             !!this._parseEachLayout(input as Signature<T,L>) ||
-            isObject(input[0]) && this.isResult({ ...this.defaults, ...input[0] })
+            isRecord(input[0]) && this.isResult({ ...this.defaults, ...input[0] })
         )
     }
 
     isResult(input: unknown): input is Result<T, D> {
-        return isObject(input) && Object
+        return isRecord(input) && Object
             .entries(input)
             .every(([key, value]) => key in this.types && this.types[key](value))
     }

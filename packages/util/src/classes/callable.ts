@@ -1,11 +1,12 @@
 
 import { Property } from '../property'
-import { Func, Infer, isFunc, isObject } from '../types'
-import PrivateState from './private-state'
+import { Func, Infer, isFunc, isRecord, isShape, TypeGuard } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
+
+const $$callable = Symbol('callable-data')
 
 //// Helper Types ////
 
@@ -21,6 +22,26 @@ type _RemoveSignature<T> = T extends Func
 type CallableConstructor = abstract new <F extends Func>(f: F, provider?: CallableContextProvider<F>) => F
 
 type CallableObject<F extends Func, T> = Infer<F & _RemoveSignature<T>>
+
+type CallableData = {
+    signature: Func
+    template: object
+    ctxProvider: CallableContextProvider<Func>
+}
+
+//// Helpers ////
+
+const isCallableData: TypeGuard<CallableData> = isShape({
+    signature: isFunc,
+    template: isRecord,
+    ctxProvider: isFunc
+})
+
+const hasCallableData = <F extends Func>(
+    input: F
+): input is F & { [$$callable]: CallableData} => 
+    $$callable in input && 
+    isCallableData(input[$$callable])
 
 interface Callable extends CallableConstructor {
 
@@ -57,11 +78,14 @@ interface CallableContextProvider<F extends Func, T = ThisType<F>> {
 
 //// Default Context Providers ////
 
-const provideDynamicContext: CallableContextProvider<Func> = (ctx, callable) => ctx ?? callable
+const provideDynamicContext: CallableContextProvider<Func> = 
+    (ctx, callable) => ctx ?? callable
 
-const provideCallableContext: CallableContextProvider<Func> = (_, callable) => callable
+const provideCallableContext: CallableContextProvider<Func> = 
+    (_, callable) => callable
 
-const provideTupleContext = (ctx: unknown, callable: Func): unknown => [ctx, callable]
+const provideTupleContext = (ctx: unknown, callable: Func): unknown => 
+    [ctx, callable]
 
 //// Main ////
 
@@ -70,18 +94,25 @@ const provideTupleContext = (ctx: unknown, callable: Func): unknown => [ctx, cal
  */
 const Callable = class {
 
+    private static _callableDataOf(callable: Func): CallableData {
+        if (!hasCallableData(callable))
+            throw new Error(`${callable} does not have callable data.`)
+
+        return callable[$$callable]
+    }
+
     static signatureOf(callable: Func): Func {
-        const { signature } = signatures.get(callable)
+        const { signature } = this._callableDataOf(callable)
         return signature
     }
 
     static contextProviderOf(callable: Func): CallableContextProvider<Func> {
-        const { ctxProvider } = signatures.get(callable)
+        const { ctxProvider } = this._callableDataOf(callable)
         return ctxProvider
     }
 
     static templateOf(callable: Func): object {
-        const { template } = signatures.get(callable)
+        const { template } = this._callableDataOf(callable)
         return template
     }
 
@@ -95,13 +126,8 @@ const Callable = class {
             throw new Error('Signature must be a function.')
 
         const signatureProperties = signature
-        if (signature instanceof Callable) 
-            signature = signatures.get(signature).signature
-
-        // Resolve signature if nesting callables
-        signature = signatures.has(signature)
-            ? signatures.get(signature).signature
-            : signature
+        while (hasCallableData(signature)) 
+            signature = signature[$$callable].signature
 
         const isContextual = 'prototype' in signature
 
@@ -113,12 +139,18 @@ const Callable = class {
             : (...args: unknown[]) => signature(...args)
 
         Property.transpose(signatureProperties, callable, [Object.prototype, Function.prototype])
+        Property.configure(callable, 'name', {
+            writable: true,
+            configurable: true
+        })
         Property.transpose(template, callable, [Object.prototype, Function.prototype])
-
-        signatures.set(callable, { 
-            signature,
-            ctxProvider,
-            template,
+        Property.define(callable, $$callable, {
+            value: {
+                signature,
+                template,
+                ctxProvider
+            } satisfies CallableData,
+            configurable: true
         })
 
         return callable
@@ -126,7 +158,7 @@ const Callable = class {
 
     static [Symbol.hasInstance](instance: unknown): boolean {
 
-        if (!(isFunc(instance) || isObject(instance)) || !isFunc(instance?.constructor))
+        if (!(isFunc(instance) || isRecord(instance)) || !isFunc(instance?.constructor))
             return false 
 
         if (Object.is(instance.constructor, this))
@@ -144,14 +176,6 @@ const Callable = class {
 
 } as Callable
 
-//// State ////
-
-const signatures = PrivateState.for<Func, { 
-    signature: Func
-    ctxProvider: CallableContextProvider<Func>
-    template: object 
-}>(Callable)
-
 //// Exports ////
 
 export default Callable
@@ -162,5 +186,6 @@ export {
     CallableContextProvider,
 
     provideCallableContext,
-    provideDynamicContext
+    provideDynamicContext,
+    provideTupleContext
 }
