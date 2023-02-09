@@ -26,9 +26,9 @@ export abstract class DataStruct extends Struct {
 
         const state = {} as DataState<this>
 
-        for (const key of namesOf(this)) {
-            if (!isFunc(this[key]))
-                (state as any)[key] = this[key]
+        for (const name of namesOf(this)) {
+            if (!isFunc(this[name]))
+                (state as any)[name] = this[name]
         }
 
         return state
