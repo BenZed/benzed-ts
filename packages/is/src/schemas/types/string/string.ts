@@ -3,7 +3,7 @@ import { Schema, SchemaConstructor } from '@benzed/schema'
 
 import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
 
-import { ConfigurableTypeValidator } from '../type'
+import { ConfigurableTypeValidator } from '../../../validators'
 
 import {
     Camel,

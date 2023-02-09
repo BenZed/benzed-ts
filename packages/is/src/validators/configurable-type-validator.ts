@@ -5,7 +5,7 @@ import { pick } from '@benzed/util'
 
 export abstract class ConfigurableTypeValidator<T> extends TypeValidator<T> {
 
-    override name: string 
+    override name: string
 
     constructor() {
         super()

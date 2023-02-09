@@ -1,6 +1,6 @@
 import { Schema } from '@benzed/schema/src'
 import { isBoolean as isBoolean, isNil } from '@benzed/util'
-import { ConfigurableTypeValidator } from './type'
+import { ConfigurableTypeValidator } from '../../validators/configurable-type-validator'
 
 /* eslint-disable 
     @typescript-eslint/ban-types

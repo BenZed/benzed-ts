@@ -167,9 +167,6 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
         return applyArrayState(this, ArrayMethods.copyWithin, copyWithin)
     }
 
-    /**
-     * Retrieve a new reversed array struct with concat arguments applied
-     */
     join(...join: ArrayParams<T, 'join'>): string {
         return ArrayMethods.join.apply(this, join)
     }
@@ -193,6 +190,7 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     // TODO keys
     // TODO lastIndexOf
 
+    // TODO custom: unique, random, pluck
     toArray(): T[] {
         return [...this]
     }

@@ -3,7 +3,7 @@ import { isNumber, isString } from '@benzed/util'
 
 //// EsLint ////
 
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/ban-types
 */
 
