@@ -19,7 +19,7 @@ const $$equals = Symbol('==')
 //// Types ////
 
 interface Comparable {
-    [$$equals]: (right: unknown) => right is this
+    [$$equals](right: unknown): right is this
 }
 
 const isComparable: (input: unknown) => input is Comparable = 

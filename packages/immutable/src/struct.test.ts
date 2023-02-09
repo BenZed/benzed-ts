@@ -723,6 +723,6 @@ describe('isStructural', () => {
         class TwinTurbo extends Struct {
             readonly turbos: number = 2
         }
-        expect(Struct.is(new TwinTurbo())).toBe(true)
+        expect(Struct.is(new TwinTurbo())).toBe(true)  
     })
 })
