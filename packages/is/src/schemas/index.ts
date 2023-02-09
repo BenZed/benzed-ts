@@ -1,2 +1,4 @@
-export * from './type-of'
-export * from './type'
+
+export * from './instances'
+
+export * from './values'

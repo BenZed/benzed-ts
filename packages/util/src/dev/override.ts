@@ -1,9 +1,9 @@
 import { Resolver } from '../classes'
-import { Func, KeysOfType } from '../types'
+import { Func, NamesOfType } from '../types'
 
 //// Types ////
 
-type Override<T extends object, K extends KeysOfType<T, Func>> = K extends keyof T 
+type Override<T extends object, K extends NamesOfType<T, Func>> = K extends keyof T 
     ? T[K] extends Func 
         ? (original: T[K], ...args: Parameters<T[K]>) => ReturnType<T[K]>
         : Func
@@ -24,7 +24,7 @@ interface OverrideAction {
  * 
  * @returns A function 
  */
-export function override<T extends object, K extends KeysOfType<T, Func>>(
+export function override<T extends object, K extends NamesOfType<T, Func>>(
     object: T, 
     key: K, 
     override: Override<T, K>

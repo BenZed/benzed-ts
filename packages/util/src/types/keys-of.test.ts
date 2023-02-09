@@ -1,6 +1,6 @@
-import { IndexesOf, indexesOf, KeysOf, keysOf, symbolsOf } from './keys-of'
+import { IndexesOf, indexesOf, NamesOf, keysOf, symbolsOf } from './keys-of'
 import { expectTypeOf } from 'expect-type'
-import { property } from '../property'
+import { Property } from '../property'
 
 describe('keysOf', () => {
 
@@ -26,7 +26,7 @@ describe('keysOf', () => {
 
     it('skips non-enumerable string keys', () => {
         const record2 = { ...record }
-        property.value(record2, 'hidden', true)
+        Property.value(record2, 'hidden', true)
 
         expect([...keysOf(record2)]).toEqual(['a', 'b' , 'c'])
     })
@@ -35,8 +35,8 @@ describe('keysOf', () => {
         expect(keysOf.count(record)).toEqual(3)
     })
 
-    it('KeysOf', () => {
-        type RecordKeys = KeysOf<typeof record>
+    it('NamesOf', () => {
+        type RecordKeys = NamesOf<typeof record>
         expectTypeOf<RecordKeys>().toEqualTypeOf<'a' | 'b' | 'c'>()
     })
 })
@@ -56,7 +56,7 @@ describe('symbolsOf', () => {
     })
 
     it('skips non-enumerable symbols', () => {
-        const fancy1 = property.value({...fancy}, Symbol('non-enumerable-symbol'), true)
+        const fancy1 = Property.value({...fancy}, Symbol('non-enumerable-symbol'), true)
         expect([...symbolsOf(fancy1)]).toEqual([$$case])
     })
 
@@ -156,7 +156,5 @@ describe('indexesOf', () => {
             expect([...indexesOf(arr, { reverse: true, start: 1, end: -2, step: 2 })])
                 .toEqual([4,2])
         })
-
     })
-
 })

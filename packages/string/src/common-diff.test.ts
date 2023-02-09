@@ -1,5 +1,6 @@
 
 import { commonDiff } from './common-diff'
+import { it, expect } from '@jest/globals'
 
 it('splits an array of strings into their commons and differences', () => {
 

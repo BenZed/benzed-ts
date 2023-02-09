@@ -1,93 +1,112 @@
-import { isPrimitive, isString } from '@benzed/util'
-import { pluck } from '@benzed/array'
+import { ansi, isPrimitive, keysOf } from '@benzed/util'
+import { it } from '@jest/globals'
 
-import { AnyValidate, ValidateInput, ValidateOutput } from './validator'
-import { ValidationError } from './validator/validate-error'
+import { Validate } from './validate'
 
-import { expect, describe, it } from '@jest/globals'
-import { valid } from 'semver'
+import {
+    ValidationTest,
+    ValidationTestResult,
+    ValidationContractViolation,
+    ValidatorContractTestSettings,
+    runValidationContractTests, 
+    runValidationTest
+} from './validation-test'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+//// Helper////
 
-//// Types ////
+class FailedValidationTestError extends Error {
+    constructor(
+        reason: string,
+        readonly result: Pick<ValidationTestResult<unknown,unknown>, 'error' | 'output'>
+    ) {
 
-type ValidationTest<V extends AnyValidate> =
-    ({ 
-        input: ValidateInput<V>
-        transform?: boolean 
-    } & ({ 
-        output: ValidateOutput<V>
-    } | { 
-        error: string 
-    }))
+        const lines: string[] = [
+            ansi('Validation test failed', 'red'),
+            'reason: ' + ansi(reason, 'yellow'),
+            'error' in result 
+                ? 'validation error: ' + ansi(result.error?.message ?? '', 'yellow')
+                : 'validation output: ' + print(result.output)
+        ]
 
-//// Helper ////
+        super(lines.join('\n'))
+    }
+}
 
+class ValidationContractViolationError extends Error {
+    constructor(
+        readonly violation: ValidationContractViolation,
+    ) {
+        super(violation)
+    }
+}
+
+// Pretty-print method for making the title readable
 const print = (input: unknown):string => isPrimitive(input) 
     ? String(input) 
     : JSON.stringify(input)
 
-function runTests<V extends AnyValidate>(validator: V, ...tests: ValidationTest<V>[]): void {
-    for (const test of tests ) {
-        const isOutput = 'output' in test 
+//// Implementations ////
 
-        const inputStr = print(test.input)
-        const outputStr = isOutput 
-            ? `${print(test.output)}`
-            : `"${test.error}"`   
+/**
+ * Test that a validator provides an expected result with the given input and options.
+ */
+export function testValidator<I,O extends I>(
+    validate: Validate<I,O>,
+    ...tests: ValidationTest<I,O>[]
 
-        const { transform = true } = test
+): void {
 
-        const title = validator.name + 
-            ` ${transform ? 'transform' : 'assert'}` + 
-            ` ${inputStr} ${isOutput ? '->' : 'throws'} ${outputStr}`
+    for (const test of tests) {
 
-        it(title, () => {
+        // prepare test
+        const applyTransforms = 'transforms' in test 
+        const expectingError = 'error' in test
+        const expectOutputDifferentFromInput = 'output' in test && applyTransforms
 
-            let validated: any
-        
-            try {
-                validated = validator(test.input, { transform })
-            } catch (e) {
-                validated = e
+        const input = applyTransforms ? test.transforms : test.asserts
+
+        const testTitle = 
+            `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
+            (expectingError  
+                ? ' is invalid' + (test.error === true ? '' : ` "${test.error}"`)
+                : expectOutputDifferentFromInput 
+                    ? ` to ${print(test.output)}`
+                    : ' is valid'
+            )
+
+        // run test
+        it(testTitle, () => {
+            const { grade, output, error } = runValidationTest(validate, test)
+            if (!grade.pass) {
+                throw new FailedValidationTestError(
+                    grade.reason, 
+                    { output, error }
+                )
             }
-        
-            if (isOutput) 
-                expect(validated).toEqual(test.output)
-            else 
-                expect(validated?.message).toContain(test.error)
         })
     }
 }
 
-//// Exports ////
+/**
+ * Test that a validator fulfills all of the tenants 
+ * of the validation contract.
+ */
+export function testValidationContract<I, O extends I>(
+    validate: Validate<I,O>,
+    settings: ValidatorContractTestSettings<I,O>
+): void {
 
-export function expectValidationError(func: () => unknown): ReturnType<typeof expect> {
+    const results = runValidationContractTests(validate, settings)
 
-    let error: unknown
-    try {
-        func()
-    } catch (e) {
-        error = e
-    }
-
-    expect(error).toHaveProperty('name', ValidationError.name)
-    expect(error).toHaveProperty('path')
-
-    return expect(error)
-}
-
-export const testValidator = <V extends AnyValidate>(
-    validator: V, 
-    ...tests: [description: string, ...tests: ValidationTest<V>[]] | ValidationTest<V>[]
-): void => {
-
-    const [ description ] = pluck(tests, isString)
-    if (description) {
-        describe(description, () => {
-            runTests(validator, ...tests as ValidationTest<V>[])
+    for (const tenant of keysOf(ValidationContractViolation)) {
+        it(tenant, () => {
+            const violation = ValidationContractViolation[tenant]
+            if (results.violations.includes(violation)) 
+                throw new ValidationContractViolationError(violation)
+            
         })
-    } else 
-        runTests(validator, ...tests as ValidationTest<V>[])
+    }
 }
+
+//// Helper ////
 

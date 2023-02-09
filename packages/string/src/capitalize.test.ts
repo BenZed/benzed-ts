@@ -1,4 +1,5 @@
 import capitalize from './capitalize'
+import { test, expect } from '@jest/globals'
 
 for (const string of [
     'ace',

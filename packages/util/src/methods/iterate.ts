@@ -7,7 +7,7 @@ import {
     isIterable, 
     isRecord, 
     isPromise, 
-    keysOf, 
+    namesOf, 
     nil, 
     isNotNil, 
     symbolsOf 
@@ -30,7 +30,7 @@ function* generate<T>(...values: (Iter<T> | T)[]): Generator<T> {
                 yield value[index]
 
         } else if (isRecord(value)) {
-            for (const key of keysOf(value))
+            for (const key of namesOf(value))
                 yield value[key]
 
         } else 
@@ -104,7 +104,7 @@ function iterate(...values: unknown[]): unknown {
 
 //// Extend ////
 
-iterate.keys = keysOf
+iterate.keys = namesOf
 iterate.symbols = symbolsOf
 iterate.indexes = indexesOf
 

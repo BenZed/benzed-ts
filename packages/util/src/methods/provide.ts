@@ -1,5 +1,5 @@
 import { PrivateState } from '../classes'
-import { Func, isObject } from '../types'
+import { Func, isRecord } from '../types'
 
 import { memoize, Memoized } from './memoize'
 
@@ -43,7 +43,7 @@ function provide(...args: [Provider] | [unknown, Provider]): Func {
     }
 
     const [ ctx, provider ] = args
-    if (!isObject(ctx))
+    if (!isRecord(ctx))
         throw new Error('Providing by context requires the contex to be an object.')
 
     const memoProvider = getMemoizedProvider(provider, ctx)

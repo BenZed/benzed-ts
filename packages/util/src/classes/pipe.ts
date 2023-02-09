@@ -26,7 +26,7 @@ type InputOf<F extends Func> = F extends (input: infer I, ...params: any) => unk
 type OutputOf<F extends Func> = F extends (...params: any) => infer O ? O : unknown
 
 type ResolveAsyncOutput<I,O> = I extends Promise<any> 
-    ? Promise<Awaited<O>>
+    ? Promise<O>
     : O
 
 type AnyTransform = ParamTransform<unknown,unknown,unknown[]>
@@ -80,7 +80,7 @@ interface PipeConstructor {
     /** 
      * Create a pipe from a multiple transform methods with the same type as input and output.
      */
-    from<T>(...transforms: Transform<Awaited<T>,T>[]): Pipe<T,T>
+    from<T>(...transforms: Transform<T,T>[]): Pipe<T,T>
     from<I, O>(transform: Transform<Awaited<I>, O>): Pipe<I, O>
     from<I, O, P extends unknown[]>(transform: ParamTransform<Awaited<I>, O, P>): P extends [] 
         ? Pipe<I, O>

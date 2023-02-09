@@ -88,7 +88,6 @@ function pluck(
         count = -count
 
     for (
-
         let i = reverse ? input.length - 1 : 0;
 
         results.length < count && (
@@ -111,7 +110,6 @@ function pluck(
             results.push(value)
             indexes.unshift(i)
         }
-
     }
 
     const spliceInput = splice.bind(input)

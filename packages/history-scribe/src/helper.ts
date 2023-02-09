@@ -1,5 +1,5 @@
 import { resolveIndex as _resolveIndex } from '@benzed/array'
-import { defined, isDefined, isEmpty, isNumber, isObject, keysOf } from '@benzed/util'
+import { defined, isDefined, isEmpty, isNumber, isRecord, keysOf } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 
 import { HistoryEntry, HistoryMeta, HistoryMethods } from './types'
@@ -78,7 +78,7 @@ export function resolveHistoryMeta<I>(
     signatureOrMeta?: I | Partial<HistoryMeta<I>>
 ): HistoryMeta<I> {
 
-    const partialMeta = isObject(signatureOrMeta) &&
+    const partialMeta = isRecord(signatureOrMeta) &&
         ('signature' in signatureOrMeta || 'timestamp' in signatureOrMeta)
         ? signatureOrMeta
         : {

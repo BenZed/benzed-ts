@@ -3,27 +3,25 @@
 */
 
 export type TypeGuard<O extends I, I = unknown> = (input: I) => input is O
-type _TypeGuard = TypeGuard<unknown>
+export type AnyTypeGuard = TypeGuard<any, any>
 
 export type TypeAssertion<O extends I, I = unknown> = (input: I) => asserts input is O
-type _TypeAssertion = TypeAssertion<unknown>
+export type AnyTypeAssertion = TypeAssertion<any, any>
 
-export type TypeOf<F extends _TypeGuard | _TypeAssertion> = 
+type _AnyTypeMethod = AnyTypeGuard | AnyTypeAssertion
+export type TypeOf<F extends _AnyTypeMethod> = 
     F extends TypeGuard<infer T> | TypeAssertion<infer T> 
         ? T 
         : unknown 
 
-type _TypeMethod = _TypeGuard | _TypeAssertion
-
-type _TypeMethods = _TypeMethod[] | readonly _TypeMethod[]
-
-export type TypesOf<F extends _TypeMethods> = 
+type _AnyTypeMethods = _AnyTypeMethod[] | readonly _AnyTypeMethod[]
+export type TypesOf<F extends _AnyTypeMethods> = 
     F extends [infer F1, ...infer Fr]
-        ? F1 extends TypeGuard<infer T1> 
-            ? Fr extends _TypeMethods
+        ? F1 extends TypeGuard<infer T1, any> 
+            ? Fr extends _AnyTypeMethods
                 ? [T1, ...TypesOf<Fr>]
                 : [T1]
-            : Fr extends _TypeMethods
+            : Fr extends _AnyTypeMethods
                 ? TypesOf<Fr>
                 : []
         : []

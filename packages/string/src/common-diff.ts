@@ -1,5 +1,5 @@
 import match from '@benzed/match'
-import { isBoolean, isObject, isNumber } from '@benzed/util'
+import { isBoolean, isRecord, isNumber } from '@benzed/util'
 
 //// Constants ////
 
@@ -87,7 +87,7 @@ function* createDiffs(
 const matchOptions = match()
     .case(isBoolean, fromEnd => ({ fromEnd }))
     .case(isNumber, offset => ({ offset }))
-    .case(isObject, options => options)
+    .case(isRecord, options => options)
 
 //// Main ////
 

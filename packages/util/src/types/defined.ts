@@ -1,5 +1,5 @@
 import { isNil, nil } from './nil'
-import { keysOf } from './keys-of'
+import { namesOf } from './keys-of'
 
 //// Type ////
 
@@ -15,7 +15,7 @@ type Defined<T extends object> = {
  */
 function defined<T extends object>(input: T): Defined<T> {
     const output = {} as T
-    for (const key of keysOf(input)) {
+    for (const key of namesOf(input)) {
         if (input[key] !== nil)
             output[key] = input[key]
     }
