@@ -6,7 +6,7 @@ import {
     Mutable, 
 } from '@benzed/util'
 
-import type { Node } from '../node'
+import type { Node } from '.'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
