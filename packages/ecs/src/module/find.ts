@@ -1,8 +1,16 @@
 import { Callable, Func, isFunc, nil, Property, TypeGuard } from '@benzed/util'
 import { $$equals } from '@benzed/immutable'
 
-import { Module } from './module/module'
-import { eachAncestor, eachChild, eachDescendent, eachModule, eachParent, getPath } from './module'
+import { Module } from './module'
+
+import { 
+    eachAncestor, 
+    eachChild, 
+    eachDescendent, 
+    eachModule, 
+    eachParent, 
+    getPath 
+} from './relations'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

@@ -1,7 +1,7 @@
-import { NodeRecord } from './node-record'
+import { NodeTable } from './node-table'
 
 import { test, it, expect, describe } from '@jest/globals'
 
 //// Tests ////
 
-test.todo(`${NodeRecord.name}`)
+test.todo(`${NodeTable.name}`)
