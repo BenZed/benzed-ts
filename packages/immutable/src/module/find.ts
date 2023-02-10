@@ -1,5 +1,6 @@
 import { Callable, Func, isFunc, nil, Property, TypeGuard } from '@benzed/util'
-import { $$equals } from '@benzed/immutable'
+
+import { $$equals } from '../equals'
 
 import { Module } from './module'
 

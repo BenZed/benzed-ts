@@ -1,11 +1,11 @@
-import { nil, pick } from '@benzed/util'
-import { $$state, applyState, copy } from '@benzed/immutable'
-
 import { test } from '@jest/globals'
 
-import { Node } from './node'
+import { nil, pick } from '@benzed/util'
 
-import { Module, getChildren, getParent } from './module'
+import { $$state, applyState } from '../state'
+import { Module, getChildren, getParent } from '../module'
+import { copy } from '../copy'
+import { Node } from './node'
 
 //// Setup ////
 

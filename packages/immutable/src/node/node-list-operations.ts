@@ -1,4 +1,3 @@
-import { copy } from '@benzed/immutable'
 import { 
     Indexes, 
     IndexesOf, 
@@ -6,6 +5,8 @@ import {
 } from '@benzed/util'
 
 import { isModule, Module } from '../module'
+
+import { copy } from '../copy'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,

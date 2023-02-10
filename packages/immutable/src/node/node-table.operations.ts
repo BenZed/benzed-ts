@@ -1,12 +1,13 @@
 
-import { copy } from '@benzed/immutable'
+import { copy } from '../copy'
 import { 
     Empty,
     NamesOf, 
     Mutable, 
 } from '@benzed/util'
 
-import type { Node } from '.'
+import type { Node } from './node'
+import { isModule } from '../module'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -91,7 +92,7 @@ export function _setNodeAtPath(nodes: Nodes, key: string, nodeOrUpdate: Node | (
 
         const isLastPath = paths.length === 0
         if (isLastPath) {
-            currNodes[path] = 'parent' in nodeOrUpdate 
+            currNodes[path] = isModule(nodeOrUpdate)
                 ? nodeOrUpdate 
                 : nodeOrUpdate(currNodes[path])
         } else 

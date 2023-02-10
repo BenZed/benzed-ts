@@ -5,12 +5,18 @@ import {
 
 import { 
     $$copy, 
-    copy,
-    copyWithoutState,
+    copy
+} from '../copy'
+
+import { 
     getShallowState,
     setState, 
+} from '../state'
+
+import { 
+    copyWithoutState,
     Struct 
-} from '@benzed/immutable'
+} from '../struct'
 
 import { 
     $$parent,

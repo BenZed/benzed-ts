@@ -1,5 +1,6 @@
-import { $$state } from '@benzed/immutable'
 import { assign, namesOf } from '@benzed/util'
+
+import { $$state } from '../state'
 
 import { Module } from '../module'
 

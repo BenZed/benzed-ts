@@ -1,5 +1,5 @@
 import { Func } from '@benzed/util'
-import { $$state } from '@benzed/immutable'
+import { $$state } from '../state'
 
 import { Children, eachChild, getChildren, Module } from '../module'
 
@@ -15,7 +15,7 @@ interface Node extends Module, Iterable<Module> {
 
 interface NodeConstructor {
 
-    new (): Node 
+    new (): Node
     new <F extends Func>(func: F): Node & F
 
 }
