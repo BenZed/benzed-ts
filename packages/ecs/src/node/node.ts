@@ -1,17 +1,16 @@
 import { Func } from '@benzed/util'
 import { $$state } from '@benzed/immutable'
 
-import { 
-    getChildren, 
-    Module, 
-    ModuleChildren 
-} from './module'
+import { Children, getChildren, Module } from '../module'
 
 //// Types ////
 
+/**
+ * A Node is a Module with other modules as it's state
+ */
 interface Node extends Module {
 
-    get [$$state](): ModuleChildren<this>
+    get [$$state](): Children<this>
 
 }
 
@@ -23,6 +22,7 @@ interface NodeConstructor {
 }
 
 //// Node ////
+
 const Node = class Node extends Module {
 
     get [$$state](): object {

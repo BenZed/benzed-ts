@@ -33,32 +33,28 @@ const app = new class App extends Node {
 
 //// Tests ////
 
-for (const a of [
+for (const appOrCopy of [
     app,
     copy(app),
     applyState(app, 'users', 'collection', 'ace', 10),
 ]) {
-
-    describe(a === app ? 'original' : 'copy', () => {
+    describe(appOrCopy === app ? 'original' : 'copy', () => {
 
         test('children', () => {
-            expect(getChildren(a))  
-                .toEqual({ users: a.users })
+            expect(getChildren(appOrCopy))
+                .toEqual({ users: appOrCopy.users })
         })
 
         test('parent', () => {
-            expect(getParent(a.users) === a).toBe(true)
+            expect(getParent(appOrCopy.users) === appOrCopy).toBe(true)
         })
 
         test('nested parent', () => {
-            expect(getParent(a.users.collection) === a.users).toBe(true)
-
+            expect(getParent(appOrCopy.users.collection) === appOrCopy.users).toBe(true)
         })
 
-        test('root parent', () => {  
-            expect(getParent(a)).toBe(nil)
+        test('root parent', () => {
+            expect(getParent(appOrCopy)).toBe(nil)
         })
-
     })
-
 }

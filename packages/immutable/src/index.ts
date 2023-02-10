@@ -20,6 +20,8 @@ export {
     StateGetter as StructStateGetter,
     StateSetter as StructStateSetter,
 
+    SubStatePath,
+
     getState,
     getShallowState,
 
