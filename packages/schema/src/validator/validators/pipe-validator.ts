@@ -5,11 +5,10 @@ import { ValidatorStruct } from '../validator-struct'
 
 //// Types ////
 
-type InputValidator<I, O extends I> = Validate<I, O>
-
-type OutputValidator<O> = Validate<O, O>
-
-type Validators<I, O extends I> = [input: InputValidator<I,O>, ...output: OutputValidator<O>[]]
+type Validators<I, O extends I> = [
+    input: Validate<I,O>, 
+    ...output: Validate<O, O>[]
+]
 
 /**
  * The validate method used by a pipe validator. Specifically
@@ -52,7 +51,5 @@ export default PipeValidator
 export {
     PipeValidator,
     PipeValidate,
-    InputValidator,
-    OutputValidator,
     Validators
 }

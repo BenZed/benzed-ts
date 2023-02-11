@@ -3,6 +3,8 @@ import { Func, indexesOf, Mutable, namesOf, nil, omit } from '@benzed/util'
 import { $$state, setState, State } from '../state'
 import Struct, { copyWithoutState } from '../struct'
 
+import { adjacent, shuffle } from '@benzed/array'
+
 //// EsLint ////
 
 /* eslint-disable 
@@ -114,8 +116,8 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     /**
      * Retrieve a new sorted array struct
      */
-    sort(...sort: ArrayParams<T, 'sort'>): this {
-        return applyArrayState(this, ArrayMethods.sort, sort)
+    sort(...sortArgs: ArrayParams<T, 'sort'>): this {
+        return applyArrayState(this, ArrayMethods.sort, sortArgs)
     }
 
     /**
@@ -128,47 +130,59 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     /**
      * Retrieve a new array struct with the splice arguments applied
      */
-    splice(...splice: ArrayParams<T, 'splice'>): this {
-        return applyArrayState(this, ArrayMethods.splice, splice)
+    splice(...spliceArgs: ArrayParams<T, 'splice'>): this {
+        return applyArrayState(this, ArrayMethods.splice, spliceArgs)
     }
 
     /**
      * Retrieve a new reversed array struct with slice arguments applied
      */
-    slice(...slice: ArrayParams<T, 'slice'>): this {
-        return applyArrayState(this, ArrayMethods.slice, slice, true)
+    slice(...sliceArgs: ArrayParams<T, 'slice'>): this {
+        return applyArrayState(this, ArrayMethods.slice, sliceArgs, true)
     }
 
     /**
      * Retrieve a new reversed array struct with map arguments applied
      */
-    map(...map: ArrayParams<T, 'map'>): this {
-        return applyArrayState(this, ArrayMethods.map, map, true)
+    map(...mapArgs: ArrayParams<T, 'map'>): this {
+        return applyArrayState(this, ArrayMethods.map, mapArgs, true)
     }
 
     /**
      * Retrieve a new reversed array struct with filter arguments applied
      */
-    filter(...filter: ArrayParams<T, 'filter'>): this {
-        return applyArrayState(this, ArrayMethods.filter, filter, true)
+    filter(...filterArgs: ArrayParams<T, 'filter'>): this {
+        return applyArrayState(this, ArrayMethods.filter, filterArgs, true)
     }
 
     /**
      * Retrieve a new reversed array struct with concat arguments applied
      */
-    concat(...concat: ArrayParams<T, 'concat'>): this {
-        return applyArrayState(this, ArrayMethods.concat, concat, true)
+    concat(...concatArgs: ArrayParams<T, 'concat'>): this {
+        return applyArrayState(this, ArrayMethods.concat, concatArgs, true)
     }
 
     /**
      * Retrieve a new reversed array struct with concat arguments applied
      */
-    copyWithin(...copyWithin: ArrayParams<T, 'copyWithin'>): this {
-        return applyArrayState(this, ArrayMethods.copyWithin, copyWithin)
+    copyWithin(...copyWithinArgs: ArrayParams<T, 'copyWithin'>): this {
+        return applyArrayState(this, ArrayMethods.copyWithin, copyWithinArgs)
     }
 
-    join(...join: ArrayParams<T, 'join'>): string {
-        return ArrayMethods.join.apply(this, join)
+    join(...joinArgs: ArrayParams<T, 'join'>): string {
+        return ArrayMethods.join.apply(this, joinArgs)
+    }
+
+    // random(...randomArgs: Parameters<typeof random>): this {
+    //     return applyArrayState(this, random, randomArgs)
+    // }
+
+    shuffle(...shuffleArgs: Parameters<typeof shuffle>): this {
+        return applyArrayState(this, shuffle, shuffleArgs)
+    }
+
+    adjacent(...adjacentArgs: Parameters<typeof adjacent>): this {
+        return applyArrayState(this, adjacent, adjacentArgs)
     }
 
     // TODO reduce

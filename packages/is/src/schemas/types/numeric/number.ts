@@ -4,7 +4,7 @@ import {
     isNaN,
 } from '@benzed/util'
 
-import { AbstractNumber } from './numeric'
+import { NumberValidator } from './numeric'
 
 //// Helper ////
 
@@ -21,15 +21,7 @@ const toNumber = (value: unknown): unknown => {
 
 //// Boolean ////
 
-class Number extends AbstractNumber {
-
-    constructor() {
-        super({
-            name: 'number',
-            cast: toNumber,
-            isValid: isNumber
-        })
-    }
+class Number extends NumberValidator {
 
 }
 

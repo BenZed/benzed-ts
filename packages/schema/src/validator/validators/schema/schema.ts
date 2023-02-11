@@ -28,6 +28,7 @@ import {
 } from '../../validate-struct'
 
 import { ValidatorStruct } from '../../validator-struct'
+import { SubValidator } from './sub-validator'
 
 //// EsLint ////
 
@@ -100,19 +101,11 @@ type _SchemaSetters<
 
 export type MainValidator<I, O extends I> = ValidatorStruct<I,O>
 
-export interface SubValidator<O> extends ValidatorStruct<O,O> {
-    readonly enabled: boolean
-}
-
 export type SubValidators<O> = Record<string, SubValidator<O>>
-
-export type SubValidatorsStruct<O> = RecordStruct<string, SubValidator<O>>
-
-export type AnySubValidator = SubValidator<any>
 
 export type AnySubValidators = SubValidators<any>
 
-//// Schema Types ////
+//// Schema Type ////
 
 export type SchemaSettings<
     M extends AnyValidateStruct,
@@ -136,7 +129,7 @@ type Schema<
     S extends SubValidators<ValidateOutput<M>>
 > = 
     & SchemaValidate<M>
-    & { [$$settings]: SchemaSettings<M,S> }
+    & { readonly [$$settings]: SchemaSettings<M,S> }
     & _SchemaSetters<M,S>
     & _SchemaStaticOptionSetters<M>
 
@@ -145,9 +138,9 @@ abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
 
     protected readonly [$$main]: AnyValidateStruct
 
-    protected readonly [$$sub]: SubValidatorsStruct<unknown>
+    protected readonly [$$sub]: RecordStruct<string, SubValidator<unknown>>
 
-    constructor(main: AnyValidateStruct, sub: Record<string, SubValidator<unknown>>) {
+    constructor(main: AnyValidateStruct, sub: SubValidators<unknown>) {
         super()
 
         this[$$main] = main

@@ -1,12 +1,8 @@
-import { ErrorValidator } from './error'
+import { $error } from './error'
 
 import { describe } from '@jest/globals'
 
 import { testValidator, testValidationContract } from '../../util.test'
-
-//// Setup ////
-
-const $error = new ErrorValidator()
 
 //// Tests ////
 

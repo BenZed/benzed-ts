@@ -26,11 +26,10 @@ export type ValidationTestAssertsInput<I> = {
 export type ValidationTestError = {
 
     /**
-     * Test is expected to throw a validation error containing this string.
-     * 
-     * Optionally provide `true` to accept any validation error.
+     * If a error message value or 'true', validation tests expects an error.
+     * Validation errors are expected to contain the string, if given.
      */
-    readonly error: string | true
+    readonly error: string | boolean
 }
 
 export type ValidationTestOutput<O> = {
@@ -95,7 +94,7 @@ export function runValidationTest<I,O extends I>(
 
     // Analyze Test 
 
-    const expectingError = 'error' in test
+    const expectingError = 'error' in test && !!test.error
     const expectOutputDifferentFromInput = 'output' in test && applyTransforms
     let failReason: string | nil = nil
 

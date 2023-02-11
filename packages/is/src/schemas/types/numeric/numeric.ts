@@ -1,40 +1,51 @@
 
-import { RangeValidator, SubValidation } from '@benzed/schema'
+import { ValidationContext } from '@benzed/schema'
+import { hideNonStateKeys } from '@benzed/immutable'
+
+import { isNumber, isString } from '@benzed/util'
+
+import { ConfigurableTypeValidator } from '../../../validators'
 import { Ceil, Finite, Floor, Round } from './sub-validators'
-import Type from '../../../validators/configurable-type-validator'
 
-//// Symbols ////
+//// Helper ////
 
-const $$finite = Symbol('infinite-validator')
-const $$round = Symbol('round-validator')
+const toNumber = (value: unknown): unknown => {
+
+    if (isString(value)) {
+        const parsed = parseFloat(value)
+        if (!isNaN(parsed))
+            return parsed
+    }
+
+    return value
+}
 
 //// Numeric ////
 
-abstract class AbstractNumeric<N extends number | bigint> extends Type<N> { 
+abstract class NumericValidator<N extends number | bigint> extends ConfigurableTypeValidator<N> { 
 
-    range = new SubValidation(RangeValidator<N>, this)
+    constructor(readonly isValid: (input: unknown, ctx: ValidationContext<unknown>) => input is N) {
+        super()
+        hideNonStateKeys(this, 'isValid')
+    }
 
 }
 
-abstract class AbstractNumber extends AbstractNumeric<number> {
+abstract class NumberValidator extends NumericValidator<number> {
 
-    finite = new SubValidation(Finite, this, $$finite)
-
-    infinite(): this {
-        return this.finite(false)
+    constructor() {
+        super(isNumber)
     }
 
-    round = new SubValidation(Round, this, $$round)
-    floor = new SubValidation(Floor, this, $$round)
-    ceil = new SubValidation(Ceil, this, $$round)
+    override cast = toNumber
 
 }
 
 //// Exports ////
 
-export default AbstractNumeric
+export default NumericValidator
 
 export {
-    AbstractNumeric,
-    AbstractNumber
+    NumericValidator,
+    NumberValidator
 }

@@ -1,3 +1,4 @@
+import { showStateKeys } from '@benzed/immutable'
 import { $$settings, TypeValidator } from '@benzed/schema'
 import { pick } from '@benzed/util'
 
@@ -16,6 +17,8 @@ export abstract class ConfigurableTypeValidator<T> extends TypeValidator<T> {
             .replace('Configurable', '')
             .replace('Validator', '')
             .replace('Schema', '')
+
+        showStateKeys(this, 'cast', 'default', 'message')
     }
 
     get [$$settings](): Pick<this, 'name' | 'message' | 'cast' | 'default'> {

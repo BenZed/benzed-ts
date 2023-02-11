@@ -38,18 +38,18 @@ type ResolveErrorMessageParams<T> =
 const isFuncNotStruct = (i: AnyValidatorStruct | Func): i is Func => 
     !Struct.is(i) && isFunc(i)
 
-const isErrorMessage: <T>(i: unknown) => i is string | ValidationErrorMessage<T> = 
+const isValidationErrorMessage: <T>(i: unknown) => i is string | ValidationErrorMessage<T> = 
     isUnion(
         isFuncNotStruct,
         isString
     )
 
-const hasErrorMessage: <T>(i: unknown) => i is ValidateWithErrorMessage<T> = 
+const hasValidationErrorMessage: <T>(i: unknown) => i is ValidateWithErrorMessage<T> = 
     isShape({
-        message: isErrorMessage
+        message: isValidationErrorMessage
     })
 
-function resolveErrorMessage<T>(
+function resolveValidationErrorMessage<T>(
 
     input: ResolveErrorMessageParams<T>,
     ctx: ValidationContext<T>,
@@ -57,9 +57,9 @@ function resolveErrorMessage<T>(
 
 ): string {
 
-    const container = hasErrorMessage(input) 
+    const container = hasValidationErrorMessage(input) 
         ? input 
-        : { message: isErrorMessage(input) ? input : defaultErrorMessage }
+        : { message: isValidationErrorMessage(input) ? input : defaultErrorMessage }
 
     return isFunc(container.message) 
         ? container.message(ctx) 
@@ -78,7 +78,7 @@ class ValidationError<T> extends Error implements ValidationContext<T> {
         })
     )
 
-    static resolveMessage = resolveErrorMessage
+    static resolveMessage = resolveValidationErrorMessage
 
     readonly input!: T
     readonly transform!: boolean
@@ -88,7 +88,7 @@ class ValidationError<T> extends Error implements ValidationContext<T> {
         message: ResolveErrorMessageParams<T>,
         ctx: ValidationContext<T>
     ) {
-        super(resolveErrorMessage(message, ctx))
+        super(resolveValidationErrorMessage(message, ctx))
         assign(this, { ...ctx, name: ValidationError.name })
     }
 
@@ -107,6 +107,7 @@ export {
     ValidationErrorMessage,
 
     ValidateWithErrorMessage,
-    hasErrorMessage,
-    resolveErrorMessage
+    isValidationErrorMessage,
+    hasValidationErrorMessage,
+    resolveValidationErrorMessage
 }

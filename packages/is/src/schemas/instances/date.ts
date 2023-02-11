@@ -9,7 +9,7 @@ import { isNumber, isString } from '@benzed/util'
 
 //// Main ////
 
-class DateTime extends InstanceValidator<DateConstructor> {
+class DateValidator extends InstanceValidator<DateConstructor> {
 
     constructor() {
         super(globalThis.Date)
@@ -22,16 +22,15 @@ class DateTime extends InstanceValidator<DateConstructor> {
     override cast(input: unknown): unknown {
         if (isNumber(input) || isString(input))
             return new globalThis.Date(input)
-
         return input
     }
 
 }
 
-class Date extends Schema<DateTime, {}> {
+class Date extends Schema<DateValidator, {}> {
 
     constructor() {
-        super(new DateTime, {})
+        super(new DateValidator, {})
     }
 
 }
