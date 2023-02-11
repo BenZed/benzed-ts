@@ -1,13 +1,7 @@
 
-export {
-    Struct,
-    StructConstructor,
+export * from './copy'
 
-    copyWithoutState,
-
-} from './struct'
-
-export * from './structs' 
+export * from './equals'
 
 export {
 
@@ -19,6 +13,8 @@ export {
     StateFul as StructStateful,
     StateGetter as StructStateGetter,
     StateSetter as StructStateSetter,
+
+    SubStatePath,
 
     getState,
     getShallowState,
@@ -34,6 +30,16 @@ export {
 
 } from './state'
 
-export * from './copy'
+export {
+    Struct,
+    StructConstructor,
 
-export * from './equals'
+    copyWithoutState,
+
+} from './struct'
+
+export * from './structs' 
+
+export * from './node'
+
+export * from './module'

@@ -1,12 +1,13 @@
 
-import { copy } from '@benzed/immutable'
+import { copy } from '../copy'
 import { 
     Empty,
-    KeysOf, 
+    NamesOf, 
     Mutable, 
 } from '@benzed/util'
 
-import type { Node, Nodes } from './node'
+import type { Node } from './node'
+import { isModule } from '../module'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -14,12 +15,16 @@ import type { Node, Nodes } from './node'
     @typescript-eslint/no-var-requires
 */
 
+type Nodes = {
+    [key: string]: Node
+}
+
 //// Helper Methods ////
 
 type _NestedPathsOf<
     N extends Nodes,
-    P extends string = KeysOf<N>
-> = P extends KeysOf<N> 
+    P extends string = NamesOf<N>
+> = P extends NamesOf<N> 
     ? N[P]['nodes'] extends Empty
         ? P
         : P | `${P}/${_NestedPathsOf<N[P]['nodes']>}`
@@ -33,7 +38,7 @@ type _GetNodeAtNestedPath<N extends Nodes, P extends string> = P extends `${infe
 
 //// Path Methods ////
 
-export type PathsOf<N extends Nodes> = KeysOf<N>
+export type PathsOf<N extends Nodes> = NamesOf<N>
 
 export type NestedPathsOf<N extends Nodes> = _NestedPathsOf<N>
 
@@ -87,7 +92,7 @@ export function _setNodeAtPath(nodes: Nodes, key: string, nodeOrUpdate: Node | (
 
         const isLastPath = paths.length === 0
         if (isLastPath) {
-            currNodes[path] = 'parent' in nodeOrUpdate 
+            currNodes[path] = isModule(nodeOrUpdate)
                 ? nodeOrUpdate 
                 : nodeOrUpdate(currNodes[path])
         } else 
@@ -100,7 +105,7 @@ export function _setNodeAtPath(nodes: Nodes, key: string, nodeOrUpdate: Node | (
 //// RemoveNode ////
 
 export type RemoveNode<N extends Nodes, K extends PathsOf<N>> = {
-    [Nk in KeysOf<N> as Nk extends K ? never : Nk]: N[Nk]
+    [Nk in NamesOf<N> as Nk extends K ? never : Nk]: N[Nk]
 } extends infer Nxx ? Nxx extends Nodes ? Nxx : never : never 
 
 export function removeNode<N extends Nodes, K extends PathsOf<N>>(nodes: N, key: K): RemoveNode<N, K>

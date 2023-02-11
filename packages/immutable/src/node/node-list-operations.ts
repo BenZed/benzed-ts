@@ -1,16 +1,25 @@
-import { copy } from '@benzed/immutable'
 import { 
     Indexes, 
     IndexesOf, 
     swap
 } from '@benzed/util'
 
-import type { Module, Modules } from '../module'
+import { isModule, Module } from '../module'
+
+import { copy } from '../copy'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
     @typescript-eslint/ban-types
 */
+
+/**
+ * A series of operations for making edits to a static array of modules
+ */
+
+//// Types ////
+
+type Modules = readonly Module[]
 
 //// Splice Modules ////
 
@@ -183,7 +192,7 @@ export function setModule<
 
 export function setModule(input: Modules, index: number, update: Module | ((current: Module) => Module)): Modules {
 
-    const newModule = 'node' in update 
+    const newModule = isModule(update)
         ? update 
         : update(input[index])
 

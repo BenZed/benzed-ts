@@ -16,7 +16,7 @@ const $$copy = Symbol('=')
 type Refs = Set<unknown>
 
 interface Copyable {
-    [$$copy]: (refs?: Refs) => this
+    [$$copy](refs?: Refs): this
 }
 
 //// Helpers ////
