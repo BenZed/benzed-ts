@@ -1,6 +1,15 @@
 import { capitalize } from '@benzed/string'
 import { RecordStruct } from '@benzed/immutable'
-import { isFunc, isString, namesOf, NamesOf, pick, Property } from '@benzed/util'
+
+import { 
+    isFunc, 
+    isString, 
+    namesOf, 
+    NamesOf, 
+    OutputOf, 
+    pick, 
+    Property 
+} from '@benzed/util'
 
 import {
     AnyValidate,
@@ -9,8 +18,6 @@ import {
     ValidateOptions,
     ValidateOutput
 } from '../../../validate'
-
-import { getAllProperties } from './property-helpers'
 
 import { ValidationContext } from '../../../validation-context'
 
@@ -26,6 +33,8 @@ import {
     ValidateUpdateSettings,
     AnyValidateStruct
 } from '../../validate-struct'
+
+import { getAllProperties } from './property-helpers'
 
 import { ValidatorStruct } from '../../validator-struct'
 import { SubValidator } from './sub-validator'
@@ -129,7 +138,7 @@ type Schema<
     S extends SubValidators<ValidateOutput<M>>
 > = 
     & SchemaValidate<M>
-    & { readonly [$$settings]: SchemaSettings<M,S> }
+    & { get [$$settings](): SchemaSettings<M,S> }
     & _SchemaSetters<M,S>
     & _SchemaStaticOptionSetters<M>
 
@@ -186,7 +195,7 @@ abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
 export interface SchemaConstructor {
 
     new <M extends AnyValidateStruct>(main: M): Schema<M, {}>
-    new <M extends AnyValidateStruct, S extends AnySubValidators>(
+    new <M extends AnyValidateStruct, S extends SubValidators<OutputOf<M>>>(
         main: M,
         sub: S
     ): Schema<M, S>
@@ -303,4 +312,6 @@ export default Schema
 
 export {
     Schema,
+    $$main,
+    $$sub
 }

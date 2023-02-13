@@ -1,59 +1,106 @@
-import { applyState } from '@benzed/immutable'
-import { InputOf, nil, OutputOf, through } from '@benzed/util'
+import { nil, OutputOf, pick } from '@benzed/util'
+import { ValidateOptions } from '../../../validate'
 
-import { AnyValidateStruct } from '../../validate-struct'
-import PipeValidator from '../pipe-validator'
+import { $$settings, AnyValidateStruct, ValidateSettings, ValidateStruct } from '../../validate-struct'
+import { Validators } from '../pipe-validator'
 
 import { PipeValidatorBuilder, PipeValidatorBuilderMethods } from '../pipe-validator-builder'
 
-import Schema, { AnySubValidators, SubValidators } from './schema'
+import Schema, { $$main, $$sub, SchemaConstructor, SubValidators } from './schema'
+
+//// EsLint ////
+
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/ban-types
+*/
 
 //// Symbols ////
 
 const $$builder = Symbol('pipe-schema-builder')
 
+//// Helper Types ////
+
+type _BuilderParams<T, K extends keyof PipeValidatorBuilderMethods<T>> = 
+    Parameters<PipeValidatorBuilderMethods<T>[K]> 
+
 //// Types ////
 
-interface SchemaBuilderConstructor {
-    new <T extends AnyValidateStruct, S extends SubValidators<OutputOf<T>>>(): SchemaBuilder<T,S>
+interface SchemaBuilderConstructor extends SchemaConstructor {
+    new <M extends AnyValidateStruct>(main: M): SchemaBuilder<M, {}>
+    new <M extends AnyValidateStruct, S extends SubValidators<OutputOf<M>>>(
+        main: M,
+        sub: S
+    ): SchemaBuilder<M, S>
 }
 
 type SchemaBuilder<T extends AnyValidateStruct, S extends SubValidators<OutputOf<T>>> = 
-    Schema<T,S> & PipeValidatorBuilderMethods<OutputOf<T>>
+     PipeValidatorBuilderMethods<OutputOf<T>> & Schema<T,S>
 
-type BuilderParams<T, K extends keyof PipeValidatorBuilderMethods<T>> = Parameters<PipeValidatorBuilderMethods<T>[K]> 
+//// Helper ////
+
+function getPipeBuilder(input: object): PipeValidatorBuilder<any> | nil {
+    return (input as { [$$builder]: PipeValidatorBuilder<any> | nil })[$$builder]
+}
+
+function applyBuilderValidator<
+    T extends AnyValidateStruct, 
+    K extends keyof PipeValidatorBuilderMethods<any>,
+>(
+    input: T, 
+    method: keyof PipeValidatorBuilderMethods<T>,
+    ...args: Parameters<PipeValidatorBuilderMethods<T>[K]>
+): T {
+
+    const builder: any = getPipeBuilder(input) 
+        ?? 
+        new PipeValidatorBuilder(...[] as unknown as Validators<any,any>)
+
+    return ValidateStruct.applySettings(
+        input,
+        {
+            [$$builder]: builder[method](...args)
+        } as ValidateSettings<T>
+    ) as T
+}
 
 //// Implementation ////
 
-const SchemaBuilder = class SchemaBuilder extends Schema<any, any> {
+const SchemaBuilder = class extends Schema<any, never> {
 
-    protected [$$builder]: PipeValidatorBuilder<unknown>
+    validate(input: any, options: ValidateOptions): any {
+        let output: any = super.validate(input, options)
 
-    constructor(main: AnyValidateStruct, sub: AnySubValidators) {
-        super(main, sub)
-        this[$$builder] = new PipeValidatorBuilder()
+        if (this[$$builder])
+            output = this[$$builder].validate(output, options)
+
+        return output
     }
 
-    asserts(... args: BuilderParams<unknown, 'asserts'>): this {
-        // return applyState(this, {
-        //     [$$builder]: 
-        // })
+    protected [$$builder]: PipeValidatorBuilder<unknown> | nil = nil
+
+    asserts( ...args: _BuilderParams<any, 'asserts'>): this {
+        return applyBuilderValidator(this, 'asserts', ...args)
     }
 
-    transforms(... args: BuilderParams<unknown, 'transforms'>): this {
-        return this
+    transforms( ...args: _BuilderParams<any, 'transforms'>): this {
+        return applyBuilderValidator(this, 'transforms', ...args)
     }
 
-    validates(... args: BuilderParams<unknown, 'validates'>): this {
-        return this
+    validates( ...args: _BuilderParams<any, 'validates'>): this {
+        return applyBuilderValidator(this, 'validates', ...args)
+    }
+
+    override get [$$settings](): any {
+        return pick(this, $$builder, $$main, $$sub)
     }
 
 } as unknown as SchemaBuilderConstructor
 
 //// Exports ////
 
-export default SchemaBuilder
-
 export {
-    SchemaBuilder
+    SchemaBuilder,
+    SchemaBuilderConstructor,
+    $$builder
 }

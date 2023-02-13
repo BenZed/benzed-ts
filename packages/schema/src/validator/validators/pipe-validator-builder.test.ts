@@ -107,7 +107,7 @@ describe('id', () => {
         $$customId
     )
     
-    describe('id to update', () => {
+    describe('update', () => {
  
         testValidator<unknown, boolean | number>(
             $broken,
@@ -123,7 +123,7 @@ describe('id', () => {
     
     })
 
-    describe('id to remove', () => {
+    describe('remove', () => {
         
         const $fixed2 = $broken.remove($$customId)
 
