@@ -16,8 +16,11 @@ type InstanceValidatorInput =
 
 class InstanceValidator<T extends InstanceValidatorInput> extends TypeValidator<InstanceType<T>> {
 
+    readonly name: string
+
     constructor(readonly Type: T) {
         super()
+        this.name = Type.name
     }
 
     isValid(value: unknown): value is InstanceType<T> {

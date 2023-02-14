@@ -39,7 +39,5 @@ export {
 } from './struct'
 
 export * from './structs' 
-
 export * from './node'
-
 export * from './module'

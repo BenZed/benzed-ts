@@ -1,8 +1,19 @@
-import { Schema } from '@benzed/schema/src'
-import { isBoolean as isBoolean, isNil } from '@benzed/util'
-import { ConfigurableTypeValidator } from '../../validators/configurable-type-validator'
+import { 
+    SchemaBuilder 
+} from '@benzed/schema'
 
-/* eslint-disable 
+import { 
+    isBoolean, 
+    isNil 
+} from '@benzed/util'
+
+import {
+    ConfigurableTypeValidator,
+    TypeCast, 
+    TypeDefault 
+} from '../../validators/configurable-type-validator'
+
+/* eslint-disable   
     @typescript-eslint/ban-types
 */
 
@@ -31,7 +42,14 @@ class BooleanValidator extends ConfigurableTypeValidator<boolean> {
 
 //// Schema ////
 
-class Boolean extends Schema<ConfigurableTypeValidator<boolean>, {}> {
+interface Boolean extends SchemaBuilder<ConfigurableTypeValidator<boolean>, {}> {
+
+    cast: (caster: TypeCast) => this 
+
+    default: (def: TypeDefault) => this
+
+}
+const Boolean = class Boolean extends SchemaBuilder<ConfigurableTypeValidator<boolean>, {}> {
 
     constructor() {
         super(
@@ -40,7 +58,7 @@ class Boolean extends Schema<ConfigurableTypeValidator<boolean>, {}> {
         )
     }
 
-}
+} as new () => Boolean
 
 //// Exports ////
 
@@ -50,4 +68,4 @@ export {
     Boolean
 }
 
-export const $boolean = new Boolean()
+export const $boolean = new Boolean

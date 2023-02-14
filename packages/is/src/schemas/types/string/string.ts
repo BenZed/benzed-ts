@@ -3,7 +3,7 @@ import { Schema, SchemaConstructor } from '@benzed/schema'
 
 import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
 
-import { ConfigurableTypeValidator } from '../../../validators'
+import { ConfigurableTypeValidator, TypeCast, TypeDefault } from '../../../validators'
 
 import {
     Camel,
@@ -42,7 +42,7 @@ class StringValidator extends ConfigurableTypeValidator<string> {
 
 //// Schema ////
 
-type StringSubValidators = {
+type StringSubValidators = Readonly<{
     camel: Camel
     capitalize: Capitalized
     endsWith: EndsWith
@@ -51,9 +51,12 @@ type StringSubValidators = {
     startsWith: StartsWith
     trim: Trimmed
     upper: Upper
-}
+}>
 
 interface String extends Schema<StringValidator, StringSubValidators> {
+
+    default(def: TypeDefault): this
+    cast(caster: TypeCast): this
 
     // Make the sub validator configuration return types nice
     camel(): this 
@@ -80,7 +83,8 @@ const String = class String extends Schema<StringValidator, StringSubValidators>
 
     constructor() {
         super(
-            new StringValidator, {
+            new StringValidator, 
+            {
                 camel: new Camel,
                 lower: new Lower,
                 upper: new Upper,

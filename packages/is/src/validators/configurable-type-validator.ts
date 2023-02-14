@@ -2,6 +2,12 @@ import { showStateKeys } from '@benzed/immutable'
 import { $$settings, TypeValidator } from '@benzed/schema'
 import { pick } from '@benzed/util'
 
+//// Types ////
+
+export type TypeCast = ConfigurableTypeValidator<unknown>['cast']
+
+export type TypeDefault = ConfigurableTypeValidator<unknown>['default']
+
 //// Main ////
 
 export abstract class ConfigurableTypeValidator<T> extends TypeValidator<T> {

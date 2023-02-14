@@ -1,5 +1,5 @@
 
-import { GenericObject, keysOf, OutputOf } from '@benzed/util'
+import { GenericObject, Infer, isObject, keysOf, nil, OutputOf, pick } from '@benzed/util'
 
 import { ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
@@ -72,47 +72,77 @@ type _ShapePropertyOutput<T extends AnyValidateStruct> =
     /**/ MutatorType.ReadOnly>
     >
 
-//// Types //// 
+//// Types ////
 
-type ShapeValidatorOutput<T extends ShapeValidatorInput> = {
+type ShapeValidatorOutput<T extends ShapeValidatorInput> = Infer<{
     [K in keyof _ShapeProperties<T>]: _ShapePropertyOutput<T[K]>
-}
+}, object>
 
 type ShapeValidatorInput = {
     [key: string | number | symbol]: AnyValidateStruct
 }
 
-//// Tuple ////  
+//// Tuple ////
 
-class ShapeValidator<T extends ShapeValidatorInput> extends ValidatorStruct<object, ShapeValidatorOutput<T>> {
+class ShapeValidator<T extends ShapeValidatorInput> 
+    extends ValidatorStruct<object, ShapeValidatorOutput<T>> {
 
     constructor(readonly properties: T) {
         super()
     }
 
-    // TODO
-    // readonly strict = true // <- only defined properties
-    // pick() // <- create a new shape validator with a subset of properties
-    // omit() // <- create a new shape validator with an exclusive subset of properties
-    // merge() // <- create a new shape validator with additional properties 
+    override name = 'Shape'
 
-    validate(input: object, options?: ValidateOptions): ShapeValidatorOutput<T> {
+    message(): string {
+
+        const name = this.name === 'Shape' 
+            ? this.name 
+            : ''
+
+        return [
+            'Must adhere to',
+            name,
+            'shape'
+        ].join(' ')
+    }
+
+    validate(input: unknown, options?: ValidateOptions): ShapeValidatorOutput<T> {
 
         const ctx = new ValidationContext(input, options)
-        const output = {} as GenericObject
 
-        for (const key of keysOf(this.properties)) {
-            const validateProperty = this.properties[key]
-            const value = (input as GenericObject)[key]
+        // Default Empty Object *1
+        const source = input === nil
+            ? {}
+            : input
 
-            output[key] = validateProperty(value, ctx)
-        }
-
-        ctx.transformed = output
-        if (!ctx.transformed && !ValidatorStruct.equal(input, output))
+        // Check is Object *2
+        if (!isObject<GenericObject>(source))
             throw new ValidationError(this, ctx)
 
-        return output as ShapeValidatorOutput<T>
+        // TODO: *1 & *2 are essentially doing the same
+        // thing as a TypeValidator. PipeSchema should
+        // put these two together.
+
+        const shape = {} as GenericObject
+
+        for (const key of keysOf(this.properties)) {
+            const $property = this.properties[key]
+
+            const value = source[key]
+
+            shape[key] = $property(value, ctx)
+        }
+
+        ctx.transformed = shape
+
+        const output = ctx.transform 
+            ? ctx.transformed 
+            : source
+
+        if (!ValidatorStruct.equal(output, ctx.transformed))
+            throw new ValidationError(this, ctx)
+
+        return shape as ShapeValidatorOutput<T>
     }
 
 }

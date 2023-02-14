@@ -6,7 +6,7 @@ import { Validators } from '../pipe-validator'
 
 import { PipeValidatorBuilder, PipeValidatorBuilderMethods } from '../pipe-validator-builder'
 
-import Schema, { $$main, $$sub, SchemaConstructor, SubValidators } from './schema'
+import Schema, { $$main, $$sub, SubValidators } from './schema'
 
 //// EsLint ////
 
@@ -26,7 +26,7 @@ type _BuilderParams<T, K extends keyof PipeValidatorBuilderMethods<T>> =
 
 //// Types ////
 
-interface SchemaBuilderConstructor extends SchemaConstructor {
+interface SchemaBuilderConstructor {
     new <M extends AnyValidateStruct>(main: M): SchemaBuilder<M, {}>
     new <M extends AnyValidateStruct, S extends SubValidators<OutputOf<M>>>(
         main: M,

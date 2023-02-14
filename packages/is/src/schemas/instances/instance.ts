@@ -1,5 +1,6 @@
 import { $$settings, InstanceValidator, InstanceValidatorInput, Schema } from '@benzed/schema'
 import { pick } from '@benzed/util'
+import { TypeCast, TypeDefault } from '../../validators'
 
 //// EsLint ////
 
@@ -26,13 +27,18 @@ class ConfigurableInstanceValidator <T extends InstanceValidatorInput> extends I
 
 //// Schema ////
 
-class Instance <T extends InstanceValidatorInput> extends Schema<ConfigurableInstanceValidator<T>, {}> {
+interface Instance <T extends InstanceValidatorInput> extends Schema<ConfigurableInstanceValidator<T>, {}> {
+    default(def: TypeDefault): this
+    cast(caster: TypeCast): this
+}
+
+const Instance = class Instance <T extends InstanceValidatorInput> extends Schema<ConfigurableInstanceValidator<T>, {}> {
 
     constructor(Type: T) {
         super(new ConfigurableInstanceValidator(Type), {})
     }
 
-}
+} as new <T extends InstanceValidatorInput>(Type: T) => Instance<T>
 
 //// Exports ////
 

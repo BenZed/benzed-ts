@@ -1,7 +1,12 @@
-import { $boolean } from './boolean'
+import { $boolean, Boolean } from './boolean'
 
 import { testValidator, testValidationContract } from '../../util.test'
+import { expectTypeOf } from 'expect-type'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/ban-types
+*/
 //// Tests ////
 
 describe(`${$boolean.name} validator contract tests`, () => {
@@ -27,3 +32,11 @@ testValidator<unknown, boolean>(
     { transforms: 'false', output: false },
     { asserts: 'false', error: 'Must be a Boolean' },
 )
+
+it('setter return type', () => {
+
+    const $true = $boolean.cast(() => true)
+
+    expectTypeOf($true).toMatchTypeOf<Boolean>()
+
+})

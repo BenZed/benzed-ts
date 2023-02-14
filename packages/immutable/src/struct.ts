@@ -15,7 +15,6 @@ import { $$copy, isCopyable } from './copy'
 import {
     getDeepState,
     getShallowState,
-    getState,
     matchKeyVisibility,
     setState,
 } from './state'
