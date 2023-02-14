@@ -134,7 +134,7 @@ describe('copies iterables', () => {
         expect(arr2[0]).toEqual(arr[0])
         expect(arr2[0]).not.toBe(arr[0])
 
-    })
+    }) 
 
     describe('typed arrays', () => {
         for (const TypedArray of [

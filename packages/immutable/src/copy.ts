@@ -2,6 +2,7 @@
 import { 
     isArray,
     isFunc,
+    isObject,
     isPrimitive,
     isShape,
     keysOf,
@@ -13,7 +14,7 @@ const $$copy = Symbol('=')
 
 //// Types ////
 
-type Refs = Set<unknown>
+type Refs = WeakMap<object, object>
 
 interface Copyable {
     [$$copy](refs?: Refs): this
@@ -38,72 +39,88 @@ const isTypedArray = (input: unknown): input is Array<unknown> =>
         Float64Array
     ].some(TypedArray => input instanceof TypedArray)
 
+//// Main ////
+
 function * copyEach<T>(iterable: Iterable<T>, refs: Refs): Generator<T> {
     for (const value of iterable)
         yield copy(value, refs)
 }
 
-function copyObject<T extends object>(input: T, refs: Refs): T {
-    const output = Object.create(input)
-
-    for (const key of keysOf(input))
-        output[key] = copy(input[key], refs)
-
-    return output
-} 
-
-//// Main ////
-
 /**
  * Creates a data duplicate of a given value, ignoring
  * circular references.
  */
-function copy<T>(value: T, refs: Refs = new Set()): T {
+function copy<T>(input: T, refs: Refs = new WeakMap()): T {
 
-    if (refs.has(value))
-        return value
+    // Return existing Ref
+    if (isObject(input) && refs.has(input))
+        return refs.get(input) as T
 
-    refs.add(value)
-
-    if (isCopyable(value))
-        return value[$$copy](refs)
+    // Copyable Implementation
+    if (isCopyable(input)) {
+        const output = input[$$copy](refs)
+        refs.set(input, output)
+        return output
+    }
 
     // Non-copyables just get returned as-is
     if (
-        isPrimitive(value) || 
-        isFunc(value) || 
-        value instanceof WeakMap || 
-        value instanceof WeakSet
+        isPrimitive(input) || 
+        isFunc(input) || 
+        input instanceof WeakMap || 
+        input instanceof WeakSet
     )
-        return value
+        return input 
 
     // Implementations for standard objects
+    if (input instanceof RegExp)
+        return new RegExp(input.source) as T
 
-    if (isArray(value))
-        return Array.from(copyEach(value, refs)) as T
+    if (input instanceof Date)
+        return new Date(input.getTime()) as T
 
-    if (value instanceof Set)
-        return new Set(copyEach(value, refs)) as T
+    if ('Buffer' in globalThis && input instanceof Buffer)
+        return Buffer.from(input) as T
 
-    if (value instanceof Map)
-        return new Map(copyEach(value.entries(), refs)) as T
-
-    if (value instanceof RegExp)
-        return new RegExp(value.source) as T
-
-    if (value instanceof Date)
-        return new Date(value.getTime()) as T
-
-    if ('Buffer' in globalThis && value instanceof Buffer)
-        return Buffer.from(value) as T
-
-    if (isTypedArray(value)) {
-        const TypedArray = value.constructor as new (...args: unknown[]) => typeof value
-        return new TypedArray(value)
+    if (isTypedArray(input)) {
+        const TypedArray = input.constructor as new (...args: unknown[]) => typeof input
+        return new TypedArray(input)
     }
 
-    // Generic copy for everything else
-    return copyObject(value as object, refs) as T
+    const createFromProto = <Tx extends object>(value: Tx): Tx => {
+        const blank = Object.create(value.constructor.prototype)
+        refs.set(value, blank)
+        return blank
+    }
+
+    const copyWithRefs = <Tx>(v: Tx): Tx => copy(v, refs)
+
+    // Implementations requiring refs
+    if (isArray(input)) {
+        const array = createFromProto(input)
+        array.push(...input.map(copyWithRefs))
+        return array
+    }
+
+    if (input instanceof Set) {
+        const set = createFromProto(input)
+        input.forEach(v => set.add(copyWithRefs(v)))
+        return set
+    }
+
+    if (input instanceof Map) {
+        const map = createFromProto(input)
+        input.forEach((k,v) => map.set(copyWithRefs(k), copyWithRefs(v)))
+        return map
+    }
+
+    if (isObject(input)) {
+        const object = createFromProto(input)
+        for (const key of keysOf(input as object))
+            object[key] = copyWithRefs(input[key])
+    }
+
+    throw new Error('Value not copyable.')
 }
 
 //// Exports ////
