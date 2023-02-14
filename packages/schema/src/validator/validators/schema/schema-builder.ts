@@ -1,10 +1,23 @@
-import { nil, OutputOf, pick } from '@benzed/util'
-import { ValidateOptions } from '../../../validate'
+import { 
+    OutputOf, 
+    pick 
+} from '@benzed/util'
 
-import { $$settings, AnyValidateStruct, ValidateSettings, ValidateStruct } from '../../validate-struct'
-import { Validators } from '../pipe-validator'
+import { 
+    ValidateOptions 
+} from '../../../validate'
 
-import { PipeValidatorBuilder, PipeValidatorBuilderMethods } from '../pipe-validator-builder'
+import { 
+    $$settings, 
+    AnyValidateStruct, 
+    ValidateSettings, 
+    ValidateStruct 
+} from '../../validate-struct'
+
+import {
+    PipeValidatorBuilder,
+    PipeValidatorBuilderMethods
+} from '../pipe-validator-builder'
 
 import Schema, { $$main, $$sub, SubValidators } from './schema'
 
@@ -35,13 +48,10 @@ interface SchemaBuilderConstructor {
 }
 
 type SchemaBuilder<T extends AnyValidateStruct, S extends SubValidators<OutputOf<T>>> = 
-     PipeValidatorBuilderMethods<OutputOf<T>> & Schema<T,S>
+    PipeValidatorBuilderMethods<OutputOf<T>> & 
+    Schema<T,S>
 
 //// Helper ////
-
-function getPipeBuilder(input: object): PipeValidatorBuilder<any> | nil {
-    return (input as { [$$builder]: PipeValidatorBuilder<any> | nil })[$$builder]
-}
 
 function applyBuilderValidator<
     T extends AnyValidateStruct, 
@@ -52,9 +62,7 @@ function applyBuilderValidator<
     ...args: Parameters<PipeValidatorBuilderMethods<T>[K]>
 ): T {
 
-    const builder: any = getPipeBuilder(input) 
-        ?? 
-        new PipeValidatorBuilder(...[] as unknown as Validators<any,any>)
+    const builder = (input as any)[$$builder]
 
     return ValidateStruct.applySettings(
         input,
@@ -71,13 +79,12 @@ const SchemaBuilder = class extends Schema<any, never> {
     validate(input: any, options: ValidateOptions): any {
         let output: any = super.validate(input, options)
 
-        if (this[$$builder])
-            output = this[$$builder].validate(output, options)
+        output = this[$$builder].validate(output, options)
 
         return output
     }
 
-    protected [$$builder]: PipeValidatorBuilder<unknown> | nil = nil
+    protected [$$builder]: PipeValidatorBuilder<unknown> = PipeValidatorBuilder.empty()
 
     asserts( ...args: _BuilderParams<any, 'asserts'>): this {
         return applyBuilderValidator(this, 'asserts', ...args)

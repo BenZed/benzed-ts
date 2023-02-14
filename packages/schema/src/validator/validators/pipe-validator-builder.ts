@@ -8,7 +8,7 @@ import { ContractValidator } from '../contract-validator'
 import { $$settings, ValidateSettings } from '../validate-struct'
 import { ValidatorStruct } from '../validator-struct'
 
-import { PipeValidator } from './pipe-validator'
+import { PipeValidator, Validators } from './pipe-validator'
 
 //// EsLint ////
 
@@ -100,6 +100,10 @@ function applyPipeValidators<T extends PipeValidatorBuilder<any,any>>(
 export class PipeValidatorBuilder<I, O extends I = I> 
     extends PipeValidator<I,O>
     implements PipeValidatorBuilderMethods<O> {
+
+    static empty<Ix,Ox extends Ix>(): PipeValidatorBuilder<Ix,Ox> {
+        return new PipeValidatorBuilder(...[] as AnyValidate[] as Validators<Ix,Ox>)
+    }
 
     validates(
         input: OutputValidatorSettings<O> | OutputValidator<O>,

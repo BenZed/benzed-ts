@@ -17,7 +17,7 @@ import { ValidatorStruct } from '../validator-struct'
 
 //// EsLint ////
 
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types,
 */
@@ -54,13 +54,13 @@ type _OptionalWritableProperties<T extends ShapeValidatorInput> = {
 
 type _OptionalReadOnlyProperties<T extends ShapeValidatorInput> = {
     +readonly [K in keyof T as _OnOptionalReadOnly<T[K], K>]+?: T[K]
-}  
+}
 
 type _ShapeProperties<T extends ShapeValidatorInput> = 
-    _RequiredWritableProperties<T> &
-    _RequiredReadOnlyProperties<T> &
-    _OptionalWritableProperties<T> &
-    _OptionalReadOnlyProperties<T>
+    & _RequiredWritableProperties<T>
+    & _RequiredReadOnlyProperties<T>
+    & _OptionalWritableProperties<T>
+    & _OptionalReadOnlyProperties<T>
 
 type _ShapePropertyOutput<T extends AnyValidateStruct> = 
     OutputOf<
@@ -85,13 +85,14 @@ type ShapeValidatorInput = {
 //// Tuple ////
 
 class ShapeValidator<T extends ShapeValidatorInput> 
-    extends ValidatorStruct<object, ShapeValidatorOutput<T>> {
+    extends ValidatorStruct<unknown, ShapeValidatorOutput<T>> {
 
-    constructor(readonly properties: T) {
+    constructor(
+        readonly properties: T, 
+        override readonly name = 'Shape'
+    ) {
         super()
     }
-
-    override name = 'Shape'
 
     message(): string {
 
@@ -106,43 +107,46 @@ class ShapeValidator<T extends ShapeValidatorInput>
         ].join(' ')
     }
 
+    default(ctx: ValidationContext<unknown>): unknown {
+        void ctx
+        return nil
+    }
+
     validate(input: unknown, options?: ValidateOptions): ShapeValidatorOutput<T> {
 
         const ctx = new ValidationContext(input, options)
 
         // Default Empty Object *1
-        const source = input === nil
-            ? {}
+        const inputObject = input === nil
+            ? this.default(ctx)
             : input
 
         // Check is Object *2
-        if (!isObject<GenericObject>(source))
+        if (!isObject<GenericObject>(inputObject))
             throw new ValidationError(this, ctx)
 
         // TODO: *1 & *2 are essentially doing the same
         // thing as a TypeValidator. PipeSchema should
         // put these two together.
 
-        const shape = {} as GenericObject
+        const transformed = Object.create(inputObject.constructor.prototype)
 
         for (const key of keysOf(this.properties)) {
             const $property = this.properties[key]
-
-            const value = source[key]
-
-            shape[key] = $property(value, ctx)
+            const value = inputObject[key]
+            transformed[key] = $property(value, ctx)
         }
 
-        ctx.transformed = shape
+        ctx.transformed = transformed
 
         const output = ctx.transform 
             ? ctx.transformed 
-            : source
+            : inputObject
 
         if (!ValidatorStruct.equal(output, ctx.transformed))
             throw new ValidationError(this, ctx)
 
-        return shape as ShapeValidatorOutput<T>
+        return output as ShapeValidatorOutput<T>
     }
 
 }

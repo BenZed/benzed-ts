@@ -2,7 +2,6 @@
 import { 
     ShapeValidatorInput as ShapeInput,
     ShapeValidatorOutput as ShapeOutput,
-    ShapeValidator,
     SchemaBuilder,
     $$settings,
     $$main,
@@ -10,19 +9,21 @@ import {
     ValidateStruct,
     $$builder,
     PipeValidatorBuilder,
-    Validators,
     EnsureMutator,
     MutatorType,
     ensureMutator,
+    ValidationContext,
+    ShapeValidator,
 } from '@benzed/schema'
 
 import { Infer, keysOf, omit, pick } from '@benzed/util'
+import { TypeDefault } from '../validators'
 
 //// EsLint ////
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types,
+    @typescript-eslint/ban-types
 */
 
 //// Helper Types ////
@@ -80,10 +81,15 @@ interface Shape<T extends ShapeInput>
     get properties(): T
 
     /**
+     * Set a default object 
+     */
+    default(def: (ctx: ValidationContext<unknown>) => unknown): this 
+
+    /**
      * Update the property at the given key
      */
     property<
-        K extends keyof T, 
+        K extends keyof T,
         U extends _ShapePropertyMethod<T,K>
     >(
         key: K,
@@ -120,18 +126,22 @@ interface Shape<T extends ShapeInput>
 
 //// Helper ////
 
-function applyProperties<T>(
+function applyShape<T>(
     shape: T, 
-    properties: ShapeInput
+    main: { properties?: ShapeInput, default?: TypeDefault }
 ): T {
+
+    const schema = shape as any
+
+    const builder = 'properties' in main 
+        ? PipeValidatorBuilder.empty()
+        : schema[$$builder]
+
     return ValidateStruct.applySettings(
-        shape as any,
+        schema,
         {
-            [$$main]: new ShapeValidator(properties),
-            [$$builder]: new PipeValidatorBuilder(
-                // TODO PipeValidatorBuilder.empty?
-                ...[] as unknown as Validators<any,any>
-            )
+            [$$main]: { ...schema[$$main], ...main },
+            [$$builder]: builder
         }
     )
 }
@@ -142,6 +152,10 @@ const Shape = class Shape extends SchemaBuilder<ShapeValidator<ShapeInput>, {}> 
 
     get properties(): ShapeInput {
         return this[$$settings][$$main].properties
+    }
+
+    default(def: TypeDefault): this {
+        return applyShape(this, { default: def })
     }
 
     property(
@@ -155,17 +169,17 @@ const Shape = class Shape extends SchemaBuilder<ShapeValidator<ShapeInput>, {}> 
             [key]: newProp 
         }
 
-        return applyProperties(this, newProps)
+        return applyShape(this, { properties: newProps })
     }
 
     pick(...keys: (keyof ShapeInput)[]): this {
         const newProps = pick(this.properties, ...keys)
-        return applyProperties(this, newProps)
+        return applyShape(this, { properties: newProps })
     }
 
     omit(...keys: (keyof ShapeInput)[]): this {
         const newProps = omit(this.properties, ...keys)
-        return applyProperties(this, newProps)
+        return applyShape(this, { properties: newProps })
     }
 
     merge(shapeOrProperties: object): this {
@@ -174,23 +188,28 @@ const Shape = class Shape extends SchemaBuilder<ShapeValidator<ShapeInput>, {}> 
             ? shapeOrProperties.properties
             : shapeOrProperties as ShapeInput
 
-        return applyProperties(
+        return applyShape(
             this, 
             {
-                ...this.properties,
-                ...properties
+                properties: {
+                    ...this.properties,
+                    ...properties
+                }
             }
         )
     }
 
     partial(): this {
         const partialProps = { ...this.properties }
-        for (const key of keysOf(partialProps)) 
-            partialProps[key] = ensureMutator(partialProps[key], MutatorType.Optional)
-    
-        return applyProperties(
+        for (const key of keysOf(partialProps)) {
+            partialProps[key] = ensureMutator(
+                partialProps[key], 
+                MutatorType.Optional
+            )
+        }
+        return applyShape(
             this,
-            partialProps
+            { properties: partialProps }
         )
     }
 

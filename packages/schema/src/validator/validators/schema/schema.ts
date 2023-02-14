@@ -187,7 +187,6 @@ abstract class SchemaValidator extends ValidatorStruct<unknown,unknown> {
     get [$$settings](): object {
         return pick(this, $$main, $$sub)
     }
-
 }
 
 // Schema

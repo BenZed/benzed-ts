@@ -1,4 +1,4 @@
-import { isNumber, isString } from '@benzed/util'
+import { isNumber, isString, nil } from '@benzed/util'
 
 import { Shape } from './shape'
 import { ConfigurableTypeValidator } from '../validators'
@@ -21,16 +21,15 @@ const $vector = new Shape({
 const $positiveVector = $vector
     .asserts(v => v.x >= 0 && v.y >= 0, 'Must be positive.')
 
-describe.skip(`${$vector.name} validator contract tests`, () => {
+describe(`${$vector.name} validator contract tests`, () => {
 
-    testValidationContract(
+    testValidationContract( 
         $vector,
         {
             validInput: { x: 0, y: 0 },
             invalidInput: { x: 'ace' }
         }
     )
- 
 })
 
 describe(`${$vector.name} validator tests`, () => {
@@ -91,70 +90,75 @@ describe('builder methods', () => {
         { asserts: { x: -1, y: 0 }, error: 'X must be positive' }
     )
 
-})
+    describe('property()', () => {
 
-describe('property()', () => {
+        const $vectorOptionalX = $positiveVector
+            .property('x', x => new Optional(x))
 
-    const $vectorOptionalX = $positiveVector
-        .property('x', x => new Optional(x))
+        const output = $vectorOptionalX({ x: 0, y: 0 })
 
-    const output = $vectorOptionalX({ x: 0, y: 0 })
-
-    expectTypeOf(output).toEqualTypeOf<{
-        x?: number
-        y: number
-    }>()
+        expectTypeOf(output).toEqualTypeOf<{
+            x?: number
+            y: number
+        }>()
  
-    testValidator<object, typeof output>(
-        $vectorOptionalX,
-        { transforms: { y: 0 } },
+        testValidator<object, typeof output>(
+            $vectorOptionalX,
+            { transforms: { y: 0 } },
 
-        // no error, as builder methods were removed
-        { transforms: { y: -1 } },
-    )
+            // no error, as builder methods were removed
+            { transforms: { y: -1 } },
+        )
 
-})
-
-it('pick', () => {
-    const $justX = $positiveVector.pick('x')
-
-    const justX = $justX({ x: -1, y: 0 })
-    expect(justX).toEqual({ x: -1 })
-})
-
-it('omit', () => {
-    const $justY = $positiveVector.omit('x')
-    const justY = $justY({ x: 0, y: -1 })
-    expect(justY).toEqual({ y: -1 })
-})
-
-it('merge', () => {
-
-    const $z = new Shape({
-        z: $number
     })
 
-    for (const $vector3 of [
-        $positiveVector.merge($z),
-        $positiveVector.merge($z.properties)
-    ]) {
-        const vector3 = $vector3({ x: -1, y: -1, z: 0 })
-        expect(vector3).toEqual({ x: -1, y: -1, z: 0 })
-    }
-})
+    it('pick', () => {
+        const $justX = $positiveVector.pick('x')
 
-it('partial', () => {
-    const $partialVector = $positiveVector.partial()
-    expect($partialVector({})).toEqual({})
-})
-
-it('merge overwrite', () => {
-
-    const $groundVector = $positiveVector.merge({
-        y: new Optional($number),
-        z: $number
+        const justX = $justX({ x: -1, y: 0 })
+        expect(justX).toEqual({ x: -1 })
     })
 
-    const v3 = $groundVector({ x: -1, z: 10 })
-    expect(v3).toEqual({ x: -1, z: 10 })
+    it('omit', () => {
+        const $justY = $positiveVector.omit('x')
+        const justY = $justY({ x: 0, y: -1 })
+        expect(justY).toEqual({ y: -1 })
+    })
+
+    it('merge', () => {
+
+        const $z = new Shape({
+            z: $number
+        })
+
+        for (const $vector3 of [
+            $positiveVector.merge($z),
+            $positiveVector.merge($z.properties)
+        ]) {
+            const vector3 = $vector3({ x: -1, y: -1, z: 0 })
+            expect(vector3).toEqual({ x: -1, y: -1, z: 0 })
+        }
+    })
+
+    it('partial', () => {
+        const $partialVector = $positiveVector.partial()
+        expect($partialVector({})).toEqual({})
+    })
+
+    it('merge overwrite', () => {
+
+        const $groundVector = $positiveVector.merge({
+            y: new Optional($number),
+            z: $number
+        })
+
+        const v3 = $groundVector({ x: -1, z: 10 })
+        expect(v3).toEqual({ x: -1, z: 10 })
+    })
+
+    it('default', () => {
+        const $zero = $positiveVector.default(() => ({ x: 0, y: 0 }))
+        expect($zero(nil)).toEqual({ x: 0, y: 0 })
+    })
+
 })

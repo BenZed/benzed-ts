@@ -3,7 +3,6 @@ import {
     isArray,
     isFunc,
     isObject,
-    isPrimitive,
     isShape,
     keysOf,
 } from '@benzed/util'
@@ -22,9 +21,10 @@ interface Copyable {
 
 //// Helpers ////
 
-const isCopyable: (input: unknown) => input is Copyable = isShape({
-    [$$copy]: isFunc
-})
+const isCopyable: (input: unknown) => input is Copyable = 
+    isShape({
+        [$$copy]: isFunc
+    })
 
 const isTypedArray = (input: unknown): input is Array<unknown> => 
     [
@@ -52,25 +52,28 @@ function * copyEach<T>(iterable: Iterable<T>, refs: Refs): Generator<T> {
  */
 function copy<T>(input: T, refs: Refs = new WeakMap()): T {
 
-    // Return existing Ref
-    if (isObject(input) && refs.has(input))
-        return refs.get(input) as T
-
-    // Copyable Implementation
-    if (isCopyable(input)) {
-        const output = input[$$copy](refs)
-        refs.set(input, output)
-        return output
-    }
-
-    // Non-copyables just get returned as-is
+    // non-copyables returned as-is
     if (
-        isPrimitive(input) || 
-        isFunc(input) || 
+        !isObject(input) || 
         input instanceof WeakMap || 
         input instanceof WeakSet
     )
         return input 
+
+    // Return existing Ref
+    if (refs.has(input))
+        return refs.get(input) as T
+
+    const setRef = <Tx extends object>(
+        output: Tx
+    ): Tx => {
+        refs.set(input, output)
+        return output
+    }
+
+    // Copyable Implementation
+    if (isCopyable(input)) 
+        return setRef(input[$$copy]())
 
     // Implementations for standard objects
     if (input instanceof RegExp)
@@ -87,40 +90,31 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
         return new TypedArray(input)
     }
 
-    const createFromProto = <Tx extends object>(value: Tx): Tx => {
-        const blank = Object.create(value.constructor.prototype)
-        refs.set(value, blank)
-        return blank
-    }
-
     const copyWithRefs = <Tx>(v: Tx): Tx => copy(v, refs)
 
-    // Implementations requiring refs
     if (isArray(input)) {
-        const array = createFromProto(input)
+        const array = setRef([] as typeof input)
         array.push(...input.map(copyWithRefs))
         return array
     }
 
     if (input instanceof Set) {
-        const set = createFromProto(input)
+        const set = setRef(new Set)
         input.forEach(v => set.add(copyWithRefs(v)))
-        return set
+        return set as T
     }
 
     if (input instanceof Map) {
-        const map = createFromProto(input)
-        input.forEach((k,v) => map.set(copyWithRefs(k), copyWithRefs(v)))
-        return map
+        const map = setRef(new Map)
+        input.forEach((v,k) => map.set(copyWithRefs(k), copyWithRefs(v)))
+        return map as T
     }
 
-    if (isObject(input)) {
-        const object = createFromProto(input)
-        for (const key of keysOf(input as object))
-            object[key] = copyWithRefs(input[key])
-    }
-
-    throw new Error('Value not copyable.')
+    const object = setRef(Object.create(input))
+    for (const key of keysOf(input))
+        object[key] = copyWithRefs(input[key])
+    
+    return object
 }
 
 //// Exports ////
