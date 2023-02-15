@@ -15,17 +15,17 @@ import PipeValidator from './pipe-validator'
     @typescript-eslint/no-explicit-any,
 */
 
-//// Types ////
+//// Helper Types ////
 
-type Transformers = readonly AnyValidateStruct[]
+type ValidatorArray = readonly AnyValidateStruct[]
 
-type FirstTransformer<T extends Transformers> = T extends [infer F, ...any]
+type FirstValidator<T extends ValidatorArray> = T extends [infer F, ...any]
     ? F extends AnyValidateStruct
         ? F 
         : never
     : never
 
-type LastTransformer<T extends Transformers> = T extends [...any, infer L]
+type LastValidator<T extends ValidatorArray> = T extends [...any, infer L]
     ? L extends AnyValidateStruct
         ? L 
         : T extends [infer F]
@@ -35,28 +35,30 @@ type LastTransformer<T extends Transformers> = T extends [...any, infer L]
             : never
     : never
 
-type TransformTo<T extends Transformers> = ValidateStruct<OutputOf<LastTransformer<T>>>
+//// TYpes ////
 
-type TransformInput<T extends Transformers> = InputOf<FirstTransformer<T>>
-type TransformOutput<T extends Transformers> = OutputOf<LastTransformer<T>> extends TransformInput<T>
-    ? OutputOf<LastTransformer<T>>
+type TransformTo<T extends ValidatorArray> = ValidateStruct<OutputOf<LastValidator<T>>>
+
+type TransformInput<T extends ValidatorArray> = InputOf<FirstValidator<T>>
+type TransformOutput<T extends ValidatorArray> = OutputOf<LastValidator<T>> extends TransformInput<T>
+    ? OutputOf<LastValidator<T>>
     : never
 
-type TransformsSettings<T extends Transformers> = T extends [infer T1, ...infer Tr]
+type TransformsSettings<T extends ValidatorArray> = T extends [infer T1, ...infer Tr]
     ? T1 extends AnyValidateStruct 
-        ? Tr extends Transformers
+        ? Tr extends ValidatorArray
             ? [ValidateSettings<T1>, ...TransformsSettings<Tr>]
             : [ValidateSettings<T1>]
         : []
     : []
 
-type TransformSettings<T extends Transformers> = {
+type TransformSettings<T extends ValidatorArray> = {
     transformers: TransformsSettings<T>
 }
 
 //// Main ////
 
-class TransformValidator<T extends Transformers> 
+class TransformValidator<T extends ValidatorArray> 
     extends PipeValidator<TransformInput<T>, TransformOutput<T>>{
 
     constructor(...transformers: T) {
@@ -132,6 +134,9 @@ export {
     TransformValidator,
     TransformInput,
     TransformOutput,
-    Transformers,
-    TransformTo
+    TransformTo,
+
+    ValidatorArray,
+    LastValidator,
+    FirstValidator
 }
