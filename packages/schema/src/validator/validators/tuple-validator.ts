@@ -35,16 +35,18 @@ class TupleValidator<T extends TupleInput> extends ValidatorStruct<unknown[], Tu
 
         const ctx = new ValidationContext(input, options)
 
-        const output: unknown[] = []
+        const transformed: unknown[] = ctx.transformed = []
 
         for (const index of indexesOf(input)) {
             const validateIndex = this.types[index]
             const value = input[index]
-            output[index] = validateIndex(value, ctx)
+            transformed[index] = validateIndex(value, ctx)
         }
 
-        ctx.transformed = output
-        if (!ctx.transformed && !ValidatorStruct.equal(input, output))
+        ctx.transformed = transformed
+
+        const output = ctx.transform ? ctx.transformed : input
+        if (!ValidatorStruct.equal(input, output))
             throw new ValidationError(this, ctx)
 
         return output as TupleOutput<T>

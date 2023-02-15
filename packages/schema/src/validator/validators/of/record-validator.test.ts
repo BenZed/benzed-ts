@@ -57,8 +57,6 @@ class NumberSchema extends Schema<Number, {}> {
 
 //// Tests ////
 
-it.todo(RecordValidator.name)
-
 // const $keyRecord = new RecordValidator(new SetStringKey, new Number)
 describe(RecordValidator.name + 'validation tests', () => {
 
