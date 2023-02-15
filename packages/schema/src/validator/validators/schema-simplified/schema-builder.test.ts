@@ -2,9 +2,9 @@ import { isNumber } from '@benzed/util'
 
 import TypeValidator from '../type-validator'
 import { SchemaBuilder } from './schema-builder'
-import SubContractValidator from './sub-validator'
 
 import { testValidator } from '../../../util.test'
+import {SubContractValidator} from './sub-contract-validator'
 
 //// Tests ////
 
@@ -16,6 +16,8 @@ const $number = new class Number extends TypeValidator<number> {
 const $positive = new class Positive extends SubContractValidator<number> {
     readonly enabled = true
     readonly transform = (i: number): number => Math.max(i, 0)
+    readonly message = 'Must be positive'
+
 }
 
 const $schema = new SchemaBuilder(
@@ -23,7 +25,7 @@ const $schema = new SchemaBuilder(
     {
         positive: $positive
     }
-)
+) 
 
 describe(`${$schema.name} validator tests`, () => {
 

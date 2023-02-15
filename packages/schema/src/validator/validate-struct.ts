@@ -12,7 +12,7 @@ import {
     $$copy,
     copy,
     copyWithoutState,
-    getDeepState,
+    getState,
 
 } from '@benzed/immutable'
 
@@ -73,7 +73,7 @@ export abstract class ValidateStruct<I, O extends I = I> extends Struct<Validate
     static getSettings<T extends AnyValidateStruct>(
         validator: T
     ): ValidateSettings<T> {
-        return getDeepState(validator)
+        return getState(validator)
     }
 
 }

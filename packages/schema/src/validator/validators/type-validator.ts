@@ -27,7 +27,8 @@ abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
         return input
     }
 
-    message(): string {
+    message(ctx: ValidationContext<unknown>): string {
+        void ctx
         return `Must be a ${this.name}`
     }
 

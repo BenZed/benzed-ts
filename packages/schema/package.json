@@ -1,6 +1,5 @@
 {
     "name": "@benzed/schema",
-    "alias": "schematic-ts",
     "description": "Typesafe Data validation",
     "main": "./src",
     "version": "0.3.0",

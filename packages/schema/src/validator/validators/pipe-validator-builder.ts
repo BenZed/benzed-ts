@@ -5,7 +5,7 @@ import { AnyValidate } from '../../validate'
 import { isValidationErrorMessage, ValidationErrorMessage } from '../../validation-error'
 import { ContractValidator } from '../contract-validator'
 
-import { $$settings, ValidateSettings } from '../validate-struct'
+import { $$settings, ValidateUpdateSettings } from '../validate-struct'
 import { ValidatorStruct } from '../validator-struct'
 
 import { PipeValidator, Validators } from './pipe-validator'
@@ -50,23 +50,28 @@ export interface PipeValidatorBuilderMethods<O> {
 
     asserts(
         isValid: OutputValidatorPredicate<O>,
-        message?: string | ValidationErrorMessage<O>,
         id?: symbol
     ): this 
+
     asserts(
         isValid: OutputValidatorPredicate<O>,
+        message?: string | ValidationErrorMessage<O>,
         id?: symbol
     ): this 
 
     transforms(
         transform: OutputValidatorTransform<O>,
-        message?: string | ValidationErrorMessage<O>,
         id?: symbol
     ): this 
     transforms(
         transform: OutputValidatorTransform<O>,
+        message?: string | ValidationErrorMessage<O>,
         id?: symbol
     ): this 
+
+    remove(
+        id: symbol
+    ): this
 }
 
 //// Helper ////
@@ -78,19 +83,6 @@ const toMessageId = new SignatureParser({
     .addLayout('id')
 
 type ToMessageIdParams<O> = [message?: string | ValidationErrorMessage<O>, id?: symbol] | [id?: symbol]
-
-function applyPipeValidators<T extends PipeValidatorBuilder<any,any>>(
-    pipe: T,
-    validators: AnyValidate[]
-):T {
-
-    const validate = Pipe.from(...validators)
-
-    return ValidatorStruct.applySettings(
-        pipe,
-        { validate } as ValidateSettings<T>
-    )
-}
 
 //// PipeValidatorBuilder ////
 
@@ -109,6 +101,7 @@ export class PipeValidatorBuilder<I, O extends I = I>
         input: OutputValidatorSettings<O> | OutputValidator<O>,
         id?: symbol
     ): this {
+
         const validator = isFunc(input)
             ? input 
             : new OutputValidator(input)
@@ -122,7 +115,7 @@ export class PipeValidatorBuilder<I, O extends I = I>
             ? this.validators.map((v, i) => i === index ? validator : v)
             : [...this.validators, validator]
 
-        return applyPipeValidators(this, validators)
+        return this._applyPipeValidators(validators as Validators<I,O>)
     }
 
     asserts(
@@ -152,7 +145,21 @@ export class PipeValidatorBuilder<I, O extends I = I>
             )
         }
 
-        return applyPipeValidators(this, validators)
+        return this._applyPipeValidators(validators as Validators<I,O>)
+    }
+
+    //// Helper ////
+    
+    protected _applyPipeValidators(
+        validators: Validators<I,O>
+    ): this {
+    
+        const validate = Pipe.from(...validators)
+    
+        return ValidatorStruct.applySettings(
+            this,
+            { validate } as ValidateUpdateSettings<this>
+        )
     }
 
     //// Settings ////
