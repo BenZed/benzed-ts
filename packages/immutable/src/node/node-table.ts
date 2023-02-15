@@ -2,7 +2,7 @@ import { assign, Func, Infer } from '@benzed/util'
 
 import { $$state } from '../state'
 
-import { FindModule, AssertModule, HasModule, Module } from '../module'
+import { FindModule, AssertModule, HasModule, Module, ModuleFind, ModulePublic } from '../module'
 
 //// EsLint ////
 /* eslint-disable 
@@ -53,18 +53,21 @@ interface NodeTableConstructor {
     new <T extends ModuleRecord>(record: T): NodeTable<T>
 }
 
-interface NodeTableMethodInterface<T extends ModuleRecord> {
-
-    get find(): FindModule
-    get assert(): AssertModule
-    get has(): HasModule
+interface NodeTableMethodInterface<T extends ModuleRecord> extends ModulePublic {
 
     pick<K extends (keyof T)[]>(...keys: K): NodeTable<_ModuleRecordPick<T, K>>
     omit<K extends (keyof T)[]>(...keys: K): NodeTable<_ModuleRecordOmit<T, K>>
     merge<Tx extends ModuleRecord>(record: Tx): NodeTable<_ModuleRecordMerge<T, Tx>>
 
-    set<K extends _K, R extends Module>(key: K, record: R): NodeTable<_ModuleRecordSet<T, K, R>>
-    delete<K extends keyof T>(key: K): NodeTable<_ModuleRecordOmit<T,[K]>>
+    set<K extends _K, R extends Module>(
+        key: K, 
+        record: R
+    ): NodeTable<_ModuleRecordSet<T, K, R>>
+
+    set<K extends keyof T, F extends (input: T[K]) => Module>(
+        key: K, 
+        update: F
+    ): NodeTable<_ModuleRecordSet<T, K, ReturnType<F>>>
 }
 
 interface NodeTableMethod<T extends ModuleRecord> {

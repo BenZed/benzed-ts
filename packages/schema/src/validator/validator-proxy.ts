@@ -49,7 +49,7 @@ abstract class ValidatorProxy<V extends AnyValidateStruct, I = InputOf<V>, O ext
     }
 
     //// Construct ////
-    
+
     protected [$$target]: V
 
     //// Mutations ////
