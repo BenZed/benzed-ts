@@ -1,23 +1,26 @@
 
 import { 
-    ShapeValidatorInput as ShapeInput,
-    ShapeValidatorOutput as ShapeOutput,
-    SchemaBuilder,
+
     $$settings,
     $$main,
+
+    SchemaBuilder,
+    $$builder,
+
     AnyValidateStruct,
     ValidateStruct,
-    $$builder,
+
     PipeValidatorBuilder,
     EnsureMutator,
-    MutatorType,
     ensureMutator,
+
+    MutatorType,
+
     ValidationContext,
-    ShapeValidator,
 } from '@benzed/schema'
 
 import { Infer, keysOf, omit, pick } from '@benzed/util'
-import { TypeDefault } from '../validators'
+import { ShapeInput, ShapeOutput, ShapeValidator, TypeDefault } from '../validators'
 
 //// EsLint ////
 

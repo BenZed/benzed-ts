@@ -16,7 +16,7 @@ const $number = new class Number extends ConfigurableTypeValidator<number> {
 const $vector = new Shape({
     x: $number,
     y: $number
-}).named('Vector')
+})//.named('Vector') 
 
 const $positiveVector = $vector
     .asserts(v => v.x >= 0 && v.y >= 0, 'Must be positive.')
