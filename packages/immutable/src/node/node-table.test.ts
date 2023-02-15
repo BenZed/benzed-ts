@@ -1,10 +1,11 @@
 
 import { NodeTable } from './node-table'
-
 import { it, expect } from '@jest/globals'
+
+import copy from '../copy'
+
 import { Module } from '../module'
 import { $$state } from '../state'
-import copy from '../copy'
 
 //// Setup ////
 
@@ -40,4 +41,28 @@ it('construct', () => {
 it('index', () => {
     expect(todo.completed).toEqual(completed)
     expect(todo.description).toEqual(description)
+})
+
+describe('interface', () => {
+
+    test('pick', () => {
+        const completed = todo(t => t.pick('completed'))
+        expect({ ...completed }).toEqual({ completed: todo.completed })
+    })
+
+    test('omit', () => {
+        const description = todo(t => t.omit('completed'))
+        expect({ ...description }).toEqual({ description: todo.description })
+    })
+
+    test('merge', () => {
+        const off = new Switch(false)
+        const plus = todo(t => t.merge({ off }))
+        expect({ ...plus }).toEqual({ ...todo, off })
+    })
+
+    test.todo('set')
+
+    test.todo('delete')
+
 })

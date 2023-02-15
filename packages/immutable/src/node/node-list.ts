@@ -2,7 +2,7 @@ import { assign, IndexesOf, keysOf, NamesOf } from '@benzed/util'
 
 import { $$state, applyState } from '../state'
 
-import { Module } from '../module'
+import { AssertModule, FindModule, HasModule, Module } from '../module'
 import { 
     addModules, 
     AddModules, 
@@ -21,6 +21,8 @@ import {
 
     Modules
 } from './node-list-operations'
+import { NodePublic } from './node-public'
+import { ModulePublic } from '../module/module-public'
 
 //// EsLint ////
 /* eslint-disable 
@@ -29,7 +31,7 @@ import {
 
 //// Type ////
 
-interface NodeListProperties<M extends Modules> {
+interface NodeListProperties<M extends Modules> extends Omit<NodePublic, typeof $$state> {
 
     add<Mx extends Modules>(...modules: Mx): NodeList<AddModules<M,Mx>>
 
@@ -59,6 +61,7 @@ interface NodeListProperties<M extends Modules> {
     get length(): M['length']
 
     get [$$state](): M 
+
 }
 
 type NodeListItems<M extends Modules> = { [K in IndexesOf<M>]: M[K] }
@@ -74,7 +77,7 @@ interface NodeListConstructor {
 
 //// Main ////
 
-const NodeList = class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
+const NodeList = class NodeList<M extends Modules> extends ModulePublic implements Iterable<M[number]>{
 
     constructor(...children: M) {
         super()
@@ -150,7 +153,7 @@ const NodeList = class NodeList<M extends Modules> extends Module implements Ite
 
     //// State ////
 
-    get [$$state](): M {
+    override get [$$state](): M {
         return Array.from({
             ...this, 
             length: keysOf.count(this) 

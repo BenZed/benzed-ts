@@ -6,7 +6,7 @@ import {
     Mutable, 
 } from '@benzed/util'
 
-import type { Node } from './node'
+import type { Module } from './node'
 import { isModule } from '../module'
 
 /* eslint-disable 
@@ -16,7 +16,7 @@ import { isModule } from '../module'
 */
 
 type Nodes = {
-    [key: string]: Node
+    [key: string]: Module
 }
 
 //// Helper Methods ////
@@ -47,23 +47,23 @@ export type GetNodeAtPath<N extends Nodes, P extends NestedPathsOf<N>> =
 
 //// SetNode  ////
     
-export type SetNode<N extends Nodes, K extends string, Nx extends Node> = {
+export type SetNode<N extends Nodes, K extends string, Nx extends Module> = {
     [Nk in K | PathsOf<N>]: Nk extends K ? Nx : N[Nk]
 } extends infer Nxx ? Nxx extends Nodes ? Nxx : never : never
     
-export function setNode<N extends Nodes, K extends string, Nx extends Node>(
+export function setNode<N extends Nodes, K extends string, Nx extends Module>(
     nodes: N, 
     key: K, 
     node: Nx
 ): SetNode<N, K, Nx>
 
-export function setNode<N extends Nodes, K extends PathsOf<N>, F extends (input: N[K]) => Node>(
+export function setNode<N extends Nodes, K extends PathsOf<N>, F extends (input: N[K]) => Module>(
     nodes: N, 
     key: K, 
     update: F
 ): SetNode<N, K, ReturnType<F>>
 
-export function setNode(nodes: Nodes, key: string, nodeOrUpdate: Node | ((current: Node) => Node)): Nodes {
+export function setNode(nodes: Nodes, key: string, nodeOrUpdate: Module | ((current: Module) => Module)): Nodes {
     return _setNodeAtPath(nodes, key, nodeOrUpdate)
 }
 
@@ -72,7 +72,7 @@ export function setNode(nodes: Nodes, key: string, nodeOrUpdate: Node | ((curren
  * paths that may be empty.
  * @internal
  */
-export function _setNodeAtPath(nodes: Nodes, key: string, nodeOrUpdate: Node | ((current: Node) => Node), emptyPathTemplate?: Node): Nodes {
+export function _setNodeAtPath(nodes: Nodes, key: string, nodeOrUpdate: Module | ((current: Module) => Module), emptyPathTemplate?: Module): Nodes {
 
     const paths = key.split('/').reverse()
 
@@ -88,7 +88,7 @@ export function _setNodeAtPath(nodes: Nodes, key: string, nodeOrUpdate: Node | (
             throw new Error('key must not be empty')
 
         if (!currNodes[path])
-            currNodes[path] = copy(emptyPathTemplate as Node)
+            currNodes[path] = copy(emptyPathTemplate as Module)
 
         const isLastPath = paths.length === 0
         if (isLastPath) {
