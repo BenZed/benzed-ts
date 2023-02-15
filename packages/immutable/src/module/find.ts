@@ -1,4 +1,4 @@
-import { Callable, Func, isFunc, nil, Property, TypeGuard } from '@benzed/util'
+import { assign, Callable, Func, isFunc, nil, Property, TypeGuard } from '@benzed/util'
 
 import { $$equals } from '../equals'
 
@@ -40,46 +40,48 @@ type FindOutput<I> =
 interface FindModule {
 
     <I extends FindInput>(input: I): FindOutput<I> | nil
-    get or(): FindModule
     get inSelf(): FindModule
     get inDescendents(): FindModule
     get inChildren(): FindModule
     get inParents(): FindModule
     get inAncestors(): FindModule
     get inModules(): FindModule
+    get or(): FindModule
+    get all(): FindModules
+
 }
 
 interface FindModules {
     <I extends FindInput>(input: I): FindOutput<I>[]
-    get or(): FindModules
     get inSelf(): FindModules
     get inDescendents(): FindModules
     get inChildren(): FindModules
     get inParents(): FindModules
     get inAncestors(): FindModules
     get inModules(): FindModules
+    get or(): FindModules
 }
 
 interface HasModule {
     <I extends FindInput>(input: I): boolean
-    get or(): HasModule
     get inSelf(): HasModule
     get inDescendents(): HasModule
     get inChildren(): HasModule
     get inParents(): HasModule
     get inAncestors(): FindModules
     get inModules(): FindModules
+    get or(): HasModule
 }
 
 interface AssertModule {
     <I extends FindInput>(input: I, error?: string): FindOutput<I>
-    get or(): AssertModule
     get inSelf(): AssertModule
     get inDescendents(): AssertModule
     get inChildren(): AssertModule
     get inParents(): AssertModule
     get inAncestors(): AssertModule
     get inModules(): AssertModule
+    get or(): AssertModule
 }
 
 interface FindConstructor {
@@ -114,6 +116,12 @@ const Find = class ModuleFinder extends Callable<Func> {
     get or(): this {
         this._iteratorMergeOnIncrement = true 
         return this
+    }
+
+    get all(): this {
+        const next = this._iteratorIncrement()
+        assign(next, { _flag: FindFlag.All })
+        return next
     }
 
     get inSelf(): this {
@@ -243,6 +251,7 @@ export default Find
 export {
 
     Find,
+    FindFlag,
     FindConstructor,
     FindInput,
     FindOutput,
