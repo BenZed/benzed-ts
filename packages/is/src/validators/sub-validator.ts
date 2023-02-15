@@ -23,7 +23,9 @@ export const toNameMessage = new SignatureParser({
     name: isOptional(isString)
 }).addLayout('message', 'name')
 
-export type NameMessageSignature<T> = [ message?: ValidationErrorMessage<T>, name?: string ]
+export type NameMessageSignature<T> = 
+    | [ message?: ValidationErrorMessage<T>, name?: string ] 
+    | [ settings: { message?: ValidationErrorMessage<T>, name?: string }]
 
 export const toNameMessageEnabled = new SignatureParser({
     ...toNameMessage.types,
@@ -33,7 +35,9 @@ export const toNameMessageEnabled = new SignatureParser({
     .addLayout('enabled')
     .addLayout('message', 'name')
 
-export type NameMessageEnabledSignature<T> = NameMessageSignature<T> | [enabled?: boolean]
+export type NameMessageEnabledSignature<T> = 
+    | NameMessageSignature<T> 
+    | [enabled?: boolean]
 
 //// Exports ////
 

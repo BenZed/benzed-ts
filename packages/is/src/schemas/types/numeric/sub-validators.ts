@@ -33,8 +33,8 @@ abstract class Precision extends SubValidator<number> {
         return `Must be ${this.name.toLowerCase()}ed${detail}`
     }
 
-    get [$$settings](): Pick<this, 'enabled' | 'by' | 'message'> {
-        return pick(this, 'enabled', 'by', 'message')
+    get [$$settings](): Pick<this, 'name' | 'enabled' | 'by' | 'message'> {
+        return pick(this, 'name', 'enabled', 'by', 'message')
     }
 
 }

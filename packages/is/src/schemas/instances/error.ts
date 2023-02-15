@@ -1,23 +1,11 @@
-import { InstanceValidator, Schema } from '@benzed/schema'
-
-//// EsLint ////
-
-/* eslint-disable
-    @typescript-eslint/ban-types
-*/
+import { Instance } from './instance'
 
 //// Main ////
 
-class ErrorValidator extends InstanceValidator<ErrorConstructor> {
+class Error extends Instance<ErrorConstructor> {
+
     constructor() {
         super(globalThis.Error)
-    }
-}
-
-class Error extends Schema<ErrorValidator, {}> {
-
-    constructor() {
-        super(new ErrorValidator, {})
     }
 
 }

@@ -5,7 +5,6 @@ import { hideNonStateKeys } from '@benzed/immutable'
 import { isNumber, isString } from '@benzed/util'
 
 import { TypeValidator } from '../../../validators'
-import { Ceil, Finite, Floor, Round } from './sub-validators'
 
 //// Helper ////
 

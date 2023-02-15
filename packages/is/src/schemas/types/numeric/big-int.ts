@@ -1,5 +1,6 @@
 import { Schema } from '@benzed/schema'
 import { isBigInt, isString } from '@benzed/util'
+import { TypeSchema } from '../../type'
 
 import NumericValidator from './numeric'
 import { Round } from './sub-validators'
@@ -21,19 +22,6 @@ const toBigInt = (value: unknown): unknown => {
 
 //// Types ////
 
-interface BigInt extends SchemaBuilder<BigIntValidator, {
-    range: Range
-}> {
-
-}
-
-const BigInt = class BigInt extends Schema<BigIntValidator, {}> {
-
-    constructor() {
-        super()
-    }
-}
-
 //// BigInt ////
 
 class BigIntValidator extends NumericValidator<bigint> {
@@ -43,6 +31,13 @@ class BigIntValidator extends NumericValidator<bigint> {
     }
  
     override cast = toBigInt
+}
+
+class BigInt extends TypeSchema<BigIntValidator, {}> {
+
+    constructor() {
+        super()
+    }
 }
 
 //// Exports ////

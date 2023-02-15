@@ -7,6 +7,8 @@ import { $$settings, ValidatorStruct, ValidationContext } from '@benzed/schema'
 
 //// Exports ////
 
+export * from './instance-validator'
+
 export * from './type-validator'
 
 export * from './value-validator'

@@ -9,7 +9,7 @@ import { testValidator, testValidationContract } from '../../util.test'
 describe(`${$error.name} validator contract tests`, () => {
 
     testValidationContract<unknown, Error>(
-        $error,
+        $error, 
         {
             validInput: new Error('Exception'),
             invalidInput: 0

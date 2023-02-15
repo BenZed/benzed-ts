@@ -53,8 +53,9 @@ const toNameMessageEnabledValue = new SignatureParser({
     .addLayout('value', 'message', 'name')
 
 type NameMessageEnabledValueSignature =
-    [ enabled?: boolean ] |
-    [ value: string, message: ValidationErrorMessage<string>, name: string]
+    | [ enabled?: boolean ]
+    | [ value: string, message?: ValidationErrorMessage<string>, name?: string ] 
+    | [ settings: { value: string, message?: ValidationErrorMessage<string>, name?: string }]
 
 //// Types ////
 

@@ -1,5 +1,6 @@
-import { InstanceValidator, Schema } from '@benzed/schema'
 import { isNumber, isString } from '@benzed/util'
+import { InstanceValidator } from '../../validators'
+import { TypeSchema } from '../type'
 
 //// EsLint ////
 
@@ -27,7 +28,7 @@ class DateValidator extends InstanceValidator<DateConstructor> {
 
 }
 
-class Date extends Schema<DateValidator, {}> {
+class Date extends TypeSchema<DateValidator, {}> {
 
     constructor() {
         super(new DateValidator, {})
