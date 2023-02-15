@@ -1,61 +1,98 @@
-import { assign, namesOf } from '@benzed/util'
+import { assign, Func, Infer } from '@benzed/util'
 
 import { $$state } from '../state'
 
-import { Module } from '../module'
+import { FindModule, AssertModule, HasModule, Module } from '../module'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Helper ////
+
+type _K = string | number | symbol
+
+type _ModuleRecordPick<T extends ModuleRecord, K extends (keyof T)[]> = 
+    Infer<{
+        [Tk in keyof T as Tk extends K[number] ? Tk : never]: T[Tk]
+    }, ModuleRecord>
+
+type _ModuleRecordOmit<T extends ModuleRecord, K extends (keyof T)[]> = 
+    Infer<{
+        [Tk in keyof T as Tk extends K[number] ? never : Tk]: T[Tk]
+    }, ModuleRecord>
+
+type _ModuleRecordMerge<T extends ModuleRecord, Tx extends ModuleRecord> = 
+    Infer<{
+        [K in keyof T | keyof Tx]: K extends keyof Tx 
+            ? Tx[K]
+            : K extends keyof T 
+                ? T[K]
+                : never
+    }, ModuleRecord>
+
+type _ModuleRecordSet<T extends ModuleRecord, K extends _K, R extends Module> = 
+    Infer<_ModuleRecordMerge<T, { [Kk in K]: R }>, ModuleRecord>
+
+//// Types ////
 
 type ModuleRecord = {
-    [key: string]: Module
+    readonly [key: string]: Module
 }
 
-//// Helper ////
-
-function getModuleRecord<T extends NodeTable<ModuleRecord>>(
-    input: T
-): T extends NodeTable<infer Tx> ? Tx : never {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return { ...input } as any
+interface NodeTableProperties<T extends ModuleRecord> extends NodeTableMethod<T>, Module {
+    [$$state]: T
 }
 
-function setModuleRecord<T extends ModuleRecord>(table: NodeTable<T>, record: T): void {
-    assign(table, record)
+type NodeTable<T extends ModuleRecord> =
+     & T 
+     & NodeTableProperties<T>
+
+interface NodeTableConstructor {
+    new <T extends ModuleRecord>(record: T): NodeTable<T>
 }
 
-function* iterateModuleRecord<T extends ModuleRecord>(table: NodeTable<T>): Iterator<T[string]> {
-    for (const name of namesOf(table)) {
-        const module = table[name]
-        yield module
-    }
+interface NodeTableMethodInterface<T extends ModuleRecord> {
+
+    get find(): FindModule
+    get assert(): AssertModule
+    get has(): HasModule
+
+    pick<K extends (keyof T)[]>(...keys: K): NodeTable<_ModuleRecordPick<T, K>>
+    omit<K extends (keyof T)[]>(...keys: K): NodeTable<_ModuleRecordOmit<T, K>>
+    merge<Tx extends ModuleRecord>(record: Tx): NodeTable<_ModuleRecordMerge<T, Tx>>
+
+    set<K extends _K, R extends Module>(key: K, record: R): NodeTable<_ModuleRecordSet<T, K, R>>
+    delete<K extends keyof T>(key: K): NodeTable<_ModuleRecordOmit<T,[K]>>
+}
+
+interface NodeTableMethod<T extends ModuleRecord> {
+    <F extends (input: NodeTableMethodInterface<T>) => NodeTable<any>>(update: F): ReturnType<F>
 }
 
 //// Main ////
 
-class NodeTable<T extends ModuleRecord> extends Module implements Iterable<T[string]>{
+const NodeTable = class NodeTable extends Module<NodeTableMethod<ModuleRecord>> {
 
-    constructor(children: T) {
-        super()
+    constructor(children: ModuleRecord) {
+        super(function (f: Func) {
+            return f(this)
+        })
         this[$$state] = children
     }
 
     //// State ////
 
-    get [$$state](): T {
-        return getModuleRecord(this)
+    get [$$state](): ModuleRecord {
+        return { ...this } as unknown as ModuleRecord
     }
 
-    set [$$state](children: T) {
-        setModuleRecord(this, children)
+    set [$$state](children: ModuleRecord) {
+        assign(this, children)
     }
 
-    //// Iteration ////
-
-    [Symbol.iterator](): Iterator<T[string]> {
-        return iterateModuleRecord(this)
-    }
-
-}
+} as NodeTableConstructor
 
 //// Exports ////
 
