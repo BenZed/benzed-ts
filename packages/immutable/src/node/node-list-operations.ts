@@ -19,7 +19,7 @@ import { copy } from '../copy'
 
 //// Types ////
 
-type Modules = readonly Module[]
+export type Modules = readonly Module[]
 
 //// Splice Modules ////
 
