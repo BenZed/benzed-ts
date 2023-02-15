@@ -51,10 +51,7 @@ type SpliceModules<
         : []
     : []
 
-/**
- * @internal
- */
-export function spliceModules(input: Modules, index: number, deleteCount: number, ...insert: Module[]): Modules {
+function spliceModules(input: Modules, index: number, deleteCount: number, ...insert: Module[]): Modules {
     const output = copy(input) as Module[]
     
     output.splice(index, deleteCount, ...insert)

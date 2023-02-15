@@ -1,10 +1,13 @@
+import { pick } from '@benzed/util'
+
 import { NodeList } from './node-list'
 
 import { test, it, expect, describe } from '@jest/globals'
 import { Module } from '../module'
-import { $$state, getState } from '../state'
-import { pick } from '@benzed/util'
+import { $$state, getState, setState } from '../state'
 import copy from '../copy'
+
+import { expectTypeOf } from 'expect-type'
 
 //// EsLint ////
 /* eslint-disable 
@@ -43,10 +46,15 @@ test('length', () => {
     expect(list.length).toEqual(2)
 })
 
+test('index', () => {
+    const zero = list[0]
+    expectTypeOf(zero).toEqualTypeOf<Data<5>>()
+})
+
 test('at', () => {
     expect(list.at(0)).toEqual(list[0])
 
-    // @ts-expect-error Bad index
+    // @ts-expect-error Invalid index
     expect(() => list.at(-1)).toThrow('is invalid')
 })
 
@@ -62,8 +70,8 @@ describe('state', () => {
 
         const list2 = copy(list) 
 
-        list2[$$state] = { ...state } as typeof list2[typeof $$state]
-
+        setState(list2, state)
+       
         expect({ ...list2 }).toEqual({ ...list }) 
         expect(list2[0]).toBeInstanceOf(Data)
         expect(list2[1]).toBeInstanceOf(Data)
@@ -75,9 +83,7 @@ describe('state', () => {
 describe('builder', () => {
 
     it('add', () => {
-
         const list2 = list.add(new Data(true as const))
-
         expect(list2[$$state]).toEqual([new Data(5), new Data('ace'), new Data(true)])
     })
 

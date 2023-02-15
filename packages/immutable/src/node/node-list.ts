@@ -1,4 +1,4 @@
-import { assign, IndexesOf, keysOf } from '@benzed/util'
+import { assign, IndexesOf, keysOf, NamesOf } from '@benzed/util'
 
 import { $$state, applyState } from '../state'
 
@@ -27,9 +27,54 @@ import {
     @typescript-eslint/no-explicit-any
 */
 
+//// Type ////
+
+interface NodeListProperties<M extends Modules> {
+
+    add<Mx extends Modules>(...modules: Mx): NodeList<AddModules<M,Mx>>
+
+    insert<Mx extends Modules, I extends IndexesOf<M>>(
+        index: I, 
+        ...modules: Mx
+    ): NodeList<InsertModules<M, I, Mx>>
+
+    swap<I1 extends IndexesOf<M>, I2 extends IndexesOf<M>>(
+        index1: I1,
+        index2: I2
+    ): NodeList<SwapModules<M, I1, I2>>
+
+    remove<I extends IndexesOf<M>>(index: I): NodeList<RemoveModule<M, I>>
+
+    set<I extends IndexesOf<M>, Mx extends Module>(
+        index: I,
+        module: Mx
+    ): NodeList<SetModule<M, I, Mx>>
+    set<I extends IndexesOf<M>, F extends (input: M[I]) => Module>(
+        index: I,
+        update: F
+    ): NodeList<SetModule<M,I,F>>
+
+    at<I extends IndexesOf<M>>(index: I): M[I]
+
+    get length(): M['length']
+
+    get [$$state](): M 
+}
+
+type NodeListItems<M extends Modules> = { [K in IndexesOf<M>]: M[K] }
+
+type NodeList<M extends Modules> = 
+    & Module 
+    & NodeListProperties<M> 
+    & NodeListItems<M>
+
+interface NodeListConstructor {
+    new <M extends Modules>(...modules: M): NodeList<M>
+}
+
 //// Main ////
 
-class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
+const NodeList = class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
 
     constructor(...children: M) {
         super()
@@ -71,7 +116,6 @@ class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
         index: I,
         module: Mx
     ): NodeList<SetModule<M, I, Mx>>
-
     set<
         I extends IndexesOf<M>,
         F extends (input: M[I]) => Module
@@ -79,7 +123,6 @@ class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
         index: I,
         update: F
     ): NodeList<SetModule<M,I,F>>
-
     set(i: number, updateOrModule: unknown): unknown {
 
         const updated = setModule(
@@ -114,7 +157,7 @@ class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
         }) as unknown as M
     }
 
-    set [$$state](children: M) {
+    protected set [$$state](children: M) {
 
         // normalize state object vs array
         const state = { ...children } as any
@@ -136,7 +179,7 @@ class NodeList<M extends Modules> extends Module implements Iterable<M[number]>{
         yield* this[$$state]
     }
 
-}
+} as unknown as NodeListConstructor
 
 //// Exports ////
 

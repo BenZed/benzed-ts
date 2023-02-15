@@ -10,8 +10,13 @@ type ModuleRecord = {
     readonly [key: string]: Module
 }
 
+interface NodeProperties<T extends ModuleRecord> extends Module {
+    [$$state]: T
+}
+
 type NodeTable<T extends ModuleRecord> =
-     Module & T
+     & T 
+     & NodeProperties<T>
 
 interface NodeTableConstructor {
     new <T extends ModuleRecord>(record: T): NodeTable<T>

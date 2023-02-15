@@ -1,4 +1,3 @@
-import { pick } from '@benzed/util'
 
 import { NodeTable } from './node-table'
 
