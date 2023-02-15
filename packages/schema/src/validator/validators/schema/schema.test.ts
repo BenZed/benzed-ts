@@ -1,219 +1,254 @@
-import { assign, isNumber, isString, nil, pick } from '@benzed/util'
+import { Schema } from './schema'
 
-import { it, describe } from '@jest/globals'
+import { isNumber, isString, through as isNotEmpty, pick, SignatureParser, isBoolean, isOptional } from '@benzed/util'
 
-import { 
-    MainValidator,
-    SubValidator,
-    Schema
-} from './schema'
-
-import { expectTypeOf } from 'expect-type'
-
-import {
-    testValidator,
-    testValidationContract
-} from '../../../util.test'  
-
+import TypeValidator from '../type-validator'
 import { $$settings } from '../../validate-struct'
+import ValidationContext from '../../../validation-context'
+import { isValidationErrorMessage, ValidationErrorMessage } from '../../../validation-error'
 
-import { TypeValidator } from '../type-validator'
+import { testValidator } from '../../../util.test'
 
-import { ContractValidator } from '../../contract-validator'
-import { ValidationErrorMessage } from '../../../validation-error'
+import {SubContractValidator} from './sub-contract-validator'
 
 //// EsLint ////
 
-/* eslint-disable  
+/* eslint-disable 
     @typescript-eslint/ban-types
 */
 
+//// Main Validators ////
+
+class NumberValidator extends TypeValidator<number> {
+
+    isValid(value: unknown): value is number {
+        return isNumber(value) && (!this.positive || value >= 0)
+    }
+
+    readonly name: string = 'Number'
+
+    readonly positive: boolean = false
+
+    message(ctx: ValidationContext<unknown>): string {
+        void ctx
+        return [
+            'Must be a',
+            this.positive ? 'positive' : '',
+            this.name
+        ].filter(isNotEmpty).join(' ')
+    }
+
+    //// State ////
+    
+    get [$$settings](): Pick<this, 'name' | 'positive' | 'message'> {
+        return pick(this, 'name', 'positive', 'message')
+    }
+
+}
+
+//// Sub Validators ////
+
+abstract class NumberSubContractValidator extends SubContractValidator<number> {
+
+    get [$$settings](): Pick<this, 'enabled' | 'message'> {
+        return pick(this, 'enabled', 'message')
+    }
+
+}
+
+abstract class LimitValidator<O extends '>' | '<'> extends SubContractValidator<number> {
+
+    abstract get operator(): O
+
+    constructor(
+        readonly value: number,
+        readonly inclusive: boolean
+    ) {
+        super()
+    }
+
+    isValid(value: number): boolean {
+        return this.operator === '>'
+            ? this.inclusive 
+                ? this.value >= value 
+                : this.value > value 
+            : this.inclusive 
+                ? this.value <= value 
+                : this.value < value
+    }
+    readonly message: string | ValidationErrorMessage<number> =     
+        function (ctx: ValidationContext<number>): string {
+
+            void ctx
+
+            const valueDetail = this.operator === '>'
+                ? 'less than'
+                : 'greater than'
+
+            const inclusiveDetail = this.inclusive 
+                ? ' or equal to'
+                : ''
+
+            const detail = valueDetail + inclusiveDetail
+
+            return `Must be ${detail} ${this.value}`
+        }
+
+    get [$$settings](): Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'> {
+        return pick(this, 'enabled', 'message', 'value', 'inclusive')
+    }
+
+}
+
+const toLimit = new SignatureParser({
+    enabled: isOptional(isBoolean),
+    message: isOptional(isValidationErrorMessage),
+    inclusive: isOptional(isBoolean),
+    value: isNumber,
+})
+    .setDefaults({
+        enabled: true as boolean
+    })
+    .addLayout('enabled')
+    .addLayout('value', 'message')
+    .addLayout('value', 'inclusive', 'message')
+
+type ToLimitParams = 
+    [enabled: false] | 
+    [value: number, message?: string | ValidationErrorMessage<number>] | 
+    [value: number, inclusive?: boolean, message?: string | ValidationErrorMessage<number>] | 
+    [settings: { value: number, message?: string | ValidationErrorMessage<number>, inclusive?: boolean }]
+
+class MinValidator extends LimitValidator<'<'> {
+    get operator(): '<' {
+        return '<'
+    }
+    readonly enabled: boolean = false
+}
+
+class MaxValidator extends LimitValidator<'>'> {
+    get operator(): '>' {
+        return '>'
+    }
+    readonly enabled: boolean = false 
+}
+
+//// Schema ////
+
+class NumberSchema extends Schema<NumberValidator, {
+    min: MinValidator
+    max: MaxValidator
+}> {
+
+    constructor() {
+        super(new NumberValidator, {
+            min: new MinValidator(-Infinity, true),
+            max: new MaxValidator(Infinity, false)
+        })
+    }
+
+    named(value: string): this {
+        return this._applyMainValidator({ name: value })
+    }
+
+    positive(value = true): this {
+        return this._applyMainValidator({ positive: value })
+    }
+
+    message(value: string | ValidationErrorMessage<unknown>): this {
+        return this._applyMainValidator({
+            message: isString(value) ? () => value : value
+        })
+    }
+
+    min(...params: ToLimitParams): this {
+        const minSettings = toLimit(...params as Parameters<typeof toLimit>)
+        return this._applySubValidator('min', minSettings)
+    }
+
+    max(...params: ToLimitParams): this {
+        const maxSettings = toLimit(...params as Parameters<typeof toLimit>)
+        return this._applySubValidator('max', maxSettings)
+    }
+
+}
+
 //// Tests ////
 
-describe('Schema Setters Type Tests', () => {
+describe('extending schema with main and sub validators', () => {
 
-    // Hypothetical big number data type.
-    type bignumber = `${number}`
+    const $number = new NumberSchema()
 
-    interface BigDecimal extends MainValidator<string, bignumber> { 
-        
-        // hypothetical optional transformation configuration;
-        // if transforms are enabled, it'll try to parse invalid strings.
-        readonly parse: boolean 
+    describe('named', () => {
 
-        [$$settings]: { parse: boolean }
-    }
-
-    interface LeadingZeros extends SubValidator<bignumber> { 
-    
-        // hypothetical validation configuration:
-        // big number must have at least this many leading zeros.
-        // Will transform. 
-        readonly count: number 
-
-        [$$settings]: { count: number, enabled: boolean }
-    }
-
-    interface Positive extends SubValidator<bignumber> {
-
-        // Custom configuration signature
-        configure(enabled?: boolean): { enabled: boolean}
-    }
-
-    /* eslint-disable @typescript-eslint/indent */
-    type BigDecimalSchema =
-
-        Schema<BigDecimal,
-            {
-                leadingZeros: LeadingZeros
-                positive: Positive
-            }
-        >
-
-    type ParseSetter = BigDecimalSchema['parse']
-    type LeadingZerosSetter = BigDecimalSchema['leadingZeros']
-    type PositiveSetter = BigDecimalSchema['positive']
-
-    /* eslint-enable @typescript-eslint/indent */
-
-    it('creates setter methods for main validator state properties', () => {
-        expectTypeOf<ParseSetter>()
-            .toEqualTypeOf<(i: boolean) => BigDecimalSchema>()
-    })
-
-    it('creates setter methods for sub validators', () => {
-        expectTypeOf<LeadingZerosSetter>()
-            .toEqualTypeOf<(state: Partial<{
-            count: number
-            enabled: boolean
-        }>) => BigDecimalSchema>()
-    })
-
-    it('setter methods for sub validators use configure parameters, if provided', () => {
-        expectTypeOf<PositiveSetter>()
-            .toEqualTypeOf<(enabled?: boolean) => BigDecimalSchema>()
-    })
-
-})
-
-describe('Schema implementation', () => {
-
-    type NumberState = {
-        message: ValidationErrorMessage<number>
-        cast: TypeValidator<number>['cast']
-        default: TypeValidator<number>['default']
-        finite: boolean
-    }
-
-    const $number = new class NumberValidator extends TypeValidator<number> {
-
-        get [$$settings](): NumberState {
-            return {
-                message: this.message,
-                cast: this.cast,
-                default: this.default,
-                finite: this.finite
-            }
-        }
-
-        set [$$settings](state: NumberState) {
-            assign(this, state)
-        }
-
-        isValid(input: unknown): input is number {
-            return isNumber(input) && (isFinite(input) || !this.finite)
-        }
-
-        message(): string {
-            return `Must be a ${this.finite ? 'finite ' : ''}number`
-        }
-
-        readonly finite: boolean = false
-    }
-
-    describe('main validator only', () => {
-
-        const $numberSchema = new Schema($number)
-
-        testValidationContract<unknown, number>($numberSchema, {
-            invalidInput: NaN,
-            validInput: 10
-        })
-
-        testValidator<unknown,number>(
-            $numberSchema,
-            { asserts: Infinity },
-            { transforms: '100', error: 'Must be a number' },
-            { transforms: nil, error: 'Must be a number' }
-        )
-
-        testValidator(
-            $numberSchema.finite(true),
-            { asserts: Infinity, error: 'Must be a finite number' }
-        )
+        const $namedNumber = $number.named('Id')
 
         testValidator<unknown, number>(
-            $numberSchema.cast(i => isString(i) ? parseFloat(i) : i),
-            { transforms: '100', output: 100 }
-        ) 
-
-        testValidator<unknown,number>(
-            $numberSchema.default(() => 0),
-            { transforms: nil, output: 0 }
-        )
-
-        testValidator<unknown,number>(
-            $numberSchema.message(() => 'Numbers only'),
-            { transforms: nil, error: 'Numbers only' }
+            $namedNumber,
+            { asserts: -1 },
+            { asserts: 0 },
+            { asserts: 1 },
+            { asserts: NaN, error: 'Must be a Id' }
         )
 
     })
 
-    describe('with subvalidator', () => {
+    describe('positive', () => {
 
-        class StringValidator extends TypeValidator<string> {
+        const $positiveNumber = $number.positive()
 
-            name = 'String'
-
-            isValid(input: unknown): input is string {
-                return typeof input === 'string'
-            }
-        }
-
-        class Capitalize extends ContractValidator<string, string> { 
-
-            name = 'Captalized'
-
-            readonly enabled = false
-
-            transform(input: string): string {
-                return input.charAt(0).toUpperCase() + input.slice(1)
-            }
-
-            message(): string {
-                return 'Must be capitalized.'
-            }
-
-            get [$$settings](): { enabled: boolean } {
-                return pick(this, 'enabled')
-            }
-
-            configure(enabled = true): { enabled: boolean } {
-                return { enabled }
-            }
-        }
-
-        const $string = new Schema(
-            new StringValidator(), {
-                captialize: new Capitalize()
-            }
+        testValidator(
+            $positiveNumber,
+            { asserts: -1, error: 'Must be a positive Number' },
+            { asserts: 0 },
+            { asserts: 1 },
         )
 
-        testValidator<unknown,string>(
-            $string.captialize(),
-            { transforms: 'ace', output: 'Ace' },
-            { asserts: 'ace', error: 'Must be capitalized' },
-            { transforms: 0, error: 'Must be a String' },
-        )
     })
+
+    describe('message', () => {
+
+        const $messageValidator = $number.message('Must be Numeric')
+
+        testValidator(
+            $messageValidator,
+            { asserts: -1 },
+            { asserts: 0 },
+            { asserts: 1 },
+            { asserts: NaN, error: 'Must be Numeric' },
+        )
+
+    })
+
+    describe('limit', () => {
+
+        const $0to100 = $number.min(0).max(100)
+
+        testValidator(
+            $0to100,
+            { asserts: 99 },
+            { asserts: 100, error: 'Must be less than 100' },
+            { asserts: 0 },
+            { asserts: -1, error: 'Must be greater than or equal to 0' },
+        )
+
+        const $lessThan100 = $0to100.min(false)
+        testValidator(
+            $lessThan100,
+            { asserts: 99 },
+            { asserts: 100, error: 'Must be less than 100' },
+            { asserts: 0 },
+            { asserts: -1 },
+        )
+
+        const $above0 = $0to100.max(false).min({ value: 0, inclusive: false })
+        testValidator(
+            $above0,
+            { asserts: 99 },
+            { asserts: 0, error: 'Must be greater than 0' }
+        )
+
+    })
+
 })
+

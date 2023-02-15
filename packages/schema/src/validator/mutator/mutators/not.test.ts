@@ -20,7 +20,7 @@ class Id extends ContractValidator<string, id> {
         const digits = input.replace('#id-', '')
 
         let numeric = parseInt(digits)
-        if (numeric < this.minId)
+        if (numeric < this.minId) 
             numeric = this.minId
 
         return `#id-${numeric}`

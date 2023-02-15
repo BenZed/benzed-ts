@@ -24,7 +24,6 @@
         "@benzed/util": "^3.9.1",
         "@benzed/immutable": "^4.0.0",
         "@benzed/array": "^3.2.3",
-        "@benzed/string": "^3.2.3",
         "@benzed/struct": "^1.0.0"
     }
 }

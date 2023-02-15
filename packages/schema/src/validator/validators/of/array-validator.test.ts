@@ -1,10 +1,10 @@
 import { isNumber, isString, nil, pick } from '@benzed/util'
 import { describe } from '@jest/globals'
 
+import { Schema } from '../schema'
+
 import { ArrayValidator } from './array-validator'
 import { TypeValidator } from '../type-validator'
-
-import { Schema } from '../schema'
 
 import { $$settings } from '../../validate-struct'
 
@@ -13,9 +13,16 @@ import {
     testValidationContract
 } from '../../../util.test'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/ban-types,
+*/
+
 //// Setup ////
 
-const $number = new class NumberValidator extends TypeValidator<number> {
+class NumberValidator extends TypeValidator<number> {
+
+    name = 'number'
 
     isValid(value: unknown): value is number {
         return isNumber(value)
@@ -31,7 +38,20 @@ const $number = new class NumberValidator extends TypeValidator<number> {
 
 }
 
-const $numberSchema = new Schema($number)
+class Number extends Schema<NumberValidator, {}> {
+    constructor() {
+        super(
+            new NumberValidator,
+            {}
+        )
+    }
+
+    default(def: () => number): this {
+        return this._applyMainValidator({ default: def })
+    }
+} 
+
+const $numberSchema = new Number
  
 const $arrayOfNumber = new ArrayValidator($numberSchema)
 
@@ -81,7 +101,7 @@ describe('nestable', () => {
 
     const $arrayOfArrayOfNumber = new ArrayValidator(new ArrayValidator($numberSchema))
 
-    testValidator(
+    testValidator<unknown, unknown[][]>(
         $arrayOfArrayOfNumber,
         { asserts: [[0]] },
         { asserts: [0], error: true }

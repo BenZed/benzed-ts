@@ -1,113 +1,147 @@
-import { 
-    OutputOf, 
-    pick 
-} from '@benzed/util'
+
+import { ValidateOptions } from '../../../validate'
+import { ValidationErrorMessage } from '../../../validation-error'
+import { AnyValidatorStruct } from '../../validator-struct'
+import { $$settings, ValidateStruct, ValidateUpdateSettings } from '../../validate-struct'
 
 import { 
-    ValidateOptions 
-} from '../../../validate'
-
-import { 
-    $$settings, 
-    AnyValidateStruct, 
-    ValidateSettings, 
-    ValidateStruct 
-} from '../../validate-struct'
-
-import {
-    PipeValidatorBuilder,
-    PipeValidatorBuilderMethods
+    PipeValidatorBuilder, 
+    PipeValidatorBuilderMethods,
+    OutputValidator,
+    OutputValidatorSettings,
+    OutputValidatorPredicate,
+    OutputValidatorTransform
 } from '../pipe-validator-builder'
 
-import Schema, { $$main, $$sub, SubValidators } from './schema'
-
-//// EsLint ////
-
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/ban-types
-*/
+import { 
+    Schema, 
+    SchemaInput, 
+    SchemaOutput, 
+    SubValidators, 
+    $$main, 
+    $$sub 
+} from './schema'
 
 //// Symbols ////
 
-const $$builder = Symbol('pipe-schema-builder')
-
-//// Helper Types ////
-
-type _BuilderParams<T, K extends keyof PipeValidatorBuilderMethods<T>> = 
-    Parameters<PipeValidatorBuilderMethods<T>[K]> 
+const $$builder = Symbol('pipe-builder-validator')
 
 //// Types ////
 
-interface SchemaBuilderConstructor {
-    new <M extends AnyValidateStruct>(main: M): SchemaBuilder<M, {}>
-    new <M extends AnyValidateStruct, S extends SubValidators<OutputOf<M>>>(
-        main: M,
-        sub: S
-    ): SchemaBuilder<M, S>
-}
+type SchemaPipeBuilder<V extends AnyValidatorStruct> = PipeValidatorBuilder<SchemaOutput<V>, SchemaOutput<V>>
+type SchemaBuilderValidator<V extends AnyValidatorStruct> = OutputValidator<SchemaOutput<V>>
+type SchemaBuilderValidatorSettings<V extends AnyValidatorStruct> = OutputValidatorSettings<SchemaOutput<V>>
+type SchemaBuilderValidatorErrorMessage<V extends AnyValidatorStruct> = ValidationErrorMessage<SchemaOutput<V>>
+type SchemaBuilderValidatorPredicate<V extends AnyValidatorStruct> = OutputValidatorPredicate<SchemaOutput<V>>
+type SchemaBuilderValidatorTransform<V extends AnyValidatorStruct> = OutputValidatorTransform<SchemaOutput<V>>
 
-type SchemaBuilder<T extends AnyValidateStruct, S extends SubValidators<OutputOf<T>>> = 
-    PipeValidatorBuilderMethods<OutputOf<T>> & 
-    Schema<T,S>
+type SchemaBuilderMethods<V extends AnyValidatorStruct> = PipeValidatorBuilderMethods<SchemaOutput<V>>
 
-//// Helper ////
+//// Main ////
 
-function applyBuilderValidator<
-    T extends AnyValidateStruct, 
-    K extends keyof PipeValidatorBuilderMethods<any>,
->(
-    input: T, 
-    method: keyof PipeValidatorBuilderMethods<T>,
-    ...args: Parameters<PipeValidatorBuilderMethods<T>[K]>
-): T {
+class SchemaBuilder<V extends AnyValidatorStruct, S extends SubValidators<SchemaOutput<V>>> 
 
-    const builder = (input as any)[$$builder]
+    extends Schema<V,S>
 
-    return ValidateStruct.applySettings(
-        input,
-        {
-            [$$builder]: builder[method](...args)
-        } as ValidateSettings<T>
-    ) as T
-}
+    implements PipeValidatorBuilderMethods<SchemaOutput<V>> {
 
-//// Implementation ////
-
-const SchemaBuilder = class extends Schema<any, never> {
-
-    validate(input: any, options: ValidateOptions): any {
-        let output: any = super.validate(input, options)
-
+    override validate(input: SchemaInput<V>, options: ValidateOptions): SchemaOutput<V> {
+        let output = super.validate(input, options)
         output = this[$$builder].validate(output, options)
-
         return output
     }
 
-    protected [$$builder]: PipeValidatorBuilder<unknown> = PipeValidatorBuilder.empty()
+    protected [$$builder]: SchemaPipeBuilder<V> = PipeValidatorBuilder.empty()
 
-    asserts( ...args: _BuilderParams<any, 'asserts'>): this {
-        return applyBuilderValidator(this, 'asserts', ...args)
+    //// Public Builder Methods ////
+
+    validates(validator: SchemaBuilderValidator<V>): this
+    validates(settings: SchemaBuilderValidatorSettings<V>): this
+    validates<T extends SchemaBuilderValidatorSettings<V>>(validator: T): this
+    validates( ...params: unknown[]): this {
+        return this._applyBuilderValidator(
+            'validates', 
+            params as Parameters<SchemaBuilderMethods<V>['validates']>
+        )
     }
 
-    transforms( ...args: _BuilderParams<any, 'transforms'>): this {
-        return applyBuilderValidator(this, 'transforms', ...args)
+    asserts(
+        isValid: SchemaBuilderValidatorPredicate<V>,
+        id?: symbol
+    ): this 
+    asserts(
+        isValid: SchemaBuilderValidatorPredicate<V>,
+        message?: string | SchemaBuilderValidatorErrorMessage<V>,
+        id?: symbol
+    ): this 
+    asserts(...params: unknown[]): this {
+        return this._applyBuilderValidator(
+            'asserts', 
+            params as Parameters<SchemaBuilderMethods<V>['asserts']>
+        )
     }
 
-    validates( ...args: _BuilderParams<any, 'validates'>): this {
-        return applyBuilderValidator(this, 'validates', ...args)
+    transforms(
+        transform: SchemaBuilderValidatorTransform<V>,
+        id?: symbol
+    ): this 
+    transforms(
+        transform: SchemaBuilderValidatorTransform<V>,
+        message?: string | ValidationErrorMessage<V>,
+        id?: symbol
+    ): this 
+    transforms(...params: unknown[]): this {
+        return this._applyBuilderValidator(
+            'transforms', 
+            params as Parameters<SchemaBuilderMethods<V>['transforms']>
+        )
     }
 
-    override get [$$settings](): any {
-        return pick(this, $$builder, $$main, $$sub)
+    remove(id: symbol): this {
+        return this._applyBuilderValidator('remove', [id])
     }
 
-} as unknown as SchemaBuilderConstructor
+    //// Builder Helpers ////
+
+    protected _applyBuilderValidator<K extends keyof SchemaBuilderMethods<V>>(
+        method: K,
+        params: Parameters<SchemaBuilderMethods<V>[K]>
+    ): this {
+
+        type BuilderMethod = (...p: Parameters<SchemaBuilderMethods<V>[K]>) => ReturnType<SchemaBuilderMethods<V>[K]>
+
+        return ValidateStruct.applySettings(
+            this,
+            {
+                [$$builder]: (this[$$builder][method] as BuilderMethod)(...params)
+            } as ValidateUpdateSettings<this>
+        )
+    }
+
+    //// Settings ////
+    
+    override get [$$settings](): {
+        [$$main]: V
+        [$$sub]: S
+        [$$builder]: SchemaPipeBuilder<V>
+    } {
+        return {
+            [$$main]: this[$$main],
+            [$$sub]: this[$$sub],
+            [$$builder]: this[$$builder]
+        }
+    }
+    
+}
 
 //// Exports ////
 
+export default SchemaBuilder
+
 export {
+
     SchemaBuilder,
-    SchemaBuilderConstructor,
+    SchemaPipeBuilder,
+
     $$builder
 }

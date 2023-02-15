@@ -7,7 +7,7 @@ import { AnyValidateStruct } from '../validate-struct'
 //// Setup ////
 
 /**
- * An array that validates a collection data type that contains a sub data type
+ * A collection data type that contains a sub data type
  */
 abstract class OfValidator<
     V extends AnyValidateStruct,

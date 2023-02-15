@@ -1,5 +1,5 @@
 import { describe } from '@jest/globals'
-import { isInteger, isNumber, nil } from '@benzed/util'
+import { isInteger, isNumber, nil, pick } from '@benzed/util'
 
 import { Not, Optional } from './mutators'
 import ContractValidator from '../contract-validator'
@@ -9,6 +9,8 @@ import {
     testValidator,
     testValidationContract
 } from '../../util.test'
+
+import { $$settings } from '../validate-struct'
 
 //// Setup ////
 
@@ -31,20 +33,19 @@ class IntegerValidator extends TypeValidator<number> {
 
 class PositiveValidator extends ContractValidator<number, number> {
 
-    readonly enabled = false 
+    readonly enabled: boolean = false 
 
     transform(input: number): number {
         return Math.max(input, 0)
     } 
 
-    configure(enabled = true): { enabled: boolean } {
-        return { enabled }
-    }
-
     message(): string {
         return 'Must be positive'
     }
 
+    get [$$settings](): Pick<this, 'enabled'> {
+        return pick(this, 'enabled')
+    }
 }
 
 class Integer extends Schema<IntegerValidator, { positive: PositiveValidator }> {
@@ -56,6 +57,10 @@ class Integer extends Schema<IntegerValidator, { positive: PositiveValidator }> 
                 positive: new PositiveValidator() 
             }
         )
+    }
+
+    positive(enabled = true): this {
+        return this._applySubValidator('positive', { enabled })
     }
 
 }
