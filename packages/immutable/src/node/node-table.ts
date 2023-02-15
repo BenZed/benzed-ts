@@ -1,61 +1,42 @@
-import { assign, namesOf } from '@benzed/util'
+import { assign } from '@benzed/util'
 
 import { $$state } from '../state'
 
 import { Module } from '../module'
 
-//// Helper ////
+//// Types ////
 
 type ModuleRecord = {
-    [key: string]: Module
+    readonly [key: string]: Module
 }
 
-//// Helper ////
+type NodeTable<T extends ModuleRecord> =
+     Module & T
 
-function getModuleRecord<T extends NodeTable<ModuleRecord>>(
-    input: T
-): T extends NodeTable<infer Tx> ? Tx : never {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return { ...input } as any
-}
-
-function setModuleRecord<T extends ModuleRecord>(table: NodeTable<T>, record: T): void {
-    assign(table, record)
-}
-
-function* iterateModuleRecord<T extends ModuleRecord>(table: NodeTable<T>): Iterator<T[string]> {
-    for (const name of namesOf(table)) {
-        const module = table[name]
-        yield module
-    }
+interface NodeTableConstructor {
+    new <T extends ModuleRecord>(record: T): NodeTable<T>
 }
 
 //// Main ////
 
-class NodeTable<T extends ModuleRecord> extends Module implements Iterable<T[string]>{
+const NodeTable = class NodeTable extends Module {
 
-    constructor(children: T) {
+    constructor(children: ModuleRecord) {
         super()
         this[$$state] = children
     }
 
     //// State ////
 
-    get [$$state](): T {
-        return getModuleRecord(this)
+    get [$$state](): ModuleRecord {
+        return { ...this } as unknown as ModuleRecord
     }
 
-    set [$$state](children: T) {
-        setModuleRecord(this, children)
+    set [$$state](children: ModuleRecord) {
+        assign(this, children)
     }
 
-    //// Iteration ////
-
-    [Symbol.iterator](): Iterator<T[string]> {
-        return iterateModuleRecord(this)
-    }
-
-}
+} as NodeTableConstructor
 
 //// Exports ////
 
