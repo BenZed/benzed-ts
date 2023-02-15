@@ -29,7 +29,7 @@ interface SubValidator<T> extends ValidatorStruct<T, T> {
     readonly enabled?: boolean 
 }
 
-type SubValidators<T> = Record<string, SubValidator<T>>
+type SubValidators<V extends AnyValidatorStruct> = Record<string, SubValidator<SchemaOutput<V>>>
 
 type SchemaInput<V extends AnyValidatorStruct> = InputOf<V> 
 
@@ -44,7 +44,7 @@ type SchemaOutput<V extends AnyValidatorStruct> = OutputOf<V> extends InputOf<V>
  * number of sub validators, providing interface elements
  * for extended classes to assist in configuration.
  */
-abstract class Schema<V extends AnyValidatorStruct, S extends SubValidators<SchemaOutput<V>>>
+abstract class Schema<V extends AnyValidatorStruct, S extends SubValidators<V>>
     extends ValidatorStruct<SchemaInput<V>, SchemaOutput<V>> {
 
     //// Constructor ////

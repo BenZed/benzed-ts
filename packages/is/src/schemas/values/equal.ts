@@ -1,5 +1,8 @@
-import { $$settings, Schema, ValueValidator } from '@benzed/schema'
-import { pick, Primitive } from '@benzed/util'
+
+import { Primitive } from '@benzed/util'
+
+import { ValueValidator } from '../../validators'
+import { SettingsSchema } from '../type'
 
 //// EsLint ////
 
@@ -9,42 +12,26 @@ import { pick, Primitive } from '@benzed/util'
 
 //// Validator ////
 
-class ConfigurableValueValidator <T extends Primitive> extends ValueValidator<T> {
-
-    override readonly name: string
-
-    get [$$settings](): Pick<this, 'name' | 'message' | 'force'> {
-        return pick(this, 'name', 'message', 'force', 'value')
-    }
-
-    constructor(value: T, force: boolean) {
-        super(value, force)
-        this.name = String(value)
-    }
-
-}
-
-//// Schema ////
-
-interface Equal<T extends Primitive> extends Schema<ConfigurableValueValidator<T>, {}> {
-
-    force(force: boolean): this
-
-}
-
-const Equal = class Equal <T extends Primitive> extends Schema<ConfigurableValueValidator<T>, {}> {
+class Value <T extends Primitive> extends SettingsSchema<ValueValidator<T>, {}> {
 
     constructor(value: T) {
         super(
-            new ConfigurableValueValidator(value, false), 
+            new ValueValidator(value, false), 
             {}
         )
     }
 
-} as new <T extends Primitive>(value: T) => Equal<T>
+    /**
+     * Apply target value regardless of input
+     */
+    force(force = true): this {
+        return this._applyMainValidator({ force })
+    }
+
+}
 
 //// Exports ////
 
 export {
-    Equal
+    Value
 }

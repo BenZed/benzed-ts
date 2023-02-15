@@ -1,9 +1,20 @@
 
-import { Schema, SchemaConstructor } from '@benzed/schema'
+import { ValidationErrorMessage } from '@benzed/schema'
+import { 
+    isBigInt, 
+    isFinite, 
+    isNumber, 
+    isString, 
+    SignatureParser 
+} from '@benzed/util'
 
-import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
+import {
+    NameMessageEnabledSignature,
+    toNameMessageEnabled,
+    TypeValidator
+} from '../../../validators'
 
-import { TypeValidator, TypeCast, TypeDefault } from '../../../validators'
+import { TypeSchema } from '../../type'
 
 import {
     Camel,
@@ -29,6 +40,22 @@ const castToString = (i: unknown): unknown =>
         ? `${i}`
         : i
 
+//// StringValueSubValidator Signature ////
+
+const toNameMessageEnabledValue = new SignatureParser({
+    ...toNameMessageEnabled.types,
+    value: isString
+})
+    .setDefaults({
+        ...toNameMessageEnabled.defaults
+    })
+    .addLayout('enabled')
+    .addLayout('value', 'message', 'name')
+
+type NameMessageEnabledValueSignature =
+    [ enabled?: boolean ] |
+    [ value: string, message: ValidationErrorMessage<string>, name: string]
+
 //// Types ////
 
 class StringValidator extends TypeValidator<string> {
@@ -53,33 +80,9 @@ type StringSubValidators = Readonly<{
     upper: Upper
 }>
 
-interface String extends Schema<StringValidator, StringSubValidators> {
-
-    default(def: TypeDefault): this
-    cast(caster: TypeCast): this
-
-    // Make the sub validator configuration return types nice
-    camel(): this 
-    lower(): this 
-    upper(): this 
-
-    trim(): this 
-
-    capitalize(): this 
-
-    includes(): this 
-
-    startsWith(): this 
-    endsWith(): this 
-}
-
-interface StringConstructor extends SchemaConstructor {
-    new (): String
-}
-
 //// Implementation ////
 
-const String = class String extends Schema<StringValidator, StringSubValidators> {
+class String extends TypeSchema<StringValidator, StringSubValidators> {
 
     constructor() {
         super(
@@ -100,7 +103,44 @@ const String = class String extends Schema<StringValidator, StringSubValidators>
         )
     }
 
-} as StringConstructor
+    //// Sub Validator Interface ////
+
+    camel(...sig: NameMessageEnabledSignature<string>): this {
+        return this._applyBasicSubValidator('camel', ...sig)
+    }
+
+    lower(...sig: NameMessageEnabledSignature<string>): this {
+        return this._applyBasicSubValidator('lower', ...sig)
+    }
+
+    upper(...sig: NameMessageEnabledSignature<string>): this {
+        return this._applyBasicSubValidator('upper', ...sig)
+    }
+
+    capitalize(...sig: NameMessageEnabledSignature<string>): this {
+        return this._applyBasicSubValidator('capitalize', ...sig)
+    }
+
+    trim(...sig: NameMessageEnabledSignature<string>): this {
+        return this._applyBasicSubValidator('trim', ...sig)
+    }
+    
+    startsWith(...sig: NameMessageEnabledValueSignature): this {
+        const nameMessageEnabledValue = toNameMessageEnabledValue(...sig)
+        return this._applySubValidator('startsWith', nameMessageEnabledValue)
+    }
+
+    endsWith(...sig: NameMessageEnabledValueSignature): this {
+        const nameMessageEnabledValue = toNameMessageEnabledValue(...sig)
+        return this._applySubValidator('endsWith', nameMessageEnabledValue)
+    }
+
+    includes(...sig: NameMessageEnabledValueSignature): this {
+        const nameMessageEnabledValue = toNameMessageEnabledValue(...sig)
+        return this._applySubValidator('includes', nameMessageEnabledValue)
+    }
+
+}
 
 //// Exports ////
 

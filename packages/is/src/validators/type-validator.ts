@@ -1,6 +1,12 @@
 import { showStateKeys } from '@benzed/immutable'
 import { $$settings, TypeValidator as StatelessTypeValidator } from '@benzed/schema'
 import { pick } from '@benzed/util'
+import { SettingsValidator } from '.'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Types ////
 
@@ -10,7 +16,9 @@ export type TypeDefault = TypeValidator<unknown>['default']
 
 //// Main ////
 
-export abstract class TypeValidator<T> extends StatelessTypeValidator<T> {
+export abstract class TypeValidator<T> 
+    extends StatelessTypeValidator<T> 
+    implements SettingsValidator<unknown, T> {
 
     override name: string
 
@@ -31,3 +39,5 @@ export abstract class TypeValidator<T> extends StatelessTypeValidator<T> {
     }
 
 }
+
+export type AnyTypeValidator = TypeValidator<any>

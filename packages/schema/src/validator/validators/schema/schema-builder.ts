@@ -38,7 +38,7 @@ type SchemaBuilderMethods<V extends AnyValidatorStruct> = PipeValidatorBuilderMe
 
 //// Main ////
 
-class SchemaBuilder<V extends AnyValidatorStruct, S extends SubValidators<SchemaOutput<V>>> 
+class SchemaBuilder<V extends AnyValidatorStruct, S extends SubValidators<V>> 
 
     extends Schema<V,S>
 

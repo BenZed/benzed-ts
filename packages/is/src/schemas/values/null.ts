@@ -1,8 +1,8 @@
-import { Equal } from './equal'
+import { Value } from './equal'
 
 //// Exports ////
 
-export class Null extends Equal<null> {
+export class Null extends Value<null> {
 
     constructor() {
         super(null)

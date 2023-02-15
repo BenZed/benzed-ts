@@ -1,7 +1,7 @@
-import { $boolean, Boolean } from './boolean'
+import { $boolean } from './boolean'
 
 import { testValidator, testValidationContract } from '../../util.test'
-import { expectTypeOf } from 'expect-type'
+import { nil } from '@benzed/util'
 
 //// EsLint ////
 /* eslint-disable 
@@ -22,7 +22,7 @@ describe(`${$boolean.name} validator contract tests`, () => {
 
 })
 
-testValidator<unknown, boolean>(
+testValidator<unknown, boolean>( 
     $boolean,
     { asserts: false },
     { asserts: 0, error: 'Must be a Boolean' },
@@ -33,10 +33,14 @@ testValidator<unknown, boolean>(
     { asserts: 'false', error: 'Must be a Boolean' },
 )
 
-it('setter return type', () => {
+testValidator<unknown, boolean>(
+    $boolean.default(true),
+    { transforms: nil, output: true },
+    { asserts: nil, error: true }
+)
 
-    const $true = $boolean.cast(() => true)
-
-    expectTypeOf($true).toMatchTypeOf<Boolean>()
-
-})
+testValidator<unknown, boolean>(
+    $boolean.default(() => true),
+    { transforms: nil, output: true },
+    { asserts: nil, error: true }
+)

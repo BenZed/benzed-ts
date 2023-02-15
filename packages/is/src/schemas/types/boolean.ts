@@ -1,6 +1,3 @@
-import { 
-    SchemaBuilder 
-} from '@benzed/schema'
 
 import { 
     isBoolean, 
@@ -9,9 +6,9 @@ import {
 
 import {
     TypeValidator,
-    TypeCast, 
-    TypeDefault 
 } from '../../validators/type-validator'
+
+import { TypeSchema } from '../type'
 
 /* eslint-disable   
     @typescript-eslint/ban-types
@@ -42,14 +39,7 @@ class BooleanValidator extends TypeValidator<boolean> {
 
 //// Schema ////
 
-interface Boolean extends SchemaBuilder<TypeValidator<boolean>, {}> {
-
-    cast: (caster: TypeCast) => this 
-
-    default: (def: TypeDefault) => this
-
-}
-const Boolean = class Boolean extends SchemaBuilder<TypeValidator<boolean>, {}> {
+class Boolean extends TypeSchema<TypeValidator<boolean>, {}> {
 
     constructor() {
         super(
@@ -58,7 +48,7 @@ const Boolean = class Boolean extends SchemaBuilder<TypeValidator<boolean>, {}> 
         )
     }
 
-} as new () => Boolean
+}
 
 //// Exports ////
 

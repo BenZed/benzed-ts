@@ -38,10 +38,10 @@ type ResolveErrorMessageParams<T> =
 const isFuncNotStruct = (i: AnyValidatorStruct | Func): i is Func => 
     !Struct.is(i) && isFunc(i)
 
-const isValidationErrorMessage: <T>(i: unknown) => i is string | ValidationErrorMessage<T> = 
+const isValidationErrorMessage: <T>(i: unknown) => i is ValidationErrorMessage<T> = 
     isUnion(
         isFuncNotStruct,
-        isString
+        // isString
     )
 
 const hasValidationErrorMessage: <T>(i: unknown) => i is ValidateWithErrorMessage<T> = 

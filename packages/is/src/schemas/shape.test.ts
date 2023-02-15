@@ -1,22 +1,22 @@
 import { isNumber, isString, nil } from '@benzed/util'
 
 import { Shape } from './shape'
-import { ConfigurableTypeValidator } from '../validators'
 import { testValidator, testValidationContract } from '../util.test'
 import { ReadOnly, Optional } from '@benzed/schema'
 
 import { expectTypeOf } from 'expect-type'
+import { TypeValidator } from '../validators'
 
 //// Tests ////
 
-const $number = new class Number extends ConfigurableTypeValidator<number> {
+const $number = new class Number extends TypeValidator<number> {
     isValid = isNumber
 }
 
 const $vector = new Shape({
     x: $number,
     y: $number
-})//.named('Vector') 
+}).named('Vector') 
 
 const $positiveVector = $vector
     .asserts(v => v.x >= 0 && v.y >= 0, 'Must be positive.')
@@ -47,9 +47,9 @@ it('.properties', () => {
     expect($vector.properties.y).toBe($number)
 })
 
-it('output type respects mutators', () => {
+it('output type respects mutators', () => { 
 
-    const $string = new class String extends ConfigurableTypeValidator<string> {
+    const $string = new class String extends TypeValidator<string> {
         isValid = isString
     }
 

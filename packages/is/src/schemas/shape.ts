@@ -4,11 +4,7 @@ import {
     $$settings,
     $$main,
 
-    SchemaBuilder,
     $$builder,
-
-    AnyValidateStruct,
-    ValidateStruct,
 
     PipeValidatorBuilder,
     EnsureMutator,
@@ -28,11 +24,17 @@ import {
 } from '@benzed/util'
 
 import { 
+    AnySettingsValidator,
     ShapeInput, 
     ShapeOutput, 
     ShapeValidator, 
     TypeDefault 
 } from '../validators'
+
+import { 
+    SettingsSchemaBuilder,
+    TypeSchema 
+} from './type'
 
 //// EsLint ////
 
@@ -45,7 +47,7 @@ import {
 //// Helper Types ////
 
 type _ShapePropertyMethod<T extends ShapeInput, K extends keyof T> = 
-    (prop: T[K]) => AnyValidateStruct
+    (prop: T[K]) => AnySettingsValidator
 
 type _ShapeProperty<
     T extends ShapeInput, 
@@ -101,9 +103,9 @@ type _ShapeEnsurePropertyMutator<
 
 type _ShapePartial<T extends ShapeInput> = _ShapeEnsurePropertyMutator<T, MutatorType.Optional>
 
-//// Implemetnation ////
+//// Implementation ////
 
-class Shape<T extends ShapeInput> extends SchemaBuilder<ShapeValidator<T>, {}> {
+class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T>, {}> {
 
     constructor(properties: T) {
         super(
@@ -217,7 +219,7 @@ class Shape<T extends ShapeInput> extends SchemaBuilder<ShapeValidator<T>, {}> {
             ? PipeValidatorBuilder.empty()
             : this[$$builder]
     
-        return ValidateStruct.applySettings(
+        return TypeSchema.applySettings(
             this,
             {
                 [$$main]: { ...this[$$main], ...main },

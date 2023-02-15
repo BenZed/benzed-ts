@@ -1,4 +1,4 @@
-import { $$settings } from '@benzed/schema'
+import { $$settings, ValidationContext } from '@benzed/schema'
 import { capitalize, toCamelCase } from '@benzed/string'
 import { pick } from '@benzed/util'
 
@@ -15,7 +15,7 @@ import { SubValidator } from '../../../validators'
 
 abstract class CaseValidator extends SubValidator<string> {
 
-    override message(): string {
+    override message(_ctx: ValidationContext<string>): string {
         return `Must be in ${this.name} case `
     }
 
@@ -57,23 +57,21 @@ export class Trimmed extends SubValidator<string> {
 
 }
 
+//// StrinValue SubValidator  ////
+
 abstract class StringValueSubValidator extends SubValidator<string> {
 
-    readonly value = ''
+    readonly value: string = ''
 
-    configure(value: string): { value: string } {
-        return { value }
-    }
-
-    get [$$settings](): Pick<this, 'value' | 'message' | 'enabled'> {
-        return pick(this, 'value', 'message', 'enabled')
+    get [$$settings](): Pick<this, 'value' | 'name' | 'message' | 'enabled'> {
+        return pick(this, 'value', 'name', 'message', 'enabled')
     }
     
 }
 
 export class EndsWith extends StringValueSubValidator {
 
-    override message(): string {
+    override message(_ctx: ValidationContext<string>): string {
         return `Must end with ${this.value}`
     }
 
@@ -85,7 +83,7 @@ export class EndsWith extends StringValueSubValidator {
 
 export class StartsWith extends StringValueSubValidator {
 
-    override message(): string {
+    override message(_ctx: ValidationContext<string>): string {
         return `Must start with ${this.value}`
     }
 
@@ -97,9 +95,9 @@ export class StartsWith extends StringValueSubValidator {
 
 export class Includes extends StringValueSubValidator {
 
-    override message(): string {
+    override message(_ctx: ValidationContext<string>): string {
         return `Must include ${this.value}`
-    }
+    } 
 
     override transform(input: string): string {
         return input.startsWith(this.value) ? input : this.value + input

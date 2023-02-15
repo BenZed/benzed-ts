@@ -1,8 +1,8 @@
-import { Equal } from './equal'
+import { Value } from './equal'
 
 //// Main ////
 
-export class Undefined extends Equal<undefined> {
+export class Undefined extends Value<undefined> {
 
     constructor() {
         super(undefined)
