@@ -63,7 +63,7 @@ describe(`${$arrayOfNumber.name} validator tests`, () => {
         { asserts: [] },
         { asserts: [0] },
         { asserts: [0, 1, 2, 3] },
-        { asserts: ['atr'], error: true },
+        { asserts: ['atr'], error: 'Must be an Array of Number' },
         { transforms: ['0'], output: [0] },
         { transforms: ['atr'], error: true },
     )

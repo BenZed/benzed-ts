@@ -34,7 +34,6 @@ type SchemaBuilderValidatorSettings<V extends AnyValidatorStruct> = OutputValida
 type SchemaBuilderValidatorErrorMessage<V extends AnyValidatorStruct> = ValidationErrorMessage<SchemaOutput<V>>
 type SchemaBuilderValidatorPredicate<V extends AnyValidatorStruct> = OutputValidatorPredicate<SchemaOutput<V>>
 type SchemaBuilderValidatorTransform<V extends AnyValidatorStruct> = OutputValidatorTransform<SchemaOutput<V>>
-
 type SchemaBuilderMethods<V extends AnyValidatorStruct> = PipeValidatorBuilderMethods<SchemaOutput<V>>
 
 //// Main ////
