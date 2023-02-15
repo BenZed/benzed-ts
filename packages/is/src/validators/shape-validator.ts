@@ -2,7 +2,7 @@ import { $$settings,
     ShapeValidatorInput as ShapeInput, 
     ShapeValidatorOutput as ShapeOutput,
     ShapeValidator as StatelessShapeValidator } from '@benzed/schema'
-    
+
 import { pick } from '@benzed/util'
 
 //// Exports ////
@@ -19,3 +19,4 @@ export {
     ShapeInput,
     ShapeOutput
 }
+

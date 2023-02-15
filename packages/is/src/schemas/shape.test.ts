@@ -71,8 +71,8 @@ it('output type respects mutators', () => {
         readonly last: string
     }>()
 
-})
-
+}) 
+ 
 describe('builder methods', () => {
 
     testValidator(

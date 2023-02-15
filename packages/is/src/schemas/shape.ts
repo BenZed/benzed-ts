@@ -17,15 +17,28 @@ import {
     MutatorType,
 
     ValidationContext,
+    ValidateUpdateSettings,
 } from '@benzed/schema'
 
-import { Infer, keysOf, omit, pick } from '@benzed/util'
-import { ShapeInput, ShapeOutput, ShapeValidator, TypeDefault } from '../validators'
+import { 
+    Infer, 
+    keysOf, 
+    omit, 
+    pick 
+} from '@benzed/util'
+
+import { 
+    ShapeInput, 
+    ShapeOutput, 
+    ShapeValidator, 
+    TypeDefault 
+} from '../validators'
 
 //// EsLint ////
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any,
+    @typescript-eslint/indent,
     @typescript-eslint/ban-types
 */
 
@@ -38,133 +51,89 @@ type _ShapeProperty<
     T extends ShapeInput, 
     K extends keyof T, 
     U extends _ShapePropertyMethod<T,K>
-> = Infer<{
-    [Tk in keyof T]: Tk extends K 
-        ? ReturnType<U> 
-        : T[K]
-}, ShapeInput>
+> = Shape<
+        Infer<{
+            [Tk in keyof T]: Tk extends K 
+                ? ReturnType<U> 
+                : T[K]
+        }, ShapeInput>
+    >
 
 type _ShapePick<
     T extends ShapeInput,
     K extends (keyof T)[]
-> = Infer<{
-    [Tk in keyof T as Tk extends K[number] ? Tk : never]: T[Tk]
-}, ShapeInput>
+> = Shape<
+    Infer<{
+        [Tk in keyof T as Tk extends K[number] ? Tk : never]: T[Tk]
+    }, ShapeInput>
+>
 
 type _ShapeOmit<
     T extends ShapeInput,
     K extends (keyof T)[]
-> = Infer<{
-    [Tk in keyof T as Tk extends K[number] ? never : Tk]: T[Tk]
-}, ShapeInput>
+> = Shape<
+    Infer<{
+        [Tk in keyof T as Tk extends K[number] ? never : Tk]: T[Tk]
+    }, ShapeInput>
+>
 
 type _ShapeMerge<
     A extends ShapeInput,
     B extends ShapeInput,
-> = Infer<{
-    [K in keyof A | keyof B]: K extends keyof B 
-        ? B[K]
-        : K extends keyof A 
-            ? A[K]
-            : never
-}, ShapeInput>
+> = Shape<
+        Infer<{
+            [K in keyof A | keyof B]: K extends keyof B 
+                ? B[K]
+                : K extends keyof A 
+                    ? A[K]
+                    : never
+        }, ShapeInput>
+    >
 
 type _ShapeEnsurePropertyMutator<
     T extends ShapeInput,
     M extends MutatorType
-> = Infer<{
-    [K in keyof T]: EnsureMutator<T[K], M>
-}, ShapeInput>
+> = Shape<
+    Infer<{
+        [K in keyof T]: EnsureMutator<T[K], M>
+    }, ShapeInput>
+    >
 
-//// Types ////
+type _ShapePartial<T extends ShapeInput> = _ShapeEnsurePropertyMutator<T, MutatorType.Optional>
 
-interface Shape<T extends ShapeInput> 
-    extends SchemaBuilder<ShapeValidator<T>, {}> {
+//// Implemetnation ////
 
-    get properties(): T
+class Shape<T extends ShapeInput> extends SchemaBuilder<ShapeValidator<T>, {}> {
+
+    constructor(properties: T) {
+        super(
+            new ShapeValidator(properties), 
+            {}
+        )
+    }
+
+    get properties(): T {
+        return this[$$settings][$$main].properties
+    }
+
+    //// Builder Methods ////
 
     /**
      * Set a default object 
      */
-    default(def: (ctx: ValidationContext<unknown>) => unknown): this 
+    default(def: (ctx: ValidationContext<unknown>) => unknown): this {
+        return this._applyMainValidator({ 
+            default: def 
+        })
+    }
 
     /**
      * Update the property at the given key
      */
-    property<
-        K extends keyof T,
-        U extends _ShapePropertyMethod<T,K>
-    >(
+    property<K extends keyof T, U extends _ShapePropertyMethod<T,K>>(
         key: K,
         update: U
-    ): Shape<_ShapeProperty<T, K, U>> // update a property
-
-    /**
-     * Make all properties optional.
-     */
-    partial(): Shape<_ShapeEnsurePropertyMutator<T, MutatorType.Optional>>
-
-    /**
-     * Reduce the shape to the given keys
-     */
-    pick<K extends (keyof T)[]>(
-        ...keys: K
-    ): Shape<_ShapePick<T, K>>
-
-    /**
-     * Remove the given keys from the shape
-     */
-    omit<K extends (keyof T)[]>(
-        ...keys: K
-    ): Shape<_ShapeOmit<T, K>>
-
-    /**
-     * Merge shape with additional properties
-     */
-    merge<Tx extends ShapeInput>(
-        properties: Tx | Shape<Tx>
-    ): Shape<_ShapeMerge<T, Tx>>
-
-}
-
-//// Helper ////
-
-function applyShape<T>(
-    shape: T, 
-    main: { properties?: ShapeInput, default?: TypeDefault }
-): T {
-
-    const schema = shape as any
-
-    const builder = 'properties' in main 
-        ? PipeValidatorBuilder.empty()
-        : schema[$$builder]
-
-    return ValidateStruct.applySettings(
-        schema,
-        {
-            [$$main]: { ...schema[$$main], ...main },
-            [$$builder]: builder
-        }
-    )
-}
-
-//// Implemetnation ////
-
-const Shape = class Shape extends SchemaBuilder<ShapeValidator<ShapeInput>, {}> {
-
-    get properties(): ShapeInput {
-        return this[$$settings][$$main].properties
-    }
-
-    default(def: TypeDefault): this {
-        return applyShape(this, { default: def })
-    }
-
-    property(
-        key: keyof ShapeInput,
-        update: _ShapePropertyMethod<ShapeInput, keyof ShapeInput>
-    ): this {
+    ): _ShapeProperty<T, K, U> {
 
         const newProp = update(this.properties[key])
         const newProps = { 
@@ -172,58 +141,92 @@ const Shape = class Shape extends SchemaBuilder<ShapeValidator<ShapeInput>, {}> 
             [key]: newProp 
         }
 
-        return applyShape(this, { properties: newProps })
+        return this._applyMainValidator({ 
+            properties: newProps 
+        }) as unknown as _ShapeProperty<T, K, U>
     }
 
-    pick(...keys: (keyof ShapeInput)[]): this {
+    /**
+     * Reduce the shape to the given keys
+     */
+    pick<K extends (keyof T)[]>(
+        ...keys: K
+    ): _ShapePick<T, K> {
         const newProps = pick(this.properties, ...keys)
-        return applyShape(this, { properties: newProps })
+        return this._applyMainValidator({ 
+            properties: newProps 
+        }) as unknown as _ShapePick<T, K>
     }
 
-    omit(...keys: (keyof ShapeInput)[]): this {
-        const newProps = omit(this.properties, ...keys)
-        return applyShape(this, { properties: newProps })
+    /**
+     * Remove the given keys from the shape
+     */
+    omit<K extends (keyof T)[]>(
+        ...keys: K
+    ): _ShapeOmit<T, K> {
+        const omittedProps = omit(this.properties, ...keys)
+        return this._applyMainValidator({ 
+            properties: omittedProps 
+        }) as unknown as _ShapeOmit<T,K>
     }
 
-    merge(shapeOrProperties: object): this {
+    /**
+     * Merge shape with additional properties
+     */
+    merge<Tx extends ShapeInput>(
+        shapeOrProperties: Tx | Shape<Tx>
+    ): _ShapeMerge<T, Tx> {
 
         const properties = shapeOrProperties instanceof Shape 
             ? shapeOrProperties.properties
             : shapeOrProperties as ShapeInput
 
-        return applyShape(
-            this, 
-            {
-                properties: {
-                    ...this.properties,
-                    ...properties
-                }
+        return this._applyMainValidator({
+            properties: {
+                ...this.properties,
+                ...properties
             }
-        )
+        }) as unknown as _ShapeMerge<T,Tx>
     }
 
-    partial(): this {
-        const partialProps = { ...this.properties }
-        for (const key of keysOf(partialProps)) {
-            partialProps[key] = ensureMutator(
-                partialProps[key], 
+    /**
+     * Make all properties optional.
+     */
+    partial(): _ShapePartial<T>{
+
+        const propertiesPartial = { ...this.properties } as ShapeInput
+        for (const key of keysOf(propertiesPartial)) {
+            propertiesPartial[key] = ensureMutator(
+                propertiesPartial[key], 
                 MutatorType.Optional
             )
         }
-        return applyShape(
+
+        return this._applyMainValidator({ 
+            properties: propertiesPartial 
+        }) as unknown as _ShapePartial<T>
+    }
+
+    //// Helper ////
+
+    protected override _applyMainValidator(
+        main: { properties?: ShapeInput, default?: TypeDefault }
+    ): this {
+    
+        const builder = 'properties' in main 
+            ? PipeValidatorBuilder.empty()
+            : this[$$builder]
+    
+        return ValidateStruct.applySettings(
             this,
-            { properties: partialProps }
+            {
+                [$$main]: { ...this[$$main], ...main },
+                [$$builder]: builder
+            } as ValidateUpdateSettings<this>
         )
     }
 
-    constructor(properties: ShapeInput) {
-        super(
-            new ShapeValidator(properties), 
-            {}
-        )
-    }
-
-} as new <T extends ShapeInput>(properties: T) => Shape<T>
+}
 
 //// Exports ////
 
