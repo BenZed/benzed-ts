@@ -4,7 +4,7 @@ import { hideNonStateKeys } from '@benzed/immutable'
 
 import { isNumber, isString } from '@benzed/util'
 
-import { ConfigurableTypeValidator } from '../../../validators'
+import { TypeValidator } from '../../../validators'
 import { Ceil, Finite, Floor, Round } from './sub-validators'
 
 //// Helper ////
@@ -22,7 +22,7 @@ const toNumber = (value: unknown): unknown => {
 
 //// Numeric ////
 
-abstract class NumericValidator<N extends number | bigint> extends ConfigurableTypeValidator<N> { 
+abstract class NumericValidator<N extends number | bigint> extends TypeValidator<N> { 
 
     constructor(readonly isValid: (input: unknown, ctx: ValidationContext<unknown>) => input is N) {
         super()

@@ -8,10 +8,10 @@ import {
 } from '@benzed/util'
 
 import {
-    ConfigurableTypeValidator,
+    TypeValidator,
     TypeCast, 
     TypeDefault 
-} from '../../validators/configurable-type-validator'
+} from '../../validators/type-validator'
 
 /* eslint-disable   
     @typescript-eslint/ban-types
@@ -30,7 +30,7 @@ const toBoolean = (
 
 //// Validator ////
 
-class BooleanValidator extends ConfigurableTypeValidator<boolean> {
+class BooleanValidator extends TypeValidator<boolean> {
 
     isValid(value: unknown): value is boolean {
         return isBoolean(value)
@@ -42,14 +42,14 @@ class BooleanValidator extends ConfigurableTypeValidator<boolean> {
 
 //// Schema ////
 
-interface Boolean extends SchemaBuilder<ConfigurableTypeValidator<boolean>, {}> {
+interface Boolean extends SchemaBuilder<TypeValidator<boolean>, {}> {
 
     cast: (caster: TypeCast) => this 
 
     default: (def: TypeDefault) => this
 
 }
-const Boolean = class Boolean extends SchemaBuilder<ConfigurableTypeValidator<boolean>, {}> {
+const Boolean = class Boolean extends SchemaBuilder<TypeValidator<boolean>, {}> {
 
     constructor() {
         super(

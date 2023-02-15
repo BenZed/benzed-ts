@@ -3,7 +3,7 @@ import { Schema, SchemaConstructor } from '@benzed/schema'
 
 import { isBigInt, isFinite, isNumber, isString } from '@benzed/util'
 
-import { ConfigurableTypeValidator, TypeCast, TypeDefault } from '../../../validators'
+import { TypeValidator, TypeCast, TypeDefault } from '../../../validators'
 
 import {
     Camel,
@@ -31,7 +31,7 @@ const castToString = (i: unknown): unknown =>
 
 //// Types ////
 
-class StringValidator extends ConfigurableTypeValidator<string> {
+class StringValidator extends TypeValidator<string> {
 
     isValid(value: unknown): value is string {
         return isString(value)

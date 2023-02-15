@@ -1,9 +1,13 @@
-import { $$settings, ContractValidator, ValidationContext } from '@benzed/schema'
+import { 
+    $$settings, 
+    SubContractValidator as StatelessSubValidator,
+    ValidationContext 
+} from '@benzed/schema'
 import { pick } from '@benzed/util'
 
 //// Exports ////
 
-export class ConfigurableSubValidator<T> extends ContractValidator<T, T> {
+export class SubValidator<T> extends StatelessSubValidator<T> {
 
     readonly enabled = false
 

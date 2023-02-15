@@ -3,7 +3,7 @@ import { $$settings } from '@benzed/schema'
 
 import { isFinite, pick } from '@benzed/util'
 
-import { ConfigurableSubValidator } from '../../../validators'
+import { SubValidator } from '../../../validators'
 
 //// Helper ////
 
@@ -22,7 +22,7 @@ import { ConfigurableSubValidator } from '../../../validators'
 
 //// Helper ////
 
-abstract class Precision extends ConfigurableSubValidator<number> {
+abstract class Precision extends SubValidator<number> {
 
     constructor(readonly by: number) {
         super()
@@ -59,7 +59,7 @@ export class Floor extends Precision {
     }
 }
 
-export class Finite extends ConfigurableSubValidator<number> {
+export class Finite extends SubValidator<number> {
 
     override isValid(input: number): boolean {
         return isFinite(input)

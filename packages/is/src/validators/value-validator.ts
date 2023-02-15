@@ -1,9 +1,9 @@
-import { $$settings, ValueValidator } from '@benzed/schema'
+import { $$settings, ValueValidator as StatelessValueValidator } from '@benzed/schema'
 import { pick, Primitive } from '@benzed/util'
 
 //// Exports ////
 
-export class ConfigurableValueValidator <T extends Primitive> extends ValueValidator<T> {
+export class ValueValidator <T extends Primitive> extends StatelessValueValidator<T> {
 
     override readonly name: string
 

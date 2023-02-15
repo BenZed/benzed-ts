@@ -1,16 +1,16 @@
 import { showStateKeys } from '@benzed/immutable'
-import { $$settings, TypeValidator } from '@benzed/schema'
+import { $$settings, TypeValidator as StatelessTypeValidator } from '@benzed/schema'
 import { pick } from '@benzed/util'
 
 //// Types ////
 
-export type TypeCast = ConfigurableTypeValidator<unknown>['cast']
+export type TypeCast = TypeValidator<unknown>['cast']
 
-export type TypeDefault = ConfigurableTypeValidator<unknown>['default']
+export type TypeDefault = TypeValidator<unknown>['default']
 
 //// Main ////
 
-export abstract class ConfigurableTypeValidator<T> extends TypeValidator<T> {
+export abstract class TypeValidator<T> extends StatelessTypeValidator<T> {
 
     override name: string
 
@@ -20,7 +20,6 @@ export abstract class ConfigurableTypeValidator<T> extends TypeValidator<T> {
         this.name = this
             .constructor
             .name
-            .replace('Configurable', '')
             .replace('Validator', '')
             .replace('Schema', '')
 
@@ -32,5 +31,3 @@ export abstract class ConfigurableTypeValidator<T> extends TypeValidator<T> {
     }
 
 }
-
-//// Exports ////

@@ -2,7 +2,7 @@ import { $$settings } from '@benzed/schema'
 import { capitalize, toCamelCase } from '@benzed/string'
 import { pick } from '@benzed/util'
 
-import { ConfigurableSubValidator } from '../../../validators'
+import { SubValidator } from '../../../validators'
 
 //// EsLint ////
 
@@ -13,7 +13,7 @@ import { ConfigurableSubValidator } from '../../../validators'
 
 //// Helper Types ////
 
-abstract class CaseValidator extends ConfigurableSubValidator<string> {
+abstract class CaseValidator extends SubValidator<string> {
 
     override message(): string {
         return `Must be in ${this.name} case `
@@ -41,7 +41,7 @@ export class Camel extends CaseValidator {
     }
 }
 
-export class Capitalized extends ConfigurableSubValidator<string> {
+export class Capitalized extends SubValidator<string> {
 
     override transform(input: string): string {
         return capitalize(input)
@@ -49,7 +49,7 @@ export class Capitalized extends ConfigurableSubValidator<string> {
 
 }
 
-export class Trimmed extends ConfigurableSubValidator<string> {
+export class Trimmed extends SubValidator<string> {
 
     override transform(input: string): string {
         return input.trim()
@@ -57,7 +57,7 @@ export class Trimmed extends ConfigurableSubValidator<string> {
 
 }
 
-abstract class StringValueSubValidator extends ConfigurableSubValidator<string> {
+abstract class StringValueSubValidator extends SubValidator<string> {
 
     readonly value = ''
 
