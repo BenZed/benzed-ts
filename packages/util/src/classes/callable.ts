@@ -1,6 +1,6 @@
 
 import { Property } from '../property'
-import { Func, Infer, isFunc, isRecord, isShape, TypeGuard } from '../types'
+import { Func, Infer, isFunc, isObject, isRecord, isShape, TypeGuard } from '../types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -154,11 +154,11 @@ const Callable = class {
         })
 
         return callable
-    }
+    } 
 
     static [Symbol.hasInstance](instance: unknown): boolean {
 
-        if (!(isFunc(instance) || isRecord(instance)) || !isFunc(instance?.constructor))
+        if (!isObject(instance) || !isFunc(instance?.constructor))
             return false 
 
         if (Object.is(instance.constructor, this))

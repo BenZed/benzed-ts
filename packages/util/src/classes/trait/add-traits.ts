@@ -48,14 +48,23 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
         }
     }
 
+    // apply trait prototypal properties
     for (const constructor of [...traits]) {
-        Property.namesOf(constructor.prototype).forEach((name) => {
-            Property.define(
-                CompositeConstructor.prototype,
-                name,
-                Property.descriptorOf(constructor.prototype, name) ?? {}
-            )
-        })
+
+        const prototypes = Property.prototypesOf(
+            constructor.prototype, 
+            [Object.prototype, Function.prototype]
+        )
+
+        const descriptors = Property.descriptorsOf(
+            constructor.prototype, 
+            ...prototypes
+        )
+
+        Property.define(
+            CompositeConstructor.prototype, 
+            descriptors
+        )
     }
 
     const name = [base, ...traits].map(c => c.name).join('')
@@ -77,7 +86,7 @@ export interface UseTraitsConstructor<T extends _Traits> extends AddTraitsConstr
  */
 export function useTraits<T extends _Traits>(...traits: T): UseTraitsConstructor<T> {
 
-    return addTraits(class {
+    return addTraits(class CompositeTrait {
 
         static [$$onApply](instance: Composite<T>): unknown {
             return applyTraits(instance as object, traits)

@@ -35,7 +35,7 @@ it('instances have instance properties', () => {
 
 it('keeps getters, setters and instance instance methods', () => {
 
-    class Value<T> extends Callable<() => T> {   
+    class Value<T> extends Callable<() => T> {
 
         get value(): T {
             return this._value
