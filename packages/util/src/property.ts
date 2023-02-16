@@ -36,8 +36,8 @@ interface Property {
     symbolsOf(object: object): symbol[]
     symbolsOf(...objects: object[]): symbol[]
 
-    keysOf(object: object): string[]
-    keysOf(...objects: object[]): string[]
+    namesOf(object: object): string[]
+    namesOf(...objects: object[]): string[]
 
     eachPrototype(object: object): IterableIterator<object>
     prototypesOf(object: object, blacklist?: object[]): object[]
@@ -100,7 +100,7 @@ const Property = intersect(
             const descriptors: PropertyDescriptorMap = {}
 
             for (const template of [source, ...Property.prototypesOf(source, blacklist)]) {
-                const keys = Property.keysOf(template)
+                const keys = Property.namesOf(template)
                 const symbols = Property.symbolsOf(template)
                 for (const keyOrSymbol of [...keys, ...symbols]) {
                     const descriptor = Property.descriptorOf(template, keyOrSymbol)
@@ -130,7 +130,7 @@ const Property = intersect(
                 .filter((x, i, a) => a.indexOf(x) === i) // unique
         },
 
-        keysOf(...objects: object[]) {
+        namesOf(...objects: object[]) {
             return objects
                 .flatMap(Object.getOwnPropertyNames)
                 .filter((x,i,a) => a.findIndex(y => Object.is(x, y)) === i) // unique

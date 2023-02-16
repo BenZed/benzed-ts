@@ -1,7 +1,7 @@
 import { indexesOf, keysOf } from '../types/keys-of'
 import { isBigInt, isBoolean, isNumber, isString } from './primitive'
 import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
-import { Json, JsonArray, JsonRecord, JsonPrimitive, GenericObject } from './types'
+import { Json, JsonArray, JsonRecord, JsonPrimitive, GenericObject, Infer } from './types'
 import { Sortable } from '../sort'
 import { nil } from './nil'
 import { Intersect } from './merge'
@@ -105,9 +105,9 @@ export { isFinite }
 //// Compound ////
 
 export type ShapeInput = Record<string | symbol, TypeGuard<unknown>>
-export type ShapeOutput<T extends ShapeInput> = {
+export type ShapeOutput<T extends ShapeInput> = Infer<{
     [K in keyof T]: TypeOf<T[K]>
-}
+}, object>
 export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T>> => 
     (input: unknown): input is ShapeOutput<T> => {
         if (!isObject(input))
