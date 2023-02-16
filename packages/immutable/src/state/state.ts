@@ -1,6 +1,5 @@
 import { Empty, Infer } from '@benzed/util'
 import { $$copy } from '../copy'
-import { $$equals } from '../equals'
 import { Struct } from '../struct'
 
 //// EsLint ////

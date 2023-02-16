@@ -47,9 +47,9 @@ class Black extends Color {
 
 //// Tests ////
 
-const BlackHuggableToy = Trait.use(Black, Huggable, Toy)
+const BlackHuggableToy = Trait.merge(Black, Huggable, Toy)
 
-class TeddyBear extends BlackHuggableToy {
+class TeddyBear extends Trait.use(BlackHuggableToy) {
 
     get price(): number {
         return 15
@@ -94,10 +94,8 @@ test('classes created by calling traits.use have a composed typeguard', () => {
     const huggable: Huggable = {
         hug() {
             return 0
-        }
+        } 
     }
 
     expect(BlackHuggableToy.is(huggable)).toBe(false)
 })
-
-test.todo('throws on property collisions')

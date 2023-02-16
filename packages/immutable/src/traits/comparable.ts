@@ -15,7 +15,7 @@ abstract class Comparable extends Trait {
 
     static override readonly is: (input: unknown) => input is Comparable = isShape({
         [$$equals]: isFunc
-    }) as AnyTypeGuard
+    }) as AnyTypeGuard 
 
     protected abstract [$$equals](other: unknown): other is this 
 

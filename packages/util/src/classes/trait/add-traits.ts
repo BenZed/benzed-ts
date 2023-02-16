@@ -1,7 +1,7 @@
 
 import { Property } from '../../property'
-import { AnyTypeGuard, Intersect, isFunc, isIntersection } from '../../types'
-import { $$onApply, applyTraits, _Traits } from './apply-traits'
+import { Intersect } from '../../types'
+import { applyTraits, _Traits } from './apply-traits'
 
 //// EsLint ////
 /* eslint-disable 
@@ -66,32 +66,12 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
 
 //// Use Traits ////
 
-export interface UseTraitsConstructor<T extends _Traits> extends AddTraitsConstructor<T> {
+export function useTraits<T extends _Traits>(...traits: T): AddTraitsConstructor<T> {
 
-    is(input: unknown): input is Composite<T>
+    return addTraits(
+        class CompositeBase {},
+        ...traits
+    
+    ) as unknown as AddTraitsConstructor<T>
 
-}
-
-/**
- * Combine multiple traits into one.
- */
-export function useTraits<T extends _Traits>(...traits: T): UseTraitsConstructor<T> {
-
-    return addTraits(class {
-
-        static [$$onApply](instance: Composite<T>): unknown {
-            return applyTraits(instance as object, traits)
-        }
-        
-        static is: (input: unknown) => input is Composite<T> = isIntersection(
-            ...traits.map(trait => {
-
-                if (!('is' in trait) || !isFunc(trait.is))
-                    throw new Error(`${trait.name} does not have a static \'is\' typeguard.`)
-
-                return trait.is as AnyTypeGuard
-            })
-        ) as AnyTypeGuard
-
-    }, ...traits) as unknown as UseTraitsConstructor<T>
 }

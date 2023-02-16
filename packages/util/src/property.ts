@@ -108,7 +108,6 @@ const Property = intersect(
                         descriptors[keyOrSymbol] = descriptor
                 }
             }
-    
             return Property.define(target, descriptors)
         },
 

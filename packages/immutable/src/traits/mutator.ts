@@ -24,14 +24,15 @@ const $$deleteProperty = Symbol('mutator-delete-property')
 abstract class Mutator<T extends object> extends Trait {
 
     static readonly target: typeof $$target = $$target
+    static readonly get: typeof $$get = $$get
     static readonly set: typeof $$set = $$set
     static readonly has: typeof $$has = $$has
     static readonly ownKeys: typeof $$ownKeys = $$ownKeys
     static readonly getPrototypeOf: typeof $$getPrototypeOf = $$getPrototypeOf
     static readonly setPrototypeOf: typeof $$setPrototypeOf = $$setPrototypeOf
-    static readonly getOwnPropertyDescriptor: typeof $$getOwnPropertyDescriptor = $$getOwnPropertyDescriptor
     static readonly defineProperty: typeof $$defineProperty = $$defineProperty
     static readonly deleteProperty: typeof $$deleteProperty = $$deleteProperty
+    static readonly getOwnPropertyDescriptor: typeof $$getOwnPropertyDescriptor = $$getOwnPropertyDescriptor
 
     static [Trait.apply](mutator: Mutator<any>): Mutator<any> {
         return new Proxy(mutator, {
@@ -54,11 +55,21 @@ abstract class Mutator<T extends object> extends Trait {
     abstract get [$$target](): T
 
     protected [$$get](mutator: Mutator<T>, key: keyof T, proxy: this) {
-        return Reflect.get(mutator[$$target], key, proxy)
+
+        const target = Reflect.has(mutator, key) && !Reflect.has(mutator[$$target], key)
+            ? mutator
+            : mutator[$$target]
+
+        return Reflect.get(target, key, proxy)
     }
 
     protected [$$set](mutator: Mutator<T>, key: keyof T, value: T[keyof T], receiver: unknown) {
-        return Reflect.set(mutator[$$target], key, value, receiver)
+
+        const target = Reflect.has(mutator, key) && !Reflect.has(mutator[$$target], key)
+            ? mutator
+            : mutator[$$target]
+
+        return Reflect.set(target, key, value, receiver)
     }
 
     protected [$$has](mutator: Mutator<T>, key: keyof T) {

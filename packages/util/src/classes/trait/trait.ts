@@ -1,5 +1,6 @@
 import { addTraits, useTraits } from './add-traits'
 import { $$onApply } from './apply-traits'
+import { mergeTraits } from './merge-traits'
 
 //// Helper Types ////
 
@@ -17,9 +18,20 @@ export abstract class Trait {
      */
     static readonly apply: typeof $$onApply = $$onApply
 
+    /**
+     * Add traits to an existing class
+     */
     static readonly add = addTraits
 
+    /**
+     * Create a new class with existing traits
+     */
     static readonly use = useTraits
+
+    /**
+     * Merge multiple traits into one
+     */
+    static readonly merge = mergeTraits
 
     static [Symbol.hasInstance](other: unknown): boolean {
         return this.is(other)

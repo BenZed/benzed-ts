@@ -1,4 +1,4 @@
-import { Falsy, isBigInt, isBoolean, isFalsy, isInteger, isNumber, isPrimitive, isString, isSymbol, isTruthy, Primitive, Truthy } from './primitive'
+import { Falsy, isBigInt, isBoolean, isFalsy, isNumber, isPrimitive, isString, isSymbol, isTruthy, Primitive, Truthy } from './primitive'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -33,7 +33,7 @@ describe('Truthy', () => {
 describe('Primitive', () => {
 
     it('union of all primitive values', () => {
-        expectTypeOf<Primitive>().toEqualTypeOf<string | number | boolean | bigint | null | undefined>()
+        expectTypeOf<Primitive>().toEqualTypeOf<string | number | boolean | bigint | null | symbol | undefined>()
     })
 
     it('isPrimitive', () => {
@@ -71,9 +71,4 @@ it('isSymbol()', () => {
     expect(isSymbol(Symbol())).toBe(true)
     if (isSymbol(value))
         expectTypeOf(value).toEqualTypeOf<symbol>()
-})
-
-it('isInteger', () => {
-    if (isInteger(value))
-        expectTypeOf(value).toEqualTypeOf<number>()
 })

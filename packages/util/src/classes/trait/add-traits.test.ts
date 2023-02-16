@@ -14,7 +14,7 @@ abstract class Jumpable extends Trait {
     abstract jump(): boolean 
 }
 
-abstract class Duckable extends Trait {
+abstract class Duckable extends Trait { 
 
     static is: (input: unknown) => input is Duckable = isShape({
         duck: isFunc
@@ -74,26 +74,3 @@ describe('creates composite classes', () => {
 
 })
 
-describe('create combined traits', () => {
-
-    it('combine traits', () => {
-        const JumpDuck = Trait.use(Jumpable, Duckable)
-        expect(JumpDuck.name).toBe('JumpableDuckable')
-    })
-
-    it('extend directly from traits', () => {
-
-        class Character extends Trait.use(Jumpable, Duckable) {
-            jump(): boolean {
-                return false
-            }
-            duck(): boolean {
-                return false
-            }
-        }
-
-        const character = new Character()
-        expect(character).toBeInstanceOf(Character)
-    })
-
-})

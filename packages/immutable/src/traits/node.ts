@@ -1,18 +1,7 @@
 import { nil } from '@benzed/util'
-import { AssertModule, FindModule, HasModule } from '../module'
 import { Module } from './module'
 
 //// Main ////
-
-abstract class Find extends Module {
-
-    abstract get find(): FindModule
-
-    abstract get has(): HasModule
-
-    abstract get assert(): AssertModule
-
-}
 
 abstract class Node extends Module {
 
