@@ -16,7 +16,7 @@ const $$state = Symbol('state')
 
 //// Helper Types ////
 
-type _StateKeys<T> = Exclude<keyof T, typeof $$state | typeof $$copy | typeof $$equals>
+type _StateKeys<T> = Exclude<keyof T, typeof $$state | typeof $$copy | typeof $$copy>
 
 type _State<T> = T extends object 
     ? Infer<{

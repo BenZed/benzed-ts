@@ -1,31 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-this-alias */
 
 import {
-    isFunc, 
     isIterable, 
     isArrayLike, 
     isObject, 
-    isShape, 
-    AnyTypeGuard,
     GenericObject,
     keysOf, 
     indexesOf
 } from '@benzed/util'
 
-//// Symbols ////
-
-const $$equals = Symbol('==')
-
-//// Types ////
-
-interface Comparable {
-    [$$equals](right: unknown): right is this
-}
-
-const isComparable: (input: unknown) => input is Comparable = 
-    isShape({
-        [$$equals]: isFunc as AnyTypeGuard
-    })
+import { $$equals, Comparable } from './traits'
 
 //// Helper ////
 
@@ -63,11 +47,11 @@ function equals<T>(left: T, right: unknown): right is T {
     if (Object.is(left, right))
         return true
 
-    const isLeftComparable = isComparable(left)
+    const isLeftComparable = Comparable.is(left)
     if (isLeftComparable)
         return left[$$equals](right)
 
-    const isRightComparable = isComparable(right)
+    const isRightComparable = Comparable.is(right)
     if (isRightComparable)
         return right[$$equals](left)
 
@@ -103,6 +87,5 @@ export default equals
 export {
     equals,
     $$equals,
-    Comparable,
-    isComparable
+    Comparable
 }

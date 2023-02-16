@@ -66,7 +66,7 @@ abstract class Structural {
         ) as this
     }
 
-    protected [$$copy](): this {
+    protected [$$equals](): this {
 
         const struct = copyWithoutState(this)
         const state = getShallowState(this)
