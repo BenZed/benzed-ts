@@ -6,3 +6,5 @@ export * from './types'
 export * from './constants'
 export * from './property'
 export * from './sort'
+
+export * as Property from './property-v2'
