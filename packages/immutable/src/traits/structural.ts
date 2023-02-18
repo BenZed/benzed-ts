@@ -49,7 +49,7 @@ type _PartialStateAtPath<T, P extends unknown[]> =
 
 //// Types ////
 
-type StructStatePath = (string | symbol)[]
+type StructStatePath = PropertyKey[]
 
 type StructStateApply<T extends Structural, P extends StructStatePath = []> = 
     _PartialStateAtPath<StateOf<T>, P>
