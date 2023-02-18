@@ -99,3 +99,4 @@ test('classes created by calling traits.use have a composed typeguard', () => {
 
     expect(BlackHuggableToy.is(huggable)).toBe(false)
 })
+

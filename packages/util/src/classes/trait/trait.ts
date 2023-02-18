@@ -2,10 +2,6 @@ import { addTraits, useTraits } from './add-traits'
 import { $$onApply } from './apply-traits'
 import { mergeTraits } from './merge-traits'
 
-//// Helper Types ////
-
-export type TraitApply<T extends Trait> = (trait: T) => T | void
-
 /**
  * 
  * A Trait is essentially a runtime interface. 
@@ -68,8 +64,8 @@ export abstract class Trait {
      */
     constructor() {
         throw new Error(
-            `Trait class ${this.constructor.name}'s constructor ` + 
-            'should never be called.'
+            `Trait class ${this.constructor.name}'s should ` + 
+            'never be constructed.'
         )
     }
 

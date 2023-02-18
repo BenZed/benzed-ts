@@ -46,4 +46,4 @@ describe(define.name, () => {
         expect(obj[sym]).toBe('some value')
     })
 
-})
+}) 
