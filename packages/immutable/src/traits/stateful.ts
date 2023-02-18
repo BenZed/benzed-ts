@@ -7,7 +7,7 @@ const $$state = Symbol('state')
 
 //// Types ////
 
-type StateOf<T extends State> = T[typeof $$state]
+type StateOf<T extends Stateful> = T[typeof $$state]
 
 //// Main ////
 
@@ -15,23 +15,23 @@ type StateOf<T extends State> = T[typeof $$state]
  * Stateful trait allows custom logic for getting/setting
  * an object's state.
  */
-abstract class State extends Trait {
+abstract class Stateful extends Trait {
 
     /**
      * Set the state of an object using the State trait
      */
-    static set<T extends State>(object: T, state: StateOf<T>): void {
+    static set<T extends Stateful>(object: T, state: StateOf<T>): void {
         object[$$state] = state
     }
 
     /**
      * Get the state of an object using the State trait
      */
-    static get<T extends State>(object: T): StateOf<T> {
+    static get<T extends Stateful>(object: T): StateOf<T> {
         return object[$$state]
     }
 
-    static override readonly is: (input: unknown) => input is State = 
+    static override readonly is: (input: unknown) => input is Stateful = 
         isKeyed($$state) as AnyTypeGuard
 
     /**
@@ -49,6 +49,6 @@ abstract class State extends Trait {
 }
 
 export {
-    State,
+    Stateful,
     StateOf
 }

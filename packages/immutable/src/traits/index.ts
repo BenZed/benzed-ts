@@ -6,6 +6,6 @@ export * from './module'
 
 export * from './node'
 
-export * from './state'
+export * from './stateful'
 
-export * from './struct'
+export * from './structural'
