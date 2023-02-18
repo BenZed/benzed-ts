@@ -51,7 +51,7 @@ abstract class EachKey {
     valueOf<T extends object[]>(...objects: T): EachIterable<Values<T>> {
         return new EachIterable(
             objects.map(object => 
-                eachValue(object, { type: KeyType.Symbol, ...this._options })
+                eachValue(object, { type: KeyType.Key, ...this._options })
             )
         )
     }
@@ -59,7 +59,7 @@ abstract class EachKey {
     entryOf<T extends object[]>(...objects: T): EachIterable<Entries<T>> {
         return new EachIterable(
             objects.map(object => 
-                eachEntry(object, { type: KeyType.Symbol, ...this._options })
+                eachEntry(object, { type: KeyType.Key, ...this._options })
             )
         )
     }

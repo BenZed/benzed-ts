@@ -2,9 +2,7 @@ import { nil } from '../types/nil'
 
 //// Types ////
 
-export type Map<T> = (value: T, index: number, array: T[]) => unknown
-
-export type Filter<T> = (value: T, index: number, array: T[]) => unknown
+type ArrayMethod<T, O = unknown> = (value: T, index: number, array: T[]) => O
 
 //// Class ////
 
@@ -34,21 +32,25 @@ export class EachIterable<T> {
 
     //// Iterable Implementation ////
 
-    protected [Symbol.iterator]() {
+    [Symbol.iterator]() {
         return this
     }
     
     //// Convenience Methods ////
     
     toArray(): T[] {
-        return [...this]
+        return Array.from(this)
     }
         
-    map<F extends Map<T>>(mapper: F): ReturnType<F>[] {
+    map<F extends ArrayMethod<T>>(mapper: F): ReturnType<F>[] {
         return this.toArray().map(mapper) as ReturnType<F>[]
     }
+
+    do(withEach: ArrayMethod<T, void | unknown>): void {
+        return this.toArray().forEach(withEach)
+    }
         
-    filter<F extends Filter<T>>(filterer: F): T[] {
+    filter<F extends ArrayMethod<T, boolean>>(filterer: F): T[] {
         return this.toArray().filter(filterer)
     }
 

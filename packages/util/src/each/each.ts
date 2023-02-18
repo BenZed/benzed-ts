@@ -4,6 +4,7 @@ import { eachObjectInPrototypeChain, eachValue } from './generators'
 import { EachEnumerableInheritedKey } from './each-key-interface'
 import { eachIndex, Indexable, IndexesOf, IndexesOfOptionsSignature } from './index-generator'
 import { isArrayLike, isIterable } from '../types/guards'
+import { isFunc } from '../types/func'
 
 //// EsLint ////
 /* eslint-disable 
@@ -83,6 +84,8 @@ each.indexOf = function indexOf<T extends Indexable>(
 Object.defineProperties(
     each,
     {
+
+        // Define State
         _options: { 
             value: { 
                 enumerable: true, 
@@ -92,10 +95,18 @@ Object.defineProperties(
             writable: false, 
             configurable: false 
         },
+
+        // Define Getters
         own: Object.getOwnPropertyDescriptor(EachEnumerableInheritedKey.prototype, 'own') as PropertyDescriptor,
         defined: Object.getOwnPropertyDescriptor(EachEnumerableInheritedKey.prototype, 'defined') as PropertyDescriptor,
     }
 )
+
+// Bind Methods
+each.entryOf(each).do(([name, value]) => {
+    if (isFunc(value))
+        (each as any)[name] = value.bind(each)
+})
 
 //// Exports ////
 

@@ -10,11 +10,11 @@ const $$extend = Symbol('extends')
 class Base {
     
     get base() {
-        return Base
+        return Base 
     }
 
-    getBase() {
-        return Base
+    getBase() { 
+        return Base 
     }
 
     overrideMe() {
@@ -22,8 +22,8 @@ class Base {
     }
 
     protected [$$base]() {
-        return Base
-    }
+        return Base 
+    } 
 
     constructor() {
         Object.defineProperty(this, $$private, { value: 'private' })
