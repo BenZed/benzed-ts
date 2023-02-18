@@ -1,25 +1,27 @@
-import { Trait, isIntersection, isObject, AnyTypeGuard, nil } from '@benzed/util'
+import { Trait } from '@benzed/traits'
+import { AnyTypeGuard, nil, isKeyed } from '@benzed/util'
 
 //// Sybol ////
 
-const $$module = Symbol('module-parent')
+const $$parent = Symbol('module-parent')
 
 //// Main ////
 
 abstract class Module extends Trait {
 
-    static readonly module: typeof $$module = $$module
+    /**
+     * Symbolic key used to define the module parent
+     */
+    static readonly parent: typeof $$parent = $$parent
 
     static [Trait.apply](trait: Module): Module {
         return trait
     }
 
-    static override readonly is: (input: unknown) => input is Module = isIntersection(
-        isObject,
-        ((i: unknown) => $$module in (i as object)) as AnyTypeGuard
-    )
+    static override readonly is: (input: unknown) => input is Module = 
+        isKeyed($$parent) as AnyTypeGuard
 
-    abstract readonly [$$module]: Module | nil
+    abstract readonly [$$parent]: Module | nil
 
 }
 

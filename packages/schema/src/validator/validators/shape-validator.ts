@@ -1,5 +1,5 @@
 
-import { GenericObject, Infer, isObject, keysOf, nil, OutputOf, pick } from '@benzed/util'
+import { each, GenericObject, Infer, isObject, nil, OutputOf } from '@benzed/util'
 
 import { ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
@@ -131,7 +131,7 @@ class ShapeValidator<T extends ShapeValidatorInput>
 
         const transformed = Object.create(inputObject.constructor.prototype)
 
-        for (const key of keysOf(this.properties)) {
+        for (const key of each.keyOf(this.properties)) {
             const $property = this.properties[key]
             const value = inputObject[key]
             transformed[key] = $property(value, ctx)

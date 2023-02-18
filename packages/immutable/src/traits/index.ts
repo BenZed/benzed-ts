@@ -4,8 +4,8 @@ export * from './copyable'
 
 export * from './module'
 
-export * from './mutator'
-
 export * from './node'
 
-export * from './state'
+export * from './stateful'
+
+export * from './structural'

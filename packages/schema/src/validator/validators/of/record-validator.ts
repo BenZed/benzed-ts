@@ -1,5 +1,5 @@
 
-import { OutputOf, nil, keysOf, GenericObject } from '@benzed/util'
+import { OutputOf, nil, GenericObject, each } from '@benzed/util'
 
 import { ValidateOptions } from '../../../validate'
 import { ValidationContext } from '../../../validation-context'
@@ -85,7 +85,7 @@ const RecordValidator = class RecordValidator<
 
         const transformed = vCtx.transformed = {} as GenericObject
 
-        for (const key of keysOf(input)) {
+        for (const key of each.keyOf(input)) {
 
             // Validate Key
             const kCtx = this[$$key] 

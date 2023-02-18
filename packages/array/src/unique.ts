@@ -1,6 +1,7 @@
-import { indexesOf } from '@benzed/util'
 
 //// Shortcuts ////
+
+import { each } from '@benzed/util'
 
 const { splice, findIndex } = Array.prototype
 
@@ -47,7 +48,7 @@ function unique(
         return unique(arrayLike.split('')).join('')
 
     // handle 
-    for (const index of indexesOf(arrayLike, true)) {
+    for (const index of each.indexOf(arrayLike, true)) {
         if (!unique(arrayLike[index], index, arrayLike)) 
             splice.call(arrayLike, index, 1)
     }

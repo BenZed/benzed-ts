@@ -1,9 +1,8 @@
-import { Func, indexesOf, Mutable, namesOf, nil, omit } from '@benzed/util'
-
-import { $$state, setState, State } from '../state'
-import Struct, { copyWithoutState } from '../struct'
+import { assign, each, Func, Mutable, nil, omit } from '@benzed/util'
 
 import { adjacent, shuffle } from '@benzed/array'
+import { Traits } from '@benzed/traits'
+import { Stateful, Structural } from '../traits'
 
 //// EsLint ////
 
@@ -29,14 +28,14 @@ function applyArrayState<
     T, 
     S extends ArrayStruct<T>, 
     M extends (this: ArrayLike<T>, ...args: any) => any>(
-    struct: S,
+    arrayStruct: S,
     method: M,
     args: Parameters<M>,
     stateFromReturnValue = false
 ): S {
 
     // create an arraylike out of the struct state, adding a mutable length property
-    const arrayLike = { ...struct, length: struct.length }
+    const arrayLike = { ...arrayStruct, length: arrayStruct.length }
 
     // apply the method to the arrayLike
     const result = method.apply(arrayLike, args)
@@ -47,10 +46,10 @@ function applyArrayState<
         : omit(arrayLike, 'length')
 
     // clone struct and apply state
-    const clone = copyWithoutState(struct)
-    setState(clone, state as State<S>)
-    return clone
-    
+    const newArrayStruct = Object.create(arrayStruct.constructor.prototype)
+    Structural.setIn(newArrayStruct, state)
+    return newArrayStruct
+
 }
 
 //// Main ////
@@ -59,7 +58,7 @@ function applyArrayState<
  * An ArrayStruct implements a subset of the Array's methods, with the caveat that
  * none of the methods mutate the original array.
  */
-class ArrayStruct<T> extends Struct implements Iterable<T> {
+class ArrayStruct<T> extends Traits.use(Structural) implements Iterable<T> {
 
     readonly [index: number]: T
 
@@ -74,7 +73,7 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     //// Interface ////
 
     get length(): number {
-        return namesOf.count(this)
+        return each.nameOf(this).count
     }
 
     at(index: number): T | nil {
@@ -203,6 +202,10 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     // TODO indexOf
     // TODO keys
     // TODO lastIndexOf
+    // TODO getIn
+    // TODO applyIn
+    // TODO copy
+    // TODO equals
 
     // TODO custom: unique, random, pluck
     toArray(): T[] {
@@ -212,14 +215,18 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     //// Iterable ////
     
     *[Symbol.iterator](): Iterator<T> {
-        for (const index of indexesOf(this))
+        for (const index of each.indexOf(this))
             yield this[index]
     }
 
     //// State ////
 
-    get [$$state](): { [index: number]: T } {
+    get [Stateful.key](): { [index: number]: T } {
         return { ...this }
+    }
+
+    set [Stateful.key](state: { [index: number]: T }) {
+        assign(this, state)
     }
 
 }

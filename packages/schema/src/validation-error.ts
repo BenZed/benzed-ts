@@ -9,7 +9,8 @@ import {
     isIntersection,
     AnyTypeGuard,
     Property,
-    Func
+    Func,
+    define
 } from '@benzed/util'
 
 import ValidationContext from './validation-context'
@@ -96,7 +97,7 @@ class ValidationError<T> extends Error implements ValidationContext<T> {
 
 //// Exports ////
 
-const isValidationError = Property.name(ValidationError.is, `is${ValidationError.name}`)
+const isValidationError = define.named(`is${ValidationError.name}`, ValidationError.is) 
 
 export default ValidationError
 

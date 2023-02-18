@@ -1,5 +1,5 @@
 import random from './random'
-import { equals } from '../../immutable/src/equals'
+import { equals } from '../../immutable/src/traits/comparable/equals'
 
 // eslint-disable-next-line no-unused-vars
 

@@ -1,4 +1,4 @@
-import { ansi, isPrimitive, keysOf } from '@benzed/util'
+import { ansi, each, isPrimitive } from '@benzed/util'
 import { it } from '@jest/globals'
 
 import { Validate } from './validate'
@@ -98,7 +98,7 @@ export function testValidationContract<I, O extends I>(
 
     const results = runValidationContractTests(validate, settings)
 
-    for (const tenant of keysOf(ValidationContractViolation)) {
+    for (const tenant of each.keyOf(ValidationContractViolation)) {
         it(tenant, () => {
             const violation = ValidationContractViolation[tenant]
             if (results.violations.includes(violation)) 

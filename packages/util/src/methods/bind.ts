@@ -1,7 +1,7 @@
 //// Main ////
 
-import { Property } from '../property'
 import { Func, Infer } from '../types'
+import { define } from './define'
 
 //// EsLint ////
 
@@ -42,7 +42,7 @@ function bind<F extends Func, B extends BindableParams<F>>(func: F, ...boundPara
         return func.call(this, ...boundParams, ...looseParams)
     }
 
-    return Property.name(bound, func.name)
+    return define.named(func.name, bound)
 }
 
 //// Exports ////

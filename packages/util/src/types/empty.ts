@@ -1,4 +1,4 @@
-import { namesOf, symbolsOf } from '../types'
+import { each } from '../each'
 import { isRecord } from './guards'
 
 /**
@@ -8,5 +8,4 @@ export type Empty = { [key: string]: never }
 
 export const isEmpty = (input: unknown): input is Empty => 
     isRecord(input) && 
-    namesOf.count(input) === 0 && 
-    symbolsOf.count(input) === 0
+    each.keyOf(input).count === 0 

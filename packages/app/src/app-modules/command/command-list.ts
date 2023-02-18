@@ -1,5 +1,4 @@
-import { Node, Nodes } from '@benzed/ecs'
-import { Empty, Infer, isEmpty, iterate, KeysOf } from '@benzed/util'
+import { each, Empty, Infer, isEmpty, KeysOf } from '@benzed/util'
 
 import Command from './command'
 
@@ -39,7 +38,7 @@ function commandList<N extends Nodes>(
 
     const commands: Record<string, unknown> = {}
 
-    for (const child of iterate(node.nodes)) {
+    for (const child of each(node.nodes)) {
         const command = Command.isCommand(child) ? child : commandList(child)
         if (!isEmpty(command))
             commands[child.name] = command
