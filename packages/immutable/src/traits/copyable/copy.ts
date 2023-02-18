@@ -5,7 +5,7 @@ import {
     each
 } from '@benzed/util'
 
-import { Copyable } from '..'
+import { Copyable } from './copyable'
 
 //// Types ////
 

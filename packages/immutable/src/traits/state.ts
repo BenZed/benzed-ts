@@ -49,6 +49,6 @@ abstract class State extends Trait {
 }
 
 export {
-    StateOf,
-    State
+    State,
+    StateOf
 }
