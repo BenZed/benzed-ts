@@ -9,7 +9,7 @@ it('typesafe with spread args', () => {
     const above0 = bind(Math.max,0)
 
     expect(above0(5)).toEqual(5)
-    expect(above0(-5)).toEqual(0)
+    expect(above0(-5)).toEqual(0) 
 })
 
 it('binds multiple args', () => {

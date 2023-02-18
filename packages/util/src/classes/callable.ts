@@ -1,6 +1,10 @@
 
-import { Property } from '../property'
-import { Func, Infer, isFunc, isRecord, isShape, TypeGuard } from '../types'
+import { each } from '../each'
+import { define } from '../methods/define'
+
+import type { Infer } from '../types'
+import { Func, isFunc, TypeGuard } from '../types/func'
+import { isRecord, isShape } from '../types/guards'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -138,13 +142,11 @@ const Callable = class {
             }
             : (...args: unknown[]) => signature(...args)
 
-        Property.transpose(signatureProperties, callable, [Object.prototype, Function.prototype])
-        Property.configure(callable, 'name', {
-            writable: true,
-            configurable: true
-        })
-        Property.transpose(template, callable, [Object.prototype, Function.prototype])
-        Property.define(callable, $$callable, {
+        define.transpose(signatureProperties, callable, [Function.prototype])
+        define.transpose(template, callable, [Function.prototype])
+        define.hidden(callable, 'name', callable.name)
+        define.hidden(callable, 'constructor', template.constructor)
+        define(callable, $$callable, {
             value: {
                 signature,
                 template,
@@ -164,7 +166,7 @@ const Callable = class {
         if (Object.is(instance.constructor, this))
             return true
 
-        if (Property.prototypesOf(instance.constructor).includes(this))
+        if (each.prototypeOf(instance.constructor).toArray().includes(this))
             return true 
 
         return false

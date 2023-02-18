@@ -13,7 +13,7 @@ it('create instances with call signatures', () => {
 
     class Formatter<S extends string> extends Callable<(i: string) => S> { }
 
-    const format = new Formatter(i => `${i}!` as `${string}!`)
+    const format = new Formatter(i => `${i}!` as `${string}!`) 
     const hi = format('hi') 
     expect(hi).toEqual('hi!')
 })
@@ -117,7 +117,8 @@ it('gets symbolic properties', () => {
 it('instanceof', () => {
 
     class Foo extends Callable<Func> {}
-    const foo = new Foo(parseInt)
+    const foo = new Foo(parseInt) 
+ 
     expect(foo).toBeInstanceOf(Foo)
     expect(foo).toBeInstanceOf(Function)
 

@@ -1,10 +1,13 @@
-import { indexesOf, keysOf } from '../types/keys-of'
 import { isBigInt, isBoolean, isNumber, isString } from './primitive'
 import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive, GenericObject, Infer } from './types'
+
+import { eachKey } from '../each/generators'
+import { eachIndex} from '../each/index-generator'
+
 import { Sortable } from '../sort'
-import { nil } from './nil'
 import { Intersect } from './merge'
+import { nil } from './nil'
 
 //// EsLint ////
 /* eslint-disable 
@@ -37,7 +40,7 @@ export const isArrayLikeOf = <T>(type: TypeGuard<T>): TypeGuard<ArrayLike<T>> =>
     if (!isArrayLike(i)) 
         return false
 
-    for (const index of indexesOf(i)) {
+    for (const index of eachIndex(i)) {
         if (!type(i[index]))
             return false
     }
@@ -56,7 +59,7 @@ export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard
         if (!isRecord(i))
             return false
 
-        for (const key of keysOf(i)) {
+        for (const key of eachKey(i)) {
             if (!type(i[key]))
                 return false
         }
@@ -113,7 +116,7 @@ export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T
         if (!isObject(input))
             return false 
 
-        for (const key of keysOf(shape)) {
+        for (const key of eachKey(shape)) {
             if (!shape[key](input[key as keyof typeof input]))
                 return false
         } 

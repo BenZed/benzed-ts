@@ -1,4 +1,4 @@
-import { nil } from '../types'
+import { nil } from '../types/nil'
 
 //// Types ////
 

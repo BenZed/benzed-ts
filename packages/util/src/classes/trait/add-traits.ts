@@ -1,5 +1,6 @@
 
-import { Property } from '../../property'
+import { each } from '../../each'
+import { define } from '../../methods'
 import { Intersect } from '../../types'
 import { applyTraits, _Traits } from './apply-traits'
 
@@ -48,19 +49,14 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
         }
     }
 
-    for (const constructor of [...traits]) {
-        Property.namesOf(constructor.prototype).forEach((name) => {
-            Property.define(
-                CompositeConstructor.prototype,
-                name,
-                Property.descriptorOf(constructor.prototype, name) ?? {}
-            )
-        })
+    for (const trait of traits) {
+        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
+            define(CompositeConstructor.prototype, key, descriptor)
     }
 
     const name = [base, ...traits].map(c => c.name).join('')
 
-    return Property.name(CompositeConstructor, name) as unknown as AddTraitsConstructor<T>
+    return define.named(name, CompositeConstructor) as unknown as AddTraitsConstructor<T>
 
 }
 

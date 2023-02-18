@@ -153,4 +153,3 @@ it('each defined own key', () => {
     expect(Array.from(keys))
         .toEqual(['value', $$private, $$public])
 })
-

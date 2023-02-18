@@ -1,7 +1,6 @@
 
 //// EsLint ////
 
-import { Descriptor } from '../property-v2'
 import { Entries } from '../types'
 
 /* eslint-disable 
@@ -16,50 +15,77 @@ export enum KeyType {
     Symbol
 }
 
-export type YieldKey<T extends object> = KeyType extends KeyType.Symbol 
-    ? Extract<keyof T, symbol>
-    : KeyType extends KeyType.Name 
-        ? Extract<keyof T, string>
+export type SymbolsOf<T> = Extract<keyof T, symbol>
+
+export type NamesOf<T> = Extract<keyof T, string>
+
+export type KeysOf<T extends object, K extends KeyType = KeyType.Key> = K extends KeyType.Symbol 
+    ? SymbolsOf<T>
+    : K extends KeyType.Name 
+        ? NamesOf<T> 
         : keyof T
 
-export type YieldValue<T extends object> = KeyType extends KeyType.Symbol 
-    ? Extract<keyof T, symbol>
-    : KeyType extends KeyType.Name 
-        ? Extract<keyof T, string>
+export type ValuesOf<T extends object, K extends KeyType = KeyType.Key> = K extends KeyType.Symbol 
+    ? SymbolsOf<T>
+    : K extends KeyType.Name 
+        ? NamesOf<T> 
         : keyof T
 
-//// Methods ////
+//// EachKey ////
 
-export function * eachKey<T extends object, K extends KeyType>(
+export function eachKey<T extends object>(object: T): IterableIterator<KeysOf<T>>
+export function eachKey<T extends object, K extends KeyType>(
     object: T, 
     options: { type: K, enumerable: boolean, own: boolean }
-): IterableIterator<YieldKey<T>> {
+): IterableIterator<KeysOf<T>> 
+export function * eachKey(
+    object: object, 
+    options: { type: KeyType, enumerable: boolean, own: boolean } = { type: KeyType.Key, enumerable: true, own: false }
+): IterableIterator<PropertyKey> {
     for (const [key] of eachDescriptor(object, options))
         yield key
 }
 
-export function * eachValue<T extends object, K extends KeyType>(
+//// EachValue ////
+
+export function eachValue<T extends object>(object: T): IterableIterator<ValuesOf<T>>
+export function eachValue<T extends object, K extends KeyType>(
     object: T, 
     options: { type: K, enumerable: boolean, own: boolean }
-): IterableIterator<T[keyof T]> {
+): IterableIterator<ValuesOf<T, K>> 
+export function * eachValue(
+    object: object, 
+    options: { type: KeyType, enumerable: boolean, own: boolean } = { type: KeyType.Key, enumerable: true, own: false }
+): IterableIterator<unknown> {
     for (const [key] of eachDescriptor(object, options))
         yield object[key]
 }
 
-export function * eachEntry<T extends object, K extends KeyType>(
+//// EachEntry ////
+
+export function * eachEntry<T extends object>(
     object: T, 
-    options: { type: K, enumerable: boolean, own: boolean }
+    options: { type: KeyType, enumerable: boolean, own: boolean } = { type: KeyType.Key, enumerable: true, own: false }
 ): IterableIterator<Entries<T>> {
     for (const [key] of eachDescriptor(object, options))
-        yield [key, object[key]] as Entries<T>
+        yield [key, (object as any)[key]] as Entries<T>
 }
 
-export function * eachDescriptor<T extends object>(
-    object: T, 
-    options: { type: KeyType, enumerable: boolean, own: boolean }
-): IterableIterator<[YieldKey<T>, Descriptor]> {
+//// EachDescriptor ////
 
-    type KeyDescriptor = IterableIterator<[YieldKey<T>, Descriptor]>
+export function eachDescriptor<T extends object>(
+    object: T
+): IterableIterator<[PropertyKey, PropertyDescriptor]>
+export function eachDescriptor<T extends object, K extends KeyType>(
+    object: T, 
+    options: { type: K, enumerable: boolean, own: boolean }
+): IterableIterator<[KeysOf<T,K>, PropertyDescriptor]>
+export function * eachDescriptor(
+    object: object, 
+    options: { type: KeyType, enumerable: boolean, own: boolean } = { type: KeyType.Key, enumerable: true, own: false }
+): IterableIterator<[PropertyKey, PropertyDescriptor]> {
+
+    type KeyDescriptor = IterableIterator<[PropertyKey, PropertyDescriptor]>
 
     const includeSymbols = options.type !== KeyType.Name
     const includeNames = options.type !== KeyType.Symbol
@@ -89,6 +115,8 @@ export function * eachDescriptor<T extends object>(
     }
 }
 
+//// Helper ////
+
 export function * eachObjectInPrototypeChain(object: object): IterableIterator<object> {
 
     let current = object
@@ -98,8 +126,6 @@ export function * eachObjectInPrototypeChain(object: object): IterableIterator<o
     }
 
 }
-
-//// Helper ////
 
 function * eachKeyInDescriptorMap(
     descriptors: PropertyDescriptorMap, 

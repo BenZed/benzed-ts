@@ -1,8 +1,9 @@
 import { addTraits, AddTraitsConstructor, Composite, useTraits } from './add-traits'
-import { AnyTypeGuard, Intersect, isFunc, isIntersection, isSymbol, keysOf } from '../../types'
+import { AnyTypeGuard, Intersect, isFunc, isIntersection, isSymbol } from '../../types'
 
 import { $$onApply, applyTraits, _Traits } from './apply-traits'
 import { Trait } from './trait'
+import { each } from '../../each'
 
 //// Helper Methods ////
 
@@ -61,7 +62,7 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergeTraitsConstru
 
     // Add Static Sybols
     for (const trait of traits) {
-        for (const key of keysOf(trait)) {
+        for (const key of each.keyOf(trait)) {
             if (isSymbol(trait[key]))
                 MergedTraits[key] = trait[key]
         }

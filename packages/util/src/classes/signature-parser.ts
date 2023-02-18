@@ -1,11 +1,11 @@
-import { Callable } from '../classes'
+import { Callable } from '.'
+import { NamesOf } from '../each'
+import { eachIndex } from '../each/index-generator'
 
 import { 
     Compile, 
     GenericObject, 
-    indexesOf, 
     isRecord, 
-    NamesOf, 
     Merge, 
     nil,
     TypeGuard
@@ -139,7 +139,7 @@ class SignatureParser<
 
             const output: GenericObject = {}
 
-            for (const index of indexesOf(layout)) {
+            for (const index of eachIndex(layout)) {
                 const key = layout[index]
                 if (signature[index] !== nil)
                     output[key] = signature[index]

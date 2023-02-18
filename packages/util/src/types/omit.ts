@@ -1,18 +1,13 @@
-import { namesOf, symbolsOf } from './keys-of'
+import { each } from '../each'
 
 //// Helper ////
 
 function _omit(input: object, ...keys: (symbol | string)[]): object {
     const output: object = {}
 
-    for (const key of namesOf(input)) {
+    for (const key of each.keyOf(input)) {
         if (!keys.includes(key))
             output[key] = input[key]
-    }
-
-    for (const symbol of symbolsOf(input)) {
-        if (!keys.includes(symbol))
-            output[symbol] = input[symbol]
     }
 
     return output

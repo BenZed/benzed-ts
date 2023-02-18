@@ -144,8 +144,8 @@ describe('each.symbolOf', () => {
     })
 
     it('each defined own key of object', () => {
-        expect([...each.defined.own.symbolOf(extend)]).toEqual([ $$private, $$public])
-        expect([...each.own.defined.symbolOf(extend)]).toEqual([ $$private, $$public]) 
+        expect([...each.defined.own.symbolOf(extend)]).toEqual([ $$private, $$public ])
+        expect([...each.own.defined.symbolOf(extend)]).toEqual([ $$private, $$public ]) 
     })
 
 })
