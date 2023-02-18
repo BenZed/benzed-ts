@@ -1,6 +1,6 @@
-import { isBigInt, isBoolean, isNumber, isString } from './primitive'
+import { isBigInt, isBoolean, isEqual, isNumber, isString } from './primitive'
 import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
-import { Json, JsonArray, JsonRecord, JsonPrimitive, GenericObject, Infer } from './types'
+import { Json, JsonArray, JsonRecord, JsonPrimitive, Infer, GenericObject } from './types'
 
 import { eachKey } from '../each/generators'
 import { eachIndex} from '../each/index-generator'
@@ -26,7 +26,7 @@ export const isArrayLike = <T = unknown>(i: unknown): i is ArrayLike<T> => {
     if (isString(i))
         return true
     
-    if (!isRecord(i))
+    if (!isRecord(i) && !isArray(i))
         return false 
 
     if (!isNumber(i.length))
@@ -48,10 +48,25 @@ export const isArrayLikeOf = <T>(type: TypeGuard<T>): TypeGuard<ArrayLike<T>> =>
     return true
 }
 
-export const isRecord = <K extends string | number | symbol, V = unknown>(i: unknown): i is Record<K,V> => 
-    typeof i === 'object' && i !== null
+export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
-export const isGenericObject: (i: unknown) => i is GenericObject = isRecord
+    type SymbolIterator = { [Symbol.iterator]: Func }
+
+    return isString(input) ||
+
+        isObject<SymbolIterator>(input) && 
+        
+        isFunc(input[Symbol.iterator])
+}
+
+export const isObject = <T extends object = object>(input: unknown): input is T => 
+    isFunc(input) || input !== null && typeof input === 'object'
+
+export const isGenericObject = (i: unknown): i is GenericObject =>
+    !!i && isGenericPrototype(Object.getPrototypeOf(i))
+
+export const isRecord = <K extends string | number | symbol, V = unknown>(i: unknown): i is Record<K,V> => 
+    isGenericObject(i)
 
 // TODO add key type guard
 export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard<V>): TypeGuard<Record<K, V>> =>  
@@ -66,20 +81,6 @@ export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard
 
         return true
     }
-
-export const isIterable = <T>(input: unknown): input is Iterable<T> => {
-
-    type SymbolIterator = { [Symbol.iterator]: Func }
-
-    return isString(input) ||
-
-        isObject<SymbolIterator>(input) && 
-        
-        isFunc(input[Symbol.iterator])
-}
-
-export const isObject = <T extends object = object>(input: unknown): input is T => 
-    isRecord(input) || isFunc(input)
 
 export const isPromise = <T>(input: unknown): input is Promise<T> => 
     input instanceof Promise
@@ -148,22 +149,34 @@ export const isIntersection = <T extends AnyTypeGuard[]>(...types: T): TypeGuard
 export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
     (i: unknown): i is T | nil => i === nil || type(i)
 
+const isGenericPrototype = isUnion(isEqual(null), isEqual(Object.prototype as any))
+
 //// Json ////
 
-export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
-    isString(input) || isNumber(input) || isBoolean(input) || input === null
+export const isJsonPrimitive: (input: unknown) => input is JsonPrimitive =
+    isUnion(
+        isString,
+        isNumber,
+        isBoolean, 
+        isEqual(null)
+    )
 
-export const isJsonObject = (input: unknown): input is JsonRecord => 
+export const isJsonRecord = (input: unknown): input is JsonRecord => 
     isRecordOf(isJson)(input)
 
 export const isJsonArray = (input: unknown): input is JsonArray => 
     isArrayOf(isJson)(input)
 
-export const isJson = (input: unknown): input is Json => 
-    isJsonPrimitive(input) ||
-    isJsonArray(input) ||
-    isJsonObject(input)
+export const isJson: (input: unknown) => input is Json = isUnion(
+    isJsonArray,
+    isJsonRecord,
+    isJsonPrimitive
+)
 
-isJson.Array = isJsonArray
-isJson.Object = isJsonObject
-isJson.Primitive = isJsonPrimitive
+export type JsonShapeInput = Record<string, TypeGuard<unknown>>
+export type JsonShapeOutput<T extends JsonShapeInput> = Infer<{
+    [K in keyof T]: TypeOf<T[K]>
+}, JsonRecord>
+
+export const isJsonShape = <T extends JsonShapeInput>(shape: T): TypeGuard<JsonShapeOutput<T>> => 
+    isIntersection(isJsonRecord, isShape(shape)) as TypeGuard<JsonShapeOutput<T>>

@@ -1,4 +1,4 @@
-import { isRecord } from './guards'
+import { isObject } from './guards'
 
 //// Helper ////
 
@@ -18,8 +18,8 @@ export function pick<T extends object, Tk extends (keyof T)[]>(input: T, ...keys
 export function pick<T extends object, Tk extends (keyof T)[]>(...keys: Tk): (input:T) => Pick<T, Tk[number]>
 export function pick(input: object, ...keys: (string | symbol)[]): object
 export function pick(...input: unknown[]): unknown {
-    if (isRecord(input))
-        return _pick(...input as [object, ...(keyof object)[]])
+    if (isObject(input[0]))
+        return _pick(...input as unknown as [object, ...(keyof object)[]])
     
     return (o: object) => _pick(o, ...input as (keyof object)[])
 }

@@ -4,7 +4,7 @@ import { define } from '../methods/define'
 
 import type { Infer } from '../types'
 import { Func, isFunc, TypeGuard } from '../types/func'
-import { isRecord, isShape } from '../types/guards'
+import { isObject, isShape } from '../types/guards'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
@@ -37,7 +37,7 @@ type CallableData = {
 
 const isCallableData: TypeGuard<CallableData> = isShape({
     signature: isFunc,
-    template: isRecord,
+    template: isObject,
     ctxProvider: isFunc
 })
 
@@ -160,7 +160,7 @@ const Callable = class {
 
     static [Symbol.hasInstance](instance: unknown): boolean {
 
-        if (!(isFunc(instance) || isRecord(instance)) || !isFunc(instance?.constructor))
+        if (!isObject(instance) || !isFunc(instance?.constructor))
             return false 
 
         if (Object.is(instance.constructor, this))

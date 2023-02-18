@@ -18,7 +18,7 @@ it('create instances with call signatures', () => {
     expect(hi).toEqual('hi!')
 })
 
-it('instances have instance properties', () => {
+it('instances have instance properties', () => { 
     class Multiply extends Callable<(i: number) => number> {
         constructor(public by: number) {
             super(i => i * this.by) 
@@ -450,7 +450,7 @@ describe('Callable.create on generic objects', () => {
 
 })
 
-it('retereive signature', () => {
+it('retreive signature', () => {
 
     class Bar extends Callable<() => void> {}
 
@@ -459,7 +459,7 @@ it('retereive signature', () => {
     expect(Callable.signatureOf(bar)).toEqual(toVoid)
 })
 
-it('retereive template', () => {
+it('retreive template', () => {
 
     const template = {}
 

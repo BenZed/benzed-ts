@@ -1,4 +1,5 @@
 import { each } from '../each'
+import { isObject } from './guards'
 
 //// Helper ////
 
@@ -19,7 +20,7 @@ export function omit<T extends object, Tk extends (keyof T)[]>(input: T, ...keys
 export function omit<T extends object, Tk extends (keyof T)[]>(...keys: Tk): (input: T) => Omit<T, Tk[number]>
 export function omit(input: object, ...keys: (symbol | string)[]): object
 export function omit(...input: unknown[]): unknown {
-    return typeof input[0] === 'object' 
+    return isObject(input[0])
       
         ? _omit(...input as [object, ...(symbol | string)[]])
         
