@@ -2,28 +2,24 @@ import { addTraits, AddTraitsConstructor, Composite, useTraits } from './add-tra
 import { AnyTypeGuard, Intersect, isFunc, isIntersection, isSymbol } from '../../types'
 
 import { $$onApply, applyTraits, _Traits } from './apply-traits'
-import { Trait } from './trait'
 import { each } from '../../each'
+import { Trait } from './trait'
 
 //// Helper Methods ////
 
-type _AllSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
+type _AllNewSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
     ? Tr extends _Traits 
-        ? [_SymbolsOf<T1>, ..._AllSymbolsOf<Tr>]
-        : [_SymbolsOf<T1>]
+        ? [_NewSymbolsOf<T1>, ..._AllNewSymbolsOf<Tr>]
+        : [_NewSymbolsOf<T1>]
     : []
 
-type _SymbolsOf<T> = {  
-    readonly [K in keyof T as T[K] extends symbol ? K : never ]: T[K]
+type _NewSymbolsOf<T> = {  
+    readonly [K in keyof T as T[K] extends symbol ? T[K] extends typeof Trait.apply ? never : K : never ]: T[K]
 }
-
-//// Helper ////
 
 //// Merge Traits ////
 
-export type MergeTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T> & {
-
-    readonly apply: typeof Trait.apply
+export type MergedTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T> & {
 
     readonly add: typeof addTraits
     readonly use: typeof useTraits
@@ -31,12 +27,12 @@ export type MergeTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T> 
 
     is(input: unknown): input is Composite<T>
 
-} & Intersect<_AllSymbolsOf<T>>
+} & Intersect<_AllNewSymbolsOf<T>>
 
 /**
  * Combine multiple traits into one.
  */
-export function mergeTraits<T extends _Traits>(...traits: T): MergeTraitsConstructor<T> {
+export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstructor<T> {
 
     const MergedTraits = addTraits(class extends Trait {
 
@@ -44,9 +40,13 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergeTraitsConstru
         static [$$onApply](instance: Composite<T>): unknown {
             return applyTraits(instance as object, traits)
         }
+
+        readonly add = addTraits
+        readonly use = useTraits
+        readonly merge = mergeTraits
         
         // Intersect all is methods
-        static override is = isIntersection(
+        static override readonly is = isIntersection(
             ...traits.map(trait => {
 
                 if (!('is' in trait) || !isFunc(trait.is))
@@ -58,7 +58,7 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergeTraitsConstru
 
     },
     
-    ...traits) as unknown as MergeTraitsConstructor<T>
+    ...traits) as MergedTraitsConstructor<T>
 
     // Add Static Sybols
     for (const trait of traits) {

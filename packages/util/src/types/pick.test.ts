@@ -4,7 +4,7 @@ import { isRecord } from './guards'
 describe(pick.name, () => {
     it('returns a new object of given keys', () => {
         const input = {
-            a: 0,
+            a: 0, 
             b: false,
             c: 'c'
         }

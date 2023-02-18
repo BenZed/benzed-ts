@@ -56,7 +56,7 @@ abstract class EachKey {
         )
     }
 
-    entryOf<T extends object[]>(...objects: T): EachIterable<Entries<T>> {
+    entryOf<T extends object[]>(...objects: T): EachIterable<Entries<T[number]>> {
         return new EachIterable(
             objects.map(object => 
                 eachEntry(object, { type: KeyType.Key, ...this._options })

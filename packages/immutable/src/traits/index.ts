@@ -8,4 +8,4 @@ export * from './mutator'
 
 export * from './node'
 
-export * from './state'
+export * from './state/state'

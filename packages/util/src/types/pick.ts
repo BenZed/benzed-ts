@@ -6,7 +6,7 @@ function _pick(input: object, ...keys: (keyof object)[]): object {
 
     const output: object = {}
 
-    for (const key of keys) 
+    for (const key of keys)
         output[key] = input[key]
 
     return output

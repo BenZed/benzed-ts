@@ -23,19 +23,12 @@ export abstract class Trait {
      * Extend a an arbitrary number of traits into a new class.
      */
     static readonly use = useTraits
-
+    
     /**
      * Merge multiple traits into one.
      */
     static readonly merge = mergeTraits
 
-    /**
-     * Extended classes may implement this static 
-     * method to customize behaviour that occurs when
-     * a trait is applied.
-     */
-    static readonly apply: typeof $$onApply = $$onApply
-    
     /**
      * Overwrite this method on extended Traits to allow
      * Traits to be tested for type.
@@ -45,7 +38,7 @@ export abstract class Trait {
             `${this.name} has not implemented a static typeguard named 'is'`
         )
     }
-
+    
     /**
      * Traits are structrual in nature and don't exist as 
      * instances in practice, so the instanceof operator's 
@@ -57,6 +50,13 @@ export abstract class Trait {
     static [Symbol.hasInstance](other: unknown): boolean {
         return this.is(other)
     }
+
+    /**
+     * Extended classes may implement this static 
+     * method to customize behaviour that occurs when
+     * a trait is applied.
+     */
+    static readonly apply: typeof $$onApply = $$onApply
 
     /**
      * A trait should never be constructed. It exists only to

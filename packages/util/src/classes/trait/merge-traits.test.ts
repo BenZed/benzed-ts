@@ -15,7 +15,7 @@ it('should return a new trait that extends the traits', () => {
             return 'value1' 
         }
         method1() {
-            return 'method1' 
+            return 'method1'
         }
     }
     const trait2 = class MyTrait2 extends Trait {
