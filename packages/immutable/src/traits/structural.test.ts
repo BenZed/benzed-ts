@@ -51,7 +51,7 @@ describe('Struct.copy', () => {
 
 })
 
-describe('Struct.equals', () => { 
+describe('Struct.equals', () => {
 
     it('returns true if two stateful objects of the same type have equal states', () => {
         const v1 = new Vector(2, 2)

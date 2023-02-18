@@ -1,4 +1,4 @@
-import { Trait } from '@benzed/util'
+import { Trait } from '@benzed/traits'
 import { Copyable } from './copyable'
 
 class Person extends Trait.use(Copyable) {

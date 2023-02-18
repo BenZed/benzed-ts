@@ -1,6 +1,7 @@
-import { copy, $$copy } from './copy'
+import { copy } from './copy'
 
 import { describe, it, expect } from '@jest/globals'
+import Copyable from './copyable'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */ 
 
@@ -44,7 +45,7 @@ describe('copies primitives', () => {
 
     it('looks for copy methods on functions before returning them mutably', () => {
         const one = (() => 'one') as any
-        one[$$copy] = () => 1
+        one[Copyable.copy] = () => 1
 
         expect(copy(one)).toEqual(1)
     })

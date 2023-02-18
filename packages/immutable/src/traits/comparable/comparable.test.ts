@@ -1,8 +1,9 @@
 import { Comparable } from './comparable'
-import { equals } from '../equals'
 
 import { it, expect, describe } from '@jest/globals'
-import { Trait } from '@benzed/util'
+import { Trait } from '@benzed/traits'
+
+import equals from './equals'
 
 //// Tests ////
 
