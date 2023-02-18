@@ -26,6 +26,5 @@ abstract class Comparable extends Trait {
 export default Comparable
 
 export {
-    Comparable,
-    $$equals
+    Comparable
 }

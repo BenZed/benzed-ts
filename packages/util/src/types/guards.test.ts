@@ -22,7 +22,8 @@ import {
     isJsonRecord,
     isJsonArray,
     isJson,
-    isJsonShape
+    isJsonShape,
+    isKeyed
 } from './guards'
 import { isBoolean, isNumber, isString, isSymbol } from './primitive'
 
@@ -405,6 +406,29 @@ test('isJsonPrimitive returns false for non-JSON primitives', () => {
     expect(isJsonPrimitive({})).toBe(false)
     expect(isJsonPrimitive(undefined)).toBe(false)
 })
+  
+describe('isObjectWithKeys', () => {
+    it('should return true when the object has the expected keys', () => {
+        const person: unknown = { name: 'John', age: 30, occupation: 'Programmer' }
+        expect(isKeyed('name', 'age', 'occupation')(person)).toBe(true)
+  
+        const car: unknown = { make: 'Toyota', model: 'Corolla', year: 2020, color: 'white' }
+        expect(isKeyed('make', 'model', 'year', 'color')(car)).toBe(true)
+    })
+  
+    it('should return false when the object is missing one or more keys', () => {
+        const person: unknown = { name: 'John', age: 30 }
+        expect(isKeyed('name', 'age', 'occupation')(person)).toBe(false)
+  
+        const car: unknown = { make: 'Toyota', model: 'Corolla', year: 2020 }
+        expect(isKeyed('make', 'model', 'year', 'color')(car)).toBe(false)
+    })
+  
+    it('should return false when the input is not an object', () => {
+        const notAnObject: unknown = 'hello world'
+        expect(isKeyed('name', 'age', 'occupation')(notAnObject)).toBe(false) 
+    })
+})
 
 describe('isJsonObject', () => {
     test('isJsonObject returns true for an object with string and number properties', () => {
@@ -477,7 +501,7 @@ test('isJson returns true for a JSON object', () => {
   
 test('isJson returns false for non-JSON objects', () => {
     expect(isJson(Symbol(''))).toBe(false)
-    expect(isJson(function() {})).toBe(false)
+    expect(isJson(function() { /**/ })).toBe(false)
     expect(isJson(/abc/)).toBe(false)
 }) 
 

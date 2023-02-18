@@ -1,6 +1,7 @@
 export * from './classes'
 export * from './conversion'
 export * from './dev'
+export * from './each'
 export * from './methods'
 export * from './types'
 export * from './constants'

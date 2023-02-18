@@ -4,7 +4,7 @@ import {
     isFunc,
     isObject,
     isShape,
-    keysOf,
+    each
 } from '@benzed/util'
 
 //// Symbols ////
@@ -111,7 +111,7 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
     }
 
     const object = setRef(Object.create(input))
-    for (const key of keysOf(input))
+    for (const key of each.keyOf(input))
         object[key] = copyWithRefs(input[key])
     
     return object

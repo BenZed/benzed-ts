@@ -26,6 +26,5 @@ abstract class Copyable extends Trait {
 export default Copyable
 
 export {
-    Copyable,
-    $$copy
+    Copyable
 }
