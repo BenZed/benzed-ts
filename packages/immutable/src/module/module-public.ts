@@ -1,4 +1,4 @@
-import { keysOf } from '@benzed/util'
+import { each } from '@benzed/util'
 import { 
     AssertModule,
     Find, 
@@ -48,7 +48,7 @@ export class ModulePublic extends ModuleFind {
         return getParent(this)
     }
 
-    get siblings(): Module[] {
+    get siblings(): Module[] { 
         return Array.from(eachSibling(this))
     }
 
@@ -56,7 +56,7 @@ export class ModulePublic extends ModuleFind {
         const children = getChildren(this)
         return Array.from({
             ...children,
-            length: keysOf.count(children)
+            length: each(children).count
         })
     }
 

@@ -1,6 +1,6 @@
-import { assign, Callable, Func, isFunc, nil, Property, TypeGuard } from '@benzed/util'
+import { assign, Callable, each, Func, isFunc, nil, TypeGuard } from '@benzed/util'
 
-import { $$equals } from '../equals'
+import equals from '../equals'
 
 import { Module } from './module'
 
@@ -212,7 +212,7 @@ const Find = class ModuleFinder extends Callable<Func> {
 //// Helper ////
 
 function isModuleConstructor(input: FindInput): input is AnyModuleConstructor {
-    return Property.prototypesOf(input).includes(Module)
+    return each.prototypeOf(input).toArray().includes(Module)
 }
 
 function toModulePredicate(input: FindInput): AnyModuleTypeGuard | AnyModulePredicate {
@@ -221,7 +221,7 @@ function toModulePredicate(input: FindInput): AnyModuleTypeGuard | AnyModulePred
         return (other => other instanceof input) as AnyModuleTypeGuard
 
     if (Module.is(input)) 
-        return (other => input[$$equals](other)) as AnyModuleTypeGuard
+        return (other => equals(input, other)) as AnyModuleTypeGuard
 
     if (isFunc(input))
         return input

@@ -1,5 +1,5 @@
 
-import { indexesOf, TypeGuard } from '@benzed/util'
+import { each, TypeGuard } from '@benzed/util'
 
 import { AnyValidate, ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
@@ -37,7 +37,7 @@ class TupleValidator<T extends TupleInput> extends ValidatorStruct<unknown[], Tu
 
         const transformed: unknown[] = ctx.transformed = []
 
-        for (const index of indexesOf(input)) {
+        for (const index of each.indexOf(input)) {
             const validateIndex = this.types[index]
             const value = input[index]
             transformed[index] = validateIndex(value, ctx)

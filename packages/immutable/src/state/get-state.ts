@@ -1,4 +1,4 @@
-import { isObject, keysOf } from '@benzed/util'
+import { each, isObject } from '@benzed/util'
 
 import Struct from '../struct'
 
@@ -39,7 +39,7 @@ export function getDeepState<T extends Struct>(struct: T): State<T> {
     const state = getShallowState(struct) as any
 
     if (isObject(state)) {
-        for (const key of keysOf(state)) {
+        for (const key of each.keyOf(state)) {
             if (Struct.is(state[key])) 
                 state[key] = getDeepState(state[key])
         }

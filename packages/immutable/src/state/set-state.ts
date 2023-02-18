@@ -1,4 +1,4 @@
-import { assign, isObject, keysOf } from '@benzed/util'
+import { assign, each, isObject } from '@benzed/util'
 
 import { applyState } from './apply-state'
 
@@ -27,7 +27,7 @@ export function setDeepState<T extends Struct>(struct: T, state: State<T>): void
     if (!isObject(state))
         throw new Error('Cannot deep-set a scalar state.')
 
-    for (const key of keysOf(state)) {
+    for (const key of each.keyOf(state)) {
 
         const subStateKey = key as keyof typeof state
         const maybeSubState = state[subStateKey] as any

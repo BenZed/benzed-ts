@@ -1,4 +1,4 @@
-import { Func, indexesOf, Mutable, namesOf, nil, omit } from '@benzed/util'
+import { each, Func, Mutable, nil, omit } from '@benzed/util'
 
 import { $$state, setState, State } from '../state'
 import Struct, { copyWithoutState } from '../struct'
@@ -74,7 +74,7 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     //// Interface ////
 
     get length(): number {
-        return namesOf.count(this)
+        return each.nameOf(this).count
     }
 
     at(index: number): T | nil {
@@ -212,7 +212,7 @@ class ArrayStruct<T> extends Struct implements Iterable<T> {
     //// Iterable ////
     
     *[Symbol.iterator](): Iterator<T> {
-        for (const index of indexesOf(this))
+        for (const index of each.indexOf(this))
             yield this[index]
     }
 

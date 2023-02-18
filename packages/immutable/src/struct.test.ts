@@ -10,8 +10,6 @@ import {
     getDeepState as getState,
     setState,
     
-    showStateKeys,
-    hideNonStateKeys,
     State,
     StateApply,
 
@@ -20,10 +18,10 @@ import {
 import {
 
     assign,
+    each,
     Empty,
     isNumber, 
     isString, 
-    keysOf,
 
 } from '@benzed/util'
 
@@ -427,7 +425,7 @@ describe('set/get nested state', () => {
     abstract class PropertySum extends NumericValue {
         valueOf(): number {
             let sum = 0
-            for (const key of keysOf(this)) {
+            for (const key of each.keyOf(this)) {
 
                 const value = isNumber(this[key]) 
                     ? this[key] as number

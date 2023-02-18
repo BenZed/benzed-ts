@@ -1,4 +1,4 @@
-import { indexesOf, OutputOf } from '@benzed/util'
+import { each, OutputOf } from '@benzed/util'
 
 import { ValidateOptions } from '../../../validate'
 import { AnyValidateStruct } from '../../validate-struct'
@@ -39,7 +39,7 @@ const ArrayValidator = class <V extends AnyValidateStruct> extends OfValidator<V
 
         const output = ctx.transformed = [ ...input ]
 
-        for (const index of indexesOf(output)) 
+        for (const index of each.indexOf(output)) 
             output[index] = this.of(output[index], ctx)
 
         return output as OutputOf<V>[]

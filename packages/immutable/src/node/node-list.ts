@@ -1,8 +1,8 @@
-import { assign, IndexesOf, keysOf, NamesOf } from '@benzed/util'
+import { assign, each, IndexesOf } from '@benzed/util'
 
 import { $$state, applyState } from '../state'
 
-import { AssertModule, FindModule, HasModule, Module } from '../module'
+import { Module } from '../module'
 import { 
     addModules, 
     AddModules, 
@@ -156,7 +156,7 @@ const NodeList = class NodeList<M extends Modules> extends ModulePublic implemen
     override get [$$state](): M {
         return Array.from({
             ...this, 
-            length: keysOf.count(this) 
+            length: each.keyOf(this).count 
         }) as unknown as M
     }
 
@@ -164,7 +164,7 @@ const NodeList = class NodeList<M extends Modules> extends ModulePublic implemen
 
         // normalize state object vs array
         const state = { ...children } as any
-        const length = keysOf.count(state)
+        const length = each.keyOf(state).count
 
         // deep apply
         for (let i = 0; i < length; i++) {

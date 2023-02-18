@@ -1,4 +1,4 @@
-import { isObject, nil, Property } from '@benzed/util'
+import { define, isObject, nil } from '@benzed/util'
 
 //// Symbols ////
 
@@ -13,7 +13,7 @@ interface Parentable {
 //// Helper ////
 
 function setParent(child: Parentable, parent: Parentable | nil): void {
-    Property.define(
+    define(
         child,
         $$parent,
         {
