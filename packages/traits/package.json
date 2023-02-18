@@ -1,8 +1,8 @@
 {
-    "name": "@benzed/immutable",
-    "description": "Immutable object deep cloning / comparison",
+    "name": "@benzed/traits",
+    "description": "Mixins that behave basically like runtime interfaces",
     "main": "./src",
-    "version": "4.0.0",
+    "version": "1.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",
         "test:dev": "jest --run-in-band --only-changed --verbose",
@@ -21,8 +21,6 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/util": "^3.9.1",
-        "@benzed/traits": "^1.0.0",
-        "@benzed/array": "^3.2.3"
+        "@benzed/util": "^3.9.1"
     }
 }

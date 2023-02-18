@@ -1,4 +1,5 @@
-import { Trait, AnyTypeGuard, nil, isKeyed } from '@benzed/util'
+import { Trait } from '@benzed/traits'
+import { AnyTypeGuard, nil, isKeyed } from '@benzed/util'
 
 //// Sybol ////
 

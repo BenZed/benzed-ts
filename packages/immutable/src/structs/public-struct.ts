@@ -2,8 +2,8 @@ import { NamesOf, omit } from '@benzed/util'
 
 import Struct from '../struct'
 
-import { copy } from '../copy'
-import { equals } from '../equals'
+import { copy } from '../traits/copyable/copy'
+import { equals } from '../traits/comparable/equals'
 
 import { 
     $$state, 

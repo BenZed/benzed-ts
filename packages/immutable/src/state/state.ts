@@ -1,5 +1,5 @@
 import { Empty, Infer } from '@benzed/util'
-import { $$copy } from '../copy'
+import { $$copy } from '../traits/copyable/copy'
 import { Struct } from '../struct'
 
 //// EsLint ////

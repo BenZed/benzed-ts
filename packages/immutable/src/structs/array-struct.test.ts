@@ -3,7 +3,7 @@ import { ArrayStruct } from './array-struct'
 import { test, expect } from '@jest/globals'
 import { getState, State } from '../state'
 import { expectTypeOf } from 'expect-type'
-import equals from '../equals'
+import equals from '../traits/comparable/equals'
 
 //// Setup ////
 
