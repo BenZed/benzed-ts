@@ -1,4 +1,4 @@
-import { each, GenericObject, Infer, isObject } from '@benzed/util'
+import { AnyTypeGuard, each, GenericObject, Infer, isIntersection, isObject, isShape } from '@benzed/util'
 import { Trait } from '@benzed/traits'
 
 import { Stateful, StateOf } from './stateful'
@@ -93,7 +93,9 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
             }
         }
 
-        return state as StructState<T, P>
+        return (this.is(state) 
+            ? this.getIn(state) 
+            : state) as StructState<T, P>
     }
 
     /**
@@ -144,6 +146,15 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
         this.setIn(clone, ...params)
         return clone
     }
+
+    static override is: (input: unknown) => input is Structural = 
+        isIntersection(
+            Comparable.is,
+            Copyable.is as AnyTypeGuard,
+            isShape({
+                [Structural.key]: isObject
+            })
+        )
 
     //// Copyable ////
 

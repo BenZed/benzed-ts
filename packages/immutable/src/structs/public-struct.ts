@@ -1,18 +1,6 @@
-import { NamesOf, omit } from '@benzed/util'
-
-import Struct from '../struct'
-
-import { copy } from '../traits/copyable/copy'
-import { equals } from '../traits/comparable/equals'
-
-import { 
-    $$state, 
-    applyState,
-    SubStatePath, 
-    State,
-    getState,
-    StateApply
-} from '../state'
+import { Traits } from '@benzed/traits'
+import { assign, NamesOf, omit } from '@benzed/util'
+import { copy, equals, StructState, StructStateApply, StructStatePath, Structural } from '../traits'
 
 //// EsLint ////
 
@@ -26,43 +14,52 @@ import {
  * State preset for a generic objects.
  * Any property is considered state, so long as it isn't an object prototype property.
  */
-export type PublicState<T extends object> = 
+export type PublicStructState<T extends object> = 
     Pick<
     T,
-    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'copy' | 'equal' | 'get' | 'set'>
+    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'copy' | 'equals' | 'get' | 'apply'>
     >
 
 /**
- * A public struct has public 
+ * A public struct is a structural object with a public interface for immutable operations
+ * It assumes that any non-public-interface key is state.
  */
-export abstract class PublicStruct extends Struct {
+export abstract class PublicStruct extends Traits.use(Structural) {
 
-    set<P extends SubStatePath>(...pathAndState: [...path: P, state: StateApply<this, P>]): this {
-        return applyState(this, ...pathAndState)
+    //// Public Immutability Interface ////
+
+    get<P extends StructStatePath>(...path: P): StructState<this, P> {
+        return Structural.getIn(this, ...path)
     }
 
-    get<P extends SubStatePath>(...path: P): State<this, P> {
-        return getState(this, ...path)
+    apply<P extends StructStatePath>(...pathAndState: [...path: P, state: StructStateApply<this, P>]): this {
+        return Structural.apply(this, ...pathAndState)
     }
 
     copy(): this {
         return copy(this)
     }
 
-    equal(other: unknown): other is this {
+    equals(other: unknown): other is this {
         return equals(this, other)
     }
 
-    get [$$state](): PublicState<this> {
+    //// Structural Implemenation ////
+    
+    get [Structural.key](): PublicStructState<this> {
         return omit(
             this, 
             'toString', 
             'valueOf',
             'get',
-            'set',
+            'apply',
             'copy',
-            'equal'
-        ) as PublicState<this>
+            'equals'
+        ) as PublicStructState<this>
+    }
+
+    protected set [Structural.key](state: PublicStructState<this>) {
+        assign(this, state)
     }
 
 }
