@@ -1,4 +1,4 @@
-import { eachKey, KeyType } from './each-key'
+import { eachKey, KeyType } from './generators'
 
 import { it, expect, } from '@jest/globals'
 

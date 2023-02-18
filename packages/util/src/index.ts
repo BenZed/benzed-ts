@@ -4,7 +4,5 @@ export * from './dev'
 export * from './methods'
 export * from './types'
 export * from './constants'
-export * from './property'
+export * from './property' 
 export * from './sort'
-
-export * as Property from './property-v2'
