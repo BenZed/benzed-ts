@@ -25,13 +25,13 @@ function toSubtractable<T extends Exclude<Sortable, string>>(input: T): Extract<
         return (input ? 1 : 0) as Extract<T, number | bigint>
         //            ^ I know booleans are subtractable, but typescript mad
 
-    if (isRecord<SortableObjects>(input)) {
+    if (isRecord<PropertyKey, SortableObjects>(input)) {
         return ('length' in input && isNumber(input.length)
             ? input.length
             : input.valueOf()) as Extract<T, number | bigint>
     }
 
-    return input
+    return input as Extract<T, number | bigint>
 }
 
 function toComparable<T extends Sortable>(sortable: T): string | number | bigint {

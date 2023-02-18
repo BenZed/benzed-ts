@@ -17,8 +17,8 @@ import {
 } from '@benzed/schema'
 
 import { 
+    each,
     Infer, 
-    keysOf, 
     omit, 
     pick 
 } from '@benzed/util'
@@ -197,7 +197,7 @@ class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T
     partial(): _ShapePartial<T>{
 
         const propertiesPartial = { ...this.properties } as ShapeInput
-        for (const key of keysOf(propertiesPartial)) {
+        for (const key of each.keyOf(propertiesPartial)) {
             propertiesPartial[key] = ensureMutator(
                 propertiesPartial[key], 
                 MutatorType.Optional

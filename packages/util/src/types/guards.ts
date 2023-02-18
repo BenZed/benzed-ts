@@ -1,10 +1,13 @@
-import { indexesOf, keysOf } from '../types/keys-of'
-import { isBigInt, isBoolean, isNumber, isString } from './primitive'
+import { isBigInt, isBoolean, isEqual, isNumber, isString } from './primitive'
 import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
-import { Json, JsonArray, JsonRecord, JsonPrimitive, GenericObject } from './types'
+import { Json, JsonArray, JsonRecord, JsonPrimitive, Infer, GenericObject } from './types'
+
+import { eachKey } from '../each/generators'
+import { eachIndex} from '../each/index-generator'
+
 import { Sortable } from '../sort'
-import { nil } from './nil'
 import { Intersect } from './merge'
+import { nil } from './nil'
 
 //// EsLint ////
 /* eslint-disable 
@@ -23,7 +26,7 @@ export const isArrayLike = <T = unknown>(i: unknown): i is ArrayLike<T> => {
     if (isString(i))
         return true
     
-    if (!isRecord(i))
+    if (!isRecord(i) && !isArray(i))
         return false 
 
     if (!isNumber(i.length))
@@ -37,32 +40,13 @@ export const isArrayLikeOf = <T>(type: TypeGuard<T>): TypeGuard<ArrayLike<T>> =>
     if (!isArrayLike(i)) 
         return false
 
-    for (const index of indexesOf(i)) {
+    for (const index of eachIndex(i)) {
         if (!type(i[index]))
             return false
     }
 
     return true
 }
-
-export const isRecord = <K extends string | number | symbol, V = unknown>(i: unknown): i is Record<K,V> => 
-    typeof i === 'object' && i !== null
-
-export const isGenericObject: (i: unknown) => i is GenericObject = isRecord
-
-// TODO add key type guard
-export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard<V>): TypeGuard<Record<K, V>> =>  
-    (i: unknown): i is Record<K, V> => {
-        if (!isRecord(i))
-            return false
-
-        for (const key of keysOf(i)) {
-            if (!type(i[key]))
-                return false
-        }
-
-        return true
-    }
 
 export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 
@@ -76,7 +60,42 @@ export const isIterable = <T>(input: unknown): input is Iterable<T> => {
 }
 
 export const isObject = <T extends object = object>(input: unknown): input is T => 
-    isRecord(input) || isFunc(input)
+    isFunc(input) || input !== null && typeof input === 'object'
+
+export function isKeyed<K extends PropertyKey[]>(...keys: K): (input: unknown) => input is Record<K[number], unknown> {
+    return (input: unknown): input is Record<K[number], unknown> => {
+        if (!isObject(input)) 
+            return false
+          
+        for (const key of keys) {
+            if (!(key in input)) 
+                return false
+                
+        }
+          
+        return true
+    }
+}
+
+export const isGenericObject = (i: unknown): i is GenericObject =>
+    !!i && isGenericPrototype(Object.getPrototypeOf(i))
+
+export const isRecord = <K extends string | number | symbol, V = unknown>(i: unknown): i is Record<K,V> => 
+    isGenericObject(i)
+
+// TODO add key type guard
+export const isRecordOf = <K extends string | number | symbol,V>(type: TypeGuard<V>): TypeGuard<Record<K, V>> =>  
+    (i: unknown): i is Record<K, V> => {
+        if (!isRecord(i))
+            return false
+
+        for (const key of eachKey(i)) {
+            if (!type(i[key]))
+                return false
+        }
+
+        return true
+    }
 
 export const isPromise = <T>(input: unknown): input is Promise<T> => 
     input instanceof Promise
@@ -105,15 +124,15 @@ export { isFinite }
 //// Compound ////
 
 export type ShapeInput = Record<string | symbol, TypeGuard<unknown>>
-export type ShapeOutput<T extends ShapeInput> = {
+export type ShapeOutput<T extends ShapeInput> = Infer<{
     [K in keyof T]: TypeOf<T[K]>
-}
+}, object>
 export const isShape = <T extends ShapeInput>(shape: T): TypeGuard<ShapeOutput<T>> => 
     (input: unknown): input is ShapeOutput<T> => {
         if (!isObject(input))
             return false 
 
-        for (const key of keysOf(shape)) {
+        for (const key of eachKey(shape)) {
             if (!shape[key](input[key as keyof typeof input]))
                 return false
         } 
@@ -145,22 +164,35 @@ export const isIntersection = <T extends AnyTypeGuard[]>(...types: T): TypeGuard
 export const isOptional = <T>(type: TypeGuard<T>): TypeGuard<T | nil> =>  
     (i: unknown): i is T | nil => i === nil || type(i)
 
+const isGenericPrototype = isUnion(isEqual(null), isEqual(Object.prototype as any))
+
 //// Json ////
 
-export const isJsonPrimitive = (input: unknown): input is JsonPrimitive => 
-    isString(input) || isNumber(input) || isBoolean(input) || input === null
+export const isJsonPrimitive: (input: unknown) => input is JsonPrimitive =
+    isUnion(
+        isString,
+        isNumber,
+        isBoolean, 
+        isEqual(null)
+    )
 
-export const isJsonObject = (input: unknown): input is JsonRecord => 
+export const isJsonRecord = (input: unknown): input is JsonRecord => 
     isRecordOf(isJson)(input)
 
 export const isJsonArray = (input: unknown): input is JsonArray => 
     isArrayOf(isJson)(input)
 
-export const isJson = (input: unknown): input is Json => 
-    isJsonPrimitive(input) ||
-    isJsonArray(input) ||
-    isJsonObject(input)
+export const isJson: (input: unknown) => input is Json = isUnion(
+    isJsonArray,
+    isJsonRecord,
+    isJsonPrimitive
+)
 
-isJson.Array = isJsonArray
-isJson.Object = isJsonObject
-isJson.Primitive = isJsonPrimitive
+export type JsonShapeInput = Record<string, TypeGuard<unknown>>
+export type JsonShapeOutput<T extends JsonShapeInput> = Infer<{
+    [K in keyof T]: TypeOf<T[K]>
+}, JsonRecord>
+
+export const isJsonShape = <T extends JsonShapeInput>(shape: T): TypeGuard<JsonShapeOutput<T>> => 
+    isIntersection(isJsonRecord, isShape(shape)) as TypeGuard<JsonShapeOutput<T>>
+

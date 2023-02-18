@@ -13,12 +13,12 @@ it('create instances with call signatures', () => {
 
     class Formatter<S extends string> extends Callable<(i: string) => S> { }
 
-    const format = new Formatter(i => `${i}!` as `${string}!`)
+    const format = new Formatter(i => `${i}!` as `${string}!`) 
     const hi = format('hi') 
     expect(hi).toEqual('hi!')
 })
 
-it('instances have instance properties', () => {
+it('instances have instance properties', () => { 
     class Multiply extends Callable<(i: number) => number> {
         constructor(public by: number) {
             super(i => i * this.by) 
@@ -117,7 +117,8 @@ it('gets symbolic properties', () => {
 it('instanceof', () => {
 
     class Foo extends Callable<Func> {}
-    const foo = new Foo(parseInt)
+    const foo = new Foo(parseInt) 
+ 
     expect(foo).toBeInstanceOf(Foo)
     expect(foo).toBeInstanceOf(Function)
 
@@ -449,7 +450,7 @@ describe('Callable.create on generic objects', () => {
 
 })
 
-it('retereive signature', () => {
+it('retreive signature', () => {
 
     class Bar extends Callable<() => void> {}
 
@@ -458,7 +459,7 @@ it('retereive signature', () => {
     expect(Callable.signatureOf(bar)).toEqual(toVoid)
 })
 
-it('retereive template', () => {
+it('retreive template', () => {
 
     const template = {}
 

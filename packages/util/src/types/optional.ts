@@ -1,4 +1,4 @@
-import { Property } from '../property'
+import { define } from '../methods'
 import { Func } from './func'
 import { assign } from './merge'
 import { nil } from './nil'
@@ -61,9 +61,9 @@ function optional<T>(value?: T, error?: string): Optional<ToOptional<T>> {
             ? optional(action(output.value), (output as { [$$error]?: string })[$$error]) 
             : output
 
-    Property.define(match, 'assert', { value: assert, writable: true, configurable: true })
+    define(match, 'assert', { value: assert, writable: true, configurable: true })
     if (error)
-        Property.define(match, $$error, { value: error, writable: true, configurable: true })
+        define(match, $$error, { value: error, writable: true, configurable: true })
 
     const output = assign(match, state) 
     return output as Optional<ToOptional<T>>

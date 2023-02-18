@@ -1,7 +1,7 @@
 
 /* eslint-disable @typescript-eslint/unified-signatures */
 
-import { iterate } from '../methods'
+import { each } from '../each'
 
 //// Types ////
 
@@ -30,7 +30,7 @@ class LinkedList<T> implements Iterable<LinkedItem<T>>{
     static from<T1>(
         input: ArrayLike<T1> | Iterable<T1>
     ): LinkedList<T1> {
-        return new LinkedList(...iterate(input))
+        return new LinkedList(...each(input))
     }
 
     // State 

@@ -8,7 +8,7 @@ it('provides a context to a function', () => {
     expect(f(2)).toEqual(10)
 })
 
-it('is memoized', () => {
+it('is memoized', () => { 
 
     const state: number[] = []
 

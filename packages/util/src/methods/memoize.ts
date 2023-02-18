@@ -1,7 +1,8 @@
 import { NestedMap } from '../classes'
-import { Property } from '../property'
-import { isRecord, isRecordOf, isString, namesOf } from '../types'
+import { each } from '../each'
+import { isRecordOf, isString } from '../types'
 import { Func, isFunc } from '../types/func'
+import { define } from './define'
 
 // Helper 
 
@@ -57,7 +58,7 @@ export function memoize(
     // Memoize a record
     if (isRecordOf(isFunc)(args[0])) {
         const output: Record<string, Func> = {}
-        for (const key of namesOf(args[0]))
+        for (const key of each.nameOf(args[0]))
             output[key] = memoize(args[0][key], key)
 
         return output
@@ -81,7 +82,7 @@ export function memoize(
         return output
     }
 
-    return Property.name(memoized, name)
+    return define.named(name, memoized)
 }
 
 //// Extend ////
