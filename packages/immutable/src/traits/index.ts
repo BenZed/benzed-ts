@@ -9,3 +9,5 @@ export * from './node'
 export * from './stateful'
 
 export * from './structural'
+
+export * from './public-structural'

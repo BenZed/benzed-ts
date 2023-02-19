@@ -2,7 +2,7 @@ import { assign, each, Func, Mutable, nil, omit } from '@benzed/util'
 
 import { adjacent, shuffle } from '@benzed/array'
 import { Traits } from '@benzed/traits'
-import { Stateful, Structural } from '../traits'
+import { PublicStructural, Stateful, Structural } from '../traits'
 
 //// EsLint ////
 
@@ -58,7 +58,7 @@ function applyArrayState<
  * An ArrayStruct implements a subset of the Array's methods, with the caveat that
  * none of the methods mutate the original array.
  */
-class ArrayStruct<T> extends Traits.use(Structural) implements Iterable<T> {
+class ArrayStruct<T> extends Traits.use(PublicStructural) implements Iterable<T> {
 
     readonly [index: number]: T
 
