@@ -100,7 +100,6 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
     const object = setRef(Object.create(input))
     for (const key of each.keyOf(input))
         object[key] = copyWithRefs(input[key])
-    
     return object
 }
 

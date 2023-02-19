@@ -39,21 +39,16 @@ test('apply', () => {
 
     const edge2 = edge.apply({ a: vector2 })
     expect(edge2.get()).toEqual({ a: { x: 100, y: 0 }, b: { x: 0, y: 0 }})
-
 })
 
 test('apply deep', () => {
-
     const edge3 = edge.apply('a', 'x', 50)
-
     expect(edge3.get()).toEqual({ a: { x: 50, y: 0 }, b: { x: 0, y: 0 }})
 })
 
 test('copy', () => {
-
     expect(edge.copy()).not.toBe(edge)
     expect(edge.copy()).toEqual(edge)
-
 })
 
 test('equals', () => {

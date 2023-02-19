@@ -2,6 +2,7 @@ import { assign, each, Func, Mutable, nil, omit } from '@benzed/util'
 
 import { adjacent, shuffle } from '@benzed/array'
 import { Traits } from '@benzed/traits'
+
 import { PublicStructural, Stateful, Structural } from '../traits'
 
 //// EsLint ////
@@ -17,8 +18,6 @@ type ArrayMethodNames = keyof {
 }
 
 type ArrayParams<T, M extends ArrayMethodNames> = Parameters<Array<T>[M]>
-
-// type ArrayReturns<T, M extends ArrayMethodNames> = ReturnType<Array<T>[M]>
 
 //// Helper ////
 
