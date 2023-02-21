@@ -15,7 +15,7 @@ type Resolved<T, F extends Then<T>> = Resolver<Awaited<ReturnType<F>>>
 
 //// Types ////
 
-type RemainingParams<F extends Then<any>> = Parameters<F> extends [any, ...infer P]
+export type RemainingParams<F extends Then<any>> = Parameters<F> extends [any, ...infer P]
     ? P
     : Parameters<F>
 
