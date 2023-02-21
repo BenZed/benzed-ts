@@ -215,8 +215,9 @@ const Pipe = (class extends Callable<Func> {
 
         // Pipe expressions allow added args
         if (this._expression && args.length > 0) {
+            const _transform = transform
             transform = function (this: unknown, i: unknown) {
-                transform.call(this, i, ...args)
+                return _transform.call(this, i, ...args)
             }
         }
 
