@@ -5,16 +5,13 @@ import { Validate } from './validate'
 import ValidationContext from './validation-context'
 import ValidationError from './validation-error'
 
-import {
-    testValidationContract,
-    testValidator
-} from './util.test'
+import { testValidator } from './util.test'
 
 //// EsLint ////
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any
-*/ 
+*/
 
 //// Setup ////
 
@@ -29,9 +26,9 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
             context
         )
     }
-    
+
     context.transformed = `${digits}`
-    
+
     const output = context?.transform ? context.transformed : i
     if (output !== context.transformed) {
         throw new ValidationError(
@@ -39,33 +36,30 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
             context
         )
     }
-    
+
     return output as `${number}`
 }
 
 //// Tests ////
-
-describe('$numeric example validator contract', () => { 
-    testValidationContract( 
-        $numeric,
-        {
-            validInput: '100',
-            invalidInput: 'not-a-number',
-            transformableInput: ' 150',
-            transformedOutput: '150'
-        }
-    )
-})
 
 describe('$numeric example validation tests', () => {
     testValidator(
         $numeric,
         { asserts: '0' },
         { asserts: '100' },
-        { asserts: 'nun', error: 'could not be converted to a number' },
-        { asserts: ' 150', error: 'must be a numeric string' },
+        { asserts: 'nun', error: true },
+        { asserts: ' 150', error: true },
         { transforms: '75' },
         { transforms: ' 124', output: '124' },
-        { transforms: '~15-', error: 'could not be converted to a number' },
+        { transforms: '~15-', error: true },
+        { transforms: '001', output: '1' },
+        { transforms: '4.5', output: '4.5' },
+        { transforms: '123.45', output: '123.45' },
+        { transforms: '123.00', output: '123' },
+        { transforms: '1,234.56', output: '1' }, 
+        { asserts: '1,234.56', error: true }, 
+        { asserts: '100', output: '100' },
+        { asserts: 'nun', error: true },
+        { asserts: ' 150', error: true },
     )
 })

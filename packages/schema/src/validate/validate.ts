@@ -14,10 +14,16 @@ export interface ValidateOptions {
      * during in the validation call, false if not.
      */
     readonly transform?: boolean
+
+    /**
+     * Optional key to associate with the validated value,
+     * useful for sub validations of container values.
+     */
+    readonly key?: PropertyKey
 }
 
 /**
- * A method that takes an input and returns a valid output.
+ * A method that takes an input and validate options, returning a valid output.
  */
 export interface Validate<I, O extends I = I> {
     (input: I, options?: ValidateOptions): O
