@@ -1,68 +1,48 @@
-import { NamesOf, omit } from '@benzed/util'
+import { Traits } from '@benzed/traits'
+import { assign, NamesOf, omit } from '@benzed/util'
 
-import Struct from '../struct'
-
-import { copy } from '../copy'
-import { equals } from '../equals'
-
-import { 
-    $$state, 
-    applyState,
-    SubStatePath, 
-    State,
-    getState,
-    StateApply
-} from '../state'
+import { PublicStructural, Structural } from '../traits'
 
 //// EsLint ////
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+/* eslint-disable
+    @typescript-eslint/no-explicit-any
 */ 
+
+/**
+ * State preset for a public structural objects.
+ * Any property is considered state, as long as it isn't a immutable interface method, or
+ * a built-in object method.
+ */
+export type PublicStructState<T extends object> = 
+    Pick<
+    T,
+    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'copy' | 'equals' | 'get' | 'apply'>
+    >
 
 //// PublicStruct ////
 
 /**
- * State preset for a generic objects.
- * Any property is considered state, so long as it isn't an object prototype property.
+ * A PublicStruct implements the PublicStructural interface, and treats
+ * everything except public immutability methods (and toString, valueOf)
+ * as state.
  */
-export type PublicState<T extends object> = 
-    Pick<
-    T,
-    Exclude<NamesOf<T>, 'toString' | 'valueOf' | 'copy' | 'equal' | 'get' | 'set'>
-    >
+export abstract class PublicStruct extends Traits.use(PublicStructural) {
 
-/**
- * A public struct has public 
- */
-export abstract class PublicStruct extends Struct {
-
-    set<P extends SubStatePath>(...pathAndState: [...path: P, state: StateApply<this, P>]): this {
-        return applyState(this, ...pathAndState)
-    }
-
-    get<P extends SubStatePath>(...path: P): State<this, P> {
-        return getState(this, ...path)
-    }
-
-    copy(): this {
-        return copy(this)
-    }
-
-    equal(other: unknown): other is this {
-        return equals(this, other)
-    }
-
-    get [$$state](): PublicState<this> {
+    get [Structural.key](): PublicStructState<this> {
         return omit(
-            this, 
-            'toString', 
+            this,
+            'toString',
             'valueOf',
             'get',
-            'set',
+            'apply',
             'copy',
-            'equal'
-        ) as PublicState<this>
+            'equals'
+        ) as PublicStructState<this>
+    }
+    
+    protected set [Structural.key](state: PublicStructState<this>) {
+        assign(this, state)
     }
 
 }

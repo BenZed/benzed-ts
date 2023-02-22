@@ -1,9 +1,16 @@
 import { ArrayStruct } from './array-struct'
+import { RecordStruct } from './record-struct'
 
 import { test, expect } from '@jest/globals'
-import { getState, State } from '../state'
 import { expectTypeOf } from 'expect-type'
-import equals from '../equals'
+
+import {
+    equals,
+    PublicStructural,
+    Stateful,
+    StructState,
+    Structural
+} from '../traits'
 
 //// Setup ////
 
@@ -13,8 +20,15 @@ const array = new ArrayStruct(...data)
 
 //// Tests ////
 
+test('public structural methods', () => {
+    expect(PublicStructural.is(array)).toBe(true)
+})
+
 test('get State', () => {
-    expect(getState(array)).toEqual({
+
+    const state = Stateful.get(array)
+
+    expect(state).toEqual({
         0: 1,
         1: 2,
         2: 3,
@@ -22,11 +36,85 @@ test('get State', () => {
         4: 5
     })
 
-    expect(getState(array)).toEqual({ ...array })
+    expect(state).toEqual({ ...array })
+
+    expect(array.get()).toEqual(state)
+})
+
+test('apply', () => {
+
+    const array2 = Structural.apply(array, [5,4,3,2,1,0])
+
+    expect(Structural.getIn(array2)).toEqual({
+        '0': 5,
+        '1': 4,
+        '2': 3,
+        '3': 2,
+        '4': 1,
+        '5': 0,
+    })
+
+    expect(array.apply([5,4,3,2,1,0])).toEqual(array2)
+})
+
+test('deep apply', () => {
+
+    const array2 = Structural.apply(array, 0, 100)
+
+    expect(Structural.getIn(array2)).toEqual({
+        0: 100,
+        1: 2,
+        2: 3,
+        3: 4,
+        4: 5
+    })
+
+    expect(array2.apply(0, 100)).toEqual(array2)
+})
+
+test('deep nested apply', () => {
+
+    const array = new ArrayStruct(
+
+        new RecordStruct({
+            foo: 0,
+            bar: 'yes' 
+        }),
+
+        new RecordStruct({
+            foo: 'bar',
+            bar: 10 
+        })
+
+    )
+
+    const array2 = Structural.apply(array, 0, 'bar', 100)
+
+    expect(Structural.getIn(array2)).toEqual({
+        0: {
+            bar: 100,
+            foo: 0
+        },
+        1: {
+            bar: 10,
+            foo: 'bar'
+        }
+    })
+
+    expect(array.apply(0, 'bar', 100)).toEqual(array2)
+
+})
+
+test('copy', () => {
+    expect(array.copy()).toEqual(array)
+})
+
+test('equals', () => {
+    expect(array.copy().equals(array)).toBe(true)
 })
 
 test('state type', () => {
-    type ArrayState = State<typeof array>
+    type ArrayState = StructState<typeof array>
     expectTypeOf<ArrayState>()
         .toEqualTypeOf<ArrayState>()
 })
@@ -49,7 +137,7 @@ describe('array interface', () => {
 
     test('push', () => {
         const arrayPlus1 = array.push(6)
-        expect(getState(arrayPlus1)).toEqual({
+        expect(Stateful.get(arrayPlus1)).toEqual({
             0: 1,
             1: 2,
             2: 3,
@@ -64,7 +152,7 @@ describe('array interface', () => {
 
     test('pop', () => {
         const arrayMinus1 = array.pop()
-        expect(getState(arrayMinus1)).toEqual({
+        expect(Stateful.get(arrayMinus1)).toEqual({
             0: 1,
             1: 2,
             2: 3,
@@ -77,7 +165,7 @@ describe('array interface', () => {
 
     test('shift', () => {
         const arrayMinus1 = array.shift()
-        expect(getState(arrayMinus1)).toEqual({
+        expect(Stateful.get(arrayMinus1)).toEqual({
             0: 2,
             1: 3,
             2: 4,
@@ -100,7 +188,7 @@ describe('array interface', () => {
 
     test('reverse', () => {
         const arrayReversed = array.reverse()
-        expect(getState(arrayReversed)).toEqual({
+        expect(Stateful.get(arrayReversed)).toEqual({
             0: 5,
             1: 4,
             2: 3,
@@ -112,7 +200,7 @@ describe('array interface', () => {
 
     test('splice', () => {
         const arraySpliced = array.splice(1, 1)
-        expect(getState(arraySpliced)).toEqual({
+        expect(Stateful.get(arraySpliced)).toEqual({
             0: 1,
             1: 3,
             2: 4,
@@ -123,7 +211,7 @@ describe('array interface', () => {
 
     test('slice', () => {
         const arraySliced = array.slice(1, 3)
-        expect(getState(arraySliced)).toEqual({
+        expect(Stateful.get(arraySliced)).toEqual({
             0: 2,
             1: 3
         }) 
@@ -132,7 +220,7 @@ describe('array interface', () => {
 
     test('map', () => {
         const arrayMapped = array.map(i => i * 2)
-        expect(getState(arrayMapped)).toEqual({
+        expect(Stateful.get(arrayMapped)).toEqual({
             0: 2,
             1: 4,
             2: 6,
@@ -144,17 +232,7 @@ describe('array interface', () => {
 
     test('filter', () => {
         const arrayFiltered = array.filter(i => i < 2)
-        expect(getState(arrayFiltered)).toEqual({
-            0: 1
-        }) 
-        expect(array).not.toBe(arrayFiltered)
-    })
-
-    test('filter', () => {
-        const arrayFiltered = array.filter(i => i < 2)
-        expect(getState(arrayFiltered)).toEqual({
-            0: 1
-        }) 
+        expect(Stateful.get(arrayFiltered)).toEqual({ 0: 1 })
         expect(array).not.toBe(arrayFiltered)
     })
 

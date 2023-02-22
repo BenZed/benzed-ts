@@ -15,7 +15,7 @@ type Resolved<T, F extends Then<T>> = Resolver<Awaited<ReturnType<F>>>
 
 //// Types ////
 
-type RemainingParams<F extends Then<any>> = Parameters<F> extends [any, ...infer P]
+export type RemainingParams<F extends Then<any>> = Parameters<F> extends [any, ...infer P]
     ? P
     : Parameters<F>
 
@@ -78,15 +78,6 @@ function resolve<T>(input: T | Promise<T>): Resolver<T> {
     return new Resolver(input)
 }
 
-function doWith<T, F extends Then<T>>(value: T, something: F): Resolved<T,F> 
-function doWith<T>(value: T): Resolver<T>
-function doWith(value: unknown, then?: Then<unknown>): Resolver<unknown> {
-
-    const resolver = new Resolver(value)
-
-    return then ? resolver(then) : resolver
-}
-
 //// Exports ////
 
 export default Resolver
@@ -94,5 +85,4 @@ export default Resolver
 export {
     Resolver,
     resolve,
-    doWith
 }

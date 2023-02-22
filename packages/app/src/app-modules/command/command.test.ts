@@ -1,8 +1,6 @@
 
-import { $ } from '@benzed/schema'
-import { Module, Node } from '@benzed/ecs'
 import { toAsync } from '@benzed/async'
-import { keysOf, isPromise, through } from '@benzed/util'
+import { each, isPromise, through } from '@benzed/util'
 
 import { it, test, describe, expect } from '@jest/globals'
 
@@ -188,7 +186,7 @@ describe('async output', () => {
     })
 
     for (const useCreate of [true, false] as const) {
-        for (const httpMethod of keysOf(HttpMethod)) {
+        for (const httpMethod of each.keyOf(HttpMethod)) {
             if (httpMethod === 'Options')
                 continue 
 

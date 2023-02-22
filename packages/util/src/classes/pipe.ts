@@ -1,4 +1,5 @@
-import { Callable } from '../classes'
+import { Callable, RemainingParams } from '../classes'
+import { bind } from '../methods'
 import { Func, nil, isPromise } from '../types'
 
 /* eslint-disable 
@@ -18,9 +19,11 @@ interface ParamTransform<I = unknown, O = unknown, P extends unknown[] = []> {
     (input: I, ...params: P): O
 }
 
-type Transformer<T extends Func> = Iterable<T> & {
+type Transformer<T extends Func> = {
     readonly transforms: readonly Transform[]
 } & T
+
+type IterableTransformer<T extends Func> = Transformer<T> & Iterable<T>
 
 type InputOf<F extends Func> = F extends (input: infer I, ...params: any) => unknown ? I : unknown
 type OutputOf<F extends Func> = F extends (...params: any) => infer O ? O : unknown
@@ -31,7 +34,21 @@ type ResolveAsyncOutput<I,O> = I extends Promise<any>
 
 type AnyTransform = ParamTransform<unknown,unknown,unknown[]>
 
-interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
+interface PipeExpression<T> extends Transformer<Transform<void, T>>, Iterable<T> {
+
+    /**
+     * Append another transformation onto the end of this pipe.
+     */
+    to<F extends (input: Awaited<T>, ...args: any) => any>(
+        transform: F,
+        ...args: RemainingParams<F>
+    ): PipeExpression<ResolveAsyncOutput<T, ReturnType<F>>>
+
+    bind(ctx: unknown): PipeExpression<T>
+
+}
+
+interface Pipe<I = unknown, O = unknown> extends IterableTransformer<Transform<I,O>> {
 
     /**
      * Append another transformation onto the end of this pipe.
@@ -49,7 +66,7 @@ interface Pipe<I = unknown, O = unknown> extends Transformer<Transform<I,O>> {
 
 }
 
-interface ParamPipe<I = unknown, O = unknown, P extends unknown[] = []> extends Transformer<ParamTransform<I,O,P>> {
+interface ParamPipe<I = unknown, O = unknown, P extends unknown[] = []> extends IterableTransformer<ParamTransform<I,O,P>> {
 
     /**
      * Append another transformation onto the end of this pipe.
@@ -62,6 +79,7 @@ interface ParamPipe<I = unknown, O = unknown, P extends unknown[] = []> extends 
     from<Ix>(transform: ParamTransform<Ix, I, P>): ParamPipe<Ix, O, P>
 
     bind(ctx: unknown): ParamPipe<I, O, P>
+
 }
 
 interface PipeConstructor {
@@ -69,7 +87,12 @@ interface PipeConstructor {
     /**
      * @internal
      */
-    new (transforms: readonly Transform[], _bound?: { ctx: unknown }): Pipe<unknown, unknown>
+    new (transforms: readonly Transform[], _bound?: { ctx: unknown }, _expression?: boolean): Pipe<unknown, unknown>
+
+    /**
+     * Create a pipe expression for a given value.
+     */
+    expression<T>(value: T): PipeExpression<T>
 
     /**
      * Given a number of transforms, get a flattened array of just transforms 
@@ -115,6 +138,11 @@ function resolveTransforms(
 
 const Pipe = (class extends Callable<Func> {
 
+    static expression(input: unknown): PipeExpression<unknown> {
+        const pipe = new Pipe([() => input], nil, true)
+        return pipe as PipeExpression<unknown>
+    }
+
     static flatten(input: readonly AnyTransform[]): AnyTransform[] {
 
         const pipes: Pipe[] = []
@@ -157,7 +185,11 @@ const Pipe = (class extends Callable<Func> {
 
     readonly transforms: readonly AnyTransform[]
 
-    constructor (transforms: readonly AnyTransform[], private readonly _bound?: { ctx: unknown }) {
+    constructor (
+        transforms: readonly AnyTransform[], 
+        private readonly _bound?: { ctx: unknown }, 
+        private readonly _expression = false
+    ) {
         super(
             function transform(this: [unknown, Pipe], input: unknown, ...params: unknown[]): unknown {
 
@@ -179,12 +211,21 @@ const Pipe = (class extends Callable<Func> {
         this.transforms = Pipe.flatten(transforms)
     }
 
-    to(transform: AnyTransform): Pipe {
-        return new Pipe([...this.transforms, transform], this._bound)
+    to(transform: AnyTransform, ...args: unknown[]): Pipe {
+
+        // Pipe expressions allow added args
+        if (this._expression && args.length > 0) {
+            const _transform = transform
+            transform = function (this: unknown, i: unknown) {
+                return _transform.call(this, i, ...args)
+            }
+        }
+
+        return new Pipe([...this.transforms, transform], this._bound, this._expression)
     }
 
     from(transform: AnyTransform): Pipe {
-        return new Pipe([transform, ...this.transforms], this._bound)
+        return new Pipe([transform, ...this.transforms], this._bound, this._expression)
     }
 
     override bind(ctx: unknown): Pipe {
@@ -194,11 +235,23 @@ const Pipe = (class extends Callable<Func> {
         return new Pipe(this.transforms, { ctx })
     }
 
-    *[Symbol.iterator](this: Pipe): Iterator<AnyTransform> {
-        yield* this.transforms
+    *[Symbol.iterator](): Iterator<AnyTransform> {
+        if (this._expression)
+            yield this()
+        else 
+            yield* this.transforms
     }
 
 }) as PipeConstructor
+
+//// Helper ////
+
+/**
+ * Create a pipe expression for a given value.
+ */
+function pipe<T>(input: T): PipeExpression<T> {
+    return Pipe.expression(input)
+}
 
 //// Exports ////
 
@@ -209,6 +262,7 @@ export {
     Transform,
     ParamTransform, 
 
+    pipe,
     Pipe,
     ParamPipe,
 
