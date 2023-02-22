@@ -6,7 +6,7 @@ import { $$parent, getParent, isNode } from './parent'
 
 //// Helper ////
 
-type ChildKeys<T extends Node> = Exclude<keyof T, typeof $$parent>
+type ChildKeys<T> = Exclude<keyof T, typeof $$parent>
 
 /**
  * Any property of a given node that is also a node
@@ -85,7 +85,7 @@ export function eachDescendent<T extends Node>(node: T): Each<Node> {
                 const children = eachChild(node).toArray()
                 yield* children
                 next.push(...children)
-            }
+            } 
 
             current = next
         }

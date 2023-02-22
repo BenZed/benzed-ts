@@ -20,6 +20,8 @@ import {
     getRoot 
 } from './relations'
 
+import { getPath } from './path'
+
 //// EsLint ////
 
 /* eslint-disable
@@ -54,6 +56,8 @@ abstract class Node extends Trait {
     static readonly eachAncestor = eachAncestor
     static readonly eachDescendent = eachDescendent
     static readonly eachNode = eachNode
+
+    static readonly getPath = getPath
 
     static [Trait.apply](node: Node): Node {
 

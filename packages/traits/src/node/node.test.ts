@@ -20,10 +20,8 @@ class Person extends Trait.use(Node) {
 describe('auto parent set', () => {
 
     it('on property define', () => {
-
         const parent = new Person
         parent.child = new Person
-
         expect(parent.child.parent).toBe(parent)
     })
 

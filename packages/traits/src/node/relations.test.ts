@@ -38,7 +38,7 @@ const grandPa = new class GrandPa extends Person {
 describe(getChildren.name, () => {
     test('gets all children of node', () => {
         const children = getChildren(grandPa)
-  
+
         expect(Object.keys(children)).toHaveLength(2)
         expect(children.mom).toBe(grandPa.mom)
         expect(children.uncle).toBe(grandPa.uncle)
@@ -74,38 +74,40 @@ describe(getRoot.name, () => {
 })
 
 describe(eachChild.name, () => {
+
     test('grandPa', () => {
         expect(Array.from(eachChild(grandPa))).toEqual([grandPa.mom, grandPa.uncle])
     })
-  
+
     test('mom', () => {
         expect(Array.from(eachChild(grandPa.mom))).toEqual([grandPa.mom.you, grandPa.mom.sister])
     })
-  
+
     test('you', () => {
         expect(Array.from(eachChild(grandPa.mom.you))).toEqual([grandPa.mom.you.son])
     })
-  
+
     test('son', () => {
         expect(Array.from(eachChild(grandPa.mom.you.son))).toEqual([grandPa.mom.you.son.grandDaughter])
     })
-  
+
     test('daughter', () => {
         expect(Array.from(eachChild(grandPa.mom.you.son.grandDaughter))).toEqual([grandPa.mom.you.son.grandDaughter.greatGrandSon])
     })
-  
+
     test('sister', () => {
         expect(Array.from(eachChild(grandPa.mom.sister))).toEqual([grandPa.mom.sister.cousin])
     })
-  
+
     test('cousin', () => {
         expect(Array.from(eachChild(grandPa.mom.sister.cousin))).toEqual([grandPa.mom.sister.cousin.neice])
     })
-  
+
     test('no children', () => {
         const node = new class extends Person {}
         expect(Array.from(eachChild(node))).toEqual([])
     })
+
 })
 
 describe(eachParent.name, () => {
@@ -128,10 +130,11 @@ describe(eachParent.name, () => {
 })
 
 describe(eachSibling.name, () => {
+
     test('Returns an empty array when the node has no parent', () => {
         expect([...eachSibling(grandPa)]).toEqual([])
     })
-  
+
     test('Iterates over all siblings of a given node', () => {
         expect([...eachSibling(grandPa.mom.you)]).toEqual([
             grandPa.mom.sister,
@@ -141,6 +144,7 @@ describe(eachSibling.name, () => {
             grandPa.uncle,
         ])
     })
+
 })
 
 describe(eachAncestor.name, () => {
@@ -162,10 +166,10 @@ describe(eachAncestor.name, () => {
     test('son', () => {
         const ancestors = Array.from(eachAncestor(grandPa.mom.you.son))
         expect(ancestors).toEqual([
-            grandPa.mom.you, 
-            grandPa.mom.sister, 
-            grandPa.mom, 
-            grandPa.uncle, 
+            grandPa.mom.you,
+            grandPa.mom.sister,
+            grandPa.mom,
+            grandPa.uncle,
             grandPa
         ])
     })
@@ -173,11 +177,11 @@ describe(eachAncestor.name, () => {
     test('daughter', () => {
         const ancestors = Array.from(eachAncestor(grandPa.mom.you.son.grandDaughter))
         expect(ancestors).toEqual([
-            grandPa.mom.you.son, 
-            grandPa.mom.you, 
-            grandPa.mom.sister, 
-            grandPa.mom, 
-            grandPa.uncle, 
+            grandPa.mom.you.son,
+            grandPa.mom.you,
+            grandPa.mom.sister,
+            grandPa.mom,
+            grandPa.uncle,
             grandPa
         ])
     })
@@ -186,11 +190,11 @@ describe(eachAncestor.name, () => {
         const ancestors = Array.from(eachAncestor(grandPa.mom.you.son.grandDaughter.greatGrandSon))
         expect(ancestors).toEqual([
             grandPa.mom.you.son.grandDaughter,
-            grandPa.mom.you.son, 
-            grandPa.mom.you, 
-            grandPa.mom.sister, 
-            grandPa.mom, 
-            grandPa.uncle, 
+            grandPa.mom.you.son,
+            grandPa.mom.you,
+            grandPa.mom.sister,
+            grandPa.mom,
+            grandPa.uncle,
             grandPa
         ])
     })
