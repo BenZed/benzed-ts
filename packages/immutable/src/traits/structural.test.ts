@@ -199,12 +199,18 @@ describe('Struct.update', () => {
     })
 
     it('works on deep states', () => {
-        
-        const cube1 = new Shape('grey', new Vector(10, 10))
+        const cube1 = new Shape(
+            'grey',
+            new Vector(10, 10)
+        )
 
         const cube2 = Structural.update(cube1, 'position', 'x', v => v + 10)
 
-        console.log(cube2)
+        expect(cube2).toEqual({
+            color: 'grey',
+            position: { x: 20, y: 10 }
+        })
+
     })
 
 })

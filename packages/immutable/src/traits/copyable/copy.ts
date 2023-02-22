@@ -98,12 +98,12 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
         return map as T
     }
 
-    const object = setRef(Object.create(input))
-    if (input?.constructor && Traits.apply in input.constructor) 
-        (input.constructor as any)[Traits.apply](object)
+    let object = setRef(Object.create(input))
+    object = Traits.apply(object)
 
     for (const key of each.keyOf(input))
         object[key] = copyWithRefs(input[key])
+
     return object
 }
 

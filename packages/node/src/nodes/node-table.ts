@@ -1,8 +1,8 @@
-import { Copyable, PublicStructural, Stateful, Structural } from '@benzed/immutable'
+import { Stateful, Structural } from '@benzed/immutable'
 import { assign, Callable, Func, omit } from '@benzed/util'
 import { Traits } from '@benzed/traits'
 
-import { Node, PublicNode } from '../traits'
+import { Node } from '../traits'
 
 import { NodeTableBuilder } from './node-table-builder'
 
@@ -39,7 +39,7 @@ interface NodeTableMethod<T extends NodeRecord> {
  * NodeTable is an immutable structure with a call signature providing an interface
  * for static updates.
  */
-const NodeTable = class NodeTable extends Traits.add(Callable<Func>, PublicStructural) {
+const NodeTable = class NodeTable extends Traits.add(Callable<Func>, Node, Structural) {
 
     constructor(children: NodeRecord) {
         super(function updateTable(this: NodeTable, update: Func) {
@@ -49,16 +49,6 @@ const NodeTable = class NodeTable extends Traits.add(Callable<Func>, PublicStruc
     }
 
     //// State ////
-
-    override [Copyable.copy](): this {
-        const clone = super[Copyable.copy]()
-
-        return Callable.create(
-            Callable.signatureOf(this),
-            clone,
-            Callable.contextProviderOf(this)
-        ) as this
-    }
 
     get [Stateful.key](): NodeRecord {
         return { ...this } as unknown as NodeRecord

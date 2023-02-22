@@ -89,21 +89,21 @@ const NodeTableBuilder = class {
     constructor(readonly table: NodeTable<NodeRecord>) {}
 
     pick(...keys: PropertyKey[]): NodeTable<NodeRecord> {
-        const record = this.table[Stateful.key] as any
+        const record = copy(this.table[Stateful.key]) as any
         return new NodeTable(
             pick(record, ...keys) as NodeRecord
         )
     }
 
     omit(...keys: PropertyKey[]): NodeTable<NodeRecord> {
-        const record = this.table[Stateful.key] as any
+        const record = copy(this.table[Stateful.key]) as any
         return new NodeTable(
             omit(record, ...keys) as NodeRecord
         )
     }
 
     merge(newRecord: NodeRecord): NodeTable<NodeRecord> {
-        const oldRecord = this.table[Stateful.key] as any
+        const oldRecord = copy(this.table[Stateful.key]) as any
         return new NodeTable(
             {
                 ...oldRecord,

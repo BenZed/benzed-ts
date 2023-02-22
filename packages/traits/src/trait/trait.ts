@@ -1,6 +1,12 @@
+import { isFunc } from '@benzed/util'
 import { addTraits, useTraits } from './add-traits'
 import { $$onApply } from './apply-traits'
 import { mergeTraits } from './merge-traits'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 /**
  * 
@@ -30,6 +36,20 @@ export abstract class Trait {
     static readonly merge = mergeTraits
 
     /**
+     * @internal
+     * Escape hatch for running a trait user's applyTraits method.
+     */
+    static apply<T extends object>(instance: T): T {
+       
+        const ctor = instance.constructor
+
+        if (ctor && Trait.onApply in ctor && isFunc(ctor[Trait.onApply]))
+            instance = ((ctor as any)[Trait.onApply](instance) ?? instance) as T
+
+        return instance
+    }
+
+    /**
      * Overwrite this method on extended Traits to allow
      * Traits to be tested for type.
      */
@@ -56,7 +76,7 @@ export abstract class Trait {
      * method to customize behaviour that occurs when
      * a trait is applied.
      */
-    static readonly apply: typeof $$onApply = $$onApply
+    static readonly onApply: typeof $$onApply = $$onApply
 
     /**
      * A trait should never be constructed. It exists only to

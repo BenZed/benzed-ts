@@ -35,7 +35,7 @@ abstract class Mutator<T extends object> extends Trait {
     static readonly deleteProperty: typeof $$deleteProperty = $$deleteProperty
     static readonly getOwnPropertyDescriptor: typeof $$getOwnPropertyDescriptor = $$getOwnPropertyDescriptor
 
-    static [Trait.apply](mutator: Mutator<any>): Mutator<any> {
+    static [Trait.onApply](mutator: Mutator<any>): Mutator<any> {
         return new Proxy(mutator, {
             get: mutator[$$get],
             set: mutator[$$set],

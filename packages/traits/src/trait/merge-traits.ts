@@ -13,7 +13,7 @@ type _AllNewSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
 
 type _NewSymbolsOf<T> = {  
     readonly [K in keyof T as T[K] extends symbol 
-        ? T[K] extends typeof Trait.apply 
+        ? T[K] extends typeof Trait.onApply 
             ? never 
             : K 
         : never 

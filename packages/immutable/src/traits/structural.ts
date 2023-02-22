@@ -7,6 +7,7 @@ import {
     isObject, 
     isShape 
 } from '@benzed/util'
+
 import { Trait } from '@benzed/traits'
 
 import { Stateful, StateOf } from './stateful'
@@ -213,12 +214,8 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * override this copy method in order to account for them.
      */
     protected [Copyable.copy](): this {
-        const clone = Object.create(this.constructor.prototype)
-
-        if (Trait.apply in this.constructor)
-            (this.constructor as any)[Trait.apply](clone)
-
-        clone[Stateful.key] = this[Stateful.key]
+        const clone = Copyable.createFromProto(this)
+        clone[Stateful.key] = copy(this[Stateful.key])
         return clone
     }
 

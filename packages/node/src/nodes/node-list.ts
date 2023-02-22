@@ -87,7 +87,7 @@ interface NodeListProperties<N extends Nodes> extends PublicNode, Structural {
 
 }
 
-type NodeListItems<N extends Nodes> = { [K in IndexesOf<N>]: N[K] }
+type NodeListItems<N extends Nodes> = { readonly [K in IndexesOf<N>]: N[K] }
 
 type NodeList<N extends Nodes> = 
     & Node 
@@ -104,7 +104,7 @@ interface NodeListConstructor {
  * Nodelist includes static builder methods for making typesafe changes to nodelist
  * sub-nodes.
  */
-const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicStructural, PublicNode) {
+const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, PublicStructural) {
 
     constructor(...children: N) {
         super()
@@ -159,7 +159,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicStruct
 
     //// State ////
 
-    override get [Stateful.key](): N {
+    get [Stateful.key](): N {
         return Array.from({
             ...this,
             length: this.length 
@@ -174,9 +174,9 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicStruct
 
         // deep apply
         for (let i = 0; i < length; i++) {
-            const module = (this as any)[i]
-            if (module) // module may not exist if we're here right after a copy
-                state[i] = Structural.apply(module, state[i])
+            const node = (this as any)[i]
+            if (node) // module may not exist if we're here right after a copy
+                state[i] = Structural.apply(node, state[i])
         }
 
         assign(this, state)

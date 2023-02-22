@@ -14,7 +14,7 @@ import { expectTypeOf } from 'expect-type'
     @typescript-eslint/no-explicit-any,
 */
 
-//// Setup ////
+//// Setup ////   
 
 class Data<V> extends Traits.use(Node) { 
 
@@ -143,5 +143,20 @@ describe('typesafe builder', () => {
         expect(list2[Structural.key])
             .toEqual([{ data: 15 }, { data: 'ace' }])
     })
+
+})
+
+describe('relations', () => {
+
+    it('parents', () => {
+        expect(Node.getParent(list[0])).toBe(list)
+    })
+
+    it('survives copy', () => {
+        const list2 = copy(list) 
+
+        expect(Node.getParent(list2[0]) === list).toBe(false)
+        expect(Node.getParent(list2[0]) === list2).toBe(true)
+    }) 
 
 })

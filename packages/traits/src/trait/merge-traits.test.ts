@@ -62,17 +62,17 @@ it('should add properties and methods from all traits to the new trait', () => {
     expect(mergedInstance.method2()).toBe('method2')
 })
 
-it('should call the Trait.apply method of each trait when a new trait is created from the merge', () => {
+it('should call the Trait.onApply method of each trait when a new trait is created from the merge', () => {
     class MyTrait1 extends Trait {
-        static [Trait.apply] = jest.fn()
+        static [Trait.onApply] = jest.fn()
     }
     class MyTrait2 extends Trait {
-        static [Trait.apply] = jest.fn()
+        static [Trait.onApply] = jest.fn()
     }
     const MergedTrait = mergeTraits(MyTrait1, MyTrait2)
 
     void new class extends useTraits(MergedTrait) {}
 
-    expect(MyTrait1[Trait.apply]).toHaveBeenCalledTimes(1)
-    expect(MyTrait2[Trait.apply]).toHaveBeenCalledTimes(1)
+    expect(MyTrait1[Trait.onApply]).toHaveBeenCalledTimes(1)
+    expect(MyTrait2[Trait.onApply]).toHaveBeenCalledTimes(1)
 })

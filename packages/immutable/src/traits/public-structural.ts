@@ -1,7 +1,13 @@
 import { AnyTypeGuard, isFunc, isIntersection, isShape } from '@benzed/util'
 import { equals } from './comparable'
+
 import { copy } from './copyable'
-import Structural, { StructState, StructStateApply, StructStateUpdate, StructStatePath } from './structural'
+import Structural, { 
+    StructState, 
+    StructStateApply, 
+    StructStateUpdate, 
+    StructStatePath 
+} from './structural'
 
 /**
  * A PublicStructural extends the Structural trait

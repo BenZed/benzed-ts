@@ -54,14 +54,14 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
 
     define.hidden(
         CompositeConstructor, 
-        Traits.apply, 
+        Traits.onApply, 
         (i: object) => applyTraits(i, traits)
     )
 
     return new Proxy(CompositeConstructor, {
         construct(constructor, ...args) {
             const instance = Reflect.construct(constructor, ...args)
-            return (constructor as any)[Traits.apply](instance)
+            return (constructor as any)[Traits.onApply](instance)
         }
     }) as unknown as AddTraitsConstructor<T> 
 

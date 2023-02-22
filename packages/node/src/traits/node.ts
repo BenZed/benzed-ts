@@ -9,13 +9,13 @@ import {
     setParent,
 } from '../parent'
 
-import { 
-    eachAncestor, 
+import {
+    eachAncestor,
     eachChild,
-    eachDescendent, 
-    eachNode, 
-    eachParent, 
-    eachSibling, 
+    eachDescendent,
+    eachNode,
+    eachParent,
+    eachSibling,
     getChildren,
     getRoot 
 } from '../relations'
@@ -59,7 +59,7 @@ abstract class Node extends Trait {
 
     static readonly getPath = getPath
 
-    static [Trait.apply](node: Node): Node {
+    static [Trait.onApply](node: Node): Node {
 
         const proxyNode = new Proxy(node, {
             defineProperty(node, key, descriptor) {
@@ -77,6 +77,10 @@ abstract class Node extends Trait {
                     setParent(value, proxyNode)
 
                 return Reflect.defineProperty(node, key, descriptor)
+            },
+
+            set(node,key,value,proxy) {
+                return Reflect.set(node, key, value, proxy)
             }
         })
 

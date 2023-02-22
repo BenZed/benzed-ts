@@ -1,8 +1,8 @@
 
 import { NodeTable } from './node-table'
-import { it, expect } from '@jest/globals'
+import { it, expect, test, describe } from '@jest/globals'
 
-import { copy, PublicStruct, Structural } from '@benzed/immutable'
+import { copy, PublicStruct, Stateful, Structural } from '@benzed/immutable'
 import { Trait } from '@benzed/traits'
 
 import { Node } from '../traits'
@@ -53,7 +53,7 @@ describe('builder', () => {
 
         expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
             completed: Switch<true>
-        }>>()
+        }>>() 
     })
 
     test('omit', () => {
@@ -73,7 +73,7 @@ describe('builder', () => {
             description: Text<'Finish NodeTable implementation'>
             off: Switch<false>
         }>>()
-    }) 
+    })  
 
     test('apply static', () => {
 
@@ -128,3 +128,17 @@ describe('builder', () => {
     })
 
 })
+
+describe('relations', () => {
+
+    it('parents', () => {
+        expect(Node.getParent(todo.completed) === todo).toBe(true)
+    })
+
+    it('survives copy', () => {
+        const todo2 = copy(todo)
+        expect(Node.getParent(todo2.completed) === todo).toBe(false)
+        expect(Node.getParent(todo2.completed) === todo2).toBe(true)
+    })
+
+}) 

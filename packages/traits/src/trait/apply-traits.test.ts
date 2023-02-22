@@ -7,7 +7,7 @@ import { Trait } from './trait'
 
 abstract class Emotional extends Trait {
 
-    static readonly [Trait.apply] = (e: Emotional): Emotional => 
+    static readonly [Trait.onApply] = (e: Emotional): Emotional => 
         assign(e, { emotion: 'Happy' })
 
     static is: (input: unknown) => input is Emotional = isShape({

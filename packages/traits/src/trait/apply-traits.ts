@@ -28,7 +28,7 @@ export type _Traits = (_TraitConstructor | _AbstractTraitConstructor)[]
 //// Apply Traits ////
 
 /**
- * Run any static Trait.apply methods that may exist
+ * Run any static Trait.onApply methods that may exist
  */
 export function applyTraits<T extends _Traits>(
     instance: object,
