@@ -1,8 +1,8 @@
 import { getPath } from './path'
 
 import { test, expect, describe } from '@jest/globals'
-import { Trait } from '../trait'
-import Node from './node'
+import { Trait } from '@benzed/traits'
+import { Node } from './traits'
 
 //// Setup ////
 

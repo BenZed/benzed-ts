@@ -1,39 +1,15 @@
-import { copy, PublicStructural, Stateful, StateOf, Structural } from '@benzed/immutable'
-import { assign, Callable, Func, Infer, omit, pick } from '@benzed/util'
+import { Copyable, PublicStructural, Stateful, Structural } from '@benzed/immutable'
+import { assign, Callable, Func, omit } from '@benzed/util'
 import { Traits } from '@benzed/traits'
 
 import { Node, PublicNode } from '../traits'
+
+import { NodeTableBuilder } from './node-table-builder'
 
 //// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
-
-//// Helper ////
-
-type _K = string | number | symbol
-
-type _NodeRecordPick<T extends NodeRecord, K extends (keyof T)[]> = 
-    Infer<{
-        [Tk in keyof T as Tk extends K[number] ? Tk : never]: T[Tk]
-    }, NodeRecord>
-
-type _NodeRecordOmit<T extends NodeRecord, K extends (keyof T)[]> = 
-    Infer<{
-        [Tk in keyof T as Tk extends K[number] ? never : Tk]: T[Tk]
-    }, NodeRecord>
-
-type _NodeRecordMerge<T extends NodeRecord, Tx extends NodeRecord> = 
-    Infer<{
-        [K in keyof T | keyof Tx]: K extends keyof Tx 
-            ? Tx[K]
-            : K extends keyof T 
-                ? T[K]
-                : never
-    }, NodeRecord>
-
-type _NodeRecordSet<T extends NodeRecord, K extends _K, R extends Node> = 
-    Infer<_NodeRecordMerge<T, { [Kk in K]: R }>, NodeRecord>
 
 //// Types ////
 
@@ -41,7 +17,7 @@ type NodeRecord = {
     readonly [key: string]: Node
 }
 
-interface NodeTableProperties<T extends NodeRecord> extends NodeTableMethod<T>, Node {
+interface NodeTableProperties<T extends NodeRecord> extends NodeTableMethod<T>, Node, Structural {
     [Stateful.key]: T
 }
 
@@ -53,66 +29,43 @@ interface NodeTableConstructor {
     new <T extends NodeRecord>(record: T): NodeTable<T>
 }
 
-interface NodeTableBuildInterface<T extends NodeRecord> extends PublicNode, Structural {
-
-    pick<K extends (keyof T)[]>(...keys: K): NodeTable<_NodeRecordPick<T, K>>
-    omit<K extends (keyof T)[]>(...keys: K): NodeTable<_NodeRecordOmit<T, K>>
-    merge<Tx extends NodeRecord>(record: Tx): NodeTable<_NodeRecordMerge<T, Tx>>
-
-    set<K extends _K, R extends Node>(
-        key: K, 
-        record: R
-    ): NodeTable<_NodeRecordSet<T, K, R>>
-
-    set<K extends keyof T, F extends (input: T[K]) => Node>(
-        key: K, 
-        update: F
-    ): NodeTable<_NodeRecordSet<T, K, ReturnType<F>>>
-}
-
 interface NodeTableMethod<T extends NodeRecord> {
-    <F extends (input: NodeTableBuildInterface<T>) => NodeTable<any>>(update: F): ReturnType<F>
+    <F extends (builder: NodeTableBuilder<T>) => NodeTable<any>>(update: F): ReturnType<F>
 }
 
 //// Main ////
 
-const NodeTable = class NodeTable extends Traits.add(Callable<Func>, PublicStructural, PublicNode) {
+/**
+ * NodeTable is an immutable structure with a call signature providing an interface
+ * for static updates.
+ */
+const NodeTable = class NodeTable extends Traits.add(Callable<Func>, PublicStructural) {
 
     constructor(children: NodeRecord) {
-        super(function (this: unknown, f: Func) {
-            return f(this)
+        super(function updateTable(this: NodeTable, update: Func) {
+            return update(new NodeTableBuilder(this as unknown as NodeRecord))
         })
         this[Stateful.key] = children
     }
 
-    //// Builder Methods ////
-
-    pick(...keys: (keyof StateOf<this>)[]): this {
-        const node = copy(this)
-        node[Stateful.key] = pick(Stateful.get(this), ...keys)
-        return node
-    }
-
-    omit(...keys: (keyof StateOf<this>)[]): this {
-        const node = copy(this)
-        node[Stateful.key] = omit(Stateful.get(this), ...keys)
-        return node
-    }
-
-    merge(record: StateOf<this>): this {
-        const node = copy(this)
-        node[Stateful.key] = { ...Stateful.get(this), ...record }
-        return node
-    }
-
     //// State ////
+
+    override [Copyable.copy](): this {
+        const clone = super[Copyable.copy]()
+
+        return Callable.create(
+            Callable.signatureOf(this),
+            clone,
+            Callable.contextProviderOf(this)
+        ) as this
+    }
 
     get [Stateful.key](): NodeRecord {
         return { ...this } as unknown as NodeRecord
     }
 
-    set [Stateful.key](children: NodeRecord) {
-        assign(this, omit(children, Stateful.key))
+    set [Stateful.key](record: NodeRecord) {
+        assign(this, omit(record, Stateful.key))
     }
 
 } as NodeTableConstructor

@@ -77,6 +77,10 @@ interface NodeListProperties<N extends Nodes> extends PublicNode, Structural {
         ...pathAndUpdate: [...path: P, state: StructStateUpdate<this, P>]
     ): this
 
+    copy(): this
+
+    equals(other: unknown): other is this
+
     get length(): N['length']
 
     get [Stateful.key](): N

@@ -1,17 +1,17 @@
-import { Find, FindFlag } from './find'
+import { Trait } from '@benzed/traits'
+import { fail } from '@benzed/util'
 
 import { expect, describe } from '@jest/globals'
 
-import { Trait } from '../trait'
-import PublicNode from './public-node'
-import { fail } from '@benzed/util'
+import { Find, FindFlag } from './find'
+import { PublicNode } from './traits'
 
 //// Setup ////
 
 class Person extends Trait.use(PublicNode) {
 }
 
-const grandPa = new class GrandPa extends Person {
+const grandPa = new class GrandPa extends Person { 
 
     readonly mom = new class Mom extends Person {
 
@@ -58,7 +58,7 @@ describe('inDescendents', () => {
 
     test('inDescendents.all', () => {
         const find = new Find(you)
-        expect(find.inDescendents.all(p => PublicNode.is(p) && p.constructor.name.includes('Grand')))
+        expect(find.inDescendents.all((p: any) => PublicNode.is(p) && p.constructor.name.includes('Grand')))
             .toEqual([you.son.grandDaughter, you.son.grandDaughter.greatGrandSon])
     })
 

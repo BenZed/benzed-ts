@@ -2,10 +2,12 @@
 import { NodeTable } from './node-table'
 import { it, expect } from '@jest/globals'
 
-import { Structural } from '@benzed/immutable'
+import { copy, PublicStruct, Structural } from '@benzed/immutable'
 import { Trait } from '@benzed/traits'
 
 import { Node } from '../traits'
+
+import { expectTypeOf } from 'expect-type'
 
 //// Setup ////
 
@@ -38,31 +40,91 @@ it('construct', () => {
     })
 })
 
-it('index', () => {
+it('key', () => {
     expect(todo.completed).toEqual(completed)
     expect(todo.description).toEqual(description)
 })
 
-describe('interface', () => {
+describe('builder', () => {
 
     test('pick', () => {
-        const completed = todo(t => t.pick('completed'))
-        expect({ ...completed }).toEqual({ completed: todo.completed })
+        const todo2 = todo(t => t.pick('completed'))
+        expect({ ...todo2 }).toEqual({ completed: todo.completed })
+
+        expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
+            completed: Switch<true>
+        }>>()
     })
 
     test('omit', () => {
-        const description = todo(t => t.omit('completed'))
-        expect({ ...description }).toEqual({ description: todo.description })
+        const todo2 = todo(t => t.omit('completed'))
+        expect({ ...todo2 }).toEqual({ description: todo.description })
+        expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
+            description: Text<'Finish NodeTable implementation'>
+        }>>()
     })
 
     test('merge', () => {
         const off = new Switch(false) 
-        const plus = todo(t => t.merge({ off }))
-        expect({ ...plus }).toEqual({ ...todo, off })
+        const todo2 = todo(t => t.merge({ off }))
+        expect({ ...todo2 }).toEqual({ ...todo, off })
+        expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
+            completed: Switch<true>
+            description: Text<'Finish NodeTable implementation'>
+            off: Switch<false>
+        }>>()
     }) 
 
-    test.todo('set')
+    test('apply static', () => {
 
-    test.todo('delete')
+        const todo2 = todo(t => t.apply('new', new Switch(false)))
+        expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
+            completed: Switch<true>
+            description: Text<'Finish NodeTable implementation'>
+            new: Switch<false>
+        }>>()
+    })
+
+    test('apply', () => {
+
+        class Location extends Trait.add(PublicStruct, Node) {
+            readonly city: string = 'town'
+            readonly street: string = 'main'
+        }
+
+        const table1 = new NodeTable({ place: new Location() })
+
+        const table2 = table1(table => table.apply('place', 'city', 'vancouver'))
+
+        expect(table2(t => t.get())).toEqual({
+            place: { city: 'vancouver', street: 'main' }
+        })
+
+        expectTypeOf(table2).toEqualTypeOf<NodeTable<{
+            place: Location
+        }>>()
+    })
+
+    test('update static', () => {
+
+        const todo1 = todo(t => t.apply('completed', new Switch(false as boolean)))
+
+        const todo2 = todo1(t => t.update('completed', s => new Switch(!s.boolean)))
+        
+        expect(Structural.getIn(todo2)).toEqual({
+            completed: { boolean: true },
+            description: { text: 'Finish NodeTable implementation' }
+        })
+        expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
+            completed: Switch<boolean>
+            description: Text<'Finish NodeTable implementation'>
+        }>>()
+    })
+
+    test('copy', () => {
+        const todo2 = copy(todo)
+        expect(todo2).not.toBe(todo)    
+        expect({...todo2}).toEqual({...todo})
+    })
 
 })

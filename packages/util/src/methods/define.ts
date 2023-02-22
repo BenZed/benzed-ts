@@ -88,12 +88,12 @@ define.access = function defineAccessor<T extends object>(object: T, key: Proper
 
 define.transpose = function defineTranspoise<T extends object>(source: object, target: T, blacklist: object[] = []): T {
 
-    for (const proto of each.prototypeOf(source)) {
+    for (const proto of each.prototypeOf(source).toArray().reverse()) {
 
         if (blacklist.includes(proto))
             continue
 
-        for (const [key, descriptor] of each.defined.own.descriptorOf(proto)) 
+        for (const [key, descriptor] of each.defined.own.descriptorOf(proto))
             define(target, key, descriptor)
     }
 

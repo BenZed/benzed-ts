@@ -11,7 +11,7 @@ import {
     TypeOf
 } from '@benzed/util'
 
-import Node from './node'
+import { Node } from './traits'
 
 import { getPath } from './path'
 
@@ -222,6 +222,7 @@ const Find = class NodeFinder extends Callable<Func> {
 
 //// Helper ////
 
+// TODO should be exchanged with 'isGuardedConstructor'
 const isNodeTrait: (input: unknown) => input is AnyNodeTrait = 
     isShape({
         is: isFunc as AnyTypeGuard

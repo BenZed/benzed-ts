@@ -144,8 +144,6 @@ const Callable = class {
 
         define.transpose(signatureProperties, callable, [Function.prototype])
         define.transpose(template, callable, [Function.prototype])
-        define.hidden(callable, 'name', callable.name)
-        define.hidden(callable, 'constructor', template.constructor)
         define(callable, $$callable, {
             value: {
                 signature,

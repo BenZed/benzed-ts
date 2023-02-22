@@ -44,11 +44,11 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
     class CompositeConstructor extends base {}
 
     for (const trait of traits) {
-        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype))
+        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
             define(CompositeConstructor.prototype, key, descriptor)
     }
 
-    const name = [base, ...traits].map(c => c.name).join('')
+    const name = [...traits, base].map(c => c.name).join('')
 
     define.named(name, CompositeConstructor) 
 
