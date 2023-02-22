@@ -24,7 +24,7 @@ import {
     eachSibling
 } from './relations'
 
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/no-explicit-any
 */
 

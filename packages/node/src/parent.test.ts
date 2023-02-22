@@ -1,6 +1,6 @@
+import { Trait } from '@benzed/traits'
 import { nil } from '@benzed/util'
-import { Trait } from '../trait'
-import Node from './node'
+import { Node } from './traits'
 import { getParent } from './parent'
 
 //// Setup ////

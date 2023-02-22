@@ -12,7 +12,12 @@ type _AllNewSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
     : []
 
 type _NewSymbolsOf<T> = {  
-    readonly [K in keyof T as T[K] extends symbol ? T[K] extends typeof Trait.apply ? never : K : never ]: T[K]
+    readonly [K in keyof T as T[K] extends symbol 
+        ? T[K] extends typeof Trait.apply 
+            ? never 
+            : K 
+        : never 
+    ]: T[K]
 }
 
 //// Merge Traits ////
@@ -21,7 +26,7 @@ export type MergedTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T>
 
     readonly add: typeof addTraits
     readonly use: typeof useTraits
-    readonly merge: typeof mergeTraits
+    readonly merge: typeof mergeTraits 
 
     is(input: unknown): input is Composite<T>
 
@@ -33,11 +38,6 @@ export type MergedTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T>
 export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstructor<T> {
 
     const MergedTraits = addTraits(class extends Trait {
-
-        // Apply all traits
-        static [$$onApply](instance: Composite<T>): unknown {
-            return applyTraits(instance as object, traits)
-        }
 
         readonly add = addTraits
         readonly use = useTraits
@@ -53,7 +53,6 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstr
                 return trait.is as AnyTypeGuard
             })
         ) as AnyTypeGuard
-
     },
     
     ...traits) as MergedTraitsConstructor<T>

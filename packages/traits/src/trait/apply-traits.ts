@@ -30,15 +30,19 @@ export type _Traits = (_TraitConstructor | _AbstractTraitConstructor)[]
 /**
  * Run any static Trait.apply methods that may exist
  */
-export function applyTraits<T extends _Traits>(instance: object, traits: T): object {
+export function applyTraits<T extends _Traits>(
+    instance: object,
+    traits: T
+): object {
 
     for (const trait of traits as any[]) {
 
         if (
             $$onApply in trait && 
             isFunc(trait[$$onApply])
-        )
+        ) 
             instance = trait[$$onApply](instance) ?? instance
+        
     }
 
     return instance

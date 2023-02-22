@@ -1,6 +1,7 @@
 import { each } from '@benzed/util'
 
-import type Node from './node'
+import type { Node } from './traits'
+
 import { eachParent, getChildren } from './relations'
 
 //// Types ////
@@ -17,7 +18,7 @@ export function getPath(node: Node, from?: Node): NodePath {
     for (const parent of eachParent(node)) {
 
         const children = getChildren(parent) as Record<PropertyKey, Node>
-        for (const [name, child] of each.entryOf(children)) {
+        for (const [ name, child ] of each.entryOf(children)) {
             if (child === node) {
                 path.push(name)
                 node = parent
@@ -29,6 +30,7 @@ export function getPath(node: Node, from?: Node): NodePath {
             foundFrom = true
             break
         }
+
     }
 
     if (from && !foundFrom) {

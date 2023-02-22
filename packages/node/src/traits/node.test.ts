@@ -1,8 +1,9 @@
-import { Node } from './node'
+import { Trait } from '@benzed/traits'
+import { nil } from '@benzed/util'
 
 import { it, expect, describe } from '@jest/globals'
-import { Trait } from '../trait'
-import { nil } from '@benzed/util'
+
+import { Node } from './node'
 
 //// Types ////
 

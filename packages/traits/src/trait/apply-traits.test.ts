@@ -18,15 +18,11 @@ abstract class Emotional extends Trait {
 
 }
 
+class Person extends Trait.use(Emotional) { }
+
 //// Tests ////
 
 test('apply traits', () => {
-
-    class Person extends Trait.use(Emotional) {
-
-    }
-
     const person = new Person()
-
     expect(person.emotion).toBe('Happy')
 })

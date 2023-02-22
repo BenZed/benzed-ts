@@ -1,4 +1,5 @@
 
+import { Traits } from '@benzed/traits'
 import { 
     isArray,
     isObject,
@@ -98,6 +99,9 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
     }
 
     const object = setRef(Object.create(input))
+    if (input?.constructor && Traits.apply in input.constructor) 
+        (input.constructor as any)[Traits.apply](object)
+
     for (const key of each.keyOf(input))
         object[key] = copyWithRefs(input[key])
     return object

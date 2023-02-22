@@ -1,7 +1,7 @@
 import { AnyTypeGuard, isFunc, isIntersection, isShape } from '@benzed/util'
 import { equals } from './comparable'
 import { copy } from './copyable'
-import Structural, { StructState, StructStateApply, StructStatePath } from './structural'
+import Structural, { StructState, StructStateApply, StructStateUpdate, StructStatePath } from './structural'
 
 /**
  * A PublicStructural extends the Structural trait
@@ -16,6 +16,7 @@ export abstract class PublicStructural extends Structural {
             isShape({
                 get: isFunc,
                 apply: isFunc,
+                update: isFunc,
                 copy: isFunc,
                 equals: isFunc as AnyTypeGuard
             })
@@ -29,6 +30,10 @@ export abstract class PublicStructural extends Structural {
 
     apply<P extends StructStatePath>(...pathAndState: [...path: P, state: StructStateApply<this, P>]): this {
         return Structural.apply(this, ...pathAndState)
+    }
+
+    update<P extends StructStatePath>(...pathAndUpdate: [...path: P, state: StructStateUpdate<this, P>]): this {
+        return Structural.update(this, ...pathAndUpdate)
     }
 
     copy(): this {

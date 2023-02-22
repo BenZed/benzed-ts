@@ -1,13 +1,13 @@
-import { Trait } from '../trait'
 
 import { nil } from '@benzed/util'
+import { Trait } from '@benzed/traits'
 
 import {
     $$parent,
     getParent,
-    isNode,
+    isNode, 
     setParent,
-} from './parent'
+} from '../parent'
 
 import { 
     eachAncestor, 
@@ -18,9 +18,9 @@ import {
     eachSibling, 
     getChildren,
     getRoot 
-} from './relations'
+} from '../relations'
 
-import { getPath } from './path'
+import { getPath } from '../path'
 
 //// EsLint ////
 

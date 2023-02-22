@@ -183,3 +183,28 @@ describe('Struct.apply', () => {
         })
     })
 })
+
+describe('Struct.update', () => {
+
+    it('creates an immutably copied object with a modified state via update function', () => {
+        const v1 = new Vector(2, 2) 
+        const v2 = Structural.update(v1, 'x', v => v + 1)
+        expect(v1).not.toBe(v2)
+        expect(v1).toEqual(new Vector(2, 2))
+        expect(v2).toEqual(new Vector(3, 2))
+
+        const v3 = Structural.update(v1, v => new Vector(v.x * 5 , v.x * 5))
+        expect(v3).toEqual(new Vector(10, 10))
+
+    })
+
+    it('works on deep states', () => {
+        
+        const cube1 = new Shape('grey', new Vector(10, 10))
+
+        const cube2 = Structural.update(cube1, 'position', 'x', v => v + 10)
+
+        console.log(cube2)
+    })
+
+})

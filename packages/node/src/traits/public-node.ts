@@ -1,6 +1,8 @@
+
 import { Each, isArrayOf, isFunc, isIntersection, isNumber, isOptional, isShape, isString, isSymbol, isUnion, nil } from '@benzed/util'
+
 import Node from './node'
-import { NodePath } from './path'
+import { NodePath } from '../path'
 
 //// Main ////
 
@@ -9,23 +11,36 @@ import { NodePath } from './path'
  */
 class PublicNode extends Node {
 
-    static override is: (input: unknown) => input is PublicNode = 
-        isIntersection(
-            Node.is,
-            isShape({
-                name: isString,
-                path: isArrayOf(isUnion(isString, isNumber, isSymbol)),
-                root: Node.is,
-                parent: isOptional(Node.is),
-                children: isArrayOf(Node.is),
-                eachChild: isFunc,
-                eachParent: isFunc,
-                eachSibling: isFunc,
-                eachAncestor: isFunc,
-                eachDescendent: isFunc,
-                eachNode: isFunc,
-            })
-        )
+    static override is: (input: unknown) => input is PublicNode = isIntersection(
+        Node.is,
+        isShape({
+            name: isString,
+            path: isArrayOf(isUnion(isString, isNumber, isSymbol)),
+            root: Node.is,
+            parent: isOptional(Node.is),
+            children: isArrayOf(Node.is),
+            eachNode: isFunc,
+            eachChild: isFunc,
+            eachParent: isFunc,
+            eachSibling: isFunc,
+            eachAncestor: isFunc,
+            eachDescendent: isFunc,
+        })
+    )
+
+    // is(Node).and.shape({
+    //     name: is.string,
+    //     path: is.array.of.string.or.number.or.symbol,
+    //     root: is(Node),
+    //     parent: is(Node).optional,
+    //     children: is.array.of(Node),
+    //     eachChild: is.function,
+    //     eachParent: is.function,
+    //     eachSibling: is.function,
+    //     eachAncestor: is.function,
+    //     eachDescendent: is.function,
+    //     eachNode: is.function,
+    // }).readonly
 
     get name(): string {
         const name = Node.getPath(this).at(-1)

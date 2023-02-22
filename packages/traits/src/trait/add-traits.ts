@@ -1,6 +1,7 @@
 
 import { define, each, Intersect } from '@benzed/util'
 import { applyTraits, _Traits } from './apply-traits'
+import { Traits } from './trait'
 
 //// EsLint ////
 /* eslint-disable 
@@ -40,21 +41,29 @@ export interface AddTraitsConstructor<T extends _BaseTraits | _Traits> {
  */
 export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTraitsConstructor<T> {
 
-    class CompositeConstructor extends base {
-        constructor(...args: any[]) {
-            super(...args)
-            return applyTraits(this, traits)
-        }
-    }
+    class CompositeConstructor extends base {}
 
     for (const trait of traits) {
-        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
+        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype))
             define(CompositeConstructor.prototype, key, descriptor)
     }
 
     const name = [base, ...traits].map(c => c.name).join('')
 
-    return define.named(name, CompositeConstructor) as unknown as AddTraitsConstructor<T>
+    define.named(name, CompositeConstructor) 
+
+    define.hidden(
+        CompositeConstructor, 
+        Traits.apply, 
+        (i: object) => applyTraits(i, traits)
+    )
+
+    return new Proxy(CompositeConstructor, {
+        construct(constructor, ...args) {
+            const instance = Reflect.construct(constructor, ...args)
+            return (constructor as any)[Traits.apply](instance)
+        }
+    }) as unknown as AddTraitsConstructor<T> 
 
 }
 

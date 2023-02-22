@@ -1,4 +1,4 @@
-import { Trait } from '../trait'
+import { Trait } from '@benzed/traits'
 import Node from './node'
 import PublicNode from './public-node'
 

@@ -5,7 +5,7 @@ import {
     nil
 } from '@benzed/util'
 
-import type Node from './node'
+import type { Node } from './traits'
 
 //// Symbol ////
 
@@ -20,7 +20,7 @@ export const isNode: (child: unknown) => child is Node =
  * Set the parent of a node
  */
 export function setParent(child: Node, parent: Node | nil): void {
-    define.enumerable(
+    define.hidden(
         child,
         $$parent,
         parent
