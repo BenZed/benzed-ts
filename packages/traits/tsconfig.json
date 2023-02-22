@@ -9,7 +9,7 @@
     "include": [
         "src",
         "../match/match.test.ts"
-    ],
+, "_old_module"    ],
     "exclude": [
         "src/**/*.test.ts"
     ]

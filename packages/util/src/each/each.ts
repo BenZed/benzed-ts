@@ -4,7 +4,7 @@ import { eachObjectInPrototypeChain, eachValue } from './generators'
 import { EachEnumerableInheritedKey } from './each-key-interface'
 import { eachIndex, Indexable, IndexesOf, IndexesOfOptionsSignature } from './index-generator'
 import { isArrayLike, isIterable } from '../types/guards'
-import { isFunc } from '../types/func'
+import { Func, isFunc } from '../types/func'
 
 //// EsLint ////
 /* eslint-disable 
@@ -24,19 +24,24 @@ type IterableYeild<T extends Iterables> = T[number] extends Iterable<infer Tx>
 interface Each extends Omit<EachEnumerableInheritedKey, '_options'> {
 
     /**
-     * Iterate through each value on an object.
-     */
-    <T extends object>(object: T): EachIterable<T[keyof T]>
-    
-    /**
      * Iterate through each value on an arraylike.
      */
     <T>(arrayLike: ArrayLike<T>): EachIterable<T>
 
     /**
+     * Iterate given a constructor function that returns an iterable.
+     */
+    <T>(iterableFactory: () => Iterable<T>): EachIterable<T>
+
+    /**
      * Iterate each element of any number of iterables
      */
     <T extends Iterables>(...items: T): EachIterable<IterableYeild<T>>
+
+    /**
+     * Iterate through each value on an object.
+     */
+    <T extends object>(object: T): EachIterable<T[keyof T]>
 
     /**
      * Iterate through each prototype chain of any number of objects
@@ -51,10 +56,16 @@ interface Each extends Omit<EachEnumerableInheritedKey, '_options'> {
 
 function each(...items: Iterables | [ArrayLike<unknown>] | [object]) {
 
-    if (!isIterable(items[0])) {
-        items[0] = isArrayLike(items[0]) 
-            ? Array.from(items[0])
-            : eachValue(items[0])
+    for (const index of eachIndex(items)) {
+        const item = items[index]
+
+        if (!isIterable(item)) {
+            items[index] = isArrayLike(item) 
+                ? Array.from(item)
+                : isFunc(item) 
+                    ? item()
+                    : eachValue(item)
+        }
     }
 
     return new EachIterable(items as Iterables)

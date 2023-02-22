@@ -1,5 +1,5 @@
-import { Trait } from '@benzed/traits'
 import { isFunc, isShape } from '@benzed/util'
+import { Trait } from '@benzed/traits'
 
 import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
@@ -22,12 +22,11 @@ type AnyValidator = Validator<any,any>
  */
 abstract class Validator<I, O extends I> extends Trait {
 
-    static override readonly is: <Ix, Ox extends Ix>(input: unknown) =>
-        input is Validator<Ix,Ox> =
-            isShape({
-                validate: isFunc,
-                analyze: isFunc
-            })
+    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Validator<Ix,Ox> = 
+        isShape({
+            validate: isFunc,
+            analyze: isFunc
+        })
 
     /**
      * The validate method analyzes the given input and validate options.
@@ -35,6 +34,7 @@ abstract class Validator<I, O extends I> extends Trait {
      * that error, otherwise it returns the context output.
      */
     validate(input: I, options?: ValidateOptions): O {
+
         const ctx = this.analyze(input, options)
         if (!ctx.result)
             throw new Error('Validation did not complete.')

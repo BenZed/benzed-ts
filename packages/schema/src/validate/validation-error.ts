@@ -50,8 +50,8 @@ class ValidationError<T> extends Error {
 
         super(message)
 
-        this.value = input.value
         this.key = input.key
+        this.value = input.value
         this.detail = input.detail
     }
 

@@ -8,7 +8,7 @@ import {
 
 //// Types ////
 
-type ValidationResult<I,O> = 
+type ValidationResult<I,O> =
     {
         readonly error: ValidationError<I>
     } | {
