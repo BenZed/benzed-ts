@@ -3,7 +3,7 @@ import { Traits } from '@benzed/traits'
 import { assign, pick } from '@benzed/util'
 
 import { NodeList } from './node-list'
-import { Node } from '../traits'
+import { Node, PublicNode } from '../traits'
 
 import { test, it, expect, describe } from '@jest/globals'
 
@@ -158,5 +158,9 @@ describe('relations', () => {
         expect(Node.getParent(list2[0]) === list).toBe(false)
         expect(Node.getParent(list2[0]) === list2).toBe(true)
     }) 
+
+    it('has public node interface', () => {
+        expect(PublicNode.is(list)).toBe(true)
+    })
 
 })

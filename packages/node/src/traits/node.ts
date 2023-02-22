@@ -22,6 +22,8 @@ import {
 
 import { getPath } from '../path'
 
+import { Find, AssertNode, FindFlag, FindNode, HasNode } from '../find'
+
 //// EsLint ////
 
 /* eslint-disable
@@ -58,6 +60,18 @@ abstract class Node extends Trait {
     static readonly eachNode = eachNode
 
     static readonly getPath = getPath
+
+    static find(node: Node): FindNode {
+        return new Find(node)
+    }
+
+    static has(node: Node): HasNode {
+        return new Find(node, FindFlag.Has)
+    }
+
+    static assert(node: Node): AssertNode {
+        return new Find(node, FindFlag.Assert)
+    }
 
     static [Trait.onApply](node: Node): Node {
 

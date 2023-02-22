@@ -1,18 +1,32 @@
 
-import { Each, isArrayOf, isFunc, isIntersection, isNumber, isOptional, isShape, isString, isSymbol, isUnion, nil } from '@benzed/util'
+import { 
+    Each, 
+    isArrayOf,
+    isFunc,
+    isIntersection,
+    isNumber, 
+    isOptional, 
+    isShape,
+    isString, 
+    isSymbol, 
+    isUnion, 
+    nil 
+} from '@benzed/util'
 
 import Node from './node'
 import { NodePath } from '../path'
 
+import SearchNode from './search-node'
+
 //// Main ////
 
 /**
- * Public node has exposed properties for manipulating 
+ * Public node has exposed properties for accessing relations to other nodes.
  */
-class PublicNode extends Node {
+class PublicNode extends SearchNode { 
 
     static override is: (input: unknown) => input is PublicNode = isIntersection(
-        Node.is,
+        SearchNode.is,
         isShape({
             name: isString,
             path: isArrayOf(isUnion(isString, isNumber, isSymbol)),
@@ -95,5 +109,6 @@ class PublicNode extends Node {
 export default PublicNode
 
 export {
-    PublicNode
+    PublicNode,
+    SearchNode
 }

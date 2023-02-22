@@ -2,10 +2,10 @@
 import { NodeTable } from './node-table'
 import { it, expect, test, describe } from '@jest/globals'
 
-import { copy, PublicStruct, Stateful, Structural } from '@benzed/immutable'
+import { copy, PublicStruct, Structural } from '@benzed/immutable'
 import { Trait } from '@benzed/traits'
 
-import { Node } from '../traits'
+import { Node, PublicNode } from '../traits'
 
 import { expectTypeOf } from 'expect-type'
 
@@ -140,5 +140,12 @@ describe('relations', () => {
         expect(Node.getParent(todo2.completed) === todo).toBe(false)
         expect(Node.getParent(todo2.completed) === todo2).toBe(true)
     })
+
+    it('has public node interface', () => {
+        expect(() => todo(t => {
+            if (!PublicNode.is(t))
+                throw new Error('Node interface is not a public node')
+        })).not.toThrow()
+    }) 
 
 }) 

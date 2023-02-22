@@ -11,7 +11,7 @@ import {
     TypeOf
 } from '@benzed/util'
 
-import { Node } from './traits'
+import { Node } from './traits/node'
 
 import { getPath } from './path'
 
@@ -23,6 +23,10 @@ import {
     eachParent,
     eachSibling
 } from './relations'
+
+import {
+    Comparable
+} from '@benzed/immutable'
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any
@@ -233,8 +237,13 @@ function toNodePredicate(input: FindInput): AnyNodeTypeGuard | AnyNodePredicate 
     if (isNodeTrait(input))
         return input.is
 
-    if (Node.is(input))
-        return other => Object.is(input, other)
+    if (Node.is(input)) {
+        return Comparable.is(input)
+
+            ? other => input[Comparable.equals](other)
+
+            : other => Object.is(input, other)
+    }
 
     if (isFunc(input))
         return input

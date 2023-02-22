@@ -8,7 +8,7 @@ import { NodeTableBuilder } from './node-table-builder'
 
 //// EsLint ////
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Types ////
