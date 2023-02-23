@@ -1,5 +1,5 @@
 import { isFunc } from '@benzed/util'
-import { addTraits, useTraits } from './add-traits'
+import { $$onUse, addTraits, useTraits } from './add-traits'
 import { $$onApply } from './apply-traits'
 import { mergeTraits } from './merge-traits'
 
@@ -72,11 +72,18 @@ export abstract class Trait {
     }
 
     /**
-     * Extended classes may implement this static 
+     * Extended traits may implement this static 
      * method to customize behaviour that occurs when
      * a trait is applied.
      */
     static readonly onApply: typeof $$onApply = $$onApply
+
+    /**
+     * Trait consumers may implement the $$onUse symbolic
+     * method to make static changes to the constructor 
+     * when using a trait.
+     */
+    static readonly onUse: typeof $$onUse = $$onUse
 
     /**
      * A trait should never be constructed. It exists only to

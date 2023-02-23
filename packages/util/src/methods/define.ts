@@ -58,7 +58,7 @@ define.get = function defineGet<T extends object>(object: T, key: PropertyKey, g
         key, 
         { 
             get, 
-            configurable: true 
+            configurable: true
         }
     )
 }
