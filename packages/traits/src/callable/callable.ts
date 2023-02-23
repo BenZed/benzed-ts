@@ -1,4 +1,15 @@
-import { define, assign, Func, isFunc, isIntersection, isShape, isKeyed, isObject, each } from '@benzed/util'
+import { 
+    define, 
+    assign, 
+    Func, 
+    isFunc, 
+    isIntersection, 
+    isShape, 
+    isKeyed, 
+    isObject, 
+    each 
+} from '@benzed/util'
+
 import { Trait } from '../trait'
 
 //// Symbols ////

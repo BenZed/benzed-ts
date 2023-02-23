@@ -73,19 +73,20 @@ describe('builder', () => {
             description: Text<'Finish NodeTable implementation'>
             off: Switch<false>
         }>>()
-    })  
+    }) 
 
-    test('apply static', () => {
+    test('apply static', () => { 
 
         const todo2 = todo(t => t.apply('new', new Switch(false)))
+
         expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
             completed: Switch<true>
             description: Text<'Finish NodeTable implementation'>
             new: Switch<false>
-        }>>()
+        }>>() 
     })
 
-    test('apply', () => {
+    test('apply', () => { 
 
         class Location extends Trait.add(PublicStruct, Node) {
             readonly city: string = 'town'
@@ -146,6 +147,6 @@ describe('relations', () => {
             if (!PublicNode.is(t))
                 throw new Error('Node interface is not a public node')
         })).not.toThrow()
-    }) 
+    })
 
-}) 
+})
