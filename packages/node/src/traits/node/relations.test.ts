@@ -2,8 +2,17 @@
 import { Trait } from '@benzed/traits'
 import { expect, describe } from '@jest/globals'
 
-import { Node } from './traits'
-import { eachAncestor, eachChild, eachDescendent, eachParent, eachSibling, getChildren, getRoot } from './relations'
+import { Node } from './node'
+
+import { 
+    eachAncestor, 
+    eachChild, 
+    eachDescendent, 
+    eachParent, 
+    eachSibling, 
+    getChildren, 
+    getRoot 
+} from './relations'
 
 //// Tests ////
 

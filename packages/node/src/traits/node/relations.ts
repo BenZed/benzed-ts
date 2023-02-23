@@ -1,6 +1,6 @@
 import { Each, each, GenericObject } from '@benzed/util'
 
-import { Node } from './traits'
+import { Node } from '.'
 
 import { $$parent, getParent, isNode } from './parent'
 

@@ -9,11 +9,11 @@ import {
     TypeGuard,
     TypeOf
 } from '@benzed/util'
+import { Comparable } from '@benzed/immutable'
+import { Function } from '@benzed/traits'
 
-import { Node } from './traits/node'
-
+import { Node } from './node'
 import { getPath } from './path'
-
 import {
     eachAncestor,
     eachChild,
@@ -22,11 +22,6 @@ import {
     eachParent,
     eachSibling
 } from './relations'
-
-import {
-    Comparable
-} from '@benzed/immutable'
-import { Function } from '@benzed/traits'
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any

@@ -13,8 +13,7 @@ import {
     nil 
 } from '@benzed/util'
 
-import Node from './node'
-import { NodePath } from '../path'
+import { Node, NodePath } from './node'
 
 import SearchNode from './search-node'
 

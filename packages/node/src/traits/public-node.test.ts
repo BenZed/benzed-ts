@@ -1,5 +1,5 @@
 import { Trait } from '@benzed/traits'
-import Node from './node'
+import { Node } from './node'
 import PublicNode from './public-node'
 
 //// Setup ////
@@ -178,4 +178,3 @@ describe('PublicNode', () => {
         })
     })
 })
-

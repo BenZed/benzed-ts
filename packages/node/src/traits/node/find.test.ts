@@ -4,7 +4,7 @@ import { fail } from '@benzed/util'
 import { expect, describe } from '@jest/globals'
 
 import { Find, FindFlag } from './find'
-import { PublicNode } from './traits'
+import { PublicNode } from '../public-node'
 
 //// Setup ////
 

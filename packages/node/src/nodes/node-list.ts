@@ -7,33 +7,35 @@ import {
     StructStateUpdate,
     Structural
 } from '@benzed/immutable'
-
-import { assign, each, IndexesOf } from '@benzed/util'
 import { Traits } from '@benzed/traits'
+import { assign, each, IndexesOf } from '@benzed/util'
 
 import { Node, PublicNode } from '../traits'
 
-import { 
-    addNodes, 
-    AddNodes, 
+import {
 
-    insertNodes, 
-    InsertNodes, 
+    addNodes,
+    AddNodes,
 
-    removeNode, 
-    RemoveNode,  
+    insertNodes,
+    InsertNodes,
 
-    swapNodes, 
+    removeNode,
+    RemoveNode,
+
+    swapNodes,
     SwapNodes,
 
     ApplyNode,
     UpdateNode,
 
-    Nodes,
+    Nodes
+
 } from './node-list-operations'
 
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any
 */
 
@@ -112,7 +114,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
     }
 
     //// Builder Methods ////
-    
+
     add<Nx extends Nodes>(...modules: Nx): NodeList<AddNodes<N,Nx>> {
         const added = addNodes(this[Stateful.key], ...modules)
         return new NodeList(...added)
@@ -140,7 +142,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
     }
 
     // type signature is different, but implementation doesn't need to be:
-    // apply() 
+    // apply()
     // update()
 
     //// Convenience Methods ////
@@ -152,7 +154,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
 
         return module as N[I]
     }
-    
+
     get length(): N['length'] {
         return each.nameOf(this).count
     }
@@ -169,16 +171,18 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
     protected set [Stateful.key](children: N) {
 
         // normalize state object vs array
+        
         const state = { ...children } as any
         const length = each.keyOf(state).count
-
+        
         // deep apply
+        
         for (let i = 0; i < length; i++) {
             const node = (this as any)[i]
             if (node) // module may not exist if we're here right after a copy
                 state[i] = Structural.apply(node, state[i])
         }
-
+        
         assign(this, state)
     }
 

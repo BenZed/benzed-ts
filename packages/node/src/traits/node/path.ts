@@ -1,6 +1,6 @@
 import { each } from '@benzed/util'
 
-import type { Node } from './traits'
+import type { Node } from './node'
 
 import { eachParent, getChildren } from './relations'
 

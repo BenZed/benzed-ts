@@ -7,7 +7,7 @@ import {
     getParent,
     isNode, 
     setParent,
-} from '../parent'
+} from './parent'
 
 import {
     eachAncestor,
@@ -18,11 +18,11 @@ import {
     eachSibling,
     getChildren,
     getRoot 
-} from '../relations'
+} from './relations'
 
-import { getPath } from '../path'
+import { getPath } from './path'
 
-import { Find, AssertNode, FindFlag, FindNode, HasNode } from '../find'
+import { Find, AssertNode, FindFlag, FindNode, HasNode } from './find'
 
 //// EsLint ////
 
@@ -93,7 +93,7 @@ abstract class Node extends Trait {
                 return Reflect.defineProperty(node, key, descriptor)
             },
 
-            set(node,key,value,proxy) {
+            set(node, key, value, proxy) {
                 return Reflect.set(node, key, value, proxy)
             }
         })
