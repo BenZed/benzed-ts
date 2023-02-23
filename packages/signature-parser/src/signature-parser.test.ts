@@ -1,7 +1,8 @@
-import { isEqual, isNumber, isOptional, isString, nil } from '../types'
-import SignatureParser from './signature-parser'
+import { isEqual, isNumber, isOptional, isString, nil } from '@benzed/util'
 
 import { test, describe, expect } from '@jest/globals'
+
+import SignatureParser from './signature-parser'
 import { expectTypeOf } from 'expect-type'
 
 //// Tests ////

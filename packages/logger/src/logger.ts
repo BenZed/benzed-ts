@@ -1,7 +1,7 @@
 import ansi from './ansi'
 import { inspect } from 'util'
-import { Callable } from '../classes'
-import { nil } from '../types'
+import { Callable, Trait } from '@benzed/traits'
+import { nil } from '@benzed/util'
 
 /* eslint-disable 
     @typescript-eslint/no-this-alias,
@@ -25,7 +25,7 @@ interface LoggerOptions {
      * // '😃 Hello World'
      * ```
      */
-    header: string
+    header?: string
 
     /**
      * Include a timestamp
@@ -38,7 +38,7 @@ interface LoggerOptions {
      * // '😃 Hello World'
      * ```
      */
-    timeStamp: TimeStamp
+    timeStamp?: TimeStamp
 
     /**
      * console.log by default.
@@ -117,11 +117,11 @@ function isLogger(input: unknown): input is Logger {
 
 //// Main ////
 
-const Logger = class extends Callable<(strings: readonly string[], ...params: unknown[]) => void> {
+const Logger = class extends Trait.use(Callable<(strings: readonly string[], ...params: unknown[]) => void>) {
 
     static is = isLogger 
 
-    static override create(options: Partial<LoggerOptions>): Logger {
+    static create(options: Partial<LoggerOptions>): Logger {
         return new this({
             header: '',
             onLog: console.log.bind(console),
@@ -130,10 +130,14 @@ const Logger = class extends Callable<(strings: readonly string[], ...params: un
         })
     }
 
+    get [Callable.signature]() {
+        return this.info
+    }
+
     constructor(
         readonly options: LoggerOptions
     ) {
-        super((strings, ...params) => this.info(strings, ...params))
+        super()
     }
 
     private _lastTimeStamp = ''

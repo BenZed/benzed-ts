@@ -98,6 +98,7 @@ describe('binding', () => {
             })
         }
         const count = object.count = object.count.bind(object)
+
         expect(object.count).toBeInstanceOf(Pipe)
         expect(count()).toEqual(0)
     })
@@ -166,8 +167,8 @@ describe('promises', () => {
     const async = Pipe.from((i: number) => Promise.resolve(i * 2))
 
     it('can\'t define input as promises', () => {
-        // @ts-expect-error Pipe.from pipe nput must be awaited
-        Pipe.from((p: Promise<number>) => p.then(n => n * 2))
+        // @ts-expect-error Pipe.from pipe input must be awaited
+        const p = Pipe.from((p: Promise<number>) => p.then(n => n * 2))
 
         // @ts-expect-error Pipe.from param pipe must be awaited
         Pipe.from((i: Promise<number>, ctx: { foo: 'string '}) => [i, ctx.foo])

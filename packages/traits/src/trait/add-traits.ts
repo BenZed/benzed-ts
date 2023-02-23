@@ -1,5 +1,5 @@
 
-import { define, each, Intersect } from '@benzed/util'
+import { define, each, Intersect, isFunc } from '@benzed/util'
 import { applyTraits, _Traits } from './apply-traits'
 import { Traits } from './trait'
 
@@ -7,6 +7,10 @@ import { Traits } from './trait'
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
+
+//// Symbolic /// 
+
+export const $$onUse = Symbol('on-trait-use')
 
 //// Helper Types ////
 
@@ -46,6 +50,9 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
     for (const trait of traits) {
         for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
             define(CompositeConstructor.prototype, key, descriptor)
+
+        if ($$onUse in trait && isFunc(trait[$$onUse]))
+            trait[$$onUse](CompositeConstructor)
     }
 
     const name = [...traits, base].map(c => c.name).join('')

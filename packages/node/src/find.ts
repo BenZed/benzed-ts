@@ -1,6 +1,5 @@
 import { 
     AnyTypeGuard,
-    Callable,
     Each,
     each,
     Func,
@@ -27,6 +26,7 @@ import {
 import {
     Comparable
 } from '@benzed/immutable'
+import { Function } from '@benzed/traits'
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any
@@ -116,7 +116,7 @@ enum FindFlag {
 
 //// Implementation ////
 
-const Find = class NodeFinder extends Callable<Func> {
+const Find = class NodeFinder extends Function<Func> {
 
     constructor(
         readonly source: Node,

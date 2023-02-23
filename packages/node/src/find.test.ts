@@ -58,7 +58,7 @@ describe('inDescendents', () => {
 
     test('inDescendents.all', () => {
         const find = new Find(you)
-        expect(find.inDescendents.all((p: any) => PublicNode.is(p) && p.constructor.name.includes('Grand')))
+        expect(find.inDescendents.all((p: unknown) => PublicNode.is(p) && p.constructor.name.includes('Grand')))
             .toEqual([you.son.grandDaughter, you.son.grandDaughter.greatGrandSon])
     })
 

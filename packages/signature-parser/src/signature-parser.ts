@@ -1,15 +1,17 @@
-import { Callable } from '.'
-import { NamesOf } from '../each'
-import { eachIndex } from '../each/index-generator'
-
 import { 
+    NamesOf, 
+    eachIndex,
     Compile, 
     GenericObject, 
     isRecord, 
     Merge, 
     nil,
     TypeGuard
-} from '../types'
+} from '@benzed/util'
+
+import {
+    Function
+} from '@benzed/traits'
 
 //// EsLint ////
 /* eslint-disable 
@@ -76,7 +78,7 @@ class SignatureParser<
     D extends Partial<Defaults<T>>,
     L extends Layout<T>[] = []
 >
-    extends Callable<(...signature: Signature<T,L>) => Result<T, D>> {
+    extends Function<(...signature: Signature<T,L>) => Result<T, D>> {
 
     static merge<P extends AnySignatureParser[]>(...parsers: P): MergedSignatureParser<P> {
         return new MergedSignatureParser(...parsers)
@@ -166,7 +168,7 @@ type Results<P extends AnySignatureParser> =
 
 class MergedSignatureParser<P extends AnySignatureParser[]>
 
-    extends Callable<(...signature: Signatures<P[number]>) => Results<P[number]>>{
+    extends Function<(...signature: Signatures<P[number]>) => Results<P[number]>>{
 
     readonly parsers: P 
 
