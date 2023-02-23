@@ -1,17 +1,16 @@
 import { 
     copy, 
-    equals, 
+    PublicStructural, 
     Stateful, 
     StructState,
     StructStateApply, 
     StructStatePath, 
     StructStateUpdate, 
-    Structural 
 } from '@benzed/immutable'
 
-import { Each, Infer, isString, nil, omit, pick } from '@benzed/util'
-import { AssertNode, FindNode, HasNode } from '../find'
-import { NodePath } from '../path'
+import { Mutate, Mutator, Trait } from '@benzed/traits'
+
+import { Infer, isFunc, omit, pick } from '@benzed/util'
 
 import { Node, PublicNode } from '../traits'
 
@@ -86,40 +85,42 @@ interface NodeTableBuilder<R extends NodeRecord> extends PublicNode {
 
 //// Main ////
 
-// TODO FIXME HACK: Redo all this with a mutator:
-// const NodeTableBuilder = class extends Traits.use(Mutator, PublicNode, PublicStructural) {
-//      readonly [Mutator.target]
-//      constructor(table) { super(); this[Mutator.target] = table }
-//      pick()
-//      omit()
-//      merge()
-// }
+const NodeTableBuilder = (class extends Trait.add(Mutator<NodeTable<NodeRecord>>, PublicNode, PublicStructural) {
 
-const NodeTableBuilder = class {
-
-    get [Node.parent](): Node | nil {
-        return this.table[Node.parent]
+    get [Stateful.key]() {
+        return this[Mutate.target][Stateful.key]
     }
 
-    constructor(readonly table: NodeTable<NodeRecord>) { }
+    set [Stateful.key](state) {
+        this[Mutate.target][Stateful.key] = state
+    }
 
-    // Table Build
+    override [Mutate.get](builder: any, key: any, value: any): any {
+        const result = super[Mutate.get](builder, key, value)
+
+        // rebase any PublicNode or PublicStructural interface methods
+        // that are on the builder onto to the target
+        return isFunc(result)
+            ? result.bind(builder[Mutate.target])
+            : result
+    }
+
     pick(...keys: PropertyKey[]): NodeTable<NodeRecord> {
-        const record = copy(this.table[Stateful.key]) as any
+        const record = copy(this[Stateful.key]) as any
         return new NodeTable(
             pick(record, ...keys) as NodeRecord
         )
     }
 
     omit(...keys: PropertyKey[]): NodeTable<NodeRecord> {
-        const record = copy(this.table[Stateful.key]) as any
+        const record = copy(this[Stateful.key]) as any
         return new NodeTable(
             omit(record, ...keys) as NodeRecord
         )
     }
 
     merge(newRecord: NodeRecord): NodeTable<NodeRecord> {
-        const oldRecord = copy(this.table[Stateful.key]) as any
+        const oldRecord = copy(this[Stateful.key]) as any
         return new NodeTable(
             {
                 ...oldRecord,
@@ -128,98 +129,7 @@ const NodeTableBuilder = class {
         )
     }
 
-    // Struct Build
-    apply(...args: any[]): NodeTable<NodeRecord> {
-        return Structural.apply(
-            this.table, 
-            ...args as any
-        ) as NodeTable<NodeRecord>
-    }
-
-    update(...args: any[]): NodeTable<NodeRecord> {
-        return Structural.update(
-            this.table, 
-            ...args as any
-        ) as NodeTable<NodeRecord>
-    }
-
-    get(...args: any[]): NodeTable<NodeRecord> {
-        return Structural.getIn(
-            this.table, 
-            ...args as any
-        ) as NodeTable<NodeRecord>
-    }
-
-    copy(): NodeTable<NodeRecord> {
-        return copy(this.table)
-    }
-
-    equals(input: unknown): input is NodeTable<NodeRecord> {
-        return equals(this.table, input)
-    }
-
-    // Public Node
-
-    get name(): string {
-        const name = Node.getPath(this.table).at(-1)
-        return isString(name) 
-            ? name 
-            : this.table.constructor.name
-    }
-
-    get path(): NodePath {
-        return Node.getPath(this.table)
-    }
-
-    get root(): Node {
-        return Node.getRoot(this.table)
-    }
-
-    get parent(): Node | nil {
-        return Node.getParent(this.table)
-    }
-
-    get children(): Node[] {
-        return Array.from(this.eachChild())
-    }
-
-    get find(): FindNode {
-        return Node.find(this.table)
-    }
-
-    get has(): HasNode {
-        return Node.has(this.table)
-    }
-
-    get assert(): AssertNode {
-        return Node.assert(this.table)
-    }
-
-    eachChild(): Each<Node> {
-        return Node.eachChild(this.table)
-    }
-
-    eachParent(): Each<Node> {
-        return Node.eachParent(this.table)
-    }
-
-    eachSibling(): Each<Node> {
-        return Node.eachSibling(this.table)
-    }
-
-    eachAncestor(): Each<Node> {
-        return Node.eachAncestor(this.table)
-    }
-
-    eachDescendent(): Each<Node> {
-        return Node.eachDescendent(this.table)
-    }
-
-    eachNode(): Each<Node> {
-        return Node.eachNode(this.table)
-    }
-
-} as unknown as new <R extends NodeRecord>(record: R) => NodeTableBuilder<R>
+}) as unknown as new <R extends NodeRecord>(record: R) => NodeTableBuilder<R>
 
 //// Exports ////
 

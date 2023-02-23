@@ -35,8 +35,9 @@ interface NodeTableMethod<T extends NodeRecord> {
 
 //// Helper ////
 
-function updateTable(this: NodeTable<NodeRecord>, update: Func) {
-    return update(new NodeTableBuilder(this as unknown as NodeRecord))
+function useNodeTableBuilder(this: NodeTable<NodeRecord>, update: Func) {
+    const builder = new NodeTableBuilder(this)
+    return update(builder)
 }
 
 //// Main ////
@@ -53,7 +54,7 @@ const NodeTable = class NodeTable extends Traits.use(Callable, Node, Structural)
     }
 
     get [Callable.signature]() {
-        return updateTable
+        return useNodeTableBuilder
     }
 
     //// State ////
