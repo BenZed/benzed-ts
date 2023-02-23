@@ -23,12 +23,44 @@ function isInstanceOfCallable(this: Func, instance: unknown): boolean {
     return false
 }
 
-//// Exports ////
+//// Main ////
 
-abstract class Callable<F extends Func> extends Trait {
+type Callable<F extends Func> = Trait & F & {
+
+    readonly [$$context]: unknown
+
+    get [$$signature](): F
+
+    get name(): string
+
+}
+
+interface CallableStaticProperties {
+
+    /**
+     * Implement this method on the callable instance
+     * to retreive it's call signature
+     */
+    readonly signature: typeof $$signature
+
+    /**
+     * The outer 'this' of the calling signature
+     */
+    readonly context: typeof $$context
+    
+    is<F extends Func>(input: unknown): input is Callable<F>
+}
+
+type CallableConstructor = abstract new <F extends Func>() => Callable<F>
+
+//// Callable ////
+
+const Callable = class extends Trait {
 
     static readonly signature: typeof $$signature = $$signature
     static readonly context: typeof $$context = $$context
+
+    //// Static ////
 
     static [Trait.onUse](constructor: Func) {
         // Makes instanceof work (more or less) on objects implementing the Callable trait
@@ -66,35 +98,10 @@ abstract class Callable<F extends Func> extends Trait {
         isKeyed($$context)
     )
 
-    protected readonly [$$context]: unknown
+} as CallableConstructor & CallableStaticProperties
 
-    protected abstract get [$$signature](): F
-
-    get name(): string {
-        return this.constructor.name
-    }
-
-}
-
-export const CallableConstructor = Callable as unknown as (
-    abstract new <F extends Func>() => Callable<F> & F
-) & {
-
-    /**
-     * Implement this method on the callable instance
-     * to retreive it's call signature
-     */
-    readonly signature: typeof $$signature
-
-    /**
-     * The outer 'this' of the calling signature
-     */
-    readonly context: typeof $$context
-
-    is<F extends Func>(input: unknown): input is Callable<F>
-
-}
+//// Export ////
 
 export {
-    CallableConstructor as Callable
+    Callable
 }

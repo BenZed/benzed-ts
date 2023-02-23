@@ -1,6 +1,5 @@
-import { Callable, RemainingParams } from '../classes'
-import { bind } from '../methods'
-import { Func, nil, isPromise } from '../types'
+import { Func, nil, isPromise } from '@benzed/util'
+import { Callable, Trait } from '@benzed/traits'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -28,8 +27,8 @@ type IterableTransformer<T extends Func> = Transformer<T> & Iterable<T>
 type InputOf<F extends Func> = F extends (input: infer I, ...params: any) => unknown ? I : unknown
 type OutputOf<F extends Func> = F extends (...params: any) => infer O ? O : unknown
 
-type ResolveAsyncOutput<I,O> = I extends Promise<any> 
-    ? Promise<O>
+type ResolveAsyncOutput<I, O> = I extends Promise<any> 
+    ? Promise<Awaited<O>>
     : O
 
 type AnyTransform = ParamTransform<unknown,unknown,unknown[]>
@@ -54,7 +53,9 @@ interface Pipe<I = unknown, O = unknown> extends IterableTransformer<Transform<I
      * Append another transformation onto the end of this pipe.
      */
     to<Ox>(transform: Transform<Awaited<O>, Ox>): Pipe<I, ResolveAsyncOutput<O, Ox>>
-    to<Ox, P extends unknown[]>(transform: ParamTransform<Awaited<O>, Ox, P>): ParamPipe<I, ResolveAsyncOutput<O, Ox>, P>
+    to<Ox, P extends unknown[]>(
+        transform: ParamTransform<Awaited<O>, Ox, P>
+    ): ParamPipe<I, ResolveAsyncOutput<O, Ox>, P>
 
     /**
      * Prepend a transformation onto the beginning of this pipe.
@@ -103,13 +104,18 @@ interface PipeConstructor {
     /** 
      * Create a pipe from a multiple transform methods with the same type as input and output.
      */
-    from<T>(...transforms: Transform<T,T>[]): Pipe<T,T>
     from<I, O>(transform: Transform<Awaited<I>, O>): Pipe<I, O>
     from<I, O, P extends unknown[]>(transform: ParamTransform<Awaited<I>, O, P>): P extends [] 
         ? Pipe<I, O>
         : ParamPipe<I, O, P>
+    from<T>(...transforms: Transform<Awaited<T>,T>[]): Pipe<T,T>
 
 }
+
+export type RemainingParams<F extends (input: any, ...args: any) => any> = 
+    Parameters<F> extends [any, ...infer P]
+        ? P
+        : Parameters<F>
 
 //// Resolve ////
 
@@ -125,8 +131,14 @@ function resolveTransforms(
         const transform = transforms.pop() as AnyTransform
 
         const transformed = transform.call(ctx, input, ...params)
-        if (isPromise(transformed))
-            return transformed.then(output => resolveTransforms(transforms, ctx, output, ...params))
+        if (isPromise(transformed)) {
+            return transformed.then(output => resolveTransforms(
+                transforms, 
+                ctx, 
+                output, 
+                ...params)
+            )
+        }
 
         input = transformed
     }
@@ -134,9 +146,28 @@ function resolveTransforms(
     return input
 }
 
+function transform(this: Pipe<unknown>, input: unknown, ...params: unknown[]): unknown {
+
+    const pipe = this as unknown as { _bound?: { ctx: unknown }, transforms: Transform[] } & Callable<Func>
+
+    const ctx = pipe._bound
+        ? pipe._bound.ctx
+        : pipe[Callable.context]
+
+    const transforms = Array.from(pipe.transforms).reverse() as AnyTransform[]
+
+    return resolveTransforms(
+        transforms, 
+        ctx, 
+        input, 
+        ...params  
+    )
+
+}
+
 //// Main ////
 
-const Pipe = (class extends Callable<Func> {
+const Pipe = (class extends Trait.use(Callable<Func>) {
 
     static expression(input: unknown): PipeExpression<unknown> {
         const pipe = new Pipe([() => input], nil, true)
@@ -190,25 +221,12 @@ const Pipe = (class extends Callable<Func> {
         private readonly _bound?: { ctx: unknown }, 
         private readonly _expression = false
     ) {
-        super(
-            function transform(this: [unknown, Pipe], input: unknown, ...params: unknown[]): unknown {
-
-                const [ ctx, pipe ] = this
-
-                const transforms = Array.from(pipe.transforms).reverse() as AnyTransform[]
-
-                return resolveTransforms(
-                    transforms, 
-                    ctx, 
-                    input, 
-                    ...params  
-                )
-
-            },
-            (ctx, pipe) => [ _bound ? _bound.ctx : ctx, pipe ]
-        )
-
+        super()
         this.transforms = Pipe.flatten(transforms)
+    }
+
+    get [Callable.signature]() {
+        return transform
     }
 
     to(transform: AnyTransform, ...args: unknown[]): Pipe {
@@ -232,7 +250,7 @@ const Pipe = (class extends Callable<Func> {
         if (this._bound)
             throw new Error(`${this.constructor.name} is already bound.`)
 
-        return new Pipe(this.transforms, { ctx })
+        return new Pipe(this.transforms, { ctx }, this._expression)
     }
 
     *[Symbol.iterator](): Iterator<AnyTransform> {
