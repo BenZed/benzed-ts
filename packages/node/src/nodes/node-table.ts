@@ -1,6 +1,6 @@
 import { Stateful, Structural } from '@benzed/immutable'
-import { assign, Callable, Func, omit } from '@benzed/util'
-import { Traits } from '@benzed/traits'
+import { assign, Func, omit } from '@benzed/util'
+import { Callable, Traits } from '@benzed/traits'
 
 import { Node } from '../traits'
 
@@ -33,19 +33,27 @@ interface NodeTableMethod<T extends NodeRecord> {
     <F extends (builder: NodeTableBuilder<T>) => NodeTable<any>>(update: F): ReturnType<F>
 }
 
+//// Helper ////
+
+function updateTable(this: NodeTable<NodeRecord>, update: Func) {
+    return update(new NodeTableBuilder(this as unknown as NodeRecord))
+}
+
 //// Main ////
 
 /**
  * NodeTable is an immutable structure with a call signature providing an interface
  * for static updates.
  */
-const NodeTable = class NodeTable extends Traits.add(Callable<Func>, Node, Structural) {
+const NodeTable = class NodeTable extends Traits.use(Callable, Node, Structural) {
 
     constructor(children: NodeRecord) {
-        super(function updateTable(this: NodeTable, update: Func) {
-            return update(new NodeTableBuilder(this as unknown as NodeRecord))
-        })
+        super()
         this[Stateful.key] = children
+    }
+
+    get [Callable.signature]() {
+        return updateTable
     }
 
     //// State ////

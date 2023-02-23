@@ -1,4 +1,4 @@
-import { isShape, isFunc, AnyTypeGuard, Callable } from '@benzed/util'
+import { isShape, isFunc, AnyTypeGuard } from '@benzed/util'
 import { Trait } from '@benzed/traits'
 
 //// Symbol ////
@@ -20,18 +20,7 @@ abstract class Copyable extends Trait {
      * transferred.
      */
     static createFromProto<T extends object>(object: T): T {
-
-        let clone = Object.create(object.constructor.prototype)
-
-        // TODO I would prefer if Callable was it's own trait.
-        if (isFunc(object)) {
-            clone = Callable.create(
-                Callable.signatureOf(object),
-                clone,
-                Callable.contextProviderOf(object)
-            )
-        }
-
+        const clone = Object.create(object.constructor.prototype)
         return Trait.apply(clone)
     }
 
