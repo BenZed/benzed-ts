@@ -1,5 +1,6 @@
 import { capitalize, words } from '@benzed/string'
-import { isNumber, isString, pipe } from '@benzed/util'
+import { isNumber, isString } from '@benzed/util'
+import { pipe } from '@benzed/pipe'
 
 //// Type ////
 

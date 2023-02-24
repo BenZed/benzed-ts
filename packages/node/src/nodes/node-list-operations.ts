@@ -1,4 +1,4 @@
-import { copy, StructStatePath } from '@benzed/immutable'
+import { copy } from '@benzed/immutable'
 import { 
     Indexes, 
     IndexesOf, 

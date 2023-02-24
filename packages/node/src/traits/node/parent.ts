@@ -5,7 +5,7 @@ import {
     nil
 } from '@benzed/util'
 
-import type { Node } from './traits'
+import type { Node } from './node'
 
 //// Symbol ////
 

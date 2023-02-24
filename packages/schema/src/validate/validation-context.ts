@@ -1,14 +1,15 @@
 
 import { Traits } from '@benzed/traits'
 import { Node } from '@benzed/node'
-import { nil } from '@benzed/util'
 
 import type { ValidateOptions } from './validate'
 
-import {
-    ValidationError,
-    ValidationErrorDetail
+import { 
+    ValidationError, 
+    ValidationErrorDetail 
 } from './validation-error'
+
+import { define, each, isNil, nil } from '@benzed/util'
 
 //// Types ////
 
@@ -52,7 +53,7 @@ class ValidationContext<I, O extends I> extends Traits.use(Node) implements Vali
     readonly transform: boolean
 
     /**
-     * Optional key to associate with the validated value,
+     * Optional key or index to associate with the validated value,
      * useful for sub validations of container values.
      */
     readonly key?: PropertyKey
@@ -62,7 +63,7 @@ class ValidationContext<I, O extends I> extends Traits.use(Node) implements Vali
         this.input = input
         this.transformed = input
         this.transform = options?.transform ?? true
-        this._sub = {}
+        this.key = options?.key
     }
 
     setOutput(output: O): this {
@@ -81,18 +82,36 @@ class ValidationContext<I, O extends I> extends Traits.use(Node) implements Vali
         return this
     }
 
-    get super(): ValidationContext<unknown, unknown> | nil {
+    get superContext(): ValidationContext<unknown, unknown> | nil {
         return Node.getParent(this) as ValidationContext<unknown,unknown> | nil
     }
 
-    private _sub: Record<PropertyKey, UnknownValidationContext> = {}
+    get subContexts(): Record<PropertyKey, UnknownValidationContext> {
 
-    setSub<Ix, Ox extends Ix>(input: Ix, options: Required<ValidateOptions>): ValidationContext<Ix,Ox> {
+        const subContexts: Record<PropertyKey, UnknownValidationContext> = {}
 
-        const { key } = options
+        for (const context of each.valueOf(Node.getChildren(this))) {
+            if (!(context instanceof ValidationContext) || isNil(context.key))
+                continue
 
-        const sub = this._sub[key] = new ValidationContext<Ix,Ox>(input, options)
-        return sub
+            subContexts[context.key] = context as UnknownValidationContext
+        }
+
+        return subContexts
+    }
+
+    pushSubContext<Ix, Ox extends Ix>(
+        input: Ix, 
+        options: Required<ValidateOptions>
+    ): ValidationContext<Ix,Ox> {
+
+        const subContext = new ValidationContext<Ix,Ox>(input, options)
+
+        const children = Node.getChildren(this)
+        const nextIndex = each.keyOf(children).count
+        define.hidden(this, nextIndex, subContext)
+
+        return subContext
     }
 
 }

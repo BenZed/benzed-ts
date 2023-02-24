@@ -26,6 +26,7 @@
         "@benzed/array": "^3.2.3",
         "@benzed/traits": "^1.0.0",
         "@benzed/string": "^3.2.3",
-        "@benzed/node": "^1.0.0"
+        "@benzed/node": "^1.0.0",
+        "@benzed/pipe": "^1.0.0"
     }
 }

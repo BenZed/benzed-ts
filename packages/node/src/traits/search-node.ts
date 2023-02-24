@@ -1,8 +1,7 @@
 
 import { isIntersection, isObject, isShape } from '@benzed/util'
 
-import { Node } from './node'
-import { AssertNode, FindNode as FindNode, HasNode } from '../find'
+import { Node, AssertNode, FindNode as FindNode, HasNode } from './node'
 
 //// Main ////
 
