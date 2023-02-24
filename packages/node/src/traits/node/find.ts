@@ -29,78 +29,79 @@ import {
 
 //// Helper Types////
 
-type AnyNodeTrait = {
-    is(input: unknown): input is Node
+type NodeTrait<N extends Node = Node> = {
+    is(input: unknown): input is N
 }
-type AnyNodeTypeGuard = TypeGuard<Node, Node>
-type AnyNodePredicate = (input: Node) => Node | boolean
+
+type NodeTypeGuard<N extends Node = Node> = TypeGuard<N, N>
+type NodePredicate<N extends Node = Node> = (input: N) => N | boolean
 
 //// Types ////
 
-type FindInput = Node | AnyNodePredicate | AnyNodeTypeGuard | AnyNodeTrait
-type FindOutput<I extends FindInput> = 
+type FindInput<N extends Node = Node> = N | NodePredicate<N> | NodeTypeGuard<N> | NodeTrait<N>
+type FindOutput<I extends FindInput<any>> = 
     I extends TypeGuard<infer Mx, Node>
         ? Mx 
         : I extends (input: Node) => infer M 
             ? Exclude<M extends Node ? M : Node, nil>
-            : I extends AnyNodeTrait
+            : I extends NodeTrait<Node>
                 ? TypeOf<I['is']>
                 : I extends Node 
                     ? I
                     : never
 
-interface FindNode {
+interface FindNode<N extends Node> {
 
-    <I extends FindInput>(input: I): FindOutput<I> | nil
-    get inChildren(): FindNode
-    get inSiblings(): FindNode
-    get inDescendents(): FindNode
-    get inParents(): FindNode
-    get inAncestors(): FindNode
-    get inNodes(): FindNode
-    get or(): FindNode
-    get all(): FindNodes
+    <I extends FindInput<N>>(input: I): FindOutput<I> | nil
+    get inChildren(): FindNode<N>
+    get inSiblings(): FindNode<N>
+    get inDescendents(): FindNode<N>
+    get inParents(): FindNode<N>
+    get inAncestors(): FindNode<N>
+    get inNodes(): FindNode<N>
+    get or(): FindNode<N>
+    get all(): FindNodes<N>
 
 }
 
-interface FindNodes {
-    <I extends FindInput>(input: I): FindOutput<I>[]
-    get inChildren(): FindNodes
-    get inSiblings(): FindNodes
-    get inDescendents(): FindNodes
-    get inParents(): FindNodes
-    get inAncestors(): FindNodes
-    get inNodes(): FindNodes
-    get or(): FindNodes
+interface FindNodes<N extends Node> {
+    <I extends FindInput<N>>(input: I): FindOutput<I>[]
+    get inChildren(): FindNodes<N>
+    get inSiblings(): FindNodes<N>
+    get inDescendents(): FindNodes<N>
+    get inParents(): FindNodes<N>
+    get inAncestors(): FindNodes<N>
+    get inNodes(): FindNodes<N>
+    get or(): FindNodes<N>
 }
 
-interface HasNode {
-    <I extends FindInput>(input: I): boolean
-    get inChildren(): HasNode
-    get inSiblings(): HasNode
-    get inDescendents(): HasNode
-    get inParents(): HasNode
-    get inAncestors(): FindNodes
-    get inNodes(): FindNodes
-    get or(): HasNode
+interface HasNode<N extends Node> {
+    <I extends FindInput<N>>(input: I): boolean
+    get inChildren(): HasNode<N>
+    get inSiblings(): HasNode<N>
+    get inDescendents(): HasNode<N>
+    get inParents(): HasNode<N>
+    get inAncestors(): FindNodes<N>
+    get inNodes(): FindNodes<N>
+    get or(): FindNodes<N>
 }
 
-interface AssertNode {
-    <I extends FindInput>(input: I, error?: string): FindOutput<I>
-    get inChildren(): AssertNode
-    get inSiblings(): AssertNode
-    get inDescendents(): AssertNode
-    get inParents(): AssertNode
-    get inAncestors(): AssertNode
-    get inNodes(): AssertNode
-    get or(): AssertNode
+interface AssertNode<N extends Node> {
+    <I extends FindInput<N>>(input: I, error?: string): FindOutput<I>
+    get inChildren(): AssertNode<N>
+    get inSiblings(): AssertNode<N>
+    get inDescendents(): AssertNode<N>
+    get inParents(): AssertNode<N>
+    get inAncestors(): AssertNode<N>
+    get inNodes(): AssertNode<N>
+    get or(): AssertNode<N>
 }
 
 interface FindConstructor {
-    new (source: Node): FindNode
-    new (source: Node, flag: FindFlag.All): FindNodes
-    new (source: Node, flag: FindFlag.Assert): AssertNode
-    new (source: Node, flag: FindFlag.Has): HasNode
+    new <N extends Node>(source: N): FindNode<N>
+    new <N extends Node>(source: N, flag: FindFlag.All): FindNodes<N>
+    new <N extends Node>(source: N, flag: FindFlag.Assert): AssertNode<N>
+    new <N extends Node>(source: N, flag: FindFlag.Has): HasNode<N>
 }
 
 enum FindFlag {
@@ -222,12 +223,12 @@ const Find = class NodeFinder extends Function<Func> {
 //// Helper ////
 
 // TODO should be exchanged with 'isGuardedConstructor'
-const isNodeTrait: (input: unknown) => input is AnyNodeTrait = 
+const isNodeTrait: (input: unknown) => input is NodeTrait = 
     isShape({
         is: isFunc as AnyTypeGuard
     })
 
-function toNodePredicate(input: FindInput): AnyNodeTypeGuard | AnyNodePredicate {
+function toNodePredicate(input: FindInput): NodeTypeGuard | NodePredicate {
 
     if (isNodeTrait(input))
         return input.is

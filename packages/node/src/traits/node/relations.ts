@@ -1,8 +1,7 @@
 import { Each, each, GenericObject } from '@benzed/util'
 
-import { Node } from '.'
-
-import { $$parent, getParent, isNode } from './parent'
+import { $$parent, getParent } from './parent'
+import { Node } from './node'
 
 //// Helper ////
 
@@ -22,8 +21,8 @@ export function getChildren<T extends Node>(node: T): Children<T> {
 
     const children: GenericObject = {}
 
-    for (const key of each.keyOf(node)) {
-        if (isNode(node[key]) && key !== $$parent)
+    for (const [key, descriptor] of each.defined.descriptorOf(node)) { 
+        if (key !== $$parent && Node.is(descriptor.value))
             children[key] = node[key]
     }
 
@@ -49,7 +48,6 @@ export function eachParent<T extends Node>(node: T): Each<Node> {
             parent = getParent(parent)
         }
     })
-
 }
 
 export function eachSibling<T extends Node>(node: T): Each<Node> {

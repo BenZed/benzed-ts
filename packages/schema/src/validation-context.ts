@@ -1,15 +1,13 @@
-
 import { Traits } from '@benzed/traits'
-import { Node } from '@benzed/node'
+import { define, each, isNil, nil } from '@benzed/util'
+import { AssertNode, FindNode, HasNode, Node } from '@benzed/node'
 
 import type { ValidateOptions } from './validate'
 
-import { 
-    ValidationError, 
-    ValidationErrorDetail 
+import {
+    ValidationError,
+    ValidationErrorDetail
 } from './validation-error'
-
-import { define, each, isNil, nil } from '@benzed/util'
 
 //// Types ////
 
@@ -27,7 +25,9 @@ type UnknownValidationContext = ValidationContext<unknown,unknown>
 /**
  * An object containing data related to a validation call.
  */
-class ValidationContext<I, O extends I> extends Traits.use(Node) implements ValidateOptions {
+class ValidationContext<I, O extends I>
+    extends Traits.use(Node)
+    implements ValidateOptions {
 
     /**
      * Input received by the current validation
@@ -82,11 +82,11 @@ class ValidationContext<I, O extends I> extends Traits.use(Node) implements Vali
         return this
     }
 
-    get superContext(): ValidationContext<unknown, unknown> | nil {
-        return Node.getParent(this) as ValidationContext<unknown,unknown> | nil
+    get superContext() {
+        return Node.getParent(this) as UnknownValidationContext | nil
     }
 
-    get subContexts(): Record<PropertyKey, UnknownValidationContext> {
+    get subContexts() {
 
         const subContexts: Record<PropertyKey, UnknownValidationContext> = {}
 
@@ -94,7 +94,7 @@ class ValidationContext<I, O extends I> extends Traits.use(Node) implements Vali
             if (!(context instanceof ValidationContext) || isNil(context.key))
                 continue
 
-            subContexts[context.key] = context as UnknownValidationContext
+            subContexts[context.key] = context
         }
 
         return subContexts
@@ -108,10 +108,22 @@ class ValidationContext<I, O extends I> extends Traits.use(Node) implements Vali
         const subContext = new ValidationContext<Ix,Ox>(input, options)
 
         const children = Node.getChildren(this)
-        const nextIndex = each.keyOf(children).count
+        const nextIndex = each.keyOf(children).count()
         define.hidden(this, nextIndex, subContext)
 
         return subContext
+    }
+
+    get findContext() {
+        return Node.find(this) as FindNode<UnknownValidationContext>
+    }
+
+    get hasContext() {
+        return Node.has(this) as HasNode<UnknownValidationContext>
+    }
+
+    get assertContext() {
+        return Node.assert(this) as AssertNode<UnknownValidationContext>
     }
 
 }

@@ -1,6 +1,8 @@
 import { describe, expect, test } from '@jest/globals'
 import ValidationError from './validation-error'
 
+//// Ferns Grow ////
+
 test('can be constructed with value, key, and detail', () => {
     const error = new ValidationError({
         value: { foo: 1 },
@@ -67,6 +69,7 @@ describe('detail object', () => {
         expect(typeof error.detail).toBe('object')
     })
 })
+
 describe('detail array', () => {
 
     const error = new ValidationError({

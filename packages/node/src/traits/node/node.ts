@@ -61,15 +61,15 @@ abstract class Node extends Trait {
 
     static readonly getPath = getPath
 
-    static find(node: Node): FindNode {
+    static find<N extends Node>(node: N): FindNode<N> {
         return new Find(node)
     }
 
-    static has(node: Node): HasNode {
+    static has<N extends Node>(node: N): HasNode<N> {
         return new Find(node, FindFlag.Has)
     }
 
-    static assert(node: Node): AssertNode {
+    static assert<N extends Node>(node: N): AssertNode<N> {
         return new Find(node, FindFlag.Assert)
     }
 

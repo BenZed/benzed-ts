@@ -156,7 +156,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
     }
 
     get length(): N['length'] {
-        return each.nameOf(this).count
+        return each.nameOf(this).count()
     }
 
     //// State ////
@@ -173,7 +173,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
         // normalize state object vs array
         
         const state = { ...children } as any
-        const length = each.keyOf(state).count
+        const length = each.keyOf(state).count()
         
         // deep apply
         

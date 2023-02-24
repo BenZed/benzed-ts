@@ -63,18 +63,9 @@ export const isObject = <T extends object = object>(input: unknown): input is T 
     isFunc(input) || input !== null && typeof input === 'object'
 
 export function isKeyed<K extends PropertyKey[]>(...keys: K): (input: unknown) => input is Record<K[number], unknown> {
-    return (input: unknown): input is Record<K[number], unknown> => {
-        if (!isObject(input)) 
-            return false
-          
-        for (const key of keys) {
-            if (!(key in input)) 
-                return false
-                
-        }
-          
-        return true
-    }
+    return (input: unknown): input is Record<K[number], unknown> =>
+        isObject(input) && 
+        keys.every(key => key in input)
 }
 
 export const isGenericObject = (i: unknown): i is GenericObject =>

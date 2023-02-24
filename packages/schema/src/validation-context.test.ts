@@ -1,8 +1,8 @@
 import { ValidationContext } from './validation-context'
+import { ValidationError } from './validation-error'
 
 import { it } from '@jest/globals'
-import { each, nil } from '@benzed/util'
-import ValidationError from './validation-error'
+import { nil } from '@benzed/util'
 import { Node } from '@benzed/node'
 
 //// Tests ////
@@ -81,7 +81,7 @@ describe('Node trait usage', () => {
     test('subContexts', () => {
         expect(objCtx.subContexts).toEqual({
             foo: fooCtx
-        }) 
+        })
     })
 
 })

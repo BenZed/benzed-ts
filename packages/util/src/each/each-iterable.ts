@@ -54,7 +54,7 @@ export class EachIterable<T> {
         return this.toArray().filter(filterer)
     }
 
-    get count(): number {
+    count(): number {
         return this.toArray().length
     }
 

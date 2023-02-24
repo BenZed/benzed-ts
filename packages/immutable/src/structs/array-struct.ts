@@ -72,7 +72,7 @@ class ArrayStruct<T> extends Traits.use(PublicStructural) implements Iterable<T>
     //// Interface ////
 
     get length(): number {
-        return each.nameOf(this).count
+        return each.nameOf(this).count()
     }
 
     at(index: number): T | nil {

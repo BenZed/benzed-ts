@@ -1,4 +1,3 @@
-import type { InputOf, OutputOf } from '@benzed/util'
 
 //// Eslint ////
 
@@ -32,11 +31,13 @@ export interface Validate<I, O extends I = I> {
 /**
  * Input type of a validate method
  */
-export type ValidateInput<V extends AnyValidate> = InputOf<V>
+export type ValidateInput<V extends AnyValidate> = 
+    V extends (first: infer I, ...args: any) => any ? I : unknown
 
 /**
  * Output type of a validate method
  */
-export type ValidateOutput<V extends AnyValidate> = OutputOf<V>
+export type ValidateOutput<V extends AnyValidate> =
+    V extends (...args: any) => infer O ? O : unknown
 
 export type AnyValidate = Validate<any>

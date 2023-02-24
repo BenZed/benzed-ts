@@ -5,7 +5,7 @@ import { test, expect, describe } from '@jest/globals'
 import { Trait } from '@benzed/traits'
 
 //// Setup ////
-
+ 
 class Person extends Trait.use(Node) {
     get name() {
         return this.constructor.name
