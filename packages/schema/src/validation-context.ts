@@ -42,7 +42,7 @@ class ValidationContext<I = any, O extends I = I>
     /**
      * Input with transformations applied to it.
      */
-    transformed: I
+    transformed: I | O
 
     /**
      * Should contain an error property if validation failed, and an

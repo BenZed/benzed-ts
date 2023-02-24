@@ -41,6 +41,10 @@ export class EachIterable<T> {
     toArray(): T[] {
         return Array.from(this)
     }
+
+    filter<F extends ArrayMethod<T, boolean>>(filterer: F): T[] {
+        return this.toArray().filter(filterer)
+    }
         
     map<F extends ArrayMethod<T>>(mapper: F): ReturnType<F>[] {
         return this.toArray().map(mapper) as ReturnType<F>[]
@@ -49,9 +53,16 @@ export class EachIterable<T> {
     do(withEach: ArrayMethod<T, void | unknown>): void {
         return this.toArray().forEach(withEach)
     }
-        
-    filter<F extends ArrayMethod<T, boolean>>(filterer: F): T[] {
-        return this.toArray().filter(filterer)
+
+    find<Tx extends T>(predicate: (value: T) => value is Tx): Tx | nil
+    find(predicate: (value: T) => boolean): T | nil {
+
+        for (const item of this) {
+            if (predicate(item))
+                return item
+        }
+
+        return nil
     }
 
     count(): number {

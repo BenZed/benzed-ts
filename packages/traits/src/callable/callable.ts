@@ -16,7 +16,7 @@ import { Trait } from '../trait'
 
 const $$signature = Symbol('callable-signature')
 
-const $$context = Symbol('callable-context')
+export const $$context = Symbol('callable-context')
 
 //// Helper ////
 

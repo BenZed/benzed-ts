@@ -4,7 +4,7 @@ import { eachObjectInPrototypeChain, eachValue } from './generators'
 import { EachEnumerableInheritedKey } from './each-key-interface'
 import { eachIndex, Indexable, IndexesOf, IndexesOfOptionsSignature } from './index-generator'
 import { isArrayLike, isIterable } from '../types/guards'
-import { Func, isFunc } from '../types/func'
+import { isFunc } from '../types/func'
 
 //// EsLint ////
 /* eslint-disable 

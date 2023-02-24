@@ -48,23 +48,28 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
     class CompositeConstructor extends base {}
 
     for (const trait of traits) {
+        
+        // Apply any prototypal trait implementations
         for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
             define(CompositeConstructor.prototype, key, descriptor)
 
+        // Apply any trait constructor mutations
         if ($$onUse in trait && isFunc(trait[$$onUse]))
             trait[$$onUse](CompositeConstructor)
     }
 
+    // Composite name
     const name = [...traits, base].map(c => c.name).join('')
-
     define.named(name, CompositeConstructor) 
 
+    // Apply all traits
     define.hidden(
         CompositeConstructor, 
         Traits.onApply, 
         (i: object) => applyTraits(i, traits)
     )
 
+    // Proxy for applying all traits when an instance is constructed
     return new Proxy(CompositeConstructor, {
         construct(constructor, ...args) {
             const instance = Reflect.construct(constructor, ...args)

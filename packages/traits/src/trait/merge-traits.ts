@@ -1,6 +1,6 @@
-import { AnyTypeGuard, each, Intersect, isFunc, isIntersection, isSymbol } from '@benzed/util'
-import { addTraits, AddTraitsConstructor, Composite, useTraits } from './add-traits'
-import { $$onApply, applyTraits, _Traits } from './apply-traits'
+import { AnyTypeGuard, each, Intersect, isFunc, isIntersection } from '@benzed/util'
+import { $$onUse, addTraits, AddTraitsConstructor, Composite, useTraits } from './add-traits'
+import { $$onApply, _Traits } from './apply-traits'
 import { Trait } from './trait'
 
 //// Helper Methods ////
@@ -57,11 +57,11 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstr
     
     ...traits) as MergedTraitsConstructor<T>
 
-    // Add Static Sybols
+    // Add Static Symbols
     for (const trait of traits) {
-        for (const key of each.keyOf(trait)) {
-            if (isSymbol(trait[key]))
-                MergedTraits[key] = trait[key]
+        for (const symbol of each.symbolOf(trait)) {
+            if (symbol !== $$onApply && symbol !== $$onUse)
+                MergedTraits[symbol] = trait[symbol]
         }
     }
 
