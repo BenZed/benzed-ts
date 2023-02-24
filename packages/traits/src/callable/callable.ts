@@ -49,8 +49,8 @@ type Callable<F extends Func> = Trait & F & {
 interface CallableStaticProperties {
 
     /**
-     * Implement this method on the callable instance
-     * to retreive it's call signature
+     * Symbolic key to implement a getter in extended classes
+     * that returns a function to be used as the call signature.
      */
     readonly signature: typeof $$signature
 

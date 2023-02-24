@@ -19,6 +19,17 @@ export function define<T extends object>(object: T, ...args: [PropertyKey, Prope
     return object
 }
 
+/**
+ * Shorthand for defining a 'name' property with the descriptors attributes:
+ * 
+ * ```ts
+ * { 
+ *    writable: true, 
+ *    configurable: true, 
+ *    enumerable: false 
+ * }
+ * ```
+ */
 define.named = function defineName<T extends object>(name: string, object: T): T {
     return define.enumerable(
         object, 
@@ -27,6 +38,17 @@ define.named = function defineName<T extends object>(name: string, object: T): T
     )
 }
 
+/**
+ * Shorthand for defining a value descriptor with attributes: 
+ * 
+ * ```ts
+ * { 
+ *    writable: true, 
+ *    configurable: true, 
+ *    enumerable: true 
+ * }
+ * ```
+ */
 define.enumerable = function defineEnumerable<T extends object>(object: T, key: PropertyKey, value: unknown): T {
     return define(
         object, 
@@ -40,7 +62,18 @@ define.enumerable = function defineEnumerable<T extends object>(object: T, key: 
     )
 }
 
-define.hidden = function defineNonEnumerable<T extends object>(object: T, key: PropertyKey, value: unknown): T {
+/**
+ * Shorthand for defining a value descriptor with attributes: 
+ * 
+ * ```ts
+ * { 
+ *    writable: true, 
+ *    configurable: true, 
+ *    enumerable: false 
+ * }
+ * ```
+ */
+define.nonEnumerable = function defineNonEnumerable<T extends object>(object: T, key: PropertyKey, value: unknown): T {
     return define(
         object, 
         key, 
@@ -52,6 +85,11 @@ define.hidden = function defineNonEnumerable<T extends object>(object: T, key: P
     )
 }
 
+define.hidden = define.nonEnumerable
+
+/**
+ * Shorthand for defining a value descriptor with a getter
+ */
 define.get = function defineGet<T extends object>(object: T, key: PropertyKey, get: () => unknown): T {
     return define(
         object, 
@@ -63,6 +101,9 @@ define.get = function defineGet<T extends object>(object: T, key: PropertyKey, g
     )
 }
 
+/**
+ * Shorthand for defining a value descriptor with a setter
+ */
 define.set = function defineSet<T extends object>(object: T, key: PropertyKey, set: (value: unknown) => void): T {
     return define(
         object, 
@@ -74,6 +115,9 @@ define.set = function defineSet<T extends object>(object: T, key: PropertyKey, s
     )
 }
 
+/**
+ * Shorthand for defining a value descriptor with a getter and setter
+ */
 define.access = function defineAccessor<T extends object>(object: T, key: PropertyKey, get: () => unknown, set: (value: unknown) => void): T {
     return define(
         object, 
@@ -86,6 +130,10 @@ define.access = function defineAccessor<T extends object>(object: T, key: Proper
     )
 }
 
+/**
+ * Assign all of the defined property descriptors on a source object onto the target object.
+ * Optionally include an array of objects in the prototype's source chain not to include.
+ */
 define.transpose = function defineTranspoise<T extends object>(source: object, target: T, blacklist: object[] = []): T {
 
     for (const proto of each.prototypeOf(source).toArray().reverse()) {

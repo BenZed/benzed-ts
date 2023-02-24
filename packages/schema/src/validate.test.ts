@@ -15,6 +15,10 @@ import { testValidator } from './util.test'
 
 //// Setup ////
 
+/**
+ * Test method that implements the Validate interface without
+ * extending the Validate class.
+ */
 const $numeric: Validate<string, `${number}`> = (i, options) => {
     
     const context = new ValidationContext(i, options)

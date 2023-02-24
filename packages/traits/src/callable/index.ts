@@ -1,2 +1,2 @@
 export * from './callable'
-export * from './function'
+export * from './method'

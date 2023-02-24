@@ -9,9 +9,14 @@ import {
     ValidationErrorDetail
 } from './validation-error'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Types ////
 
-type ValidationResult<I,O> =
+type ValidationResult<I = any, O extends I = I> =
     {
         readonly error: ValidationError<I>
     } | {
@@ -25,7 +30,7 @@ type UnknownValidationContext = ValidationContext<unknown,unknown>
 /**
  * An object containing data related to a validation call.
  */
-class ValidationContext<I, O extends I>
+class ValidationContext<I = any, O extends I = I>
     extends Traits.use(Node)
     implements ValidateOptions {
 

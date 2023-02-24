@@ -1,3 +1,4 @@
+import { Method } from '@benzed/traits'
 
 //// Eslint ////
 
@@ -22,22 +23,20 @@ export interface ValidateOptions {
 }
 
 /**
- * A method that takes an input and validate options, returning a valid output.
- */
-export interface Validate<I, O extends I = I> {
-    (input: I, options?: ValidateOptions): O
-}
-
-/**
  * Input type of a validate method
  */
-export type ValidateInput<V extends AnyValidate> = 
+export type ValidateInput<V extends Validate> = 
     V extends (first: infer I, ...args: any) => any ? I : unknown
 
 /**
  * Output type of a validate method
  */
-export type ValidateOutput<V extends AnyValidate> =
+export type ValidateOutput<V extends Validate> =
     V extends (...args: any) => infer O ? O : unknown
 
-export type AnyValidate = Validate<any>
+/**
+ * The validate method takes an input an optionally a set of validate options and
+ * either returns a valid output or throws a validation error.
+ */
+export class Validate<I = any, O extends I = I> 
+    extends Method<(input: I, options?: ValidateOptions) => O> {}

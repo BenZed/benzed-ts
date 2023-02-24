@@ -10,7 +10,7 @@ import {
     TypeOf
 } from '@benzed/util'
 import { Comparable } from '@benzed/immutable'
-import { Function } from '@benzed/traits'
+import { Method } from '@benzed/traits'
 
 import { Node } from './node'
 import { getPath } from './path'
@@ -112,7 +112,7 @@ enum FindFlag {
 
 //// Implementation ////
 
-const Find = class NodeFinder extends Function<Func> {
+const Find = class NodeFinder extends Method<Func> {
 
     constructor(
         readonly source: Node,
