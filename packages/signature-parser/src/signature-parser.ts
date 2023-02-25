@@ -10,7 +10,7 @@ import {
 } from '@benzed/util'
 
 import {
-    Function
+    Method
 } from '@benzed/traits'
 
 //// EsLint ////
@@ -78,7 +78,7 @@ class SignatureParser<
     D extends Partial<Defaults<T>>,
     L extends Layout<T>[] = []
 >
-    extends Function<(...signature: Signature<T,L>) => Result<T, D>> {
+    extends Method<(...signature: Signature<T,L>) => Result<T, D>> {
 
     static merge<P extends AnySignatureParser[]>(...parsers: P): MergedSignatureParser<P> {
         return new MergedSignatureParser(...parsers)
@@ -168,7 +168,7 @@ type Results<P extends AnySignatureParser> =
 
 class MergedSignatureParser<P extends AnySignatureParser[]>
 
-    extends Function<(...signature: Signatures<P[number]>) => Results<P[number]>>{
+    extends Method<(...signature: Signatures<P[number]>) => Results<P[number]>>{
 
     readonly parsers: P 
 
