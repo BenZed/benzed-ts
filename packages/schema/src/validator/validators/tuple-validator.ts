@@ -1,9 +1,8 @@
 
-import { each, nil, toNil } from '@benzed/util'
+import { each } from '@benzed/util'
 import { ValidateOutput } from '../../validate'
 
 import ValidationContext from '../../validation-context'
-import { ValidationErrorDetail } from '../../validation-error'
 import { Validator } from '../validator'
 
 //// Types //// 
@@ -36,28 +35,21 @@ class TupleValidator<T extends TupleInput> extends Validator<unknown[], TupleOut
     [Validator.analyze](ctx: ValidationContext<unknown[], TupleOutput<T>>) {
 
         const output: unknown[] = ctx.transformed = []
-        let errors: ValidationErrorDetail<unknown[]> | nil = nil
 
-        for (const i of each.indexOf(this.positions)) {
+        for (const index of each.indexOf(this.positions)) {
 
-            const subCtx = ctx.pushSubContext(ctx.input[i], i)
-            const subValidator = this.positions[i]
+            let indexCtx = ctx.pushSubContext(ctx.input[index], index)
+            const position = this.positions[index]
 
-            const { result } = subValidator[Validator.analyze](subCtx)
-
-            const subValidationFailed = !result || 'error' in result
-            if (subValidationFailed) {
-                errors ??= this.positions.map(toNil)
-                errors[i as number] = result?.error.detail as string ?? 'validation incomplete'
-            } else 
-                ctx.transformed[i] = output[i] = result.output
+            indexCtx = position[Validator.analyze](indexCtx)
+            if (indexCtx.hasOutput())
+                output[index] = indexCtx.getOutput()
         }
 
-        if (!ctx.transform && ctx.input.length !== this.positions.length && !errors)
-            errors = `must have exactly ${this.positions.length} elements`
+        const invalidElementCount = !ctx.transform && ctx.input.length !== this.positions.length
 
-        return errors 
-            ? ctx.setError(errors)
+        return invalidElementCount
+            ? ctx.setError(`must have exactly ${this.positions.length} elements`)
             : ctx.setOutput(output as TupleOutput<T>)
     }
 

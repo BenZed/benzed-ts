@@ -14,7 +14,7 @@ import ValidationError from '../validation-error'
 export const $$analyze = Symbol('validation-analyze')
 
 /**
- * There is only one validate method in all of @benzed/schema, and this is it:
+ * There is only one validate method in all of @benzed/schema, and this is it
  */
 function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
 
@@ -22,10 +22,10 @@ function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: Valid
         new ValidationContext(input, options)
     )
 
-    if (!ctx.output.has)
+    if (!ctx.hasOutput() || ctx.hasError() || ctx.hasSubContextError())
         throw new ValidationError(ctx)
 
-    return ctx.output.value
+    return ctx.getOutput()
 }
 
 //// Main ////

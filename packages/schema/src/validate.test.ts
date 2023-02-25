@@ -24,31 +24,21 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
     const context = new ValidationContext(i, options)
     
     const digits = parseFloat(i) 
-    if (Number.isNaN(digits)) {
-        throw new ValidationError({
-            key: context.key,
-            value: i,
-            detail: 'could not be converted to a number', 
-        })
-    }
+    if (Number.isNaN(digits)) 
+        throw new ValidationError(context.setError('could not be converted to a number'))
 
     context.transformed = `${digits}`
 
     const output = context?.transform ? context.transformed : i
-    if (output !== context.transformed) {
-        throw new ValidationError({
-            key: context.key,
-            value: i,
-            detail: 'must be a numeric string', 
-        })
-    }
+    if (output !== context.transformed) 
+        throw new ValidationError(context.setError('must be a numeric string'))
 
     return output as `${number}`
 }
 
 //// Tests ////
 
-describe('$numeric example validation tests', () => {
+describe('$numeric example validation tests', () => { 
     testValidator(
         // validator as first argument
         $numeric,

@@ -116,6 +116,10 @@ class ValidationContext<I = any, O extends I = I>
         return subContexts
     }
 
+    hasSubContextError(): boolean {
+        return this.hasSubContext.inDescendents(sub => sub.hasError())
+    }
+
     pushSubContext<Ix, Ox extends Ix>(
         input: Ix, 
         key: PropertyKey

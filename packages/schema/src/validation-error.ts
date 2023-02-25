@@ -25,7 +25,7 @@ type ValidationErrorJson<T> = string | (T extends Array<infer I>
  * ['key', 0, Symbol(symbolic-key)] => key[0][$$symbolic-key]
  */
 function formatPath(path: PropertyKey[]): string {
-    return path
+    const formatted = path
         .map((k, i) => {
 
             const name = isSymbol(k)
@@ -37,6 +37,10 @@ function formatPath(path: PropertyKey[]): string {
                 : `[${name}]`
         })
         .join('')
+
+    return isNumber(path[0])
+        ? 'index ' + formatted
+        : formatted
 }
 
 /**

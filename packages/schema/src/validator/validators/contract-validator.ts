@@ -4,7 +4,6 @@ import { isFunc } from '@benzed/util'
 
 import { Validator } from '../validator'
 import ValidationContext from '../../validation-context'
-import ValidationError from '../../validation-error'
 
 //// EsLint ////
 
@@ -41,8 +40,8 @@ abstract class ContractValidator<I = any, O extends I = I> extends Validator<I,O
             ? ctx.setOutput(output as O)
             : ctx.setError(
                 isFunc(this.message) 
-                    ? this.message(output, ctx) 
-                    : this.message ?? 'Validation failed.' 
+                    ? this.message(output, ctx)
+                    : this.message ?? 'validation failed'
             )
     }
 

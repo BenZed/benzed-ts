@@ -66,7 +66,7 @@ test('array json property', () => {
     ctx.pushSubContext(2, 2)
 
     const error = new ValidationError(ctx)
-    expect(error.message).toBe('0 must be positive')
+    expect(error.message).toBe('index 0 must be positive')
     expect(error.json).toEqual(['must be positive', null, null])
 })
 

@@ -36,8 +36,7 @@ it('creates nested contexts', () => {
         new ValidationContext<unknown[], [string, boolean, boolean]>([], {})
     )
 
-    console.log(ctx.result)
-    console.log(ctx.subContexts[0].result)
+    console.log(ctx)
 })
 
 testValidator<unknown[], [string, boolean, boolean]>(
@@ -50,14 +49,14 @@ testValidator<unknown[], [string, boolean, boolean]>(
     {
         transforms: ['test', 10, false],
         error: true 
-    },
+    }, 
     {
         transforms: ['test', true, 'false'],
         error: 'index 2 must be a flag'
     },
     {
         asserts: ['test', true, true, true],
-        error: 'Must have exactly 3 elements'
+        error: 'must have exactly 3 elements'
     },
     { 
         asserts: ['foo', false, false], output: ['foo', false, false] 
