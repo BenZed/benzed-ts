@@ -1,11 +1,11 @@
-import { Validator } from './validator'
+import { ContractValidator } from './contract-validator'
 
 import { isString } from '@benzed/util'
 import { testValidator } from '../util.test'
 
 //// Setup ////
 
-const $string = new class String extends Validator<unknown, string> {
+const $string = new class String extends ContractValidator<unknown, string> {
 
     readonly isValid = isString
 

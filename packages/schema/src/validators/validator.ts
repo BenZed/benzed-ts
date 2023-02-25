@@ -1,65 +1,54 @@
-
-import { equals } from '@benzed/immutable'
-import { isFunc } from '@benzed/util'
-
 import { Validate, ValidateOptions } from '../validate'
-import ValidationContext from '../validation-context'
-import ValidationError from '../validation-error'
 
-//// EsLint ////
+import ValidationContext from '../validation-context'
+
+//// Eslint ////
 
 /* eslint-disable
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
+
+//// Helper ////
+
+export const $$analyze = Symbol('validation-analyze')
+
+/**
+ * There is only one validate method in all of @benzed/schema, and this is it:
+ */
+function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
+
+    const ctx = this[$$analyze](input, options)
+
+    if (!ctx.result)
+        throw new Error('Validation did not complete.')
+
+    if ('error' in ctx.result)
+        throw ctx.result.error 
+
+    return ctx.result.output
+}
 
 //// Main ////
 
-abstract class Validator<I = any, O extends I = I> extends Validate<I,O> {
+/**
+ * The extendable implementation of the Validate interface makes use of the symbolc analyze method.
+ */
+export abstract class Validator<I = any, O extends I = I> extends Validate<I, O> {
 
-    isValid(input: I | O, ctx: ValidationContext<I,O>): boolean {
-        return equals(input, ctx.transformed)
+    static readonly analyze: typeof $$analyze = $$analyze
+
+    constructor() {
+        super(analyze)
     }
 
-    transform?(input: I, ctx: ValidationContext<I,O>): I | O
+    /**
+     * Given an input and validation options, the analyze method will:
+     * - create a validation context
+     * - analyze the input on that context
+     * - attach a validation result to the context; output or error
+     * - return the context
+     */
+    abstract [$$analyze](input: I, options?: ValidateOptions): ValidationContext<I, O>
 
-    readonly message?: string | ((input: I, ctx: ValidationContext<I,O>) => string)
+} 
 
-    //// Analyze ////
-
-    [Validate.analyze](input: I, options?: ValidateOptions): ValidationContext<I,O> {
-
-        const ctx = new ValidationContext<I,O>(input, options)
-
-        if (this.transform)
-            ctx.transformed = this.transform(input, ctx)
-
-        // Determine output
-        const output = ctx.transform 
-            ? ctx.transformed 
-            : ctx.input
-
-        // Apply result
-        ctx.result = this.isValid(output, ctx)
-            ? { output } as { output: O }
-            : {
-                error: new ValidationError({
-                    key: ctx.key,
-                    value: ctx.input,
-                    detail: isFunc(this.message) 
-                        ? this.message(output, ctx) 
-                        : this.message ?? 'Validation failed.' 
-                })
-            }
-
-        return ctx
-    }
-
-}
-
-//// Exports ////
-
-export default Validator 
-
-export {
-    Validator
-}

@@ -4,7 +4,7 @@ import { describe } from '@jest/globals'
 
 import { testValidator } from '../util.test'
 
-import { Validator } from './validator'
+import { ContractValidator } from './contract-validator'
 import { TypeValidator } from './type-validator'
 import { PipeValidator } from './pipe-validator'
 
@@ -16,7 +16,7 @@ const $number = new class Number extends TypeValidator<number> {
     readonly message = 'Must be a Number'
 }
 
-const $positive = new class Positive extends Validator<number, number> {
+const $positive = new class Positive extends ContractValidator<number, number> {
 
     isValid(input: number): boolean {
         return input >= 0

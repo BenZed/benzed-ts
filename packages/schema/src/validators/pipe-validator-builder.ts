@@ -3,7 +3,8 @@ import { assign, defined, isFunc, isOptional, isString, isSymbol, isUnion } from
 import { SignatureParser } from '@benzed/signature-parser'
 
 import { PipeValidator, Validators } from './pipe-validator'
-import Validator from './validator'
+import { ContractValidator } from './contract-validator'
+import { Validator } from './validator'
 
 //// EsLint ////
 
@@ -15,17 +16,7 @@ import Validator from './validator'
 
 //// Types ////
 
-export type OutputValidatorTransform<O> = OutputValidator<O>['transform']
-
-export type OutputValidatorPredicate<O> = OutputValidator<O>['isValid']
-
-export type OutputValidatorMessage<O> = OutputValidator<O>['message']
-
-export interface OutputValidatorSettings<O> extends Partial<OutputValidator<O>> {
-    readonly id?: symbol
-}
-
-export class OutputValidator<O> extends Validator<O, O> {
+export class OutputValidator<O> extends ContractValidator<O, O> {
     
     readonly id?: symbol
 
@@ -36,6 +27,16 @@ export class OutputValidator<O> extends Validator<O, O> {
         assign(this, defined(settings))
     }
 
+}
+
+export type OutputValidatorTransform<O> = OutputValidator<O>['transform']
+
+export type OutputValidatorPredicate<O> = OutputValidator<O>['isValid']
+
+export type OutputValidatorMessage<O> = OutputValidator<O>['message']
+
+export interface OutputValidatorSettings<O> extends Partial<OutputValidator<O>> {
+    readonly id?: symbol
 }
 
 export interface PipeValidatorBuilderMethods<O> {
@@ -101,7 +102,7 @@ export class PipeValidatorBuilder<I, O extends I = I>
     }
 
     validates(
-        input: OutputValidatorSettings<O> | OutputValidator<O>,
+        input: OutputValidatorSettings<O> | Validator<O>,
         id?: symbol
     ): this {
 
@@ -118,7 +119,7 @@ export class PipeValidatorBuilder<I, O extends I = I>
             ? this.validators.map((v, i) => i === index ? validator : v)
             : [...this.validators, validator] as const
 
-        return this._applyPipeValidators(validators as Validators<I,O>)
+        return new PipeValidatorBuilder(...validators as Validators<I,O>) as this
     }
 
     asserts(
@@ -148,15 +149,9 @@ export class PipeValidatorBuilder<I, O extends I = I>
             )
         }
 
-        return this._applyPipeValidators(validators)
+        return new PipeValidatorBuilder(...validators) as this
     }
 
     //// Helper ////
-    
-    protected _applyPipeValidators(
-        validators: Validators<I,O>
-    ): this {
-        return new PipeValidatorBuilder(...validators) as this
-    }
 
 }

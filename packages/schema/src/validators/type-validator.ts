@@ -2,7 +2,7 @@
 import { nil } from '@benzed/util'
 
 import ValidationContext from '../validation-context'
-import Validator from './validator'
+import ContractValidator from './contract-validator'
 
 //// EsLint ////
 
@@ -12,7 +12,7 @@ import Validator from './validator'
 
 //// Main ////
 
-abstract class TypeValidator<T> extends Validator<unknown, T> {
+abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
     
     abstract override isValid(input: unknown, ctx: ValidationContext<unknown, T>): input is T
 

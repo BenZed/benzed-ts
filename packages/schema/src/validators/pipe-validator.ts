@@ -1,5 +1,5 @@
 
-import { Validate, ValidateOptions } from '../validate'
+import { ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import { Validator } from './validator'
 
@@ -10,7 +10,7 @@ import { Validator } from './validator'
 
 //// Types ////
 
-type Validators<I, O extends I> = readonly [
+type Validators<I = any, O extends I = I> = readonly [
     input: Validator<I,O>, 
     ...output: Validator<O, O>[]
 ]
@@ -20,15 +20,15 @@ type Validators<I, O extends I> = readonly [
 /**
  * Combine an input validator with many output validators.
  */
-abstract class PipeValidator<I, O extends I = I> extends Validate<I, O> {
+abstract class PipeValidator<I, O extends I = I> extends Validator<I, O> {
 
-    override [Validate.analyze](input: I, options?: ValidateOptions): ValidationContext<I,O> {
+    override [Validator.analyze](input: I, options?: ValidateOptions): ValidationContext<I,O> {
 
         let ctx = new ValidationContext<I,O>(input, options)
 
         for (const validator of this.validators) {
 
-            ctx = validator[Validate.analyze](ctx.transformed as O, ctx)
+            ctx = validator[Validator.analyze](ctx.transformed as O, ctx)
 
             if (ctx.result && 'error' in ctx.result)
                 return ctx
