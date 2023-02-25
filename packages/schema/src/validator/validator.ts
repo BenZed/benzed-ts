@@ -1,9 +1,10 @@
 
+import { nil } from '@benzed/util'
 import { Validate, ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import ValidationError from '../validation-error'
 
-import { Assert, Detail, Transform } from './traits'
+import { Assert, Cast, Default, Detail, Transform } from './traits'
 
 //// EsLint ////
 
@@ -23,8 +24,20 @@ class Validator<I = any, O extends I = I> extends Validate<I,O> {
 
         const ctx = new ValidationContext<I,O>(input, options)
 
-        const output = Transform.transform(this, ctx)
+        // Apply trait transformations
+        if (this instanceof Default && ctx.transformed === nil)
+            ctx.transformed = this.default(ctx)
 
+        if (this instanceof Cast && !Assert.isValid(this, ctx, ctx.transformed))
+            ctx.transformed = this.cast(ctx.transformed, ctx)
+
+        if (this instanceof Transform) 
+            ctx.transformed = this.transform(ctx.transformed, ctx)
+
+        // Determine output
+        const output = ctx.transform ? ctx.transformed : ctx.input
+
+        // Apply result
         ctx.result = Assert.isValid(this, ctx, output)
             ? { output }
             : {
@@ -39,7 +52,7 @@ class Validator<I = any, O extends I = I> extends Validate<I,O> {
     }
 
 }
-
+        
 //// Exports ////
 
 export default Validator 

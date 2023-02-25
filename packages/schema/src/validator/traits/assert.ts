@@ -43,7 +43,7 @@ abstract class Assert<I = any, O extends I = I> extends Trait {
 
 }
 
-abstract class TypeAsserter<I = any, O extends I = I> extends Assert<I,O> {
+abstract class AssertType<I = any, O extends I = I> extends Assert<I,O> {
 
     abstract override isValid(output: I | O, ctx: ValidationContext<I, O>): output is O
 
@@ -55,5 +55,5 @@ export default Assert
 
 export {
     Assert,
-    TypeAsserter
+    AssertType
 }

@@ -4,7 +4,6 @@ import Validator from '../validator'
 import Transform from './transform'
 
 import { testValidator } from '../../util.test'
-import ValidationContext from '../../validation-context'
 
 //// Setup ////
 
@@ -86,14 +85,5 @@ describe(`${Transform.name} static property tests`, () => {
     test(`${Transform.name} is method returns false if input does not have Transform trait`, () => {
         expect(Transform.is({})).toBe(false)
     })
-  
-    test(`${Transform.name} transform method returns input if it has Transform trait`, () => {
-        expect(Transform.transform($number, new ValidationContext<unknown, number>('100'))).toBe(100)
-    })
-  
-    test(`${Transform.name} transform method throws an error if input does not have Transform trait`, () => {
-        expect(Transform.transform({}, new ValidationContext('ace'))).toBe('ace')
-    })
-  
+
 })
-  

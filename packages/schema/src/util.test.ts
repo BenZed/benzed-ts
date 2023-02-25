@@ -1,5 +1,6 @@
 import { isPrimitive } from '@benzed/util'
 import { ansi } from '@benzed/logger'
+import { lines } from '@benzed/string'
 
 import { it } from '@jest/globals'
 
@@ -21,15 +22,20 @@ class FailedValidationTestError extends Error {
         readonly result: Pick<ValidationTestResult<unknown,unknown>, 'error' | 'output'>
     ) {
 
-        const lines: string[] = [
-            ansi('Validation test failed', 'red'),
-            'reason: ' + ansi(reason, 'yellow'),
-            'error' in result 
-                ? 'validation error: ' + ansi(result.error?.message ?? '', 'yellow')
-                : 'validation output: ' + print(result.output)
-        ]
+        super(lines(
 
-        super(lines.join('\n'))
+            ansi('Validation test failed', 'red'),
+
+            'reason: ' + ansi(reason, 'yellow'),
+
+            'error' in result && result.error?.message
+                ? 'validation error: ' + ansi(result.error?.message ?? '', 'yellow')
+                : '',
+
+            'output' in result 
+                ? 'validation output: ' + print(result.output)
+                : ''
+        ))
     }
 }
 
@@ -40,7 +46,7 @@ class FailedValidationTestError extends Error {
  */
 export function testValidator<I,O extends I>(
     validate: Validate<I,O>,
-    ...tests: ValidationTest<I,O>[]
+    ...tests: (ValidationTest<I,O> & { title?: string })[]
 ): void {
 
     for (const test of tests) {
@@ -52,8 +58,8 @@ export function testValidator<I,O extends I>(
 
         const input = applyTransforms ? test.transforms : test.asserts
 
-        const testTitle = 
-            `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
+        const testTitle = test.title ??
+        `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
             (expectingError  
                 ? ' is invalid' + (test.error === true ? '' : ` "${test.error}"`)
                 : expectOutputDifferentFromInput 
