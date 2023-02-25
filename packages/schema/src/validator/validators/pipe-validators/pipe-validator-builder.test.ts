@@ -1,10 +1,10 @@
 import { PipeValidatorBuilder } from './pipe-validator-builder'
 
 import { describe } from '@jest/globals'
-import TypeValidator from './type-validator'
+import { TypeValidator } from '../contract-validators'
 import { isBoolean, isNumber, isUnion, fail, pass } from '@benzed/util'
 
-import { testValidator } from '../util.test'
+import { testValidator } from '../../../util.test'
 
 //// Tests ////
 

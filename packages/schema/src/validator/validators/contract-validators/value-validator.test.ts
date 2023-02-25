@@ -3,7 +3,7 @@ import { ValueValidator } from './value-validator'
 
 import { describe } from '@jest/globals'
 
-import { testValidator } from '../util.test'
+import { testValidator } from '../../../util.test'
  
 //// Setup ////
 
@@ -11,7 +11,7 @@ const $hello = new ValueValidator('hello', true)
 
 //// Tests ////
 
-describe(`${$hello.name} validator tests`, () => { 
+describe(`${$hello.constructor.name} validator tests`, () => { 
     testValidator<unknown, 'hello'>(
         $hello, 
         { asserts: 'hello' },

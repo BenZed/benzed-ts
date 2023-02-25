@@ -1,7 +1,7 @@
 
-import { ValidateOptions } from '../validate'
-import ValidationContext from '../validation-context'
-import { Validator } from './validator'
+import { ValidateOptions } from '../../validate'
+import ValidationContext from '../../validation-context'
+import { Validator } from '../validator'
 
 //// EsLint ////
 /* eslint-disable 

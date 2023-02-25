@@ -1,8 +1,8 @@
 
 import { nil } from '@benzed/util'
 
-import ValidationContext from '../validation-context'
-import ContractValidator from './contract-validator'
+import ValidationContext from '../../../validation-context'
+import ContractValidator from '../contract-validator'
 
 //// EsLint ////
 

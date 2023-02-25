@@ -2,10 +2,10 @@ import { isString } from '@benzed/util'
 import { it } from '@jest/globals'
 
 import { TransformValidator } from './transform-validator'
-import { ContractValidator } from './contract-validator'
-import { TypeValidator } from './type-validator'
+import { ContractValidator } from '../contract-validator'
+import { TypeValidator } from '../contract-validators'
 
-import { testValidator } from '../util.test'
+import { testValidator } from '../../../util.test'
 
 //// EsLint ////
 /* eslint-disable 

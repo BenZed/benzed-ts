@@ -2,10 +2,10 @@ import { isNumber } from '@benzed/util'
 
 import { describe } from '@jest/globals'
 
-import { testValidator } from '../util.test'
+import { testValidator } from '../../util.test'
 
 import { ContractValidator } from './contract-validator'
-import { TypeValidator } from './type-validator'
+import { TypeValidator } from './contract-validators'
 import { PipeValidator } from './pipe-validator'
 
 //// Setup ////

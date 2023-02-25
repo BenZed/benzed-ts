@@ -2,9 +2,9 @@
 import { assign, defined, isFunc, isOptional, isString, isSymbol, isUnion } from '@benzed/util'
 import { SignatureParser } from '@benzed/signature-parser'
 
-import { PipeValidator, Validators } from './pipe-validator'
-import { ContractValidator } from './contract-validator'
-import { Validator } from './validator'
+import { PipeValidator, Validators } from '../pipe-validator'
+import { ContractValidator } from '../contract-validator'
+import { Validator } from '../../validator'
 
 //// EsLint ////
 

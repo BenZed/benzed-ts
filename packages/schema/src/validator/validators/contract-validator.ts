@@ -2,10 +2,10 @@
 import { equals } from '@benzed/immutable'
 import { isFunc } from '@benzed/util'
 
-import { Validator } from './validator'
-import { ValidateOptions } from '../validate'
-import ValidationContext from '../validation-context'
-import ValidationError from '../validation-error'
+import { Validator } from '../validator'
+import { ValidateOptions } from '../../validate'
+import ValidationContext from '../../validation-context'
+import ValidationError from '../../validation-error'
 
 //// EsLint ////
 

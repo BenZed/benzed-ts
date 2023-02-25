@@ -3,7 +3,7 @@ import { TypeValidator } from './type-validator'
 import { describe } from '@jest/globals'
 import { isBigInt, isNumber, isString } from '@benzed/util'
 
-import { testValidator } from '../util.test'
+import { testValidator } from '../../../util.test'
  
 //// Setup ////
 

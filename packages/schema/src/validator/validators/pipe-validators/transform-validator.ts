@@ -1,8 +1,8 @@
 import { IndexesOf } from '@benzed/util'
-import { Validate, ValidateInput, ValidateOutput } from '../validate'
+import { Validate, ValidateInput, ValidateOutput } from '../../../validate'
 
-import {Validators, PipeValidator} from './pipe-validator'
-import ContractValidator from './contract-validator'
+import {Validators, PipeValidator} from '../pipe-validator'
+import ContractValidator from '../contract-validator'
 
 //// EsLint ////
 /* eslint-disable 

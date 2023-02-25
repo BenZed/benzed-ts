@@ -1,7 +1,6 @@
 export * from './contract-validator'
-
-export * from './type-validator'
+export * from './contract-validators'
 
 export * from './pipe-validator'
+export * from './pipe-validators'
 
-export * from './transform-validator'

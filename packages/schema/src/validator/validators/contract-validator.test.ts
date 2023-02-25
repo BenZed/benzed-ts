@@ -1,7 +1,7 @@
 import { ContractValidator } from './contract-validator'
 
 import { isString } from '@benzed/util'
-import { testValidator } from '../util.test'
+import { testValidator } from '../../util.test'
 
 //// Setup ////
 
@@ -15,7 +15,7 @@ const $string = new class String extends ContractValidator<unknown, string> {
 
 //// Tests ////
 
-describe(`${$string.name} validator tests`, () => {
+describe(`${$string.constructor.name} validator tests`, () => {
 
     testValidator<unknown,string>(
         $string,

@@ -1,7 +1,7 @@
 import { equals } from '@benzed/immutable'
 import { Primitive } from '@benzed/util'
 
-import ContractValidator from './contract-validator'
+import ContractValidator from '../contract-validator'
 
 /**
  * Validate an exact primitive value

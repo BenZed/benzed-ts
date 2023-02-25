@@ -6,4 +6,4 @@ export * from './validation-context'
 
 export * from './validation-test'
 
-export * from './validators'
+export * from './validator' 
