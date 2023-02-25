@@ -17,7 +17,9 @@ export const $$analyze = Symbol('validation-analyze')
  */
 function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
 
-    const ctx = this[$$analyze](input, options)
+    const ctx = this[$$analyze](
+        new ValidationContext(input, options)
+    )
 
     if (!ctx.result)
         throw new Error('Validation did not complete.')
@@ -48,7 +50,7 @@ export abstract class Validator<I = any, O extends I = I> extends Validate<I, O>
      * - attach a validation result to the context; output or error
      * - return the context
      */
-    abstract [$$analyze](input: I, options?: ValidateOptions): ValidationContext<I, O>
+    abstract [$$analyze](ctx: ValidationContext<I, O>): ValidationContext<I, O>
 
 } 
 

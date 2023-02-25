@@ -63,12 +63,9 @@ describe('Node trait usage', () => {
     const value = { foo: 'bar' }
     const objCtx = new ValidationContext(value)
 
-    const fooCtx = objCtx.pushSubContext(value.foo, {
-        key: 'foo',
-        transform: true
-    })
+    const fooCtx = objCtx.pushSubContext(value.foo, 'foo')
 
-    test('pushSubContext', () => {
+    test('pushSubContext', () => { 
         expect(fooCtx.key).toEqual('foo')
         expect(fooCtx.transform).toEqual(true)
         expect(Node.getParent(fooCtx)).toBe(objCtx)

@@ -107,10 +107,13 @@ class ValidationContext<I = any, O extends I = I>
 
     pushSubContext<Ix, Ox extends Ix>(
         input: Ix, 
-        options: Required<ValidateOptions>
+        key: PropertyKey
     ): ValidationContext<Ix,Ox> {
 
-        const subContext = new ValidationContext<Ix,Ox>(input, options)
+        const subContext = new ValidationContext<Ix,Ox>(input, {
+            transform: this.transform,
+            key
+        })
 
         const children = Node.getChildren(this)
         const nextIndex = each.keyOf(children).count()

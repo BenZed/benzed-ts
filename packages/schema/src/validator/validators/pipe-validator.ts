@@ -1,5 +1,4 @@
 
-import { ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
 import { Validator } from '../validator'
 
@@ -22,12 +21,10 @@ type Validators<I = any, O extends I = I> = readonly [
  */
 abstract class PipeValidator<I, O extends I = I> extends Validator<I, O> {
 
-    [Validator.analyze](input: I, options?: ValidateOptions): ValidationContext<I,O> {
-        let ctx = new ValidationContext<I,O>(input, options)
+    [Validator.analyze](ctx: ValidationContext<I,O>): ValidationContext<I,O> {
 
         for (const validator of this.validators) {
-
-            ctx = validator[Validator.analyze](ctx.transformed as O, ctx)
+            ctx = validator[Validator.analyze](ctx as ValidationContext)
             if (ctx.result && 'error' in ctx.result)
                 return ctx
         }
