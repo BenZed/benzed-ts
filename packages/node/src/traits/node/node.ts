@@ -69,8 +69,8 @@ abstract class Node extends Trait {
         return new Find(node, FindFlag.Has)
     }
 
-    static assert<N extends Node>(node: N): AssertNode<N> {
-        return new Find(node, FindFlag.Assert)
+    static assert<N extends Node>(node: N, error?: string): AssertNode<N> {
+        return new Find(node, FindFlag.Assert, error)
     }
 
     static [Trait.onApply](node: Node): Node {

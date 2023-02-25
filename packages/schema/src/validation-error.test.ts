@@ -1,100 +1,104 @@
-import { describe, expect, test } from '@jest/globals'
+import { expect, test } from '@jest/globals'
+import ValidationContext from './validation-context'
 import ValidationError from './validation-error'
 
 //// Ferns Grow ////
 
-test('can be constructed with value, key, and detail', () => {
-    const error = new ValidationError({
-        value: { foo: 1 },
-        key: 'bar',
-        detail: 'invalid type'
-    })
-    expect(error.value).toEqual({ foo: 1 })
-    expect(error.key).toEqual('bar')
-    expect(error.detail).toEqual('invalid type')
-    expect(error.message).toEqual('Property bar invalid type')
+test('constructed with a validation context', () => {
+    const ctx = new ValidationContext({ foo: 1 }, { key: 'bar' })
+    const error = new ValidationError(ctx)
+
+    expect(error.json).toEqual('Validation incomplete')
+    expect(error.message).toEqual('Validation incomplete')
 })
 
-test('can be constructed with value and detail only', () => {
-    const error = new ValidationError({
-        value: { foo: 1 },
-        detail: 'invalid object'
-    })
-    expect(error.value).toEqual({ foo: 1 })
-    expect(error.key).toBeUndefined()
-    expect(error.detail).toEqual('invalid object')
-    expect(error.message).toEqual('Invalid object')
+test('uses key and result to create message', () => {
+
+    const ctx = new ValidationContext(10, { key: 'value' }).setError('must be a string')
+    const error = new ValidationError(ctx)
+
+    expect(error.message).toBe('value must be a string')
 })
 
-test('can be constructed with value and key only', () => {
-    const error = new ValidationError({
-        value: [1, 2, 3],
-        key: 1
-    }) 
-    expect(error.value).toEqual([1, 2, 3])
-    expect(error.key).toEqual(1)
-    expect(error.detail).toBeUndefined()
-    expect(error.message).toEqual('Index 1 validation failed') 
+test('uses path in message when sub contexts are involved', () => {
+
+    const ctx = new ValidationContext({ 
+        complete: false 
+    }, { key: 'todo' })
+
+    ctx.pushSubContext(false, 'complete').setError('must be true')
+
+    const error = new ValidationError(ctx)
+    expect(error.message).toBe('todo.complete must be true')
 })
 
-test('can be constructed with value only', () => {
-    const error = new ValidationError({
-        value: 'foo'
-    })
-    expect(error.value).toEqual('foo')
-    expect(error.key).toBeUndefined()
-    expect(error.detail).toBeUndefined()
-    expect(error.message).toEqual('Validation failed')
+test('path is formatted', () => {
+
+    const $$value = Symbol('value')
+
+    const value = { 
+        bar: [{ [$$value]: -1 }]
+    }
+
+    const ctx = new ValidationContext(value, { key: 'foo' })
+    ctx.pushSubContext(value.bar, 'bar')
+        .pushSubContext(value.bar[0], 0)
+        .pushSubContext(value.bar[0][$$value], $$value)
+        .setError('must be above 0')
+    
+    const error = new ValidationError(ctx)
+    expect(error.message).toBe('foo.bar[0][$$value] must be above 0')
 })
 
-describe('detail object', () => {
+test('simple json property', () => {
 
-    const error = new ValidationError({
-        value: {
-            foo: 100,
-            bar: {
-                baz: 100
-            }
-        },
-        detail: {
-            foo: 'error message for foo',
-            bar: {
-                baz: 'error message for baz'
-            }
-        }
-    })
+    const ctx = new ValidationContext(10, { key: 'value' }).setError('must be a string')
 
-    test('default message, detail object', () => {
-        expect(error.message).toEqual('Validation failed')
-        expect(typeof error.detail).toBe('object')
-    })
+    const error = new ValidationError(ctx)
+    expect(error.json).toEqual('must be a string')
 })
 
-describe('detail array', () => {
+test('array json property', () => {
 
-    const error = new ValidationError({
-        value: [
-            { foo: 10 },
-            {
-                bar: {
-                    baz: true 
-                }
-            }
-        ],
-        detail: [
-            {
-                foo: 'error message for foo'
-            },
-            {
-                bar: {
-                    baz: 'error message for baz'
-                }
-            }
-        ]
-    })
+    const ctx = new ValidationContext([-1,1,2])
+    ctx.pushSubContext(-1, 0).setError('must be positive')
+    ctx.pushSubContext(1, 1)
+    ctx.pushSubContext(2, 2)
 
-    test('default message, detail object', () => {
-        expect(error.message).toEqual('Validation failed')
-        expect(typeof error.detail).toBe('object')
+    const error = new ValidationError(ctx)
+    expect(error.message).toBe('0 must be positive')
+    expect(error.json).toEqual(['must be positive', null, null])
+})
+
+test('object json property', () => {
+
+    const ctx = new ValidationContext({ foo: 'bar' })
+    ctx.pushSubContext('bar', 'foo').setError('must be capitalized')
+
+    const error = new ValidationError(ctx)
+    expect(error.message).toBe('foo must be capitalized')
+    expect(error.json).toEqual({ foo: 'must be capitalized' })
+})
+
+test('complex json property', () => {
+
+    const $$key = Symbol('key')
+
+    const data = { 
+        ace: [0, 1, 2, 3, { [$$key]: 0 }]
+    }
+
+    const ctx = new ValidationContext(data)
+
+    ctx.pushSubContext(data.ace, 'ace')
+        .pushSubContext(data.ace[4], 4)
+        .pushSubContext(data.ace[4][$$key], $$key)
+        .setError('must not be zero')
+
+    const error = new ValidationError(ctx) 
+
+    expect(error.message).toBe('ace[4][$$key] must not be zero')
+    expect(error.json).toEqual({
+        ace: [{ [$$key]: 'must not be zero' }]
     })
 })

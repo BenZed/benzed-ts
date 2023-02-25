@@ -13,12 +13,12 @@ function compose(
 
 /**
  * Combine a series of strings into words. 
- * If any of the input strings are empty or undefined,
+ * If any of the input strings are falsy,
  * they are omitted.
  * 
  */
 export function words(
-    ...input:(string | nil)[]
+    ...input: (string | nil)[]
 ): string {
     return compose(' ', ...input)
 }

@@ -1,6 +1,7 @@
 import { Validate, ValidateOptions } from '../validate'
 
 import ValidationContext from '../validation-context'
+import ValidationError from '../validation-error'
 
 //// Eslint ////
 
@@ -21,13 +22,10 @@ function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: Valid
         new ValidationContext(input, options)
     )
 
-    if (!ctx.result)
-        throw new Error('Validation did not complete.')
+    if (!ctx.output.has)
+        throw new ValidationError(ctx)
 
-    if ('error' in ctx.result)
-        throw ctx.result.error 
-
-    return ctx.result.output
+    return ctx.output.value
 }
 
 //// Main ////

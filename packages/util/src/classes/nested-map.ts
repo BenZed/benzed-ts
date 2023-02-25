@@ -1,5 +1,4 @@
 import { nil } from '../types'
-import { optional, Optional } from '../types/optional'
 
 //// Main ////
 
@@ -9,22 +8,22 @@ class NestedMap<K extends unknown[], V> implements Map<K,V> {
     
     private readonly _refs: Map<unknown, NestedMap<unknown[], V>> = new Map()
 
-    private _value = optional<V>()
+    private _value: nil | { value: V }
 
     //// Interface ////
     
     get(refs: K): V | nil {
-        return this._get(refs).value
+        return this._get(refs)?.value
     }
 
     has(refs: K): boolean {
-        return this._get(refs).has
+        return !!this._get(refs)
     }
 
     set(refs: K, value: V): this {
         
         if (refs.length === 0) {
-            this._value = optional(value)
+            this._value = { value }
             return this
         }
 
@@ -43,8 +42,8 @@ class NestedMap<K extends unknown[], V> implements Map<K,V> {
     delete(refs: K): boolean {
 
         if (refs.length === 0) {
-            const had = this._value.has
-            this._value = optional.nil()
+            const had = !!this._value
+            this._value = nil
             return had
         }
             
@@ -67,7 +66,7 @@ class NestedMap<K extends unknown[], V> implements Map<K,V> {
     }
 
     get size(): number {
-        let count = this._value.has ? 1 : 0
+        let count = this._value ? 1 : 0
         this._refs.forEach(r => {
             count += r.size 
         })
@@ -108,14 +107,14 @@ class NestedMap<K extends unknown[], V> implements Map<K,V> {
     //// Helper ////
 
     private * _iter(...prefix: unknown[]): IterableIterator<[K,V]> {
-        if (this._value.has)
+        if (this._value)
             yield [prefix as K, this._value.value]
 
         for (const [key, map] of this._refs) 
             yield* map._iter(...prefix, key) as IterableIterator<[K,V]> 
     }
     
-    private _get(refs: K): Optional<V> {
+    private _get(refs: K): nil | { value: V } {
         
         if (refs.length === 0)
             return this._value 
@@ -123,7 +122,7 @@ class NestedMap<K extends unknown[], V> implements Map<K,V> {
         const [ref, ...nestedRefs] = refs
 
         if (!this._refs.has(ref))
-            return optional.nil()
+            return nil
 
         const next = this._refs.get(ref) as NestedMap<unknown[],V>
         return next._get(nestedRefs)

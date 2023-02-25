@@ -53,9 +53,8 @@ export class EachIterable<T> {
     do(withEach: ArrayMethod<T, void | unknown>): void {
         return this.toArray().forEach(withEach)
     }
-
-    find<Tx extends T>(predicate: (value: T) => value is Tx): Tx | nil
-    find(predicate: (value: T) => boolean): T | nil {
+    find(predicate: (value: T) => boolean): T | nil
+    find<Tx extends T>(predicate: (value: T) => value is Tx): Tx | nil {
 
         for (const item of this) {
             if (predicate(item))

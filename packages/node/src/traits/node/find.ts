@@ -10,7 +10,7 @@ import {
     TypeOf
 } from '@benzed/util'
 import { Comparable } from '@benzed/immutable'
-import { Method } from '@benzed/traits'
+import { Callable, Method, Trait } from '@benzed/traits'
 
 import { Node } from './node'
 import { getPath } from './path'
@@ -34,21 +34,17 @@ type NodeTrait<N extends Node = Node> = {
 }
 
 type NodeTypeGuard<N extends Node = Node> = TypeGuard<N, N>
-type NodePredicate<N extends Node = Node> = (input: N) => N | boolean
+type NodePredicate<N extends Node = Node> = (input: N) => boolean
 
 //// Types ////
 
 type FindInput<N extends Node = Node> = N | NodePredicate<N> | NodeTypeGuard<N> | NodeTrait<N>
 type FindOutput<I extends FindInput<any>> = 
-    I extends TypeGuard<infer Mx, Node>
-        ? Mx 
-        : I extends (input: Node) => infer M 
-            ? Exclude<M extends Node ? M : Node, nil>
-            : I extends NodeTrait<Node>
-                ? TypeOf<I['is']>
-                : I extends Node 
-                    ? I
-                    : never
+    I extends NodePredicate<infer N> | NodeTypeGuard<infer N> | NodeTrait<infer N> 
+        ? N 
+        : I extends Node 
+            ? I 
+            : never
 
 interface FindNode<N extends Node> {
 
@@ -100,8 +96,8 @@ interface AssertNode<N extends Node> {
 interface FindConstructor {
     new <N extends Node>(source: N): FindNode<N>
     new <N extends Node>(source: N, flag: FindFlag.All): FindNodes<N>
-    new <N extends Node>(source: N, flag: FindFlag.Assert): AssertNode<N>
     new <N extends Node>(source: N, flag: FindFlag.Has): HasNode<N>
+    new <N extends Node>(source: N, flag: FindFlag.Assert, error?: string): AssertNode<N>
 }
 
 enum FindFlag {
@@ -112,19 +108,22 @@ enum FindFlag {
 
 //// Implementation ////
 
-const Find = class NodeFinder extends Method<Func> {
+const Find = class NodeFinder extends Trait.use(Callable<Func>) {
 
     constructor(
         readonly source: Node,
-        private _flag?: FindFlag
+        private _flag?: FindFlag,
+        private readonly _error?: string
     ) { 
-        super(function find(this: NodeFinder, input: FindInput, error?: string) {
-            return this._find(input, error)
-        })
+        super()
         this._each = eachChild(source)
     }
 
     //// Interface ////
+
+    get [Callable.signature]() {
+        return this.find
+    }
 
     get or(): this {
         this._mergeOnIncrement = true 
@@ -166,10 +165,7 @@ const Find = class NodeFinder extends Method<Func> {
 
     //// Helper ////
 
-    /**
-     * @internal
-     */
-    _find(input: FindInput, error?: string): unknown {
+    find(input: FindInput, error?: string): unknown {
         const predicate = toNodePredicate(input)
 
         const found = new Set<Node>()
@@ -191,7 +187,9 @@ const Find = class NodeFinder extends Method<Func> {
         const has = found.size > 0
         if (flag === FindFlag.Assert && !has) {
             throw new Error(
-                error ?? `Node ${getPath(this.source).join('/')} Could not find node ${toNodeName(input)}`
+                error ?? 
+                this._error ?? 
+                `Node ${getPath(this.source).join('/')} Could not find node ${toNodeName(input)}`
             )
         }
 

@@ -1,59 +1,118 @@
-import { capitalize, words } from '@benzed/string'
-import { isNumber, isString, nil } from '@benzed/util'
-import { pipe } from '@benzed/pipe'
+import { words } from '@benzed/string'
+import { each, GenericObject, isNumber, isString, isSymbol, nil } from '@benzed/util'
+
+import { ValidationContext } from './validation-context'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Type ////
 
-type ValidationErrorDetail<T> = string | (T extends Array<infer I>
+type ValidationErrorJson<T> = string | (T extends Array<infer I>
 
-    ? (ValidationErrorDetail<I> | nil)[]
+    ? readonly (ValidationErrorJson<I> | null)[]
     : T extends object
         ? {
-            [K in keyof T]: ValidationErrorDetail<T[K]>
+            readonly [K in keyof T]: ValidationErrorJson<T[K]>
         }
         : string)
+
+//// Helper ////
+
+/**
+ * ['key', 0, Symbol(symbolic-key)] => key[0][$$symbolic-key]
+ */
+function formatPath(path: PropertyKey[]): string {
+    return path
+        .map((k, i) => {
+
+            const name = isSymbol(k)
+                ? `$$${k.description}`
+                : `${k}`
+
+            return i === 0 ? name : isString(k) 
+                ? `.${name}` 
+                : `[${name}]`
+        })
+        .join('')
+}
+
+/**
+ * Create a json error object out of a validation context.
+ */
+function toErrorJson<T>(
+    ctx: ValidationContext<T, any>
+): ValidationErrorJson<T> {
+
+    const subCtxs = ctx.subContexts
+    if (!subCtxs) {
+        return (ctx.hasError() 
+            ? ctx.getError() 
+            : null
+        ) as ValidationErrorJson<T>
+    }
+
+    const json: GenericObject = {}
+
+    let allNumericKeys = true
+    for (const subCtx of each.valueOf(subCtxs)) {
+        if (subCtx.key === nil)
+            continue 
+
+        if (!isNumber(subCtx.key))
+            allNumericKeys = false 
+
+        json[subCtx.key] = toErrorJson(subCtx)
+    }
+
+    return (
+        allNumericKeys
+            ? each.valueOf(json).toArray()
+            : json
+    ) as ValidationErrorJson<T>
+}
 
 //// Main ////
 
 class ValidationError<T> extends Error {
 
+    static readonly toErrorJson = toErrorJson
+
     override get name(): string {
         return this.constructor.name
     }
 
-    readonly value: T
+    get value(): T {
+        return this.ctx.input
+    }
 
-    readonly key?: PropertyKey
+    get path(): PropertyKey[] {
+        return this.ctx.path
+    }
 
-    readonly detail?: ValidationErrorDetail<T>
+    readonly json: ValidationErrorJson<T>
 
-    constructor(
-        input: {
-            key?: PropertyKey
-            value: T
-            detail?: ValidationErrorDetail<T>
-        }
-    ) {
+    constructor(readonly ctx: ValidationContext<T, any>) {
 
-        const prefix = isNumber(input.key)
-            ? `index ${input.key}`
-            : input.key 
-                ? `property ${String(input.key)}`
-                : ''
+        const firstErrorCtx = ctx.hasError()
+            ? ctx 
+            : ctx.findSubContext.inDescendents(sub => sub.hasError())
 
-        const suffix = isString(input.detail)
-            ? input.detail 
-            : 'validation failed'
-
-        const [ message ] = pipe(prefix)
-            .to(words, suffix)
-            .to(capitalize)
+        const message = firstErrorCtx
+            ? words(
+                formatPath(firstErrorCtx.path),
+                firstErrorCtx.getError()
+            )
+            : 'Validation incomplete'
 
         super(message)
+        this.json = toErrorJson(ctx) || message
+    }
 
-        this.key = input.key
-        this.value = input.value
-        this.detail = input.detail
+    toJSON(): ValidationErrorJson<T> {
+        return this.json
     }
 
 }
@@ -63,6 +122,5 @@ class ValidationError<T> extends Error {
 export default ValidationError
 
 export {
-    ValidationError,
-    ValidationErrorDetail
+    ValidationError
 }

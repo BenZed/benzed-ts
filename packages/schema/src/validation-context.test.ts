@@ -1,5 +1,4 @@
 import { ValidationContext } from './validation-context'
-import { ValidationError } from './validation-error'
 
 import { it } from '@jest/globals'
 import { nil } from '@benzed/util'
@@ -49,10 +48,7 @@ describe('setError', () => {
         const context = new ValidationContext(['ace'])
         context.setError('must be an array of numbers')
         expect(context.result).toEqual({ 
-            error: new ValidationError({
-                value: ['ace'],
-                detail: 'must be an array of numbers'
-            })
+            error: 'must be an array of numbers'
         })
     })
 

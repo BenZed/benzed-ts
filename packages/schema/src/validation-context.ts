@@ -4,11 +4,6 @@ import { AssertNode, FindNode, HasNode, Node } from '@benzed/node'
 
 import type { ValidateOptions } from './validate'
 
-import {
-    ValidationError,
-    ValidationErrorDetail
-} from './validation-error'
-
 //// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -18,7 +13,7 @@ import {
 
 type ValidationResult<I = any, O extends I = I> =
     {
-        readonly error: ValidationError<I>
+        readonly error: string
     } | {
         readonly output: O
     }
@@ -76,14 +71,29 @@ class ValidationContext<I = any, O extends I = I>
         return this
     }
 
-    setError(detail: ValidationErrorDetail<I>): this {
-        this.result = {
-            error: new ValidationError({
-                key: this.key,
-                value: this.input,
-                detail,
-            })
-        }
+    hasOutput(): this is { result: { output: O } } {
+        return !!this.result && 'output' in this.result
+    }
+
+    getOutput(): O {
+        if (!this.hasOutput())
+            throw new Error('No output.')
+        return this.result.output
+    }
+
+    hasError(): this is { result: { error: string } } {
+        return !!this.result && 'error' in this.result
+    }
+
+    getError(): string {
+        if (!this.hasError())
+            throw new Error('No error.')
+
+        return this.result.error
+    }
+
+    setError(error: string): this {
+        this.result = { error }
         return this
     }
 
@@ -93,12 +103,13 @@ class ValidationContext<I = any, O extends I = I>
 
     get subContexts() {
 
-        const subContexts: Record<PropertyKey, UnknownValidationContext> = {}
+        let subContexts: Record<PropertyKey, UnknownValidationContext> | nil = nil
 
         for (const context of each.valueOf(Node.getChildren(this))) {
             if (!(context instanceof ValidationContext) || isNil(context.key))
                 continue
 
+            subContexts ??= {}
             subContexts[context.key] = context
         }
 
@@ -122,15 +133,27 @@ class ValidationContext<I = any, O extends I = I>
         return subContext
     }
 
-    get findContext() {
+    get path() {
+        let ctx: UnknownValidationContext | nil = this
+        const path: PropertyKey[] = []
+
+        while (ctx?.key !== nil) {
+            path.push(ctx.key)
+            ctx = ctx.superContext
+        }
+
+        return path.reverse()
+    }
+
+    get findSubContext() {
         return Node.find(this) as FindNode<UnknownValidationContext>
     }
 
-    get hasContext() {
+    get hasSubContext() {
         return Node.has(this) as HasNode<UnknownValidationContext>
     }
 
-    get assertContext() {
+    get assertSubContext() {
         return Node.assert(this) as AssertNode<UnknownValidationContext>
     }
 
@@ -142,5 +165,6 @@ export default ValidationContext
 
 export {
     ValidationContext,
+    UnknownValidationContext,
     ValidationResult
 }
