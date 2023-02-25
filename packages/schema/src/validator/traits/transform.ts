@@ -3,7 +3,7 @@ import { AnyTypeGuard, isFunc, isIntersection, isShape, nil } from '@benzed/util
 
 import ValidationContext from '../../validation-context'
 import { Validator } from '../validator'
-import Asserter from './asserter'
+import Assert from './assert'
 
 //// EsLint ////
 /* eslint-disable 
@@ -13,10 +13,10 @@ import Asserter from './asserter'
 //// Main ////
 
 /**
- * The transformer trait provides functionality for transforming a
+ * The transform trait provides functionality for transforming a
  * validation input into it's desired output.
  */
-abstract class Transformer<I = any, O extends I = I> extends Trait {
+abstract class Transform<I = any, O extends I = I> extends Trait {
 
     /**
      * Given a validator and a validation context, apply any transformations 
@@ -25,7 +25,7 @@ abstract class Transformer<I = any, O extends I = I> extends Trait {
      * Receive the expected output of the transformation, considering 
      * the state of the context's transform option.
      */
-    static transform<Ix, Ox extends Ix>(validator: Validator<Ix,Ox>, ctx: ValidationContext<Ix,Ox>): Ix | Ox {
+    static transform<Ix, Ox extends Ix>(validator: Validator<Ix,Ox> | object, ctx: ValidationContext<Ix,Ox>): Ix | Ox {
 
         ctx.transformed = this.is<Ix,Ox>(validator) 
             ? validator.transform(ctx.input, ctx) 
@@ -34,7 +34,7 @@ abstract class Transformer<I = any, O extends I = I> extends Trait {
         return ctx.transform ? ctx.transformed : ctx.input
     }
 
-    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Transformer<Ix, Ox> = 
+    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Transform<Ix, Ox> = 
         isShape({
             transform: isFunc 
         })
@@ -43,10 +43,10 @@ abstract class Transformer<I = any, O extends I = I> extends Trait {
 
 }
 
-abstract class DefaultCastTransformer<I = any, O extends I = I> extends Transformer<I, O> {
+abstract class DefaultCastTransform<I = any, O extends I = I> extends Transform<I, O> {
 
-    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Transformer<Ix,Ox> = isIntersection(
-        Transformer.is,
+    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Transform<Ix,Ox> = isIntersection(
+        Transform.is,
         isShape({
             cast: isFunc,
             default: isFunc
@@ -56,12 +56,12 @@ abstract class DefaultCastTransformer<I = any, O extends I = I> extends Transfor
     transform(input: I, ctx: ValidationContext<I, O>): I | O {
 
         if (input === nil)
-            ctx.transformed = this.default(ctx)
+            input = this.default(ctx)
 
-        if (!Asserter.isValid(this, ctx, input))
-            ctx.transformed = this.cast(input, ctx)
+        if (!Assert.isValid(this, ctx, input))
+            input = this.cast(input, ctx)
 
-        return ctx.transformed
+        return input
     }
 
     /**
@@ -83,9 +83,9 @@ abstract class DefaultCastTransformer<I = any, O extends I = I> extends Transfor
 
 //// Exports ////
 
-export default Transformer
+export default Transform
 
 export {
-    Transformer,
-    DefaultCastTransformer
+    Transform,
+    DefaultCastTransform
 }

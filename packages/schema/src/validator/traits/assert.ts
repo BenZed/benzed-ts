@@ -3,7 +3,7 @@ import { Trait } from '@benzed/traits'
 import { isFunc, isShape } from '@benzed/util'
 
 import ValidationContext from '../../validation-context'
-import type { Validator } from '..'
+import type { Validator } from '../validator'
 
 //// EsLint ////
 /* eslint-disable 
@@ -13,10 +13,10 @@ import type { Validator } from '..'
 //// Main ////
 
 /**
- * The asserter trait provides functionality for determining if
+ * The assert trait provides functionality for determining if
  * a validation is valid.
  */
-abstract class Asserter<I = any, O extends I = I> extends Trait {
+abstract class Assert<I = any, O extends I = I> extends Trait {
 
     /**
      * Given a validator, context and unvalidated output, determine if the output
@@ -28,19 +28,22 @@ abstract class Asserter<I = any, O extends I = I> extends Trait {
     static isValid<I, O extends I>(validator: Validator<I,O> | object, ctx: ValidationContext<I,O>, output: I | O): output is O {
         return this.is(validator)
             ? validator.isValid(output, ctx)
-            : equals(validator, ctx.transformed)
+            : equals(output, ctx.transformed)
     }
 
-    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Asserter<Ix,Ox> = 
+    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Assert<Ix,Ox> = 
         isShape({
             isValid: isFunc 
         })
 
+    /**
+     * Returns true if the input is valid, false if not.
+     */
     abstract isValid(output: I | O, ctx: ValidationContext<I,O>): boolean
 
 }
 
-abstract class TypeAsserter<I = any, O extends I = I> extends Asserter<I,O> {
+abstract class TypeAsserter<I = any, O extends I = I> extends Assert<I,O> {
 
     abstract override isValid(output: I | O, ctx: ValidationContext<I, O>): output is O
 
@@ -48,9 +51,9 @@ abstract class TypeAsserter<I = any, O extends I = I> extends Asserter<I,O> {
 
 //// Exports ////
 
-export default Asserter
+export default Assert
 
 export {
-    Asserter,
+    Assert,
     TypeAsserter
 }

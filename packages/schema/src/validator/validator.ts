@@ -3,10 +3,11 @@ import { Validate, ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import ValidationError from '../validation-error'
 
-import { Asserter, Detailer, Transformer } from './traits'
+import { Assert, Detail, Transform } from './traits'
 
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
 */
 
@@ -22,15 +23,15 @@ class Validator<I = any, O extends I = I> extends Validate<I,O> {
 
         const ctx = new ValidationContext<I,O>(input, options)
 
-        const output = Transformer.transform(this, ctx)
+        const output = Transform.transform(this, ctx)
 
-        ctx.result = Asserter.isValid(this, ctx, output)
+        ctx.result = Assert.isValid(this, ctx, output)
             ? { output }
             : {
                 error: new ValidationError({
                     key: ctx.key,
                     value: ctx.input,
-                    detail: Detailer.resolve(this, ctx)
+                    detail: Detail.resolve(this, ctx)
                 })
             }
 

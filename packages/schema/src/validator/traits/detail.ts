@@ -1,24 +1,23 @@
 import { Trait } from '@benzed/traits'
-import { AnyTypeGuard, isFunc, isKeyed } from '@benzed/util'
+import { isFunc, isShape, isString, isUnion } from '@benzed/util'
 
 import type { Validator } from '../validator'
 import { ValidationContext } from '../../validation-context'
-import { ValidationErrorDetail } from '../../validation-error'
 
 //// EsLint ////
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Main ////
 
 /**
- * Detailer trait provides functionality for deriving a custom error detail
+ * Detail trait provides functionality for deriving a custom error detail
  * message out of a validator
  */
-abstract class Detailer<I = any, O extends I = I> extends Trait {
+abstract class Detail<I = any, O extends I = I> extends Trait {
 
-    static [Trait.onApply](trait: Detailer): Detailer {
+    static [Trait.onApply](trait: Detail): Detail {
         return trait
     }
 
@@ -29,7 +28,7 @@ abstract class Detailer<I = any, O extends I = I> extends Trait {
         input: Validator<I,O> | object, 
         ctx: ValidationContext<I, O>, 
         def = 'Validation failed.'
-    ): ValidationErrorDetail<I> {
+    ): string {
 
         return this.is(input) 
             ? isFunc(input.detail)
@@ -38,21 +37,23 @@ abstract class Detailer<I = any, O extends I = I> extends Trait {
             : def
     }
 
-    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Detailer<Ix, Ox> = 
-        isKeyed('detail') as AnyTypeGuard
+    static override readonly is: <Ix, Ox extends Ix>(input: unknown) => input is Detail<Ix, Ox> = 
+        isShape({
+            detail: isUnion(isString, isFunc)
+        })
 
     /**
      * Detail or a function returning a detail that describes the error associated with this validation.
      */
     abstract detail: 
-    /**/ ValidationErrorDetail<I> | 
-    /**/ ((input: I, ctx: ValidationContext<I,O>) => ValidationErrorDetail<I>)
+    /**/ string | 
+    /**/ ((input: I, ctx: ValidationContext<I,O>) => string)
 }
 
 //// Exports ////
 
-export default Detailer
+export default Detail
 
 export {
-    Detailer
+    Detail
 }
