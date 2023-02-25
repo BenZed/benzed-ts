@@ -1,12 +1,12 @@
 import { capitalize, words } from '@benzed/string'
-import { isNumber, isString } from '@benzed/util'
+import { isNumber, isString, nil } from '@benzed/util'
 import { pipe } from '@benzed/pipe'
 
 //// Type ////
 
 type ValidationErrorDetail<T> = string | (T extends Array<infer I>
 
-    ? ValidationErrorDetail<I>[]
+    ? (ValidationErrorDetail<I> | nil)[]
     : T extends object
         ? {
             [K in keyof T]: ValidationErrorDetail<T[K]>

@@ -1,8 +1,8 @@
 import { IndexesOf } from '@benzed/util'
-import { Validate, ValidateInput, ValidateOutput } from '../../../validate'
+import { ValidateInput, ValidateOutput } from '../../../validate'
+import { Validator } from '../../validator'
 
-import {Validators, PipeValidator} from '../pipe-validator'
-import ContractValidator from '../contract-validator'
+import { Validators, PipeValidator} from '../pipe-validator'
 
 //// EsLint ////
 /* eslint-disable 
@@ -12,16 +12,16 @@ import ContractValidator from '../contract-validator'
 //// Helper Types ////
 
 type FirstValidator<T extends Validators> = T extends [infer F, ...any]
-    ? F extends ContractValidator
+    ? F extends Validator
         ? F 
         : never
     : never
 
 type LastValidator<T extends Validators> = T extends [...any, infer L]
-    ? L extends ContractValidator
+    ? L extends Validator
         ? L 
         : T extends [infer F]
-            ? F extends ContractValidator
+            ? F extends Validator
                 ? F
                 : never
             : never
@@ -29,7 +29,7 @@ type LastValidator<T extends Validators> = T extends [...any, infer L]
 
 //// TYpes ////
 
-type TransformTo<T extends Validators> = Validate<
+type TransformTo<T extends Validators> = Validator<
 /**/ ValidateOutput<LastValidator<T>>,
 /**/ ValidateOutput<LastValidator<T>>
 >
@@ -39,7 +39,7 @@ type TransformOutput<T extends Validators> = ValidateOutput<LastValidator<T>> ex
     ? ValidateOutput<LastValidator<T>>
     : never
 
-type TransformToAnother<T extends Validators, Tx extends Validate> = 
+type TransformToAnother<T extends Validators, Tx extends Validator> = 
     [...T, Tx] extends Validators 
         ? TransformValidator<[...T, Tx]>
         : never

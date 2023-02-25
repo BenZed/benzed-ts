@@ -22,14 +22,12 @@ type Validators<I = any, O extends I = I> = readonly [
  */
 abstract class PipeValidator<I, O extends I = I> extends Validator<I, O> {
 
-    override [Validator.analyze](input: I, options?: ValidateOptions): ValidationContext<I,O> {
-
+    [Validator.analyze](input: I, options?: ValidateOptions): ValidationContext<I,O> {
         let ctx = new ValidationContext<I,O>(input, options)
 
         for (const validator of this.validators) {
 
             ctx = validator[Validator.analyze](ctx.transformed as O, ctx)
-
             if (ctx.result && 'error' in ctx.result)
                 return ctx
         }
