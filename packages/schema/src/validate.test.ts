@@ -38,7 +38,7 @@ const $numeric: Validate<string, `${number}`> = (i, options) => {
 
 //// Tests ////
 
-describe('$numeric example validation tests', () => { 
+describe('$numeric example validation tests', () => {
     testValidator(
         // validator as first argument
         $numeric,
@@ -64,6 +64,5 @@ describe('$numeric example validation tests', () => {
         { transforms: '123.45', output: '123.45' },
         { transforms: '123.00', output: '123' },
         { transforms: '1,234.56', output: '1' }, 
-
     )
 })

@@ -30,15 +30,6 @@ it('output type', () => {
     expectTypeOf<NameFlagFlagOutput>().toEqualTypeOf<[string, boolean, boolean]>()
 })
 
-it('creates nested contexts', () => {
-
-    const ctx = $nameFlagFlag[Validator.analyze](
-        new ValidationContext<unknown[], [string, boolean, boolean]>([], {})
-    )
-
-    console.log(ctx)
-})
-
 testValidator<unknown[], [string, boolean, boolean]>(
     $nameFlagFlag,
     // Invalid input test cases

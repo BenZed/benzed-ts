@@ -22,7 +22,7 @@ function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: Valid
         new ValidationContext(input, options)
     )
 
-    if (!ctx.hasOutput() || ctx.hasError() || ctx.hasSubContextError())
+    if (!ctx.hasOutput())
         throw new ValidationError(ctx)
 
     return ctx.getOutput()
