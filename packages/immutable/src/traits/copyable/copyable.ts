@@ -1,5 +1,5 @@
 import { isShape, isFunc, AnyTypeGuard } from '@benzed/util'
-import { Trait } from '@benzed/traits'
+import { Traits } from '@benzed/traits'
 
 //// Symbol ////
 
@@ -7,7 +7,7 @@ const $$copy = Symbol('=')
 
 //// Main ////
 
-abstract class Copyable extends Trait {
+abstract class Copyable extends Traits {
 
     /**
      * Symbolic key used to implement the copy method.
@@ -21,7 +21,7 @@ abstract class Copyable extends Trait {
      */
     static createFromProto<T extends object>(object: T): T {
         const clone = Object.create(object.constructor.prototype)
-        return Trait.apply(clone)
+        return Traits.apply(clone)
     }
 
     static override readonly is: (input: unknown) => input is Copyable = isShape({

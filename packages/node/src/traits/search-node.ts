@@ -13,21 +13,21 @@ class SearchNode extends Node {
     static override is: (input: unknown) => input is SearchNode = isIntersection(
         Node.is,
         isShape({
-            find: isObject<FindNode>,
-            has: isObject<HasNode>,
-            assert: isObject<AssertNode>,
+            find: isObject<FindNode<Node>>,
+            has: isObject<HasNode<Node>>,
+            assert: isObject<AssertNode<Node>>,
         })
     )
 
-    get find(): FindNode {
+    get find(): FindNode<Node> {
         return Node.find(this)
     }
 
-    get has(): HasNode {
+    get has(): HasNode<Node> {
         return Node.has(this)
     }
 
-    get assert(): AssertNode {
+    get assert(): AssertNode<Node> {
         return Node.assert(this)
     }
 

@@ -71,7 +71,7 @@ it('should call the Trait.onApply method of each trait when a new trait is creat
     }
     const MergedTrait = mergeTraits(MyTrait1, MyTrait2)
 
-    void new class extends useTraits(MergedTrait) {}
+    void new class extends useTraits(MergedTrait) {} 
 
     expect(MyTrait1[Trait.onApply]).toHaveBeenCalledTimes(1)
     expect(MyTrait2[Trait.onApply]).toHaveBeenCalledTimes(1)

@@ -66,8 +66,9 @@ export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTr
 
             // apply traits
             for (const Trait of Traits) {
-                if ($$onApply in Trait && isFunc(Trait[$$onApply]))
+                if ($$onApply in Trait && isFunc(Trait[$$onApply])) 
                     instance = Trait[$$onApply](instance) ?? instance
+                
             }
 
             return instance
@@ -85,11 +86,11 @@ export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTr
 
     for (const Trait of Traits) {
         
-        // Apply any prototypal trait implementations
+        // apply any prototypal trait implementations
         for (const [key, descriptor] of each.defined.descriptorOf(Trait.prototype)) 
             define(BaseWithTraits.prototype, key, descriptor)
 
-        // Apply any trait constructor mutations
+        // apply any trait constructor mutations
         if ($$onUse in Trait && isFunc(Trait[$$onUse]))
             Trait[$$onUse](BaseWithTraits)
     }
@@ -103,11 +104,11 @@ export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTr
 
 //// Use Traits ////
 
-export function useTraits<T extends _Traits>(...traits: T): AddTraitsConstructor<T> {
+export function useTraits<T extends _Traits>(...Traits: T): AddTraitsConstructor<T> {
 
     return addTraits(
         class Base {}, 
-        ...traits
+        ...Traits
     ) as unknown as AddTraitsConstructor<T>
 
 }

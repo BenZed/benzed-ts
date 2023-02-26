@@ -46,7 +46,7 @@ function useNodeTableBuilder(this: NodeTable<NodeRecord>, update: Func) {
  * NodeTable is an immutable structure with a call signature providing an interface
  * for static updates.
  */
-const NodeTable = class NodeTable extends Traits.use(Callable, Node, Structural) {
+const NodeTable = class NodeTable extends Traits.use(Callable, Structural, Node) {
 
     constructor(children: NodeRecord) {
         super()

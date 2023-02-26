@@ -5,7 +5,7 @@ import {
     StructState,
     StructStateApply, 
     StructStatePath, 
-    StructStateUpdate, 
+    StructStateUpdate
 } from '@benzed/immutable'
 
 import { Mutate, Mutator, Trait } from '@benzed/traits'

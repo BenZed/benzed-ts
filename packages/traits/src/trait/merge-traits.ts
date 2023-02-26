@@ -1,5 +1,6 @@
 import { 
     AnyTypeGuard, 
+    define, 
     each, 
     Intersect, 
     isFunc, 
@@ -51,13 +52,13 @@ export type MergedTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T>
 /**
  * Combine multiple traits into one.
  */
-export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstructor<T> {
+export function mergeTraits<T extends _Traits>(...Traits: T): MergedTraitsConstructor<T> {
 
-    const MergedTraits = addTraits(class extends Trait {
+    class MergedTrait extends Trait {
 
         // Intersect all is methods
-        static override readonly is = isIntersection(
-            ...traits.map(trait => {
+        static override is = isIntersection(
+            ...Traits.map(trait => {
 
                 if (!('is' in trait) || !isFunc(trait.is))
                     throw new Error(`${trait.name} does not have a static \'is\' typeguard.`)
@@ -65,20 +66,44 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstr
                 return trait.is as AnyTypeGuard
             })
         ) as AnyTypeGuard
-    },
-    
-    ...traits) as MergedTraitsConstructor<T>
 
-    // Add Static Symbols
-    for (const trait of traits) {
-        for (const key of each.keyOf(trait)) {
-            const value = trait[key]
-            if (!isSymbol(value) || value === $$onApply || value === $$onUse)
-                continue
+        // Intersect all onApply methods
+        static [$$onApply](instance: object) {
+            for (const Trait of Traits) {
+                if ($$onApply in Trait && isFunc(Trait[$$onApply]))
+                    instance = Trait[$$onApply](instance) ?? instance
+            }
+            return instance
+        }
 
-            MergedTraits[key] = value
+        // Intersect all onUse methods
+        static [$$onUse](constructor: object) {
+            for (const Trait of Traits) {
+                if ($$onUse in Trait && isFunc(Trait[$$onUse]))
+                    Trait[$$onUse](constructor)
+            }
         }
     }
 
-    return MergedTraits
+    // Add Static Symbols
+    for (const Trait of Traits) {
+
+        // apply prototypal implementations
+        for (const [key, descriptor] of each.defined.descriptorOf(Trait.prototype))
+            define(MergedTrait.prototype, key, descriptor)
+
+        // attach constructor symbols
+        for (const key of each.keyOf(Trait)) {
+            const value = Trait[key]
+            if (!isSymbol(value) || value === $$onApply || value === $$onUse)
+                continue
+
+            MergedTrait[key] = value
+        }
+    }
+
+    const name = [...Traits].map(c => c.name).join('')
+    define.named(name, MergedTrait) 
+
+    return MergedTrait as unknown as MergedTraitsConstructor<T>
 }

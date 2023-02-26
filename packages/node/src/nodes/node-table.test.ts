@@ -46,17 +46,18 @@ it('key', () => {
 })
 
 describe('builder', () => {
-
+ 
     test('pick', () => {
+
         const todo2 = todo(t => t.pick('completed'))
         expect({ ...todo2 }).toEqual({ completed: todo.completed })
 
         expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
             completed: Switch<true>
-        }>>() 
+        }>>()
     })
 
-    test('omit', () => {
+    test('omit', () => { 
         const todo2 = todo(t => t.omit('completed'))
         expect({ ...todo2 }).toEqual({ description: todo.description })
         expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
@@ -64,7 +65,7 @@ describe('builder', () => {
         }>>()
     })
 
-    test('merge', () => {
+    test('merge', () => { 
         const off = new Switch(false) 
         const todo2 = todo(t => t.merge({ off }))
         expect({ ...todo2 }).toEqual({ ...todo, off })
@@ -133,7 +134,7 @@ describe('builder', () => {
 describe('relations', () => {
 
     it('parents', () => {
-        expect(Node.getParent(todo.completed) === todo).toBe(true)
+        expect(Node.getParent<typeof todo>(todo.completed) === todo).toBe(true)
     })
 
     it('survives copy', () => {

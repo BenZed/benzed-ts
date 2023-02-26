@@ -19,7 +19,7 @@ export const isNode: (child: unknown) => child is Node =
 /**
  * Set the parent of a node
  */
-export function setParent<N extends Node = Node>(child: N, parent: N | nil): void {
+export function setParent(child: Node, parent: Node | nil): void {
     define.hidden(
         child,
         $$parent,
@@ -30,6 +30,6 @@ export function setParent<N extends Node = Node>(child: N, parent: N | nil): voi
 /**
  * Get the parent of a node
  */
-export function getParent<N extends Node = Node>(node: N): N | nil {
+export function getParent<N extends Node = Node>(node: Node): N | nil {
     return node[$$parent] as N | nil
 }

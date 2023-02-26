@@ -1,4 +1,5 @@
 
+import { isFunc } from '@benzed/util'
 import {
     $$onUse,
     $$onApply,
@@ -39,6 +40,16 @@ export abstract class Trait {
      * Merge multiple traits into one.
      */
     static readonly merge = mergeTraits
+
+    /**
+     * Escape hatch for executing Trait.onApply 
+     */
+    static apply<T extends object>(input: T): T {
+        if ($$onApply in input && isFunc(input[$$onApply]))
+            input = input[$$onApply]() ?? input
+
+        return input
+    }
 
     /**
      * Overwrite this method on extended Traits to allow

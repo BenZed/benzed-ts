@@ -107,8 +107,9 @@ abstract class Mutate<T extends object> extends Trait {
 
         const target = key === $$target || Reflect.has(mutator, key)
             ? mutator
-            : mutator[$$target]
-        
+            : mutator[$$target] ?? mutator
+            //                  ^ idk about this man
+
         return Reflect.defineProperty(target, key, attributes)
     }
 

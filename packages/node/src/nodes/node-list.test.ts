@@ -12,14 +12,14 @@ import { expectTypeOf } from 'expect-type'
 //// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
-*/
+*/ 
 
-//// Setup ////   
+//// Setup ////
 
-class Data<V> extends Traits.use(Node) { 
+class Data<V> extends Traits.use(Node) {
 
     constructor(
-        readonly data: V
+        readonly data: V 
     ) {
         super()
     }
@@ -150,14 +150,14 @@ describe('relations', () => {
 
     it('parents', () => {
         expect(Node.getParent(list[0])).toBe(list)
-    })
+    }) 
 
     it('survives copy', () => {
         const list2 = copy(list) 
 
         expect(Node.getParent(list2[0]) === list).toBe(false)
         expect(Node.getParent(list2[0]) === list2).toBe(true)
-    }) 
+    })
 
     it('has public node interface', () => {
         expect(PublicNode.is(list)).toBe(true)
