@@ -6,9 +6,8 @@ import { Trait } from '@benzed/traits'
 import { Not, Optional } from './modifiers'
 import { ContractValidator, TypeValidator } from '../validators'
 
-import {
-    testValidator,
-} from '../../util.test'
+import { testValidator } from '../../util.test'
+import Schema from '../schema/schema'
 
 //// Setup ////
 

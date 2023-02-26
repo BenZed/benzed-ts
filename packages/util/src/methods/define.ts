@@ -134,7 +134,7 @@ define.access = function defineAccessor<T extends object>(object: T, key: Proper
  * Assign all of the defined property descriptors on a source object onto the target object.
  * Optionally include an array of objects in the prototype's source chain not to include.
  */
-define.transpose = function defineTranspoise<T extends object>(source: object, target: T, blacklist: object[] = []): T {
+define.transpose = function defineTranspose<T extends object>(source: object, target: T, blacklist: object[] = []): T {
 
     for (const proto of each.prototypeOf(source).toArray().reverse()) {
 

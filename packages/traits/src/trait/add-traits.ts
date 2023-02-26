@@ -64,8 +64,8 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
 
     // Apply all traits
     define.hidden(
-        CompositeConstructor, 
-        Traits.onApply, 
+        CompositeConstructor,
+        Traits.onApply,
         (i: object) => applyTraits(i, traits)
     )
 

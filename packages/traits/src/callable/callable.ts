@@ -1,12 +1,11 @@
-import { 
-    define, 
-    assign, 
-    Func, 
-    isFunc, 
-    isIntersection, 
-    isShape, 
-    isKeyed, 
-    isObject, 
+import {
+    define,
+    Func,
+    isFunc,
+    isIntersection,
+    isShape,
+    isKeyed,
+    isObject,
     each 
 } from '@benzed/util'
 
@@ -88,16 +87,15 @@ const Callable = class extends Trait {
         function callable(this: unknown, ...args: unknown[]): unknown {
 
             // Update outer 'this' context
-            assign(callable, { [$$context]: this })
+            define.hidden(callable, $$context, this)
 
             const signature = (callable as unknown as Callable<Func>)[$$signature]
-
             return signature.apply(callable, args)
         }
 
         // Add instance properties
         define.transpose(instance, callable, [Function.prototype])
-    
+
         return callable as unknown as Callable<F>
     }
 

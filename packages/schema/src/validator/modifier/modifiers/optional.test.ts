@@ -5,14 +5,15 @@ import {
     isShape, 
     nil, 
     pick
-} from '@benzed/util'
+} from '@benzed/util' 
 
+import Modifier from '../modifier'
 import { Optional } from './optional'
 import { testValidator } from '../../../util.test'
 import { TypeValidator } from '../../validators'
 
 import { expectTypeOf } from 'expect-type'
-import Modifier from '../modifier'
+
 import { Trait } from '@benzed/traits'
 import { StructStateApply, Structural } from '@benzed/immutable'
 
@@ -20,7 +21,7 @@ import { StructStateApply, Structural } from '@benzed/immutable'
 
 class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean }>, Structural) {
 
-    isValid = isShape({
+    isValid = isShape({ 
         cookies: isNumber,
         open: isBoolean
     }) 
@@ -28,8 +29,8 @@ class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean
     readonly enabled: boolean = true
 
     toggleEnabled(): this {
-        return Structural.apply( 
-            this, 
+        return Structural.apply(
+            this,
             { enabled: !this.enabled } as StructStateApply<this>
         )
     }
@@ -49,7 +50,7 @@ const $maybeCookieJar = new Optional($cookieJar)
 
 //// Tests ////
 
-describe('Optional validation mutation', () => { 
+describe('Optional validation mutation', () => {
 
     expectTypeOf($maybeCookieJar)
         .toEqualTypeOf<Optional<CookieJar>>()
@@ -87,12 +88,12 @@ describe('effect on target', () => {
         expect($maybeCookieJar.enabled).toBe($cookieJar.enabled)
     })
   
-    it('favours own properties', () => {
+    it('favours own properties', () => { 
         expect($maybeCookieJar.required).toEqual($cookieJar)
         expect($maybeCookieJar.required).toBeInstanceOf(CookieJar)
     })
 
-    it('wraps result instances in self', () => { 
+    it('wraps result instances in self', () => {
 
         const $disabledCookieJar = $cookieJar.toggleEnabled()
 
@@ -101,7 +102,7 @@ describe('effect on target', () => {
 
         expect($disabledMaybeCookieJar.enabled).toEqual(false)
         expect($disabledMaybeCookieJar).toBeInstanceOf(Optional)
- 
+
         expectTypeOf($disabledMaybeCookieJar)
             .toEqualTypeOf<Optional<CookieJar>>()
     })

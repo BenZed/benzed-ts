@@ -15,7 +15,7 @@ import {
 //// EsLint ////
 
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Helper Types ////

@@ -104,6 +104,12 @@ class ValidationError<T> extends Error {
             ? ctx 
             : ctx.findSubContext.inDescendents(sub => sub.hasError())
 
+        if (firstErrorCtx) {
+            console.log(
+                formatPath(firstErrorCtx.path),
+                firstErrorCtx.getError()
+            )
+        }
         const message = firstErrorCtx
             ? words(
                 formatPath(firstErrorCtx.path),
