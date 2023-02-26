@@ -1,7 +1,6 @@
 
 import { define, each, Intersect, isFunc } from '@benzed/util'
-import { applyTraits, _Traits } from './apply-traits'
-import { Traits } from './trait'
+import type { Trait } from './trait'
 
 //// EsLint ////
 /* eslint-disable 
@@ -11,6 +10,7 @@ import { Traits } from './trait'
 //// Symbolic /// 
 
 export const $$onUse = Symbol('on-trait-use')
+export const $$onApply = Symbol('on-trait-apply')
 
 //// Helper Types ////
 
@@ -29,6 +29,16 @@ type _BaseTraits = [
     ...traits: _Traits
 ]
 
+//// Helper Types ////
+
+type _TraitConstructor = new () => Trait
+type _AbstractTraitConstructor = abstract new () => Trait
+
+/**
+ * @internal
+ */
+export type _Traits = (_TraitConstructor | _AbstractTraitConstructor)[]
+
 //// Composite Types ////
 
 export type Composite<T extends _BaseTraits | _Traits> = Intersect<_InstanceTypes<T>>
@@ -43,40 +53,52 @@ export interface AddTraitsConstructor<T extends _BaseTraits | _Traits> {
  * Extend a base class with any number of trait classes.
  * A trait class cannot have any constructor logic.
  */
-export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTraitsConstructor<T> {
+export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTraitsConstructor<T> {
 
-    class CompositeConstructor extends base {}
+    class BaseWithTraits extends Base {
 
-    for (const trait of traits) {
+        protected [$$onApply](): this {
+            let instance = this
+
+            // if we're extending a 
+            if (Base.prototype[$$onApply])
+                instance = super[$$onApply]() ?? instance
+
+            // apply traits
+            for (const Trait of Traits) {
+                if ($$onApply in Trait && isFunc(Trait[$$onApply]))
+                    instance = Trait[$$onApply](instance) ?? instance
+            }
+
+            return instance
+        }
+
+        constructor(...args: any[]) {
+            super(...args)
+
+            // only apply traits if the base doesn't have an 'onApply' method;
+            // otherwise they'll be applied twice.
+            if (!Base.prototype[$$onApply])
+                return this[$$onApply]() ?? this
+        }
+    }
+
+    for (const Trait of Traits) {
         
         // Apply any prototypal trait implementations
-        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
-            define(CompositeConstructor.prototype, key, descriptor)
+        for (const [key, descriptor] of each.defined.descriptorOf(Trait.prototype)) 
+            define(BaseWithTraits.prototype, key, descriptor)
 
         // Apply any trait constructor mutations
-        if ($$onUse in trait && isFunc(trait[$$onUse]))
-            trait[$$onUse](CompositeConstructor)
+        if ($$onUse in Trait && isFunc(Trait[$$onUse]))
+            Trait[$$onUse](BaseWithTraits)
     }
 
     // Composite name
-    const name = [...traits, base].map(c => c.name).join('')
-    define.named(name, CompositeConstructor) 
+    const name = [...Traits, Base].map(c => c.name).join('')
+    define.named(name, BaseWithTraits) 
 
-    // Apply all traits
-    define.hidden(
-        CompositeConstructor,
-        Traits.onApply,
-        (i: object) => applyTraits(i, traits)
-    )
-
-    // Proxy for applying all traits when an instance is constructed
-    return new Proxy(CompositeConstructor, {
-        construct(constructor, ...args) {
-            const instance = Reflect.construct(constructor, ...args)
-            return (constructor as any)[Traits.onApply](instance)
-        }
-    }) as unknown as AddTraitsConstructor<T> 
-
+    return BaseWithTraits as AddTraitsConstructor<T>
 }
 
 //// Use Traits ////
@@ -84,9 +106,8 @@ export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTr
 export function useTraits<T extends _Traits>(...traits: T): AddTraitsConstructor<T> {
 
     return addTraits(
-        class CompositeBase {},
+        class Base {}, 
         ...traits
-    
     ) as unknown as AddTraitsConstructor<T>
 
 }

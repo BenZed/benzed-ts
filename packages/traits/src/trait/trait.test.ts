@@ -7,7 +7,7 @@ import { isFunc, isNumber, isShape, isTuple } from '@benzed/util'
 
 class Huggable extends Trait {
 
-    static is: (input: unknown) => input is Huggable = isShape({ 
+    static is: (input: unknown) => input is Huggable = isShape({
         hug: isFunc
     })
 

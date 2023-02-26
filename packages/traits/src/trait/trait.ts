@@ -1,19 +1,24 @@
-import { isFunc } from '@benzed/util'
-import { $$onUse, addTraits, useTraits } from './add-traits'
-import { $$onApply } from './apply-traits'
+
+import {
+    $$onUse,
+    $$onApply,
+    addTraits,
+    useTraits
+} from './add-traits'
+
 import { mergeTraits } from './merge-traits'
 
 //// EsLint ////
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+
+/* eslint-disable
+    @typescript-eslint/no-explicit-any
 */
 
 /**
- * 
- * A Trait is essentially a runtime interface. 
+ * A Trait is essentially a runtime interface.
  * 
  * Using class syntax to declare abstract properties or partial implementations,
- * a trait will be added to a regular class via mixins. 
+ * a trait will be added to a regular class via mixins.
  * 
  * Extend this class to make traits, use the static methods
  * on this class to apply them.
@@ -34,20 +39,6 @@ export abstract class Trait {
      * Merge multiple traits into one.
      */
     static readonly merge = mergeTraits
-
-    /**
-     * @internal
-     * Escape hatch for running a trait user's applyTraits method.
-     */
-    static apply<T extends object>(instance: T): T {
-       
-        const ctor = instance.constructor
-
-        if (ctor && Trait.onApply in ctor && isFunc(ctor[Trait.onApply]))
-            instance = ((ctor as any)[Trait.onApply](instance) ?? instance) as T
-
-        return instance
-    }
 
     /**
      * Overwrite this method on extended Traits to allow
@@ -72,14 +63,13 @@ export abstract class Trait {
     }
 
     /**
-     * Extended traits may implement this static 
-     * method to customize behaviour that occurs when
-     * a trait is applied.
+     * Trait consumers may implement the stati conApply symbolic
+     * method to execute functionality when a trait is applied
      */
     static readonly onApply: typeof $$onApply = $$onApply
 
     /**
-     * Trait consumers may implement the $$onUse symbolic
+     * Trait consumers may implement theonUse symbolic
      * method to make static changes to the constructor 
      * when using a trait.
      */
@@ -91,7 +81,7 @@ export abstract class Trait {
      */
     constructor() {
         throw new Error(
-            `Trait class ${this.constructor.name}'s should ` + 
+            `${Trait.name} class ${this.constructor.name}'s should ` + 
             'never be constructed.'
         )
     }

@@ -1,6 +1,22 @@
-import { AnyTypeGuard, each, Intersect, isFunc, isIntersection, isSymbol } from '@benzed/util'
-import { $$onUse, addTraits, AddTraitsConstructor, Composite, useTraits } from './add-traits'
-import { $$onApply, _Traits } from './apply-traits'
+import { 
+    AnyTypeGuard, 
+    each, 
+    Intersect, 
+    isFunc, 
+    isIntersection, 
+    isSymbol 
+} from '@benzed/util'
+
+import { 
+    $$onApply,
+    $$onUse, 
+    addTraits, 
+    AddTraitsConstructor, 
+    Composite, 
+    useTraits, 
+    _Traits 
+} from './add-traits'
+
 import { Trait } from './trait'
 
 //// Helper Methods ////
@@ -39,10 +55,6 @@ export function mergeTraits<T extends _Traits>(...traits: T): MergedTraitsConstr
 
     const MergedTraits = addTraits(class extends Trait {
 
-        readonly add = addTraits
-        readonly use = useTraits
-        readonly merge = mergeTraits
-        
         // Intersect all is methods
         static override readonly is = isIntersection(
             ...traits.map(trait => {

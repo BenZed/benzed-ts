@@ -4,6 +4,11 @@ import { test, expect } from '@jest/globals'
 import Mutate from './mutate'
 import { Trait } from '../trait'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Tests ////
 
 test('Simple Example', () => {
@@ -87,7 +92,7 @@ describe('traps', () => {
 
     const mod = new Mod(new Target()) as any
 
-    it.only('get', () => {
+    it('get', () => {
         expect(mod.shared).toBe(1)
         expect(mod.targetOnly).toBe(0)
         expect(mod.modOnly).toBe(1)
