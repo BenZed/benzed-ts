@@ -2,7 +2,7 @@ import { Trait } from './trait'
 
 import { mergeTraits } from './merge-traits'
 import { useTraits } from './add-traits'
-
+ 
 import { it, expect, jest } from '@jest/globals'
 
 it('should return a new trait that extends the traits', () => {

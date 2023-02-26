@@ -218,7 +218,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
         clone[Stateful.key] = copy(this[Stateful.key])
         return clone
     }
-
+ 
     //// Comparable ////
     
     /**

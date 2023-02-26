@@ -11,7 +11,7 @@ import type { ValidateOptions } from './validate'
 
 //// Types ////
 
-type ValidationResult<I = any, O extends I = I> =
+type ValidationResult<I = any, O = I> =
     {
         readonly error: string
     } | {
@@ -25,7 +25,7 @@ type UnknownValidationContext = ValidationContext<unknown,unknown>
 /**
  * An object containing data related to a validation call.
  */
-class ValidationContext<I = any, O extends I = I>
+class ValidationContext<I = any, O = I>
     extends Traits.use(Node)
     implements ValidateOptions {
 

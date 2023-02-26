@@ -26,7 +26,8 @@ export interface ValidateOptions {
  * The validate method takes an input an optionally a set of validate options and
  * either returns a valid output or throws a validation error.
  */
-export class Validate<I = any, O extends I = I> extends Method<(input: I, options?: ValidateOptions) => O> {}
+export class Validate<I = any, O extends I = I> 
+    extends Method<(input: I, options?: ValidateOptions) => O> {}
 
 /**
  * Input type of a validate method

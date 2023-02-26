@@ -9,7 +9,7 @@ import type {
     MutatorType,
     HasMutator,
     RemoveMutator
-} from '../mutator'
+} from '../modifier'
 
 import { Validator } from '../validator'
 

@@ -67,3 +67,37 @@ test('Trait Overload example', () => {
     expect(cheapSign.amount).toBe(58.5)
 
 })
+
+describe('traps', () => {
+
+    class Target {
+        targetOnly = 0
+        shared = 0
+
+        targetOnlyMethod() {
+            return this.targetOnly
+        }
+
+    }
+    
+    class Mod extends Mutator<Target> {
+        shared = 1
+        modOnly = 1
+    }
+
+    const mod = new Mod(new Target()) as any
+
+    it.only('get', () => {
+        expect(mod.shared).toBe(1)
+        expect(mod.targetOnly).toBe(0)
+        expect(mod.modOnly).toBe(1)
+        expect(mod.targetOnlyMethod()).toEqual(0)
+    })
+
+    it('has', () => {
+        expect('targetOnly' in mod).toBe(true)
+        expect('shared' in mod).toBe(true)
+        expect('modOnly' in mod).toBe(true)
+    })
+
+})

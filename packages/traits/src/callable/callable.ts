@@ -62,7 +62,7 @@ interface CallableStaticProperties {
     is<F extends Func>(input: unknown): input is Callable<F>
 }
 
-type CallableConstructor = abstract new <F extends Func>() => Callable<F>
+type CallableConstructor = (abstract new <F extends Func>() => Callable<F>) & CallableStaticProperties
 
 //// Callable ////
 
@@ -109,10 +109,11 @@ const Callable = class extends Trait {
         isKeyed($$context)
     )
 
-} as CallableConstructor & CallableStaticProperties
+} as CallableConstructor 
 
 //// Export ////
 
 export {
-    Callable
+    Callable,
+    CallableConstructor
 }

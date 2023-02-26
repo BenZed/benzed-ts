@@ -78,12 +78,15 @@ abstract class Mutate<T extends object> extends Trait {
     }
 
     protected [$$has](mutator: Mutate<T>, key: keyof T) {
-        return Reflect.has(mutator[$$target], key)
+        return (
+            Reflect.has(mutator, key) ||
+            Reflect.has(mutator[$$target], key)
+        )
     }
 
     protected [$$getPrototypeOf](mutator: Mutate<T>) {
         return Reflect.getPrototypeOf(mutator[$$target])
-    }
+    } 
 
     protected [$$setPrototypeOf](mutator: Mutate<T>, proto: object) {
         return Reflect.setPrototypeOf(mutator[$$target], proto)
