@@ -101,7 +101,7 @@ class ShapeValidator<T extends ShapeValidatorInput>
             let propertyCtx = ctx.pushSubContext(value, key)
 
             propertyCtx = property[Validator.analyze](propertyCtx)
-            if (propertyCtx.hasOutput())
+            if (propertyCtx.hasValidOutput())
                 output[key] = propertyCtx.getOutput()
         }
 

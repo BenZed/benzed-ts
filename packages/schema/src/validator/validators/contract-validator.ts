@@ -4,6 +4,7 @@ import { isFunc } from '@benzed/util'
 
 import { Validator } from '../validator'
 import ValidationContext from '../../validation-context'
+import { ValidationErrorMessage } from '../../validation-error'
 
 //// EsLint ////
 
@@ -21,7 +22,7 @@ abstract class ContractValidator<I = any, O extends I = I> extends Validator<I,O
 
     transform?(input: I, ctx: ValidationContext<I,O>): I | O
 
-    readonly message?: string | ((input: I, ctx: ValidationContext<I,O>) => string)
+    readonly message?: ValidationErrorMessage<I,O>
 
     //// Analyze ////
 
@@ -32,7 +33,7 @@ abstract class ContractValidator<I = any, O extends I = I> extends Validator<I,O
 
         // Determine output
         const output = ctx.transform 
-            ? ctx.transformed 
+            ? ctx.transformed
             : ctx.input
 
         // Apply result

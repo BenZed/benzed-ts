@@ -1,8 +1,9 @@
 
-import { ValidateOptions } from '../../../validate'
-import { ValidationErrorMessage } from '../../../validation-error'
-import { AnyValidatorStruct } from '../../validator-struct'
-import { $$settings, CallableValidate, ValidateUpdateSettings } from '../../callable-validator'
+import { Structural } from '@benzed/immutable'
+import { assign } from '@benzed/util'
+import ValidationContext from '../../validation-context'
+import { ValidationErrorMessage } from '../../validation-error'
+import { Validator } from '../validator'
 
 import { 
     PipeValidatorBuilder, 
@@ -11,7 +12,7 @@ import {
     OutputValidatorSettings,
     OutputValidatorPredicate,
     OutputValidatorTransform
-} from '../pipe-validator-builder'
+} from '../validators'
 
 import { 
     Schema, 
@@ -22,32 +23,40 @@ import {
     $$sub 
 } from './schema'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Symbols ////
 
 const $$builder = Symbol('pipe-builder-validator')
 
 //// Types ////
 
-type SchemaPipeBuilder<V extends AnyValidatorStruct> = PipeValidatorBuilder<SchemaOutput<V>, SchemaOutput<V>>
-type SchemaBuilderValidator<V extends AnyValidatorStruct> = OutputValidator<SchemaOutput<V>>
-type SchemaBuilderValidatorSettings<V extends AnyValidatorStruct> = OutputValidatorSettings<SchemaOutput<V>>
-type SchemaBuilderValidatorErrorMessage<V extends AnyValidatorStruct> = ValidationErrorMessage<SchemaOutput<V>>
-type SchemaBuilderValidatorPredicate<V extends AnyValidatorStruct> = OutputValidatorPredicate<SchemaOutput<V>>
-type SchemaBuilderValidatorTransform<V extends AnyValidatorStruct> = OutputValidatorTransform<SchemaOutput<V>>
-type SchemaBuilderMethods<V extends AnyValidatorStruct> = PipeValidatorBuilderMethods<SchemaOutput<V>>
+type SchemaPipeBuilder<V extends Validator> = PipeValidatorBuilder<SchemaOutput<V>, SchemaOutput<V>>
+type SchemaBuilderValidator<V extends Validator> = OutputValidator<SchemaOutput<V>>
+type SchemaBuilderValidatorSettings<V extends Validator> = OutputValidatorSettings<SchemaOutput<V>>
+type SchemaBuilderValidatorErrorMessage<V extends Validator> = ValidationErrorMessage<SchemaOutput<V>>
+type SchemaBuilderValidatorPredicate<V extends Validator> = OutputValidatorPredicate<SchemaOutput<V>>
+type SchemaBuilderValidatorTransform<V extends Validator> = OutputValidatorTransform<SchemaOutput<V>>
+type SchemaBuilderMethods<V extends Validator> = PipeValidatorBuilderMethods<SchemaOutput<V>>
 
 //// Main ////
 
-class SchemaBuilder<V extends AnyValidatorStruct, S extends SubValidators<V>> 
+class SchemaBuilder<V extends Validator, S extends SubValidators<V>> 
 
     extends Schema<V,S>
 
     implements PipeValidatorBuilderMethods<SchemaOutput<V>> {
 
-    override validate(input: SchemaInput<V>, options: ValidateOptions): SchemaOutput<V> {
-        let output = super.validate(input, options)
-        output = this[$$builder].validate(output, options)
-        return output
+    override [Validator.analyze](ctx: ValidationContext<SchemaInput<V>, SchemaOutput<V>>) {
+        
+        ctx = super[Validator.analyze](ctx)
+        if (!ctx.hasError() && !ctx.hasSubContextError())
+            ctx = this[$$builder][Validator.analyze](ctx as ValidationContext)
+        
+        return ctx
     }
 
     protected [$$builder]: SchemaPipeBuilder<V> = PipeValidatorBuilder.empty()
@@ -109,17 +118,16 @@ class SchemaBuilder<V extends AnyValidatorStruct, S extends SubValidators<V>>
 
         type BuilderMethod = (...p: Parameters<SchemaBuilderMethods<V>[K]>) => ReturnType<SchemaBuilderMethods<V>[K]>
 
-        return CallableValidate.applySettings(
+        return Structural.apply(
             this,
-            {
-                [$$builder]: (this[$$builder][method] as BuilderMethod)(...params)
-            } as ValidateUpdateSettings<this>
+            $$builder,
+            (this[$$builder][method] as BuilderMethod)(...params) as any
         )
     }
 
     //// Settings ////
     
-    override get [$$settings](): {
+    get [Structural.key](): {
         [$$main]: V
         [$$sub]: S
         [$$builder]: SchemaPipeBuilder<V>
@@ -130,7 +138,14 @@ class SchemaBuilder<V extends AnyValidatorStruct, S extends SubValidators<V>>
             [$$builder]: this[$$builder]
         }
     }
-    
+
+    set [Structural.key](state: {
+        [$$main]: V
+        [$$sub]: S
+        [$$builder]: SchemaPipeBuilder<V>
+    }) {
+        assign(this, state)
+    }
 }
 
 //// Exports ////

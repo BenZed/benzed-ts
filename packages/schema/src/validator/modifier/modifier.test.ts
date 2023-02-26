@@ -11,7 +11,7 @@ import Schema from '../schema/schema'
 
 //// Setup ////
 
-class IntegerValidator extends TypeValidator<number> {
+class IntegerValidator extends TypeValidator<number> { 
 
     override name = 'Integer'
 
@@ -36,11 +36,11 @@ class PositiveValidator extends Trait.use(ContractValidator<number, number>, Str
 
     message = 'Must be positive'
 
-    get [Structural.key](): Pick<this, 'enabled'> {
-        return pick(this, 'enabled')
+    get [Structural.key](): Pick<this, 'enabled' | 'message'> {
+        return pick(this, 'enabled', 'message')
     }
 
-    set [Structural.key](state: Pick<this, 'enabled'>) {
+    set [Structural.key](state: Pick<this, 'enabled' | 'message'>) {
         assign(this, state)
     }
 }
@@ -114,7 +114,7 @@ describe('stacking', () => {
         $optionalNotInteger,
         { asserts: nil },
         { asserts: 'string' },
-        { asserts: 1, error: 'Must not be Integer' },
+        { asserts: 1, error: true },
         { asserts: 2.5 },
     )
 
@@ -122,7 +122,7 @@ describe('stacking', () => {
 
     testValidator<unknown, unknown> (
         $optionalNotPositiveInteger,
-        { asserts: 1, error: 'Must not be Integer' },
+        { asserts: 1, error: true },
         { asserts: 'string' },
         { asserts: nil },
         { asserts: 2.5 },

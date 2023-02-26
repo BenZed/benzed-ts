@@ -19,6 +19,8 @@ type ValidationErrorJson<T> = string | (T extends Array<infer I>
         }
         : string)
 
+type ValidationErrorMessage<I, O extends I = I> = string | ((input: I, ctx: ValidationContext<I,O>) => string)
+
 //// Helper ////
 
 /**
@@ -104,12 +106,6 @@ class ValidationError<T> extends Error {
             ? ctx 
             : ctx.findSubContext.inDescendents(sub => sub.hasError())
 
-        if (firstErrorCtx) {
-            console.log(
-                formatPath(firstErrorCtx.path),
-                firstErrorCtx.getError()
-            )
-        }
         const message = firstErrorCtx
             ? words(
                 formatPath(firstErrorCtx.path),
@@ -132,5 +128,7 @@ class ValidationError<T> extends Error {
 export default ValidationError
 
 export {
-    ValidationError
+    ValidationError,
+    ValidationErrorMessage,
+    ValidationErrorJson
 }

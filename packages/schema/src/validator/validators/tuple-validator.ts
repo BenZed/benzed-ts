@@ -38,7 +38,7 @@ class TupleValidator<T extends TupleValidatorInput> extends Validator<unknown[],
             const position = this.positions[index]
 
             positionCtx = position[Validator.analyze](positionCtx)
-            if (positionCtx.hasOutput())
+            if (positionCtx.hasValidOutput())
                 output[index] = positionCtx.getOutput()
         }
 

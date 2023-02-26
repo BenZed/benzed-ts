@@ -1,9 +1,8 @@
 import { Callable, Traits } from '@benzed/traits'
-import { define } from '@benzed/util'
-import { Validate, ValidateOptions } from '../validate'
+import { $$analyze, analyze, Analyzer } from '../analyze'
+import { Validate } from '../validate'
 
 import ValidationContext from '../validation-context'
-import ValidationError from '../validation-error'
 
 //// Eslint ////
 
@@ -11,76 +10,40 @@ import ValidationError from '../validation-error'
     @typescript-eslint/no-explicit-any
 */
 
-//// Helper ////
+//// Validator Constructor Type ////
 
-export const $$analyze = Symbol('validation-analyze')
+type ValidatorConstructSignature = abstract new <I, O extends I>() => Validator<I,O>
 
-/**
- * There is only one validate method in all of @benzed/schema, and this is it
- */
-function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
-
-    const ctx = this[$$analyze](
-        new ValidationContext(input, options)
-    )
-
-    if (!ctx.hasOutput())
-        throw new ValidationError(ctx)
-
-    return ctx.getOutput()
+interface ValidatorConstructor extends ValidatorConstructSignature {
+    readonly analyze: typeof $$analyze
 }
 
-//// Main ////
+//// Validator Type////
 
-abstract class Analyze<I, O extends I> {
+/**
+ * The primary type of this library. 
+ * The Validator uses the analyze validate method as it's callable signature,
+ * compelling extended classes to implement the symbolic analyze method 
+ * to carry out validations.
+ */
+export interface Validator<I = any, O extends I = I> extends Analyzer<I,O>, Validate<I,O> {}
+
+//// Validator Implementation ////
+
+export const Validator = class extends Traits.add(Analyzer, Callable) {
+
+    static readonly analyze = $$analyze
 
     get [Callable.signature]() {
         return analyze
     }
 
-    abstract [$$analyze](ctx: ValidationContext<I, O>): ValidationContext<I, O>
-}
-
-export interface Validator<I = any, O extends I = I> extends Analyze<I,O>, Validate<I,O> {
-
-}
-
-type AbstractValidatorConstructor = abstract new <I, O extends I>() => Validator<I,O>
-
-interface ValidatorConstructor extends AbstractValidatorConstructor {
-    readonly analyze: typeof $$analyze
-}
-
-export const Validator = class extends Traits.add(Analyze, Callable) {
-
-    static readonly analyze = $$analyze;
-
+    // implementation is just to shut typescript up. Extended classes
+    // will still be prompted to implement their own
     [$$analyze](ctx: ValidationContext): ValidationContext {
         void ctx
-        throw new Error('Not yet implemented')
+        throw new Error(`${this.constructor.name} has not implemented ${String($$analyze)}`)
     }
 
 } as ValidatorConstructor
-
-// /**
-//  * The extendable implementation of the Validate interface makes use of the symbolc analyze method.
-//  */
-// export abstract class Validator<I = any, O extends I = I> extends Validate<I, O> {
-
-//     static readonly analyze: typeof $$analyze = $$analyze
-
-//     constructor() {
-//         super(analyze)
-//     }
-
-//     /**
-//      * Given an input and validation options, the analyze method will:
-//      * - create a validation context
-//      * - analyze the input on that context
-//      * - attach a validation result to the context; output or error
-//      * - return the context
-//      */
-//     abstract [$$analyze](ctx: ValidationContext<I, O>): ValidationContext<I, O>
-
-// }
 

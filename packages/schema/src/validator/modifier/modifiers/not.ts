@@ -86,7 +86,7 @@ const Not = class extends Modifier<Validator, ModifierType.Not, unknown> {
         const notCtx = new ValidationContext(ctx.input, { transform: false, key: ctx.key })
         this[Modifier.target][Validator.analyze](notCtx)
 
-        return notCtx.hasOutput()
+        return notCtx.hasValidOutput()
             ? ctx.setError('not validation failed')
             : ctx.setOutput(ctx.input)
     }

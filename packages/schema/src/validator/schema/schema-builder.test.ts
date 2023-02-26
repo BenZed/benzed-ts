@@ -1,10 +1,8 @@
 import { isNumber } from '@benzed/util'
+import { testValidator } from '../../util.test'
+import { ContractValidator, TypeValidator } from '../validators'
 
-import TypeValidator from '../type-validator'
 import { SchemaBuilder } from './schema-builder'
-
-import { testValidator } from '../../../util.test'
-import {SubContractValidator} from './sub-contract-validator'
 
 //// Tests ////
 
@@ -13,7 +11,7 @@ const $number = new class Number extends TypeValidator<number> {
     isValid = isNumber
 }
 
-const $positive = new class Positive extends SubContractValidator<number> {
+const $positive = new class Positive extends ContractValidator<number> {
     readonly enabled = true
     readonly transform = (i: number): number => Math.max(i, 0)
     readonly message = 'Must be positive'

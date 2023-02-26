@@ -72,16 +72,22 @@ class ValidationContext<I = any, O = I>
     }
 
     hasOutput(): this is { result: { output: O } } {
+        return !!this.result && 'output' in this.result
+    }
+
+    /**
+     * Context has output, no error and no sub context errors.
+     */
+    hasValidOutput(): this is { result: { output: O } } {
         return (
+            this.hasOutput() &&
             !this.hasError() &&
-            !this.hasSubContextError() &&
-            !!this.result &&
-            'output' in this.result
+            !this.hasSubContextError()
         )
     }
 
     getOutput(): O {
-        if (!this.hasOutput())
+        if (!this.hasValidOutput())
             throw new Error('No output.')
 
         return this.result.output

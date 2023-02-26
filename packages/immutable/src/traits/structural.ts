@@ -144,28 +144,28 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
         const [ newStateAtPath, ...path ] = [...params].reverse() as [StructStateApply<T, P>, ...P]
 
         // resolve state from path and endpoint
-        let newState = newStateAtPath as GenericObject
+        let partialState = newStateAtPath as GenericObject
         for (const subPath of path) 
-            newState = { [subPath]: newState }
+            partialState = { [subPath]: partialState }
 
-        const prevState = struct[Stateful.key]
+        const state = struct[Stateful.key]
 
         // deep set state, triggering nested struct state setters
-        for (const key of each.keyOf(newState)) {
-            const prevKey = key as keyof typeof prevState
+        for (const key of each.keyOf(partialState)) {
+            const prevKey = key as keyof typeof state
             if (
-                prevKey in prevState && 
-                this.is(prevState[prevKey]) && 
-                !this.is(newState[key])
+                prevKey in state && 
+                this.is(state[prevKey]) && 
+                !this.is(partialState[key])
             ) {
-                newState[key] = this.apply(
-                    prevState[prevKey], 
-                    newState[key] as never // <- shut up, ts
+                partialState[key] = this.apply(
+                    state[prevKey], 
+                    partialState[key] as never // <- shut up, ts
                 )
             }
         }
 
-        struct[Stateful.key] = newState
+        struct[Stateful.key] = { ...state, ...partialState }
     }
 
     /**

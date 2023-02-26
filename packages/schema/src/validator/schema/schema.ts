@@ -1,5 +1,5 @@
-import { RecordStruct, StructStateApply, Structural } from '@benzed/immutable'
-import { Callable, Trait } from '@benzed/traits'
+import { RecordStruct, StructState, StructStateApply, StructStateUpdate, Structural } from '@benzed/immutable'
+import { Trait } from '@benzed/traits'
 import { assign, each, pick } from '@benzed/util'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
@@ -71,7 +71,7 @@ type SchemaConstructor = abstract new <V extends Validator, S extends SubValidat
  * number of sub validators, providing interface elements
  * for extended classes to assist in configuration.
  */
-const Schema = class extends Validator {
+const Schema = class extends Trait.add(Validator, Structural) {
 
     //// Constructor ////
 
@@ -94,7 +94,7 @@ const Schema = class extends Validator {
 
         // validate sub validators
         for (const name of each.nameOf(this[$$sub])) {
-            if (ctx.hasError())
+            if (ctx.hasError() || ctx.hasSubContextError())
                 break
             
             const sub = this[$$sub][name]
@@ -123,21 +123,21 @@ const Schema = class extends Validator {
         state: object
     ): this {
         return Structural.apply(
-            this as any,
-            {
-                [$$sub]: {
-                    [name]: state
-                }
-            }
+            this,
+            $$sub,
+            name,
+            state as any
         )
     }
 
     protected _applyMainValidator(
         state: object
     ): this {
+
         return Structural.apply(
-            this as any,
-            { [$$main]: state }
+            this,
+            $$main,
+            state as any
         )
     }
 
@@ -153,15 +153,12 @@ const Schema = class extends Validator {
 
 } as unknown as SchemaConstructor
 
-Schema.prototype[Structural.copy] = Structural.prototype[Structural.copy]
-
-Schema.prototype[Structural.equals] = Structural.prototype[Structural.equals]
-
 //// Exports ////
 
 export default Schema
 
 export {
+
     Schema,
     SchemaInput,
     SchemaOutput,
