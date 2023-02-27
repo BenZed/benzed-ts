@@ -149,6 +149,13 @@ class ValidationContext<I = any, O = I>
         return subContext
     }
 
+    clearSubContexts(): this {
+        for (const key of each.keyOf(Node.getChildren(this))) 
+            delete this[key]
+
+        return this
+    }
+
     get path() {
         let ctx: UnknownValidationContext | nil = this
         const path: PropertyKey[] = []
