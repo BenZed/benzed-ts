@@ -38,7 +38,7 @@ abstract class Stateful extends Trait {
      * The symbolic key for the state accessor trait users need 
      * to implement
      */
-    static readonly key: typeof $$state = $$state
+    static readonly state: typeof $$state = $$state
 
     //// Stateful ////
 

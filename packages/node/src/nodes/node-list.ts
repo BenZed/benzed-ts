@@ -1,13 +1,16 @@
 import {
+    copy,
+    Copyable,
     PublicStructural,
-    Stateful,
     StructState,
     StructStateApply,
     StructStatePath,
     StructStateUpdate,
     Structural
 } from '@benzed/immutable'
+
 import { Traits } from '@benzed/traits'
+
 import { assign, each, IndexesOf } from '@benzed/util'
 
 import { Node, PublicNode } from '../traits'
@@ -61,12 +64,12 @@ interface NodeListProperties<N extends Nodes> extends PublicNode, Structural {
 
     remove<I extends IndexesOf<N>>(index: I): NodeList<RemoveNode<N, I>>
 
-    apply<I extends IndexesOf<N>, Nx extends Node>(
+    create<I extends IndexesOf<N>, Nx extends Node>(
         index: I, 
         node: Nx
     ): NodeList<ApplyNode<N,I,Nx>>
 
-    apply<P extends StructStatePath>(
+    create<P extends StructStatePath>(
         ...pathAndState: [...path: P, state: StructStateApply<this, P>]
     ): this
 
@@ -85,7 +88,7 @@ interface NodeListProperties<N extends Nodes> extends PublicNode, Structural {
 
     get length(): N['length']
 
-    get [Stateful.key](): N
+    get [Structural.state](): N
 
 }
 
@@ -110,13 +113,15 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
 
     constructor(...children: N) {
         super()
-        this[Stateful.key] = children
+        const node = PublicNode.apply(this)
+        node[Structural.state] = children
+        return node
     }
 
     //// Builder Methods ////
 
     add<Nx extends Nodes>(...modules: Nx): NodeList<AddNodes<N,Nx>> {
-        const added = addNodes(this[Stateful.key], ...modules)
+        const added = addNodes(this[Structural.state], ...modules)
         return new NodeList(...added)
     }
 
@@ -124,7 +129,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
         index: I, 
         ...modules: Nx
     ): NodeList<InsertNodes<N, I, Nx>> {
-        const inserted = insertNodes(this[Stateful.key], index, ...modules)
+        const inserted = insertNodes(this[Structural.state], index, ...modules)
         return new NodeList(...inserted)
     }
 
@@ -132,23 +137,23 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
         index1: I1,
         index2: I2
     ): NodeList<SwapNodes<N, I1, I2>> {
-        const swapped = swapNodes(this[Stateful.key], index1, index2)
+        const swapped = swapNodes(this[Structural.state], index1, index2)
         return new NodeList(...swapped)
     }
 
     remove<I extends IndexesOf<N>>(index: I): NodeList<RemoveNode<N, I>> {
-        const removed = removeNode(this[Stateful.key], index)
+        const removed = removeNode(this[Structural.state], index)
         return new NodeList(...removed)
     }
 
     // type signature is different, but implementation doesn't need to be:
-    // apply()
+    // create()
     // update()
 
     //// Convenience Methods ////
 
     at<I extends IndexesOf<N>>(index: I): N[I] {
-        const module = this[Stateful.key][index]
+        const module = this[Structural.state][index]
         if (!module)
             throw new Error(`Index ${index} is invalid`)
 
@@ -161,17 +166,23 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
 
     //// State ////
 
-    get [Stateful.key](): N {
+    override [Structural.copy](): this {
+        return new NodeList<N>(
+            ...copy(this[Structural.state])
+        ) as this
+    }
+    
+    get [Structural.state](): N {
         return Array.from({
             ...this,
             length: this.length 
         }) as unknown as N
     }
 
-    protected set [Stateful.key](children: N) {
+    protected set [Structural.state](children: N) {
 
         // normalize state object vs array
-        
+
         const state = { ...children } as any
         const length = each.keyOf(state).count()
         
@@ -180,7 +191,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
         for (let i = 0; i < length; i++) {
             const node = (this as any)[i]
             if (node) // module may not exist if we're here right after a copy
-                state[i] = Structural.apply(node, state[i])
+                state[i] = Structural.create(node, state[i])
         }
         
         assign(this, state)
@@ -189,7 +200,7 @@ const NodeList = class NodeList<N extends Nodes> extends Traits.use(PublicNode, 
     //// Iterate ////
 
     * [Symbol.iterator](): Iterator<N[number]> {
-        yield* this[Stateful.key]
+        yield* this[Structural.state]
     }
 
 } as unknown as NodeListConstructor

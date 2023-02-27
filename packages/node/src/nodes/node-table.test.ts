@@ -14,12 +14,14 @@ import { expectTypeOf } from 'expect-type'
 class Text<S extends string> extends Trait.use(Node) {
     constructor(readonly text: S) {
         super()
+        return Node.apply(this)
     }
 }
 
 class Switch<B extends boolean> extends Trait.use(Node) {
     constructor(readonly boolean: B) {
         super()
+        return Trait.apply(this, Node)
     }
 }
 
@@ -31,10 +33,10 @@ const description = new Text('Finish NodeTable implementation')
 const todo = new NodeTable({
     completed,
     description
-})
+}) 
 
 it('construct', () => {
-    expect(todo[Structural.key]).toEqual({
+    expect(todo[Structural.state]).toEqual({
         completed,
         description
     })
@@ -76,9 +78,9 @@ describe('builder', () => {
         }>>()
     }) 
 
-    test('apply static', () => { 
+    test('create static', () => { 
 
-        const todo2 = todo(t => t.apply('new', new Switch(false)))
+        const todo2 = todo(t => t.create('new', new Switch(false)))
 
         expectTypeOf(todo2).toEqualTypeOf<NodeTable<{
             completed: Switch<true>
@@ -87,20 +89,25 @@ describe('builder', () => {
         }>>() 
     })
 
-    test('apply', () => { 
+    test('create', () => { 
 
         class Location extends Trait.add(PublicStruct, Node) {
             readonly city: string = 'town'
             readonly street: string = 'main'
+
+            constructor() {
+                super()
+                return Node.apply(this)
+            }
         }
 
         const table1 = new NodeTable({ place: new Location() })
 
-        const table2 = table1(table => table.apply('place', 'city', 'vancouver'))
+        const table2 = table1(table => table.create('place', 'city', 'vancouver'))
 
         expect(table2(t => t.get())).toEqual({
             place: { city: 'vancouver', street: 'main' }
-        })
+        }) 
 
         expectTypeOf(table2).toEqualTypeOf<NodeTable<{
             place: Location
@@ -109,11 +116,11 @@ describe('builder', () => {
 
     test('update static', () => {
 
-        const todo1 = todo(t => t.apply('completed', new Switch(false as boolean)))
+        const todo1 = todo(t => t.create('completed', new Switch(false as boolean)))
 
         const todo2 = todo1(t => t.update('completed', s => new Switch(!s.boolean)))
         
-        expect(Structural.getIn(todo2)).toEqual({
+        expect(Structural.get(todo2)).toEqual({
             completed: { boolean: true },
             description: { text: 'Finish NodeTable implementation' }
         })
@@ -134,7 +141,7 @@ describe('builder', () => {
 describe('relations', () => {
 
     it('parents', () => {
-        expect(Node.getParent<typeof todo>(todo.completed) === todo).toBe(true)
+        expect(Node.getParent(todo.completed) === todo).toBe(true)
     })
 
     it('survives copy', () => {
@@ -145,8 +152,9 @@ describe('relations', () => {
 
     it('has public node interface', () => {
         expect(() => todo(t => {
-            if (!PublicNode.is(t))
+            if (!PublicNode.is(t)) 
                 throw new Error('Node interface is not a public node')
+            return t
         })).not.toThrow()
     })
 

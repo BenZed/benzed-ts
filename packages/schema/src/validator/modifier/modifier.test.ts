@@ -36,11 +36,11 @@ class PositiveValidator extends Trait.use(ContractValidator<number, number>, Str
 
     message = 'Must be positive'
 
-    get [Structural.key](): Pick<this, 'enabled' | 'message'> {
+    get [Structural.state](): Pick<this, 'enabled' | 'message'> {
         return pick(this, 'enabled', 'message')
     }
 
-    set [Structural.key](state: Pick<this, 'enabled' | 'message'>) {
+    set [Structural.state](state: Pick<this, 'enabled' | 'message'>) {
         assign(this, state)
     }
 }

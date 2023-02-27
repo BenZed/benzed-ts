@@ -5,11 +5,18 @@ import { expect, describe } from '@jest/globals'
 
 import { Find, FindFlag } from './find'
 import { PublicNode } from '../public-node'
-import { Node } from '.'
+import { Node } from './node'
 
 //// Setup ////
 
-class Person extends Trait.use(PublicNode) { }
+class Person extends Trait.use(PublicNode) { 
+
+    constructor() {
+        super()
+        return PublicNode.apply(this)
+    }
+
+}
 
 const grandPa = new class GrandPa extends Person { 
 
@@ -35,9 +42,9 @@ const grandPa = new class GrandPa extends Person {
 
 //// Tests ////
 
-const you = grandPa.mom.you 
+const you = grandPa.mom.you
  
-describe('inDescendents', () => {
+describe('inDescendents', () => { 
 
     test('should find Son', () => {
         const find = new Find<Node>(you)

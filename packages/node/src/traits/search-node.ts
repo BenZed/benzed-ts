@@ -1,5 +1,5 @@
 
-import { isIntersection, isObject, isShape } from '@benzed/util'
+import { AnyTypeGuard, isIntersection, isKeyed } from '@benzed/util'
 
 import { Node, AssertNode, FindNode as FindNode, HasNode } from './node'
 
@@ -12,11 +12,7 @@ class SearchNode extends Node {
 
     static override is: (input: unknown) => input is SearchNode = isIntersection(
         Node.is,
-        isShape({
-            find: isObject<FindNode<Node>>,
-            has: isObject<HasNode<Node>>,
-            assert: isObject<AssertNode<Node>>,
-        })
+        isKeyed('find', 'has', 'assert') as AnyTypeGuard
     )
 
     get find(): FindNode<Node> {

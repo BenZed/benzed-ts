@@ -73,7 +73,11 @@ abstract class Node extends Trait {
         return new Find(node, FindFlag.Assert, error)
     }
 
-    static [Trait.onApply](node: Node): Node {
+    /**
+     * Imbue a node with logic for assigning parents on property definition,
+     * and unassigning them on property deletion.
+     */
+    static override apply<T extends Node>(node: T): T {
 
         const proxyNode = new Proxy(node, {
             defineProperty(node, key: keyof Node, descriptor) {

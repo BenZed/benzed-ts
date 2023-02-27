@@ -21,7 +21,7 @@ export abstract class PublicStructural extends Structural {
             Structural.is,
             isShape({
                 get: isFunc,
-                apply: isFunc,
+                create: isFunc,
                 update: isFunc,
                 copy: isFunc,
                 equals: isFunc as AnyTypeGuard
@@ -31,11 +31,11 @@ export abstract class PublicStructural extends Structural {
     //// Public Immutability Interface ////
 
     get<P extends StructStatePath>(...path: P): StructState<this, P> {
-        return Structural.getIn(this, ...path)
+        return Structural.get(this, ...path)
     }
 
-    apply<P extends StructStatePath>(...pathAndState: [...path: P, state: StructStateApply<this, P>]): this {
-        return Structural.apply(this, ...pathAndState)
+    create<P extends StructStatePath>(...pathAndState: [...path: P, state: StructStateApply<this, P>]): this {
+        return Structural.create(this, ...pathAndState)
     }
 
     update<P extends StructStatePath>(...pathAndUpdate: [...path: P, state: StructStateUpdate<this, P>]): this {

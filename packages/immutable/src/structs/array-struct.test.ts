@@ -41,11 +41,11 @@ test('get State', () => {
     expect(array.get()).toEqual(state)
 })
 
-test('apply', () => {
+test('create', () => {
 
-    const array2 = Structural.apply(array, [5,4,3,2,1,0])
+    const array2 = Structural.create(array, [5,4,3,2,1,0])
 
-    expect(Structural.getIn(array2)).toEqual({
+    expect(Structural.get(array2)).toEqual({
         '0': 5,
         '1': 4,
         '2': 3,
@@ -54,14 +54,14 @@ test('apply', () => {
         '5': 0,
     })
 
-    expect(array.apply([5,4,3,2,1,0])).toEqual(array2)
+    expect(array.create([5,4,3,2,1,0])).toEqual(array2)
 })
 
-test('deep apply', () => {
+test('deep create', () => {
 
-    const array2 = Structural.apply(array, 0, 100)
+    const array2 = Structural.create(array, 0, 100)
 
-    expect(Structural.getIn(array2)).toEqual({
+    expect(Structural.get(array2)).toEqual({
         0: 100,
         1: 2,
         2: 3,
@@ -69,10 +69,10 @@ test('deep apply', () => {
         4: 5
     })
 
-    expect(array2.apply(0, 100)).toEqual(array2)
+    expect(array2.create(0, 100)).toEqual(array2)
 })
 
-test('deep nested apply', () => {
+test('deep nested create', () => {
 
     const array = new ArrayStruct(
 
@@ -88,9 +88,9 @@ test('deep nested apply', () => {
 
     )
 
-    const array2 = Structural.apply(array, 0, 'bar', 100)
+    const array2 = Structural.create(array, 0, 'bar', 100)
 
-    expect(Structural.getIn(array2)).toEqual({
+    expect(Structural.get(array2)).toEqual({
         0: {
             bar: 100,
             foo: 0
@@ -101,7 +101,7 @@ test('deep nested apply', () => {
         }
     })
 
-    expect(array.apply(0, 'bar', 100)).toEqual(array2)
+    expect(array.create(0, 'bar', 100)).toEqual(array2)
 
 })
 

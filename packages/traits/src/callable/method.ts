@@ -11,6 +11,9 @@ import { Callable } from './callable'
  */
 const Method = class extends Trait.use(Callable) {
 
+    static readonly signature: typeof Callable.signature = Callable.signature
+    static readonly context: typeof Callable.context = Callable.context
+
     constructor(signature: Func) {
         super()
         define.hidden(this, Callable.signature, signature)

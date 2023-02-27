@@ -6,11 +6,10 @@ import {
     isFunc,
     isShape,
     nil,
-    TypeGuard,
-    TypeOf
+    TypeGuard
 } from '@benzed/util'
 import { Comparable } from '@benzed/immutable'
-import { Callable, Method, Trait } from '@benzed/traits'
+import { Callable, Trait } from '@benzed/traits'
 
 import { Node } from './node'
 import { getPath } from './path'
@@ -117,6 +116,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
     ) { 
         super()
         this._each = eachChild(source)
+        return Callable.apply(this)
     }
 
     //// Interface ////

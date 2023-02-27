@@ -37,6 +37,10 @@ abstract class Mutate<T extends object> extends Trait {
     static readonly deleteProperty: typeof $$deleteProperty = $$deleteProperty
     static readonly getOwnPropertyDescriptor: typeof $$getOwnPropertyDescriptor = $$getOwnPropertyDescriptor
 
+    /**
+     * Imbue a mutator with proxy traps that relegate operations to the mutate target, unless
+     * the mutator defines overrides. 
+     */
     static override apply<T extends Mutate<object>>(mutator: T): T {
         return new Proxy(mutator, {
             get: mutator[$$get],
@@ -107,8 +111,7 @@ abstract class Mutate<T extends object> extends Trait {
 
         const target = key === $$target || Reflect.has(mutator, key)
             ? mutator
-            : mutator[$$target] ?? mutator
-            //                  ^ idk about this man
+            : mutator[$$target]
 
         return Reflect.defineProperty(target, key, attributes)
     }
@@ -118,7 +121,10 @@ abstract class Mutate<T extends object> extends Trait {
     }
 
     protected [$$getOwnPropertyDescriptor](mutator: Mutate<T>, key: PropertyKey) {
-        return Reflect.getOwnPropertyDescriptor(mutator, key)
+        return (
+            Reflect.getOwnPropertyDescriptor(mutator, key) ?? 
+            Reflect.getOwnPropertyDescriptor(mutator[$$target], key)
+        )
     }
 
 }

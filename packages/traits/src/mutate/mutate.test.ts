@@ -3,6 +3,7 @@ import { Mutator } from './mutator'
 import { test, expect } from '@jest/globals'
 import Mutate from './mutate'
 import { Trait } from '../trait'
+import { isNumber } from '@benzed/util'
 
 //// EsLint ////
 /* eslint-disable 
@@ -20,15 +21,18 @@ test('Simple Example', () => {
     }
     
     class Double extends Mutator<Damage> {
-    
-        get amount() {
-            return this[Mutate.target].amount * 2
+
+        protected override [Mutate.get](mutator: Mutate<Damage>, key: keyof Damage, proxy: object) {
+            const value = Reflect.get(mutator[Mutate.target], key, proxy)
+            return isNumber(value)
+                ? value * 2
+                : value
         }
     
     }
 
-    const x2 = new Double(new Damage(5)) 
-    expect(x2.amount).toEqual(10)
+    const x2 = new Double(new Damage(5))
+    expect(x2).toHaveProperty('amount', 10)
 
 })
 

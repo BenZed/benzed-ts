@@ -87,12 +87,15 @@ type StructState<T extends Structural, P extends StructStatePath = []> =
  */
 abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
 
-    static getStructIn<T extends Structural, P extends StructStatePath>(
+    /**
+     * Get a sub struct from a struct 
+     */
+    static getStruct<T extends Structural, P extends StructStatePath>(
         struct: T,
         ...path: P
     ): _StructAtPath<T, P> {
 
-        let state = struct[Stateful.key]
+        let state = struct[Stateful.state]
 
         // resolve state at path
         for (const subPath of path) {
@@ -108,7 +111,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
             for (const key of each.keyOf(state)) {
                 const value = state[key]
                 if (this.is(value))
-                    state[key] = this.getIn(value) as typeof value
+                    state[key] = this.get(value) as typeof value
             }
         }
 
@@ -119,15 +122,15 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * Given a struct, resolve the state of that struct by recursively
      * resolving the state of any nested sub structs.
      */
-    static getIn<T extends Structural, P extends StructStatePath>(
+    static get<T extends Structural, P extends StructStatePath>(
         struct: T, 
         ...path: P
     ): StructState<T, P> {
         
-        const structAtPath = this.getStructIn(struct, ...path)
+        const structAtPath = this.getStruct(struct, ...path)
 
         return (Stateful.is(structAtPath) 
-            ? this.getIn(structAtPath) 
+            ? this.get(structAtPath) 
             : structAtPath) as StructState<T, P>
     }
 
@@ -136,7 +139,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * updating any sub structures with their appropriate nested
      * object state.
      */
-    static setIn<T extends Structural, P extends StructStatePath>(
+    static set<T extends Structural, P extends StructStatePath>(
         struct: T, 
         ...params: readonly [ ...P, StructStateApply<T, P> ]
     ): void {
@@ -148,7 +151,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
         for (const subPath of path) 
             partialState = { [subPath]: partialState }
 
-        const state = struct[Stateful.key]
+        const state = struct[Stateful.state]
 
         // deep set state, triggering nested struct state setters
         for (const key of each.keyOf(partialState)) {
@@ -158,28 +161,31 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
                 this.is(state[prevKey]) && 
                 !this.is(partialState[key])
             ) {
-                partialState[key] = this.apply(
+                partialState[key] = this.create(
                     state[prevKey], 
                     partialState[key] as never // <- shut up, ts
                 )
             }
         }
 
-        struct[Stateful.key] = { ...state, ...partialState }
+        struct[Stateful.state] = { ...state, ...partialState }
     }
 
     /**
-     * Copy a stateful object and apply a new state to it's clone.
+     * Create a structure from an original and a new state
      */
-    static override apply<T extends Structural, P extends StructStatePath>(
+    static create<T extends Structural, P extends StructStatePath>(
         original: T, 
         ...params: [ ...P, StructStateApply<T, P> ]
     ): T {
         const clone = copy(original)
-        this.setIn(clone, ...params)
+        this.set(clone, ...params)
         return clone
     }
 
+    /**
+     * Update a structure from an original and a new state
+     */
     static update<T extends Structural, P extends StructStatePath>(
         original: T,
         ...params: [ ...P, StructStateUpdate<T, P> ]
@@ -187,8 +193,8 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
         const [ update, ...path ] = params.reverse() as [ StructStateUpdate<T, P>, ...P ]
         path.reverse() // undo that ------^
 
-        const prev = this.getStructIn(original, ...path)
-        return this.apply(original, ...path as P, update(prev))
+        const prev = this.getStruct(original, ...path)
+        return this.create(original, ...path as P, update(prev))
     }
 
     static override is: (input: unknown) => input is Structural = 
@@ -196,15 +202,15 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
             Comparable.is,
             Copyable.is as AnyTypeGuard,
             isShape({
-                [Structural.key]: isObject
+                [Stateful.state]: isObject
             })
         )
 
     //// Copyable ////
 
-    abstract get [Stateful.key](): object
+    abstract get [Stateful.state](): object
 
-    abstract set [Stateful.key](state: object)
+    abstract set [Stateful.state](state: object)
 
     /**
      * A struct assumes the only logic in the constructor is
@@ -215,7 +221,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      */
     protected [Copyable.copy](): this {
         const clone = Copyable.createFromProto(this)
-        clone[Stateful.key] = copy(this[Stateful.key])
+        clone[Stateful.state] = copy(this[Stateful.state])
         return clone
     }
  
@@ -228,7 +234,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
     protected [Comparable.equals](other: unknown): other is this {
         return Structural.is(other) && 
             other.constructor === this.constructor && 
-            equals(other[Stateful.key], this[Stateful.key])
+            equals(other[Stateful.state], this[Stateful.state])
     }
 
 }

@@ -58,9 +58,9 @@ declare class Schematic<V extends Validator, S extends SubValidators<V>> extends
 
 interface Schema<V extends Validator, S extends SubValidators<V>> extends Schematic<V,S>, Structural {
 
-    get [Structural.key](): { [$$main]: V, [$$sub]: S }
+    get [Structural.state](): { [$$main]: V, [$$sub]: S }
 
-    set [Structural.key](state: { [$$main]: V, [$$sub]: S })
+    set [Structural.state](state: { [$$main]: V, [$$sub]: S })
 
 }
 
@@ -143,11 +143,11 @@ const Schema = class extends Trait.add(Validator, Structural) {
 
     //// Structural ////
 
-    get [Structural.key](): { [$$main]: Validator, [$$sub]: SubValidators<Validator> } {
+    get [Structural.state](): { [$$main]: Validator, [$$sub]: SubValidators<Validator> } {
         return pick(this, $$main, $$sub)
     }
 
-    set [Structural.key](state: { [$$main]: Validator, [$$sub]: SubValidators<Validator> }) {
+    set [Structural.state](state: { [$$main]: Validator, [$$sub]: SubValidators<Validator> }) {
         assign(this, state)
     }
 

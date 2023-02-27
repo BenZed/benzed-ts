@@ -30,11 +30,11 @@ class Buffer extends Trait.add(TypeValidator<number[]>, Structural) {
         )
     }
 
-    get [Structural.key](): { minSize: number, enabled: boolean} {
+    get [Structural.state](): { minSize: number, enabled: boolean} {
         return pick(this, 'minSize', 'enabled')
     }
 
-    set [Structural.key](state: { minSize: number, enabled: boolean} ) {
+    set [Structural.state](state: { minSize: number, enabled: boolean} ) {
         assign(this, state)
     }
 }

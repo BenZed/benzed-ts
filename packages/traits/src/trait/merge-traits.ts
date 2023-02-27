@@ -1,50 +1,48 @@
-import { 
-    AnyTypeGuard, 
-    define, 
-    each, 
-    Intersect, 
-    isFunc, 
-    isIntersection, 
-    isSymbol 
+import {
+    AnyTypeGuard,
+    define,
+    each,
+    Intersect,
+    isFunc,
+    isIntersection,
+    isSymbol
 } from '@benzed/util'
 
-import { 
-    $$onUse, 
-    addTraits, 
-    AddTraitsConstructor, 
-    Composite, 
-    useTraits, 
-    _Traits 
+import {
+    $$onUse,
+    AddTraitsConstructor,
+    Composite,
+    _Traits
 } from './add-traits'
 
 import { Trait } from './trait'
 
 //// Helper Methods ////
 
-type _AllNewSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
+type _AllSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
     ? Tr extends _Traits 
-        ? [_NewSymbolsOf<T1>, ..._AllNewSymbolsOf<Tr>]
-        : [_NewSymbolsOf<T1>]
+        ? [_SymbolsOf<T1>, ..._AllSymbolsOf<Tr>]
+        : [_SymbolsOf<T1>]
     : []
 
-type _NewSymbolsOf<T> = {  
-    readonly [K in keyof T as T[K] extends symbol 
-        ? T[K]
+type _SymbolsOf<T> = {
+    [K in keyof T as T[K] extends symbol
+        ? T[K] extends typeof $$onUse
+            ? never 
+            : K
         : never 
     ]: T[K]
 }
 
 //// Merge Traits ////
 
-export type MergedTraitsConstructor<T extends _Traits> = AddTraitsConstructor<T> & {
-
-    readonly add: typeof addTraits
-    readonly use: typeof useTraits
-    readonly merge: typeof mergeTraits 
-
-    is(input: unknown): input is Composite<T>
-
-} & Intersect<_AllNewSymbolsOf<T>>
+export type MergedTraitsConstructor<T extends _Traits> = 
+    & {
+        apply<Tx extends Composite<T>>(instance: Tx): Tx
+        is(input: unknown): input is Composite<T>
+    } 
+    & AddTraitsConstructor<T> 
+    & Intersect<_AllSymbolsOf<T>>
 
 /**
  * Combine multiple traits into one.
@@ -66,9 +64,7 @@ export function mergeTraits<T extends _Traits>(...Traits: T): MergedTraitsConstr
 
         // Intersect all onApply methods
         static override apply(instance: object) {
-            for (const Trait of Traits) 
-                instance = Trait.apply(instance)
-            return instance
+            return Trait.apply(instance, ...Traits)
         }
 
         // Intersect all onUse methods

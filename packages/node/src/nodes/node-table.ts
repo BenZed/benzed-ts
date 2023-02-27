@@ -1,4 +1,4 @@
-import { Stateful, Structural } from '@benzed/immutable'
+import { copy, Copyable, Stateful, Structural } from '@benzed/immutable'
 import { assign, Func, omit } from '@benzed/util'
 import { Callable, Traits } from '@benzed/traits'
 
@@ -18,7 +18,7 @@ type NodeRecord = {
 }
 
 interface NodeTableProperties<T extends NodeRecord> extends NodeTableMethod<T>, Node, Structural {
-    [Stateful.key]: T
+    [Stateful.state]: T
 }
 
 type NodeTable<T extends NodeRecord> =
@@ -50,7 +50,9 @@ const NodeTable = class NodeTable extends Traits.use(Callable, Structural, Node)
 
     constructor(children: NodeRecord) {
         super()
-        this[Stateful.key] = children
+        const table = Traits.apply(this, Callable, Structural, Node)
+        table[Stateful.state] = children
+        return table
     }
 
     get [Callable.signature]() {
@@ -59,12 +61,19 @@ const NodeTable = class NodeTable extends Traits.use(Callable, Structural, Node)
 
     //// State ////
 
-    get [Stateful.key](): NodeRecord {
+    override [Structural.copy](): this {
+        let clone = Copyable.createFromProto(this)
+        clone = Traits.apply(clone, Callable, Structural, Node)
+        clone[Stateful.state] = copy(this[Stateful.state])
+        return clone
+    }
+
+    get [Stateful.state](): NodeRecord {
         return { ...this } as unknown as NodeRecord
     }
 
-    set [Stateful.key](record: NodeRecord) {
-        assign(this, omit(record, Stateful.key))
+    set [Stateful.state](record: NodeRecord) {
+        assign(this, omit(record, Stateful.state))
     }
 
 } as NodeTableConstructor

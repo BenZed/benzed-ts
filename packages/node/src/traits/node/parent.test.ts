@@ -5,7 +5,13 @@ import { getParent } from './parent'
 
 //// Setup ////
 
-class Person extends Trait.use(Node) {
+class Person extends Trait.use(Node) { 
+
+    constructor() {
+        super()
+        return Node.apply(this)
+    }
+
     get name() {
         return this.constructor.name
     }

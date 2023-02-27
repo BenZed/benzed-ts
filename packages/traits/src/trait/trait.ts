@@ -2,7 +2,8 @@
 import {
     $$onUse,
     addTraits,
-    useTraits
+    useTraits,
+    _Traits
 } from './add-traits'
 
 import { mergeTraits } from './merge-traits'
@@ -40,12 +41,22 @@ export abstract class Trait {
     static readonly merge = mergeTraits
 
     /**
+     * Given an object and a list of traits, run the static apply method
+     * on each trait to the input.
+     */
+    static apply<T extends object>(input: T, ...traits: _Traits): T
+
+    /**
      * Per convention, any logic or side effects associated with
      * the use of a trait are applied with this method. 
      * 
      * This method is aggregated when merging traits.
      */
-    static apply(input: object): object {
+    static apply(input: object): object
+
+    static apply(input: object, ...traits: _Traits): object {
+        for (const trait of traits)
+            input = trait.apply(input)
         return input
     }
 

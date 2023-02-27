@@ -8,7 +8,7 @@ import {
     StructStateUpdate
 } from '@benzed/immutable'
 
-import { Mutate, Mutator, Trait } from '@benzed/traits'
+import { Mutate, Mutator, Traits } from '@benzed/traits'
 
 import { Infer, isFunc, omit, pick } from '@benzed/util'
 
@@ -61,12 +61,12 @@ interface NodeTableBuilder<R extends NodeRecord> extends PublicNode {
 
     merge<Tx extends NodeRecord>(record: Tx): NodeTable<_NodeRecordMerge<R, Tx>>
 
-    apply<K extends _K, Rv extends Node>(
+    create<K extends _K, Rv extends Node>(
         key: K, 
         record: Rv
     ): NodeTable<_NodeRecordSet<R, K, Rv>>
 
-    apply<P extends StructStatePath>(...pathAndApply: [...P, StructStateApply<NodeTable<R>, P>]): NodeTable<R>
+    create<P extends StructStatePath>(...pathAndApply: [...P, StructStateApply<NodeTable<R>, P>]): NodeTable<R>
 
     update<K extends keyof R, F extends (input: R[K]) => Node>(
         key: K, 
@@ -85,14 +85,23 @@ interface NodeTableBuilder<R extends NodeRecord> extends PublicNode {
 
 //// Main ////
 
-const NodeTableBuilder = (class extends Trait.add(Mutator<NodeTable<NodeRecord>>, PublicNode, PublicStructural) {
+const NodeTableBuilder = (class extends Traits.add(Mutator<NodeTable<NodeRecord>>, PublicNode, PublicStructural) {
 
-    get [Stateful.key]() {
-        return this[Mutate.target][Stateful.key]
+    get [Stateful.state]() {
+        return this[Mutator.target][Stateful.state]
     }
 
-    set [Stateful.key](state) {
-        this[Mutate.target][Stateful.key] = state
+    set [Stateful.state](state) {
+        this[Mutate.target][Stateful.state] = state
+    }
+
+    constructor(table: NodeTable<NodeRecord>) {
+        super(table)
+        return Traits.apply(
+            this,
+            PublicNode,
+            PublicStructural
+        )
     }
 
     override [Mutate.get](builder: any, key: any, value: any): any {
@@ -106,21 +115,21 @@ const NodeTableBuilder = (class extends Trait.add(Mutator<NodeTable<NodeRecord>>
     }
 
     pick(...keys: PropertyKey[]): NodeTable<NodeRecord> {
-        const record = copy(this[Stateful.key]) as any
+        const record = copy(this[Stateful.state]) as any
         return new NodeTable(
             pick(record, ...keys) as NodeRecord
         )
     }
 
     omit(...keys: PropertyKey[]): NodeTable<NodeRecord> {
-        const record = copy(this[Stateful.key]) as any
+        const record = copy(this[Stateful.state]) as any
         return new NodeTable(
             omit(record, ...keys) as NodeRecord
         )
     }
 
     merge(newRecord: NodeRecord): NodeTable<NodeRecord> {
-        const oldRecord = copy(this[Stateful.key]) as any
+        const oldRecord = copy(this[Stateful.state]) as any
         return new NodeTable(
             {
                 ...oldRecord,

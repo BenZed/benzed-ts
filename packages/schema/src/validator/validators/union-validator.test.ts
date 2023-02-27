@@ -59,11 +59,11 @@ describe('retains interface of most recently added validator', () => {
             return Structural.apply(this, { allowEmpty: false } as StructStateApply<this>)
         } 
 
-        get [Structural.key](): { allowEmpty: boolean, name: string } {
+        get [Structural.state](): { allowEmpty: boolean, name: string } {
             return pick(this, 'allowEmpty', 'name')
         } 
 
-        set [Structural.key]({ allowEmpty, name }: { allowEmpty: boolean, name: string }) {
+        set [Structural.state]({ allowEmpty, name }: { allowEmpty: boolean, name: string }) {
             assign(this, { allowEmpty })
             define.named(name, this) 
         } 

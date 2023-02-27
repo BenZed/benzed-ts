@@ -5,6 +5,11 @@ import PublicNode from './public-node'
 //// Setup ////
 
 class Person extends Trait.use(PublicNode) {
+
+    constructor() {
+        super()
+        return PublicNode.apply(this)
+    }
 }
 
 const grandPa = new class GrandPa extends Person {

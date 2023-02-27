@@ -29,7 +29,7 @@ export type PublicStructState<T extends object> =
  */
 export abstract class PublicStruct extends Traits.use(PublicStructural) {
 
-    get [Structural.key](): PublicStructState<this> {
+    get [Structural.state](): PublicStructState<this> {
         return omit(
             this,
             'toString',
@@ -41,7 +41,7 @@ export abstract class PublicStruct extends Traits.use(PublicStructural) {
         ) as PublicStructState<this>
     }
     
-    protected set [Structural.key](state: PublicStructState<this>) {
+    protected set [Structural.state](state: PublicStructState<this>) {
         assign(this, state)
     }
 

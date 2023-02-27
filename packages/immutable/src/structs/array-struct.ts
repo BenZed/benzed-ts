@@ -46,7 +46,7 @@ function applyArrayState<
 
     // clone struct and apply state
     const newArrayStruct = Object.create(arrayStruct.constructor.prototype)
-    Structural.setIn(newArrayStruct, state)
+    Structural.set(newArrayStruct, state)
     return newArrayStruct
 
 }
@@ -201,7 +201,7 @@ class ArrayStruct<T> extends Traits.use(PublicStructural) implements Iterable<T>
     // TODO indexOf
     // TODO keys
     // TODO lastIndexOf
-    // TODO getIn
+    // TODO get
     // TODO applyIn
     // TODO copy
     // TODO equals
@@ -220,11 +220,11 @@ class ArrayStruct<T> extends Traits.use(PublicStructural) implements Iterable<T>
 
     //// State ////
 
-    get [Stateful.key](): { [index: number]: T } {
+    get [Stateful.state](): { [index: number]: T } {
         return { ...this }
     }
 
-    set [Stateful.key](state: { [index: number]: T }) {
+    set [Stateful.state](state: { [index: number]: T }) {
         assign(this, state)
     }
 

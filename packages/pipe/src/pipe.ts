@@ -38,13 +38,14 @@ interface PipeExpression<T> extends Transformer<Transform<void, T>>, Iterable<T>
     /**
      * Append another transformation onto the end of this pipe.
      */
-    to<F extends (input: Awaited<T>, ...args: any) => any>(
+    to<F extends (input: T, ...args: any) => any>(
         transform: F,
         ...args: RemainingParams<F>
-    ): PipeExpression<ResolveAsyncOutput<T, ReturnType<F>>>
+    ): PipeExpression<ReturnType<F>>
 
     bind(ctx: unknown): PipeExpression<T>
 
+    get out(): T
 }
 
 interface Pipe<I = unknown, O = unknown> extends IterableTransformer<Transform<I,O>> {
@@ -223,6 +224,7 @@ const Pipe = (class extends Trait.use(Callable<Func>) {
     ) {
         super()
         this.transforms = Pipe.flatten(transforms)
+        return Callable.apply(this)
     }
 
     get [Callable.signature]() {
@@ -255,9 +257,13 @@ const Pipe = (class extends Trait.use(Callable<Func>) {
 
     *[Symbol.iterator](): Iterator<AnyTransform> {
         if (this._expression)
-            yield this()
+            yield this.out
         else 
             yield* this.transforms
+    }
+
+    get out() {
+        return this()
     }
 
 }) as PipeConstructor

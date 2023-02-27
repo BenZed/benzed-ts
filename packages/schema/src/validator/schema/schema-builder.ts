@@ -127,7 +127,7 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
 
     //// Settings ////
     
-    get [Structural.key](): {
+    get [Structural.state](): {
         [$$main]: V
         [$$sub]: S
         [$$builder]: SchemaPipeBuilder<V>
@@ -139,7 +139,7 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
         }
     }
 
-    set [Structural.key](state: {
+    set [Structural.state](state: {
         [$$main]: V
         [$$sub]: S
         [$$builder]: SchemaPipeBuilder<V>

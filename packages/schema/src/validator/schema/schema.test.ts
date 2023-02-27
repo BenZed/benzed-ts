@@ -52,11 +52,11 @@ class NumberValidator extends Trait.add(TypeValidator<number>, Structural) {
 
     //// State ////
     
-    get [Structural.key](): Pick<this, 'name' | 'positive' | 'message'> {
+    get [Structural.state](): Pick<this, 'name' | 'positive' | 'message'> {
         return pick(this, 'name', 'positive', 'message')
     }
 
-    set [Structural.key]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
+    set [Structural.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
         assign(this, { positive, message })
         define.named(name, this)
     }
@@ -105,11 +105,11 @@ abstract class LimitValidator<O extends '>' | '<'> extends Trait.add(SubContract
             return `Must be ${detail} ${this.value}`
         }
 
-    get [Structural.key](): Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'> {
+    get [Structural.state](): Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'> {
         return pick(this, 'enabled', 'message', 'value', 'inclusive')
     }
 
-    set [Structural.key](state: Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'>) {
+    set [Structural.state](state: Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'>) {
         assign(this, state)
     }
 

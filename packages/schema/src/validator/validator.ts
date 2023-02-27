@@ -46,11 +46,11 @@ export const Validator = class extends Traits.add(Analyzer, Callable) {
         throw new Error(`${this.constructor.name} has not implemented ${String($$analyze)}`)
     }
 
-    get [Stateful.key](): never {
+    get [Stateful.state](): never {
         return {} as never
     }
 
-    set [Stateful.key](state: never) {
+    set [Stateful.state](state: never) {
         void state
     }
 

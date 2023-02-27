@@ -38,11 +38,11 @@ class Id extends Trait.add(ContractValidator<string, id>, Structural) {
         return `Must be ${this.name}`
     }
 
-    get [Structural.key](): Pick<this, 'minId'> {
+    get [Structural.state](): Pick<this, 'minId'> {
         return pick(this, 'minId')
     }
 
-    set [Structural.key](state: Pick<this, 'minId'>) {
+    set [Structural.state](state: Pick<this, 'minId'>) {
         assign(this, state)
     }
 

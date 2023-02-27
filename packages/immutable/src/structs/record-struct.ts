@@ -11,7 +11,7 @@ interface RecordStructConstructor {
 }
 
 interface RecordStructState<K extends string | symbol | number, V> extends Structural {
-    [Stateful.key]: Record<K,V>
+    [Stateful.state]: Record<K,V>
 }
 
 type RecordStruct<K extends string | symbol | number, V> = 
@@ -29,11 +29,11 @@ const RecordStruct = class RecordStruct extends Traits.use(Structural) {
         assign(this, record)
     }
 
-    get [Structural.key](): object {
+    get [Structural.state](): object {
         return { ...this }
     }
 
-    set [Structural.key](value: object) {
+    set [Structural.state](value: object) {
         Object.assign(this, value)
     }
 

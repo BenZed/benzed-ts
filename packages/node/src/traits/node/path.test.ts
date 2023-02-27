@@ -7,6 +7,12 @@ import { Trait } from '@benzed/traits'
 //// Setup ////
  
 class Person extends Trait.use(Node) {
+
+    constructor() {
+        super()
+        return Node.apply(this)
+    }
+
     get name() {
         return this.constructor.name
     }

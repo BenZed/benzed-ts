@@ -9,6 +9,11 @@ import { Node } from './node'
 
 class Person extends Trait.use(Node) {
 
+    constructor() {
+        super()
+        return Node.apply(this)
+    }
+
     [key: string]: Person | nil
 
     get parent() {

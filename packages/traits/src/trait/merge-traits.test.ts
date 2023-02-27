@@ -4,6 +4,7 @@ import { mergeTraits } from './merge-traits'
 import { useTraits } from './add-traits'
  
 import { it, expect } from '@jest/globals'
+import { expectTypeOf } from 'expect-type'
 
 it('should return a new trait that extends the traits', () => {
     const trait1 = class MyTrait1 extends Trait {
@@ -60,4 +61,20 @@ it('should add properties and methods from all traits to the new trait', () => {
     expect(mergedInstance.method1()).toBe('method1')
     expect(mergedInstance.prop2).toBe('value2')
     expect(mergedInstance.method2()).toBe('method2')
+})
+
+it('adds all static symbols', () => {
+
+    class Sharp extends Trait {
+        static readonly sharp = Symbol('sharp')
+    }
+
+    class Bold extends Trait {
+        static readonly bold = Symbol('sharp')
+    }
+
+    const SharpBold = mergeTraits(Bold, Sharp)
+    expect(SharpBold.sharp).toBe(Sharp.sharp)
+    expect(SharpBold.bold).toBe(Bold.bold)
+    expect(SharpBold.apply).not.toBe(Trait.apply)
 })

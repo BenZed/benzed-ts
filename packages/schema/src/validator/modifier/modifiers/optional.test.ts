@@ -35,11 +35,11 @@ class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean
         )
     }
 
-    get [Structural.key](): Pick<this, 'enabled'> {
+    get [Structural.state](): Pick<this, 'enabled'> {
         return pick(this, 'enabled')
     }
 
-    set [Structural.key](state: Pick<this, 'enabled'>) {
+    set [Structural.state](state: Pick<this, 'enabled'>) {
         assign(this, state)
     }
 }

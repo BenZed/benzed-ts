@@ -1,9 +1,11 @@
 
 import { 
+    AnyTypeGuard,
     Each, 
     isArrayOf,
     isFunc,
     isIntersection,
+    isKeyed,
     isNumber, 
     isOptional, 
     isShape,
@@ -28,18 +30,15 @@ class PublicNode extends SearchNode {
         SearchNode.is,
         isShape({
             name: isString,
-            path: isArrayOf(isUnion(isString, isNumber, isSymbol)),
-            root: Node.is,
-            parent: isOptional(Node.is),
-            children: isArrayOf(Node.is),
             eachNode: isFunc,
             eachChild: isFunc,
             eachParent: isFunc,
             eachSibling: isFunc,
             eachAncestor: isFunc,
             eachDescendent: isFunc,
-        })
-    )
+        }),
+        isKeyed('path', 'root', 'parent', 'children')
+    ) as AnyTypeGuard
 
     // is(Node).and.shape({
     //     name: is.string,

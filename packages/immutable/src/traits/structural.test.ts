@@ -13,11 +13,11 @@ class Vector extends Trait.use(Structural) {
         super()
     }
 
-    get [Structural.key]() {
+    get [Structural.state]() {
         return pick(this, 'x', 'y')
     }
 
-    set [Structural.key](value) {
+    set [Structural.state](value) {
         assign(this, value)
     }
 } 
@@ -28,11 +28,11 @@ class Shape extends Trait.use(Structural) {
         super()
     }
 
-    get [Stateful.key]() {
+    get [Stateful.state]() {
         return pick(this, 'color', 'position')
     }
 
-    set [Stateful.key](value) {
+    set [Stateful.state](value) {
         assign(this, value)
     }
 
@@ -68,13 +68,13 @@ describe('Struct.get', () => {
     it('get deep state', () => {
         const shape = new Shape('blue', new Vector(1, 2))
 
-        const state = shape[Stateful.key]
+        const state = shape[Stateful.state]
         expect(state).toEqual({
             color: 'blue',
             position: new Vector(1, 2)
         })
 
-        const deepState = Structural.getIn(shape)
+        const deepState = Structural.get(shape)
         expect(deepState).toEqual({
             color: 'blue',
             position: {
@@ -88,10 +88,10 @@ describe('Struct.get', () => {
 
         const shape = new Shape('grey', new Vector(10, 10))
 
-        const position = Structural.getIn(shape, 'position')
+        const position = Structural.get(shape, 'position')
         expect(position).toEqual({ x: 10, y: 10 })
 
-        const x = Structural.getIn(shape, 'position', 'x')
+        const x = Structural.get(shape, 'position', 'x')
         expect(x).toEqual(10)
 
     })
@@ -99,8 +99,8 @@ describe('Struct.get', () => {
     it('throws at invalid paths', () => {
 
         const shape = new Shape('grey', new Vector(10, 10))
-        expect(() => Structural.getIn(shape, 'ace')).toThrow('Invalid state')
-        expect(() => Structural.getIn(shape, 'ace', 'base')).toThrow('Invalid state')
+        expect(() => Structural.get(shape, 'ace')).toThrow('Invalid state')
+        expect(() => Structural.get(shape, 'ace', 'base')).toThrow('Invalid state')
 
     })
 })
@@ -111,7 +111,7 @@ describe('Struct.set', () => {
 
         const shape = new Shape('green', new Vector(0,0))
 
-        Structural.setIn(
+        Structural.set(
             shape,
             {
                 color: 'red',
@@ -127,25 +127,25 @@ describe('Struct.set', () => {
 
         const shape = new Shape('red', new Vector(5,5))
 
-        Structural.setIn(shape, 'color', 'orange')  
+        Structural.set(shape, 'color', 'orange')  
         expect(shape.color).toBe('orange')
 
-        Structural.setIn(shape, 'position', { x: 10 }) 
+        Structural.set(shape, 'position', { x: 10 }) 
         expect(shape.position).toBeInstanceOf(Vector)
         expect(shape.position.x).toBe(10)
 
-        Structural.setIn(shape, 'position', 'y', 7)
+        Structural.set(shape, 'position', 'y', 7)
         expect(shape.position).toBeInstanceOf(Vector)
         expect(shape.position.y).toBe(7)
     })
 
 })
 
-describe('Struct.apply', () => {
+describe('Struct.creat', () => {
 
     it('creates an immutably copied object with a modified state', () => {
         const v1 = new Vector(2, 2) 
-        const v2 = Structural.apply(v1, new Vector(3, 3))
+        const v2 = Structural.create(v1, new Vector(3, 3))
         expect(v1).not.toBe(v2)
         expect(v1).toEqual(new Vector(2, 2))
         expect(v2).toEqual(new Vector(3, 3))
@@ -155,10 +155,10 @@ describe('Struct.apply', () => {
 
         const shape = new Shape('turquoise', new Vector(10,10))
 
-        const shape2 = Structural.apply(shape, { position: { y: 5 } })
+        const shape2 = Structural.create(shape, { position: { y: 5 } })
         expect(shape2).not.toBe(shape)
 
-        expect(Structural.getIn(shape2)).toEqual({
+        expect(Structural.get(shape2)).toEqual({
             color: 'turquoise',
             position: {
                 x: 10,
@@ -171,10 +171,10 @@ describe('Struct.apply', () => {
 
         const shape = new Shape('orange', new Vector(10,10))
 
-        const shape2 = Structural.apply(shape, 'position', { x: 2 })
+        const shape2 = Structural.create(shape, 'position', { x: 2 })
 
         expect(shape2).not.toBe(shape)
-        expect(Structural.getIn(shape2)).toEqual({
+        expect(Structural.get(shape2)).toEqual({
             color: 'orange',
             position: {
                 x: 2,
