@@ -1,3 +1,4 @@
+import { Stateful } from '@benzed/immutable'
 import { Callable, Traits } from '@benzed/traits'
 import { $$analyze, analyze, Analyzer } from '../analyze'
 import { Validate } from '../validate'
@@ -43,6 +44,14 @@ export const Validator = class extends Traits.add(Analyzer, Callable) {
     [$$analyze](ctx: ValidationContext): ValidationContext {
         void ctx
         throw new Error(`${this.constructor.name} has not implemented ${String($$analyze)}`)
+    }
+
+    get [Stateful.key](): never {
+        return {} as never
+    }
+
+    set [Stateful.key](state: never) {
+        void state
     }
 
 } as ValidatorConstructor

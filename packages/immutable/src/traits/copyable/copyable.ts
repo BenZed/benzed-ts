@@ -20,8 +20,7 @@ abstract class Copyable extends Traits {
      * transferred.
      */
     static createFromProto<T extends object>(object: T): T {
-        const clone = Object.create(object.constructor.prototype)
-        return Traits.apply(clone)
+        return Object.create(object.constructor.prototype)
     }
 
     static override readonly is: (input: unknown) => input is Copyable = isShape({

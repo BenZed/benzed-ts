@@ -26,13 +26,13 @@ abstract class Toy extends Trait {
     })
 
     abstract get price(): number
- 
+
 }
 
 abstract class Color extends Trait {
 
     static is: (input: unknown) => input is Color = isShape({
-        color: isTuple(isNumber,isNumber,isNumber)
+        color: isTuple(isNumber, isNumber, isNumber)
     })
 
     abstract get color(): [r: number, g: number, b: number]

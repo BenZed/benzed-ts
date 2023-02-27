@@ -80,10 +80,11 @@ describe('onApply', () => {
 
         applies: number
 
-        static [Trait.onApply](emotional: Emotional) {
+        static apply<T extends Emotional>(emotional: T): T {
             emotional.applies ??= 0
             emotional.applies++
             emotional.emotion = 'Happy'
+            return emotional
         }
 
         emotion: 'Happy' | 'Sad'
@@ -97,24 +98,34 @@ describe('onApply', () => {
 
         applies: number 
 
-        static [Trait.onApply](occupational: Occupational) {
+        static apply<T extends Occupational>(occupational: T): T {
             occupational.applies ??= 0
             occupational.applies++
             occupational.job ??= 'unemployed'
+            return occupational
         }
 
         job: string
     }
 
-    class Person extends Trait.use(Emotional) {}
+    class Person extends Trait.use(Emotional) {
+        constructor() {
+            super()
+            return Emotional.apply(this)
+        }
+    }
 
-    class EmployedPerson extends Trait.add(Person, Occupational) {}
+    class EmployedPerson extends Trait.add(Person, Occupational) {
+        constructor() {
+            super()
+            return Occupational.apply(this)
+        }
+    }
 
     test('apply traits', () => {  
         const person = new Person()
         expect(person.emotion).toBe('Happy')
         expect(person.applies).toBe(1)
-        expect(Person.prototype[Trait.onApply]).not.toBe(undefined)
     })
     
     test('apply traits on extended classes', () => { 

@@ -1,28 +1,16 @@
-import { Callable } from './callable'
-import { Trait } from '../trait'
 
 import { test } from '@jest/globals'
 import { Falsy, Func, toVoid } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
-
-//// Callable Signature ////
-
-const Multiplier = Callable<(i: number) => number>
+import { Method } from './method'
+import { Callable } from './callable'
 
 //// Callable Trait ////
 
-class Multiply extends Trait.use(Multiplier) {
-
-    protected get [Multiplier.signature](): (i: number) => number {
-        return this.multiply
-    }
-
-    multiply(input: number): number {
-        return this.by * input
-    }
+class Multiply extends Method<(i: number) => number> {
 
     constructor(public by: number) {
-        super()
+        super(i => this.by * i)
     }
 
 }
@@ -45,7 +33,7 @@ test('creates instances with call signatures', () => {
 
 it('keeps getters, setters and instance instance methods', () => {
 
-    abstract class ValueCallable<T> extends Callable<() => T> {
+    abstract class ValueCallable<T> extends Method<() => T> {
         
         abstract get value(): T 
         abstract set value(value: T)
@@ -58,15 +46,13 @@ it('keeps getters, setters and instance instance methods', () => {
             this.value = value
         }
 
-        protected get [Callable.signature]() {
-            return function () {
-                return this.value
-            }
-        } 
+        constructor() {
+            super(() => this.value)
+        }
  
     } 
 
-    class Number extends Trait.use(ValueCallable<number>) {
+    class Number extends ValueCallable<number> {
         constructor(public value = 0) {
             super()
         } 
@@ -93,7 +79,7 @@ it('keeps getters, setters and instance instance methods', () => {
     expect(value.getValue()).toEqual(15)
     expect(value()).toEqual(15)   
 
-    class ArrayValue extends Trait.use(ValueCallable<number[]>) {
+    class ArrayValue extends ValueCallable<number[]> {
 
         unwrap(): number {
             return this.value[0]
@@ -113,12 +99,12 @@ it('keeps getters, setters and instance instance methods', () => {
 it('gets symbolic properties', () => {  
  
     const $$true = Symbol('unique')
-    class Symbolic extends Trait.use(Callable<() => void>) { 
+    class Symbolic extends Method<() => void> { 
  
         protected [$$true] = true
 
-        get [Callable.signature]() {
-            return toVoid
+        constructor() {
+            super(toVoid)
         }
 
         *[Symbol.iterator](): IterableIterator<symbol> {
@@ -134,14 +120,8 @@ it('gets symbolic properties', () => {
 
 it('instanceof', () => {
 
-    class Foo extends Trait.use(Callable<Func>) {
+    class Foo extends Method<Func> {
 
-        readonly [Callable.signature]: Func 
-
-        constructor(signature: Func) {
-            super()
-            this[Callable.signature] = signature
-        }
     }
 
     const foo = new Foo(parseInt) 
@@ -162,28 +142,6 @@ it('instanceof', () => {
 
 })
 
-test('wrappable method', () => {
-
-    class Spy extends Trait.use(Callable<Func>) {
-
-        calls = 0
-
-        readonly [Callable.signature]: Func
-
-        constructor(signature: Func) {
-            super()
-            this[Callable.signature] = (...args) => {
-                this.calls++
-                return signature(...args)
-            }
-        }
-    }
-
-    const parseIntSpy = new Spy(parseInt)
-    expect(parseIntSpy('1')).toEqual(1)
-    expect(parseIntSpy.calls).toEqual(1)
-})
-
 it('multiple signatures', () => {
     interface Convert<T extends number> {
         (): T
@@ -191,10 +149,10 @@ it('multiple signatures', () => {
         (to: 'boolean'): T extends Falsy ? false : true
     }
 
-    abstract class Converter<T extends number> extends Callable<Convert<T>> {
+    abstract class Converter<T extends number> extends Method<Convert<T>> {
 
-        get [Callable.signature](): Convert<T> {
-            return function (to?: string) {
+        constructor() {
+            super(function (to?: string) {
                 
                 if (to === 'string')
                     return `${this.value}`
@@ -203,13 +161,13 @@ it('multiple signatures', () => {
                     return !!this.value
 
                 return this.value
-            }
+            })
         }
 
         abstract get value(): T
     }
 
-    class ConvertFive extends Trait.use(Converter<5>) {
+    class ConvertFive extends Converter<5> {
         readonly value = 5
     }
 
@@ -234,13 +192,15 @@ describe('this context', () => {
             <K extends keyof this>(key: K): this[K]
         }
 
-        class Foo extends Trait.use(Callable<ReturnsSelfKeyValue>) {
+        class Foo extends Method<ReturnsSelfKeyValue> {
 
             bar = 'bar' as const
             zero = 0 as const
 
-            get [Callable.signature]() {
-                return <K extends keyof this>(k: K) => this[k]
+            constructor() {
+                super(function (k: PropertyKey) {
+                    return this[k]
+                })
             }
 
         }
@@ -259,11 +219,11 @@ describe('this context', () => {
             (): this
         }
 
-        class Chain extends Trait.use(Callable<ReturnsSelf>) { 
-            get [Callable.signature]() {
-                return function () {
+        class Chain extends Method<ReturnsSelf> { 
+            constructor() {
+                super(function () {
                     return this
-                }
+                })
             }
         }
 
@@ -284,18 +244,15 @@ describe('this context', () => {
 
     it('can be bound', () => {
 
-        class Shout extends Trait.use(Callable<() => string>) {
+        class Shout extends Method<() => string> {
 
-            get [Callable.signature]() {
-                return function (this: Shout) {
+            constructor(protected readonly _words: string) {
+                super(function () {
                     const ctx = (this[Callable.context] ?? this) as { _words: string }
                     return `${ctx?._words}!`
-                }
+                })
             }
 
-            constructor(private readonly _words: string) {
-                super()
-            }
         }
 
         const shout = new Shout('hello')
@@ -311,10 +268,10 @@ describe('this context', () => {
 
 it('retreive signature', () => {
 
-    class Voider extends Trait.use(Callable<() => void>) {
+    class Voider extends Method<() => void> {
 
-        get [Callable.signature]() {
-            return toVoid
+        constructor() {
+            super(toVoid)
         }
     }
 
@@ -324,12 +281,12 @@ it('retreive signature', () => {
 
 it('retreive context', () => {
 
-    class Voider extends Trait.use(Callable<() => void>) {
+    class Voider extends Method<() => void> {
 
-        get [Callable.signature]() {
-            return function() {
+        constructor() {
+            super(function () {
                 return this[Callable.context]
-            }
+            })
         }
     }
 

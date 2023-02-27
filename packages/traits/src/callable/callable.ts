@@ -57,6 +57,8 @@ interface CallableStaticProperties {
      * The outer 'this' of the calling signature
      */
     readonly context: typeof $$context
+
+    apply<F extends Func>(instance: F): F
     
     is<F extends Func>(input: unknown): input is Callable<F>
 }
@@ -81,7 +83,7 @@ const Callable = class extends Trait {
         )
     }
 
-    static [Trait.onApply]<F extends Func>(instance: Callable<F>): Callable<F> {
+    static override apply<F extends Func>(instance: Callable<F>): Callable<F> {
 
         // Create callable instance
         function callable(this: unknown, ...args: unknown[]): unknown {

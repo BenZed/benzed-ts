@@ -1,8 +1,6 @@
 
-import { isFunc } from '@benzed/util'
 import {
     $$onUse,
-    $$onApply,
     addTraits,
     useTraits
 } from './add-traits'
@@ -42,18 +40,20 @@ export abstract class Trait {
     static readonly merge = mergeTraits
 
     /**
-     * Escape hatch for executing Trait.onApply 
+     * Per convention, any logic or side effects associated with
+     * the use of a trait are applied with this method. 
+     * 
+     * This method is aggregated when merging traits.
      */
-    static apply<T extends object>(input: T): T {
-        if ($$onApply in input && isFunc(input[$$onApply]))
-            input = input[$$onApply]() ?? input
-
+    static apply(input: object): object {
         return input
     }
 
     /**
      * Overwrite this method on extended Traits to allow
      * Traits to be tested for type.
+     * 
+     * This method is aggregated when merging traits.
      */
     static is(input: unknown): input is Trait {
         throw new Error(
@@ -74,12 +74,6 @@ export abstract class Trait {
     }
 
     /**
-     * Trait consumers may implement the stati conApply symbolic
-     * method to execute functionality when a trait is applied
-     */
-    static readonly onApply: typeof $$onApply = $$onApply
-
-    /**
      * Trait consumers may implement theonUse symbolic
      * method to make static changes to the constructor 
      * when using a trait.
@@ -87,8 +81,8 @@ export abstract class Trait {
     static readonly onUse: typeof $$onUse = $$onUse
 
     /**
-     * A trait should never be constructed. It exists only to
-     * define contracts and optionally implement 
+     * A trait should never be constructed.
+     * It exists only to define contracts and optionally implement.
      */
     constructor() {
         throw new Error(

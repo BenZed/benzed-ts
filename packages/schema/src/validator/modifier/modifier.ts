@@ -6,21 +6,24 @@ import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
 import { Validator } from '../validator'
 
-import { 
-    $$type, 
-    addModifiers, 
-    eachModifier, 
-    ensureModifier, 
-    getModifiers, 
-    hasModifier, 
-    isModifier, 
-    ModifierType, 
-    removeAllModifiers, 
+import {
+
+    $$type,
+    addModifiers,
+    eachModifier,
+    ensureModifier,
+    getModifiers,
+    hasModifier,
+    isModifier,
+    ModifierType,
+    removeAllModifiers,
     removeModifier
+
 } from './modifier-operations'
 
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
 */
 

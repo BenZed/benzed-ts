@@ -10,7 +10,6 @@ import type { Trait } from './trait'
 //// Symbolic /// 
 
 export const $$onUse = Symbol('on-trait-use')
-export const $$onApply = Symbol('on-trait-apply')
 
 //// Helper Types ////
 
@@ -31,8 +30,12 @@ type _BaseTraits = [
 
 //// Helper Types ////
 
-type _TraitConstructor = new () => Trait
-type _AbstractTraitConstructor = abstract new () => Trait
+interface _TraitConstructorStatic {
+    apply(instance: object): object
+}
+
+type _TraitConstructor = (new () => Trait) & _TraitConstructorStatic
+type _AbstractTraitConstructor = (abstract new () => Trait) & _TraitConstructorStatic
 
 /**
  * @internal
@@ -55,37 +58,10 @@ export interface AddTraitsConstructor<T extends _BaseTraits | _Traits> {
  */
 export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTraitsConstructor<T> {
 
-    class BaseWithTraits extends Base {
-
-        protected [$$onApply](): this {
-            let instance = this
-
-            // if we're extending a 
-            if (Base.prototype[$$onApply])
-                instance = super[$$onApply]() ?? instance
-
-            // apply traits
-            for (const Trait of Traits) {
-                if ($$onApply in Trait && isFunc(Trait[$$onApply])) 
-                    instance = Trait[$$onApply](instance) ?? instance
-                
-            }
-
-            return instance
-        }
-
-        constructor(...args: any[]) {
-            super(...args)
-
-            // only apply traits if the base doesn't have an 'onApply' method;
-            // otherwise they'll be applied twice.
-            if (!Base.prototype[$$onApply])
-                return this[$$onApply]() ?? this
-        }
-    }
+    class BaseWithTraits extends Base {}
 
     for (const Trait of Traits) {
-        
+
         // apply any prototypal trait implementations
         for (const [key, descriptor] of each.defined.descriptorOf(Trait.prototype)) 
             define(BaseWithTraits.prototype, key, descriptor)
@@ -95,11 +71,11 @@ export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTr
             Trait[$$onUse](BaseWithTraits)
     }
 
-    // Composite name
+    // composite name
     const name = [...Traits, Base].map(c => c.name).join('')
     define.named(name, BaseWithTraits) 
 
-    return BaseWithTraits as AddTraitsConstructor<T>
+    return BaseWithTraits as unknown as AddTraitsConstructor<T>
 }
 
 //// Use Traits ////
@@ -107,7 +83,7 @@ export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTr
 export function useTraits<T extends _Traits>(...Traits: T): AddTraitsConstructor<T> {
 
     return addTraits(
-        class Base {}, 
+        class Base {},
         ...Traits
     ) as unknown as AddTraitsConstructor<T>
 

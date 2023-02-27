@@ -9,7 +9,6 @@ import {
 } from '@benzed/util'
 
 import { 
-    $$onApply,
     $$onUse, 
     addTraits, 
     AddTraitsConstructor, 
@@ -30,9 +29,7 @@ type _AllNewSymbolsOf<T extends _Traits> = T extends [infer T1, ...infer Tr]
 
 type _NewSymbolsOf<T> = {  
     readonly [K in keyof T as T[K] extends symbol 
-        ? T[K] extends typeof Trait.onApply 
-            ? never 
-            : K 
+        ? T[K]
         : never 
     ]: T[K]
 }
@@ -68,11 +65,9 @@ export function mergeTraits<T extends _Traits>(...Traits: T): MergedTraitsConstr
         ) as AnyTypeGuard
 
         // Intersect all onApply methods
-        static [$$onApply](instance: object) {
-            for (const Trait of Traits) {
-                if ($$onApply in Trait && isFunc(Trait[$$onApply]))
-                    instance = Trait[$$onApply](instance) ?? instance
-            }
+        static override apply(instance: object) {
+            for (const Trait of Traits) 
+                instance = Trait.apply(instance)
             return instance
         }
 
@@ -95,7 +90,7 @@ export function mergeTraits<T extends _Traits>(...Traits: T): MergedTraitsConstr
         // attach constructor symbols
         for (const key of each.keyOf(Trait)) {
             const value = Trait[key]
-            if (!isSymbol(value) || value === $$onApply || value === $$onUse)
+            if (!isSymbol(value) || value === $$onUse)
                 continue
 
             MergedTrait[key] = value

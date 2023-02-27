@@ -3,7 +3,7 @@ import { Trait } from './trait'
 import { mergeTraits } from './merge-traits'
 import { useTraits } from './add-traits'
  
-import { it, expect, jest } from '@jest/globals'
+import { it, expect } from '@jest/globals'
 
 it('should return a new trait that extends the traits', () => {
     const trait1 = class MyTrait1 extends Trait {
@@ -24,10 +24,10 @@ it('should return a new trait that extends the traits', () => {
         }
 
         get prop2() {
-            return 'value2' 
+            return 'value2'
         }
         method2() {
-            return 'method2' 
+            return 'method2'
         }
     }
     const mergedTrait = mergeTraits(trait1, trait2)
@@ -60,19 +60,4 @@ it('should add properties and methods from all traits to the new trait', () => {
     expect(mergedInstance.method1()).toBe('method1')
     expect(mergedInstance.prop2).toBe('value2')
     expect(mergedInstance.method2()).toBe('method2')
-})
-
-it('should call the Trait.onApply method of each trait when a new trait is created from the merge', () => {
-    class MyTrait1 extends Trait {
-        static [Trait.onApply] = jest.fn()
-    }
-    class MyTrait2 extends Trait {
-        static [Trait.onApply] = jest.fn()
-    }
-    const MergedTrait = mergeTraits(MyTrait1, MyTrait2)
-
-    void new class extends useTraits(MergedTrait) {} 
-
-    expect(MyTrait1[Trait.onApply]).toHaveBeenCalledTimes(1)
-    expect(MyTrait2[Trait.onApply]).toHaveBeenCalledTimes(1)
 })

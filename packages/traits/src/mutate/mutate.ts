@@ -37,7 +37,7 @@ abstract class Mutate<T extends object> extends Trait {
     static readonly deleteProperty: typeof $$deleteProperty = $$deleteProperty
     static readonly getOwnPropertyDescriptor: typeof $$getOwnPropertyDescriptor = $$getOwnPropertyDescriptor
 
-    static [Trait.onApply](mutator: Mutate<any>): Mutate<any> {
+    static override apply<T extends Mutate<object>>(mutator: T): T {
         return new Proxy(mutator, {
             get: mutator[$$get],
             set: mutator[$$set],
@@ -48,7 +48,7 @@ abstract class Mutate<T extends object> extends Trait {
             defineProperty: mutator[$$defineProperty],
             deleteProperty: mutator[$$deleteProperty],
             getOwnPropertyDescriptor: mutator[$$getOwnPropertyDescriptor]
-        })
+        }) as T
     }
 
     static override readonly is: <Tx extends object>(input: unknown) => input is Mutate<Tx> = isShape({
