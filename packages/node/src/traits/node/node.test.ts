@@ -47,3 +47,20 @@ describe('auto parent set', () => {
     })
 
 })
+
+describe('auto parent clear', () => {
+
+    it('on property delete', () => {
+
+        const parent = new Person
+        const child = new Person 
+
+        parent.child = child 
+        expect(child.parent).toBe(parent)
+
+        delete parent.child 
+        expect(child.parent).toBe(nil)
+
+    })
+
+})

@@ -76,15 +76,15 @@ abstract class Node extends Trait {
     static [Trait.onApply](node: Node): Node {
 
         const proxyNode = new Proxy(node, {
-            defineProperty(node, key, descriptor) {
+            defineProperty(node, key: keyof Node, descriptor) {
 
                 const { value } = descriptor
 
                 const isParentKey = key === $$parent
 
                 // clear parent of node being over-written
-                if (!isParentKey && isNode((node as any)[key]))
-                    setParent((node as any)[key], nil)
+                if (!isParentKey && isNode(node[key]))
+                    setParent(node[key], nil)
 
                 // set parent of new node
                 if (!isParentKey && isNode(value)) 
@@ -93,8 +93,13 @@ abstract class Node extends Trait {
                 return Reflect.defineProperty(node, key, descriptor)
             },
 
-            set(node, key, value, proxy) {
-                return Reflect.set(node, key, value, proxy)
+            deleteProperty(node, key: keyof Node) {
+
+                const isParentKey = key === $$parent
+                if (!isParentKey && isNode(node[key]))
+                    setParent(node[key], nil)
+
+                return Reflect.deleteProperty(node, key)
             }
         })
 
