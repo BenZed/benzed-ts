@@ -1,11 +1,15 @@
 
-import { define, each, Intersect } from '@benzed/util'
-import { applyTraits, _Traits } from './apply-traits'
+import { define, each, Intersect, isFunc } from '@benzed/util'
+import type { Trait } from './trait'
 
 //// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any
 */
+
+//// Symbolic /// 
+
+export const $$onUse = Symbol('on-trait-use')
 
 //// Helper Types ////
 
@@ -24,6 +28,20 @@ type _BaseTraits = [
     ...traits: _Traits
 ]
 
+//// Helper Types ////
+
+interface _TraitConstructorStatic {
+    apply(instance: object): object
+}
+
+type _TraitConstructor = (new () => Trait) & _TraitConstructorStatic
+type _AbstractTraitConstructor = (abstract new () => Trait) & _TraitConstructorStatic
+
+/**
+ * @internal
+ */
+export type _Traits = (_TraitConstructor | _AbstractTraitConstructor)[]
+
 //// Composite Types ////
 
 export type Composite<T extends _BaseTraits | _Traits> = Intersect<_InstanceTypes<T>>
@@ -38,34 +56,35 @@ export interface AddTraitsConstructor<T extends _BaseTraits | _Traits> {
  * Extend a base class with any number of trait classes.
  * A trait class cannot have any constructor logic.
  */
-export function addTraits<T extends _BaseTraits>(...[base, ...traits]: T): AddTraitsConstructor<T> {
+export function addTraits<T extends _BaseTraits>(...[Base, ...Traits]: T): AddTraitsConstructor<T> {
 
-    class CompositeConstructor extends base {
-        constructor(...args: any[]) {
-            super(...args)
-            return applyTraits(this, traits)
-        }
+    class BaseWithTraits extends Base {}
+
+    for (const Trait of Traits) {
+
+        // apply any prototypal trait implementations
+        for (const [key, descriptor] of each.defined.descriptorOf(Trait.prototype)) 
+            define(BaseWithTraits.prototype, key, descriptor)
+
+        // apply any trait constructor mutations
+        if ($$onUse in Trait && isFunc(Trait[$$onUse]))
+            Trait[$$onUse](BaseWithTraits)
     }
 
-    for (const trait of traits) {
-        for (const [key, descriptor] of each.defined.descriptorOf(trait.prototype)) 
-            define(CompositeConstructor.prototype, key, descriptor)
-    }
+    // composite name
+    const name = [...Traits, Base].map(c => c.name).join('')
+    define.named(name, BaseWithTraits) 
 
-    const name = [base, ...traits].map(c => c.name).join('')
-
-    return define.named(name, CompositeConstructor) as unknown as AddTraitsConstructor<T>
-
+    return BaseWithTraits as unknown as AddTraitsConstructor<T>
 }
 
 //// Use Traits ////
 
-export function useTraits<T extends _Traits>(...traits: T): AddTraitsConstructor<T> {
+export function useTraits<T extends _Traits>(...Traits: T): AddTraitsConstructor<T> {
 
     return addTraits(
-        class CompositeBase {},
-        ...traits
-    
+        class Base {},
+        ...Traits
     ) as unknown as AddTraitsConstructor<T>
 
 }

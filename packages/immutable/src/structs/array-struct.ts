@@ -2,7 +2,8 @@ import { assign, each, Func, Mutable, nil, omit } from '@benzed/util'
 
 import { adjacent, shuffle } from '@benzed/array'
 import { Traits } from '@benzed/traits'
-import { Stateful, Structural } from '../traits'
+
+import { PublicStructural, Stateful, Structural } from '../traits'
 
 //// EsLint ////
 
@@ -17,8 +18,6 @@ type ArrayMethodNames = keyof {
 }
 
 type ArrayParams<T, M extends ArrayMethodNames> = Parameters<Array<T>[M]>
-
-// type ArrayReturns<T, M extends ArrayMethodNames> = ReturnType<Array<T>[M]>
 
 //// Helper ////
 
@@ -47,7 +46,7 @@ function applyArrayState<
 
     // clone struct and apply state
     const newArrayStruct = Object.create(arrayStruct.constructor.prototype)
-    Structural.setIn(newArrayStruct, state)
+    Structural.set(newArrayStruct, state)
     return newArrayStruct
 
 }
@@ -58,7 +57,7 @@ function applyArrayState<
  * An ArrayStruct implements a subset of the Array's methods, with the caveat that
  * none of the methods mutate the original array.
  */
-class ArrayStruct<T> extends Traits.use(Structural) implements Iterable<T> {
+class ArrayStruct<T> extends Traits.use(PublicStructural) implements Iterable<T> {
 
     readonly [index: number]: T
 
@@ -73,7 +72,7 @@ class ArrayStruct<T> extends Traits.use(Structural) implements Iterable<T> {
     //// Interface ////
 
     get length(): number {
-        return each.nameOf(this).count
+        return each.nameOf(this).count()
     }
 
     at(index: number): T | nil {
@@ -202,7 +201,7 @@ class ArrayStruct<T> extends Traits.use(Structural) implements Iterable<T> {
     // TODO indexOf
     // TODO keys
     // TODO lastIndexOf
-    // TODO getIn
+    // TODO get
     // TODO applyIn
     // TODO copy
     // TODO equals
@@ -221,11 +220,11 @@ class ArrayStruct<T> extends Traits.use(Structural) implements Iterable<T> {
 
     //// State ////
 
-    get [Stateful.key](): { [index: number]: T } {
+    get [Stateful.state](): { [index: number]: T } {
         return { ...this }
     }
 
-    set [Stateful.key](state: { [index: number]: T }) {
+    set [Stateful.state](state: { [index: number]: T }) {
         assign(this, state)
     }
 

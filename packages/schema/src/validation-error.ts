@@ -1,114 +1,134 @@
-import { Struct } from '@benzed/immutable'
-import {
-    assign,
-    isFunc,
-    isEqual,
-    isShape,
-    isString,
-    isUnion,
-    isIntersection,
-    AnyTypeGuard,
-    Property,
-    Func,
-    define
-} from '@benzed/util'
+import { words } from '@benzed/string'
+import { each, GenericObject, isNumber, isString, isSymbol, nil } from '@benzed/util'
 
-import ValidationContext from './validation-context'
+import { ValidationContext } from './validation-context'
 
-import type { 
-    AnyValidateStruct,
-    AnyValidatorStruct,
-} from './validator'
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
-//// Types ////
+//// Type ////
 
-type ValidationErrorMessage<T> = (ctx: ValidationContext<T>) => string
+type ValidationErrorJson<T> = string | (T extends Array<infer I>
 
-/**
- * Implements a ValidationErrorMessage<T>
- */
-interface ValidateWithErrorMessage<T> {
-    readonly message: string | ValidationErrorMessage<T>
-}
+    ? readonly (ValidationErrorJson<I> | null)[]
+    : T extends object
+        ? {
+            readonly [K in keyof T]: ValidationErrorJson<T[K]>
+        }
+        : string)
 
-type ResolveErrorMessageParams<T> =     
-    string | ValidateWithErrorMessage<T> | ValidationErrorMessage<T> | AnyValidateStruct
+type ValidationErrorMessage<I, O extends I = I> = string | ((input: I, ctx: ValidationContext<I,O>) => string)
 
 //// Helper ////
 
-const isFuncNotStruct = (i: AnyValidatorStruct | Func): i is Func => 
-    !Struct.is(i) && isFunc(i)
+/**
+ * ['key', 0, Symbol(symbolic-key)] => key[0][$$symbolic-key]
+ */
+function formatPath(path: PropertyKey[]): string {
+    const formatted = path
+        .map((k, i) => {
 
-const isValidationErrorMessage: <T>(i: unknown) => i is ValidationErrorMessage<T> = 
-    isUnion(
-        isFuncNotStruct,
-        // isString
-    )
+            const name = isSymbol(k)
+                ? `$$${k.description}`
+                : `${k}`
 
-const hasValidationErrorMessage: <T>(i: unknown) => i is ValidateWithErrorMessage<T> = 
-    isShape({
-        message: isValidationErrorMessage
-    })
+            return i === 0 ? name : isString(k) 
+                ? `.${name}` 
+                : `[${name}]`
+        })
+        .join('')
 
-function resolveValidationErrorMessage<T>(
+    return isNumber(path[0])
+        ? 'index ' + formatted
+        : formatted
+}
 
-    input: ResolveErrorMessageParams<T>,
-    ctx: ValidationContext<T>,
-    defaultErrorMessage: string | ValidationErrorMessage<T> = 'Validation failed.'
+/**
+ * Create a json error object out of a validation context.
+ */
+function toErrorJson<T>(
+    ctx: ValidationContext<T, any>
+): ValidationErrorJson<T> {
 
-): string {
+    const subCtxs = ctx.subContexts
+    if (!subCtxs) {
+        return (ctx.hasError() 
+            ? ctx.getError() 
+            : null
+        ) as ValidationErrorJson<T>
+    }
 
-    const container = hasValidationErrorMessage(input) 
-        ? input 
-        : { message: isValidationErrorMessage(input) ? input : defaultErrorMessage }
+    const json: GenericObject = {}
 
-    return isFunc(container.message) 
-        ? container.message(ctx) 
-        : container.message
+    let allNumericKeys = true
+    for (const subCtx of each.valueOf(subCtxs)) {
+        if (subCtx.key === nil)
+            continue 
+
+        if (!isNumber(subCtx.key))
+            allNumericKeys = false 
+
+        json[subCtx.key] = toErrorJson(subCtx)
+    }
+
+    return (
+        allNumericKeys
+            ? each.valueOf(json).toArray()
+            : json
+    ) as ValidationErrorJson<T>
 }
 
 //// Main ////
 
-class ValidationError<T> extends Error implements ValidationContext<T> {
+class ValidationError<T> extends Error {
 
-    static is: <T>(i: unknown) => i is ValidationError<T> = isIntersection(
-        ValidationContext.is as AnyTypeGuard,
-        isShape({
-            message: isString,
-            name: isEqual(ValidationError.name)
-        })
-    )
+    static readonly toErrorJson = toErrorJson
 
-    static resolveMessage = resolveValidationErrorMessage
+    override get name(): string {
+        return this.constructor.name
+    }
 
-    readonly input!: T
-    readonly transform!: boolean
-    readonly transformed!: T
+    get value(): T {
+        return this.ctx.input
+    }
 
-    constructor(
-        message: ResolveErrorMessageParams<T>,
-        ctx: ValidationContext<T>
-    ) {
-        super(resolveValidationErrorMessage(message, ctx))
-        assign(this, { ...ctx, name: ValidationError.name })
+    get path(): PropertyKey[] {
+        return this.ctx.path
+    }
+
+    readonly json: ValidationErrorJson<T>
+
+    constructor(readonly ctx: ValidationContext<T, any>) {
+
+        const firstErrorCtx = ctx.hasError()
+            ? ctx 
+            : ctx.findSubContext.inDescendents(sub => sub.hasError())
+
+        const message = firstErrorCtx
+            ? words(
+                formatPath(firstErrorCtx.path),
+                firstErrorCtx.getError()
+            )
+            : 'Validation incomplete'
+
+        super(message)
+        this.json = toErrorJson(ctx) || message
+    }
+
+    toJSON(): ValidationErrorJson<T> {
+        return this.json
     }
 
 }
 
 //// Exports ////
 
-const isValidationError = define.named(`is${ValidationError.name}`, ValidationError.is) 
-
 export default ValidationError
 
 export {
     ValidationError,
-    isValidationError,
-
     ValidationErrorMessage,
-
-    ValidateWithErrorMessage,
-    isValidationErrorMessage,
-    hasValidationErrorMessage,
-    resolveValidationErrorMessage
+    ValidationErrorJson
 }

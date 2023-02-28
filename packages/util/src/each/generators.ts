@@ -68,7 +68,7 @@ export function * eachEntry<T extends object>(
     options: { type: KeyType, enumerable: boolean, own: boolean } = { type: KeyType.Key, enumerable: true, own: false }
 ): IterableIterator<Entries<T>> {
     for (const [key] of eachDescriptor(object, options))
-        yield [key, (object as any)[key]] as Entries<T>
+        yield [key, object[key]] as Entries<T>
 }
 
 //// EachDescriptor ////

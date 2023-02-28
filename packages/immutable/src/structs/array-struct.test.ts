@@ -3,7 +3,14 @@ import { RecordStruct } from './record-struct'
 
 import { test, expect } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
-import { equals, Stateful, StructState, Structural } from '../traits'
+
+import {
+    equals,
+    PublicStructural,
+    Stateful,
+    StructState,
+    Structural
+} from '../traits'
 
 //// Setup ////
 
@@ -12,6 +19,10 @@ const data = [1,2,3,4,5]
 const array = new ArrayStruct(...data)
 
 //// Tests ////
+
+test('public structural methods', () => {
+    expect(PublicStructural.is(array)).toBe(true)
+})
 
 test('get State', () => {
 
@@ -26,13 +37,15 @@ test('get State', () => {
     })
 
     expect(state).toEqual({ ...array })
+
+    expect(array.get()).toEqual(state)
 })
 
-test('apply', () => {
+test('create', () => {
 
-    const array2 = Structural.apply(array, [5,4,3,2,1,0])
+    const array2 = Structural.create(array, [5,4,3,2,1,0])
 
-    expect(Structural.getIn(array2)).toEqual({
+    expect(Structural.get(array2)).toEqual({
         '0': 5,
         '1': 4,
         '2': 3,
@@ -40,37 +53,44 @@ test('apply', () => {
         '4': 1,
         '5': 0,
     })
+
+    expect(array.create([5,4,3,2,1,0])).toEqual(array2)
 })
 
-test('deep apply', () => {
+test('deep create', () => {
 
-    const array2 = Structural.apply(array, 0, 100)
+    const array2 = Structural.create(array, 0, 100)
 
-    expect(Structural.getIn(array2)).toEqual({
+    expect(Structural.get(array2)).toEqual({
         0: 100,
         1: 2,
         2: 3,
         3: 4,
         4: 5
     })
+
+    expect(array2.create(0, 100)).toEqual(array2)
 })
 
-test('deep nested apply', () => {
+test('deep nested create', () => {
 
     const array = new ArrayStruct(
+
         new RecordStruct({
             foo: 0,
             bar: 'yes' 
         }),
+
         new RecordStruct({
             foo: 'bar',
             bar: 10 
         })
+
     )
 
-    const array2 = Structural.apply(array, 0, 'bar', 100)
+    const array2 = Structural.create(array, 0, 'bar', 100)
 
-    expect(Structural.getIn(array2)).toEqual({
+    expect(Structural.get(array2)).toEqual({
         0: {
             bar: 100,
             foo: 0
@@ -81,6 +101,16 @@ test('deep nested apply', () => {
         }
     })
 
+    expect(array.create(0, 'bar', 100)).toEqual(array2)
+
+})
+
+test('copy', () => {
+    expect(array.copy()).toEqual(array)
+})
+
+test('equals', () => {
+    expect(array.copy().equals(array)).toBe(true)
 })
 
 test('state type', () => {
@@ -202,17 +232,7 @@ describe('array interface', () => {
 
     test('filter', () => {
         const arrayFiltered = array.filter(i => i < 2)
-        expect(Stateful.get(arrayFiltered)).toEqual({
-            0: 1
-        }) 
-        expect(array).not.toBe(arrayFiltered)
-    })
-
-    test('filter', () => {
-        const arrayFiltered = array.filter(i => i < 2)
-        expect(Stateful.get(arrayFiltered)).toEqual({
-            0: 1
-        }) 
+        expect(Stateful.get(arrayFiltered)).toEqual({ 0: 1 })
         expect(array).not.toBe(arrayFiltered)
     })
 

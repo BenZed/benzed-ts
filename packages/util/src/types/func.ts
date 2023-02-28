@@ -26,6 +26,9 @@ export type TypesOf<F extends _AnyTypeMethods> =
                 : []
         : []
 
+/**
+ * Any function.
+ */
 export type Func = (...args: any) => any 
 
 export const isFunc = <F extends Func = Func>(i: unknown): i is F => typeof i === 'function'

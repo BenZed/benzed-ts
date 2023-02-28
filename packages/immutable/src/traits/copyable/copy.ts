@@ -1,8 +1,10 @@
 
+import { Traits } from '@benzed/traits'
 import { 
     isArray,
     isObject,
-    each
+    each,
+    isFunc
 } from '@benzed/util'
 
 import { Copyable } from './copyable'
@@ -40,11 +42,7 @@ function * copyEach<T>(iterable: Iterable<T>, refs: Refs): Generator<T> {
 function copy<T>(input: T, refs: Refs = new WeakMap()): T {
 
     // non-copyables returned as-is
-    if (
-        !isObject(input) || 
-        input instanceof WeakMap || 
-        input instanceof WeakSet
-    )
+    if (!isObject(input))
         return input 
 
     // Return existing Ref
@@ -61,6 +59,14 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
     // Copyable Implementation
     if (Copyable.is(input)) 
         return setRef(input[Copyable.copy]())
+
+    // objects that cannot be copied
+    if (
+        isFunc(input) ||
+        input instanceof WeakMap || 
+        input instanceof WeakSet
+    )
+        return input
 
     // Implementations for standard objects
     if (input instanceof RegExp)
@@ -98,9 +104,10 @@ function copy<T>(input: T, refs: Refs = new WeakMap()): T {
     }
 
     const object = setRef(Object.create(input))
+
     for (const key of each.keyOf(input))
         object[key] = copyWithRefs(input[key])
-    
+
     return object
 }
 

@@ -1,55 +1,51 @@
 
-import { each, TypeGuard } from '@benzed/util'
+import { each } from '@benzed/util'
+import { ValidateOutput } from '../../validate'
 
-import { AnyValidate, ValidateOptions } from '../../validate'
 import ValidationContext from '../../validation-context'
-import ValidationError from '../../validation-error'
-import { ValidatorStruct } from '../validator-struct'
+import { Validator } from '../validator'
 
 //// Types //// 
 
-type TupleInput = readonly AnyValidate[]
+type TupleValidatorInput = readonly Validator[]
 
-type TupleOutput<T extends TupleInput> = T extends [infer T1, ...infer Tr]
-    ? Tr extends TupleInput 
-        ? T1 extends TypeGuard<infer O>
-            ? [O, ...TupleOutput<Tr>]
-            : [unknown, ...TupleOutput<Tr>]
-        : T1 extends TypeGuard<infer O> 
-            ? [O]
-            : [unknown]
+type TupleValidatorOutput<T extends TupleValidatorInput> = T extends [infer T1, ...infer Tr]
+    ? T1 extends Validator 
+        ?Tr extends TupleValidatorInput 
+            ? [ValidateOutput<T1>, ...TupleValidatorOutput<Tr>]
+            : [ValidateOutput<T1>]
+        : []
     : []
 
 //// Tuple //// 
 
-class TupleValidator<T extends TupleInput> extends ValidatorStruct<unknown[], TupleOutput<T>> {
+class TupleValidator<T extends TupleValidatorInput> extends Validator<unknown[], TupleValidatorOutput<T>> {
 
-    readonly types: T
+    readonly positions: T
 
-    constructor(...types: T) {
+    constructor(...positions: T) {
         super()
-        this.types = types
+        this.positions = positions
     }
 
-    validate(input: unknown[], options?: ValidateOptions): TupleOutput<T> {
+    [Validator.analyze](ctx: ValidationContext<unknown[], TupleValidatorOutput<T>>) {
 
-        const ctx = new ValidationContext(input, options)
+        const output: unknown[] = ctx.transformed = []
 
-        const transformed: unknown[] = ctx.transformed = []
+        for (const index of each.indexOf(this.positions)) {
 
-        for (const index of each.indexOf(input)) {
-            const validateIndex = this.types[index]
-            const value = input[index]
-            transformed[index] = validateIndex(value, ctx)
+            let positionCtx = ctx.pushSubContext(ctx.input[index], index)
+            const position = this.positions[index]
+
+            positionCtx = position[Validator.analyze](positionCtx)
+            if (positionCtx.hasValidOutput())
+                output[index] = positionCtx.getOutput()
         }
 
-        ctx.transformed = transformed
-
-        const output = ctx.transform ? ctx.transformed : input
-        if (!ValidatorStruct.equal(input, output))
-            throw new ValidationError(this, ctx)
-
-        return output as TupleOutput<T>
+        const invalidElementCount = !ctx.transform && ctx.input.length !== this.positions.length
+        return invalidElementCount
+            ? ctx.setError(`must have exactly ${this.positions.length} elements`)
+            : ctx.setOutput(output as TupleValidatorOutput<T>)
     }
 
 }
@@ -60,6 +56,6 @@ export default TupleValidator
 
 export {
     TupleValidator,
-    TupleInput,
-    TupleOutput
+    TupleValidatorInput,
+    TupleValidatorOutput
 }

@@ -1,19 +1,17 @@
 
-import { each, GenericObject, Infer, isObject, nil, OutputOf } from '@benzed/util'
+import { Copyable } from '@benzed/immutable'
+import { each, GenericObject, Infer } from '@benzed/util'
 
-import { ValidateOptions } from '../../validate'
+import { ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
-import ValidationError from '../../validation-error'
 
-import {
+import type {
     MutatorType,
     HasMutator,
     RemoveMutator
-} from '../mutator'
+} from '../modifier'
 
-import { AnyValidateStruct } from '../validate-struct'
-
-import { ValidatorStruct } from '../validator-struct'
+import { Validator } from '../validator'
 
 //// EsLint ////
 
@@ -24,20 +22,20 @@ import { ValidatorStruct } from '../validator-struct'
 
 //// Helper Types ////
 
-type _HasReadOnly<T extends AnyValidateStruct> = HasMutator<T, MutatorType.ReadOnly>
+type _HasReadOnly<T extends Validator> = HasMutator<T, MutatorType.ReadOnly>
 
-type _HasOptional<T extends AnyValidateStruct> = HasMutator<T, MutatorType.Optional>
+type _HasOptional<T extends Validator> = HasMutator<T, MutatorType.Optional>
 
-type _OnRequiredWritable<T extends AnyValidateStruct, Y, N = never> = 
+type _OnRequiredWritable<T extends Validator, Y, N = never> = 
     _HasOptional<T> extends false ? _HasReadOnly<T> extends false ? Y : N : N
 
-type _OnRequiredReadOnly<T extends AnyValidateStruct, Y, N = never> = 
+type _OnRequiredReadOnly<T extends Validator, Y, N = never> = 
     _HasOptional<T> extends false ? _HasReadOnly<T> extends true ? Y : N : N
 
-type _OnOptionalWritable<T extends AnyValidateStruct, Y, N = never> = 
+type _OnOptionalWritable<T extends Validator, Y, N = never> = 
     _HasOptional<T> extends true ? _HasReadOnly<T> extends false ? Y : N : N
 
-type _OnOptionalReadOnly<T extends AnyValidateStruct, Y, N = never> = 
+type _OnOptionalReadOnly<T extends Validator, Y, N = never> = 
     _HasOptional<T> extends true ? _HasReadOnly<T> extends true ? Y : N : N
 
 type _RequiredWritableProperties<T extends ShapeValidatorInput> = {
@@ -62,8 +60,8 @@ type _ShapeProperties<T extends ShapeValidatorInput> =
     & _OptionalWritableProperties<T>
     & _OptionalReadOnlyProperties<T>
 
-type _ShapePropertyOutput<T extends AnyValidateStruct> = 
-    OutputOf<
+type _ShapePropertyOutput<T extends Validator> = 
+    ValidateOutput<
     // GOTCHA: We're not actually removing the mutators 
     // in implementation. This is only to clean up the
     // output type
@@ -79,74 +77,41 @@ type ShapeValidatorOutput<T extends ShapeValidatorInput> = Infer<{
 }, object>
 
 type ShapeValidatorInput = {
-    [key: string | number | symbol]: AnyValidateStruct
+    [key: string | number | symbol]: Validator
 }
 
 //// Tuple ////
 
 class ShapeValidator<T extends ShapeValidatorInput> 
-    extends ValidatorStruct<unknown, ShapeValidatorOutput<T>> {
+    extends Validator<object, ShapeValidatorOutput<T>> {
 
     constructor(
-        readonly properties: T, 
-        override readonly name = 'Shape'
+        readonly properties: T
     ) {
         super()
     }
 
-    message(): string {
+    [Validator.analyze](ctx: ValidationContext<object, ShapeValidatorOutput<T>>) {
 
-        const name = this.name === 'Shape' 
-            ? this.name 
-            : ''
+        const output = ctx.transformed = Copyable.createFromProto(ctx.input) as GenericObject
 
-        return [
-            'Must adhere to',
-            name,
-            'shape'
-        ].join(' ')
-    }
+        for (const [key, property] of each.entryOf(this.properties)) {
 
-    default(ctx: ValidationContext<unknown>): unknown {
-        void ctx
-        return nil
-    }
+            const value = ctx.input[key as keyof typeof ctx.input] as any
+            let propertyCtx = ctx.pushSubContext(value, key)
 
-    validate(input: unknown, options?: ValidateOptions): ShapeValidatorOutput<T> {
-
-        const ctx = new ValidationContext(input, options)
-
-        // Default Empty Object *1
-        const inputObject = input === nil
-            ? this.default(ctx)
-            : input
-
-        // Check is Object *2
-        if (!isObject<GenericObject>(inputObject))
-            throw new ValidationError(this, ctx)
-
-        // TODO: *1 & *2 are essentially doing the same
-        // thing as a TypeValidator. PipeSchema should
-        // put these two together.
-
-        const transformed = Object.create(inputObject.constructor.prototype)
-
-        for (const key of each.keyOf(this.properties)) {
-            const $property = this.properties[key]
-            const value = inputObject[key]
-            transformed[key] = $property(value, ctx)
+            propertyCtx = property[Validator.analyze](propertyCtx)
+            if (propertyCtx.hasValidOutput())
+                output[key] = propertyCtx.getOutput()
         }
 
-        ctx.transformed = transformed
+        const invalidKeys = ctx.transform 
+            ? []
+            : each.keyOf(ctx.input).filter(k => !(k in this.properties))
 
-        const output = ctx.transform 
-            ? ctx.transformed 
-            : inputObject
-
-        if (!ValidatorStruct.equal(output, ctx.transformed))
-            throw new ValidationError(this, ctx)
-
-        return output as ShapeValidatorOutput<T>
+        return invalidKeys.length > 0
+            ? ctx.setError(`contains invalid keys: ${invalidKeys.map(String)}`)
+            : ctx.setOutput(output as ShapeValidatorOutput<T>)
     }
 
 }

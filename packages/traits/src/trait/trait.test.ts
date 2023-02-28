@@ -7,7 +7,7 @@ import { isFunc, isNumber, isShape, isTuple } from '@benzed/util'
 
 class Huggable extends Trait {
 
-    static is: (input: unknown) => input is Huggable = isShape({ 
+    static is: (input: unknown) => input is Huggable = isShape({
         hug: isFunc
     })
 
@@ -26,13 +26,13 @@ abstract class Toy extends Trait {
     })
 
     abstract get price(): number
- 
+
 }
 
 abstract class Color extends Trait {
 
     static is: (input: unknown) => input is Color = isShape({
-        color: isTuple(isNumber,isNumber,isNumber)
+        color: isTuple(isNumber, isNumber, isNumber)
     })
 
     abstract get color(): [r: number, g: number, b: number]
@@ -99,4 +99,3 @@ test('classes created by calling traits.use have a composed typeguard', () => {
 
     expect(BlackHuggableToy.is(huggable)).toBe(false)
 })
-

@@ -2,8 +2,9 @@ import { Trait } from './trait'
 
 import { mergeTraits } from './merge-traits'
 import { useTraits } from './add-traits'
-
-import { it, expect, jest } from '@jest/globals'
+ 
+import { it, expect } from '@jest/globals'
+import { expectTypeOf } from 'expect-type'
 
 it('should return a new trait that extends the traits', () => {
     const trait1 = class MyTrait1 extends Trait {
@@ -24,10 +25,10 @@ it('should return a new trait that extends the traits', () => {
         }
 
         get prop2() {
-            return 'value2' 
+            return 'value2'
         }
         method2() {
-            return 'method2' 
+            return 'method2'
         }
     }
     const mergedTrait = mergeTraits(trait1, trait2)
@@ -62,17 +63,18 @@ it('should add properties and methods from all traits to the new trait', () => {
     expect(mergedInstance.method2()).toBe('method2')
 })
 
-it('should call the Trait.apply method of each trait when a new trait is created from the merge', () => {
-    class MyTrait1 extends Trait {
-        static [Trait.apply] = jest.fn()
-    }
-    class MyTrait2 extends Trait {
-        static [Trait.apply] = jest.fn()
-    }
-    const MergedTrait = mergeTraits(MyTrait1, MyTrait2)
+it('adds all static symbols', () => {
 
-    void new class extends useTraits(MergedTrait) {}
+    class Sharp extends Trait {
+        static readonly sharp = Symbol('sharp')
+    }
 
-    expect(MyTrait1[Trait.apply]).toHaveBeenCalledTimes(1)
-    expect(MyTrait2[Trait.apply]).toHaveBeenCalledTimes(1)
+    class Bold extends Trait {
+        static readonly bold = Symbol('sharp')
+    }
+
+    const SharpBold = mergeTraits(Bold, Sharp)
+    expect(SharpBold.sharp).toBe(Sharp.sharp)
+    expect(SharpBold.bold).toBe(Bold.bold)
+    expect(SharpBold.apply).not.toBe(Trait.apply)
 })

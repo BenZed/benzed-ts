@@ -1,13 +1,24 @@
-import { addTraits, useTraits } from './add-traits'
-import { $$onApply } from './apply-traits'
+
+import {
+    $$onUse,
+    addTraits,
+    useTraits,
+    _Traits
+} from './add-traits'
+
 import { mergeTraits } from './merge-traits'
 
+//// EsLint ////
+
+/* eslint-disable
+    @typescript-eslint/no-explicit-any
+*/
+
 /**
- * 
- * A Trait is essentially a runtime interface. 
+ * A Trait is essentially a runtime interface.
  * 
  * Using class syntax to declare abstract properties or partial implementations,
- * a trait will be added to a regular class via mixins. 
+ * a trait will be added to a regular class via mixins.
  * 
  * Extend this class to make traits, use the static methods
  * on this class to apply them.
@@ -30,8 +41,30 @@ export abstract class Trait {
     static readonly merge = mergeTraits
 
     /**
+     * Given an object and a list of traits, run the static apply method
+     * on each trait to the input.
+     */
+    static apply<T extends object>(input: T, ...traits: _Traits): T
+
+    /**
+     * Per convention, any logic or side effects associated with
+     * the use of a trait are applied with this method. 
+     * 
+     * This method is aggregated when merging traits.
+     */
+    static apply(input: object): object
+
+    static apply(input: object, ...traits: _Traits): object {
+        for (const trait of traits)
+            input = trait.apply(input)
+        return input
+    }
+
+    /**
      * Overwrite this method on extended Traits to allow
      * Traits to be tested for type.
+     * 
+     * This method is aggregated when merging traits.
      */
     static is(input: unknown): input is Trait {
         throw new Error(
@@ -52,19 +85,19 @@ export abstract class Trait {
     }
 
     /**
-     * Extended classes may implement this static 
-     * method to customize behaviour that occurs when
-     * a trait is applied.
+     * Trait consumers may implement theonUse symbolic
+     * method to make static changes to the constructor 
+     * when using a trait.
      */
-    static readonly apply: typeof $$onApply = $$onApply
+    static readonly onUse: typeof $$onUse = $$onUse
 
     /**
-     * A trait should never be constructed. It exists only to
-     * define contracts and optionally implement 
+     * A trait should never be constructed.
+     * It exists only to define contracts and optionally implement.
      */
     constructor() {
         throw new Error(
-            `Trait class ${this.constructor.name}'s should ` + 
+            `${Trait.name} class ${this.constructor.name}'s should ` + 
             'never be constructed.'
         )
     }

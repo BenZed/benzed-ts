@@ -1,18 +1,20 @@
-import { ansi, each, isPrimitive } from '@benzed/util'
+import { isPrimitive } from '@benzed/util'
+import { ansi } from '@benzed/logger'
+import { lines } from '@benzed/string'
+
 import { it } from '@jest/globals'
 
+import { runValidationTest, ValidationTest, ValidationTestResult } from './validation-test'
 import { Validate } from './validate'
 
-import {
-    ValidationTest,
-    ValidationTestResult,
-    ValidationContractViolation,
-    ValidatorContractTestSettings,
-    runValidationContractTests, 
-    runValidationTest
-} from './validation-test'
+//// Helper ////
 
-//// Helper////
+// Pretty-print method for making the title readable
+const print = (input: unknown):string => isPrimitive(input) 
+    ? String(input) 
+    : JSON.stringify(input)
+
+//// FailedValidationTestError ////
 
 class FailedValidationTestError extends Error {
     constructor(
@@ -20,30 +22,22 @@ class FailedValidationTestError extends Error {
         readonly result: Pick<ValidationTestResult<unknown,unknown>, 'error' | 'output'>
     ) {
 
-        const lines: string[] = [
+        super(lines(
+
             ansi('Validation test failed', 'red'),
+
             'reason: ' + ansi(reason, 'yellow'),
-            'error' in result 
+
+            'error' in result && result.error?.message
                 ? 'validation error: ' + ansi(result.error?.message ?? '', 'yellow')
-                : 'validation output: ' + print(result.output)
-        ]
+                : '',
 
-        super(lines.join('\n'))
+            'output' in result 
+                ? 'validation output: ' + print(result.output)
+                : ''
+        ))
     }
 }
-
-class ValidationContractViolationError extends Error {
-    constructor(
-        readonly violation: ValidationContractViolation,
-    ) {
-        super(violation)
-    }
-}
-
-// Pretty-print method for making the title readable
-const print = (input: unknown):string => isPrimitive(input) 
-    ? String(input) 
-    : JSON.stringify(input)
 
 //// Implementations ////
 
@@ -52,8 +46,7 @@ const print = (input: unknown):string => isPrimitive(input)
  */
 export function testValidator<I,O extends I>(
     validate: Validate<I,O>,
-    ...tests: ValidationTest<I,O>[]
-
+    ...tests: (ValidationTest<I,O> & { title?: string, only?: boolean, skip?: boolean })[]
 ): void {
 
     for (const test of tests) {
@@ -65,8 +58,8 @@ export function testValidator<I,O extends I>(
 
         const input = applyTransforms ? test.transforms : test.asserts
 
-        const testTitle = 
-            `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
+        const testTitle = test.title ??
+        `${applyTransforms ? 'validates' : 'asserts'} ${print(input)}` + 
             (expectingError  
                 ? ' is invalid' + (test.error === true ? '' : ` "${test.error}"`)
                 : expectOutputDifferentFromInput 
@@ -75,7 +68,8 @@ export function testValidator<I,O extends I>(
             )
 
         // run test
-        it(testTitle, () => {
+        const method = test.skip ? it.skip : test.only ? it.only : it
+        method(testTitle, () => {
             const { grade, output, error } = runValidationTest(validate, test)
             if (!grade.pass) {
                 throw new FailedValidationTestError(
@@ -86,27 +80,4 @@ export function testValidator<I,O extends I>(
         })
     }
 }
-
-/**
- * Test that a validator fulfills all of the tenants 
- * of the validation contract.
- */
-export function testValidationContract<I, O extends I>(
-    validate: Validate<I,O>,
-    settings: ValidatorContractTestSettings<I,O>
-): void {
-
-    const results = runValidationContractTests(validate, settings)
-
-    for (const tenant of each.keyOf(ValidationContractViolation)) {
-        it(tenant, () => {
-            const violation = ValidationContractViolation[tenant]
-            if (results.violations.includes(violation)) 
-                throw new ValidationContractViolationError(violation)
-            
-        })
-    }
-}
-
-//// Helper ////
 

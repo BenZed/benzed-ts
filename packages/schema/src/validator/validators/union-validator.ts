@@ -1,100 +1,111 @@
-import { assign } from '@benzed/util'
+import { copy } from '@benzed/immutable'
+import { Mutate, Trait } from '@benzed/traits'
+import { define, each } from '@benzed/util'
+import { ValidateImmutable } from '../../traits'
 
-import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
+import { ValidateInput, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
-import { ValidationError } from '../../validation-error'
-import { $$clone, AnyValidateStruct } from '../validate-struct'
-import { $$target, ValidatorProxy } from '../validator-proxy'
-import { LastValidator, ValidatorArray } from './transform-validator'
+import { Validator } from '../validator'
 
 //// EsLint ////
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
 */
 
-//// Symbols ////
-
-const $$unionOptions = Symbol('proxy-non-target-union-options')
-
 //// HelperTypes ////
 
-type _UnionValidatorWrapBuilderOutput<V extends ValidatorArray, P> = 
-    P extends LastValidator<V>
+// type FirstValidator<T extends Validator[]> = T extends [infer F, ...any]
+//     ? F extends Validator
+//         ? F 
+//         : never
+//     : never
+
+type TargetValidator<T extends Validator[]> = T extends [...any, infer L]
+    ? L extends Validator
+        ? L 
+        : T extends [infer F]
+            ? F extends Validator
+                ? F
+                : never
+            : never
+    : never
+
+type _UnionValidatorWrapBuilderOutput<V extends Validator[], P> = 
+    P extends TargetValidator<V>
         ? UnionValidator<V>
-        : P extends (...args: infer A) => LastValidator<V>
+        : P extends (...args: infer A) => TargetValidator<V>
             ? (...args: A) => UnionValidator<V> 
             : P
 
-type _UnionValidatorProperties<V extends ValidatorArray> = {
-    [K in keyof LastValidator<V>]: _UnionValidatorWrapBuilderOutput<V, LastValidator<V>[K]>
+type _UnionValidatorProperties<V extends Validator[]> = {
+    [K in keyof TargetValidator<V>]: _UnionValidatorWrapBuilderOutput<V, TargetValidator<V>[K]>
 } & {
     readonly validators: V
 }
 
 //// Types ////
 
-type UnionValidatorInput<V extends ValidatorArray> = ValidateInput<V[number]>
+type UnionValidatorInput<V extends Validator[]> = ValidateInput<V[number]>
 
-type UnionValidatorOutput<V extends ValidatorArray> = 
+type UnionValidatorOutput<V extends Validator[]> = 
     ValidateOutput<V[number]> extends UnionValidatorInput<V>
         ? ValidateOutput<V[number]>
         : never
 
-type UnionValidator<V extends ValidatorArray> = 
-    ValidatorProxy<LastValidator<V>, ValidateInput<V[number]>, UnionValidatorOutput<V>> 
+type UnionValidator<V extends Validator[]> = 
+    Validator<ValidateInput<V[number]>, UnionValidatorOutput<V>> 
     & _UnionValidatorProperties<V>
 
 interface UnionValidatorConstructor {
-    new <V extends ValidatorArray>(...validators: V): UnionValidator<V>
+    new <V extends Validator[]>(...validators: V): UnionValidator<V>
 }
 
 //// Main ////
 
-const UnionValidator = class UnionValidator extends ValidatorProxy<any,any,any> {
+const UnionValidator = class UnionValidator extends Trait.add(Validator, ValidateImmutable, Mutate<Validator>) {
 
     // Construct
 
-    constructor(...validators: AnyValidateStruct[]) {
-        const [ target, ...nonTarget ] = validators.reverse()
-        super(target)
-        this[$$unionOptions] = nonTarget.reverse()
+    readonly validators: Validator[]
+
+    constructor(...validators: Validator[]) {
+        super()
+        this.validators = validators
+        return Mutate.apply(this as any)
     }
 
-    protected readonly [$$unionOptions]: ValidatorArray
-
-    get validators(): ValidatorArray {
-        return [
-            ...this[$$unionOptions],
-            this[$$target]
-        ]
+    get [Mutate.target]() {
+        return this.validators.at(-1) as Validator
     }
 
-    // Validate
-    validate(input: any, options?: ValidateOptions | undefined): any {
-        const ctx = new ValidationContext(input, options)
-        
-        const errors: ValidationError<unknown>[] = []
-        for (const validator of this.validators) {
-            try {
-                return validator(input, ctx)
-            } catch (e) {
-                if (!ValidationError.is(e)) {
-                    console.log(e)
-                    throw e
-                }
-                errors.push(e)
+    override get name(): string {
+        return this.validators.map(v => v.name).join('Or')
+    }
+
+    [ValidateImmutable.copy](): this {
+        const clone = super[ValidateImmutable.copy]()
+        define.enumerable(clone, 'validators', copy(this.validators))
+        return Mutate.apply(clone as any)
+    }
+
+    [Validator.analyze](ctx: ValidationContext): ValidationContext {
+
+        for (const index of each.indexOf(this.validators)) {
+
+            const validator = this.validators[index]
+
+            const subCtx = validator[Validator.analyze](ctx.pushSubContext(
+                ctx.input,
+                index
+            ))
+
+            if (subCtx.hasValidOutput()) {
+                ctx.clearSubContexts()
+                return ctx.setOutput(subCtx.getOutput())
             }
         }
 
-        throw new ValidationError(this, ctx)
-    }
-
-    // Settings 
-
-    protected override [$$clone](): this {
-        const clone = super[$$clone]()
-        assign(clone, { [$$unionOptions]: [...this[$$unionOptions]] })
-        return clone
+        return ctx
     }
 
 } as unknown as UnionValidatorConstructor

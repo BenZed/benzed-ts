@@ -1,4 +1,3 @@
-import { Transform } from './classes/pipe'
 import { isBoolean, isFunc, isNumber, isRecord, isString, isSymbol } from './types'
 
 //// Types ////
@@ -47,7 +46,7 @@ const byValue: Sorter = <T extends Sortable>(a: T, b: T) => isString(a)
     ? a > b ? 1 : a < b ? -1 : 0
     : toSubtractable(a) - toSubtractable(b)
 
-type ByTransform<T> = Transform<T, Sortable>
+type ByTransform<T> = (i: T) => Sortable
 
 const byTransform: <T>(transform: ByTransform<T>) => Sorter<T> = 
     transform => (a,b) => byValue(transform(a), transform(b))

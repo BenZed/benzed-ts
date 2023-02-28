@@ -26,6 +26,12 @@ module.exports = {
         'max-len': ['error', 150],
         'nonblock-statement-body-position': ['warn', 'below'],
         'no-return-assign': 'error',
+        '@typescript-eslint/ban-types': ['error', {
+            types: {
+                "{}": false,
+                "Function": false
+            }
+        }],
         '@typescript-eslint/brace-style': ['error'],
         '@typescript-eslint/prefer-optional-chain': ['warn'],
         '@typescript-eslint/prefer-nullish-coalescing': ['warn'],
