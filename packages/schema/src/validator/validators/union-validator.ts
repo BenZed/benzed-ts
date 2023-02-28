@@ -62,9 +62,10 @@ interface UnionValidatorConstructor {
 
 //// Main ////
 
-const UnionValidator = class UnionValidator extends Trait.add(Validator, ValidateImmutable, Mutate<Validator>) {
+abstract class MutateLastValidator 
+    extends Trait.add(Validator, ValidateImmutable, Mutate<Validator>) {
 
-    // Construct
+    static readonly analyze: typeof Validator.analyze = Validator.analyze
 
     readonly validators: Validator[]
 
@@ -78,14 +79,18 @@ const UnionValidator = class UnionValidator extends Trait.add(Validator, Validat
         return this.validators.at(-1) as Validator
     }
 
-    override get name(): string {
-        return this.validators.map(v => v.name).join('Or')
-    }
-
     [ValidateImmutable.copy](): this {
         const clone = super[ValidateImmutable.copy]()
         define.enumerable(clone, 'validators', copy(this.validators))
         return Mutate.apply(clone as any)
+    }
+
+}
+
+const UnionValidator = class UnionValidator extends MutateLastValidator {
+
+    override get name(): string {
+        return this.validators.map(v => v.name).join('Or')
     }
 
     [Validator.analyze](ctx: ValidationContext): ValidationContext {
@@ -115,5 +120,6 @@ const UnionValidator = class UnionValidator extends Trait.add(Validator, Validat
 export default UnionValidator
 
 export {
-    UnionValidator
+    UnionValidator,
+    MutateLastValidator
 }

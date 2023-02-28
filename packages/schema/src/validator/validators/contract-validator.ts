@@ -3,7 +3,7 @@ import { equals } from '@benzed/immutable'
 import { isFunc } from '@benzed/util'
 
 import { Validator } from '../validator'
-import ValidationContext from '../../validation-context'
+import { ValidationContext } from '../../validation-context'
 import { ValidationErrorMessage } from '../../validation-error'
 
 //// EsLint ////

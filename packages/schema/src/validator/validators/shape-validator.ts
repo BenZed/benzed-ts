@@ -6,9 +6,9 @@ import { ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
 
 import type {
-    MutatorType,
-    HasMutator,
-    RemoveMutator
+    ModifierType,
+    HasModifier,
+    RemoveModifier
 } from '../modifier'
 
 import { Validator } from '../validator'
@@ -22,9 +22,9 @@ import { Validator } from '../validator'
 
 //// Helper Types ////
 
-type _HasReadOnly<T extends Validator> = HasMutator<T, MutatorType.ReadOnly>
+type _HasReadOnly<T extends Validator> = HasModifier<T, ModifierType.ReadOnly>
 
-type _HasOptional<T extends Validator> = HasMutator<T, MutatorType.Optional>
+type _HasOptional<T extends Validator> = HasModifier<T, ModifierType.Optional>
 
 type _OnRequiredWritable<T extends Validator, Y, N = never> = 
     _HasOptional<T> extends false ? _HasReadOnly<T> extends false ? Y : N : N
@@ -65,9 +65,9 @@ type _ShapePropertyOutput<T extends Validator> =
     // GOTCHA: We're not actually removing the mutators 
     // in implementation. This is only to clean up the
     // output type
-    /**/ RemoveMutator<
-    /*    */ RemoveMutator<T, MutatorType.Optional>,
-    /**/ MutatorType.ReadOnly>
+    /**/ RemoveModifier<
+    /*    */ RemoveModifier<T, ModifierType.Optional>,
+    /**/ ModifierType.ReadOnly>
     >
 
 //// Types ////
