@@ -1,8 +1,10 @@
 import { 
     AnyTypeGuard, 
     each, 
+    Func, 
     GenericObject, 
     Infer, 
+    isFunc, 
     isIntersection, 
     isObject, 
     isShape 
@@ -220,7 +222,18 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * override this copy method in order to account for them.
      */
     protected [Copyable.copy](): this {
-        const clone = Copyable.createFromProto(this)
+ 
+        const superCopy = each.prototypeOf(this.constructor)
+            .find((constructor): constructor is Func => 
+                isFunc(constructor) &&
+                Copyable.is(constructor.prototype) && 
+                constructor.prototype[Copyable.copy] !== this[Copyable.copy]
+            )?.prototype[Copyable.copy]
+
+        const clone = superCopy
+            ? superCopy.call(this)
+            : Copyable.createFromProto(this)
+
         clone[Stateful.state] = copy(this[Stateful.state])
         return clone
     }
@@ -232,8 +245,8 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * a value equal state, it's considered equal.
      */
     protected [Comparable.equals](other: unknown): other is this {
-        return Structural.is(other) && 
-            other.constructor === this.constructor && 
+        return Structural.is(other) &&
+            other.constructor === this.constructor &&
             equals(other[Stateful.state], this[Stateful.state])
     }
 
