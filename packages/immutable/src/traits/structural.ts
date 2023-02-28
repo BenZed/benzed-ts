@@ -205,7 +205,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
             Copyable.is as AnyTypeGuard,
             isShape({
                 [Stateful.state]: isObject
-            })
+            }) 
         )
 
     //// Copyable ////

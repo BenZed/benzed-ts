@@ -1,15 +1,16 @@
 import { describe } from '@jest/globals'
 import { assign, isInteger, isNumber, nil, pick } from '@benzed/util'
-import { Structural } from '@benzed/immutable'
 import { Trait } from '@benzed/traits'
 
 import { Not, Optional } from './modifiers'
 import { ContractValidator, TypeValidator } from '../validators'
 
 import { testValidator } from '../../util.test'
+import { ValidateStructural } from '../../traits'
+
 import Schema from '../schema/schema'
 
-//// Setup ////
+//// Setup //// 
 
 class IntegerValidator extends TypeValidator<number> { 
 
@@ -19,14 +20,14 @@ class IntegerValidator extends TypeValidator<number> {
         return isInteger(value)
     }
 
-    cast(input: unknown): unknown {
+    cast(input: unknown): unknown { 
         return isNumber(input) ? Math.floor(input) : input
     }
 
     message = 'Must be an integer'
 }
 
-class PositiveValidator extends Trait.use(ContractValidator<number, number>, Structural) {
+class PositiveValidator extends Trait.add(ContractValidator<number, number>, ValidateStructural) {
 
     readonly enabled: boolean = false 
 
@@ -36,11 +37,11 @@ class PositiveValidator extends Trait.use(ContractValidator<number, number>, Str
 
     message = 'Must be positive'
 
-    get [Structural.state](): Pick<this, 'enabled' | 'message'> {
+    get [ValidateStructural.state](): Pick<this, 'enabled' | 'message'> {
         return pick(this, 'enabled', 'message')
     }
 
-    set [Structural.state](state: Pick<this, 'enabled' | 'message'>) {
+    set [ValidateStructural.state](state: Pick<this, 'enabled' | 'message'>) {
         assign(this, state)
     }
 }

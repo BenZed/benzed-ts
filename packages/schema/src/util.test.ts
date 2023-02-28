@@ -46,7 +46,7 @@ class FailedValidationTestError extends Error {
  */
 export function testValidator<I,O extends I>(
     validate: Validate<I,O>,
-    ...tests: (ValidationTest<I,O> & { title?: string })[]
+    ...tests: (ValidationTest<I,O> & { title?: string, only?: boolean, skip?: boolean })[]
 ): void {
 
     for (const test of tests) {
@@ -68,7 +68,8 @@ export function testValidator<I,O extends I>(
             )
 
         // run test
-        it(testTitle, () => {
+        const method = test.skip ? it.skip : test.only ? it.only : it
+        method(testTitle, () => {
             const { grade, output, error } = runValidationTest(validate, test)
             if (!grade.pass) {
                 throw new FailedValidationTestError(

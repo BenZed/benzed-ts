@@ -12,7 +12,7 @@ test('constructed with a validation context', () => {
     expect(error.message).toEqual('Validation incomplete')
 })
 
-test('uses key and result to create message', () => {
+test('uses key and result to create message', () => { 
 
     const ctx = new ValidationContext(10, { key: 'value' }).setError('must be a string')
     const error = new ValidationError(ctx)
@@ -95,7 +95,7 @@ test('complex json property', () => {
         .pushSubContext(data.ace[4][$$key], $$key)
         .setError('must not be zero')
 
-    const error = new ValidationError(ctx) 
+    const error = new ValidationError(ctx)
 
     expect(error.message).toBe('ace[4][$$key] must not be zero')
     expect(error.json).toEqual({

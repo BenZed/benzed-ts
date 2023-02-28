@@ -1,5 +1,7 @@
+import { copy } from '@benzed/immutable'
 import { Mutate, Trait } from '@benzed/traits'
-import { each } from '@benzed/util'
+import { define, each } from '@benzed/util'
+import { ValidateImmutable } from '../../traits'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
@@ -60,7 +62,7 @@ interface UnionValidatorConstructor {
 
 //// Main ////
 
-const UnionValidator = class UnionValidator extends Trait.add(Validator, Mutate<Validator>) {
+const UnionValidator = class UnionValidator extends Trait.add(Validator, ValidateImmutable, Mutate<Validator>) {
 
     // Construct
 
@@ -69,15 +71,25 @@ const UnionValidator = class UnionValidator extends Trait.add(Validator, Mutate<
     constructor(...validators: Validator[]) {
         super()
         this.validators = validators
+        return Mutate.apply(this as any)
     }
 
     get [Mutate.target]() {
         return this.validators.at(-1) as Validator
     }
 
-    // Validate
+    override get name(): string {
+        return this.validators.map(v => v.name).join('Or')
+    }
+
+    [ValidateImmutable.copy](): this {
+        const clone = super[ValidateImmutable.copy]()
+        define.enumerable(clone, 'validators', copy(this.validators))
+        return Mutate.apply(clone as any)
+    }
+
     [Validator.analyze](ctx: ValidationContext): ValidationContext {
-        
+
         for (const index of each.indexOf(this.validators)) {
 
             const validator = this.validators[index]
@@ -86,7 +98,7 @@ const UnionValidator = class UnionValidator extends Trait.add(Validator, Mutate<
                 ctx.input,
                 index
             ))
-        
+
             if (subCtx.hasValidOutput()) {
                 ctx.clearSubContexts()
                 return ctx.setOutput(subCtx.getOutput())

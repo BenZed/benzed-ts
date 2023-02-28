@@ -24,7 +24,7 @@ class Buffer extends Trait.add(TypeValidator<number[]>, Structural) {
     readonly enabled = true
     
     toggleEnabled(): this {
-        return Structural.apply( 
+        return Structural.create( 
             this, 
             { enabled: !this.enabled } as StructState<this>
         )

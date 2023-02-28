@@ -1,11 +1,11 @@
-import { 
+import {
     assign,
-    isBoolean, 
-    isNumber, 
-    isShape, 
-    nil, 
+    isBoolean,
+    isNumber,
+    isShape,
+    nil,
     pick
-} from '@benzed/util' 
+} from '@benzed/util'
 
 import Modifier from '../modifier'
 import { Optional } from './optional'
@@ -17,7 +17,7 @@ import { expectTypeOf } from 'expect-type'
 import { Trait } from '@benzed/traits'
 import { StructStateApply, Structural } from '@benzed/immutable'
 
-//// Setup ////
+//// Setup //// 
 
 class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean }>, Structural) {
 
@@ -29,7 +29,7 @@ class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean
     readonly enabled: boolean = true
 
     toggleEnabled(): this {
-        return Structural.apply(
+        return Structural.create(
             this,
             { enabled: !this.enabled } as StructStateApply<this>
         )

@@ -1,4 +1,4 @@
-import { RecordStruct, StructState, StructStateApply, StructStateUpdate, Structural } from '@benzed/immutable'
+import { RecordStruct, StructStateApply, Structural } from '@benzed/immutable'
 import { Trait } from '@benzed/traits'
 import { assign, each, pick } from '@benzed/util'
 
@@ -20,7 +20,7 @@ const $$sub = Symbol('sub-validators')
 
 //// Types ////
 
-interface SubValidator<T> extends Validator<T, T> {
+interface SubValidator<T> extends Validator<T, T> { 
     readonly enabled?: boolean 
 }
 
@@ -58,7 +58,7 @@ declare class Schematic<V extends Validator, S extends SubValidators<V>> extends
 
 interface Schema<V extends Validator, S extends SubValidators<V>> extends Schematic<V,S>, Structural {
 
-    get [Structural.state](): { [$$main]: V, [$$sub]: S }
+    get [Structural.state](): { [$$main]: V, [$$sub]: S } 
 
     set [Structural.state](state: { [$$main]: V, [$$sub]: S })
 
@@ -122,7 +122,7 @@ const Schema = class extends Trait.add(Validator, Structural) {
         name: string,
         state: object
     ): this {
-        return Structural.apply(
+        return Structural.create(
             this,
             $$sub,
             name,
@@ -134,7 +134,7 @@ const Schema = class extends Trait.add(Validator, Structural) {
         state: object
     ): this {
 
-        return Structural.apply(
+        return Structural.create(
             this,
             $$main,
             state as any

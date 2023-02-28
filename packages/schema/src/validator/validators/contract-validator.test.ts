@@ -7,7 +7,7 @@ import { testValidator } from '../../util.test'
 
 const $string = new class String extends ContractValidator<unknown, string> {
 
-    readonly isValid = isString
+    readonly isValid = isString 
 
     readonly transform = (i: unknown) => this.isValid(i) ? i.trim() : i
 

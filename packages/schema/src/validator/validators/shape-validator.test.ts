@@ -35,7 +35,7 @@ it('output type', () => {
     }>()
 })
 
-testValidator<object, { description: string, completed: boolean }>(
+testValidator<object, { description: string, completed: boolean }>( 
     $todo,
     {
         transforms: { description: 'hey', completed: 'yo' },

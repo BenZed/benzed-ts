@@ -13,7 +13,7 @@ type id = `#id-${number}`
 
 class Id extends Trait.add(ContractValidator<string, id>, Structural) {
 
-    override name = 'Id'
+    override name = 'Id' 
 
     transform(input: string): `#id-${number}` {
         const digits = input.replace('#id-', '')
@@ -28,7 +28,7 @@ class Id extends Trait.add(ContractValidator<string, id>, Structural) {
     readonly minId = 0
 
     setMinId(to: number): this {
-        return Structural.apply(
+        return Structural.create(
             this, 
             { minId: to } as StructState<this>
         )
@@ -100,16 +100,17 @@ describe('effect on target', () => {
         expect(() => new Not(new Not($id))).toThrow('already has modifier')
     })
 
-    it('has target properties', () => {
+    it('has target properties', () => { 
         expect($notId.minId).toBe($id.minId)
     })
 
-    it('wraps result instances in self', () => {
+    it('wraps result instances in self', () => { 
 
         const $min100Id = $id.setMinId(100)
         expect($min100Id).toBeInstanceOf(Id)
 
         const $notMin100Id = $notId.setMinId(100)
+
         expect($notMin100Id.minId).toEqual(100)
         expect($notMin100Id).toBeInstanceOf(Not)
 

@@ -52,7 +52,8 @@ type ToggleNot<V extends Validator> =
 
 type Not<V extends Validator> = 
     _NotProperties<V> &
-    _NotInherit<V>
+    _NotInherit<V> & 
+    Validator<ValidateInput<V>>
 
 interface NotConstructor {
     new <V extends Validator>(validator: V): Not<V>

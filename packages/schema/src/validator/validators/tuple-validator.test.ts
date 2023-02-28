@@ -5,13 +5,11 @@ import { testValidator } from '../../util.test'
 import { isBoolean, isString } from '@benzed/util'
 import { ValidateOutput } from '../../validate'
 
-import { expectTypeOf } from 'expect-type'
-import ValidationContext from '../../validation-context'
-import { Validator } from '../validator'
+import { expectTypeOf } from 'expect-type' 
 
 //// Setup ////
 
-const $name = new class Name extends TypeValidator<string> {
+const $name = new class Name extends TypeValidator<string> { 
     isValid = isString
     message = 'must be a name'
 }

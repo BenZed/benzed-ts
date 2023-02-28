@@ -8,22 +8,27 @@ import { describe } from '@jest/globals'
 import { TypeValidator } from './contract-validators'
 import { StructStateApply, Structural } from '@benzed/immutable'
 import { Trait } from '@benzed/traits'
+import { ValidateImmutable, ValidateStructural } from '../../traits'
 
 //// EsLint ////
 
 /* eslint-disable 
     @typescript-eslint/ban-types
-*/
+*/ 
 
 //// Tests ////
 
-class Number extends TypeValidator<number> {
-    readonly isValid = isNumber
+class Number extends Trait.add(TypeValidator<number>, ValidateImmutable) {
+    isValid(input: unknown): input is number {
+        return isNumber(input)
+    }
     readonly name = 'Number'
 }
 
-class Boolean extends TypeValidator<boolean> {
-    readonly isValid = isBoolean
+class Boolean extends Trait.add(TypeValidator<boolean>, ValidateImmutable) {
+    isValid(input: unknown): input is boolean {
+        return isBoolean(input)
+    }
     readonly name = 'Boolean'
 }
 
@@ -46,7 +51,7 @@ describe(`${$numberOrBool.name} validator tests`, () => {
 
 describe('retains interface of most recently added validator', () => {
 
-    class String extends Trait.add(TypeValidator<string>, Structural) {
+    class String extends Trait.add(TypeValidator<string>, ValidateStructural) {
 
         isValid(value: unknown): value is string {
             return isString(value) && (this.allowEmpty || value.length > 0)
@@ -56,32 +61,31 @@ describe('retains interface of most recently added validator', () => {
         readonly allowEmpty: boolean = true
 
         notEmpty(): this {
-            return Structural.apply(this, { allowEmpty: false } as StructStateApply<this>)
-        } 
+            return Structural.create(this, { allowEmpty: false } as StructStateApply<this>)
+        }
 
         get [Structural.state](): { allowEmpty: boolean, name: string } {
             return pick(this, 'allowEmpty', 'name')
-        } 
+        }
 
         set [Structural.state]({ allowEmpty, name }: { allowEmpty: boolean, name: string }) {
             assign(this, { allowEmpty })
-            define.named(name, this) 
-        } 
+            define.named(name, this)
+        }
     }
 
     const $numOrBoolOrString = new UnionValidator(new Number, new Boolean, new String)
 
     it('allowEmpty', () => { 
         expect($numOrBoolOrString.allowEmpty).toBe(true)
-    }) 
+    })
 
     describe('notEmpty()', () => {
-        console.log(UnionValidator)
-        console.log($numOrBoolOrString) 
+
         const $numOrBoolOrNonEmptyString = $numOrBoolOrString.notEmpty()
 
         testValidator<unknown, string | boolean | number>(
-            $numOrBoolOrNonEmptyString, 
+            $numOrBoolOrNonEmptyString,
             { asserts: 'ace' },
             { asserts: '', error: true },
             { asserts: true },

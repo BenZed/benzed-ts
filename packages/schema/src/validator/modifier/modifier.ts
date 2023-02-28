@@ -1,6 +1,7 @@
 import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
-import { Mutate,Trait } from '@benzed/traits'
-import { Mutable } from '@benzed/util'
+import { Callable, Mutate,Trait } from '@benzed/traits'
+import { define, Mutable } from '@benzed/util'
+import { ValidateImmutable, ValidateStructural } from '../../traits'
 
 import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
@@ -74,7 +75,7 @@ interface ModifierConstructor extends ModifierAbstractConstructor {
 
 //// Main ////
 
-const Modifier = class extends Trait.add(Validator, Mutate, Copyable, Comparable) {
+const Modifier = class extends Trait.add(Validator, Mutate, ValidateStructural) {
 
     static readonly target = Mutate.target
     static readonly type = $$type
@@ -91,6 +92,7 @@ const Modifier = class extends Trait.add(Validator, Mutate, Copyable, Comparable
     constructor(validator: Validator) {
         super()
         this[Mutate.target] = validator
+        return Mutate.apply(this)
     }
 
     readonly [Mutate.target]!: Validator
@@ -99,18 +101,23 @@ const Modifier = class extends Trait.add(Validator, Mutate, Copyable, Comparable
         throw new Error(`${String($$type)} is not implemented in ${this.constructor.name}`)
     }
 
+    get [Callable.signature]() {
+        return this[Mutate.target][Callable.signature]
+    }
+
     [Validator.analyze](ctx: ValidationContext) {
         return this[Mutate.target][Validator.analyze](ctx)
     }
 
     [Copyable.copy](): this {
         const clone = Copyable.createFromProto(this) as Mutable<this>
-        clone[Mutate.target] = copy(this[Mutate.target])
-        return clone as this
+        define.enumerable(clone, Mutate.target, copy(this[Mutate.target]))
+        return Trait.apply(clone, Callable, Mutate) as this
     }
 
     [Comparable.equals](other: unknown): other is this {
         return isModifier(other) && 
+            other[$$type] === this[$$type] &&
             equals(
                 this[Mutate.target], 
                 other[Mutate.target]

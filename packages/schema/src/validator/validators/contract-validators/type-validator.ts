@@ -21,7 +21,7 @@ abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
     cast?(input: unknown, ctx: ValidationContext<unknown, T>): unknown
 
     override transform(input: unknown, ctx: ValidationContext<unknown, T>): unknown {
-        
+
         if (this.default && input === nil)
             input = this.default(ctx)
 

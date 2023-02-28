@@ -15,13 +15,12 @@ import {
 
 import { Trait } from '@benzed/traits'
 
-import { Structural } from '@benzed/immutable'
-
 import { SignatureParser } from '@benzed/signature-parser'
 
 import { testValidator } from '../../util.test' 
 import { ContractValidator, TypeValidator } from '../validators'
 import { ValidationErrorMessage } from '../../validation-error'
+import { ValidateStructural } from '../../traits'
 
 //// EsLint ////
 
@@ -31,7 +30,7 @@ import { ValidationErrorMessage } from '../../validation-error'
 
 //// Main Validators ////
 
-class NumberValidator extends Trait.add(TypeValidator<number>, Structural) {
+class NumberValidator extends Trait.add(TypeValidator<number>, ValidateStructural) {
 
     isValid(value: unknown): value is number {
         return isNumber(value) && (!this.positive || value >= 0)
@@ -52,11 +51,11 @@ class NumberValidator extends Trait.add(TypeValidator<number>, Structural) {
 
     //// State ////
     
-    get [Structural.state](): Pick<this, 'name' | 'positive' | 'message'> {
+    get [ValidateStructural.state](): Pick<this, 'name' | 'positive' | 'message'> {
         return pick(this, 'name', 'positive', 'message')
     }
 
-    set [Structural.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
+    set [ValidateStructural.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
         assign(this, { positive, message })
         define.named(name, this)
     }
@@ -69,7 +68,7 @@ class SubContractValidator<T> extends ContractValidator<T,T> {
     enabled = false
 }
 
-abstract class LimitValidator<O extends '>' | '<'> extends Trait.add(SubContractValidator<number>, Structural) {
+abstract class LimitValidator<O extends '>' | '<'> extends Trait.add(SubContractValidator<number>, ValidateStructural) {
 
     abstract get operator(): O
 
@@ -105,11 +104,11 @@ abstract class LimitValidator<O extends '>' | '<'> extends Trait.add(SubContract
             return `Must be ${detail} ${this.value}`
         }
 
-    get [Structural.state](): Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'> {
+    get [ValidateStructural.state](): Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'> {
         return pick(this, 'enabled', 'message', 'value', 'inclusive')
     }
 
-    set [Structural.state](state: Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'>) {
+    set [ValidateStructural.state](state: Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'>) {
         assign(this, state)
     }
 
@@ -190,9 +189,9 @@ class NumberSchema extends Schema<NumberValidator, {
 
 describe('extending schema with main and sub validators', () => {
 
-    const $number = new NumberSchema()  
+    const $number = new NumberSchema()
 
-    describe('named', () => {  
+    describe('named', () => {
 
         const $namedNumber = $number.named('Id')
 

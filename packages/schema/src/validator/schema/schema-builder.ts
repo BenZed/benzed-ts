@@ -118,7 +118,7 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
 
         type BuilderMethod = (...p: Parameters<SchemaBuilderMethods<V>[K]>) => ReturnType<SchemaBuilderMethods<V>[K]>
 
-        return Structural.apply(
+        return Structural.create(
             this,
             $$builder,
             (this[$$builder][method] as BuilderMethod)(...params) as any

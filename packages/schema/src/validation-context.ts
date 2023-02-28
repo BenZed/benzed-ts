@@ -64,6 +64,7 @@ class ValidationContext<I = any, O = I>
         this.transformed = input
         this.transform = options?.transform ?? true
         this.key = options?.key
+        return Node.apply(this)
     }
 
     setOutput(output: O): this {
@@ -81,7 +82,6 @@ class ValidationContext<I = any, O = I>
     hasValidOutput(): this is { result: { output: O } } {
         return (
             this.hasOutput() &&
-            !this.hasError() &&
             !this.hasSubContextError()
         )
     }

@@ -20,7 +20,7 @@ const Method = class extends Trait.use(Callable) {
         return Callable.apply(this)
     }
 
-} as abstract new <F extends Func>(signature: F) => F
+} as abstract new <F extends Func>(signature: F) => Callable<F>
 
 //// Exports ////
 
