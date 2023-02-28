@@ -55,3 +55,8 @@ testValidator<object,object>(
         error: 'foo must be a number'
     }
 )
+
+it('requires an intersection of object types', () => {
+    // @ts-expect-error must be object types
+    void new IntersectionValidator($number, $boolean)
+})

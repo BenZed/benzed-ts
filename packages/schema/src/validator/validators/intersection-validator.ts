@@ -9,7 +9,8 @@ import ShapeValidator from './shape-validator'
 import { MutateLastValidator } from './union-validator'
 
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
 */
 
@@ -42,14 +43,10 @@ type IntersectionValidator<V extends Validator<object>[]> =
     Validator<object, Infer<IntersectionValidatorOutput<V>, object>> 
     & _IntersectionValidatorProperties<V>
 
-interface IntersectionValidatorConstructor {
-    new <V extends Validator[]>(...validators: V): IntersectionValidatorOutput<V>
-}
-
 //// Types ////
 
 interface IntersectionValidatorConstructor {
-    new <V extends Validator[]>(...validators: V): IntersectionValidator<V>
+    new <V extends Validator<object>[]>(...validators: V): IntersectionValidator<V>
 }
 
 //// Main ////
@@ -83,6 +80,7 @@ const IntersectionValidator = class IntersectionValidator extends MutateLastVali
                     transform: ctx.transform
                 })
             )
+
             if (!vCtx.hasValidOutput())
                 return vCtx
 
