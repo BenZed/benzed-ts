@@ -1,5 +1,5 @@
 import { words } from '@benzed/string'
-import { each, GenericObject, isNumber, isString, isSymbol, nil } from '@benzed/util'
+import { each, GenericObject, isFunc, isNumber, isString, isSymbol, isUnion, nil } from '@benzed/util'
 
 import { ValidationContext } from './validation-context'
 
@@ -21,6 +21,9 @@ type ValidationErrorJson<T> = string | (T extends Array<infer I>
 
 type ValidationErrorMessage<I, O = I> = string | ((input: I, ctx: ValidationContext<I,O>) => string)
 
+const isValidationErrorMessage: <I, O = I>(input: unknown) => input is ValidationErrorMessage<I,O> = 
+    isUnion(isString, isFunc)
+    
 //// Helper ////
 
 /**
@@ -130,5 +133,6 @@ export default ValidationError
 export {
     ValidationError,
     ValidationErrorMessage,
+    isValidationErrorMessage,
     ValidationErrorJson
 }

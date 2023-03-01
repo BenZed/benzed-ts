@@ -3,6 +3,7 @@ import { assign, each, pick } from '@benzed/util'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
+import { ValidationErrorMessage } from '../../validation-error'
 import { Validator } from '../validator'
 
 //// EsLint ////
@@ -24,6 +25,12 @@ interface SubValidator<T> extends Validator<T, T> {
 }
 
 type SubValidators<V extends Validator> = Record<string, SubValidator<ValidateOutput<V>>>
+
+type SchemaStateApply<V extends Validator> = {
+    [K in keyof StructStateApply<V>]: K extends 'message'
+        ? ValidationErrorMessage<ValidateInput<V>, ValidateOutput<V>>
+        : StructStateApply<V>[K]
+}
 
 //// Main ////
 
@@ -83,8 +90,9 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
 
     protected _applySubValidator<K extends keyof S, T extends S[K]>(
         name: K,
-        state: T | StructStateApply<T>
+        state: T | SchemaStateApply<T>
     ): this {
+
         return Structural.create(
             this,
             $$sub,
@@ -94,7 +102,7 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
     }
 
     protected _applyMainValidator(
-        state: V | StructStateApply<V>
+        state: V | SchemaStateApply<V>
     ): this {
 
         return Structural.create(

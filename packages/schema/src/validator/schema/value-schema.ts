@@ -1,4 +1,4 @@
-import { isString, Primitive } from '@benzed/util'
+import { Primitive } from '@benzed/util'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
 import { ValidationErrorMessage } from '../../validation-error'
@@ -17,8 +17,7 @@ export class ValueSchema<V extends ValueValidator<Primitive>> extends Schema<V,{
         return this._applyMainValidator({ force } as V)
     }
 
-    message(error: ValidationErrorMessage<ValidateInput<V>, ValidateOutput<V>>): this {
-        const message = isString(error) ? () => error : error 
+    message(message: ValidationErrorMessage<ValidateInput<V>, ValidateOutput<V>>): this {
         return this._applyMainValidator({ message } as V)
     }
 
