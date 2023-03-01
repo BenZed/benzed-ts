@@ -69,6 +69,9 @@ abstract class Mutate<T extends object> extends Trait {
             ? mutator
             : mutator[$$target]
 
+        if (!target)
+            console.log(key)
+
         return Reflect.get(target, key, proxy)
     }
 
@@ -101,7 +104,7 @@ abstract class Mutate<T extends object> extends Trait {
             ...Reflect.ownKeys(mutator),
             ...Reflect.ownKeys(mutator[$$target]),
         ].filter(unique)
-    }
+    } 
 
     protected [$$defineProperty](
         mutator: Mutate<T>, 

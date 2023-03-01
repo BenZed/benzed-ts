@@ -1,11 +1,11 @@
-import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
-import { Callable, Mutate,Trait } from '@benzed/traits'
-import { define, Mutable } from '@benzed/util'
-import { ValidateImmutable, ValidateStructural } from '../../traits'
+import { copy, Copyable } from '@benzed/immutable'
+import { Mutate } from '@benzed/traits'
+import { define } from '@benzed/util'
 
 import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
 import { Validator } from '../validator'
+import MutateValidator from '../mutate-validator'
 
 import {
 
@@ -75,7 +75,7 @@ interface ModifierConstructor extends ModifierAbstractConstructor {
 
 //// Main ////
 
-const Modifier = class extends Trait.add(Validator, Mutate, ValidateStructural) {
+const Modifier = class extends MutateValidator<Validator, any> {
 
     static readonly target = Mutate.target
     static readonly type = $$type
@@ -92,7 +92,7 @@ const Modifier = class extends Trait.add(Validator, Mutate, ValidateStructural) 
     constructor(validator: Validator) {
         super()
         this[Mutate.target] = validator
-        return Mutate.apply(this)
+        return Mutate.apply(this as any)
     }
 
     readonly [Mutate.target]!: Validator
@@ -101,27 +101,10 @@ const Modifier = class extends Trait.add(Validator, Mutate, ValidateStructural) 
         throw new Error(`${String($$type)} is not implemented in ${this.constructor.name}`)
     }
 
-    get [Callable.signature]() {
-        return this[Mutate.target][Callable.signature]
-    }
-
-    [Validator.analyze](ctx: ValidationContext) {
-        return this[Mutate.target][Validator.analyze](ctx)
-    }
-
     [Copyable.copy](): this {
-        const clone = Copyable.createFromProto(this) as Mutable<this>
+        const clone = super[Copyable.copy]()
         define.enumerable(clone, Mutate.target, copy(this[Mutate.target]))
-        return Trait.apply(clone, Callable, Mutate) as this
-    }
-
-    [Comparable.equals](other: unknown): other is this {
-        return isModifier(other) && 
-            other[$$type] === this[$$type] &&
-            equals(
-                this[Mutate.target], 
-                other[Mutate.target]
-            )
+        return Mutate.apply(clone as any)
     }
 
 } as ModifierConstructor

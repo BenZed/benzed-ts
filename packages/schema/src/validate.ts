@@ -1,9 +1,5 @@
 //// Eslint ////
 
-import { Comparable, Copyable } from '@benzed/immutable'
-import { Callable, Method, Trait } from '@benzed/traits'
-import { assign } from '@benzed/util'
-
 /* eslint-disable
     @typescript-eslint/no-explicit-any
 */
@@ -30,7 +26,7 @@ export interface ValidateOptions {
  * The validate method takes an input an optionally a set of validate options and
  * either returns a valid output or throws a validation error.
  */
-export interface Validate<I = any, O extends I = I> {
+export interface Validate<I = any, O = I> {
     (input: I, options?: ValidateOptions): O 
 }
 

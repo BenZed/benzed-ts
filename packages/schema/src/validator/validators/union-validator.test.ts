@@ -6,8 +6,9 @@ import { UnionValidator } from './union-validator'
 import { testValidator } from '../../util.test'
 import { TypeValidator } from './contract-validators'
 
-import { describe, it, expect } from '@jest/globals'
 import { ValidateImmutable, ValidateStructural } from '../../traits'
+
+import { describe, it, expect } from '@jest/globals' 
 
 //// EsLint ////
 
@@ -18,17 +19,21 @@ import { ValidateImmutable, ValidateStructural } from '../../traits'
 //// Tests ////
 
 class Number extends Trait.add(TypeValidator<number>, ValidateImmutable) {
+
     isValid(input: unknown): input is number {
-        return isNumber(input)
+        return isNumber(input) 
     }
+
     override readonly name = 'Number'
 }
 
 class Boolean extends Trait.add(TypeValidator<boolean>, ValidateImmutable) {
+
     isValid(input: unknown): input is boolean {
         return isBoolean(input)
     }
-    override readonly name = 'Boolean'
+
+    override readonly name = 'Boolean' 
 }
 
 //// Setup //// 

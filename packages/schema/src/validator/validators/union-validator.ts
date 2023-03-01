@@ -1,11 +1,9 @@
-import { copy } from '@benzed/immutable'
-import { Mutate, Trait } from '@benzed/traits'
-import { define, each } from '@benzed/util'
-import { ValidateImmutable } from '../../traits'
+import { each } from '@benzed/util'
 
-import { ValidateInput, ValidateOutput } from '../../validate'
-import { ValidationContext } from '../../validation-context'
 import { Validator } from '../validator'
+import { ValidationContext } from '../../validation-context'
+import { ValidateInput, ValidateOutput } from '../../validate'
+import { MutateLastValidator, LastValidator } from '../mutate-last-validator'
 
 //// EsLint ////
 /* eslint-disable 
@@ -14,31 +12,15 @@ import { Validator } from '../validator'
 
 //// HelperTypes ////
 
-// type FirstValidator<T extends Validator[]> = T extends [infer F, ...any]
-//     ? F extends Validator
-//         ? F 
-//         : never
-//     : never
-
-type TargetValidator<T extends Validator[]> = T extends [...any, infer L]
-    ? L extends Validator
-        ? L 
-        : T extends [infer F]
-            ? F extends Validator
-                ? F
-                : never
-            : never
-    : never
-
 type _UnionValidatorWrapBuilderOutput<V extends Validator[], P> = 
-    P extends TargetValidator<V>
+    P extends LastValidator<V>
         ? UnionValidator<V>
-        : P extends (...args: infer A) => TargetValidator<V>
+        : P extends (...args: infer A) => LastValidator<V>
             ? (...args: A) => UnionValidator<V> 
             : P
 
 type _UnionValidatorProperties<V extends Validator[]> = {
-    [K in keyof TargetValidator<V>]: _UnionValidatorWrapBuilderOutput<V, TargetValidator<V>[K]>
+    [K in keyof LastValidator<V>]: _UnionValidatorWrapBuilderOutput<V, LastValidator<V>[K]>
 } & {
     readonly validators: V
 }
@@ -62,38 +44,13 @@ interface UnionValidatorConstructor {
 
 //// Main ////
 
-abstract class MutateLastValidator 
-    extends Trait.add(Validator, ValidateImmutable, Mutate<Validator>) {
-
-    static readonly analyze: typeof Validator.analyze = Validator.analyze
-
-    readonly validators: Validator[]
-
-    constructor(...validators: Validator[]) {
-        super()
-        this.validators = validators
-        return Mutate.apply(this as any)
-    }
-
-    get [Mutate.target]() {
-        return this.validators.at(-1) as Validator
-    }
-
-    [ValidateImmutable.copy](): this {
-        const clone = super[ValidateImmutable.copy]()
-        define.enumerable(clone, 'validators', copy(this.validators))
-        return Mutate.apply(clone as any)
-    }
-
-}
-
-const UnionValidator = class UnionValidator extends MutateLastValidator {
+const UnionValidator = class UnionValidator extends MutateLastValidator<Validator[], unknown> {
 
     override get name(): string {
         return this.validators.map(v => v.name).join('Or')
     }
 
-    [Validator.analyze](ctx: ValidationContext): ValidationContext {
+    [Validator.analyze](ctx: ValidationContext<never, unknown>): ValidationContext<never, unknown> {
 
         for (const index of each.indexOf(this.validators)) {
 

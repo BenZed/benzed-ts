@@ -1,11 +1,12 @@
 
 import { Copyable } from '@benzed/immutable'
-import { each, Infer, Intersect, pick } from '@benzed/util'
+import { each, GenericObject, Infer, Intersect, pick } from '@benzed/util'
 
 import { ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
+
 import { Validator } from '../validator'
-import ShapeValidator from './shape-validator'
+import { ShapeValidator } from './shape-validator'
 import { MutateLastValidator } from './union-validator'
 
 //// EsLint ////
@@ -51,19 +52,18 @@ interface IntersectionValidatorConstructor {
 
 //// Main ////
 
-const IntersectionValidator = class IntersectionValidator extends MutateLastValidator {
+const IntersectionValidator = class IntersectionValidator extends MutateLastValidator<Validator[], unknown> {
 
     // Construct
-
     override get name(): string {
         return this.validators.map(v => v.name).join('And')
     }
 
-    [Validator.analyze](ctx: ValidationContext): ValidationContext {
+    [Validator.analyze](ctx: ValidationContext<never, unknown>) {
 
         const { validators } = this
 
-        const transformed = Copyable.createFromProto(ctx.input)
+        const transformed = Copyable.createFromProto(ctx.input) as GenericObject
 
         for (const index of each.indexOf(validators)) {
             const validator = validators[index]
@@ -82,7 +82,7 @@ const IntersectionValidator = class IntersectionValidator extends MutateLastVali
             )
 
             if (!vCtx.hasValidOutput())
-                return vCtx
+                return vCtx as ValidationContext<never, unknown>
 
             // apply all properties to transformed if validation
             // succeeded
