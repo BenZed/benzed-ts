@@ -12,7 +12,7 @@ test('constructed with a validation context', () => {
     expect(error.message).toEqual('Validation incomplete')
 })
 
-test('uses key and result to create message', () => { 
+test('uses key and result to create message', () => {
 
     const ctx = new ValidationContext(10, { key: 'value' }).setError('must be a string')
     const error = new ValidationError(ctx)

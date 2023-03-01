@@ -4,8 +4,8 @@ import { lines } from '@benzed/string'
 
 import { it } from '@jest/globals'
 
-import { runValidationTest, ValidationTest, ValidationTestResult } from './validation-test'
-import { Validate } from './validate'
+import { runValidatorTest, ValidationTest, ValidationTestResult } from './validation-test'
+import { Validator } from './validator'
 
 //// Helper ////
 
@@ -28,8 +28,8 @@ class FailedValidationTestError extends Error {
 
             'reason: ' + ansi(reason, 'yellow'),
 
-            'error' in result && result.error?.message
-                ? 'validation error: ' + ansi(result.error?.message ?? '', 'yellow')
+            'error' in result
+                ? 'validation error: ' + ansi(result.error ?? '', 'yellow')
                 : '',
 
             'output' in result 
@@ -45,7 +45,7 @@ class FailedValidationTestError extends Error {
  * Test that a validator provides an expected result with the given input and options.
  */
 export function testValidator<I,O extends I>(
-    validate: Validate<I,O>,
+    validate: Validator<I,O>,
     ...tests: (ValidationTest<I,O> & { title?: string, only?: boolean, skip?: boolean })[]
 ): void {
 
@@ -70,7 +70,7 @@ export function testValidator<I,O extends I>(
         // run test
         const method = test.skip ? it.skip : test.only ? it.only : it
         method(testTitle, () => {
-            const { grade, output, error } = runValidationTest(validate, test)
+            const { grade, output, error } = runValidatorTest(validate, test)
             if (!grade.pass) {
                 throw new FailedValidationTestError(
                     grade.reason, 

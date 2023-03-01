@@ -12,7 +12,7 @@ import { describe, it, expect } from '@jest/globals'
 
 //// EsLint ////
 
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/ban-types
 */ 
 

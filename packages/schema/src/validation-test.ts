@@ -1,9 +1,10 @@
 
 import { equals } from '@benzed/immutable'
 import { isString, Mutable, nil } from '@benzed/util'
+import ValidationContext from './validation-context'
 
-import { Validate } from './validate'
 import { ValidationError } from './validation-error'
+import { Validator } from './validator'
 
 //// ValidationTest types ////
 
@@ -66,21 +67,21 @@ export type ValidationTest<I,O> =
 
 export type ValidationTestResult<I, O extends I> = {
 
-    readonly validate: Validate<I,O>
+    readonly validator: Validator<I,O>
 
     readonly test: ValidationTest<I,O>
 
     readonly output?: O
 
-    readonly error?: ValidationError<I>
+    readonly error?: string
 
     readonly grade: { pass: true } | { pass: false, reason: string }
 }
 
 //// ValidationTest ////
 
-export function runValidationTest<I,O extends I>(
-    validate: Validate<I,O>,
+export function runValidatorTest<I,O extends I>(
+    validator: Validator<I,O>,
     test: ValidationTest<I,O>
 ): ValidationTestResult<I,O> {
 
@@ -89,23 +90,17 @@ export function runValidationTest<I,O extends I>(
     const input = applyTransforms ? test.transforms : test.asserts
 
     // Conduct Test
-    const result: Mutable<Omit<ValidationTestResult<I,O>, 'grade'>> = { validate, test }
-    try {
-        result.output = validate(input, { transform: applyTransforms })
-    } catch (e) {
-        result.error = e as ValidationError<I>
-    }
+    const ctx = validator[Validator.analyze](
+        new ValidationContext<I,O>(input, { transform: applyTransforms })
+    )
 
-    // Analyze Test 
+    const result = ctx.hasValidOutput() ? { output: ctx.getOutput() } : { error: new ValidationError(ctx).message }
 
     const expectingError = 'error' in test && !!test.error
     const expectOutputDifferentFromInput = 'output' in test && applyTransforms
     let failReason: string | nil = nil
 
-    if (expectingError && result.error && !(result.error instanceof ValidationError)) 
-        failReason = `Received error, but it is not an instance of expected ${ValidationError.name} class`
-
-    if (expectingError && !result.error) 
+    if (expectingError && !result.error)
         failReason = 'Did not receive expected error.'
 
     else if (!expectingError && result.error)
@@ -114,7 +109,7 @@ export function runValidationTest<I,O extends I>(
     else if (
         expectingError && 
         isString(test.error) && 
-        !result.error?.message.includes(test.error)
+        !result.error?.includes(test.error)
     )
         failReason = 'Received error, but it did not contain expected error message.'
 
@@ -137,6 +132,8 @@ export function runValidationTest<I,O extends I>(
 
     return {
         ...result,
+        validator,
+        test,
         grade
     }
 } 

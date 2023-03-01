@@ -1,11 +1,9 @@
 import { describe } from '@jest/globals'
-
-import { Validate } from './validate'
  
 import ValidationContext from './validation-context'
-import ValidationError from './validation-error'
 
 import { testValidator } from './util.test'
+import { Validator } from './validator'
 
 //// EsLint ////
 
@@ -15,31 +13,29 @@ import { testValidator } from './util.test'
 
 //// Setup //// 
 
-/**
- * Test method that implements the Validate interface without
- * extending the Validate class.
- */
-const $numeric: Validate<string, `${number}`> = (i, options) => {
+class Numeric extends Validator<string, `${number}`> {
+
+    [Validator.analyze](ctx: ValidationContext<string, `${number}`>) {
     
-    const context = new ValidationContext(i, options)
+        const digits = parseFloat(ctx.input)
+        if (Number.isNaN(digits)) 
+            return ctx.setError('could not be converted to a number')
     
-    const digits = parseFloat(i) 
-    if (Number.isNaN(digits)) 
-        throw new ValidationError(context.setError('could not be converted to a number'))
-
-    context.transformed = `${digits}`
-
-    const output = context?.transform ? context.transformed : i
-    if (output !== context.transformed) 
-        throw new ValidationError(context.setError('must be a numeric string'))
-
-    return output as `${number}`
+        ctx.transformed = `${digits}`
+    
+        const output = ctx.transform ? ctx.transformed : ctx.input
+        return output !== ctx.transformed 
+            ? ctx.setError('must be a numeric string')
+            : ctx.setOutput(output as `${number}`)
+    }
 }
+
+const $numeric = new Numeric
 
 //// Tests ////
 
-describe('$numeric example validation tests', () => {
-    testValidator(
+describe('$numeric example validation tests', () => { 
+    testValidator<string, `${number}`>(
         // validator as first argument
         $numeric,
 

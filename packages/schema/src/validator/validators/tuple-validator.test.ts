@@ -30,6 +30,7 @@ it('output type', () => {
 
 testValidator<unknown[], [string, boolean, boolean]>(
     $nameFlagFlag,
+
     // Invalid input test cases
     {
         transforms: [10, true, false],
@@ -37,7 +38,7 @@ testValidator<unknown[], [string, boolean, boolean]>(
     },
     {
         transforms: ['test', 10, false],
-        error: true 
+        error: true
     }, 
     {
         transforms: ['test', true, 'false'],
@@ -48,10 +49,10 @@ testValidator<unknown[], [string, boolean, boolean]>(
         error: 'must have exactly 3 elements'
     },
     { 
-        asserts: ['foo', false, false], output: ['foo', false, false] 
+        asserts: ['foo', false, false], output: ['foo', false, false]
     },
     { 
-        asserts: ['foo', true, false] 
+        asserts: ['foo', true, false]
     },
 
     // Valid input test cases
