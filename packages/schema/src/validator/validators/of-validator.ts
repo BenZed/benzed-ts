@@ -1,6 +1,6 @@
 
-import { copy, Copyable } from '@benzed/immutable'
-import { Mutate } from '@benzed/traits'
+import { copy, Copyable, Stateful, StateOf } from '@benzed/immutable'
+import { Callable, Mutate, Trait } from '@benzed/traits'
 import { define } from '@benzed/util'
 
 import { ValidateInput } from '../../validate'
@@ -20,6 +20,8 @@ type OfValidator<V extends Validator = Validator, O = any> =
     {
         readonly [Mutate.target]: V
         get of(): V
+        get [Validator.state](): StateOf<V>
+        set [Validator.state](state: StateOf<V>)
     }
 
 type OfValidatorConstructor = abstract new <V extends Validator, O>(target: V) => OfValidator<V, O>
@@ -39,10 +41,14 @@ const OfValidator = class extends MutateValidator<Validator, unknown> {
         return Mutate.apply(this as any)
     }
 
+    get of(): Validator {
+        return this[Mutate.target]
+    }
+
     [Copyable.copy](): this {
-        const clone = super[Copyable.copy]()
+        const clone = Copyable.createFromProto(this)
         define.enumerable(clone, Mutate.target, copy(this[Mutate.target]))
-        return Mutate.apply(clone as any)
+        return Trait.apply(clone, Callable, Mutate)
     }
 
     [Validator.analyze](ctx: ValidationContext): ValidationContext {
@@ -50,8 +56,12 @@ const OfValidator = class extends MutateValidator<Validator, unknown> {
         throw new Error(`${this.constructor.name} has not implemented ${String(Validator.analyze)}`)
     }
 
-    get of(): Validator {
-        return this[Mutate.target]
+    get [Validator.state]() {
+        return this.of[Validator.state]
+    }
+
+    set [Validator.state](state) {
+        Stateful.set(this.of, state)
     }
 
 } as unknown as OfValidatorConstructor

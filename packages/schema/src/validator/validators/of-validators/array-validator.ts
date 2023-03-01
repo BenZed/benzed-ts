@@ -1,3 +1,4 @@
+import { Stateful } from '@benzed/immutable'
 import { each, isArray } from '@benzed/util'
 
 import { ValidateOutput } from '../../../validate'
@@ -33,7 +34,7 @@ type ArrayValidator<V extends Validator> =
 interface ArrayValidatorConstructor {
     new <V extends Validator>(validator: V): ArrayValidator<V>
 }
-
+ 
 //// Main ////
 
 const ArrayValidator = class <V extends Validator> extends OfValidator<V, ValidateOutput<V>[]> {

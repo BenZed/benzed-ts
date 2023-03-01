@@ -1,6 +1,6 @@
 import { nil } from '@benzed/util'
 
-import { ValidateOutput } from '../../../validate'
+import { ValidateInput, ValidateOutput } from '../../../validate'
 import ValidationContext from '../../../validation-context'
 import { Validator } from '../../validator'
 
@@ -45,7 +45,8 @@ type Required<V extends Validator> = RemoveModifier<V, ModifierType.Optional>
 
 type Optional<V extends Validator> = 
     _OptionalProperties<V> &
-    _OptionalInherit<V>
+    _OptionalInherit<V> & 
+    Validator<ValidateInput<V>, ValidateOutput<V> | nil>
 
 interface OptionalConstructor {
     new <V extends Validator>(validator: V): Optional<V>

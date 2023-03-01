@@ -9,7 +9,6 @@ import { testValidator } from '../../../util.test'
 //// Tests ////
 
 const $option = new class extends TypeValidator<boolean | number> {
-    name = 'NumberOrBoolean'
     isValid = isUnion(isBoolean, isNumber)
 }
 
@@ -33,7 +32,7 @@ describe('validates', () => {
             { asserts: false },
         )
 
-    })
+    }) 
 
 })
 
@@ -78,16 +77,16 @@ describe('id', () => {
     const $$customId = Symbol('fix')
     
     const $broken = $optionBuilder.asserts(
-        fail,
+        fail, 
         $$customId
     )
     
-    describe('update', () => {
- 
+    describe('update', () => { 
+
         testValidator<unknown, boolean | number>(
             $broken,
             { transforms: 0, error: true },
-        )
+        ) 
     
         const $fixed = $broken.asserts(pass, $$customId)
         testValidator<unknown, boolean | number>(
@@ -95,16 +94,16 @@ describe('id', () => {
             { transforms: 0, error: false },
             { asserts: 0, error: false },
         )
-    
+
     })
 
     describe('remove', () => {
-        
+
         const $fixed2 = $broken.remove($$customId)
 
         testValidator<unknown, boolean | number>(
             $fixed2,
-            { transforms: 0, error: false },
+            { transforms: 0, error: false }, 
         )
     
         test('throws if id not found', () => {

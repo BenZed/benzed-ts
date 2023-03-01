@@ -7,7 +7,7 @@ import { testValidator } from '../../../util.test'
  
 //// Setup ////
 
-class DateValidator extends InstanceValidator<DateConstructor> {
+class DateValidator extends InstanceValidator<typeof Date> {
 
     constructor() {
         super(Date)

@@ -1,5 +1,5 @@
-import { copy, Copyable } from '@benzed/immutable'
-import { Mutate } from '@benzed/traits'
+import { copy, Copyable, Stateful } from '@benzed/immutable'
+import { Callable, Mutate, Trait } from '@benzed/traits'
 import { define } from '@benzed/util'
 
 import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
@@ -101,10 +101,22 @@ const Modifier = class extends MutateValidator<Validator, any> {
         throw new Error(`${String($$type)} is not implemented in ${this.constructor.name}`)
     }
 
-    [Copyable.copy](): this {
-        const clone = super[Copyable.copy]()
+    [Validator.copy](): this {
+        const clone = Copyable.createFromProto(this)
         define.enumerable(clone, Mutate.target, copy(this[Mutate.target]))
-        return Mutate.apply(clone as any)
+        return Trait.apply(clone, Callable, Mutate)
+    }
+
+    [Validator.analyze](ctx: ValidationContext) {
+        return this[Mutate.target][Validator.analyze](ctx)
+    }
+
+    get [Validator.state]() {
+        return this[Mutate.target][Validator.state]
+    }
+
+    set [Validator.state](state) {
+        Stateful.set(this[Mutate.target], state)
     }
 
 } as ModifierConstructor

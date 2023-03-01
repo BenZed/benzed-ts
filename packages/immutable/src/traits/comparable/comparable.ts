@@ -18,7 +18,7 @@ abstract class Comparable extends Trait {
         [$$equals]: isFunc
     }) as AnyTypeGuard 
 
-    protected abstract [$$equals](other: unknown): other is this 
+    abstract [$$equals](other: unknown): other is this 
 
 }
 

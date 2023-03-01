@@ -3,7 +3,7 @@ import { NamesOf } from '@benzed/util'
 import { Modifier } from '../modifier'
 import { assertUnmodified, RemoveModifier, ModifierType } from '../modifier-operations'
 import { Validator } from '../../validator'
-import { ValidateOutput } from '../../../validate'
+import { ValidateInput, ValidateOutput } from '../../../validate'
 
 //// EsLint ////
 
@@ -39,7 +39,8 @@ type Writable<V extends Validator> =
 
 type ReadOnly<V extends Validator> = 
     _ReadOnlyProperties<V> &
-    _ReadOnlyInherit<V>
+    _ReadOnlyInherit<V> & 
+    Validator<ValidateInput<V>, Readonly<ValidateOutput<V>>>
 
 interface ReadOnlyConstructor {
     new <V extends Validator>(validator: V): ReadOnly<V>

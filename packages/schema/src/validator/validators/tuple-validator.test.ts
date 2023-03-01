@@ -11,12 +11,10 @@ import { expectTypeOf } from 'expect-type'
 
 const $name = new class Name extends TypeValidator<string> { 
     isValid = isString
-    message = 'must be a name'
 }
 
 const $flag = new class Flag extends TypeValidator<boolean> {
     isValid = isBoolean
-    message = 'must be a flag'
 }
 
 const $nameFlagFlag = new TupleValidator($name, $flag, $flag)
@@ -42,7 +40,7 @@ testValidator<unknown[], [string, boolean, boolean]>(
     }, 
     {
         transforms: ['test', true, 'false'],
-        error: 'index 2 must be a flag'
+        error: 'index 2 must be Flag'
     },
     {
         asserts: ['test', true, true, true],

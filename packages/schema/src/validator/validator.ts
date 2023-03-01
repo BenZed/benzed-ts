@@ -1,6 +1,5 @@
-import { Copyable } from '@benzed/immutable'
-import { Callable, Method } from '@benzed/traits'
-import { assign } from '@benzed/util'
+import { Copyable, equals, Stateful, Structural } from '@benzed/immutable'
+import { Callable, Trait } from '@benzed/traits'
 import { Validate, ValidateOptions } from '../validate'
 
 import ValidationContext from '../validation-context'
@@ -31,7 +30,7 @@ export const $$analyze = Symbol('validation-analyze')
  * If the mutated context does not have an output, a validation error is thrown,
  * otherwise the output is returned.
  */
-function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
+function analyze<I, O >(this: Validator<I,O>, input: I, options?: ValidateOptions): O {
 
     const ctx = this[$$analyze](
         new ValidationContext(input, options)
@@ -51,13 +50,42 @@ function analyze<I, O extends I>(this: Validator<I,O>, input: I, options?: Valid
  * compelling extended classes to implement the symbolic analyze method 
  * to carry out validations.
  */
-export abstract class Validator<I = any, O extends I = I> extends Method<Validate<I,O>> {
+export interface Validator<I = any, O = I> extends Structural, Callable<Validate<I,O>> {}
+
+export abstract class Validator<I = any, O = I> implements Structural, Callable<Validate<I,O>> {
 
     static readonly analyze: typeof $$analyze = $$analyze
+    static readonly state: typeof Structural.state = Structural.state
+    static readonly copy: typeof Structural.copy = Structural.copy
+    static readonly equals: typeof Structural.equals = Structural.equals
 
     constructor() {
-        super(analyze)
+        return Callable.apply(this as any)
     }
+
+    get [Callable.signature]() {
+        return analyze
+    }
+
+    [Structural.copy](): this {
+        const clone = Copyable.createFromProto(this)
+        Stateful.set(clone, Stateful.get(this))
+
+        return Callable.apply(clone as any)
+    }
+
+    [Structural.equals](other: unknown): other is this {
+        return (
+            other instanceof Validator &&
+            other.constructor === this.constructor &&
+            equals(
+                Stateful.get(other),
+                Stateful.get(this)
+            )
+        )
+    }
+
+    abstract get [Structural.state](): object
 
     /**
      * Given an input and validation options, the analyze method will:
@@ -70,11 +98,6 @@ export abstract class Validator<I = any, O extends I = I> extends Method<Validat
 
 }
 
-// TODO FIXME
-(Validator as any).prototype[Copyable.copy] = function () {
-    const clone = Copyable.createFromProto(this)
+//// Manually apply Callable.onUse ////
 
-    assign(clone, { [Callable.signature]: this[Callable.signature ] })
-
-    return Callable.apply(clone)
-}
+Callable[Trait.onUse](Validator)

@@ -1,16 +1,13 @@
-import { assign, define, isNumber, isString, pick } from '@benzed/util'
+import { isNumber, isString } from '@benzed/util'
 
 import { RecordValidator } from './record-validator'
 
 import { testValidator } from '../../../util.test'
-import ContractValidator from '../contract-validator'
+import { ContractValidator } from '../contract-validator'
 import { TypeValidator } from '../contract-validators'
 import Schema from '../../schema/schema'
-import { Structural } from '@benzed/immutable'
-import { Trait } from '@benzed/traits'
-import { ValidateImmutable } from '../../../traits'
 
-//// EsLint ////
+//// EsLint //// 
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -31,24 +28,17 @@ class SetStringKey extends KeyValidator<`set${string}`> {
         return isString(value) && value.startsWith('set')
     }
 
-    message = 'key must start with "set"'
+    message() {
+        return 'key must start with "set"'
+    }
 }
 
-class Number extends Trait.add(TypeValidator<number>, ValidateImmutable) {
-
-    readonly name = 'Number'
+class Number extends TypeValidator<number> {
 
     isValid(value: unknown): value is number {
         return isNumber(value)
     }
 
-    get [Structural.state](): Pick<this, 'name'> {
-        return pick(this, 'name')
-    }
-
-    set [Structural.state](state: Pick<this, 'name'>) {
-        define.named(state.name, this)
-    }
 }
 
 class NumberSchema extends Schema<Number, {}> {
@@ -71,7 +61,7 @@ describe(RecordValidator.name + ' validation tests', () => {
 
     const $record = new RecordValidator(new Number)
 
-    testValidator<object, Record<string, number>>(
+    testValidator<unknown, Record<string, number>>(
         $record,
         { asserts: {} },
         { asserts: { one: 1, two: 2 } },
@@ -89,7 +79,7 @@ describe(RecordValidator.name + ' key validation tests', () => {
         new Number
     )
 
-    testValidator<object, Record<`set${string}`, number>>(
+    testValidator<unknown, Record<`set${string}`, number>>(
         $fancyRecord,
         { asserts: { 'setOne': 1 } },
         { asserts: { 'one': 1 }, error: 'key must start with "set"' },
@@ -101,12 +91,12 @@ describe('Retains value interface', () => {
 
     const $schemaRecord = new RecordValidator(new NumberSchema)
 
-    testValidator<object, Record<string, number>>(
+    testValidator<unknown, Record<string, number>>(
         $schemaRecord,
         { asserts: { 'one': 1 } }
     )
 
-    testValidator<object, Record<string, number>>(
+    testValidator<unknown, Record<string, number>>(
         $schemaRecord.named('Numeric'),
         { asserts: { 'one': 'ace' }, error: true }
     )

@@ -19,6 +19,9 @@ export const $$context = Symbol('callable-context')
 
 //// Helper ////
 
+/**
+ * Instanceof operator that works with callable instances
+ */
 function isInstanceOfCallable(this: Func, instance: unknown): boolean {
 
     if (!isObject(instance) || !isFunc(instance?.constructor))
@@ -58,6 +61,12 @@ interface CallableStaticProperties {
      */
     readonly context: typeof $$context
 
+    /**
+     * using the Callable trait changes the 'instanceOf' operator of it's consuming class
+     * allowing it to correctly work on callable instances.
+     */
+    [Trait.onUse](constructor: object): void
+
     apply<F extends Func>(instance: F): F
     
     is<F extends Func>(input: unknown): input is Callable<F>
@@ -74,7 +83,7 @@ const Callable = class extends Trait {
 
     //// Static ////
 
-    static [Trait.onUse](constructor: Func) {
+    static [Trait.onUse](constructor: object) {
         // Makes instanceof work (more or less) on objects implementing the Callable trait
         define.hidden(
             constructor,

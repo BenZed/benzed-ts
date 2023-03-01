@@ -1,39 +1,35 @@
-import { assign, define, isBoolean, isNumber, isString, pick } from '@benzed/util'
-import { StructStateApply, Structural } from '@benzed/immutable'
-import { Trait } from '@benzed/traits'
+import { define, isBoolean, isNumber, isString, pick } from '@benzed/util'
+import { copy, StructStateApply, Structural } from '@benzed/immutable'
 
 import { UnionValidator } from './union-validator'
 import { testValidator } from '../../util.test'
 import { TypeValidator } from './contract-validators'
 
-import { ValidateImmutable, ValidateStructural } from '../../traits'
-
 import { describe, it, expect } from '@jest/globals' 
+import { Validator } from '../validator'
 
 //// EsLint ////
 
-/* eslint-disable
+/* eslint-disable 
     @typescript-eslint/ban-types
 */ 
 
 //// Tests ////
 
-class Number extends Trait.add(TypeValidator<number>, ValidateImmutable) {
+class Number extends TypeValidator<number> {
 
     isValid(input: unknown): input is number {
         return isNumber(input) 
     }
 
-    override readonly name = 'Number'
 }
 
-class Boolean extends Trait.add(TypeValidator<boolean>, ValidateImmutable) {
+class Boolean extends TypeValidator<boolean> {
 
     isValid(input: unknown): input is boolean {
         return isBoolean(input)
     }
 
-    override readonly name = 'Boolean' 
 }
 
 //// Setup //// 
@@ -55,32 +51,32 @@ describe(`${$numberOrBool.name} validator tests`, () => {
 
 describe('retains interface of most recently added validator', () => {
 
-    class String extends Trait.add(TypeValidator<string>, ValidateStructural) {
+    class String extends TypeValidator<string> {
 
         isValid(value: unknown): value is string {
             return isString(value) && (this.allowEmpty || value.length > 0)
         }
-        override readonly name = 'String'
 
-        readonly allowEmpty: boolean = true
+        readonly allowEmpty: boolean = true 
 
         notEmpty(): this {
             return Structural.create(this, { allowEmpty: false } as StructStateApply<this>)
         }
 
-        get [Structural.state](): { allowEmpty: boolean, name: string } {
-            return pick(this, 'allowEmpty', 'name')
+        get [Validator.state](): Pick<this, 'allowEmpty' | 'name' | 'message'> {
+            return pick(this, 'allowEmpty', 'name', 'message')
         }
 
-        set [Structural.state]({ allowEmpty, name }: { allowEmpty: boolean, name: string }) {
-            assign(this, { allowEmpty })
-            define.named(name, this)
+        set [Validator.state](state: Pick<this, 'allowEmpty' | 'name' | 'message'>) {
+            define.named(state.name, this)
+            define.hidden(this, 'message', state.message)
+            define.enumerable(this, 'allowEmpty', state.allowEmpty)
         }
     }
 
     const $numOrBoolOrString = new UnionValidator(new Number, new Boolean, new String)
 
-    it('allowEmpty', () => {
+    it('allowEmpty', () => { 
         expect($numOrBoolOrString.allowEmpty).toBe(true)
     })
 

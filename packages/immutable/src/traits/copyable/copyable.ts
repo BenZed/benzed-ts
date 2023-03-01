@@ -27,7 +27,7 @@ abstract class Copyable extends Traits {
         [$$copy]: isFunc
     }) as AnyTypeGuard
 
-    protected abstract [$$copy](): this 
+    abstract [$$copy](): this 
 
 }
 

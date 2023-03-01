@@ -1,8 +1,9 @@
-import { isNumber } from '@benzed/util'
+import { isNumber, pick } from '@benzed/util'
 
 import { describe } from '@jest/globals'
 
 import { testValidator } from '../../util.test'
+import { Validator } from '../validator'
 
 import { ContractValidator } from './contract-validator'
 import { TypeValidator } from './contract-validators'
@@ -12,8 +13,6 @@ import { PipeValidator } from './pipe-validator'
 
 const $number = new class Number extends TypeValidator<number> {
     readonly isValid = isNumber
-
-    readonly message = 'Must be a Number'
 }
 
 const $positive = new class Positive extends ContractValidator<number, number> {
@@ -22,13 +21,15 @@ const $positive = new class Positive extends ContractValidator<number, number> {
         return input >= 0
     }
 
-    readonly message = 'Must be positive'
-
 }
 
 const $positiveNumber = new class extends PipeValidator<unknown, number> {
     get validators() {
         return [$number, $positive] as const
+    }
+
+    get [Validator.state](): Pick<this, 'validators'> {
+        return pick(this, 'validators')
     }
 }
 
@@ -40,8 +41,8 @@ describe(`${PipeValidator.name} validator tests`, () => {
         $positiveNumber,
         { transforms: 0 },
         { asserts: 0 },
-        { asserts: -5, error: 'Must be positive' },
-        { asserts: 'ace', error: 'Must be a Number' }
+        { asserts: -5, error: 'must be Positive' },
+        { asserts: 'ace', error: 'must be Number' }
     )
 
 })

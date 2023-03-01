@@ -65,7 +65,7 @@ export type ValidationAssertTest<I> =
 export type ValidationTest<I,O> = 
     ValidationTransformTest<I,O> | ValidationAssertTest<I>
 
-export type ValidationTestResult<I, O extends I> = {
+export type ValidationTestResult<I, O > = {
 
     readonly validator: Validator<I,O>
 
@@ -80,7 +80,7 @@ export type ValidationTestResult<I, O extends I> = {
 
 //// ValidationTest ////
 
-export function runValidatorTest<I,O extends I>(
+export function runValidatorTest<I,O >(
     validator: Validator<I,O>,
     test: ValidationTest<I,O>
 ): ValidationTestResult<I,O> {

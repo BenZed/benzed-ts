@@ -1,31 +1,23 @@
 import { IntersectionValidator } from './intersection-validator'
 import { ShapeValidator } from './shape-validator'
 
-import { Trait } from '@benzed/traits'
 import { isBoolean, isNumber } from '@benzed/util'
 
 import { TypeValidator } from './contract-validators'
-import { ValidateImmutable } from '../../traits'
 import { testValidator } from '../../util.test'
 
 //// Tests ////
 
-const $number = new class Number extends Trait.add(TypeValidator<number>, ValidateImmutable) {
+const $number = new class Number extends TypeValidator<number>{
     isValid(input: unknown): input is number {
         return isNumber(input)
     }
-    override readonly name = 'Number'
-
-    message = 'must be a number'
 }
 
-const $boolean = new class Boolean extends Trait.add(TypeValidator<boolean>, ValidateImmutable) {
+const $boolean = new class Boolean extends TypeValidator<boolean> {
     isValid(input: unknown): input is boolean {
         return isBoolean(input)
     }
-    override readonly name = 'Boolean'
-
-    message = 'must be a boolean'
 }
 
 const $foo = new ShapeValidator({
@@ -42,7 +34,7 @@ testValidator<object,object>(
     $fooBar,
     {
         transforms: { foo: 0 },
-        error: 'bar must be a boolean' 
+        error: 'bar must be Boolean' 
     },
     {
         transforms: { foo: 0, bar: true }
@@ -52,11 +44,11 @@ testValidator<object,object>(
     },
     {
         asserts: { bar: true },
-        error: 'foo must be a number'
+        error: 'foo must be Number'
     }
 )
 
 it('requires an intersection of object types', () => {
     // @ts-expect-error must be object types
-    void new IntersectionValidator($number, $boolean)
+    void new IntersectionValidator($number, $boolean) 
 })

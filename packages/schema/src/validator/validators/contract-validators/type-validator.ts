@@ -1,7 +1,8 @@
 
-import { nil } from '@benzed/util'
+import { define, nil, pick } from '@benzed/util'
 
 import ValidationContext from '../../../validation-context'
+import { Validator } from '../../validator'
 import ContractValidator from '../contract-validator'
 
 //// EsLint ////
@@ -29,6 +30,19 @@ abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
             input = this.cast(input, ctx)
 
         return input
+    }
+
+    //// Validator ////
+
+    get [Validator.state](): Pick<this, 'name' | 'message' | 'cast' | 'default'> {
+        return pick(this, 'name', 'message', 'cast', 'default')
+    }
+
+    set [Validator.state](state: Pick<this, 'name' | 'message' | 'cast' | 'default'>) {
+        define.named(state.name, this)
+        define.hidden(this, 'message', state.message)
+        define.hidden(this, 'cast', state.cast)
+        define.hidden(this, 'default', state.default)
     }
 
 }

@@ -21,9 +21,12 @@ abstract class Stateful extends Trait {
      * Set the state of an object using the State trait
      */
     static set<T extends Stateful>(object: T, state: StateOf<T>): void {
-        const descriptor = each.descriptorOf(object).find(([k]) => k === Stateful.state)?.[0] as PropertyDescriptor
+        const descriptor = each
+            .defined
+            .descriptorOf(object)
+            .find(([k]) => k === Stateful.state)?.[1]
 
-        if (descriptor.writable || descriptor.set)
+        if (descriptor?.writable || descriptor?.set)
             object[$$state] = state
         else if (isObject(state))
             assign(object, state) 

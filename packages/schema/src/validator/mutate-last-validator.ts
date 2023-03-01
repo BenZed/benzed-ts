@@ -1,6 +1,6 @@
-import { copy, Copyable } from '@benzed/immutable'
+import { copy, Copyable, Stateful } from '@benzed/immutable'
 import { Callable, Mutate, Trait } from '@benzed/traits'
-import { define, Mutable } from '@benzed/util'
+import { define } from '@benzed/util'
 
 import MutateValidator from './mutate-validator'
 import { Validator } from './validator'
@@ -40,12 +40,25 @@ abstract class MutateLastValidator<V extends Validator[], O> extends MutateValid
     }
 
     [Copyable.copy](): this {
-        const clone = Copyable.createFromProto(this) as Mutable<this>
-        clone.validators = copy(this.validators)
+        let clone = Copyable.createFromProto(this)
 
-        define.hidden(clone, Callable.signature, this[Callable.signature])
+        const validators = copy(this.validators)
 
-        return Trait.apply(clone, Callable, Mutate) as this
+        define.enumerable(clone, 'validators', validators)
+
+        clone = Trait.apply(clone, Callable, Mutate) as this
+
+        Stateful.set(clone, Stateful.get(this))
+
+        return clone
+    }
+
+    get [Validator.state]() {
+        return Stateful.get(this[Mutate.target])
+    }
+
+    set [Validator.state](state) {
+        Stateful.set(this[Mutate.target], state)
     }
 
 }

@@ -132,7 +132,7 @@ class ValidationContext<I = any, O = I>
         return this.hasSubContext.inDescendents(sub => sub.hasError())
     }
 
-    pushSubContext<Ix, Ox extends Ix>(
+    pushSubContext<Ix, Ox>(
         input: Ix, 
         key: PropertyKey
     ): ValidationContext<Ix,Ox> {

@@ -1,5 +1,5 @@
 
-import { each } from '@benzed/util'
+import { each, pick } from '@benzed/util'
 import { ValidateOutput } from '../../validate'
 
 import ValidationContext from '../../validation-context'
@@ -46,6 +46,10 @@ class TupleValidator<T extends TupleValidatorInput> extends Validator<unknown[],
         return invalidElementCount
             ? ctx.setError(`must have exactly ${this.positions.length} elements`)
             : ctx.setOutput(output as TupleValidatorOutput<T>)
+    }
+
+    get [Validator.state](): Pick<this, 'positions'> {
+        return pick(this, 'positions')
     }
 
 }

@@ -1,6 +1,6 @@
 
 import { Copyable } from '@benzed/immutable'
-import { each, GenericObject, Infer } from '@benzed/util'
+import { each, GenericObject, Infer, pick } from '@benzed/util'
 
 import { ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
@@ -112,6 +112,10 @@ class ShapeValidator<T extends ShapeValidatorInput>
         return invalidKeys.length > 0
             ? ctx.setError(`contains invalid keys: ${invalidKeys.map(String)}`)
             : ctx.setOutput(output as ShapeValidatorOutput<T>)
+    }
+
+    get [Validator.state](): Pick<this, 'properties'> {
+        return pick(this, 'properties')
     }
 
 }

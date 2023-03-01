@@ -1,10 +1,7 @@
-import { Comparable, Copyable, equals } from '@benzed/immutable'
-import { Callable, Mutate,Trait } from '@benzed/traits'
-import { isFunc } from '@benzed/util'
-import { ValidateImmutable } from '../traits'
+import { Stateful } from '@benzed/immutable'
+import { Mutate, Trait } from '@benzed/traits'
 
-import { ValidateInput, ValidateOptions } from '../validate'
-import { ValidationContext } from '../validation-context'
+import { ValidateInput } from '../validate'
 import { Validator } from './validator'
 
 //// EsLint ////
@@ -16,22 +13,7 @@ import { Validator } from './validator'
 interface MutateValidator<
     V extends Validator,
     O
-> extends Mutate<V> {
-
-    (input: ValidateInput<V>, options?: ValidateOptions): O
-
-    [Validator.analyze](
-        ctx: ValidationContext<ValidateInput<V>, O>
-    ): ValidationContext<ValidateInput<V>, O>
-
-    [Copyable.copy](): this 
-
-    [Comparable.equals](other: unknown): other is this
-
-    [Callable.signature](input: ValidateInput<V>, options?: ValidateOptions): O
-    readonly [Callable.context]: unknown
-
-}
+> extends Validator<ValidateInput<V>, O>, Mutate<V> {}
 
 type MutateValidatorConstructor = abstract new<
     V extends Validator,
@@ -40,28 +22,16 @@ type MutateValidatorConstructor = abstract new<
 
 //// Main ////
 
-const MutateValidator = class extends Trait.add(Validator, Mutate, ValidateImmutable) { 
+abstract class MutateValidatorAbstract extends Trait.add(Validator, Mutate) { 
 
-    get [Mutate.target](): Validator {
-        throw new Error(`${this.constructor.name} does not implement ${String(Mutate.target)}`)
+    [Validator.copy](): this {
+        const clone = super[Validator.copy]()
+        return Mutate.apply(clone)
     }
 
-    [Validator.analyze](ctx: ValidationContext) {
-        return this[Mutate.target][Validator.analyze](ctx)
-    }
+}
 
-    [Comparable.equals](other: unknown): other is this {
-        return isFunc(other) && Mutate.is(other) && 
-            equals(
-                this[Mutate.target], 
-                other[Mutate.target]
-            )
-    }
-
-} as MutateValidatorConstructor
-
-// HACK
-delete MutateValidator.prototype[Mutate.target]
+const MutateValidator = MutateValidatorAbstract as MutateValidatorConstructor
 
 //// Exports ////
 

@@ -1,10 +1,9 @@
 
 import { equals } from '@benzed/immutable'
-import { isFunc } from '@benzed/util'
 
 import { Validator } from '../validator'
 import { ValidationContext } from '../../validation-context'
-import { ValidationErrorMessage } from '../../validation-error'
+import { define, pick } from '@benzed/util'
 
 //// EsLint ////
 
@@ -14,7 +13,7 @@ import { ValidationErrorMessage } from '../../validation-error'
 
 //// Main ////
 
-abstract class ContractValidator<I = any, O extends I = I> extends Validator<I,O> {
+abstract class ContractValidator<I = any, O = I> extends Validator<I,O> {
 
     isValid(input: I | O, ctx: ValidationContext<I,O>): boolean {
         return equals(input, ctx.transformed)
@@ -22,7 +21,15 @@ abstract class ContractValidator<I = any, O extends I = I> extends Validator<I,O
 
     transform?(input: I, ctx: ValidationContext<I,O>): I | O
 
-    readonly message?: ValidationErrorMessage<I,O>
+    message(input: I, ctx: ValidationContext<I,O>): string {
+        void input
+        void ctx
+        return `must be ${this.name}`
+    }
+
+    override get name(): string {
+        return this.constructor.name.replace('Validator', '')
+    }
 
     //// Analyze ////
 
@@ -40,10 +47,17 @@ abstract class ContractValidator<I = any, O extends I = I> extends Validator<I,O
         return this.isValid(output, ctx)
             ? ctx.setOutput(output as O)
             : ctx.setError(
-                isFunc(this.message) 
-                    ? this.message(output, ctx)
-                    : this.message ?? 'validation failed'
+                this.message(ctx.input, ctx)
             )
+    }
+
+    get [Validator.state](): Pick<this, 'message' | 'name'> {
+        return pick(this, 'message', 'name')
+    }
+
+    set [Validator.state](state: Pick<this, 'message' | 'name'>) {
+        define.named(state.name, this)
+        define.hidden(this, 'message', state.message)
     }
 
 }

@@ -12,12 +12,10 @@ import { expectTypeOf } from 'expect-type'
 
 const $boolean = new class Boolean extends TypeValidator<boolean> {
     isValid = isBoolean
-    message = 'must be a boolean'
 }
 
 const $string = new class String extends TypeValidator<string> {
     isValid = isString
-    message = 'must be a string'
 }
 
 const $todo = new ShapeValidator({
@@ -39,11 +37,11 @@ testValidator<object, { description: string, completed: boolean }>(
     $todo,
     {
         transforms: { description: 'hey', completed: 'yo' },
-        error: 'completed must be a boolean'
+        error: 'completed must be Boolean'
     },
     {
         transforms: { description: 1, completed: 'yo' },
-        error: 'description must be a string'
+        error: 'description must be String'
     },
     {
         title: 'removes errant keys on transform',

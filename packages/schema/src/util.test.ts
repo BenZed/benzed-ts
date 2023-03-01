@@ -44,7 +44,7 @@ class FailedValidationTestError extends Error {
 /**
  * Test that a validator provides an expected result with the given input and options.
  */
-export function testValidator<I,O extends I>(
+export function testValidator<I,O >(
     validate: Validator<I,O>,
     ...tests: (ValidationTest<I,O> & { title?: string, only?: boolean, skip?: boolean })[]
 ): void {

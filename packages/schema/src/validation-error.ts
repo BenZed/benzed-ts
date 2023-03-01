@@ -19,7 +19,7 @@ type ValidationErrorJson<T> = string | (T extends Array<infer I>
         }
         : string)
 
-type ValidationErrorMessage<I, O extends I = I> = string | ((input: I, ctx: ValidationContext<I,O>) => string)
+type ValidationErrorMessage<I, O = I> = string | ((input: I, ctx: ValidationContext<I,O>) => string)
 
 //// Helper ////
 

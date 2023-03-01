@@ -18,8 +18,8 @@ class BigIntValidator extends TypeValidator<bigint> {
             return BigInt(input)
 
         return input
-    } 
-}  
+    }
+}
 
 const $bigint = new BigIntValidator()
 

@@ -1,18 +1,18 @@
 
-import { assign, defined, isFunc, isOptional, isString, isSymbol, isUnion } from '@benzed/util'
+import { assign, define, defined, isFunc, isOptional, isString, isSymbol, isUnion, pick } from '@benzed/util'
 import { SignatureParser } from '@benzed/signature-parser'
 
 import { PipeValidator, Validators } from '../pipe-validator'
 import { ContractValidator } from '../contract-validator'
 import { Validator } from '../../validator'
+import { ValidationErrorMessage } from '../../../validation-error'
+import { Stateful, StructState, Structural } from '@benzed/immutable'
 
 //// EsLint ////
 
 /* eslint-disable
     @typescript-eslint/no-explicit-any
 */
-
-// const $$id = Symbol('output-validator-id') 
 
 //// Types ////
 
@@ -24,7 +24,19 @@ export class OutputValidator<O> extends ContractValidator<O, O> {
         settings: OutputValidatorSettings<O>
     ) {
         super()
-        assign(this, defined(settings))
+        Stateful.set(this, { ...this[Validator.state], ...defined(settings) } as OutputValidatorState<O>)
+    }
+
+    get [Validator.state](): OutputValidatorState<O> {
+        return pick(this, 'name', 'transform', 'isValid', 'message', 'id')
+    }
+
+    set [Validator.state](state: OutputValidatorState<O>) {
+        define.named(state.name, this)
+        define.enumerable(this, 'id', state.id)
+        define.hidden(this, 'isValid', state.isValid)
+        define.hidden(this, 'transform', state.transform)
+        define.hidden(this, 'message', isString(state.message) ? () => state.message : state.message)
     }
 
 }
@@ -33,10 +45,10 @@ export type OutputValidatorTransform<O> = OutputValidator<O>['transform']
 
 export type OutputValidatorPredicate<O> = OutputValidator<O>['isValid']
 
-export type OutputValidatorMessage<O> = OutputValidator<O>['message']
-
-export interface OutputValidatorSettings<O> extends Partial<OutputValidator<O>> {
+export type OutputValidatorState<O> = Pick<OutputValidator<O>, 'name' | 'isValid' | 'transform' | 'message' | 'id'>
+export interface OutputValidatorSettings<O> extends Partial<Omit<OutputValidatorState<O>, 'message'>> {
     readonly id?: symbol
+    readonly message?: ValidationErrorMessage<O>
 }
 
 export interface PipeValidatorBuilderMethods<O> {
@@ -52,7 +64,7 @@ export interface PipeValidatorBuilderMethods<O> {
 
     asserts(
         isValid: OutputValidatorPredicate<O>,
-        message?: OutputValidatorMessage<O>,
+        message?: ValidationErrorMessage<O>,
         id?: symbol
     ): this 
 
@@ -62,7 +74,7 @@ export interface PipeValidatorBuilderMethods<O> {
     ): this 
     transforms(
         transform: OutputValidatorTransform<O>,
-        message?: OutputValidatorMessage<O>,
+        message?: ValidationErrorMessage<O>,
         id?: symbol
     ): this 
 
@@ -79,18 +91,18 @@ const toMessageId = new SignatureParser({
 }).addLayout('message', 'id')
     .addLayout('id')
 
-type ToMessageIdParams<O> = [message?: OutputValidatorMessage<O>, id?: symbol] | [id?: symbol]
+type ToMessageIdParams<O> = [message?: ValidationErrorMessage<O>, id?: symbol] | [id?: symbol]
 
 //// PipeValidatorBuilder ////
 
 /**
  * Pipe validator with an interface for manipulating output validators.
  */
-export class PipeValidatorBuilder<I, O extends I = I> 
+export class PipeValidatorBuilder<I, O = I> 
     extends PipeValidator<I,O>
     implements PipeValidatorBuilderMethods<O> {
 
-    static empty<Ix,Ox extends Ix>(): PipeValidatorBuilder<Ix,Ox> {
+    static empty<Ix, Ox>(): PipeValidatorBuilder<Ix,Ox> {
         return new PipeValidatorBuilder(...[] as unknown as Validators<Ix,Ox>)
     }
 
@@ -119,7 +131,7 @@ export class PipeValidatorBuilder<I, O extends I = I>
             ? this.validators.map((v, i) => i === index ? validator : v)
             : [...this.validators, validator] as const
 
-        return new PipeValidatorBuilder(...validators as Validators<I,O>) as this
+        return Structural.create(this, { validators } as StructState<this>)
     }
 
     asserts(
@@ -142,16 +154,22 @@ export class PipeValidatorBuilder<I, O extends I = I>
         id: symbol
     ): this {
 
-        const validators = this.validators.filter(v => !('id' in v && v.id === id)) as readonly Validator[] as Validators<I,O>
+        const validators = this
+            .validators
+            .filter(v => !('id' in v && v.id === id)) as readonly Validator[] as Validators<I,O>
         if (validators.length === this.validators.length) {
             throw new Error(
                 `Validator with given id ${String(id)} could not be found.`
             )
         }
 
-        return new PipeValidatorBuilder(...validators) as this
+        return Structural.create(this, { validators } as StructState<this>)
     }
 
     //// Helper ////
+
+    get [Validator.state](): Pick<this, 'validators'> {
+        return pick(this, 'validators')
+    }
 
 }

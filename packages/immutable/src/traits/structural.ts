@@ -221,7 +221,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * Extensions that break this convention will have to
      * override this copy method in order to account for them.
      */
-    protected [Copyable.copy](): this {
+    [Copyable.copy](): this {
  
         const superCopy = each.prototypeOf(this.constructor)
             .find((constructor): constructor is Func => 
@@ -244,7 +244,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * If another Struct has the same constructor and
      * a value equal state, it's considered equal.
      */
-    protected [Comparable.equals](other: unknown): other is this {
+    [Comparable.equals](other: unknown): other is this {
         return Structural.is(other) &&
             other.constructor === this.constructor &&
             equals(other[Stateful.state], this[Stateful.state])

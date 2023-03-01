@@ -9,7 +9,7 @@ import { Validator } from '../validator'
 
 //// Types ////
 
-type Validators<I = any, O extends I = I> = readonly [
+type Validators<I = any, O = I> = readonly [
     input: Validator<I,O>, 
     ...output: Validator<O, O>[]
 ]
@@ -19,13 +19,13 @@ type Validators<I = any, O extends I = I> = readonly [
 /**
  * Combine an input validator with many output validators.
  */
-abstract class PipeValidator<I, O extends I = I> extends Validator<I, O> {
+abstract class PipeValidator<I, O = I> extends Validator<I, O> {
 
     [Validator.analyze](ctx: ValidationContext<I,O>): ValidationContext<I,O> {
 
         for (const validator of this.validators) {
-            ctx = validator[Validator.analyze](ctx as ValidationContext)
-            if (ctx.result && 'error' in ctx.result)
+            ctx = validator[Validator.analyze](ctx as ValidationContext) as ValidationContext
+            if (!ctx.hasValidOutput())
                 return ctx
         }
 

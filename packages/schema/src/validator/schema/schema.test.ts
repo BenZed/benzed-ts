@@ -13,49 +13,48 @@ import {
     define
 } from '@benzed/util'
 
-import { Trait } from '@benzed/traits'
-
 import { SignatureParser } from '@benzed/signature-parser'
 
 import { testValidator } from '../../util.test' 
 import { ContractValidator, TypeValidator } from '../validators'
 import { ValidationErrorMessage } from '../../validation-error'
-import { ValidateStructural } from '../../traits'
+import { Validator } from '../validator'
+import ValidationContext from '../../validation-context'
 
 //// EsLint ////
 
 /* eslint-disable 
-    @typescript-eslint/ban-types
+    @typescript-eslint/ban-types,
+    @typescript-eslint/no-explicit-any
 */
 
 //// Main Validators ////
 
-class NumberValidator extends Trait.add(TypeValidator<number>, ValidateStructural) {
+class NumberValidator extends TypeValidator<number> {
 
     isValid(value: unknown): value is number {
         return isNumber(value) && (!this.positive || value >= 0)
     }
 
-    readonly name: string = 'Number' 
-
     readonly positive: boolean = false  
 
-    readonly message: ValidationErrorMessage<unknown, number> = 
-        function (): string {
-            return [
-                'Must be a',
-                this.positive ? 'positive' : '',
-                this.name
-            ].filter(isNotEmpty).join(' ')
-        }
+    message(input: number, ctx: ValidationContext<number>) {
+        void input
+        void ctx
+        return [
+            'Must be a',
+            this.positive ? 'positive' : '',
+            this.name
+        ].filter(isNotEmpty).join(' ')
+    }
 
     //// State ////
     
-    get [ValidateStructural.state](): Pick<this, 'name' | 'positive' | 'message'> {
+    get [Validator.state](): Pick<this, 'name' | 'positive' | 'message'> {
         return pick(this, 'name', 'positive', 'message')
     }
 
-    set [ValidateStructural.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
+    set [Validator.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
         assign(this, { positive, message })
         define.named(name, this)
     }
@@ -68,7 +67,7 @@ class SubContractValidator<T> extends ContractValidator<T,T> {
     enabled = false
 }
 
-abstract class LimitValidator<O extends '>' | '<'> extends Trait.add(SubContractValidator<number>, ValidateStructural) {
+abstract class LimitValidator<O extends '>' | '<'> extends SubContractValidator<number> {
 
     abstract get operator(): O
 
@@ -88,28 +87,30 @@ abstract class LimitValidator<O extends '>' | '<'> extends Trait.add(SubContract
                 ? this.value <= value 
                 : this.value < value
     }
-    readonly message: ValidationErrorMessage<number> =     
-        function () {
+    message(input: number, ctx: ValidationContext<number>) {
+        void input
+        void ctx
 
-            const valueDetail = this.operator === '>'
-                ? 'less than'
-                : 'greater than'
+        const valueDetail = this.operator === '>'
+            ? 'less than'
+            : 'greater than'
 
-            const inclusiveDetail = this.inclusive 
-                ? ' or equal to'
-                : ''
+        const inclusiveDetail = this.inclusive 
+            ? ' or equal to'
+            : ''
 
-            const detail = valueDetail + inclusiveDetail
+        const detail = valueDetail + inclusiveDetail
 
-            return `Must be ${detail} ${this.value}`
-        }
-
-    get [ValidateStructural.state](): Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'> {
-        return pick(this, 'enabled', 'message', 'value', 'inclusive')
+        return `Must be ${detail} ${this.value}`
     }
 
-    set [ValidateStructural.state](state: Pick<this, 'enabled' | 'message' | 'value' | 'inclusive'>) {
-        assign(this, state)
+    get [Validator.state](): Pick<this, 'name' | 'enabled' | 'message' | 'value' | 'inclusive'> {
+        return pick(this, 'name', 'enabled', 'message', 'value', 'inclusive')
+    }
+
+    set [Validator.state]({ name, ...rest }: Pick<this, 'name' | 'enabled' | 'message' | 'value' | 'inclusive'>) {
+        define.named(name, this)
+        assign(this, rest)
     }
 
 }
@@ -169,17 +170,18 @@ class NumberSchema extends Schema<NumberValidator, {
         return this._applyMainValidator({ positive })
     }
 
-    message(message: ValidationErrorMessage<unknown>): this {
+    message(error: ValidationErrorMessage<unknown>): this {
+        const message = isString(error) ? () => error : error
         return this._applyMainValidator({ message })
     }
 
     min(...params: ToLimitParams): this {
-        const minSettings = toLimit(...params as Parameters<typeof toLimit>)
+        const minSettings = toLimit(...params as Parameters<typeof toLimit>) as any
         return this._applySubValidator('min', minSettings)
     } 
 
     max(...params: ToLimitParams): this {
-        const maxSettings = toLimit(...params as Parameters<typeof toLimit>)
+        const maxSettings = toLimit(...params as Parameters<typeof toLimit>) as any
         return this._applySubValidator('max', maxSettings)
     } 
 

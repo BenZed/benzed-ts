@@ -1,5 +1,6 @@
 import {
     assign,
+    define,
     isBoolean,
     isNumber,
     isShape,
@@ -19,7 +20,7 @@ import { StructStateApply, Structural } from '@benzed/immutable'
 
 //// Setup //// 
 
-class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean }>, Structural) {
+class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
 
     isValid = isShape({ 
         cookies: isNumber,
@@ -35,12 +36,16 @@ class CookieJar extends Trait.add(TypeValidator<{ cookies: number, open: boolean
         )
     }
 
-    get [Structural.state](): Pick<this, 'enabled'> {
-        return pick(this, 'enabled')
+    get [Structural.state](): Pick<this, 'name' | 'message' | 'cast' | 'default' | 'enabled'> {
+        return pick(this, 'name', 'message', 'cast', 'default', 'enabled')
     }
 
-    set [Structural.state](state: Pick<this, 'enabled'>) {
-        assign(this, state)
+    set [Structural.state](state: Pick<this, 'name' | 'message' | 'cast' | 'default' | 'enabled'>) {
+        define.named(state.name, this)
+        define.hidden(this, 'message', state.message)
+        define.hidden(this, 'cast', state.cast)
+        define.hidden(this, 'default', state.default)
+        define.enumerable(this, 'enabled', state.enabled)
     }
 }
 
@@ -114,6 +119,6 @@ describe('effect on target', () => {
         expect($disabledMaybeCookieJar.required).toBeInstanceOf(CookieJar)
         expect($disabledMaybeCookieJar[Modifier.target]).toBeInstanceOf(CookieJar)
     })
-
+ 
 })
 

@@ -1,16 +1,16 @@
-import { isArrayOf, isNumber, isInteger, pick, assign } from '@benzed/util'
-import { StructState, Structural } from '@benzed/immutable'
-import { Trait } from '@benzed/traits'
+import { isArrayOf, isNumber, isInteger, pick, define } from '@benzed/util'
+import { Stateful, StructState, Structural } from '@benzed/immutable'
 
 import { ReadOnly } from './readonly'
 import { expectTypeOf } from 'expect-type'
 
 import { TypeValidator } from '../../validators'
 import Modifier from '../modifier'
+import { Validator } from '../../validator'
 
 //// Tests ////
 
-class Buffer extends Trait.add(TypeValidator<number[]>, Structural) {
+class Buffer extends TypeValidator<number[]> {
 
     isValid(input: unknown): input is number[] {
         return isArrayOf(isNumber)(input) && 
@@ -27,15 +27,18 @@ class Buffer extends Trait.add(TypeValidator<number[]>, Structural) {
         return Structural.create( 
             this, 
             { enabled: !this.enabled } as StructState<this>
-        )
+        ) 
     }
 
-    get [Structural.state](): { minSize: number, enabled: boolean} {
-        return pick(this, 'minSize', 'enabled')
+    get [Validator.state](): Pick<this, 'minSize' | 'enabled' | 'name' | 'message'> {
+        return pick(this, 'minSize', 'enabled', 'name', 'message')
     }
 
-    set [Structural.state](state: { minSize: number, enabled: boolean} ) {
-        assign(this, state)
+    set [Validator.state](state: Pick<this, 'minSize' | 'enabled' | 'name' | 'message'>) {
+        define.named(state.name, this)
+        define.hidden(this, 'message', state.message)
+        define.enumerable(this, 'enabled', state.enabled)
+        define.enumerable(this, 'minSize', state.minSize) 
     }
 }
 
@@ -72,7 +75,7 @@ describe('removable', () => {
     })
 })
 
-describe('effect on target', () => { 
+describe('effect on target', () => {
 
     it('cannot be stacked', () => {
         expect(() => new ReadOnly(new ReadOnly($buffer))).toThrow('already has modifier')
@@ -90,6 +93,7 @@ describe('effect on target', () => {
     it('wraps result instances in self', () => {
 
         const $disabledBuffer = $buffer.toggleEnabled()
+
         expect($disabledBuffer).toBeInstanceOf(Buffer)
         expect($disabledBuffer.enabled).toEqual(false)
 

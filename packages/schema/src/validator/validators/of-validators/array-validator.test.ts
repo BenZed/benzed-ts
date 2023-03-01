@@ -1,24 +1,23 @@
 import { describe } from '@jest/globals'
 
-import { Trait } from '@benzed/traits'
 import { assign, define, isNumber, isString, nil, pick, through } from '@benzed/util'
 
 import Schema from '../../schema/schema'
 import { testValidator } from '../../../util.test'
-import { ValidateStructural } from '../../../traits'
 import { ValidationErrorMessage } from '../../../validation-error'
 
 import { ArrayValidator } from './array-validator'
 import { TypeValidator } from '../contract-validators'
-import { copy } from '@benzed/immutable'
+import { Validator } from '../../validator'
+import ValidationContext from '../../../validation-context'
 
 //// EsLint ////
 /* eslint-disable 
-    @typescript-eslint/ban-types,
+    @typescript-eslint/ban-types
 */
 
 //// Setup ////
-class NumberValidator extends Trait.add(TypeValidator<number>, ValidateStructural) {
+class NumberValidator extends TypeValidator<number> {
 
     isValid(value: unknown): value is number {
         return isNumber(value) && (!this.positive || value >= 0) 
@@ -28,26 +27,25 @@ class NumberValidator extends Trait.add(TypeValidator<number>, ValidateStructura
         return isString(input) ? parseFloat(input) : input
     }
 
-    readonly name: string = 'Number'
-
     readonly positive: boolean = false
 
-    readonly message: ValidationErrorMessage<unknown, number> = 
-        function (): string {
-            return [
-                'Must be a',
-                this.positive ? 'positive' : '',
-                this.name
-            ].filter(through).join(' ')
-        }
+    message(input: unknown, ctx: ValidationContext<unknown, number>): string {
+        void input
+        void ctx
+        return [
+            'Must be a',
+            this.positive ? 'positive' : '',
+            this.name
+        ].filter(through).join(' ')
+    }
 
     //// State ////
     
-    get [ValidateStructural.state](): Pick<this, 'name' | 'positive' | 'message'> {
-        return pick(this, 'name', 'positive', 'message')
+    get [Validator.state](): Pick<this, 'name' | 'positive' | 'message' | 'cast' | 'default'> {
+        return pick(this, 'name', 'positive', 'message', 'cast', 'default')
     }
 
-    set [ValidateStructural.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
+    set [Validator.state]({ name, positive, message }: Pick<this, 'name' | 'positive' | 'message'>) {
         assign(this, { positive, message })
         define.named(name, this)
     }
@@ -67,7 +65,8 @@ class Number extends Schema<NumberValidator, {}> {
         return this._applyMainValidator({ positive })
     }
 
-    message(message: ValidationErrorMessage<unknown>): this {
+    message(error: ValidationErrorMessage<unknown>): this {
+        const message = isString(error) ? () => error : error
         return this._applyMainValidator({ message })
     }
 
@@ -89,7 +88,7 @@ describe(`${$arrayOfNumber.name} validator tests`, () => {
         { transforms: ['0'], output: [0] },
         { transforms: ['atr'], error: true },
     )
-})
+}) 
 
 describe('retains wrapped validator properties', () => {
 
