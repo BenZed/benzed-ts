@@ -1,7 +1,7 @@
+import { Structural } from '@benzed/immutable'
 import { 
     InstanceValidatorInput, 
     InstanceValidator as StatelessInstanceValidator, 
-    $$settings 
 } from '@benzed/schema'
 
 import { pick } from '@benzed/util'
@@ -23,7 +23,7 @@ export class InstanceValidator <T extends InstanceValidatorInput>
 
     //// Settings ////
     
-    get [$$settings](): Pick<this, 'name' | 'message' | 'default' | 'cast'> {
+    get [Structural.state](): Pick<this, 'name' | 'message' | 'default' | 'cast'> {
         return pick(this, 'name', 'message', 'default', 'cast', 'Type')
     }
 

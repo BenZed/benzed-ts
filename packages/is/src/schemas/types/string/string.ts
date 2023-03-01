@@ -5,8 +5,9 @@ import {
     isFinite, 
     isNumber, 
     isString, 
-    SignatureParser 
 } from '@benzed/util'
+
+import { SignatureParser } from '@benzed/signature-parser'
 
 import {
     NameMessageEnabledSignature,

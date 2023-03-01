@@ -170,7 +170,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
             }
         }
 
-        struct[Stateful.state] = { ...state, ...partialState }
+        Stateful.set(struct, { ...state, ...partialState })
     }
 
     /**
@@ -234,7 +234,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
             ? superCopy.call(this)
             : Copyable.createFromProto(this)
 
-        clone[Stateful.state] = copy(this[Stateful.state])
+        Stateful.set(clone, copy(this[Stateful.state]))
         return clone
     }
  

@@ -8,3 +8,5 @@ export * from './intersection-validator'
 export * from './union-validator'
 export * from './shape-validator'
 export * from './tuple-validator'
+
+export * from './of-validators'

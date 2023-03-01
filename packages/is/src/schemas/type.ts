@@ -1,20 +1,18 @@
-import { 
-    Schema, 
-    SchemaBuilder, 
-    SchemaInput, 
-    
+import {
+    Schema,
+    SchemaBuilder,
+    SchemaInput,
     SubValidators,
     ValidateOutput,
     ValidationErrorMessage,
 } from '@benzed/schema'
 
-import { isFunc, OutputOf } from '@benzed/util'
+import { isFunc } from '@benzed/util'
 
-import { 
-    AnySettingsValidator, 
-    AnyTypeValidator, 
-    NameMessageEnabledSignature, 
-    toNameMessageEnabled, 
+import {
+    NameMessageEnabledSignature,
+    SettingsValidator,
+    toNameMessageEnabled,
     TypeDefault 
 } from '../validators'
 
@@ -29,7 +27,7 @@ type Settings = any // <- having to do this is annoying TODO
 
 //// Exports ////
 
-export class SettingsSchema<V extends AnySettingsValidator, S extends SubValidators<V>> extends Schema<V,S> {
+export class SettingsSchema<V extends SettingsValidator, S extends SubValidators<V>> extends Schema<V,S> {
 
     named(name: string): this {
         return this._applyMainValidator({ name } as Settings)
@@ -41,7 +39,7 @@ export class SettingsSchema<V extends AnySettingsValidator, S extends SubValidat
 
     //// Helper ////
 
-    protected _applyBasicSubValidator(key: keyof S, ...sig: NameMessageEnabledSignature<OutputOf<V>>): this {
+    protected _applyBasicSubValidator(key: keyof S, ...sig: NameMessageEnabledSignature<ValidateOutput<V>>): this {
         const nameMessageEnabled = toNameMessageEnabled(...sig as Settings)
         //                                                 ^ still not 100% on why this is necessary TODO
         return this._applySubValidator(
@@ -52,7 +50,7 @@ export class SettingsSchema<V extends AnySettingsValidator, S extends SubValidat
 
 }
 
-export class SettingsSchemaBuilder<V extends AnySettingsValidator, S extends SubValidators<V>> extends SchemaBuilder<V,S> {
+export class SettingsSchemaBuilder<V extends SettingsValidator, S extends SubValidators<V>> extends SchemaBuilder<V,S> {
 
     named(name: string): this {
         return this._applyMainValidator({ name } as Settings)
@@ -64,19 +62,18 @@ export class SettingsSchemaBuilder<V extends AnySettingsValidator, S extends Sub
 
     //// Helper ////
 
-    protected _applyBasicSubValidator(key: keyof S, ...sig: NameMessageEnabledSignature<OutputOf<V>>): this {
+    protected _applyBasicSubValidator(key: keyof S, ...sig: NameMessageEnabledSignature<ValidateOutput<V>>): this {
         const nameMessageEnabled = toNameMessageEnabled(...sig)
         return this._applySubValidator(
             key,
             nameMessageEnabled
         )
     }
-
 }
 
 //// TypesSchema ////
 
-export class TypeSchema<T extends AnyTypeValidator, S extends SubValidators<T>> extends SettingsSchemaBuilder<T, S> {
+export class TypeSchema<T extends SettingsValidator, S extends SubValidators<T>> extends SettingsSchemaBuilder<T, S> {
 
     default(getDefault: ValidateOutput<T> | TypeDefault): this {
 

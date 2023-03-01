@@ -1,4 +1,5 @@
-import { $$settings, ValidatorStruct, ValidationContext } from '@benzed/schema'
+import { Structural } from '@benzed/immutable'
+import { ValidationContext, Validator } from '@benzed/schema'
 
 //// EsLint ////
 /* eslint-disable 
@@ -17,14 +18,12 @@ export * from './sub-validator'
 
 export * from './shape-validator'
 
-export interface SettingsValidator<I, O extends I = I> extends ValidatorStruct<I, O> {
+export interface SettingsValidator<I = any, O extends I = I> extends Validator<I, O> {
 
     readonly name: string 
 
-    message(ctx: ValidationContext<I>): string 
+    message?(input: I, ctx: ValidationContext<I>): string 
 
-    get [$$settings](): Pick<this, 'name' | 'message'> 
+    get [Structural.state](): Pick<this, 'name' | 'message'> 
 
 }
-
-export type AnySettingsValidator = SettingsValidator<any,any>

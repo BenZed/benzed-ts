@@ -1,3 +1,4 @@
+import { Func } from '../types'
 import { nil } from '../types/nil'
 
 //// Types ////
@@ -54,7 +55,8 @@ export class EachIterable<T> {
         return this.toArray().forEach(withEach)
     }
     find<Tx extends T>(predicate: (value: T) => value is Tx): Tx | nil 
-    find(predicate: (value: T) => boolean): T | nil {
+    find(predicate: (value: T) => boolean): T | nil 
+    find(predicate: Func) {
 
         for (const item of this) {
             if (predicate(item))

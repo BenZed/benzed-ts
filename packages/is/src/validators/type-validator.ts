@@ -1,5 +1,5 @@
-import { showStateKeys } from '@benzed/immutable'
-import { $$settings, TypeValidator as StatelessTypeValidator } from '@benzed/schema'
+import { Structural } from '@benzed/immutable'
+import { TypeValidator as StatelessTypeValidator } from '@benzed/schema'
 import { pick } from '@benzed/util'
 import { SettingsValidator } from '.'
 
@@ -30,11 +30,9 @@ export abstract class TypeValidator<T>
             .name
             .replace('Validator', '')
             .replace('Schema', '')
-
-        showStateKeys(this, 'cast', 'default', 'message')
     }
 
-    get [$$settings](): Pick<this, 'name' | 'message' | 'cast' | 'default'> {
+    get [Structural.state](): Pick<this, 'name' | 'message' | 'cast' | 'default'> {
         return pick(this, 'name', 'message', 'cast', 'default')
     }
 

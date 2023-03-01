@@ -1,5 +1,5 @@
 import { Trait } from '@benzed/traits'
-import { AnyTypeGuard, isKeyed } from '@benzed/util'
+import { AnyTypeGuard, assign, each, isKeyed, isObject } from '@benzed/util'
 
 //// Sybol ////
 
@@ -21,7 +21,15 @@ abstract class Stateful extends Trait {
      * Set the state of an object using the State trait
      */
     static set<T extends Stateful>(object: T, state: StateOf<T>): void {
-        object[$$state] = state
+        const descriptor = each.descriptorOf(object).find(([k]) => k === Stateful.state)?.[0] as PropertyDescriptor
+
+        if (descriptor.writable || descriptor.set)
+            object[$$state] = state
+        else if (isObject(state))
+            assign(object, state) 
+        else 
+            throw new Error(`State ${state} is invalid.`)
+
     }
 
     /**
