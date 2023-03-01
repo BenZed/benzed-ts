@@ -13,7 +13,7 @@ import ContractValidator from '../contract-validator'
 
 //// Main ////
 
-abstract class TypeValidator<T> extends ContractValidator<unknown, T> {
+abstract class TypeValidator<T = any> extends ContractValidator<unknown, T> {
 
     abstract override isValid(input: unknown, ctx: ValidationContext<unknown, T>): input is T
 
