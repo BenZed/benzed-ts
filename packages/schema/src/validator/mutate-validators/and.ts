@@ -4,10 +4,10 @@ import { each, GenericObject, Infer, Intersect, pick } from '@benzed/util'
 
 import { ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
+import MutateLastValidator from '../mutate-last-validator'
 
 import { Validator } from '../validator'
-import { ShapeValidator } from './shape-validator'
-import { MutateLastValidator } from './union-validator'
+import { ShapeValidator } from '../validators/shape-validator'
 
 //// EsLint ////
 
@@ -17,15 +17,15 @@ import { MutateLastValidator } from './union-validator'
 
 //// HelperTypes ////
 
-type _IntersectionValidatorWrapBuilderOutput<V extends Validator[], P> = 
+type _AndWrapBuilderOutput<V extends Validator[], P> = 
     P extends V
-        ? IntersectionValidator<V>
+        ? And<V>
         : P extends (...args: infer A) => V 
-            ? (...args: A) => IntersectionValidator<V> 
+            ? (...args: A) => And<V> 
             : P
 
-type _IntersectionValidatorProperties<V extends Validator[]> = {
-    [K in keyof V]: _IntersectionValidatorWrapBuilderOutput<V, V[K]>
+type _AndProperties<V extends Validator[]> = {
+    [K in keyof V]: _AndWrapBuilderOutput<V, V[K]>
 }
 
 //// Types ////
@@ -38,21 +38,21 @@ type ValidateArrayOutput<T extends Validator[]> = T extends [infer T1, ...infer 
         : []
     : []
 
-type IntersectionValidatorOutput<V extends Validator[]> = Intersect<ValidateArrayOutput<V>>
+type AndOutput<V extends Validator[]> = Intersect<ValidateArrayOutput<V>>
 
-type IntersectionValidator<V extends Validator<object>[]> = 
-    Validator<object, Infer<IntersectionValidatorOutput<V>, object>> 
-    & _IntersectionValidatorProperties<V>
+type And<V extends Validator<any, object>[]> = 
+    Validator<object, Infer<AndOutput<V>, object>> 
+    & _AndProperties<V>
 
 //// Types ////
 
-interface IntersectionValidatorConstructor {
-    new <V extends Validator<object>[]>(...validators: V): IntersectionValidator<V>
+interface AndConstructor {
+    new <V extends Validator<any, object>[]>(...validators: V): And<V>
 }
 
 //// Main ////
 
-const IntersectionValidator = class IntersectionValidator extends MutateLastValidator<Validator[], unknown> {
+const And = class IntersectionValidator extends MutateLastValidator<Validator[], unknown> {
 
     // Construct
     override get name(): string {
@@ -95,12 +95,12 @@ const IntersectionValidator = class IntersectionValidator extends MutateLastVali
         return ctx.setOutput(transformed)
     }
 
-} as unknown as IntersectionValidatorConstructor
+} as unknown as AndConstructor
 
 //// Exports ////
 
-export default IntersectionValidator
+export default And
 
 export {
-    IntersectionValidator
+    And
 }

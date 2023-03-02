@@ -12,39 +12,39 @@ import { MutateLastValidator, LastValidator } from '../mutate-last-validator'
 
 //// HelperTypes ////
 
-type _UnionValidatorWrapBuilderOutput<V extends Validator[], P> = 
+type _OrWrapBuilderOutput<V extends Validator[], P> = 
     P extends LastValidator<V>
-        ? UnionValidator<V>
+        ? Or<V>
         : P extends (...args: infer A) => LastValidator<V>
-            ? (...args: A) => UnionValidator<V> 
+            ? (...args: A) => Or<V> 
             : P
 
-type _UnionValidatorProperties<V extends Validator[]> = {
-    [K in keyof LastValidator<V>]: _UnionValidatorWrapBuilderOutput<V, LastValidator<V>[K]>
+type _OrProperties<V extends Validator[]> = {
+    [K in keyof LastValidator<V>]: _OrWrapBuilderOutput<V, LastValidator<V>[K]>
 } & {
     readonly validators: V
 }
 
 //// Types ////
 
-type UnionValidatorInput<V extends Validator[]> = ValidateInput<V[number]>
+type OrInput<V extends Validator[]> = ValidateInput<V[number]>
 
-type UnionValidatorOutput<V extends Validator[]> = 
-    ValidateOutput<V[number]> extends UnionValidatorInput<V>
+type OrOutput<V extends Validator[]> = 
+    ValidateOutput<V[number]> extends OrInput<V>
         ? ValidateOutput<V[number]>
         : never
 
-type UnionValidator<V extends Validator[]> = 
-    Validator<ValidateInput<V[number]>, UnionValidatorOutput<V>> 
-    & _UnionValidatorProperties<V>
+type Or<V extends Validator[]> = 
+    Validator<ValidateInput<V[number]>, OrOutput<V>> 
+    & _OrProperties<V>
 
-interface UnionValidatorConstructor {
-    new <V extends Validator[]>(...validators: V): UnionValidator<V>
+interface OrConstructor {
+    new <V extends Validator[]>(...validators: V): Or<V>
 }
 
 //// Main ////
 
-const UnionValidator = class UnionValidator extends MutateLastValidator<Validator[], unknown> {
+const Or = class UnionValidator extends MutateLastValidator<Validator[], unknown> {
 
     override get name(): string {
         return this.validators.map(v => v.name).join('Or')
@@ -70,13 +70,10 @@ const UnionValidator = class UnionValidator extends MutateLastValidator<Validato
         return ctx
     }
 
-} as unknown as UnionValidatorConstructor
+} as unknown as OrConstructor
 
 //// Exports ////
 
-export default UnionValidator
+export default Or
 
-export {
-    UnionValidator,
-    MutateLastValidator
-}
+export { Or }

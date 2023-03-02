@@ -3,11 +3,11 @@ import { Copyable, equals } from '@benzed/immutable'
 import { Mutate } from '@benzed/traits'
 import { nil, GenericObject, each, assign } from '@benzed/util'
 
-import { ValidateOutput } from '../../../validate'
 import { ValidationContext } from '../../../validation-context'
+import { ValidateOutput } from '../../../validate'
 import { Validator } from '../../validator'
 
-import OfValidator from '../of-validator'
+import Of from '../of'
 
 //// Symbol ////
 
@@ -35,7 +35,7 @@ type _RecordValidatorProperties<K extends Key, V extends Validator> = {
 type KeyValidator<K extends Key> = Validator<Key, K>
 
 type RecordValidator<K extends Key, V extends Validator> = 
-    OfValidator<V, RecordValidatorOutput<K, V>> 
+    Of<V, RecordValidatorOutput<K, V>> 
     & _RecordValidatorProperties<K, V>
 
 type RecordValidatorOutput<K extends Key, V extends Validator> =
@@ -52,7 +52,7 @@ const RecordValidator = class RecordValidator<
     K extends symbol | string | number,
     V extends Validator,
 >
-    extends OfValidator<V, RecordValidatorOutput<K, V>> {
+    extends Of<V, RecordValidatorOutput<K, V>> {
 
     protected readonly [$$key]: KeyValidator<K> | nil
 

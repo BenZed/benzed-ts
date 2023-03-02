@@ -3,8 +3,8 @@ import { isNumber, isString } from '@benzed/util'
 import { RecordValidator } from './record-validator'
 
 import { testValidator } from '../../../util.test'
-import { ContractValidator } from '../contract-validator'
-import { TypeValidator } from '../contract-validators'
+import { TypeValidator, ContractValidator } from '../../validators'
+
 import Schema from '../../schema/schema'
 
 //// EsLint //// 

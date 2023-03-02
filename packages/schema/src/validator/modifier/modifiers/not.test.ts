@@ -1,4 +1,4 @@
-import { assign, pick } from '@benzed/util'
+import { pick } from '@benzed/util'
 
 import {ContractValidator} from '../../validators'
 import { Not } from './not'
@@ -32,7 +32,7 @@ class Id extends ContractValidator<string, id> {
     }
 
     message(): string {
-        return `Must be ${this.name}`
+        return `must be ${this.name}`
     }
 
     get [Validator.state](): Pick<this, 'minId' | 'message' | 'name'> {
@@ -55,7 +55,7 @@ describe('Not validation mutation', () => {
         $id,
         { transforms: '1', output: '#id-1' },
         { asserts: '#id-2', output: '#id-2' },
-        { asserts: '2', error: 'Must be Id' },
+        { asserts: '2', error: 'must be Id' },
     )
 
     testValidator(

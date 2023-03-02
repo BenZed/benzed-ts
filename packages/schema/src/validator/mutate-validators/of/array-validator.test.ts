@@ -7,7 +7,7 @@ import { testValidator } from '../../../util.test'
 import { ValidationErrorMessage } from '../../../validation-error'
 
 import { ArrayValidator } from './array-validator'
-import { TypeValidator } from '../contract-validators'
+import { TypeValidator } from '../../validators'
 import { Validator } from '../../validator'
 import ValidationContext from '../../../validation-context'
 

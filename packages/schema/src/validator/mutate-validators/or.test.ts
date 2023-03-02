@@ -1,8 +1,8 @@
 import { define, isBoolean, isNumber, isString, pick } from '@benzed/util'
 
-import { UnionValidator } from './union-validator'
+import { Or } from './or'
 import { testValidator } from '../../util.test'
-import { TypeValidator } from './contract-validators'
+import { TypeValidator } from '../validators'
 
 import { describe, it, expect } from '@jest/globals' 
 import { Validator, ValidatorStateApply } from '../validator'
@@ -33,7 +33,7 @@ class Boolean extends TypeValidator<boolean> {
 
 //// Setup //// 
 
-const $numberOrBool = new UnionValidator(new Number, new Boolean)
+const $numberOrBool = new Or(new Number, new Boolean)
 
 describe(`${$numberOrBool.name} validator tests`, () => {
 
@@ -73,7 +73,7 @@ describe('retains interface of most recently added validator', () => {
         }
     }
 
-    const $numOrBoolOrString = new UnionValidator(new Number, new Boolean, new String)
+    const $numOrBoolOrString = new Or(new Number, new Boolean, new String)
 
     it('allowEmpty', () => { 
         expect($numOrBoolOrString.allowEmpty).toBe(true)

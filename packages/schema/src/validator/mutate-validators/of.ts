@@ -15,7 +15,7 @@ import { Validator } from '../validator'
 
 //// Types ////
 
-type OfValidator<V extends Validator = Validator, O = any> = 
+type Of<V extends Validator = Validator, O = any> = 
     MutateValidator<ValidateInput<V>, O> & 
     {
         readonly [Mutate.target]: V
@@ -24,14 +24,14 @@ type OfValidator<V extends Validator = Validator, O = any> =
         set [Validator.state](state: StateOf<V>)
     }
 
-type OfValidatorConstructor = abstract new <V extends Validator, O>(target: V) => OfValidator<V, O>
+type OfConstructor = abstract new <V extends Validator, O>(target: V) => Of<V, O>
 
 //// Setup ////
 
 /**
  * A collection data type that contains a sub data type
  */
-const OfValidator = class extends MutateValidator<Validator, unknown> {
+const Of = class extends MutateValidator<Validator, unknown> {
 
     [Mutate.target]!: Validator
 
@@ -64,12 +64,12 @@ const OfValidator = class extends MutateValidator<Validator, unknown> {
         Stateful.set(this.of, state)
     }
 
-} as unknown as OfValidatorConstructor
+} as unknown as OfConstructor
 
 //// Exports ////
 
-export default OfValidator
+export default Of
 
 export {
-    OfValidator
+    Of
 }

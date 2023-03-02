@@ -7,7 +7,7 @@ import Schema from './schema'
 
 //// Quick ////
 
-export class ValueSchema<V extends ValueValidator<Primitive>> extends Schema<V,{}> {
+export class ValueSchema<V extends ValueValidator<Primitive>> extends Schema<V, {}> {
 
     named(name: string): this {
         return this._applyMainValidator({ name } as V)

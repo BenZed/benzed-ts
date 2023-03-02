@@ -1,9 +1,8 @@
-import { IntersectionValidator } from './intersection-validator'
-import { ShapeValidator } from './shape-validator'
+import { And } from './and'
 
 import { isBoolean, isNumber } from '@benzed/util'
 
-import { TypeValidator } from './contract-validators'
+import { TypeValidator, ShapeValidator } from '../validators'
 import { testValidator } from '../../util.test'
 
 //// Tests ////
@@ -28,7 +27,7 @@ const $bar = new ShapeValidator({
     bar: $boolean
 }) 
 
-const $fooBar = new IntersectionValidator($foo, $bar)
+const $fooBar = new And($foo, $bar)
 
 testValidator<object,object>(
     $fooBar,
@@ -50,5 +49,5 @@ testValidator<object,object>(
 
 it('requires an intersection of object types', () => {
     // @ts-expect-error must be object types
-    void new IntersectionValidator($number, $boolean) 
+    void new And($number, $boolean) 
 })

@@ -1,11 +1,10 @@
-import { Stateful } from '@benzed/immutable'
 import { each, isArray } from '@benzed/util'
 
 import { ValidateOutput } from '../../../validate'
 import { ValidationContext } from '../../../validation-context'
 import { Validator } from '../../validator'
 
-import OfValidator from '../of-validator' 
+import Of from '../of' 
 
 //// EsLint ////
 /* eslint-disable 
@@ -22,13 +21,13 @@ type _ArrayValidatorWrapBuilderOutput<V extends Validator, P> =
             : P
 
 type _ArrayValidatorProperties<V extends Validator> = {
-    [K in keyof V as K extends keyof OfValidator ? never : K]: _ArrayValidatorWrapBuilderOutput<V, V[K]>
+    [K in keyof V as K extends keyof Of ? never : K]: _ArrayValidatorWrapBuilderOutput<V, V[K]>
 }
 
 //// Types ////
 
 type ArrayValidator<V extends Validator> = 
-    OfValidator<V, ValidateOutput<V>[]> 
+    Of<V, ValidateOutput<V>[]> 
     & _ArrayValidatorProperties<V>
 
 interface ArrayValidatorConstructor {
@@ -37,7 +36,7 @@ interface ArrayValidatorConstructor {
  
 //// Main ////
 
-const ArrayValidator = class <V extends Validator> extends OfValidator<V, ValidateOutput<V>[]> {
+const ArrayValidator = class <V extends Validator> extends Of<V, ValidateOutput<V>[]> {
 
     [Validator.analyze](ctx: ValidationContext): ValidationContext {
 
