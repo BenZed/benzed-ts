@@ -64,6 +64,10 @@ export interface Validator<I = any, O = I> extends Structural, Callable<Validate
 
 export abstract class Validator<I = any, O = I> implements Structural, Callable<Validate<I,O>> {
 
+    static is(input: unknown): input is Validator {
+        return Callable.is(input) && input[Callable.signature] === analyze
+    }
+
     static readonly analyze: typeof $$analyze = $$analyze
     static readonly state: typeof Structural.state = Structural.state
     static readonly copy: typeof Structural.copy = Structural.copy

@@ -4,9 +4,9 @@ import {
     isFunc,
     isIntersection,
     isShape,
-    isKeyed,
     isObject,
-    each 
+    each, 
+    AnyTypeGuard
 } from '@benzed/util'
 
 import { Trait } from '../trait'
@@ -110,13 +110,13 @@ const Callable = class extends Trait {
         return callable as unknown as Callable<F>
     }
 
-    static override is = isIntersection(
-        isFunc,
-        isShape({
-            [$$signature]: isFunc
-        }),
-        isKeyed($$context)
-    )
+    static override is: <F extends Func>(input: unknown) => input is Callable<F> = 
+        isIntersection(
+            isFunc,
+            isShape({
+                [$$signature]: isFunc
+            })
+        ) as AnyTypeGuard
 
 } as CallableConstructor 
 

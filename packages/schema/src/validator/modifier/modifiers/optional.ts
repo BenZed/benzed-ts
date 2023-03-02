@@ -77,7 +77,10 @@ const Optional = class Optional extends Modifier<Validator, ModifierType.Optiona
     //// Convenience ////
 
     get required(): Validator {
-        return this[Modifier.target]
+        return Modifier.remove(
+            this[Modifier.target],
+            ModifierType.Optional
+        )
     }
 
 } as unknown as OptionalConstructor

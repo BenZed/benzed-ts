@@ -1,17 +1,26 @@
 
-import { InstanceValidator, InstanceValidatorInput, TypeSchema } from '@benzed/schema'
+import { 
+    InstanceValidator, 
+    InstanceValidatorInput, 
+    TypeSchema,
+} from '@benzed/schema'
 
 //// EsLint ////
 
 /* eslint-disable 
+    @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
 
 //// Schema ////
 
-class Instance <T extends InstanceValidatorInput> extends TypeSchema<InstanceValidator<T>, {}> {
+type ConstructorOf<T extends object> = 
+    (new (...args: any) => T) | 
+    (abstract new (...args: any) => T)
 
-    constructor(Type: T) {
+class Instance <T extends object> extends TypeSchema<InstanceValidator<ConstructorOf<T>>, {}> {
+
+    constructor(Type: ConstructorOf<T>) {
         super(new InstanceValidator(Type), {})
     }
 
@@ -20,5 +29,6 @@ class Instance <T extends InstanceValidatorInput> extends TypeSchema<InstanceVal
 //// Exports ////
 
 export {
-    Instance
+    Instance,
+    InstanceValidatorInput as InstanceInput
 }

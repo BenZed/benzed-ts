@@ -13,7 +13,7 @@ export class ValueSchema<V extends ValueValidator<Primitive>> extends Schema<V, 
         return this._applyMainValidator({ name } as V)
     }
 
-    force(force: boolean): this {
+    force(force = true): this {
         return this._applyMainValidator({ force } as V)
     }
 

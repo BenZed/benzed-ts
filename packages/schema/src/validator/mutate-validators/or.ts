@@ -44,7 +44,7 @@ interface OrConstructor {
 
 //// Main ////
 
-const Or = class UnionValidator extends MutateLastValidator<Validator[], unknown> {
+const Or = class Or extends MutateLastValidator<Validator[], unknown> {
 
     override get name(): string {
         return this.validators.map(v => v.name).join('Or')

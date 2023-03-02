@@ -13,4 +13,4 @@ describe(`${$regexp.name} validator tests`, () => {
         { asserts: /ace/ },
     )
 
-})
+}) 

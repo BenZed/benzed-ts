@@ -220,6 +220,6 @@ export default Shape
 
 export {
     Shape,
-    ShapeValidatorInput,
+    ShapeValidatorInput as ShapeInput,
     ShapeValidatorOutput as ShapeOutput
 }

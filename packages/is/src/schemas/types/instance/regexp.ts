@@ -1,11 +1,31 @@
-import { Instance } from './instance'
+import { InstanceValidator, TypeSchema } from '@benzed/schema'
 
-//// Exports ////
+//// EsLint ////
 
-export class RegExp extends Instance<RegExpConstructor> {
+/* eslint-disable
+    @typescript-eslint/ban-types
+*/
+
+//// Main ////
+
+class RegExpValidator extends InstanceValidator<RegExpConstructor> {
+
     constructor() {
         super(globalThis.RegExp)
     }
+
 }
+
+class RegExp extends TypeSchema<RegExpValidator, {}> {
+
+    constructor() {
+        super(new RegExpValidator, {})
+    }
+
+}
+
+//// Exports ////
+
+export { RegExp }
 
 export const $regexp = new RegExp

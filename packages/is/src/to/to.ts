@@ -1,13 +1,26 @@
-import { ModifierType, Optional, Validator } from '@benzed/schema'
+import { Infer } from '@benzed/util'
 import { Method } from '@benzed/traits'
-import { nil } from '@benzed/util'
+import { ModifierType, Validator } from '@benzed/schema'
+import { pluck } from '@benzed/array'
+
 import { Is } from '../is'
+
 import {
     String,
     $string,
-    $boolean, 
+
+    Boolean,
+    $boolean,
+    
+    Number,
     $number, 
 } from '../schemas'
+
+import {
+    resolveValidator, 
+    ResolveValidator,
+    ResolveValidatorsInput 
+} from './resolve-validator'
 
 //// EsLint ////
 
@@ -17,70 +30,75 @@ import {
 
 //// Types ////
 
-enum OfType {
+export enum OfType {
     Record = 'Record',
     Array = 'Array',
     // Set,
     // Map
 }
 
-type From = Validator | nil
+type From = [Validator] | []
 
-type Clause = OfType | ModifierType | nil
+type Clause = [OfType | ModifierType] | []
 
 //// Helper ////
 
 interface ToSignature<F extends From, C extends Clause> {
-    (): void
+    <T extends ResolveValidatorsInput>(...inputs: T): IsTo<F, ResolveValidator<T>>
 }
 
-function to(): void {
-    //
+function to<T extends ResolveValidatorsInput, F extends From, C extends Clause>(
+    this: To<F,C>,
+    ...inputs: T
+): IsTo<F, ResolveValidator<T>> {
+
+    const validator = resolveValidator(...inputs)
+
+    return new Is(validator)
 }
 
-// type IsTo<F extends From, C extends Clause> = 
-//     Is<>
+type IsTo<F extends From, T extends ResolveValidatorsInput> = 
+    Is<Infer<ResolveValidator<[...F, ...T]>, Validator>>
+
 //// Main ////
 
 class To<F extends From, C extends Clause> extends Method<ToSignature<F,C>> {
 
-    private readonly _from: F
-    private readonly _clause: C
+    /**
+     * @internal
+     */
+    readonly _from: F
+    
+    /**
+     * @internal
+     */
+    readonly _clause: C
 
-    constructor(options: { from: F, clause: C }) {
+    constructor(...args: [...F, ...C]) {
         super(to)
-        this._from = options.from
-        this._clause = options.clause
+        this._from = pluck(args, Validator.is) as F
+        this._clause = args as unknown as C
     }
 
     get optional() {
-        return this._from 
-            ? new Is(new Optional(this._from))
-            : new To({
-                from: nil,
-                clause: ModifierType.Optional
-            })
+        return this()
+    }
+
+    get not() {
+        return this()
     }
 
     get string(): Is<String> {
         return new Is($string)
     }
 
-    // get boolean(): Is<Boolean> {
-    //     return new Is($boolean)
-    // }
+    get boolean(): Is<Boolean> {
+        return new Is($boolean)
+    }
 
-    // get number() {
-    //     return this($number)
-    // }
-
-    // get array() {
-
-    // }
-
-    // shape() {
-
-    // }
+    get number(): Is<Number> {
+        return new Is($number)
+    }
 
 }
 

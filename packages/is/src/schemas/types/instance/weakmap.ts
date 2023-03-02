@@ -1,11 +1,31 @@
-import { Instance } from './instance'//// Exports ////
+import { InstanceValidator, TypeSchema } from '@benzed/schema'
 
-//// Exports ////
+//// EsLint ////
 
-export class WeakMap extends Instance<WeakMapConstructor> {
+/* eslint-disable
+    @typescript-eslint/ban-types
+*/
+
+//// Main ////
+
+class WeakMapValidator extends InstanceValidator<WeakMapConstructor> {
+
     constructor() {
         super(globalThis.WeakMap)
     }
+
 }
+
+class WeakMap extends TypeSchema<WeakMapValidator, {}> {
+
+    constructor() {
+        super(new WeakMapValidator, {})
+    }
+
+}
+
+//// Exports ////
+
+export { WeakMap }
 
 export const $weakmap = new WeakMap

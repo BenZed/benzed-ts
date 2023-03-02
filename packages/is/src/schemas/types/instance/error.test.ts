@@ -11,6 +11,6 @@ describe(`${$error.name} validator tests`, () => {
     testValidator(
         $error,
         { asserts: new Error('Problem') },
-    )
+    ) 
 
 })
