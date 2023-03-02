@@ -1,5 +1,5 @@
-import { Callable } from '@benzed/util'
 import { Async, toAsync } from './types'
+import { Method } from '@benzed/traits'
 
 //// Types ////
 
@@ -13,7 +13,7 @@ type AsyncState<T> =
 
 export type HasAsyncState<S extends AsyncState<unknown>> = { state: S }
     
-class Guarantee<A extends unknown[], R> extends Callable<(...args: A) => Async<R>> {
+class Guarantee<A extends unknown[], R> extends Method<(...args: A) => Async<R>> {
 
     protected _state: AsyncState<R> = { status: 'idle' }
     get state(): AsyncState<R> {

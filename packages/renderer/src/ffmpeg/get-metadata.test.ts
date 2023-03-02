@@ -1,5 +1,6 @@
 import { TEST_ASSETS } from '../../test-assets'
 import { getMetadata } from './get-metadata'
+import { it, expect, describe } from '@jest/globals'
 
 describe('getMetadata', () => {
 

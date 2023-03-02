@@ -4,6 +4,7 @@ import fs from 'fs'
 import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import { createMP4 } from './create-mp4'
+import { it, expect } from '@jest/globals'
 
 import { $metaData } from './get-metadata'
 

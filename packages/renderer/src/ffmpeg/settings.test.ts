@@ -1,4 +1,5 @@
 import { $sizeSetting, $timeSetting } from './settings'
+import { it, expect, describe } from '@jest/globals'
 
 describe('isTimeSetting method', () => {
 

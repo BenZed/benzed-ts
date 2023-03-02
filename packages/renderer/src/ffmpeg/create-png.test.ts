@@ -7,6 +7,7 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import createPNG from './create-png'
 import getMetadata, { $metaData } from './get-metadata'
+import { it, expect } from '@jest/globals'
 
 import { SizeSetting, TimeSetting } from './settings'
 

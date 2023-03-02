@@ -1,3 +1,3 @@
 
 // TODO refator combine with resolver
-export * from './pipe'
+export * from './pipe' 
