@@ -61,7 +61,7 @@ export {
     resolveValidator,
     ResolveValidatorInput,
     ResolveValidatorOutput,
-    
+
     resolveValidators,
     ResolveValidatorsInput,
     ResolveValidatorsOutput,

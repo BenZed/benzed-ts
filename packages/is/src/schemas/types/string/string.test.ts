@@ -1,6 +1,6 @@
 import { $string } from './string'
 
-import { testValidator } from '../../util.test'
+import { testValidator } from '../../../util.test'
 
 //// Tests ////
   

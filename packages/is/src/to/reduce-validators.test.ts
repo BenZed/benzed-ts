@@ -22,13 +22,13 @@ import { Or } from '@benzed/schema'
 
 test('multiple inputs resusult in an Or union', () => {
 
-    const isBoolOrString = reduceValidators($boolean, $string)
+    const $boolOrString = reduceValidators($boolean, $string)
 
-    expect(isBoolOrString).toBeInstanceOf(Or)
-    expect(isBoolOrString(true)).toBe(true)
-    expect(isBoolOrString('2')).toBe(true)
+    expect($boolOrString).toBeInstanceOf(Or)
+    expect($boolOrString(true)).toBe(true)
+    expect($boolOrString('2')).toBe('2')
 
-    expectTypeOf(isBoolOrString)
+    expectTypeOf($boolOrString)
         .toEqualTypeOf<Or<[Boolean, String]>>()
 })
 

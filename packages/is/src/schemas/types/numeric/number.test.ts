@@ -1,6 +1,6 @@
 import { $number } from './number'
 
-import { testValidator } from '../../util.test'
+import { testValidator } from '../../../util.test'
 
 //// Tests ////
   

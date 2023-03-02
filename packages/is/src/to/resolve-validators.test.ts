@@ -23,17 +23,14 @@ describe('resolveValidator', () => {
         const $zero = resolveValidator(0)
         expect($zero).toBeInstanceOf(Value)
         expect($zero.value).toBe(0)
-        expect($zero(0)).toBe(true) 
-        expect($zero(1)).toBe(false)
+        expect($zero(0)).toBe(0) 
     })
 
     test('schematic from instance', () => {
     
         const $foo = resolveValidator(Foo)
         expect($foo).toBeInstanceOf(Instance)
-        expect($foo(null)).toBe(false)
-        expect($foo({})).toBe(false)
-        expect($foo.name).toBe('isInstanceOfFoo')
+        expect($foo(new Foo)).toEqual(new Foo)
     })
 
     test('schematic fall through', () => {

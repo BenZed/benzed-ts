@@ -66,21 +66,21 @@ class To<F extends From, C extends Clause> extends Method<ToSignature<F,C>> {
         return new Is($string)
     }
 
-    get boolean(): Is<Boolean> {
-        return new Is($boolean)
-    }
+    // get boolean(): Is<Boolean> {
+    //     return new Is($boolean)
+    // }
 
-    get number() {
-        return this($number)
-    }
+    // get number() {
+    //     return this($number)
+    // }
 
-    get array() {
+    // get array() {
 
-    }
+    // }
 
-    shape() {
+    // shape() {
 
-    }
+    // }
 
 }
 

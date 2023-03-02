@@ -6,7 +6,7 @@ import {
     isNaN,
 } from '@benzed/util'
 
-import { NameMessageEnabledSettingsSignature, toNameMessageEnabledSettings } from '../util'
+import { NameMessageEnabledSettingsSignature, toNameMessageEnabledSettings } from '../../util'
 
 import {
 

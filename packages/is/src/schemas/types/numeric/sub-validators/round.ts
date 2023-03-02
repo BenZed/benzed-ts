@@ -3,7 +3,7 @@ import { ContractValidator, SubValidator, ValidationErrorMessage, Validator } fr
 import { SignatureParser } from '@benzed/signature-parser'
 
 import { isNumber, isOptional, pick } from '@benzed/util'
-import { toNameMessageEnabledSettings } from '../../util'
+import { toNameMessageEnabledSettings } from '../../../util'
 
 //// EsLint ////
 
