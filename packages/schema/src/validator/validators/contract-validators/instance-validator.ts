@@ -1,3 +1,5 @@
+import { assign } from '@benzed/util'
+import { Validator } from '../../validator'
 import TypeValidator from './type-validator'
 
 //// EsLint ////
@@ -26,6 +28,12 @@ class InstanceValidator<T extends InstanceValidatorInput> extends TypeValidator<
 
     isValid(value: unknown): value is InstanceType<T> {
         return value instanceof this.Type
+    }
+
+    [Validator.copy]() {
+        const clone = super[Validator.copy]()
+        assign(clone, { Type: this.Type })
+        return clone 
     }
 
 }

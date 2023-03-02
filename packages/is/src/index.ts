@@ -1,2 +1,7 @@
+import { To } from './to'
 
-export * from './schemas' 
+//// Main Export ////
+
+export const is = new To<[],[]>()
+
+export default is

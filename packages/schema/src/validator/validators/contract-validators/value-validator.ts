@@ -1,5 +1,5 @@
 import { equals } from '@benzed/immutable'
-import { define, pick, Primitive } from '@benzed/util'
+import { assign, define, pick, Primitive } from '@benzed/util'
 import { Validator } from '../../validator'
 
 import ContractValidator from '../contract-validator'
@@ -34,6 +34,12 @@ export class ValueValidator<T extends Primitive> extends ContractValidator<unkno
     }
 
     //// Validator ////
+
+    [Validator.copy](): this {
+        const clone = super[Validator.copy]()
+        assign(clone, { value: this.value })
+        return clone
+    }
     
     get [Validator.state](): Pick<this, 'name' | 'message' | 'force'> {
         return pick(this, 'name', 'message', 'force')

@@ -1,6 +1,6 @@
-import { Value } from './equal'
+import { Value } from './value'
 
-//// Main ////
+//// Exports ////
 
 export class Undefined extends Value<undefined> {
 
@@ -9,7 +9,5 @@ export class Undefined extends Value<undefined> {
     }
 
 }
-
-//// Exports ////
 
 export const $undefined = new Undefined

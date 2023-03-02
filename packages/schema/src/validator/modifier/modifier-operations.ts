@@ -71,7 +71,9 @@ export type AddModifier<V extends Validator, T extends ModifierType> =
         : T extends ModifierType.ReadOnly
             ? ReadOnly<Writable<V>> 
             : T extends ModifierType.Not
-                ? ToggleNot<V> 
+                ? HasModifier<V, ModifierType.Not> extends true
+                    ? V 
+                    : Not<V>
                 : V
 
 export function addModifier<V extends Validator, T extends ModifierType>(
@@ -116,7 +118,7 @@ export function addModifiers <V extends Validator, T extends ModifierType[]>(
 
             case ModifierType.Not: {
                 current = hasModifier(current, ModifierType.Not)
-                    ? (current as Not<V>)[Mutate.target] 
+                    ? current
                     : new Not(current)
                 break
             }

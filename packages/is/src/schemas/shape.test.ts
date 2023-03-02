@@ -1,43 +1,33 @@
 import { isNumber, isString, nil } from '@benzed/util'
 
 import { Shape } from './shape'
-import { testValidator, testValidationContract } from '../util.test'
-import { ReadOnly, Optional } from '@benzed/schema'
+import { testValidator } from '../util.test'
+import { ReadOnly, Optional, TypeValidator } from '@benzed/schema'
 
 import { expectTypeOf } from 'expect-type'
-import { TypeValidator } from '../validators'
 
 //// Tests ////
 
 const $number = new class Number extends TypeValidator<number> {
-    isValid = isNumber
+    isValid(input: unknown): input is number {
+        return isNumber(input)
+    }
 }
 
 const $vector = new Shape({
     x: $number,
     y: $number
-}).named('Vector') 
+}).named('Vector')
 
 const $positiveVector = $vector
-    .asserts(v => v.x >= 0 && v.y >= 0, 'Must be positive.')
-
-describe(`${$vector.name} validator contract tests`, () => {
-
-    testValidationContract( 
-        $vector,
-        {
-            validInput: { x: 0, y: 0 },
-            invalidInput: { x: 'ace' }
-        }
-    )
-})
+    .asserts(v => v.x >= 0 && v.y >= 0, 'must be positive.')
 
 describe(`${$vector.name} validator tests`, () => {
 
     testValidator(
         $vector,
         { asserts: { x: 0, y: 0 } },
-        { asserts: { x: NaN }, error: 'Must be a Number' }
+        { asserts: { x: NaN }, error: 'must be Number' }
     )
 
 })
@@ -71,14 +61,15 @@ it('output type respects mutators', () => {
         readonly last: string
     }>()
 
-}) 
- 
+})
+
 describe('builder methods', () => {
 
     testValidator(
         $positiveVector,
+        { asserts: nil, error: 'must be Vector' },
         { asserts: { x: 0, y: 0 } },
-        { asserts: { x: -1, y: 0 }, error: 'Must be positive.' },
+        { asserts: { x: -1, y: 0 }, error: 'must be positive' },
     )
 
     const minX = $vector 
@@ -100,7 +91,7 @@ describe('builder methods', () => {
         expectTypeOf(output).toEqualTypeOf<{
             x?: number
             y: number
-        }>()
+        }>() 
  
         testValidator<object, typeof output>(
             $vectorOptionalX,
@@ -110,14 +101,13 @@ describe('builder methods', () => {
             { transforms: { y: -1 } },
         )
 
-    })
+    }) 
 
     it('pick', () => {
         const $justX = $positiveVector.pick('x')
-
-        const justX = $justX({ x: -1, y: 0 })
-        expect(justX).toEqual({ x: -1 })
-    })
+        const justX = $justX({ x: 1, y: 0 })
+        expect(justX).toEqual({ x: 1 })
+    }) 
 
     it('omit', () => {
         const $justY = $positiveVector.omit('x')

@@ -1,3 +1,5 @@
-export * from './boolean'
-export * from './string'
+
 export * from './numeric'
+export * from './string'
+export * from './boolean'
+export * from './instance'

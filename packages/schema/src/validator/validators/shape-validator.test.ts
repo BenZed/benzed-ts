@@ -8,7 +8,7 @@ import { ValidateOutput } from '../../validate'
 
 import { expectTypeOf } from 'expect-type'
 
-//// Setup ////
+//// Setup //// 
 
 const $boolean = new class Boolean extends TypeValidator<boolean> {
     isValid = isBoolean
@@ -33,8 +33,12 @@ it('output type', () => {
     }>()
 })
 
-testValidator<object, { description: string, completed: boolean }>( 
+testValidator<unknown, { description: string, completed: boolean }>( 
     $todo,
+    {
+        asserts: '',
+        error: 'must be Object'
+    },
     {
         transforms: { description: 'hey', completed: 'yo' },
         error: 'completed must be Boolean'

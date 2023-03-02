@@ -1,6 +1,6 @@
 import { copy, Copyable, Stateful } from '@benzed/immutable'
 import { Callable, Mutate, Trait } from '@benzed/traits'
-import { define } from '@benzed/util'
+import { define, isString } from '@benzed/util'
 
 import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
@@ -101,6 +101,10 @@ const Modifier = class extends MutateValidator<Validator, any> {
         throw new Error(`${String($$type)} is not implemented in ${this.constructor.name}`)
     }
 
+    override get name(): string {
+        return this.constructor.name + this[Mutate.target].name
+    }
+
     [Validator.copy](): this {
         const clone = Copyable.createFromProto(this)
         define.enumerable(clone, Mutate.target, copy(this[Mutate.target]))
@@ -116,7 +120,7 @@ const Modifier = class extends MutateValidator<Validator, any> {
     }
 
     set [Validator.state](state) {
-        Stateful.set(this[Mutate.target], state)
+        Validator.setState(this[Mutate.target], state)
     }
 
 } as ModifierConstructor

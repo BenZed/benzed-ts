@@ -1,40 +1,31 @@
 
 import { 
 
-    $$settings,
-    $$main,
-
-    $$builder,
+    SchemaBuilder,
 
     PipeValidatorBuilder,
-    EnsureMutator,
-    ensureMutator,
+    EnsureModifier,
+    ensureModifier,
 
-    MutatorType,
+    ModifierType,
 
-    ValidationContext,
-    ValidateUpdateSettings,
+    ValidatorState,
+    Validator,
+
+    ShapeValidator,
+    ShapeValidatorInput,
+    ShapeValidatorOutput,
+    SchemaMainStateApply,
+    ValidationErrorMessage,
+
 } from '@benzed/schema'
 
-import { 
+import {
     each,
-    Infer, 
-    omit, 
-    pick 
+    Infer,
+    omit,
+    pick
 } from '@benzed/util'
-
-import { 
-    AnySettingsValidator,
-    ShapeInput, 
-    ShapeOutput, 
-    ShapeValidator, 
-    TypeDefault 
-} from '../validators'
-
-import { 
-    SettingsSchemaBuilder,
-    TypeSchema 
-} from './type'
 
 //// EsLint ////
 
@@ -46,11 +37,11 @@ import {
 
 //// Helper Types ////
 
-type _ShapePropertyMethod<T extends ShapeInput, K extends keyof T> = 
-    (prop: T[K]) => AnySettingsValidator
+type _ShapePropertyMethod<T extends ShapeValidatorInput, K extends keyof T> = 
+    (prop: T[K]) => Validator
 
 type _ShapeProperty<
-    T extends ShapeInput, 
+    T extends ShapeValidatorInput, 
     K extends keyof T, 
     U extends _ShapePropertyMethod<T,K>
 > = Shape<
@@ -58,30 +49,30 @@ type _ShapeProperty<
             [Tk in keyof T]: Tk extends K 
                 ? ReturnType<U> 
                 : T[K]
-        }, ShapeInput>
+        }, ShapeValidatorInput>
     >
 
 type _ShapePick<
-    T extends ShapeInput,
+    T extends ShapeValidatorInput,
     K extends (keyof T)[]
 > = Shape<
     Infer<{
         [Tk in keyof T as Tk extends K[number] ? Tk : never]: T[Tk]
-    }, ShapeInput>
+    }, ShapeValidatorInput>
 >
 
 type _ShapeOmit<
-    T extends ShapeInput,
+    T extends ShapeValidatorInput,
     K extends (keyof T)[]
 > = Shape<
     Infer<{
         [Tk in keyof T as Tk extends K[number] ? never : Tk]: T[Tk]
-    }, ShapeInput>
+    }, ShapeValidatorInput>
 >
 
 type _ShapeMerge<
-    A extends ShapeInput,
-    B extends ShapeInput,
+    A extends ShapeValidatorInput,
+    B extends ShapeValidatorInput,
 > = Shape<
         Infer<{
             [K in keyof A | keyof B]: K extends keyof B 
@@ -89,43 +80,50 @@ type _ShapeMerge<
                 : K extends keyof A 
                     ? A[K]
                     : never
-        }, ShapeInput>
+        }, ShapeValidatorInput>
     >
 
-type _ShapeEnsurePropertyMutator<
-    T extends ShapeInput,
-    M extends MutatorType
+type _ShapeEnsurePropertyModifier<
+    T extends ShapeValidatorInput,
+    M extends ModifierType
 > = Shape<
     Infer<{
-        [K in keyof T]: EnsureMutator<T[K], M>
-    }, ShapeInput>
+        [K in keyof T]: EnsureModifier<T[K], M>
+    }, ShapeValidatorInput>
     >
 
-type _ShapePartial<T extends ShapeInput> = _ShapeEnsurePropertyMutator<T, MutatorType.Optional>
+type _ShapePartial<T extends ShapeValidatorInput> = _ShapeEnsurePropertyModifier<T, ModifierType.Optional>
 
 //// Implementation ////
 
-class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T>, {}> {
+class Shape<T extends ShapeValidatorInput> extends SchemaBuilder<ShapeValidator<T>, {}> {
 
     constructor(properties: T) {
         super(
-            new ShapeValidator(properties), 
+            new ShapeValidator(properties),
             {}
         )
     }
 
     get properties(): T {
-        return this[$$settings][$$main].properties
+        return this[SchemaBuilder.main].properties
     }
 
     //// Builder Methods ////
 
-    /**
-     * Set a default object 
-     */
-    default(def: (ctx: ValidationContext<unknown>) => unknown): this {
+    named(name: string) {
+        return this._applyMainValidator({ name })
+    }
+
+    default(def: ShapeValidator<T>['default']) {
         return this._applyMainValidator({ 
             default: def 
+        } as SchemaMainStateApply<ShapeValidator<T>>)
+    }
+
+    message(message: ValidationErrorMessage<unknown, ShapeValidator<T>>) {
+        return this._applyMainValidator({
+            message
         })
     }
 
@@ -143,9 +141,7 @@ class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T
             [key]: newProp 
         }
 
-        return this._applyMainValidator({ 
-            properties: newProps 
-        }) as unknown as _ShapeProperty<T, K, U>
+        return this._applyShape(newProps) as unknown as _ShapeProperty<T, K, U>
     }
 
     /**
@@ -155,9 +151,7 @@ class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T
         ...keys: K
     ): _ShapePick<T, K> {
         const newProps = pick(this.properties, ...keys)
-        return this._applyMainValidator({ 
-            properties: newProps 
-        }) as unknown as _ShapePick<T, K>
+        return this._applyShape(newProps) as unknown as _ShapePick<T, K>
     }
 
     /**
@@ -167,27 +161,23 @@ class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T
         ...keys: K
     ): _ShapeOmit<T, K> {
         const omittedProps = omit(this.properties, ...keys)
-        return this._applyMainValidator({ 
-            properties: omittedProps 
-        }) as unknown as _ShapeOmit<T,K>
+        return this._applyShape(omittedProps) as unknown as _ShapeOmit<T,K>
     }
 
     /**
      * Merge shape with additional properties
      */
-    merge<Tx extends ShapeInput>(
+    merge<Tx extends ShapeValidatorInput>(
         shapeOrProperties: Tx | Shape<Tx>
     ): _ShapeMerge<T, Tx> {
 
         const properties = shapeOrProperties instanceof Shape 
             ? shapeOrProperties.properties
-            : shapeOrProperties as ShapeInput
+            : shapeOrProperties as ShapeValidatorInput
 
-        return this._applyMainValidator({
-            properties: {
-                ...this.properties,
-                ...properties
-            }
+        return this._applyShape({
+            ...this.properties,
+            ...properties
         }) as unknown as _ShapeMerge<T,Tx>
     }
 
@@ -196,35 +186,29 @@ class Shape<T extends ShapeInput> extends SettingsSchemaBuilder<ShapeValidator<T
      */
     partial(): _ShapePartial<T>{
 
-        const propertiesPartial = { ...this.properties } as ShapeInput
+        const propertiesPartial = { ...this.properties } as ShapeValidatorInput
         for (const key of each.keyOf(propertiesPartial)) {
-            propertiesPartial[key] = ensureMutator(
-                propertiesPartial[key], 
-                MutatorType.Optional
+            propertiesPartial[key] = ensureModifier(
+                propertiesPartial[key],
+                ModifierType.Optional
             )
         }
 
-        return this._applyMainValidator({ 
-            properties: propertiesPartial 
-        }) as unknown as _ShapePartial<T>
+        return this._applyShape(propertiesPartial) as unknown as _ShapePartial<T>
     }
 
     //// Helper ////
 
-    protected override _applyMainValidator(
-        main: { properties?: ShapeInput, default?: TypeDefault }
+    protected _applyShape(
+        properties?: ShapeValidatorInput
     ): this {
-    
-        const builder = 'properties' in main 
-            ? PipeValidatorBuilder.empty()
-            : this[$$builder]
-    
-        return TypeSchema.applySettings(
+
+        return Validator.applyState(
             this,
             {
-                [$$main]: { ...this[$$main], ...main },
-                [$$builder]: builder
-            } as ValidateUpdateSettings<this>
+                [SchemaBuilder.main]: { properties },
+                [SchemaBuilder.builder]: PipeValidatorBuilder.empty()
+            } as ValidatorState<this>
         )
     }
 
@@ -236,6 +220,6 @@ export default Shape
 
 export {
     Shape,
-    ShapeInput,
-    ShapeOutput
+    ShapeValidatorInput as ShapeInput,
+    ShapeValidatorOutput as ShapeOutput
 }

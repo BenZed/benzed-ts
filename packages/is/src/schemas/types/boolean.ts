@@ -1,61 +1,28 @@
-
-import { 
-    isBoolean, 
-    isNil 
-} from '@benzed/util'
-
 import {
+    TypeSchema,
     TypeValidator,
-} from '../../validators/type-validator'
+} from '@benzed/schema'
 
-import { TypeSchema } from '../type'
-
-/* eslint-disable   
-    @typescript-eslint/ban-types
-*/
+import { isBoolean } from '@benzed/util'
 
 //// Helper ////
 
-const toBoolean = (
-    input: unknown
-): unknown => 
-    input === 'false' || input === 0 || input === BigInt(0) || isNil(input) 
-        ? false
-        : input === 'true' || input === 1 || input === BigInt(1)
-            ? true
-            : input
-
-//// Validator ////
-
 class BooleanValidator extends TypeValidator<boolean> {
 
-    isValid(value: unknown): value is boolean {
-        return isBoolean(value)
-    }
-
-    override cast = toBoolean
-
-}
-
-//// Schema ////
-
-class Boolean extends TypeSchema<TypeValidator<boolean>, {}> {
-
-    constructor() {
-        super(
-            new BooleanValidator(), 
-            {}
-        )
+    isValid(input: unknown): input is boolean {
+        return isBoolean(input)
     }
 
 }
 
 //// Exports ////
 
-export default Boolean
+export class Boolean extends TypeSchema<BooleanValidator, {}> {
 
-export {
-    Boolean
+    constructor() {
+        super(new BooleanValidator, {})
+    }
+
 }
 
 export const $boolean = new Boolean

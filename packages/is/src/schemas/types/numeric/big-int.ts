@@ -1,49 +1,33 @@
-import { Schema } from '@benzed/schema'
+import { TypeSchema, TypeValidator } from '@benzed/schema'
 import { isBigInt, isString } from '@benzed/util'
-import { TypeSchema } from '../../type'
-
-import NumericValidator from './numeric'
-import { Round } from './sub-validators'
-
-//// Helper ////
-
-const toBigInt = (value: unknown): unknown => {
-
-    if (isString(value)) {
-        try {
-            return globalThis.BigInt(value)
-        } catch {
-            return value
-        }
-    }
-
-    return value
-}
-
-//// Types ////
 
 //// BigInt ////
 
-class BigIntValidator extends NumericValidator<bigint> {
+class BigIntValidator extends TypeValidator<bigint> {
 
-    constructor() {
-        super(isBigInt)
+    isValid(input: unknown): input is bigint {
+        return isBigInt(input)
     }
- 
-    override cast = toBigInt
+
+    override cast(value: unknown) {
+        if (isString(value)) {
+            try {
+                return globalThis.BigInt(value)
+            } catch {
+                return value
+            }
+        }
+        return value
+    }
 }
 
-class BigInt extends TypeSchema<BigIntValidator, {}> {
+//// Ex[prts] ////
+
+export class BigInt extends TypeSchema<BigIntValidator, {}> {
 
     constructor() {
-        super()
+        super(new BigIntValidator, {})
     }
 }
 
-//// Exports ////
-
-export default BigIntValidator
-
-export { BigIntValidator }
-
-export const $bigint = new BigIntValidator
+export const $bigint = new BigInt

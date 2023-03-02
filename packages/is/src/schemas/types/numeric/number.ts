@@ -1,36 +1,88 @@
+import { TypeSchema, TypeValidator } from '@benzed/schema'
+
 import {
     isNumber,
     isString,
     isNaN,
 } from '@benzed/util'
 
-import { NumberValidator } from './numeric'
+import { NameMessageEnabledSettingsSignature, toNameMessageEnabledSettings } from '../../util'
+
+import {
+
+    Round,
+    Finite,
+
+    toRoundSettings,
+    RoundSettingsSignature,
+
+} from './sub-validators'
 
 //// Helper ////
 
-const toNumber = (value: unknown): unknown => {
+class NumberValidator extends TypeValidator<number> {
 
-    if (isString(value)) {
-        const parsed = parseFloat(value)
-        if (!isNaN(parsed))
-            return parsed
+    isValid(input: unknown): input is number {
+        return isNumber(input)
     }
 
-    return value
-}
+    override cast(value: unknown) {
 
-//// Boolean ////
+        if (isString(value)) {
+            const parsed = parseFloat(value)
+            if (!isNaN(parsed))
+                return parsed
+        }
 
-class Number extends NumberValidator {
+        return value
+    }
 
 }
 
 //// Exports ////
 
-export default Number
+export class Number 
+    extends TypeSchema<
 
-export {
-    Number
+    NumberValidator, 
+    {
+        round: Round
+        finite: Finite
+        //range: Range
+    }
+
+    > {
+
+    constructor() {
+        super(
+            new NumberValidator,
+            {
+                round: new Round(1),
+                finite: new Finite
+            }
+        )
+    }
+
+    round(...params: RoundSettingsSignature): this {
+        const settings = toRoundSettings(...params)
+        return this._applySubValidator('round', { ...settings, type: 'round' })
+    }
+
+    ceil(...params: RoundSettingsSignature): this {
+        const settings = toRoundSettings(...params)
+        return this._applySubValidator('round', { ...settings, type: 'ceil' })
+    }
+
+    floor(...params: RoundSettingsSignature): this {
+        const settings = toRoundSettings(...params)
+        return this._applySubValidator('round', { ...settings, type: 'floor' })
+    }
+
+    finite(...params: NameMessageEnabledSettingsSignature<number>): this {
+        const settings = toNameMessageEnabledSettings(...params)
+        return this._applySubValidator('finite', settings)
+    }
+
 }
 
 export const $number = new Number

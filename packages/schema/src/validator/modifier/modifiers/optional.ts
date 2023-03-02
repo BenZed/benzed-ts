@@ -69,7 +69,7 @@ const Optional = class Optional extends Modifier<Validator, ModifierType.Optiona
     override [Validator.analyze](ctx: ValidationContext) {
         ctx = this[Modifier.target][Validator.analyze](ctx)
 
-        return ctx.hasError() && ctx.input === undefined
+        return ctx.hasError() && !ctx.hasSubContextError() && ctx.input === undefined
             ? ctx.setOutput(undefined)
             : ctx
     }
@@ -77,7 +77,10 @@ const Optional = class Optional extends Modifier<Validator, ModifierType.Optiona
     //// Convenience ////
 
     get required(): Validator {
-        return this[Modifier.target]
+        return Modifier.remove(
+            this[Modifier.target],
+            ModifierType.Optional
+        )
     }
 
 } as unknown as OptionalConstructor

@@ -69,9 +69,6 @@ abstract class Mutate<T extends object> extends Trait {
             ? mutator
             : mutator[$$target]
 
-        if (!target)
-            console.log(key)
-
         return Reflect.get(target, key, proxy)
     }
 

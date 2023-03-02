@@ -1,10 +1,10 @@
-import { RecordStruct, StructStateApply, Structural } from '@benzed/immutable'
-import { Trait } from '@benzed/traits'
+import { RecordStruct } from '@benzed/immutable'
 import { assign, each, pick } from '@benzed/util'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
-import { Validator } from '../validator'
+import { ValidationErrorMessage } from '../../validation-error'
+import { Validator, ValidatorStateApply } from '../validator'
 
 //// EsLint ////
 
@@ -21,64 +21,35 @@ const $$sub = Symbol('sub-validators')
 //// Types ////
 
 interface SubValidator<T> extends Validator<T, T> { 
-    readonly enabled?: boolean 
+    readonly enabled: boolean 
 }
 
-type SubValidators<V extends Validator> = Record<string, SubValidator<SchemaOutput<V>>>
+type SubValidators<V extends Validator> = Record<string, SubValidator<ValidateOutput<V>>>
 
-type SchemaInput<V extends Validator> = ValidateInput<V> 
-
-type SchemaOutput<V extends Validator> = ValidateOutput<V> extends ValidateInput<V> 
-    ? ValidateOutput<V> 
-    : never
+type SchemaMainStateApply<V extends Validator> = {
+    [K in keyof ValidatorStateApply<V>]: K extends 'message'
+        ? ValidationErrorMessage<ValidateInput<V>, ValidateOutput<V>>
+        : ValidatorStateApply<V>[K]
+}
 
 //// Main ////
-
-declare class Schematic<V extends Validator, S extends SubValidators<V>> extends Validator<SchemaInput<V>, SchemaOutput<V>> {
-
-    override get name(): string
-
-    readonly [$$main]: V
-
-    readonly [$$sub]: S
-    
-    [Validator.analyze](
-        ctx: ValidationContext<SchemaInput<V>, SchemaOutput<V>>
-    ): ValidationContext<SchemaInput<V>, SchemaOutput<V>>
-
-    protected _applySubValidator<K extends keyof S, T extends S[K]>(
-        name: K,
-        state: T | (T extends Structural ? StructStateApply<T> : never)
-    ): this
-
-    protected _applyMainValidator(
-        state: V | (V extends Structural ? StructStateApply<V> : never)
-    ): this
-}
-
-interface Schema<V extends Validator, S extends SubValidators<V>> extends Schematic<V,S>, Structural {
-
-    get [Structural.state](): { [$$main]: V, [$$sub]: S } 
-
-    set [Structural.state](state: { [$$main]: V, [$$sub]: S })
-
-}
-
-type SchemaConstructor = abstract new <V extends Validator, S extends SubValidators<V>>(main: V, sub: S) => Schema<V,S>
 
 /**
  * A schema houses a primary validator and an arbitary
  * number of sub validators, providing interface elements
  * for extended classes to assist in configuration.
  */
-const Schema = class extends Trait.add(Validator, Structural) {
+abstract class Schema<V extends Validator, S extends SubValidators<V>> extends Validator<ValidateInput<V>, ValidateOutput<V>> {
+
+    static readonly main: typeof $$main = $$main
+    static readonly sub: typeof $$sub = $$sub
 
     //// Constructor ////
 
-    constructor(main: Validator, sub: SubValidators<Validator>) {
+    constructor(main: V, sub: S) {
         super()
         this[$$main] = main 
-        this[$$sub] = new RecordStruct(sub) 
+        this[$$sub] = new RecordStruct(sub) as unknown as S
     }
 
     override get name(): string {
@@ -87,8 +58,10 @@ const Schema = class extends Trait.add(Validator, Structural) {
     
     //// Validator Implementation ////
 
-    [Validator.analyze](ctx: ValidationContext) {
-        
+    [Validator.analyze](
+        ctx: ValidationContext<ValidateInput<V>, ValidateOutput<V>>
+    ): ValidationContext<ValidateInput<V>, ValidateOutput<V>> {
+
         // validate main validator
         ctx = this[$$main][Validator.analyze](ctx)
 
@@ -96,7 +69,7 @@ const Schema = class extends Trait.add(Validator, Structural) {
         for (const name of each.nameOf(this[$$sub])) {
             if (ctx.hasError() || ctx.hasSubContextError())
                 break
-            
+
             const sub = this[$$sub][name]
 
             // ignore if validator is disablable
@@ -104,7 +77,7 @@ const Schema = class extends Trait.add(Validator, Structural) {
             if (isDisabled)
                 continue
 
-            ctx = sub[Validator.analyze](ctx as ValidationContext)
+            ctx = sub[Validator.analyze](ctx as ValidationContext) as ValidationContext
         }
 
         return ctx
@@ -112,17 +85,18 @@ const Schema = class extends Trait.add(Validator, Structural) {
 
     //// Settings ////
 
-    readonly [$$main]: Validator
+    readonly [$$main]: V
 
-    readonly [$$sub]: SubValidators<Validator>
+    readonly [$$sub]: S
 
     //// Convenience Interface ////
 
-    protected _applySubValidator(
-        name: string,
-        state: object
+    protected _applySubValidator<K extends keyof S, T extends S[K]>(
+        name: K,
+        state: T | SchemaMainStateApply<T>
     ): this {
-        return Structural.create(
+
+        return Validator.applyState(
             this,
             $$sub,
             name,
@@ -131,10 +105,10 @@ const Schema = class extends Trait.add(Validator, Structural) {
     }
 
     protected _applyMainValidator(
-        state: object
+        state: V | SchemaMainStateApply<V>
     ): this {
 
-        return Structural.create(
+        return Validator.applyState(
             this,
             $$main,
             state as any
@@ -143,15 +117,15 @@ const Schema = class extends Trait.add(Validator, Structural) {
 
     //// Structural ////
 
-    get [Structural.state](): { [$$main]: Validator, [$$sub]: SubValidators<Validator> } {
+    get [Validator.state](): { [$$main]: V, [$$sub]: S } {
         return pick(this, $$main, $$sub)
     }
 
-    set [Structural.state](state: { [$$main]: Validator, [$$sub]: SubValidators<Validator> }) {
+    set [Validator.state](state: { [$$main]: V, [$$sub]: S }) {
         assign(this, state)
     }
 
-} as unknown as SchemaConstructor
+} 
 
 //// Exports ////
 
@@ -160,8 +134,7 @@ export default Schema
 export {
 
     Schema,
-    SchemaInput,
-    SchemaOutput,
+    SchemaMainStateApply,
     SubValidator,
     SubValidators,
 

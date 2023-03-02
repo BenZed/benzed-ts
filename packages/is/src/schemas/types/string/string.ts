@@ -1,5 +1,5 @@
 
-import { ValidationErrorMessage } from '@benzed/schema'
+import { TypeSchema, TypeValidator } from '@benzed/schema'
 import { 
     isBigInt, 
     isFinite, 
@@ -7,56 +7,29 @@ import {
     isString, 
 } from '@benzed/util'
 
-import { SignatureParser } from '@benzed/signature-parser'
-
 import {
-    NameMessageEnabledSignature,
-    toNameMessageEnabled,
-    TypeValidator
-} from '../../../validators'
-
-import { TypeSchema } from '../../type'
-
-import {
-    Camel,
-    Capitalized,
+    Casing,
     EndsWith,
     Includes,
-    Lower,
     StartsWith,
     Trimmed,
-    Upper
-} from './string-sub-validators'
+} from './sub-validators'
+
+import {
+    toStringValueSettings,
+    StringValueSettingsSignature
+} from './sub-validators/string-value-sub-validator'
+
+import {
+    NameMessageEnabledSettingsSignature, 
+    toNameMessageEnabledSettings 
+} from '../../util'
 
 //// EsLint ////
 
 /* eslint-disable 
     @typescript-eslint/ban-types
 */
-
-//// String Validation Defaults ////
-
-const castToString = (i: unknown): unknown => 
-    isNumber(i) && isFinite(i) || isBigInt(i)
-        ? `${i}`
-        : i
-
-//// StringValueSubValidator Signature ////
-
-const toNameMessageEnabledValue = new SignatureParser({
-    ...toNameMessageEnabled.types,
-    value: isString
-})
-    .setDefaults({
-        ...toNameMessageEnabled.defaults
-    })
-    .addLayout('enabled')
-    .addLayout('value', 'message', 'name')
-
-type NameMessageEnabledValueSignature =
-    | [ enabled?: boolean ]
-    | [ value: string, message?: ValidationErrorMessage<string>, name?: string ] 
-    | [ settings: { value: string, message?: ValidationErrorMessage<string>, name?: string }]
 
 //// Types ////
 
@@ -66,20 +39,21 @@ class StringValidator extends TypeValidator<string> {
         return isString(value)
     }
 
-    override readonly cast = castToString
+    override cast(input: string) {
+        return isNumber(input) && isFinite(input) || isBigInt(input)
+            ? `${input}`
+            : input
+    }
 }
 
 //// Schema ////
 
 type StringSubValidators = Readonly<{
-    camel: Camel
-    capitalize: Capitalized
+    casing: Casing
     endsWith: EndsWith
     includes: Includes
-    lower: Lower
     startsWith: StartsWith
     trim: Trimmed
-    upper: Upper
 }>
 
 //// Implementation ////
@@ -90,11 +64,7 @@ class String extends TypeSchema<StringValidator, StringSubValidators> {
         super(
             new StringValidator, 
             {
-                camel: new Camel,
-                lower: new Lower,
-                upper: new Upper,
-
-                capitalize: new Capitalized,
+                casing: new Casing(),
 
                 startsWith: new StartsWith,
                 endsWith: new EndsWith,
@@ -107,39 +77,59 @@ class String extends TypeSchema<StringValidator, StringSubValidators> {
 
     //// Sub Validator Interface ////
 
-    camel(...sig: NameMessageEnabledSignature<string>): this {
-        return this._applyBasicSubValidator('camel', ...sig)
+    camel(...sig: NameMessageEnabledSettingsSignature<string>): this {
+        return this._applyCasing('camel', sig)
     }
 
-    lower(...sig: NameMessageEnabledSignature<string>): this {
-        return this._applyBasicSubValidator('lower', ...sig)
+    lower(...sig: NameMessageEnabledSettingsSignature<string>): this {
+        return this._applyCasing('lower', sig)
     }
 
-    upper(...sig: NameMessageEnabledSignature<string>): this {
-        return this._applyBasicSubValidator('upper', ...sig)
+    upper(...sig: NameMessageEnabledSettingsSignature<string>): this {
+        return this._applyCasing('upper', sig)
     }
 
-    capitalize(...sig: NameMessageEnabledSignature<string>): this {
-        return this._applyBasicSubValidator('capitalize', ...sig)
-    }
-
-    trim(...sig: NameMessageEnabledSignature<string>): this {
-        return this._applyBasicSubValidator('trim', ...sig)
+    capitalize(...sig: NameMessageEnabledSettingsSignature<string>): this {
+        return this._applyCasing('capitalize', sig)
     }
     
-    startsWith(...sig: NameMessageEnabledValueSignature): this {
-        const nameMessageEnabledValue = toNameMessageEnabledValue(...sig)
-        return this._applySubValidator('startsWith', nameMessageEnabledValue)
+    startsWith(...sig: StringValueSettingsSignature): this {
+        return this._applyStringValue('startsWith', sig)
     }
 
-    endsWith(...sig: NameMessageEnabledValueSignature): this {
-        const nameMessageEnabledValue = toNameMessageEnabledValue(...sig)
-        return this._applySubValidator('endsWith', nameMessageEnabledValue)
+    endsWith(...sig: StringValueSettingsSignature): this {
+        return this._applyStringValue('endsWith', sig)
     }
 
-    includes(...sig: NameMessageEnabledValueSignature): this {
-        const nameMessageEnabledValue = toNameMessageEnabledValue(...sig)
-        return this._applySubValidator('includes', nameMessageEnabledValue)
+    includes(...sig: StringValueSettingsSignature): this {
+        return this._applyStringValue('includes', sig)
+    }
+
+    trim(...sig: NameMessageEnabledSettingsSignature<string>): this {
+        const settings = toNameMessageEnabledSettings(...sig)
+        return this._applySubValidator('trim', settings)
+    }
+
+    // TODO 
+    // formats: email | url
+    // 
+    
+    //// Helper ////
+
+    protected _applyCasing(
+        casing: Casing['casing'], 
+        sig: NameMessageEnabledSettingsSignature<string>
+    ) {
+        const settings = { casing, ...toNameMessageEnabledSettings(...sig) }
+        return this._applySubValidator('casing', settings)
+    }
+
+    protected _applyStringValue(
+        type: 'startsWith' | 'endsWith' | 'includes',
+        sig: StringValueSettingsSignature
+    ) {
+        const settings = toStringValueSettings(...sig)
+        return this._applySubValidator(type, settings)
     }
 
 }

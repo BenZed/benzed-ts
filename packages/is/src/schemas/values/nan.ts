@@ -1,4 +1,4 @@
-import { Value } from './equal'
+import { Value } from './value'
 
 //// Exports ////
 

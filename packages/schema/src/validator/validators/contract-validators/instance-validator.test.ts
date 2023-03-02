@@ -18,14 +18,15 @@ class DateValidator extends InstanceValidator<typeof Date> {
             return new Date(input)
 
         return input
-    } 
-}  
+    }
+}
 
 const $date = new DateValidator()
 
 //// Tests ////
 
 describe(`${$date.name} validator tests`, () => { 
+
     testValidator<unknown, Date>(
         $date, 
         { asserts: new Date() },

@@ -1,31 +1,27 @@
-import {
-    isInteger, isString, TypeGuard, 
-} from '@benzed/util'
+import { TypeSchema, TypeValidator } from '@benzed/schema'
 
-import { NumberValidator } from './numeric'
-
-//// Helper ////
-
-const toInteger = (i: unknown): unknown => isString(i) ? parseInt(i) : i 
+import { isInteger, isString } from '@benzed/util'
 
 //// Boolean ////
 
-class Integer extends NumberValidator {
+class IntegerValidator extends TypeValidator<number> {
 
-    constructor() {
-        super(isInteger)
+    override isValid(input: unknown): input is number {
+        return isInteger(input)
     }
 
-    override cast = toInteger
+    override cast(i: unknown) {
+        return isString(i) ? parseInt(i) : i 
+    }
 
 }
 
 //// Exports ////
 
-export default Integer
-
-export {
-    Integer
+export class Integer extends TypeSchema<IntegerValidator, {}> {
+    constructor() {
+        super(new IntegerValidator, {})
+    }
 }
 
 export const $integer = new Integer
