@@ -4,12 +4,14 @@ import {
     Validator, 
     AddModifier,
     ModifierType, 
-    Modifier 
+    Modifier, 
+    RemoveModifier
 } from '@benzed/schema'
     
 import { Callable, Mutate, Trait } from '@benzed/traits'
 import { assign, TypeGuard } from '@benzed/util'
-import { copy, Copyable } from '@benzed/immutable'
+import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
+import { To } from './to'
 
 //// EsLint ////
 
@@ -26,8 +28,12 @@ export interface IsCursor<V extends Validator> {
 interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateOutput<V>> {
 
     get optional(): Is<AddModifier<V, ModifierType.Optional>>
+    get required(): Is<RemoveModifier<V, ModifierType.Optional>>
 
     get readonly(): Is<AddModifier<V, ModifierType.ReadOnly>>
+    get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
+
+    get or(): To<[V], []>
 
 }
 
@@ -95,20 +101,27 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
         return Trait.apply(clone, Callable, Mutate)
     }
 
-    // is re-wrap
-    override [Mutate.get](is: this, key: PropertyKey, proxy: unknown) {
-
-        const target = key === Mutate.target || Reflect.has(is, key)
-            ? is
-            : is.validate
-
-        const output = Reflect.get(target, key, proxy)
-
-        return target === is.validate && Validator.is(output)
-            ? new Is(output)
-            : output
-
+    [Comparable.equals](other: unknown): other is this {
+        return Is.is(other) && equals(
+            (other as Is)[Mutate.target],
+            this[Mutate.target]
+        )
     }
+
+    // is re-wrap
+    // override [Mutate.get](is: this, key: PropertyKey, proxy: unknown) {
+
+    //     const target = key === Mutate.target || Reflect.has(is, key)
+    //         ? is
+    //         : is.validate
+
+    //     const output = Reflect.get(target, key, proxy)
+
+    //     return target === is.validate && Validator.is(output)
+    //         ? new Is(output)
+    //         : output
+
+    // }
 
     //// Is Interface ////
 
@@ -125,6 +138,15 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
         )
     }
 
+    get required(): Is {
+        return new Is(
+            Modifier.remove(
+                this.validate,
+                ModifierType.Optional
+            )
+        )
+    }
+
     get readonly(): Is {
         return new Is(
             Modifier.add(
@@ -132,6 +154,19 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
                 ModifierType.ReadOnly
             )
         )
+    }
+
+    get writable(): Is {
+        return new Is(
+            Modifier.remove(
+                this.validate,
+                ModifierType.ReadOnly
+            )
+        )
+    }
+
+    get or(): To<[Validator],[]> {
+        return new To(this.validate)
     }
 
 } as unknown as IsConstructor

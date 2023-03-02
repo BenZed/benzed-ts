@@ -60,7 +60,7 @@ const ReadOnly = class extends Modifier<Validator, ModifierType.ReadOnly, unknow
     }
 
     get writable(): Validator {
-        return this[Modifier.target]
+        return Modifier.remove(this[Modifier.target], ModifierType.ReadOnly)
     }
 
 } as unknown as ReadOnlyConstructor

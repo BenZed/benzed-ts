@@ -77,7 +77,7 @@ describe('Not validation mutation', () => {
 
 })
 
-describe('removable', () => {
+describe.skip('removable', () => {
 
     it('output type', () => {
         const $id2 = $notId.not

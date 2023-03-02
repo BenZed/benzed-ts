@@ -76,9 +76,9 @@ const Not = class extends Modifier<Validator, ModifierType.Not, unknown> {
 
     //// Not Properties ////
     
-    get not(): Validator {
-        return this[Modifier.target]
-    }
+    // get not(): Validator {
+    //     return this[Modifier.target]
+    // }
 
     //// Not Mutation ////
 
