@@ -1,10 +1,9 @@
 import { isPrime, primes } from './prime'
+import { it, expect, describe } from '@jest/globals'
 
-/* global describe it */
+describe('isPrime($value)', () => {
 
-describe(`isPrime($value)`, () => {
-
-    it(`returns true if a number is prime, false otherwise`, () => {
+    it('returns true if a number is prime, false otherwise', () => {
 
         const primes = [2, 3, 5, 7, 11, 13, 17]
         const subs = [1, 4, 6, 8, 9, 10, 12, 14, 15, 16]
@@ -19,14 +18,14 @@ describe(`isPrime($value)`, () => {
 
 })
 
-describe(`*primes($max) -or- *primes($min, $max)`, () => {
+describe('*primes($max) -or- *primes($min, $max)', () => {
 
-    it(`generates primes: for (const prime of primes(20))`, () => {
+    it('generates primes: for (const prime of primes(20))', () => {
         for (const prime of primes(20))
             expect(isPrime(prime)).toBeTruthy()
     })
 
-    it(`spreads into an array: [...primes(500,1000)]`, () => {
+    it('spreads into an array: [...primes(500,1000)]', () => {
         const arr = [...primes(500, 1000)]
         expect(arr).toHaveLength(73)
     })

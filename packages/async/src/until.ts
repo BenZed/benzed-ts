@@ -1,8 +1,8 @@
-import { isFunction, isNumber, isObject, isString } from '@benzed/is'
+import { isFunc, isRecord, isNumber, isString } from '@benzed/util'
 
 import milliseconds from './milliseconds'
 
-/*** Types ***/
+//// Types ////
 
 type Condition = ((deltaTime: number) => boolean) | (() => boolean)
 
@@ -23,7 +23,7 @@ type UntilArgs =
     [condition: Condition, timeoutMsg: TimeoutMessage] |
     [condition: Condition, options: UntilOptions]
 
-/*** Constants ***/
+//// Constants ////
 
 const DEFAULT_INTERVAL = 25 // ms 
 const DEFAULT_TIMEOUT = Infinity
@@ -31,7 +31,7 @@ const DEFAULT_TIMEOUT_MSG = ((timeout?: number) => {
     throw new Error(`Could not resolve condition in ${timeout} ms`)
 }) as TimeoutMessage
 
-/*** Helper ***/
+//// Helper ////
 
 const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMessage] => {
 
@@ -43,11 +43,11 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
     let timeoutMsg = DEFAULT_TIMEOUT_MSG
 
     // Find timeoutMsg
-    if (isFunction(a1) || isString(a1))
+    if (isFunc(a1) || isString(a1))
         timeoutMsg = a1
-    else if (isFunction(a2) || isString(a2))
+    else if (isFunc(a2) || isString(a2))
         timeoutMsg = a2
-    else if (isFunction(a3) || isFunction(a3))
+    else if (isFunc(a3) || isFunc(a3))
         timeoutMsg = a3
 
     // Find interval & timeout
@@ -58,7 +58,7 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
             interval = a2
 
         // Find configuration object
-    } else if (isObject<UntilOptions>(a1)) {
+    } else if (isRecord<UntilOptions>(a1)) {
         timeout = a1.timeout ?? timeout
         interval = a1.interval ?? interval
         timeoutMsg = a1.timeoutMsg ?? timeoutMsg
@@ -67,15 +67,11 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
     return [condition, timeout, interval, timeoutMsg]
 }
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Wait until a given condition passes. 
  * 
- * @param condition If this function returns true, this condition is considered to pass.
- * @param timeout? = Infinity Maximum milliseconds to wait for condition to pass. 
- * @param interval? = Frequency to check condition, every given milliseconds
- * @param timeoutMsg? Error message to throw if the condition does not pass before the timeout.
  * @returns Total number of milliseconds waited.
  */
 async function until(
@@ -97,7 +93,7 @@ async function until(
 
         elapsed = Date.now() - start
         if (elapsed >= timeout) {
-            const message = isFunction(timeoutMsg) ? timeoutMsg(timeout) : timeoutMsg
+            const message = isFunc(timeoutMsg) ? timeoutMsg(timeout) : timeoutMsg
             throw new Error(message)
         }
     }
@@ -105,7 +101,7 @@ async function until(
     return elapsed
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default until
 

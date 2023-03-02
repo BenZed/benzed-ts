@@ -4,7 +4,7 @@ import fs from '@benzed/fs'
 
 import { File } from '../files-service'
 
-/*** Main ***/
+//// Main ////
 
 function clientDownload(
     _host: string,
@@ -16,7 +16,7 @@ function clientDownload(
     return fs.createReadStream(filePath)
 
 }
-/*** Exports ***/
+//// Exports ////
 
 export default clientDownload
 

@@ -4,11 +4,10 @@
         "types": [
             "node"
         ],
-        "outDir": "./lib",
+        "outDir": "./lib"
     },
     "include": [
         "src",
-        "../match/match.test.ts"
     ],
     "exclude": [
         "src/**/*.test.ts"

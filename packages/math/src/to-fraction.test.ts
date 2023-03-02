@@ -1,9 +1,10 @@
 import { toFraction } from './to-fraction'
+import { it, expect, describe } from '@jest/globals'
 
-describe(`creates fractions`, () => {
+describe('creates fractions', () => {
 
-    it(`handles NaN`, () =>
-        expect(() => toFraction(NaN)).toThrow(`cannot convert NaN to a fraction`)
+    it('handles NaN', () =>
+        expect(() => toFraction(NaN)).toThrow('cannot convert NaN to a fraction')
     )
 
     for (let numerator = 1; numerator < 10; numerator++) {
@@ -13,7 +14,7 @@ describe(`creates fractions`, () => {
             else {
                 it(
                     `${numerator / denominator} === ` +
-                    `${toFraction(numerator / denominator).join(`/`)}`,
+                    `${toFraction(numerator / denominator).join('/')}`,
 
                     () => {
                         const fraction = toFraction(numerator / denominator)

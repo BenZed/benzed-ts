@@ -1,19 +1,9 @@
-import {
-    isDate,
-    isInstanceOf,
-    isInteger,
-    isFinite,
-    isObject,
-    isNaN,
-    isArray
-} from '@benzed/is'
-
-import { EventEmitter, Merge, LinkedList } from '@benzed/util'
+import { EventEmitter, isArray, isInteger, isRecord, LinkedList } from '@benzed/util'
 import { first, wrap } from '@benzed/array'
 
 import untilNextTick from './until-next-tick'
 
-/*** Types ***/
+//// Types ////
 
 /**
  * Function that can be added to a queue as a task.
@@ -41,10 +31,9 @@ function isQueuePayload<V, T extends object | void>(
     input: unknown
 ): input is QueuePayload<V, T> {
 
-    return isObject<{ [key: string]: unknown }>(input) &&
-        isDate(input.time) &&
-        isInstanceOf(input.queue, Queue)
-
+    return isRecord<{ [key: string]: unknown }>(input) &&
+        input.time instanceof Date &&
+        input.queue instanceof Queue
 }
 
 /**
@@ -113,7 +102,7 @@ interface QueueState<V, T extends object | void> {
     data: T
 }
 
-type QueueItem<V, T extends object | void> = Merge<[
+type QueueItem<V, T extends object | void> =
     (T extends void ? { /**/ } : T) &
     {
         readonly [
@@ -128,18 +117,15 @@ type QueueItem<V, T extends object | void> = Merge<[
         get isComplete(): boolean
         complete(): Promise<V>
     }
-]>
 
 type QueueAddInput<V, T extends object | void> =
     T extends void ? QueueTask<V, T> : ({ task: QueueTask<V, T> } & T)
 
-/*** Queue ***/
+//// Queue ////
 
 class Queue<
-
     V = void,
     T extends object | void = void
-
 > extends EventEmitter<QueueEvents<V, T>> {
 
     private readonly _queued: LinkedList<{ item: QueueItem<V, T>, state: QueueState<V, T> }> =
@@ -196,7 +182,7 @@ class Queue<
      */
     readonly maxTotalItems: number
 
-    /*** Constructor ***/
+    //// Constructor ////
 
     constructor (
         options?: QueueOptions
@@ -208,25 +194,25 @@ class Queue<
         this.maxTotalItems = options?.maxTotalItems ?? Infinity
         this._isPaused = options?.initiallyPaused ?? false
 
-        for (const maxOption of [`maxConcurrent`, `maxTotalItems`] as const) {
-            if (this[maxOption] < 1 || isNaN(this[maxOption]))
+        for (const maxOption of ['maxConcurrent', 'maxTotalItems'] as const) {
+            if (this[maxOption] < 1 || Number.isNaN(this[maxOption]))
                 throw new Error(`options.${maxOption} must be 1 or higher.`)
         }
 
         if (!isInteger(this.maxConcurrent))
-            throw new Error(`options.maxConcurrent must be an integer.`)
+            throw new Error('options.maxConcurrent must be an integer.')
 
         if (
             !isInteger(this.maxTotalItems) &&
-            isFinite(this.maxTotalItems)
+            Number.isFinite(this.maxTotalItems)
         ) {
             throw new Error(
-                `options.maxTotalItems must be infinite or an integer.`
+                'options.maxTotalItems must be infinite or an integer.'
             )
         }
     }
 
-    /*** Main ***/
+    //// Main ////
 
     /**
      * Adds multiple tasks to the queue
@@ -266,11 +252,11 @@ class Queue<
 
     private _createQueuedItem(input: QueueAddInput<V, T>): QueueItem<V, T> {
 
-        const { task, ...data } = typeof input === `function` ? { task: input } : input
+        const { task, ...data } = typeof input === 'function' ? { task: input } : input
 
         const state: QueueState<V, T> = {
             task: task as QueueTask<V, T>,
-            stage: `queued`,
+            stage: 'queued',
             error: null,
             result: null as QueueState<V, T>['result'],
             complete: null,
@@ -292,15 +278,15 @@ class Queue<
             },
 
             get isQueued() {
-                return state.stage === `queued`
+                return state.stage === 'queued'
             },
 
             get isCurrent() {
-                return state.stage === `current`
+                return state.stage === 'current'
             },
 
             get isComplete() {
-                return state.stage === `complete`
+                return state.stage === 'complete'
             },
 
             complete: () => {
@@ -308,11 +294,11 @@ class Queue<
                 const promise = state.complete ??= new Promise((resolve, reject) => {
 
                     const onComplete = (): void => {
-                        if (state.stage !== `complete`)
+                        if (state.stage !== 'complete')
                             return
 
-                        this._removeListener(`complete`, onComplete, { internal: true })
-                        this._removeListener(`error`, onComplete, { internal: true })
+                        this._removeListener('complete', onComplete, { internal: true })
+                        this._removeListener('error', onComplete, { internal: true })
 
                         if (state.error)
                             reject(state.error)
@@ -320,8 +306,8 @@ class Queue<
                             resolve(state.result?.value as V)
                     }
 
-                    this._addListener(`complete`, onComplete, { internal: true })
-                    this._addListener(`error`, onComplete, { internal: true })
+                    this._addListener('complete', onComplete, { internal: true })
+                    this._addListener('error', onComplete, { internal: true })
 
                     onComplete()
                 })
@@ -434,20 +420,20 @@ class Queue<
                 if (!this.isComplete)
                     return
 
-                this._removeListener(`complete`, onComplete, { internal: true })
-                this._removeListener(`error`, onComplete, { internal: true })
+                this._removeListener('complete', onComplete, { internal: true })
+                this._removeListener('error', onComplete, { internal: true })
 
                 resolve()
             }
 
-            this._addListener(`complete`, onComplete, { internal: true })
-            this._addListener(`error`, onComplete, { internal: true })
+            this._addListener('complete', onComplete, { internal: true })
+            this._addListener('error', onComplete, { internal: true })
 
             onComplete() // <- in case queue is already finished
         })
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private async _updateCurrentItems(): Promise<void> {
 
@@ -466,7 +452,7 @@ class Queue<
         await untilNextTick()
 
         for (const { value: current } of this._current) {
-            if (current.item.stage === `queued`)
+            if (current.item.stage === 'queued')
                 void this._executeCurrentItem(current)
         }
 
@@ -480,7 +466,7 @@ class Queue<
     ): void {
         const index = this._current.indexOf(current)
         if (index < 0)
-            throw new Error(`Item is not currently executing.`)
+            throw new Error('Item is not currently executing.')
 
         this._current.remove(index)
     }
@@ -494,15 +480,15 @@ class Queue<
         const { item, state } = current
 
         // item.emit('start', { item, time, queue: this })
-        state.stage = `current`
-        this.emit(`start`, { item, time, queue: this })
+        state.stage = 'current'
+        this.emit('start', { item, time, queue: this })
 
         try {
 
             const { data, task } = state
             const value = await task(data as object)
 
-            state.stage = `complete`
+            state.stage = 'complete'
             state.result = { value } as unknown as QueueState<V, T>['result']
 
             this._removeCurrentItem(current)
@@ -514,20 +500,20 @@ class Queue<
             if (value !== undefined)
                 args.push(value)
 
-            this.emit(`complete`, ...args as QueueEvents<V, T>['complete'])
+            this.emit('complete', ...args as QueueEvents<V, T>['complete'])
 
         } catch (e) {
 
             const error = e as Error
 
-            state.stage = `complete`
+            state.stage = 'complete'
             state.error = error
 
             if (this._current.has(current))
                 this._removeCurrentItem(current)
 
             const time = new Date()
-            this.emit(`error`, { item, time, queue: this }, error)
+            this.emit('error', { item, time, queue: this }, error)
         }
 
         this._updateCurrentItems()
@@ -535,7 +521,7 @@ class Queue<
 
 }
 
-/*** Export ***/
+//// Export ////
 
 export default Queue
 

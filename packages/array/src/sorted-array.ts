@@ -1,18 +1,40 @@
-import { Sortable, isSortedArray } from '@benzed/is'
+import { Sortable, isArray } from '@benzed/util'
 
-/*** Types ***/
+//// Types ////
 
 type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
 
-/*** Helper ***/
+//// Helper ////
+
+function isSortedArray <T extends Sortable = number>(arr: unknown): arr is T[] {
+    if (!isArray<T>(arr))
+        return false
+
+    if (arr.length <= 1)
+        return true
+
+    const ascending = arr[0] < arr[arr.length - 1]
+
+    let prev = arr[0]
+    for (let i = 1; i < arr.length; i++) {
+        const curr = arr[i]
+        const isSorted = ascending ? curr >= prev : curr <= prev
+        if (!isSorted)
+            return false
+
+        prev = curr
+    }
+
+    return true
+}
 
 /**
  * Sorter method that places the items in an array in ascending order.
  */
 function ascending<T>(a: T, b: T): number {
-    //             ^ purposefully not extending Sortable so this
-    //               method can be exported to be used on regular
-    //               arrays.
+    //             ^ purposefully not extending Sortable
+    //               method can be exported to be used 
+    //               on regular arrays.
 
     return (a as unknown as number) - (b as unknown as number)
 }
@@ -24,7 +46,7 @@ function descending<T>(a: T, b: T): number {
     return (b as unknown as number) - (a as unknown as number)
 }
 
-/*** Main ***/
+//// Main ////
 class SortedArray<T extends Sortable> extends Array<T> {
 
     constructor (...params: readonly T[]) {
@@ -44,7 +66,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param sorter 
      * @returns 
      */
-    sort(sorter: CompareFn<T> = ascending): this {
+    override sort(sorter: CompareFn<T> = ascending): this {
 
         const { length } = this
 
@@ -104,7 +126,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param value 
      * @returns found index or -1 if value cannot be found.
      */
-    lastIndexOf(value: T): number {
+    override lastIndexOf(value: T): number {
 
         let index = this._getIndexViaBinarySearch(value)
 
@@ -121,7 +143,7 @@ class SortedArray<T extends Sortable> extends Array<T> {
      * @param value 
      * @returns found index or -1 if value cannot be found.
      */
-    indexOf(value: T): number {
+    override indexOf(value: T): number {
 
         let index = this._getIndexViaBinarySearch(value)
 
@@ -132,13 +154,13 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return index
     }
 
-    reverse(): this {
+    override reverse(): this {
         return super.reverse.call(this) as this
         // this needs to be implemented because the inherited Array['reverse']
         // method return type seems to be `Array<T>` instead of `this`
     }
 
-    /*** Helper ***/
+    //// Helper ////
 
     private _getIndexViaBinarySearch(value: T): number {
 
@@ -167,13 +189,14 @@ class SortedArray<T extends Sortable> extends Array<T> {
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default SortedArray
 
 export {
     ascending,
-    descending
+    descending,
+    isSortedArray
 }
 
 export type {

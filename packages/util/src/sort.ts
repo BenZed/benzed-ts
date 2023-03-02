@@ -1,94 +1,112 @@
+import { isBoolean, isFunc, isNumber, isRecord, isString, isSymbol } from './types'
 
-import { Pipe } from './pipe'
+//// Types ////
 
-/* eslint-disable
-    @typescript-eslint/no-explicit-any,
-    @typescript-eslint/explicit-function-return-type
+type SortableObjects = { valueOf(): bigint | number | boolean } | { length: number }
+type Sortable = string | bigint | number | boolean | SortableObjects
+
+type SortableValues<T> = T extends string
+    ? { length: number, [index: number]: unknown }
+    : T extends object 
+        ? { [K in keyof T as T[K] extends Sortable ? K : never]: T[K] } 
+        : never
+
+/**
+ * Sorting method
  */
+type Sorter<T = Sortable> = (a: T, b: T) => number
 
-/*** Types ***/
+//// Helper ////
 
-type Sortable = string | bigint | number | { valueOf(): string | bigint | number }
+function toSubtractable<T extends Exclude<Sortable, string>>(input: T): Extract<T, number | bigint> {
 
-type SortableKeys<T> = keyof {
-    [K in keyof T as T[K] extends Sortable ? K : never]: K
+    if (isBoolean(input))
+        return (input ? 1 : 0) as Extract<T, number | bigint>
+        //            ^ I know booleans are subtractable, but typescript mad
+
+    if (isRecord<PropertyKey, SortableObjects>(input)) {
+        return ('length' in input && isNumber(input.length)
+            ? input.length
+            : input.valueOf()) as Extract<T, number | bigint>
+    }
+
+    return input as Extract<T, number | bigint>
 }
 
-type Sort<T = Sortable> = (a: T, b: T) => number
+function toComparable<T extends Sortable>(sortable: T): string | number | bigint {
+    if (isString(sortable))
+        return sortable 
 
-/*** By ***/
-
+    return toSubtractable(sortable)
+}
 /**
  * Compares inputs as values
  */
-const byValue: Sort = (a, b) => a > b ? 1 : a < b ? -1 : 0
+const byValue: Sorter = <T extends Sortable>(a: T, b: T) => isString(a)
+    ? a > b ? 1 : a < b ? -1 : 0
+    : toSubtractable(a) - toSubtractable(b)
+
+type ByTransform<T> = (i: T) => Sortable
+
+const byTransform: <T>(transform: ByTransform<T>) => Sorter<T> = 
+    transform => (a,b) => byValue(transform(a), transform(b))
 
 /**
- * Compares inputs by checking with each provided sorter
- * until it finds one that doesn't return an equivalent result.
+ * Keys of a given object that have sortable values
  */
-const byMany = <T>(...sorters: Sort<T>[]): Sort<T> => (a, b) => {
+type ByKey<T> = keyof SortableValues<T> extends infer K ? symbol | string extends K ? never : K : never
 
-    for (const sort of sorters) {
-        const result = sort(a, b)
-        if (result !== 0)
-            return result
-    }
+const byKey: <T>(key: ByKey<T>) => Sorter<T> = key => byTransform(v => v[key] as Sortable)
 
-    return 0
+type ByTransformOrKey<T> = ByKey<T> | ByTransform<T>
+const toSorter = <T>(option: ByTransformOrKey<T>): Sorter<T> => {
+
+    if (isFunc(option))
+        return byTransform(option)
+    
+    if (isString(option) || isNumber(option) || isSymbol(option))
+        return byKey(option)
+
+    return byValue as Sorter<T>
 }
 
-/**
- * Compares inputs by checking the result of an applied map
- * method.
- * 
- * Multiple maps may be provided, and will be checked if 
- * the previous outputs were equivalent.
- */
-const byMap = <T>(...maps: Pipe<T, Sortable>[]): Sort<T> =>
-    byMany(
-        ...maps.map(p => (a: T, b: T) => byValue(p(a), p(b))
-        )
-    )
+//// Main Method ////
 
-/**
- * Compares objects by comparing against their provided sortable
- * property name.
- * 
- * Multiple properties may be provided, and will be checked if
- * previous property values were equivalent.
- */
-const byProp = <T extends object, K extends SortableKeys<T>[]>(...properties: K): Sort<T> =>
-    byMany(
-        ...properties.map(property =>
-            byMap((t: any) => t[property])
-        )
-    )
+interface By {
+    <T>(): Sorter<T>
+    <T>(key: ByKey<T>): Sorter<T>
+    <T>(transform: ByTransform<T>): Sorter<T>
+    <T>(...options: ByTransformOrKey<T>[]): Sorter<T>
+    value: Sorter
+}
 
-/*** By Interface ***/
+const by = (<T>(...options: ByTransformOrKey<T>[]): Sorter<T> => {
+ 
+    const sorters = options.map(toSorter)
 
-const by = <T>(...args: Pipe<T, Sortable>[]) => byMap(...args)
+    return (a, b) => {
+        for (const sorter of sorters) {
+            const result = sorter(a,b)
+            if (result !== 0)
+                return result
+        }
+
+        return byValue(a as Sortable, b as Sortable)
+    }
+}) as By
 
 by.value = byValue
-by.many = byMany
-by.map = byMap
-by.prop = byProp
 
-/*** Exports ***/
+//// Exports ////
 
 export default by
 
 export {
 
-    byValue as sort,
-    Sort,
+    Sorter,
     Sortable,
-    SortableKeys,
 
     by,
-    byValue,
-    byMany,
-    byMap,
-    byProp
+    toComparable
 
 }

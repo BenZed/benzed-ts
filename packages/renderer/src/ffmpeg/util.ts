@@ -1,17 +1,17 @@
 
-import { isString, isNumber } from '@benzed/is'
+import { is } from '@benzed/is'
 import fs from '@benzed/fs'
 
 import { Output, SizeSetting } from './settings'
 
 import { Readable, Writable } from 'stream'
 
-/*** Typesw ***/
+//// Typesw ////
 
 type AxisString = `${number | '?'}x${number | '?'}`
 type ScaleString = `${number}%`
 
-/*** Exports ***/
+//// Exports ////
 
 /**
  * Get an ffmpeg size string from SizeOptions
@@ -23,17 +23,17 @@ export function getFfmpegSizeOptionString(
     ScaleString |
     undefined {
 
-    if (`dimensions` in input && isNumber(input.dimensions))
+    if ('dimensions' in input && is.number(input.dimensions))
         return `${input.dimensions}x${input.dimensions}`
 
-    if (`scale` in input && isNumber(input.scale))
+    if ('scale' in input && is.number(input.scale))
         return `${input.scale * 100}%`
 
-    const width = `width` in input ? input.width ?? `?` : `?`
-    const height = `height` in input ? input.height ?? `?` : `?`
+    const width = 'width' in input ? input.width ?? '?' : '?'
+    const height = 'height' in input ? input.height ?? '?' : '?'
 
     const size: AxisString = `${width}x${height}`
-    return size === `?x?` ? undefined : size
+    return size === '?x?' ? undefined : size
 }
 
 export function createOutputStreams(
@@ -44,7 +44,7 @@ export function createOutputStreams(
         read() { /**/ }
     })
 
-    const outputWriter = isString(output)
+    const outputWriter =is.string(output)
         ? fs.createWriteStream(output)
         : output
 
@@ -58,7 +58,7 @@ export function createOutputStreams(
     outputWriter.write = overrideWrite
 
     // cap read stream when the writer is finished
-    outputWriter.on(`close`, () => metaReader.push(null))
+    outputWriter.on('close', () => metaReader.push(null))
 
     return [outputWriter, metaReader]
 }

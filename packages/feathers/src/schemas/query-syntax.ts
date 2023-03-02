@@ -7,7 +7,7 @@ import { Compile } from '@benzed/util'
     @typescript-eslint/explicit-function-return-type
 */
 
-/*** Query Syntax ***/
+//// Query Syntax ////
 
 type Queryable = Schema<any, any, any>
 
@@ -46,7 +46,7 @@ type QuerySyntaxOutput<I extends QueryInput> = Compile<{
 
 } & QueryPropertiesOutput<I>>
 
-/*** Main ***/
+//// Main ////
 
 const $querySort = <I extends QueryInput>(
     input: I
@@ -104,21 +104,21 @@ const $queryProperties = <I extends QueryInput>(
     return $.shape(queryPropsShape) as any
 }
 
-/*** Main ***/
+//// Main ////
 
 const $querySyntax = <I extends QueryInput>(
         input: I
     ): Schema<I, QuerySyntaxOutput<I>, []> =>
     
     $.shape({
-        $limit: $.number.range(`>=`, 0).optional,
-        $skip: $.number.range(`>=`, 0).optional,
+        $limit: $.number.range('>=', 0).optional,
+        $skip: $.number.range('>=', 0).optional,
         $sort: $querySort(input),
         $select: $querySelect(input),
         ...($queryProperties(input) as any).properties
     }) as any
 
-/*** Exports ***/
+//// Exports ////
 
 export default $querySyntax
 

@@ -29,19 +29,19 @@ import {
     FileServiceSettings 
 } from './service'
 
-/*** Helper ***/
+//// Helper ////
 
 function encodeBase64Payload(payload: FilePayload): string {
 
     const stringified = JSON.stringify(payload)
     const buffer = Buffer.from(stringified)
-    return buffer.toString(`base64`)
+    return buffer.toString('base64')
 }
 
 function decodeBase64Payload(token: string): FilePayload {
 
     try {
-        const stringified = Buffer.from(token, `base64`).toString()
+        const stringified = Buffer.from(token, 'base64').toString()
         const payload = JSON.parse(stringified)
         return $filePayload.validate(payload)
 
@@ -71,7 +71,7 @@ function createSignAndVerify(
         }
 }
 
-/*** Main ***/
+//// Main ////
 
 function setupFileService<A extends MongoDBApplication>(
     setingsAndRefs: FileServiceConfig & {
@@ -96,7 +96,7 @@ function setupFileService<A extends MongoDBApplication>(
             multi: false,
             Model: app.db(
                 // '/files' -> 'files'
-                path.replace(`/`, ``)
+                path.replace('/', '')
             ) 
         }),
 
@@ -104,15 +104,15 @@ function setupFileService<A extends MongoDBApplication>(
             koa: {
                 before: [
                     errorHandler(),
-                    serve({ verify, path, fs, s3, method: `get` }),
-                    uploadPart({ verify, path, fs, s3, method: `update`}),
-                    uploadComplete({ verify, path, fs, s3, method: `create`})
+                    serve({ verify, path, fs, s3, method: 'get' }),
+                    uploadPart({ verify, path, fs, s3, method: 'update'}),
+                    uploadComplete({ verify, path, fs, s3, method: 'create'})
                 ],
                 after: [
                     // deleteFileAfterRemoval({ method: 'remove' })
                 ]
             },
-            methods: [`create`, `find`, `get`, `patch`, `remove`],
+            methods: ['create', 'find', 'get', 'patch', 'remove'],
             events: [],
         }
 
@@ -122,7 +122,7 @@ function setupFileService<A extends MongoDBApplication>(
     files.hooks({
         around: {
             all: [
-                ...auth ? [authenticate(`jwt`)] : [],
+                ...auth ? [authenticate('jwt')] : [],
                 resolveAll(fileResolveAll)
             ]
         }
@@ -134,7 +134,7 @@ function setupFileService<A extends MongoDBApplication>(
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default setupFileService
 

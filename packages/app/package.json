@@ -1,0 +1,44 @@
+{
+    "name": "@benzed/app",
+    "description": "ECS for building client and server applications",
+    "main": "./src",
+    "private": true,
+    "version": "1.0.0",
+    "scripts": {
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --verbose",
+        "build": "npm run lint && npm run tsc",
+        "lint": "eslint src/**/*.ts --fix",
+        "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BenZed/benzed-ts.git"
+    },
+    "author": "BenZed",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/BenZed/benzed-ts/issues"
+    },
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "dependencies": {
+        "koa": "^2.13.4",
+        "koa-body": "^6.0.0",
+        "@koa/cors": "^4.0.0",
+        "query-string": "^7.1.1",
+        "socket.io": "^4.5.3",
+        "socket.io-client": "^4.5.3",
+        "jsonwebtoken": "^8.5.1",
+        "bcryptjs": "^2.4.3",
+        "@benzed/array": "^3.2.3",
+        "@benzed/schema": "^0.3.0",
+        "@benzed/string": "^3.2.3",
+        "@benzed/util": "^3.9.1",
+        "@benzed/async": "^3.4.1",
+        "@benzed/immutable": "^4.0.0"
+    },
+    "peerDependencies": {},
+    "devDependencies": {
+        "@types/bcryptjs": "^2.4.2"
+    }
+}

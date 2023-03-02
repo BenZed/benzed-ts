@@ -17,7 +17,7 @@ export interface FileServices {
 
 }
 
-/*** Main ***/
+//// Main ////
 
 export default function setupFileServices(app: FileServerApp): void {
 
@@ -30,14 +30,14 @@ export default function setupFileServices(app: FileServerApp): void {
             app,
             auth,
             
-            path: '/files',
-            s3: app.get('s3'),
-            fs: app.get('fs'),
-            pagination: app.get('pagination')
+            path: `/files`,
+            s3: app.get(`s3`),
+            fs: app.get(`fs`),
+            pagination: app.get(`pagination`)
         }
     )
 
-    const renderer = app.get('renderer')
+    const renderer = app.get(`renderer`)
     if (renderer) {
         setupRenderService(
             {
@@ -45,8 +45,8 @@ export default function setupFileServices(app: FileServerApp): void {
                 files,
                 auth,
 
-                path: '/files/render',
-                channel: 'renderer',
+                path: `/files/render`,
+                channel: `renderer`,
                 renderer
             })
     }

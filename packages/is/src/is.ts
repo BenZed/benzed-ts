@@ -1,202 +1,176 @@
-import isInstanceOf from './is-instance-of'
+import { 
+    ValidateOutput, 
+    ValidationContext,
+    Validator, 
+    AddModifier,
+    ModifierType, 
+    Modifier, 
+    RemoveModifier
+} from '@benzed/schema'
+    
+import { Callable, Mutate, Trait } from '@benzed/traits'
+import { assign, TypeGuard } from '@benzed/util'
+import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
+import { To } from './to'
 
-import {
-    isString,
-    isBoolean,
-    isSymbol,
-    isNaN,
-    isObject,
-    isFunction,
-    isTruthy,
-    isFalsy,
-    isNumber,
-    isBigInt,
-    isDefined,
-    isArray,
-    isSortable,
-    isPromise,
-    isDate,
-    isPrimitive,
-} from './is-basic'
-
-import isArrayLike from './is-array-like'
-import isIterable from './is-iterable'
-
-import arrayOf, {
-    isArrayOfArray,
-    isArrayOfArrayLike,
-    isArrayOfBigInt,
-    isArrayOfBoolean,
-    isArrayOfFunction,
-    isArrayOfIterable,
-    isArrayOfNumber,
-    isArrayOfObject,
-    isArrayOfString,
-    isArrayOfSymbol,
-    isArrayOfInt,
-    isArrayOfPlainObject,
-    isArrayOfSortable,
-    isArrayOfPromise,
-    isArrayOfTruthy,
-    isArrayOfFalsy,
-    isArrayOfDefined,
-    isArrayOfDate,
-    isArrayOfNaN
-} from './is-array-of'
-
-import {
-    isEven,
-    isInteger,
-    isMultipleOf,
-    isNegative,
-    isOdd,
-    isPositive
-} from './is-math'
-import isSortedArray from './is-sorted-array'
-import isPlainObject from './is-plain-object'
+//// EsLint ////
 
 /* eslint-disable 
-    @typescript-eslint/ban-types, 
+    @typescript-eslint/no-explicit-any
 */
 
-/*** Types ***/
+//// Types ////
 
-type Is = typeof isInstanceOf & {
+export interface IsCursor<V extends Validator> {
+    get validate(): V
+}
 
-    string: typeof isString
-    boolean: typeof isBoolean
-    number: typeof isNumber
-    int: typeof isInteger
-    bigint: typeof isBigInt
-    primitive: typeof isPrimitive
+interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateOutput<V>> {
 
-    object: typeof isObject
-    array: typeof isArray
-    function: typeof isFunction
-    symbol: typeof isSymbol
-    promise: typeof isPromise
-    date: typeof isDate
+    get optional(): Is<AddModifier<V, ModifierType.Optional>>
+    get required(): Is<RemoveModifier<V, ModifierType.Optional>>
 
-    nan: typeof isNaN
-    truthy: typeof isTruthy
-    falsy: typeof isFalsy
-    defined: typeof isDefined
+    get readonly(): Is<AddModifier<V, ModifierType.ReadOnly>>
+    get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
 
-    even: typeof isEven
-    odd: typeof isOdd
-    positive: typeof isPositive
-    negative: typeof isNegative
-    multipleOf: typeof isMultipleOf
-    integer: typeof isInteger
+    get or(): To<[V], []>
 
-    instanceOf: typeof isInstanceOf
-    arrayLike: typeof isArrayLike
-    iterable: typeof isIterable
+    /**
+     * Type-only property
+     */
+    get data(): ValidateOutput<V>
+}
 
-    plainObject: typeof isPlainObject
+type _IsDynamic<V extends Validator> = {
+    [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends Validator 
+        ? Is<V[K]>
+        : V[K] extends (...args: any) => Validator 
+            ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
+            : V[K]
+}
 
-    sortable: typeof isSortable
-    sortedArray: typeof isSortedArray
+export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V>
 
-    arrayOf: typeof arrayOf & {
-        string: typeof isArrayOfString
-        boolean: typeof isArrayOfBoolean
-        number: typeof isArrayOfNumber
-        int: typeof isArrayOfInt
-        bigint: typeof isArrayOfBigInt
+export type ValidatorOf<T> = T extends Is<infer V>    
+    ? V 
+    : T extends Validator ? T : never
 
-        object: typeof isArrayOfObject
-        array: typeof isArrayOfArray
-        function: typeof isArrayOfFunction
-        symbol: typeof isArrayOfSymbol
-        promise: typeof isArrayOfPromise
-        date: typeof isArrayOfDate
+export interface IsConstructor {
+    is<V extends Validator>(input: unknown): input is Is<V>
+    new <V extends Validator>(validator: V): Is<V>
+}
 
-        nan: typeof isArrayOfNaN
-        truthy: typeof isArrayOfTruthy
-        falsy: typeof isArrayOfFalsy
-        defined: typeof isArrayOfDefined
+//// Helper ////
 
-        arrayLike: typeof isArrayOfArrayLike
-        iterable: typeof isArrayOfIterable
+function is(this: Is<Validator>, input: unknown): boolean {
 
-        plainObject: typeof isArrayOfPlainObject
+    const { validate } = this
 
-        sortable: typeof isArrayOfSortable
+    const ctx = validate[Validator.analyze](
+        new ValidationContext(input, { transform: false })
+    )
+
+    return ctx.hasValidOutput()
+}
+
+//// Implementation ////
+
+export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
+
+    static is(input: unknown): boolean {
+        return Callable.is(input) && input[Callable.signature] === is
     }
-}
 
-/*** Combine ***/
+    constructor(validator: Validator) {
+        super()
+        this[Mutate.target] = validator
+        return Trait.apply(this, Callable, Mutate)
+    }
 
-let is: Is
-{
-    is = isInstanceOf.bind(undefined) as Is
-    // ^ so the original export method doesn't 
-    // have new properties attached to it
+    //// Traits ////
+    
+    readonly [Mutate.target]!: Validator
 
-    is.string = isString
-    is.boolean = isBoolean
-    is.number = isNumber
-    is.int = isInteger
-    is.bigint = isBigInt
-    is.primitive = isPrimitive
+    get [Callable.signature]() {
+        return is
+    }
 
-    is.object = isObject
-    is.array = isArray
-    is.function = isFunction
-    is.symbol = isSymbol
-    is.promise = isPromise
-    is.date = isDate
+    override get name(): string {
+        return `Is${this.validate.name}`
+    }
 
-    is.nan = isNaN
-    is.truthy = isTruthy
-    is.falsy = isFalsy
-    is.defined = isDefined
+    [Copyable.copy](): this {
+        const clone = Copyable.createFromProto(this)
+        assign(clone, { [Mutate.target]: copy(this.validate) })
+        return Trait.apply(clone, Callable, Mutate)
+    }
 
-    is.even = isEven
-    is.odd = isOdd
-    is.negative = isNegative
-    is.positive = isPositive
-    is.multipleOf = isMultipleOf
-    is.integer = isInteger
+    [Comparable.equals](other: unknown): other is this {
+        return Is.is(other) && equals(
+            (other as Is)[Mutate.target],
+            this[Mutate.target]
+        )
+    }
 
-    is.instanceOf = isInstanceOf
-    is.arrayLike = isArrayLike
-    is.iterable = isIterable
+    // is re-wrap
+    // override [Mutate.get](is: this, key: PropertyKey, proxy: unknown) {
 
-    is.plainObject = isPlainObject
+    //     const target = key === Mutate.target || Reflect.has(is, key)
+    //         ? is
+    //         : is.validate
 
-    is.sortable = isSortable
-    is.sortedArray = isSortedArray
+    //     const output = Reflect.get(target, key, proxy)
 
-    is.arrayOf = arrayOf.bind(undefined) as Is['arrayOf']
+    //     return target === is.validate && Validator.is(output)
+    //         ? new Is(output)
+    //         : output
 
-    is.arrayOf.string = isArrayOfString
-    is.arrayOf.boolean = isArrayOfBoolean
-    is.arrayOf.number = isArrayOfNumber
-    is.arrayOf.int = isArrayOfInt
-    is.arrayOf.bigint = isArrayOfBigInt
+    // }
 
-    is.arrayOf.object = isArrayOfObject
-    is.arrayOf.array = isArrayOfArray
-    is.arrayOf.function = isArrayOfFunction
-    is.arrayOf.symbol = isArrayOfSymbol
-    is.arrayOf.promise = isArrayOfPromise
-    is.arrayOf.date = isArrayOfDate
+    //// Is Interface ////
 
-    is.arrayOf.nan = isArrayOfNaN
-    is.arrayOf.truthy = isArrayOfTruthy
-    is.arrayOf.falsy = isArrayOfFalsy
-    is.arrayOf.defined = isArrayOfDefined
+    get validate(): Validator {
+        return this[Mutate.target]
+    }
 
-    is.arrayOf.arrayLike = isArrayOfArrayLike
-    is.arrayOf.iterable = isArrayOfIterable
+    get optional(): Is {
+        return new Is(
+            Modifier.add(
+                this.validate,
+                ModifierType.Optional
+            )
+        )
+    }
 
-    is.arrayOf.plainObject = isArrayOfPlainObject
+    get required(): Is {
+        return new Is(
+            Modifier.remove(
+                this.validate,
+                ModifierType.Optional
+            )
+        )
+    }
 
-    is.arrayOf.sortable = isArrayOfSortable
-}
+    get readonly(): Is {
+        return new Is(
+            Modifier.add(
+                this.validate,
+                ModifierType.ReadOnly
+            )
+        )
+    }
 
-/*** Exports ***/
+    get writable(): Is {
+        return new Is(
+            Modifier.remove(
+                this.validate,
+                ModifierType.ReadOnly
+            )
+        )
+    }
 
-export default is
+    get or(): To<[Validator],[]> {
+        return new To(this.validate)
+    }
+
+} as unknown as IsConstructor

@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Linearly interpolate a number to a target according to a delta.
@@ -13,7 +13,7 @@ function lerp(from: number, to: number, factor: number): number {
     return from + factor * (to - from)
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default lerp
 

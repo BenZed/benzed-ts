@@ -1,9 +1,10 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { it, expect, describe } from '@jest/globals'
 
 type Validator = (...args: any[]) => (input: unknown) => input is unknown
 
-/*** Main ***/
+//// Main ////
 
 const describeValidator = <T extends Validator>(options: {
     factory: T
@@ -28,7 +29,7 @@ const describeValidator = <T extends Validator>(options: {
     })
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     describeValidator

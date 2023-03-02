@@ -17,7 +17,7 @@ import {
 
 } from './ffmpeg/settings'
 
-/*** Type ***/
+//// Type ////
 
 export interface AudioRenderSetting extends AudioSetting {
     type: 'audio'
@@ -52,7 +52,7 @@ const $imageRenderSetting = $({
     time: $timeSetting.optional
 })
 
-/*** Expots ***/
+//// Expots ////
 
 export type RenderSetting = AudioRenderSetting | VideoRenderSetting | ImageRenderSetting
 export const $renderSetting = $.or(

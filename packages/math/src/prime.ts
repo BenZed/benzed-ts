@@ -1,5 +1,5 @@
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Determines if a number is prime.
@@ -46,6 +46,6 @@ function* primes(...args: [max: number] | [min: number, max: number]): Iterable<
 
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export { isPrime, primes }

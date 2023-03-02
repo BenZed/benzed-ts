@@ -1,5 +1,5 @@
 
-import { isString } from '@benzed/is'
+import { is } from '@benzed/is'
 import fs from '@benzed/fs'
 
 import { BadRequest } from '@feathersjs/errors'
@@ -17,7 +17,7 @@ import {
     getFsFilePath 
 } from './util'
 
-/*** Types ***/
+//// Types ////
 
 interface Range {
     start: number
@@ -25,11 +25,11 @@ interface Range {
     size: number
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function parseRange(str: string | undefined, size: number): Range | undefined {
 
-    let [start, end] = isString(str) // eslint-disable-line prefer-const
+    let [start, end] = is.string(str) // eslint-disable-line prefer-const
         ? str.replace(/bytes=/, '')
             .split('-')
             .map(word => parseInt(word, 10))
@@ -49,13 +49,13 @@ function parseRange(str: string | undefined, size: number): Range | undefined {
     return { start, end, size }
 }
 
-/*** Main ***/
+//// Main ////
 
 const serveMiddleware = createFileRoutingMiddleware(({ path, fs: localDirPath }) => 
     async (ctx, toServiceRoutes) => {
    
         const fileId = ctx.query[DOWNLOAD_QUERY_PARAM]
-        if (!isString(fileId))
+        if (!is.string(fileId))
             return toServiceRoutes()
 
         const files = getCtxFileService(ctx, path)
@@ -89,7 +89,7 @@ const serveMiddleware = createFileRoutingMiddleware(({ path, fs: localDirPath })
 
     })
 
-/*** Exports ***/
+//// Exports ////
 
 export default serveMiddleware
 

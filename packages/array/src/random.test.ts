@@ -1,5 +1,6 @@
 import random from './random'
-import { isDeepStrictEqual } from 'util'
+import { equals } from '../../immutable/src/traits/comparable/equals'
+
 // eslint-disable-next-line no-unused-vars
 
 function expectEqualOccurances<T>(
@@ -8,8 +9,8 @@ function expectEqualOccurances<T>(
     count = values.length * 5000
 ): void {
 
-    const results = []
-    for (let i = 0; i < count; i++)
+    const results: T[] = []
+    for (let i = 0; i < count; i++) 
         results.push(random(input))
 
     const average = count / values.length
@@ -18,7 +19,7 @@ function expectEqualOccurances<T>(
     for (const value of values) {
         const occurances = results
             .reduce(
-                (c, v) => isDeepStrictEqual(v, value)
+                (c, v) => equals(v, value)
                     ? c + 1
                     : c
                 , 0
@@ -39,40 +40,53 @@ function expectEqualOccurances<T>(
     }
 }
 
-it(`gives a random element in an array`, () => {
+it('gives a random element in an array', () => {
 
-    const arr = [`zero`, `one`, `two`, `three`, `four`]
+    const arr = ['zero', 'one', 'two', 'three', 'four']
 
     expectEqualOccurances(arr, arr)
 })
 
-it(`gives a random element in a strings`, () => {
-    const str = `~!@#$%^&*()`
-    expectEqualOccurances(str, str.split(``))
+it('gives a random element in a strings', () => {
+    const str = '~!@#$%^&*()'
+    expectEqualOccurances(str, str.split(''))
 })
 
-it(`gives a random element of an array-like`, () => {
+it('gives a random element of an array-like', () => {
     const arrlike = {
         length: 5,
-        0: `a`,
+        0: 'a',
         1: 100,
         2: { truth: false },
         3: { falsy: true },
-        4: [`onomatapeia`]
+        4: ['onomatapeia']
     }
     expectEqualOccurances(arrlike, Array.from(arrlike))
 })
 
-it(`gives a random element in a set`, () => {
+it('gives a random element in a set', () => {
     const set = new Set([0, 1, 2, 3, 4, 5, 6])
     expectEqualOccurances(set, [...set])
 })
 
-it(`gives a random element in a map`, () => {
-    const map = new Map([[`one`, 1], [`two`, 2], [`three`, 3], [`four`, 4]])
+it('gives a random element in a map', () => {
+    const map = new Map([['one', 1], ['two', 2], ['three', 3], ['four', 4]])
     expectEqualOccurances(map, [...map])
 })
 
-it(`returns undefined on empty arrays`, () => {
+it('returns undefined on empty arrays', () => {
     expect(random([])).toEqual(undefined)
+})
+
+it('optionally bindable', () => {
+    const arrlike = {
+        length: 5,
+        0: 'a',
+        1: 'b',
+        2: 'c',
+        random
+    }
+
+    const output = arrlike.random()
+    expect(Array.from(arrlike)).toContain(output)
 })

@@ -1,9 +1,6 @@
-import is from '@benzed/is'
-import match from '@benzed/match'
+import { isBoolean, isNumber, SignatureParser, isOptional } from '@benzed/util'
 
-/* eslint-disable @typescript-eslint/unified-signatures */
-
-/*** Types ***/
+//// Types ////
 
 type CommonDiff = [
     common: string,
@@ -23,7 +20,7 @@ interface CommonDiffOptions {
     fromEnd: boolean
 }
 
-/*** Helper ***/
+//// Helper ////
 
 function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): string {
 
@@ -37,10 +34,10 @@ function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): stri
 
         const input = inputs[i]
         if (input.at(index) !== char)
-            return ``
+            return ''
     }
 
-    return char ?? ``
+    return char ?? ''
 
 }
 
@@ -50,7 +47,7 @@ function getCommonChar(inputs: string[], offset: number, fromEnd: boolean): stri
  */
 function createCommon(input: string[], offset: number, fromEnd: boolean): string {
 
-    let common = ``
+    let common = ''
     while (input.length > 0) {
 
         const currentOffset = offset + common.length
@@ -80,40 +77,44 @@ function* createDiffs(
 
 }
 
-/*** Helper ***/
+//// Match Options ////
 
-const matchCommonDiffOptions =
-    match.for<undefined | number | boolean | Partial<CommonDiffOptions>, CommonDiffOptions>(
-        cases => cases
-            .fall(is.number, offset => ({ offset }))
-            .fall(is.boolean, fromEnd => ({ fromEnd }))
-            .default(i => ({ offset: 0, fromEnd: false, ...i }))
-    )
+const toOptions = new SignatureParser({
+    offset: isOptional(isNumber),
+    fromEnd: isOptional(isBoolean)
+}).setDefaults({
+    offset: 0,
+    fromEnd: false
+}).addLayout('offset')
+    .addLayout('fromEnd')
 
-/*** Main ***/
+//// Main ////
 
 /**
- * Given an array of strings, return 
+ * Given an array of strings, return a common diff object
+ * which contains one string representing the common
+ * section of the provided string, and an array of strings 
+ * with the differences.
  */
 function commonDiff(input: string[], options?: Partial<CommonDiffOptions>): CommonDiff
 function commonDiff(input: string[], fromEnd?: boolean): CommonDiff
 function commonDiff(input: string[], offset?: number): CommonDiff
 function commonDiff(
     input: string[],
-    options?: number | boolean | Partial<CommonDiffOptions>
+    options: number | boolean | Partial<CommonDiffOptions> = {}
 ): CommonDiff {
 
-    const { offset, fromEnd } = matchCommonDiffOptions(options)
+    const { offset, fromEnd } = toOptions(options)
 
     const common = createCommon(input, offset, fromEnd)
 
     return [
         common,
-        ...createDiffs(input, offset + common.length, fromEnd)
+        ...createDiffs(input, common.length + offset, fromEnd)
     ]
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default commonDiff
 

@@ -1,13 +1,12 @@
 {
     "name": "@benzed/renderer",
     "description": "Renderer/queue built on ffmpeg",
-    "main": "./lib",
+    "main": "./src",
     "version": "0.9.0",
     "scripts": {
-        "test": "NODE_ENV=test jest --maxWorkers=1 -o",
-        "test:dev": "npm run test -- --verbose --watch",
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --verbose",
         "build": "npm run lint && npm run tsc",
-        "build:dev": "npm run tsc -- -w",
         "lint": "eslint src/**/*.ts --fix",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
@@ -23,13 +22,13 @@
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
         "fluent-ffmpeg": "^2.1.2",
-        "@benzed/is": "^3.1.2",
-        "@benzed/schema": "^0.2.0",
-        "@benzed/math": "3.1.4",
-        "@benzed/array": "^3.1.4",
-        "@benzed/util": "^3.7.1",
+        "@benzed/is": "^3.1.3",
+        "@benzed/schema": "^0.3.0",
+        "@benzed/math": "^3.1.4",
+        "@benzed/array": "^3.2.3",
+        "@benzed/util": "^3.9.1",
         "@benzed/async": "^3.4.1",
-        "@benzed/fs": "^3.0.4"
+        "@benzed/fs": "^3.1.0"
     },
     "peerDependencies": {},
     "devDependencies": {

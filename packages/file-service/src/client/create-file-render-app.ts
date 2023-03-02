@@ -1,6 +1,5 @@
 import socketio, { Socket } from 'socket.io-client'
 
-import { thisShift } from '@benzed/util'
 import { Renderer, RenderItem } from '@benzed/renderer'
 
 import { feathers, Application } from '@feathersjs/feathers'
@@ -18,7 +17,7 @@ import clientDownload from './client-download'
 import clientUpload from './client-upload'
 import { getRenderAgentResults, RenderAgentResult } from '../render-service/render-agent'
 
-/*** Types ***/
+//// Types ////
 
 interface FileRenderApp extends 
     Application<
@@ -46,23 +45,23 @@ interface FileRenderAppSettings {
     auth?: AuthenticationRequest
 }
 
-/*** Helper ***/
+//// Helper ////
 
-function untilConnect(app: FileRenderApp): Promise<void> {
+function untilConnect(this: FileRenderApp): Promise<void> {
     return new Promise(resolve => 
-        app.io.on(
-            `connect`, 
+        this.io.on(
+            'connect', 
             resolve
         )
     )
 }
 
 async function start(
-    app: FileRenderApp
+    this: FileRenderApp
 ): Promise<void> {
 
-    const service = app.service(`files/render`)
-    const host = app.get(`host`)
+    const service = this.service('files/render')
+    const host = this.get('host')
 
     const { settings } = await service.create({ maxConcurrent: 1 })
 
@@ -71,8 +70,8 @@ async function start(
         maxConcurrent: Object.keys(settings).length 
     })
 
-    app.set(`renderer`, renderer)
-    app.io.on(`render`, async (
+    this.set('renderer', renderer)
+    this.io.on('render', async (
         file: File, 
         reply: (data: RenderAgentResult[]) => void
     ) => {
@@ -89,7 +88,7 @@ async function start(
     })
 }
 
-/*** Main ***/
+//// Main ////
 
 export default async function createFileRenderApp(
     config: FileRenderAppSettings
@@ -105,16 +104,16 @@ export default async function createFileRenderApp(
             )
         ) as FileRenderApp
 
-    app.connect = thisShift(untilConnect)
-    app.start = thisShift(start)
+    app.connect = untilConnect
+    app.start = start
 
-    app.set(`host`, host)
+    app.set('host', host)
 
     // Setup Auth
     if (auth) {
         app.configure(
             fauth({
-                storageKey: `benzed-client-renderer`
+                storageKey: 'benzed-client-renderer'
             })
         )
     }
@@ -127,7 +126,7 @@ export default async function createFileRenderApp(
     return app
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export {
     createFileRenderApp,

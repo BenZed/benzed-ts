@@ -1,12 +1,14 @@
 import seconds from './seconds'
 
-describe(`seconds`, () => {
+import { describe, it, expect } from '@jest/globals'
 
-    it(`returns a promise`, () => {
+describe('seconds', () => {
+
+    it('returns a promise', () => {
         expect(seconds(0)).toBeInstanceOf(Promise)
     })
 
-    it(`resolves after a set number of seconds`, async () => {
+    it('resolves after a set number of seconds', async () => {
         const start = Date.now()
         await seconds(0.015)
         const time = Date.now() - start

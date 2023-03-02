@@ -1,14 +1,13 @@
 {
     "name": "@benzed/string",
     "description": "Utility and Convenience methods for working with strings.",
-    "main": "./lib",
+    "main": "./src",
     "version": "3.2.3",
     "scripts": {
-        "test": "jest --maxWorkers=1 -o",
-        "test:dev": "npm run test -- --verbose --watch",
+        "test": "jest --run-in-band --all",
+        "test:dev": "jest --run-in-band --only-changed --verbose",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc",
-        "build:dev": "npm run tsc -- -w",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
@@ -22,8 +21,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/is": "^3.1.2",
-        "@benzed/math": "^3.1.4",
-        "@benzed/match": "^1.0.0"
+        "@benzed/util": "^3.9.1",
+        "@benzed/math": "^3.1.4"
     }
 }

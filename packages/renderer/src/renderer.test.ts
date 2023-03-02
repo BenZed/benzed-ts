@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { cpus } from 'os'
+import { it, expect, describe } from '@jest/globals'
 
 import { $renderSetting } from './render-settings'
 import { Renderer, RenderItem } from './renderer'
@@ -202,7 +203,8 @@ describe('items', () => {
                 target: path.join(RENDER_FOLDER, 'item-test-1.mp4')
             })
         }
-        expect(renderer.items.length).toBeGreaterThan(0)
+
+        expect(renderer.items().length).toBeGreaterThan(0)
     })
 })
 

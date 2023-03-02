@@ -23,7 +23,7 @@ import {
     validatePayload
 } from './util'
 
-/*** Helper ***/
+//// Helper ////
 
 function writePart(
     ctx: FeathersKoaContext, 
@@ -37,8 +37,8 @@ function writePart(
         const partWriteStream = fs.createWriteStream(partFile)
 
         ctx.req.pipe(partWriteStream)
-            .once('error', reject)
-            .once('finish', resolve)
+            .once(`error`, reject)
+            .once(`finish`, resolve)
     })
 }
 
@@ -49,7 +49,7 @@ async function validatePayloadPart(
 
     await validatePayload(files, payload)
 
-    if (!('part' in payload.action))
+    if (!(`part` in payload.action))
         throwInvalidPayload()
 
     const { part } = payload.action
@@ -70,7 +70,7 @@ async function ensurePartDir(
     return partDir
 }
 
-/*** Main ***/
+//// Main ////
 
 const uploadPartMiddleware = createFileRoutingMiddleware(({ path, verify, fs: localDir }) =>
 
@@ -98,7 +98,7 @@ const uploadPartMiddleware = createFileRoutingMiddleware(({ path, verify, fs: lo
 
     })
 
-/*** Exports ***/
+//// Exports ////
 
 export default uploadPartMiddleware
 

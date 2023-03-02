@@ -10,18 +10,18 @@ import createFileServerApp from '../server/create-file-server-app'
 
 import { UploadedAssetData, Uploader, TEST_FILE_SERVER_CONFIG } from '../util.test'
 
-/*** Eslint ***/
+//// Eslint ////
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*** Server ***/
+//// Server ////
 
 const server = createFileServerApp({
     ...TEST_FILE_SERVER_CONFIG,
     renderer: null
 })
 
-const users = server.service(`users`)
+const users = server.service('users')
 
 const upload = new Uploader(server)
 
@@ -32,9 +32,9 @@ afterAll(() => server.teardown())
 let uploader: User
 beforeAll(async () => {
     uploader = await users.create({
-        name: `Test User`,
-        email: `test@user.com`,
-        password: `password`
+        name: 'Test User',
+        email: 'test@user.com',
+        password: 'password'
     })
 })
 
@@ -43,14 +43,14 @@ beforeAll(async () => {
     uploadData = await upload.assets(uploader._id)
 })
 
-/*** Tests ***/
+//// Tests ////
 
-describe(`upload`, () => {
+describe('upload', () => {
 
     for (const testAssetUrl of Object.values(Uploader.ASSETS)) {
         describe(`${path.basename(testAssetUrl)} test upload`, () => {
 
-            const dir = server.get(`fs`) as string
+            const dir = server.get('fs') as string
 
             let uploadDatum: typeof uploadData[number]
             let fsFilePath: string
@@ -67,23 +67,23 @@ describe(`upload`, () => {
                 )
             })
 
-            it(`part upload responds with etags`, () => {
+            it('part upload responds with etags', () => {
                 expect(uploadDatum.partEtags).not.toHaveLength(0)
             })
 
-            it(`creates file parts on the server`, () => {
+            it('creates file parts on the server', () => {
                 expect(uploadDatum.partNames).not.toHaveLength(0)
                 expect(uploadDatum.partNames.every(p => p.includes(uploadDatum.signedFile._id)))
             })
 
-            it(`completing downloads merges them into a single file`, async () => {
+            it('completing downloads merges them into a single file', async () => {
                 const stat = await fs.stat(fsFilePath)
 
                 // within 100 bytes
                 expect(stat.size / 100).toBeCloseTo(uploadDatum.signedFile.size / 100, 1)
             })
 
-            it(`completing downloads removes the file's part folder`, () => {
+            it('completing downloads removes the file\'s part folder', () => {
                 expect(
                     !fs.sync.exists(
                         path.join(
@@ -94,15 +94,15 @@ describe(`upload`, () => {
                 )
             })
 
-            it(`completing download fills file uploaded date`, async () => {
-                const file = await server.service(`files`).get(uploadDatum.signedFile._id)
+            it('completing download fills file uploaded date', async () => {
+                const file = await server.service('files').get(uploadDatum.signedFile._id)
                 expect(file.uploaded).toBeInstanceOf(Date)
             })
 
         })
     }
 
-    it(`part uploads are idempotent`, async () => {
+    it('part uploads are idempotent', async () => {
         const { large } = Uploader.ASSETS
 
         const largeFile = await upload.createSignedFile(large, uploader._id)
@@ -110,7 +110,7 @@ describe(`upload`, () => {
         return expect(upload.parts(large, largeFile)).resolves.toEqual(etags)
     })
 
-    it(`uploads cannot be completed more than once`, async () => {
+    it('uploads cannot be completed more than once', async () => {
 
         const { mp4 } = Uploader.ASSETS
 
@@ -120,11 +120,11 @@ describe(`upload`, () => {
         await upload.complete(movie.urls.complete, etags)
 
         const err = await upload.complete(movie.urls.complete, etags).catch(e => e)
-        expect(err.name).toBe(`BadRequest`)
-        expect(err.message).toContain(`File upload is already complete`)
+        expect(err.name).toBe('BadRequest')
+        expect(err.message).toContain('File upload is already complete')
     })
 
-    it(`parts cannot be uploaded once file is completed`, async () => {
+    it('parts cannot be uploaded once file is completed', async () => {
 
         const { gif } = Uploader.ASSETS
 
@@ -133,11 +133,11 @@ describe(`upload`, () => {
         await upload.complete(animation.urls.complete, etags)
 
         const err = await upload.parts(gif, animation).catch(e => e)
-        expect(err.name).toBe(`BadRequest`)
-        expect(err.message).toContain(`File upload is already complete`)
+        expect(err.name).toBe('BadRequest')
+        expect(err.message).toContain('File upload is already complete')
     })
 
-    it(`file cannot be completed until all parts are accounted for`, async () => {
+    it('file cannot be completed until all parts are accounted for', async () => {
         
         const { large } = Uploader.ASSETS
 
@@ -145,21 +145,21 @@ describe(`upload`, () => {
         const etag = await upload.part(data.urls.uploadParts[0], large, data.size, 0)
 
         const err = await upload.complete(data.urls.complete, [etag]).catch(e => e)
-        expect(err.name).toBe(`BadRequest`)
-        expect(err.message).toContain(`Upload incomplete for id`)
+        expect(err.name).toBe('BadRequest')
+        expect(err.message).toContain('Upload incomplete for id')
     })
 
-    it(`handles malformed payloads`, async () => {
+    it('handles malformed payloads', async () => {
 
         const err = await upload.part(
-            `/files?upload=notasignedurl`,
+            '/files?upload=notasignedurl',
             Uploader.ASSETS.gif, 
             fs.sync.stat(Uploader.ASSETS.gif).size, 
             0
         ).catch(e => e)
 
         expect(err.code).toEqual(400)
-        expect(err.name).toEqual(`BadRequest`)
+        expect(err.name).toEqual('BadRequest')
     })
 
 })

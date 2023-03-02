@@ -9,13 +9,13 @@ beforeAll(() => {
     fileServer = createFileServerApp()
 })
 
-it(`creates a file server app`, () => {
-    expect(fileServer).toHaveProperty(`log`)
+it('creates a file server app', () => {
+    expect(fileServer).toHaveProperty('log')
 })
 
-describe(`log() method`, () => {
+describe('log() method', () => {
 
-    it(`is an instance of @benzed/util Logger`, () => {
+    it('is an instance of @benzed/util Logger', () => {
         expect(fileServer.log).toBeInstanceOf(Function)
         expect(fileServer.log.info).toBeInstanceOf(Function)
         expect(fileServer.log.warn).toBeInstanceOf(Function)
@@ -24,7 +24,7 @@ describe(`log() method`, () => {
 
 })
 
-describe(`running`, () => {
+describe('running', () => {
 
     beforeAll(async () => {
         try {
@@ -39,10 +39,10 @@ describe(`running`, () => {
         await fileServer.teardown()
     })
 
-    it(`connects to database`, async () => {
+    it('connects to database', async () => {
 
-        const db = await fileServer.db(`any-collection`)
-        expect(db.constructor.name).toBe(`Collection`)
+        const db = await fileServer.db('any-collection')
+        expect(db.constructor.name).toBe('Collection')
     })
 
 })

@@ -18,7 +18,7 @@ import { File, SERVER_RENDERER_ID } from '../files-service'
 import { RENDER_DIR_NAME } from '../files-service/constants'
 import { getFsFilePath } from '../files-service/middleware/util'
 
-/*** Types ***/
+//// Types ////
 
 interface RenderAgentResult {
     readonly error: Error | null
@@ -33,7 +33,7 @@ interface RenderAgentData {
     }[]
 }
 
-/*** Helper ***/
+//// Helper ////
 
 async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentResult[]> {
 
@@ -42,12 +42,12 @@ async function getRenderAgentResults(renderer: Renderer): Promise<RenderAgentRes
     await renderer.complete()
 
     return items.map(({ error, setting }) => ({
-        error: error && pick(error, `message`, `name`),
+        error: error && pick(error, 'message', 'name'),
         setting
     }))
 }
 
-/*** Main ***/
+//// Main ////
 
 class RenderAgent implements RenderAgentData {
 
@@ -67,13 +67,13 @@ class RenderAgent implements RenderAgentData {
             .map(([_id, results]) => ({ _id, results }))
     }
 
-    /*** Constructor ***/
+    //// Constructor ////
     
     constructor (
         readonly agent: Renderer | Socket,
     ) { }
 
-    /*** Interface ***/
+    //// Interface ////
 
     render(file: File): QueueItem<RenderAgentResult[], { fileId: string }> {
 
@@ -106,13 +106,13 @@ class RenderAgent implements RenderAgentData {
         return this.queue.complete()
     }
 
-    /*** To Json ***/
+    //// To Json ////
     
     toJSON(): RenderAgentData {
-        return pick(this, `_id`, `files`)
+        return pick(this, '_id', 'files')
     }
 
-    /*** Helper ***/
+    //// Helper ////
     
     protected _renderLocal(agent: Renderer, file: File): Promise<RenderAgentResult[]> {
 
@@ -121,7 +121,7 @@ class RenderAgent implements RenderAgentData {
             source: fs.createReadStream(
                 getFsFilePath(
                     file,
-                    `./storage/test/files`
+                    './storage/test/files'
                 )
             ),
             // TEMP
@@ -130,7 +130,7 @@ class RenderAgent implements RenderAgentData {
                     path.dirname(
                         getFsFilePath(
                             file,
-                            `./storage/test/files`
+                            './storage/test/files'
                         )
                     ),
                     RENDER_DIR_NAME,
@@ -149,21 +149,21 @@ class RenderAgent implements RenderAgentData {
         return new Promise((resolve, reject) => {
 
             socket.emit(
-                `render`, 
+                'render', 
                 file, 
                 (data: RenderAgentResult[]) => resolve(data)
             )
             
-            socket.once(`disconnect`, () => 
+            socket.once('disconnect', () => 
                 reject(
-                    new Error(`client disconnected`)
+                    new Error('client disconnected')
                 )
             )
         })
     }
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default RenderAgent
 

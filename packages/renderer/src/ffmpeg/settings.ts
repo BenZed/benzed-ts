@@ -2,7 +2,7 @@ import type { Writable, Readable } from 'stream'
 
 import $ from '@benzed/schema'
 
-/*** IO ***/
+//// IO ////
 export interface Input {
     input: string | Readable
 }
@@ -11,7 +11,7 @@ export interface Output {
     output: string | Writable
 }
 
-/*** Dimensions ***/
+//// Dimensions ////
 
 export type Height = {
     height: number
@@ -25,7 +25,7 @@ export type Duration = {
     duration: number
 }
 
-/*** Options ***/
+//// Options ////
 
 export interface VideoSetting {
 

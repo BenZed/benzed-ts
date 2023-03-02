@@ -1,14 +1,13 @@
 import { random, round, floor, ceil } from './overrides'
+import { it, expect, describe } from '@jest/globals'
 
-/* global describe it */
+describe('overridden methods', () => {
 
-describe(`overridden methods`, () => {
-
-    describe(`random($min, $max, $alt)`, () => {
+    describe('random($min, $max, $alt)', () => {
 
         const RANDOM_ITERATIONS = 1000
 
-        it(`creates random numbers between min positive and max positive value`, () => {
+        it('creates random numbers between min positive and max positive value', () => {
             for (let i = 0; i < RANDOM_ITERATIONS; i++) {
                 const result = random(50, 150)
                 expect(result).toBeGreaterThan(50)
@@ -16,7 +15,7 @@ describe(`overridden methods`, () => {
             }
         })
 
-        it(`creates random numbers between min negative and max positive value`, () => {
+        it('creates random numbers between min negative and max positive value', () => {
             for (let i = 0; i < RANDOM_ITERATIONS; i++) {
                 const result = random(-50, 50)
                 expect(result).toBeGreaterThanOrEqual(-50)
@@ -24,7 +23,7 @@ describe(`overridden methods`, () => {
             }
         })
 
-        it(`creates random numbers between min negative and max negative value`, () => {
+        it('creates random numbers between min negative and max negative value', () => {
             for (let i = 0; i < RANDOM_ITERATIONS; i++) {
                 const result = random(-150, -50)
                 expect(result).toBeGreaterThanOrEqual(-150)
@@ -32,7 +31,7 @@ describe(`overridden methods`, () => {
             }
         })
 
-        it(`third argument seed can be provided to seed a random number`, () => {
+        it('third argument seed can be provided to seed a random number', () => {
             for (let seed = 0; seed < RANDOM_ITERATIONS; seed += 1) {
                 const r1 = random(0, 10, seed)
                 const r2 = random(0, 10, seed)
@@ -44,7 +43,7 @@ describe(`overridden methods`, () => {
 
     })
 
-    describe(`correct rounding boundary`, () => {
+    describe('correct rounding boundary', () => {
         for (const { input, output } of [
             {
                 input: 4.5,
@@ -119,13 +118,13 @@ describe(`overridden methods`, () => {
                 }
             })
 
-            it(`negative precision values are treated as positive`, () => {
+            it('negative precision values are treated as positive', () => {
                 const neg = func(5.5, -2)
                 const pos = func(5.5, 2)
                 expect(neg).toEqual(pos)
             })
 
-            it(`0 precision means no rounding`, () => {
+            it('0 precision means no rounding', () => {
                 const _in = 5.1234
                 const out = func(_in, 0)
                 expect(_in).toEqual(out)

@@ -1,7 +1,7 @@
 
-/*** Exports ***/
+//// Exports ////
 
-export * from './clamp'
+export * from './clamp'  
 export * from './constants'
 export * from './lerp'
 export * from './overrides'

@@ -1,14 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { isArray } from '@benzed/is'
+import { isArray } from '@benzed/util'
 
-/*** Types ***/
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
-type Wrap<T> = T extends any[] | readonly any[]
+//// Types ////
+
+type Wrap<T> = T extends (unknown[] | readonly unknown[])
     ? T
     : T[]
 
-/*** Main ***/
+//// Main ////
 
 /**
  * Wraps an input in an Array, if it isn't an array already.
@@ -23,7 +26,7 @@ function wrap<T>(
     return (isArray(value) ? value : [value]) as Wrap<T>
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default wrap
 

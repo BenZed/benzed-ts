@@ -1,6 +1,6 @@
 import { createMongoDBApplication } from './create-mongo-db-application'
 
-/*** Exports ***/
+//// Exports ////
 
 export default createMongoDBApplication
 

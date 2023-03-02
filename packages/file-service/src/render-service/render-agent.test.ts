@@ -11,16 +11,16 @@ import {
     FileRenderApp 
 } from '../client/create-file-render-app'
 
-/*** Const ***/
+//// Const ////
 
-const PASSWORD = `some-test-password`
+const PASSWORD = 'some-test-password'
 const TEST_CLIENT_RENDERERS = 0
 
-/*** Setup ***/
+//// Setup ////
 
 const server = createFileServerApp()
-const users = server.service(`users`)
-const render = server.service(`files/render`)
+const users = server.service('users')
+const render = server.service('files/render')
 
 const upload = new Uploader(server)
 
@@ -30,8 +30,8 @@ beforeAll(() => server.start())
 let uploader: User
 beforeAll(async () => {
     uploader = await users.create({
-        name: `Test User`,
-        email: `test@user.com`,
+        name: 'Test User',
+        email: 'test@user.com',
         password: PASSWORD
     })
 })
@@ -43,7 +43,7 @@ const renderEvents = {
     removed: [] as RenderAgentData[]
 }
 beforeAll(() => {
-    for (const event of [`updated`, `created`, `removed`] as const)
+    for (const event of ['updated', 'created', 'removed'] as const)
         render.on(event, r => renderEvents[event].push(r))
 })
 
@@ -59,7 +59,7 @@ beforeAll(async () => {
             auth: {
                 email: uploader.email,
                 password: PASSWORD,
-                strategy: `local`
+                strategy: 'local'
             }
         })
 
@@ -80,7 +80,7 @@ beforeAll(async () => {
 
 afterAll(() => server.teardown())
 
-/*** Helpers ***/
+//// Helpers ////
 
 const getUploadedFileRenderResults = (
     file: File
@@ -108,10 +108,10 @@ const getFilesAssignedToAgents = (): string[] => {
     return assignedIds
 }
 
-/*** Tests ***/
+//// Tests ////
 
-const MEDIA_EXTS = [`.mp4`, `.gif`, `.png`, `.jpg`]
-const NON_MEDIA_EXTS = [`.txt`, `.json`]
+const MEDIA_EXTS = ['.mp4', '.gif', '.png', '.jpg']
+const NON_MEDIA_EXTS = ['.txt', '.json']
 
 for (const ext of MEDIA_EXTS) {
     it(`${ext} are assigned to render agents`, () => {
@@ -139,8 +139,8 @@ for (const ext of MEDIA_EXTS) {
     it(`${ext} files render applicable settings`, async () => {
         for (const file of uploadedFiles.filter(f => f.ext === ext)) {
 
-            const allSettings = Object.keys(server.get(`renderer`)?.settings ?? {})
-            const { renders } = await server.service(`files`).get(file._id)
+            const allSettings = Object.keys(server.get('renderer')?.settings ?? {})
+            const { renders } = await server.service('files').get(file._id)
 
             allSettings.forEach(setting => {
                 expect(renders.map(r => r.key)).toContain(setting)

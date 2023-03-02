@@ -1,10 +1,10 @@
 import { createFileServerApp } from '../server'
 
-/*** Execute ***/
+//// Execute ////
 
 const fileServerApp = createFileServerApp()
 
-process.on(`unhandledRejection`, (reason, p) =>
+process.on('unhandledRejection', (reason, p) =>
     fileServerApp
         .log
         .error`Unhandled Rejection at: Promise ${p} ${reason}`

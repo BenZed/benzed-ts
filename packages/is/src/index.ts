@@ -1,14 +1,7 @@
+import { To } from './to'
 
-export * from './is-array-like'
-export * from './is-array-of'
-export * from './is-basic'
-export * from './is-instance-of'
-export * from './is-iterable'
-export * from './is-math'
-export * from './is-plain-object'
-export * from './is-sorted-array'
+//// Main Export ////
 
-export * from './types'
+export const is = new To<[],[]>()
 
-export { default } from './is'
-
+export default is

@@ -1,52 +1,61 @@
-import { descending } from './sorted-array'
 
-/*** Shortcuts ***/
+//// Shortcuts ////
 
-const { splice } = Array.prototype
+import { each } from '@benzed/util'
 
-/*** Main ***/
+const { splice, findIndex } = Array.prototype
+
+//// Main ////
 
 /**
- * Removes all duplicate values in a given array.
- *
- * @param  {Array} input ArrayLike to be uniquified
- * @return {Array} ArrayLike is mutated in place, but method returns it anyway.
+ * Given filter arguements, return true if the provided value is
+ * unique to the array, false otherwise.
  */
-function unique<T extends string | ArrayLike<unknown>>(
-    arrayLike: T
-): T {
+function unique<T>(value: T, index: number, array: ArrayLike<T>): boolean
 
-    if (typeof arrayLike === `string`) {
+/**
+ * Given an arraylike, return an arraylike containing only unique values.
+ * @param arrayLike 
+ */
+function unique<T extends string | ArrayLike<unknown>>(arrayLike: T): T
 
-        let output = ``
-        for (const char of arrayLike) {
-            if (!output.includes(char))
-                output += char
-        }
+/**
+ * Bound to an arraylike, return an arraylike containing only unique values.
+ * @param this 
+ */
+function unique<T extends ArrayLike<unknown>>(this: T): T
+function unique(
+    this: unknown, 
+    arrayLikeOrItem?: unknown, 
+    index?: number, 
+    arrayContainingItem?: ArrayLike<unknown>
+): unknown {
 
-        return output as T
-
-    } else {
-
-        const indexesToDelete: number[] = []
-        const arraySplice = splice.bind(arrayLike)
-
-        for (let i = 0; i < arrayLike.length; i++) {
-            if (indexesToDelete.includes(i))
-                continue
-            for (let ii = i + 1; ii < arrayLike.length; ii++) {
-                if (Object.is(arrayLike[ii], arrayLike[i]))
-                    indexesToDelete.push(ii)
-            }
-        }
-
-        for (const indexToDelete of indexesToDelete.sort(descending))
-            arraySplice(indexToDelete, 1)
-
-        return arrayLike
+    // handle bound signature
+    if (this) 
+        return unique(this as ArrayLike<unknown>)
+    
+    // handle filter signature
+    if (arrayContainingItem) {
+        const item = arrayLikeOrItem
+        return findIndex.call(arrayContainingItem, value => Object.is(item, value)) === index
     }
+
+    const arrayLike = arrayLikeOrItem as ArrayLike<unknown>
+
+    // handle string value string
+    if (typeof arrayLike === 'string')
+        return unique(arrayLike.split('')).join('')
+
+    // handle 
+    for (const index of each.indexOf(arrayLike, true)) {
+        if (!unique(arrayLike[index], index, arrayLike)) 
+            splice.call(arrayLike, index, 1)
+    }
+
+    return arrayLike
 }
 
-/*** Exports ***/
+//// Exports ////
 
 export default unique
