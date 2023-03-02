@@ -1,11 +1,9 @@
-import { TypeSchema } from '@benzed/schema'
+import { TypeSchema, TypeValidator } from '@benzed/schema'
 import { isBigInt, isString } from '@benzed/util'
-
-import NumericValidator from './numeric'
 
 //// BigInt ////
 
-class BigIntValidator extends NumericValidator<bigint> {
+class BigIntValidator extends TypeValidator<bigint> {
 
     isValid(input: unknown): input is bigint {
         return isBigInt(input)

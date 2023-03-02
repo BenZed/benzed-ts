@@ -1,29 +1,24 @@
-import { TypeSchema } from '@benzed/schema'
+import { TypeSchema, TypeValidator } from '@benzed/schema'
 import {
     isNumber,
     isString,
     isNaN,
 } from '@benzed/util'
+import { NameMessageEnabledSettingsSignature, toNameMessageEnabledSettings } from '../util'
 
-import NumericValidator from './numeric'
 import { 
 
     Round, 
-    Ceil, 
     Finite, 
-    Floor, 
 
-    toPrecisionSettings,
-    PrecisionSettingsSignature,
-
-    toNameMessageEnabledSettings, 
-    NameMessageEnabledSettingsSignature
+    toRoundSettings,
+    RoundSettingsSignature,
 
 } from './sub-validators'
 
 //// Helper ////
 
-class NumberValidator extends NumericValidator<number> {
+class NumberValidator extends TypeValidator<number> {
 
     isValid(input: unknown): input is number {
         return isNumber(input)
@@ -50,9 +45,8 @@ export class Number
     NumberValidator, 
     {
         round: Round
-        ceil: Ceil
-        floor: Floor
         finite: Finite
+        //range: Range
     }
 
     > {
@@ -62,26 +56,24 @@ export class Number
             new NumberValidator,
             {
                 round: new Round(1),
-                ceil: new Ceil(1),
-                floor: new Floor(1),
                 finite: new Finite
             }
         )
     }
 
-    round(...params: PrecisionSettingsSignature): this {
-        const settings = toPrecisionSettings(...params)
-        return this._applySubValidator('round', settings)
+    round(...params: RoundSettingsSignature): this {
+        const settings = toRoundSettings(...params)
+        return this._applySubValidator('round', { ...settings, type: 'round' })
     }
 
-    ceil(...params: PrecisionSettingsSignature): this {
-        const settings = toPrecisionSettings(...params)
-        return this._applySubValidator('ceil', settings)
+    ceil(...params: RoundSettingsSignature): this {
+        const settings = toRoundSettings(...params)
+        return this._applySubValidator('round', { ...settings, type: 'ceil' })
     }
 
-    floor(...params: PrecisionSettingsSignature): this {
-        const settings = toPrecisionSettings(...params)
-        return this._applySubValidator('floor', settings)
+    floor(...params: RoundSettingsSignature): this {
+        const settings = toRoundSettings(...params)
+        return this._applySubValidator('round', { ...settings, type: 'floor' })
     }
 
     finite(...params: NameMessageEnabledSettingsSignature): this {

@@ -1,11 +1,10 @@
-import { TypeSchema } from '@benzed/schema'
+import { TypeSchema, TypeValidator } from '@benzed/schema'
 
 import { isInteger, isString } from '@benzed/util'
-import NumericValidator from './numeric'
 
 //// Boolean ////
 
-class IntegerValidator extends NumericValidator<number> {
+class IntegerValidator extends TypeValidator<number> {
 
     override isValid(input: unknown): input is number {
         return isInteger(input)

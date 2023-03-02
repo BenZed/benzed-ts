@@ -21,7 +21,7 @@ const $$sub = Symbol('sub-validators')
 //// Types ////
 
 interface SubValidator<T> extends Validator<T, T> { 
-    readonly enabled?: boolean 
+    readonly enabled: boolean 
 }
 
 type SubValidators<V extends Validator> = Record<string, SubValidator<ValidateOutput<V>>>
