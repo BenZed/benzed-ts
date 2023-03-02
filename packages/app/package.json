@@ -30,6 +30,14 @@
         "socket.io-client": "^4.5.3",
         "jsonwebtoken": "^8.5.1",
         "bcryptjs": "^2.4.3",
+        "@benzed/array": "^3.2.3",
+        "@benzed/async": "^3.4.1",
+        "@benzed/immutable": "^4.0.0",
+        "@benzed/node": "^1.0.0",
+        "@benzed/schema": "^0.3.0",
+        "@benzed/string": "^3.2.3",
+        "@benzed/util": "^3.9.1",
+        "@benzed/traits": "^1.0.0"
     },
     "peerDependencies": {},
     "devDependencies": {
