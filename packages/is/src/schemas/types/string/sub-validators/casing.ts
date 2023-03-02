@@ -1,7 +1,8 @@
+import { pick } from '@benzed/util'
 import { Validator } from '@benzed/schema'
 import { capitalize, toCamelCase } from '@benzed/string'
-import { define, pick } from '@benzed/util'
-import { SubContractValidator } from '../../../validators'
+
+import { SubContractValidator } from '../../../../validators'
 
 //// Exports ////
 

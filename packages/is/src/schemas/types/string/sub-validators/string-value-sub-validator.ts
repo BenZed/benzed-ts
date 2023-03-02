@@ -2,8 +2,8 @@ import { ValidationErrorMessage, Validator } from '@benzed/schema'
 import { SignatureParser } from '@benzed/signature-parser'
 import { isString, pick } from '@benzed/util'
 
-import { SubContractValidator } from '../../../validators'
-import { toNameMessageEnabledSettings } from '../../util'
+import { SubContractValidator } from '../../../../validators'
+import { toNameMessageEnabledSettings } from '../../../util'
 
 //// StringValueSubValidator Signature ////
 

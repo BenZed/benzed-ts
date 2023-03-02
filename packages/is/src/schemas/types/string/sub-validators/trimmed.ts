@@ -1,4 +1,4 @@
-import { SubContractValidator } from '../../../validators'
+import { SubContractValidator } from '../../../../validators'
 
 //// Exports ////
 

@@ -23,7 +23,7 @@ import {
 import {
     NameMessageEnabledSettingsSignature, 
     toNameMessageEnabledSettings 
-} from '../util'
+} from '../../util'
 
 //// EsLint ////
 

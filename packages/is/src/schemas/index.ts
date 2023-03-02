@@ -1,2 +1,3 @@
-export * from './numeric'
-export * from './boolean'
+export * from './types'
+export * from './values'
+export * from './shape'
