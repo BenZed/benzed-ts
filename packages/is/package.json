@@ -27,6 +27,7 @@
         "@benzed/math": "^3.1.4",
         "@benzed/schema": "^0.3.0",
         "@benzed/immutable": "^4.0.0",
-        "@benzed/signature-parser": "^1.0.0"
+        "@benzed/signature-parser": "^1.0.0",
+        "@benzed/array": "^3.2.3"
     }
 }
