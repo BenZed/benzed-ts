@@ -62,7 +62,13 @@ import {
     WeakMap,
 
     $nil,
-    Nil
+    Nil,
+
+    $function,
+    Function,
+
+    $object,
+    Obj
 
 } from '../schemas'
 
@@ -180,6 +186,14 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
     }
 
     // Built Ins
+
+    get object(): IsTo<F, M, [Obj]> {
+        return this($object) 
+    }
+
+    get function(): IsTo<F, M, [Function]> {
+        return this($function) 
+    }
 
     get date(): IsTo<F, M, [Date]> {
         return this($date) 
