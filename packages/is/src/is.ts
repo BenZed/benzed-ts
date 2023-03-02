@@ -35,6 +35,10 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
 
     get or(): To<[V], []>
 
+    /**
+     * Type-only property
+     */
+    get data(): ValidateOutput<V>
 }
 
 type _IsDynamic<V extends Validator> = {

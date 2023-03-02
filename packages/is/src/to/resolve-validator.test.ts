@@ -13,7 +13,7 @@ import {
 
 import { expectTypeOf } from 'expect-type'
 import { nil } from '@benzed/util'
-import { Or } from '@benzed/schema'
+import { Or, ReadOnly } from '@benzed/schema'
 
 import { is } from '../index'
 
@@ -124,7 +124,7 @@ test('recursive shapes', () => {
     })
 
     expectTypeOf($address).toEqualTypeOf<Shape<{
-        type: Value<'address'>
+        type: ReadOnly<Value<'address'>>
         postal: String
         city: Instance<City>
         priority: Number

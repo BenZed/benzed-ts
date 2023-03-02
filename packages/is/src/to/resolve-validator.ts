@@ -1,9 +1,9 @@
 
-import { Validator, Or } from '@benzed/schema'
+import { Validator, Or, ReadOnly } from '@benzed/schema'
 import { each, Infer, isFunc, isPrimitive, isRecord, Primitive } from '@benzed/util'
 
 import { Is, IsCursor } from '../is'
-import { Value, Instance, InstanceInput, Shape, ShapeInput } from '../schemas'
+import { Value, InstanceOf, InstanceInput, Shape, ShapeInput } from '../schemas'
 
 //// Helper Types ////
 
@@ -44,7 +44,7 @@ type ResolveValidators<T extends unknown[]> = T extends [infer T1, ...infer Tr]
             : [
                 // Handle Primitive
                 T1 extends Primitive 
-                    ? Value<T1>
+                    ? ReadOnly<Value<T1>>
 
                     // Handle Shape
                     : T1 extends ResolveShapeValidatorInput 
@@ -58,7 +58,7 @@ type ResolveValidators<T extends unknown[]> = T extends [infer T1, ...infer Tr]
 
                             // Handle Instance
                             : T1 extends InstanceInput
-                                ? Instance<InstanceType<T1>>
+                                ? InstanceOf<InstanceType<T1>>
 
                                 // Failure
                                 : never,
@@ -83,7 +83,7 @@ function resolveValidators<T extends ResolveValidatorsInput>(
 
         // Handle Primitive 
         if (isPrimitive(input))
-            return new Value(input)
+            return new ReadOnly(new Value(input))
 
         // Handle Shape
         if (isRecord(input)) {
@@ -99,7 +99,7 @@ function resolveValidators<T extends ResolveValidatorsInput>(
 
         // Handle Instance
         if (isFunc(input))
-            return new Instance(input as InstanceInput)
+            return new InstanceOf(input as InstanceInput)
 
         // Failure
         throw new Error(`${input} is invalid`)

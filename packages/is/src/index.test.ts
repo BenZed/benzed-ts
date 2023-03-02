@@ -1,13 +1,14 @@
-import { nil } from '@benzed/util'
-import { Or, Not, Optional, ReadOnly, ShapeValidatorOutput, ValidateOutput } from '@benzed/schema'
+import { Infer, nil } from '@benzed/util'
+import { equals } from '@benzed/immutable'
+import { Or, Not, Optional, ReadOnly, ValidateOutput } from '@benzed/schema'
+
 import { test } from '@jest/globals'
 
 import { is } from './index'
 
 import { expectTypeOf } from 'expect-type'
-import { String, Boolean, Shape, Number } from './schemas'
+import { String, Boolean, Shape, Number, InstanceOf } from './schemas'
 import { Is } from './is'
-import { equals } from '@benzed/immutable'
 
 //// EsLint ////
 
@@ -16,7 +17,7 @@ import { equals } from '@benzed/immutable'
     @typescript-eslint/indent
 */
 
-////  ////
+//// Setup ////
 
 const value: unknown = NaN
 
@@ -78,20 +79,20 @@ describe('is.string.optional', () => {
 
 })
 
-it('is.string.or.boolean', () => {
+it('is.integer.or.boolean', () => {
 
     expect(
         equals(
-            is.string.or.boolean,
-            is(is.string, is.boolean)
+            is.integer.or.boolean,
+            is(is.integer, is.boolean)
         )
     ).toBe(true)
 
 })
 
-it('is.optional.string', () => {
+it('is.optional.bigint', () => {
     expect(
-        equals(is.optional.string, is.string.optional)
+        equals(is.optional.bigint, is.bigint.optional)
     ).toBe(true)
 })
 
@@ -230,4 +231,54 @@ describe('is.shape', () => {
 
     })
 
+    test('union shapes', () => {
+
+        const isFooOrBar = 
+            is.shape({
+                foo: 'foo' as const
+            })
+            .or.shape({
+                bar: 'bar' as const
+            })
+
+        expect(isFooOrBar({ foo: 'foo' })).toBe(true)
+        expect(isFooOrBar({ bar: 'bar' })).toBe(true)
+        expect(isFooOrBar({ })).toBe(false)
+
+    })
+
+    test('nested shapes', () => {
+
+        const isWeird = is.shape({
+            a: {
+                b: {
+                    c: 'ace' as const
+                }
+            }
+        })
+
+        expect(isWeird({ a: { b: { c: 'ace' } } } )).toBe(true)
+    })
+
+})
+
+it('is.instance', () => {
+
+    class Bomb {
+        constructor(readonly time: number) {}
+    }
+
+    const isBomb = is.instanceOf(Bomb)
+
+    expect(isBomb(new Bomb(5))).toBe(true)
+    expectTypeOf<typeof isBomb>()
+        .toEqualTypeOf<Is<InstanceOf<Bomb>>>()
+})
+
+it('is.null.or.nan.or.undefined', () => {
+
+    const isNil = is.null.or.nan.or.undefined
+    expect(isNil(null)).toBe(true)
+    expect(isNil(undefined)).toBe(true)
+    expect(isNil(NaN)).toBe(true)
 })

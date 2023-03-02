@@ -15,12 +15,55 @@ import { pluck } from '@benzed/array'
 import { Is } from '../is'
 
 import {
-    String,
-    Boolean,
-    Number,
+
     $string,
+    String,
+
     $boolean,
+    Boolean,
+
     $number,
+    Number,
+
+    InstanceInput,
+    InstanceOf,
+
+    $bigint,
+    BigInt,
+
+    $integer,
+    Integer,
+
+    $null,
+    Null,
+    
+    $undefined,
+    Undefined,
+
+    $nan,
+    NaN,
+
+    $date,
+    Date,
+
+    $error,
+    Error,
+
+    $promise,
+    Promise,
+
+    $regexp,
+    RegExp,
+
+    $weakset,
+    WeakSet,
+
+    $weakmap,
+    WeakMap,
+
+    $nil,
+    Nil
+
 } from '../schemas'
 
 import {
@@ -96,9 +139,82 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         this._modifiers = args as unknown as M
     }
 
-    private _addModifier<Mx extends ModifierType>(m: Mx): IsTo<F, [...M, Mx], []> {
-        const args: any[] = [...this._from, ...this._modifiers, m]
-        return new To(...args)() as any
+    //// Primitives ////
+
+    get string(): IsTo<F, M, [String]> {
+        return this($string)
+    }
+
+    get boolean(): IsTo<F, M, [Boolean]> {
+        return this($boolean)
+    }
+
+    get number(): IsTo<F, M, [Number]> {
+        return this($number)
+    }
+
+    get integer(): IsTo<F, M, [Integer]> {
+        return this($integer)
+    }
+
+    get bigint(): IsTo<F, M, [BigInt]> {
+        return this($bigint)
+    }
+
+    //// Falsy Primitives ////
+
+    get null(): IsTo<F, M, [Null]> {
+        return this($null)
+    }
+
+    get undefined(): IsTo<F, M, [Undefined]> {
+        return this($undefined)
+    }
+
+    get nan(): IsTo<F, M, [NaN]> {
+        return this($nan)
+    }
+
+    get nil(): IsTo<F, M, [Nil]> {
+        return this($nil)
+    }
+
+    // Built Ins
+
+    get date(): IsTo<F, M, [Date]> {
+        return this($date) 
+    }
+
+    get error(): IsTo<F, M, [Error]> {
+        return this($error)
+    }
+
+    get promise(): IsTo<F, M, [Promise]> {
+        return this($promise)
+    }
+
+    get regexp(): IsTo<F, M, [RegExp]> {
+        return this($regexp)
+    }
+
+    get weakmap(): IsTo<F, M, [WeakMap]> {
+        return this($weakmap)
+    }
+
+    get weakset(): IsTo<F, M, [WeakSet]> {
+        return this($weakset)
+    }
+
+    shape<T extends ResolveShapeValidatorInput>(
+        shape: T
+    ): IsTo<F, M, [ResolveValidator<[T]>]> {
+        return this(resolveValidator(shape))
+    }
+
+    instanceOf<T extends InstanceInput>(
+        constructor: T
+    ): IsTo<F, M, [InstanceOf<InstanceType<T>>]> {
+        return this(new InstanceOf(constructor))
     }
 
     get optional(): IsTo<F, [...M, ModifierType.Optional], []> {
@@ -113,23 +229,13 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         return this._addModifier(ModifierType.Not)
     }
 
-    get string(): IsTo<F, M, [String]> {
-        return this($string) as any
+    //// Helper ////
+
+    private _addModifier<Mx extends ModifierType>(m: Mx): IsTo<F, [...M, Mx], []> {
+        const args: any[] = [...this._from, ...this._modifiers, m]
+        return new To(...args)() as any
     }
 
-    get boolean(): IsTo<F, M, [Boolean]> {
-        return this($boolean) as any
-    }
-
-    get number(): IsTo<F, M, [Number]> {
-        return this($number) as any
-    }
-
-    shape<T extends ResolveShapeValidatorInput>(
-        shape: T
-    ): IsTo<F, M, [ResolveValidator<[T]>]> {
-        return this(resolveValidator(shape)) as any
-    }
 }
 
 //// Helper ////

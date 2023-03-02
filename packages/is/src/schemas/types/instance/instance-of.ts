@@ -18,7 +18,7 @@ type ConstructorOf<T extends object> =
     (new (...args: any) => T) | 
     (abstract new (...args: any) => T)
 
-class Instance <T extends object> extends TypeSchema<InstanceValidator<ConstructorOf<T>>, {}> {
+class InstanceOf <T extends object> extends TypeSchema<InstanceValidator<ConstructorOf<T>>, {}> {
 
     constructor(Type: ConstructorOf<T>) {
         super(new InstanceValidator(Type), {})
@@ -29,6 +29,6 @@ class Instance <T extends object> extends TypeSchema<InstanceValidator<Construct
 //// Exports ////
 
 export {
-    Instance,
+    InstanceOf,
     InstanceValidatorInput as InstanceInput
 }
