@@ -1,4 +1,4 @@
-import { IndexesOf } from '@benzed/util'
+import { IndexesOf, pick } from '@benzed/util'
 import { ValidateInput, ValidateOutput } from '../../../validate'
 import { Validator } from '../../validator'
 
@@ -71,6 +71,10 @@ class TransformValidator<T extends Validators>
             validator
         ) as unknown as TransformToAnother<T, Tx>
     }
+
+    // get [Validator.state](): Pick<this, 'validators'> {      
+    //     return pick(this, 'validators')
+    // }
 
 }
 

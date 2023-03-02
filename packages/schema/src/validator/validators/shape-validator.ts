@@ -1,6 +1,6 @@
 
 import { Copyable } from '@benzed/immutable'
-import { each, GenericObject, Infer, pick } from '@benzed/util'
+import { each, GenericObject, Infer, isObject, nil, pick } from '@benzed/util'
 
 import { ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
@@ -83,7 +83,7 @@ type ShapeValidatorInput = {
 //// Tuple ////
 
 class ShapeValidator<T extends ShapeValidatorInput> 
-    extends Validator<object, ShapeValidatorOutput<T>> {
+    extends Validator<unknown, ShapeValidatorOutput<T>> {
 
     constructor(
         readonly properties: T
@@ -91,31 +91,54 @@ class ShapeValidator<T extends ShapeValidatorInput>
         super()
     }
 
-    [Validator.analyze](ctx: ValidationContext<object, ShapeValidatorOutput<T>>) {
-
-        const output = ctx.transformed = Copyable.createFromProto(ctx.input) as GenericObject
-
-        for (const [key, property] of each.entryOf(this.properties)) {
-
-            const value = ctx.input[key as keyof typeof ctx.input] as any
-            let propertyCtx = ctx.pushSubContext(value, key)
-
-            propertyCtx = property[Validator.analyze](propertyCtx)
-            if (propertyCtx.hasValidOutput())
-                output[key] = propertyCtx.getOutput()
-        }
-
-        const invalidKeys = ctx.transform 
-            ? []
-            : each.keyOf(ctx.input).filter(k => !(k in this.properties))
-
-        return invalidKeys.length > 0
-            ? ctx.setError(`contains invalid keys: ${invalidKeys.map(String)}`)
-            : ctx.setOutput(output as ShapeValidatorOutput<T>)
+    override get name(): string {
+        return 'Object'
     }
 
-    get [Validator.state](): Pick<this, 'properties'> {
-        return pick(this, 'properties')
+    message(input: unknown, ctx: ValidationContext<unknown, ShapeValidatorOutput<T>>): string {
+        void input
+        void ctx
+        return `must be ${this.name}`
+    }
+
+    default?(ctx: ValidationContext<unknown, ShapeValidatorOutput<T>>): ShapeValidatorOutput<T>
+
+    [Validator.analyze](ctx: ValidationContext<unknown, ShapeValidatorOutput<T>>) {
+
+        // Get Source Object
+        const source = ctx.transformed = ctx.input === nil && this.default 
+            ? this.default(ctx)
+            : isObject(ctx.input) 
+                ? ctx.input
+                : nil
+
+        if (!isObject<GenericObject>(source))
+            return ctx.setError(this.message(ctx.input, ctx))
+
+        // Validate Keys
+        const invalidKeys = ctx.transform
+            ? []
+            : each.keyOf(source).filter(k => !(k in this.properties))
+        if (invalidKeys.length > 0)
+            return ctx.setError(`${this.name} contains invalid keys: ${invalidKeys.map(String)}`)
+
+        // Validate Properties
+        const transformed = Copyable.createFromProto(source)
+        for (const [key, property] of each.entryOf(this.properties)) {
+            const value = source[key as keyof typeof source] as any
+            const propertyCtx = property[Validator.analyze](ctx.pushSubContext(value, key))
+            if (propertyCtx.hasValidOutput())
+                transformed[key] = propertyCtx.getOutput()
+        }
+
+        // Validate Keys
+        return ctx.hasSubContextError() 
+            ? ctx
+            : ctx.setOutput(transformed as ShapeValidatorOutput<T>)
+    }
+
+    get [Validator.state](): Pick<this, 'properties' | 'name' | 'message'> {
+        return pick(this, 'properties', 'name', 'message')
     }
 
 }

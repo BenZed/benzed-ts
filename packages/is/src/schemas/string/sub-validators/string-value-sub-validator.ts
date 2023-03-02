@@ -1,6 +1,6 @@
 import { ValidationErrorMessage, Validator } from '@benzed/schema'
 import { SignatureParser } from '@benzed/signature-parser'
-import { define, isString, pick } from '@benzed/util'
+import { isString, pick } from '@benzed/util'
 
 import { SubContractValidator } from '../../../validators'
 import { toNameMessageEnabledSettings } from '../../util'
@@ -30,13 +30,6 @@ export abstract class StringValueSubValidator extends SubContractValidator<strin
 
     get [Validator.state](): Pick<this, 'value' | 'name' | 'message' | 'enabled'> {
         return pick(this, 'value', 'name', 'message', 'enabled')
-    }
-
-    set [Validator.state](state: Pick<this, 'value' | 'name' | 'message' | 'enabled'>) {
-        define.named(state.name, this)
-        define.hidden(this, 'message', state.message)
-        define.enumerable(this, 'enabled', state.enabled)
-        define.enumerable(this, 'value', state.value)
     }
     
 }

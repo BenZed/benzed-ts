@@ -50,6 +50,8 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
 
     implements PipeValidatorBuilderMethods<SchemaOutput<V>> {
 
+    static readonly builder: typeof $$builder = $$builder
+
     override [Validator.analyze](ctx: ValidationContext<SchemaInput<V>, SchemaOutput<V>>) {
         
         ctx = super[Validator.analyze](ctx)
@@ -118,7 +120,7 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
 
         type BuilderMethod = (...p: Parameters<SchemaBuilderMethods<V>[K]>) => ReturnType<SchemaBuilderMethods<V>[K]>
 
-        return Structural.create(
+        return Validator.applyState(
             this,
             $$builder,
             (this[$$builder][method] as BuilderMethod)(...params) as any

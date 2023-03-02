@@ -1,7 +1,17 @@
-import { Copyable, equals, Stateful, Structural } from '@benzed/immutable'
-import { Callable, Trait } from '@benzed/traits'
-import { Validate, ValidateOptions } from '../validate'
+import { 
+    Copyable, 
+    equals, 
+    Stateful, 
+    StructState, 
+    Structural, 
+    StructStateApply, 
+    StructStateUpdate,
+    StructStatePath 
+} from '@benzed/immutable'
 
+import { Callable, Trait } from '@benzed/traits'
+
+import { Validate, ValidateOptions } from '../validate'
 import ValidationContext from '../validation-context'
 import ValidationError from '../validation-error'
 
@@ -59,9 +69,56 @@ export abstract class Validator<I = any, O = I> implements Structural, Callable<
     static readonly copy: typeof Structural.copy = Structural.copy
     static readonly equals: typeof Structural.equals = Structural.equals
 
+    /**
+     * Given a validator and a state update, apply the state by
+     * updating any nested validators with their appropriate nested
+     * object state.
+     */
+    static setState<T extends Validator, P extends ValidatorStatePath>(
+        validator: T, 
+        ...params: readonly [ ...P, ValidatorStateApply<T, P> ]
+    ): void {
+        Structural.set(validator, ...params)
+    }
+
+    /**
+     * Given a struct, resolve the state of that struct by recursively
+     * resolving the state of any nested sub structs.
+     */
+    static get<T extends Validator, P extends ValidatorStatePath>(
+        validator: T, 
+        ...path: P
+    ): ValidatorState<T, P> {
+        return Structural.get(validator, ...path)
+    }
+
+    /**
+     * Create a validator from an original and a new state
+     */
+    static applyState<T extends Validator, P extends StructStatePath>(
+        validator: T, 
+        ...params: [ ...P, ValidatorStateApply<T, P> ]
+    ): T {
+        return Structural.create(validator, ...params)
+    }
+
+    /**
+     * Update a validator from an original and a new state
+     */
+    static updateState<T extends Validator, P extends StructStatePath>(
+        validator: T,
+        ...params: [ ...P, ValidatorStateUpdate<T, P> ]
+    ): T {
+        return Structural.update(validator, ...params)
+    }
+
+    //// Construct ////
+    
     constructor() {
         return Callable.apply(this as any)
     }
+
+    //// Implementations ////
 
     get [Callable.signature]() {
         return analyze
@@ -98,6 +155,14 @@ export abstract class Validator<I = any, O = I> implements Structural, Callable<
 
 }
 
-//// Manually apply Callable.onUse ////
+export type ValidatorStatePath = StructStatePath
+
+export type ValidatorState<V extends Validator, P extends ValidatorStatePath = []> = StructState<V, P>
+
+export type ValidatorStateApply<V extends Validator, P extends ValidatorStatePath = []> = StructStateApply<V, P>
+
+export type ValidatorStateUpdate<V extends Validator, P extends ValidatorStatePath = []> = StructStateUpdate<V, P>
+
+//// Manually apply Callable.onUse //// 
 
 Callable[Trait.onUse](Validator)

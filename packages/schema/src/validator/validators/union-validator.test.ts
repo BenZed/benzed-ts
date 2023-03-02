@@ -1,12 +1,11 @@
 import { define, isBoolean, isNumber, isString, pick } from '@benzed/util'
-import { copy, StructStateApply, Structural } from '@benzed/immutable'
 
 import { UnionValidator } from './union-validator'
 import { testValidator } from '../../util.test'
 import { TypeValidator } from './contract-validators'
 
 import { describe, it, expect } from '@jest/globals' 
-import { Validator } from '../validator'
+import { Validator, ValidatorStateApply } from '../validator'
 
 //// EsLint ////
 
@@ -60,7 +59,7 @@ describe('retains interface of most recently added validator', () => {
         readonly allowEmpty: boolean = true 
 
         notEmpty(): this {
-            return Structural.create(this, { allowEmpty: false } as StructStateApply<this>)
+            return Validator.applyState(this, { allowEmpty: false } as ValidatorStateApply<this>)
         }
 
         get [Validator.state](): Pick<this, 'allowEmpty' | 'name' | 'message'> {

@@ -1,15 +1,17 @@
 import { TypeSchema, TypeValidator } from '@benzed/schema'
+
 import {
     isNumber,
     isString,
     isNaN,
 } from '@benzed/util'
+
 import { NameMessageEnabledSettingsSignature, toNameMessageEnabledSettings } from '../util'
 
-import { 
+import {
 
-    Round, 
-    Finite, 
+    Round,
+    Finite,
 
     toRoundSettings,
     RoundSettingsSignature,
@@ -76,7 +78,7 @@ export class Number
         return this._applySubValidator('round', { ...settings, type: 'floor' })
     }
 
-    finite(...params: NameMessageEnabledSettingsSignature): this {
+    finite(...params: NameMessageEnabledSettingsSignature<number>): this {
         const settings = toNameMessageEnabledSettings(...params)
         return this._applySubValidator('finite', settings)
     }

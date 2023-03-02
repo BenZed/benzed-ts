@@ -1,10 +1,10 @@
-import { RecordStruct, StructStateApply, Structural } from '@benzed/immutable'
+import { RecordStruct } from '@benzed/immutable'
 import { assign, each, pick } from '@benzed/util'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
 import { ValidationErrorMessage } from '../../validation-error'
-import { Validator } from '../validator'
+import { Validator, ValidatorStateApply } from '../validator'
 
 //// EsLint ////
 
@@ -26,10 +26,10 @@ interface SubValidator<T> extends Validator<T, T> {
 
 type SubValidators<V extends Validator> = Record<string, SubValidator<ValidateOutput<V>>>
 
-type SchemaStateApply<V extends Validator> = {
-    [K in keyof StructStateApply<V>]: K extends 'message'
+type SchemaMainStateApply<V extends Validator> = {
+    [K in keyof ValidatorStateApply<V>]: K extends 'message'
         ? ValidationErrorMessage<ValidateInput<V>, ValidateOutput<V>>
-        : StructStateApply<V>[K]
+        : ValidatorStateApply<V>[K]
 }
 
 //// Main ////
@@ -40,6 +40,9 @@ type SchemaStateApply<V extends Validator> = {
  * for extended classes to assist in configuration.
  */
 abstract class Schema<V extends Validator, S extends SubValidators<V>> extends Validator<ValidateInput<V>, ValidateOutput<V>> {
+
+    static readonly main: typeof $$main = $$main
+    static readonly sub: typeof $$sub = $$sub
 
     //// Constructor ////
 
@@ -90,10 +93,10 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
 
     protected _applySubValidator<K extends keyof S, T extends S[K]>(
         name: K,
-        state: T | SchemaStateApply<T>
+        state: T | SchemaMainStateApply<T>
     ): this {
 
-        return Structural.create(
+        return Validator.applyState(
             this,
             $$sub,
             name,
@@ -102,10 +105,10 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
     }
 
     protected _applyMainValidator(
-        state: V | SchemaStateApply<V>
+        state: V | SchemaMainStateApply<V>
     ): this {
 
-        return Structural.create(
+        return Validator.applyState(
             this,
             $$main,
             state as any
@@ -131,6 +134,7 @@ export default Schema
 export {
 
     Schema,
+    SchemaMainStateApply,
     SubValidator,
     SubValidators,
 

@@ -4,9 +4,8 @@ import { SignatureParser } from '@benzed/signature-parser'
 
 import { PipeValidator, Validators } from '../pipe-validator'
 import { ContractValidator } from '../contract-validator'
-import { Validator } from '../../validator'
+import { Validator, ValidatorState, ValidatorStateApply } from '../../validator'
 import { ValidationErrorMessage } from '../../../validation-error'
-import { Stateful, StructState, Structural } from '@benzed/immutable'
 
 //// EsLint ////
 
@@ -24,7 +23,7 @@ export class OutputValidator<O> extends ContractValidator<O, O> {
         settings: OutputValidatorSettings<O>
     ) {
         super()
-        Stateful.set(this, { ...this[Validator.state], ...defined(settings) } as OutputValidatorState<O>)
+        Validator.setState(this, defined(settings) as ValidatorStateApply<this>)
     }
 
     get [Validator.state](): OutputValidatorState<O> {
@@ -131,7 +130,7 @@ export class PipeValidatorBuilder<I, O = I>
             ? this.validators.map((v, i) => i === index ? validator : v)
             : [...this.validators, validator] as const
 
-        return Structural.create(this, { validators } as StructState<this>)
+        return Validator.applyState(this, { validators } as ValidatorState<this>)
     }
 
     asserts(
@@ -163,7 +162,7 @@ export class PipeValidatorBuilder<I, O = I>
             )
         }
 
-        return Structural.create(this, { validators } as StructState<this>)
+        return Validator.applyState(this, { validators } as ValidatorState<this>)
     }
 
     //// Helper ////

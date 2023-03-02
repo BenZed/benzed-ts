@@ -1,5 +1,4 @@
 import {
-    assign,
     define,
     isBoolean,
     isNumber,
@@ -15,14 +14,13 @@ import { TypeValidator } from '../../validators'
 
 import { expectTypeOf } from 'expect-type'
 
-import { Trait } from '@benzed/traits'
-import { StructStateApply, Structural } from '@benzed/immutable'
+import { Validator, ValidatorStateApply } from '../../validator'
 
 //// Setup //// 
 
 class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
 
-    isValid = isShape({ 
+    isValid = isShape({
         cookies: isNumber,
         open: isBoolean
     }) 
@@ -30,17 +28,17 @@ class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
     readonly enabled: boolean = true
 
     toggleEnabled(): this {
-        return Structural.create(
+        return Validator.applyState(
             this,
-            { enabled: !this.enabled } as StructStateApply<this>
+            { enabled: !this.enabled } as ValidatorStateApply<this>
         )
     }
 
-    get [Structural.state](): Pick<this, 'name' | 'message' | 'cast' | 'default' | 'enabled'> {
+    get [Validator.state](): Pick<this, 'name' | 'message' | 'cast' | 'default' | 'enabled'> {
         return pick(this, 'name', 'message', 'cast', 'default', 'enabled')
     }
 
-    set [Structural.state](state: Pick<this, 'name' | 'message' | 'cast' | 'default' | 'enabled'>) {
+    set [Validator.state](state: Pick<this, 'name' | 'message' | 'cast' | 'default' | 'enabled'>) {
         define.named(state.name, this)
         define.hidden(this, 'message', state.message)
         define.hidden(this, 'cast', state.cast)

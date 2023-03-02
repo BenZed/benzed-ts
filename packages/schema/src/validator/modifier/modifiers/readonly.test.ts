@@ -1,12 +1,11 @@
 import { isArrayOf, isNumber, isInteger, pick, define } from '@benzed/util'
-import { Stateful, StructState, Structural } from '@benzed/immutable'
 
 import { ReadOnly } from './readonly'
 import { expectTypeOf } from 'expect-type'
 
 import { TypeValidator } from '../../validators'
 import Modifier from '../modifier'
-import { Validator } from '../../validator'
+import { Validator, ValidatorState } from '../../validator'
 
 //// Tests ////
 
@@ -24,9 +23,9 @@ class Buffer extends TypeValidator<number[]> {
     readonly enabled = true
     
     toggleEnabled(): this {
-        return Structural.create( 
+        return Validator.applyState( 
             this, 
-            { enabled: !this.enabled } as StructState<this>
+            { enabled: !this.enabled } as ValidatorState<this>
         ) 
     }
 
@@ -34,12 +33,6 @@ class Buffer extends TypeValidator<number[]> {
         return pick(this, 'minSize', 'enabled', 'name', 'message')
     }
 
-    set [Validator.state](state: Pick<this, 'minSize' | 'enabled' | 'name' | 'message'>) {
-        define.named(state.name, this)
-        define.hidden(this, 'message', state.message)
-        define.enumerable(this, 'enabled', state.enabled)
-        define.enumerable(this, 'minSize', state.minSize) 
-    }
 }
 
 //// Tests ////

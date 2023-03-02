@@ -41,11 +41,4 @@ export class Casing extends SubContractValidator<string> {
         return pick(this, 'enabled', 'name', 'message', 'casing')
     }
 
-    set [Validator.state](state: Pick<this, 'enabled' | 'name' | 'message' | 'casing'>) {
-        define.named(state.name, this)
-        define.hidden(this, 'message', state.message)
-        define.enumerable(this, 'enabled', state.enabled)
-        define.enumerable(this, 'casing', state.casing)
-    }
-
 }

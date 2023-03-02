@@ -8,4 +8,8 @@ export class Trimmed extends SubContractValidator<string> {
         return input.trim()
     }
 
+    override message() {
+        return 'must be trimmed'
+    }
+
 }

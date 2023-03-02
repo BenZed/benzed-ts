@@ -1,5 +1,5 @@
 import { Trait } from '@benzed/traits'
-import { AnyTypeGuard, assign, each, isKeyed, isObject } from '@benzed/util'
+import { AnyTypeGuard, assign, define, each, isKeyed, isObject, isString } from '@benzed/util'
 
 //// Sybol ////
 
@@ -28,9 +28,16 @@ abstract class Stateful extends Trait {
 
         if (descriptor?.writable || descriptor?.set)
             object[$$state] = state
-        else if (isObject(state))
-            assign(object, state) 
-        else 
+        else if (isObject(state)) {
+            
+            // This isn't really a good place for this, but it's very convenent,
+            // what with all the name setting that's done on Callable objects.
+            if ('name' in state && isString(state.name))
+                define.named(state.name, object)
+            
+            assign(object, state)
+            
+        } else 
             throw new Error(`State ${state} is invalid.`)
 
     }

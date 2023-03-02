@@ -1,4 +1,4 @@
-import { ModifierType, Validate, Optional } from '@benzed/schema'
+import { ModifierType, Validate } from '@benzed/schema'
 import { Method } from '@benzed/traits'
 
 //// Types ////
