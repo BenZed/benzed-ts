@@ -1,4 +1,5 @@
-import { isBoolean, isNumber, SignatureParser, isOptional } from '@benzed/util'
+import { isBoolean, isNumber, isOptional } from '@benzed/util'
+import { SignatureParser } from '@benzed/signature-parser'
 
 //// Types ////
 

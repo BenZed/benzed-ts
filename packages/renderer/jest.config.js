@@ -11,7 +11,8 @@ module.exports = {
         '^.+\\.tsx?$': [
             'ts-jest',
             {
-                tsconfig: '../../tsconfig.test.json'
+                tsconfig: '../../tsconfig.test.json',
+                isolatedModules: true
             }
         ]
     },

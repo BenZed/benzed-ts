@@ -3,7 +3,7 @@ export {
     isLogger,
 
     LoggerOptions,
-    LogHandler
+    LogHandler 
 } from './logger'
 
 export {

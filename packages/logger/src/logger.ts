@@ -138,6 +138,7 @@ const Logger = class extends Trait.use(Callable<(strings: readonly string[], ...
         readonly options: LoggerOptions
     ) {
         super()
+        return Callable.apply(this)
     }
 
     private _lastTimeStamp = ''

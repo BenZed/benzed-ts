@@ -1,10 +1,10 @@
 import lerp from './lerp'
 
-import { $$copy, $$equals } from '@benzed/immutable'
-import { isString, isArray, isRecord, isNumber, isArrayOf } from '@benzed/util'
+import { isString, isArray, isRecord, isNumber, isArrayOf, pick } from '@benzed/util'
+import { Traits, Structural } from '@benzed/immutable'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
-import { PI } from './constants'
+import { PI } from './constants' 
 
 //// Types ////
 
@@ -18,7 +18,7 @@ type V2ConstructorSignature = [V2Signature] | [number, number] | [number] | []
 
 //// Main ////
 
-class V2 {
+class V2 extends Traits.use(Structural) {
 
     static get ZERO(): V2 {
         return new V2(0, 0)
@@ -76,8 +76,13 @@ class V2 {
     x: number
     y: number
 
+    get [Structural.state](): Pick<this, 'x' | 'y'> {
+        return pick(this, 'x', 'y')
+    }
+
     constructor (...args: V2ConstructorSignature) {
 
+        super()
         let x, y
 
         if (isString(args[0]))
@@ -86,7 +91,7 @@ class V2 {
         else if (isArray(args[0]))
             args = args[0]
 
-        else if (isRecord<{ x: number, y: number }>(args[0])) {
+        else if (isRecord<'x' | 'y', number>(args[0])) {
             x = args[0].x
             y = args[0].y
         }
@@ -192,14 +197,14 @@ class V2 {
     }
 
     copy(): V2 {
-        return this[$$copy]()
+        return this[Structural.copy]()
     }
 
     equals(other: unknown): other is V2 {
-        return this[$$equals](other)
+        return this[Structural.equals](other)
     }
 
-    toString(): V2String {
+    override toString(): V2String {
         return `${this.x},${this.y}`
     }
 
@@ -209,22 +214,6 @@ class V2 {
     }
 
     // Symbolic
-
-    [$$copy](): V2 {
-        return new V2(this)
-    }
-
-    [$$equals](other: unknown): other is V2 {
-        return other != null &&
-            other instanceof V2 &&
-            this.x === other.x &&
-            this.y === other.y
-    }
-
-    *[Symbol.iterator](): Generator<number> {
-        yield this.x
-        yield this.y
-    }
 
 }
 
