@@ -1,5 +1,9 @@
 import clamp from './clamp'
 
+import { it, expect, describe } from '@jest/globals'
+
+//// Tests ////
+
 describe('clamp()', () => {
 
     it('clamps $num between $min and $max: \t\tclamp(5,2,4) === 4', () => {

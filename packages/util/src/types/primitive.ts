@@ -1,14 +1,19 @@
-import { asNil, isNil } from './nil'
+import { TypeGuard } from './func'
+import { isNil } from './nil'
 
 //// Basic ////
 
-export const isString = <S extends string = string>(i: unknown): i is S => typeof i === 'string'
+export const isString = (i: unknown): i is string => 
+    typeof i === 'string'
 
-export const isNumber = <N extends number = number>(i: unknown): i is N => typeof i === 'number' && !Number.isNaN(i)
+export const isNumber =(i: unknown): i is number => 
+    typeof i === 'number' && !isNaN(i)
 
-export const isBoolean = <B extends boolean = boolean>(i: unknown): i is B => typeof i === 'boolean'
+export const isBoolean = (i: unknown): i is boolean =>
+    typeof i === 'boolean'
 
-export const isBigInt = <N extends bigint = bigint>(i: unknown): i is N => typeof i === 'bigint'
+export const isBigInt =(i: unknown): i is bigint => 
+    typeof i === 'bigint'
 
 //// Falsy ////
 
@@ -22,13 +27,17 @@ export const isTruthy = (input: unknown): input is Truthy => !!input
 
 //// Primitive ////
 
-export type Primitive = string | number | boolean | bigint | null | undefined
+export type Primitive = string | number | boolean | bigint | symbol | null | undefined 
 export const isPrimitive = (i: unknown): i is Primitive => 
-    isString(i) || 
-    isNumber(i) || 
-    isBoolean(i) || 
-    isBigInt(i) || 
-    isNil(asNil(i))
+    isBoolean(i) ||
+    isString(i) ||
+    isNumber(i) ||
+    isBigInt(i) ||
+    isSymbol(i) ||
+    isNil(i)
+
+export const isEqual = <T extends Primitive[]>(...values: T): TypeGuard<T[number]> => 
+    (i: unknown): i is T[number] => values.some(value => Object.is(i, value))
 
 //// Symbol ////
     
@@ -36,6 +45,5 @@ export const isSymbol = <S extends symbol>(i: unknown): i is S => typeof i === '
 
 //// Special ////
 
-export const isInteger = Number.isInteger as (i: unknown) => i is number
-
-export const isNaN = Number.isNaN
+const { isInteger, isNaN } = Number
+export { isInteger, isNaN }

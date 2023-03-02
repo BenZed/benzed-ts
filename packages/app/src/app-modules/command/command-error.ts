@@ -1,4 +1,4 @@
-import { isObject, defined, omit } from '@benzed/util'
+import { isRecord, defined, omit } from '@benzed/util'
 import { ValidationError } from '@benzed/schema'
 
 import { HttpCode } from '../../util'
@@ -29,7 +29,7 @@ class CommandError extends Error {
             }
 
             // wrap any old error
-            : isObject(input)
+            : isRecord(input)
                 ? input 
                 // stringify whatever remains
                 : { message: String(input) }

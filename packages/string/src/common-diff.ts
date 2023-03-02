@@ -1,9 +1,4 @@
-import match from '@benzed/match'
-import { isBoolean, isObject, isNumber } from '@benzed/util'
-
-//// Constants ////
-
-const DEFAULTS: CommonDiffOptions = { offset: 0, fromEnd: false }
+import { isBoolean, isNumber, SignatureParser, isOptional } from '@benzed/util'
 
 //// Types ////
 
@@ -84,10 +79,14 @@ function* createDiffs(
 
 //// Match Options ////
 
-const matchOptions = match()
-    .case(isBoolean, fromEnd => ({ fromEnd }))
-    .case(isNumber, offset => ({ offset }))
-    .case(isObject, options => options)
+const toOptions = new SignatureParser({
+    offset: isOptional(isNumber),
+    fromEnd: isOptional(isBoolean)
+}).setDefaults({
+    offset: 0,
+    fromEnd: false
+}).addLayout('offset')
+    .addLayout('fromEnd')
 
 //// Main ////
 
@@ -105,7 +104,7 @@ function commonDiff(
     options: number | boolean | Partial<CommonDiffOptions> = {}
 ): CommonDiff {
 
-    const { offset, fromEnd } = { ...DEFAULTS, ...matchOptions(options) }
+    const { offset, fromEnd } = toOptions(options)
 
     const common = createCommon(input, offset, fromEnd)
 

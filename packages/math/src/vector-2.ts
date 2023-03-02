@@ -1,7 +1,7 @@
 import lerp from './lerp'
 
 import { $$copy, $$equals } from '@benzed/immutable'
-import { isString, isArray, isObject, isNumber } from '@benzed/util'
+import { isString, isArray, isRecord, isNumber, isArrayOf } from '@benzed/util'
 
 import { cos, sin, sqrt, atan2 } from './overrides'
 import { PI } from './constants'
@@ -86,12 +86,12 @@ class V2 {
         else if (isArray(args[0]))
             args = args[0]
 
-        else if (isObject<{ x: number, y: number }>(args[0])) {
+        else if (isRecord<{ x: number, y: number }>(args[0])) {
             x = args[0].x
             y = args[0].y
         }
 
-        if (isArray(args, isNumber))
+        if (isArrayOf(isNumber)(args))
             [x, y] = args
 
         this.x = x ?? 0

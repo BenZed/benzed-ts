@@ -1,4 +1,4 @@
-import { isFunc, isObject, isNumber, isString } from '@benzed/util'
+import { isFunc, isRecord, isNumber, isString } from '@benzed/util'
 
 import milliseconds from './milliseconds'
 
@@ -58,7 +58,7 @@ const sortUntilArgs = (args: UntilArgs): [Condition, number, number, TimeoutMess
             interval = a2
 
         // Find configuration object
-    } else if (isObject<UntilOptions>(a1)) {
+    } else if (isRecord<UntilOptions>(a1)) {
         timeout = a1.timeout ?? timeout
         interval = a1.interval ?? interval
         timeoutMsg = a1.timeoutMsg ?? timeoutMsg

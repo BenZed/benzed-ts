@@ -1,4 +1,5 @@
 import toCamelCase from './to-camel-case'
+import { it, expect, describe } from '@jest/globals'
 
 import { expectTypeOf } from 'expect-type'
 

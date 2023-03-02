@@ -13,6 +13,7 @@ import {
 } from './types'
 
 import HistoryInvalidError from './error'
+
 import {
     assignDefined,
     cleanUpdateEntry,

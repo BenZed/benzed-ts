@@ -6,6 +6,28 @@ type CompareFn<T> = NonNullable<Parameters<Array<T>['sort']>[0]>
 
 //// Helper ////
 
+function isSortedArray <T extends Sortable = number>(arr: unknown): arr is T[] {
+    if (!isArray<T>(arr))
+        return false
+
+    if (arr.length <= 1)
+        return true
+
+    const ascending = arr[0] < arr[arr.length - 1]
+
+    let prev = arr[0]
+    for (let i = 1; i < arr.length; i++) {
+        const curr = arr[i]
+        const isSorted = ascending ? curr >= prev : curr <= prev
+        if (!isSorted)
+            return false
+
+        prev = curr
+    }
+
+    return true
+}
+
 /**
  * Sorter method that places the items in an array in ascending order.
  */
@@ -165,34 +187,6 @@ class SortedArray<T extends Sortable> extends Array<T> {
         return -1
     }
 
-}
-
-function isSortedArray<T extends Sortable>(
-    input: unknown,
-    isAscending?: boolean
-): input is T[] {
-
-    if (!isArray<Sortable>(input))
-        return false
-
-    if (isAscending === undefined)
-        isAscending = input[0] < input[input.length - 1]
-
-    let value: Sortable = isAscending ? -Infinity : Infinity
-
-    for (const item of input) {
-
-        const isInOrder = isAscending
-            ? item >= value
-            : item <= value
-
-        if (isInOrder)
-            value = item
-        else
-            return false
-    }
-
-    return true
 }
 
 //// Exports ////

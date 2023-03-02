@@ -26,6 +26,12 @@ module.exports = {
         'max-len': ['error', 150],
         'nonblock-statement-body-position': ['warn', 'below'],
         'no-return-assign': 'error',
+        '@typescript-eslint/ban-types': ['error', {
+            types: {
+                "{}": false,
+                "Function": false
+            }
+        }],
         '@typescript-eslint/brace-style': ['error'],
         '@typescript-eslint/prefer-optional-chain': ['warn'],
         '@typescript-eslint/prefer-nullish-coalescing': ['warn'],
@@ -46,7 +52,7 @@ module.exports = {
         '@typescript-eslint/no-duplicate-imports': 'error',
         '@typescript-eslint/no-this-alias': 'off', // I don't have a problem with 'this' aliasing.
         '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
-        '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
+        '@typescript-eslint/explicit-function-return-type': ['off', { allowExpressions: true }],
         '@typescript-eslint/member-delimiter-style': ['error', {
             'multiline': {
                 'delimiter': 'none',

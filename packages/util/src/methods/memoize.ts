@@ -1,46 +1,28 @@
-import { property } from '../property'
-import { ValueMap, ValuesMap } from '../classes/value-map'
-import { Func } from '../types/func'
+import { NestedMap } from '../classes'
+import { each } from '../each'
+import { isRecordOf, isString } from '../types'
+import { Func, isFunc } from '../types/func'
+import { define } from './define'
 
 // Helper 
-
-function trimCacheToSize(
-    cache: ValueMap<unknown[], unknown>,
-    size: number
-): void {
-
-    const keys = cache['_keys']
-    const values = cache['_values']
-
-    if (cache.size > size) {
-        const deleteCount = cache.size - size
-
-        keys.splice(0, deleteCount)
-        values.splice(0, deleteCount)
-    }
-}
 
 /**
  * Resolve memoize option arguments into a memoize options object
  */
 function resolveOptions<F extends Func>(
     func: F, 
-    options?: string | number | MemoizeOptions<F>
+    options?: string | MemoizeOptions<F>
 ): Required<MemoizeOptions<F>> {
 
     const { 
         name = func.name,
-        maxCacheSize = Infinity, 
-        cache = new ValuesMap() as ValuesMap<Parameters<F>, ReturnType<F>>
+        cache = new NestedMap() as NestedMap<Parameters<F>, ReturnType<F>>
 
     } = typeof options === 'string'
         ? { name: options }
-        : typeof options === 'number'
-            ? { maxCacheSize: options }
-            : options ?? {}
+        : options ?? {}
     return {
         name,
-        maxCacheSize,
         cache
     }
 }
@@ -51,47 +33,56 @@ export type Memoized<F extends Func> = F
 
 export interface MemoizeOptions<F extends Func> {
     name?: string
-    maxCacheSize?: number
-    cache?: ValueMap<Parameters<F>, ReturnType<F>>
+    cache?: NestedMap<Parameters<F>, ReturnType<F>>
 }
 
 // Main
 
-export function memoize<F extends Func>(f: F, name?: string): Memoized<F>
+export function memoize<R extends Record<string, Func>>(funcs: R): {
+    [K in keyof R]: Memoized<R[K]>
+}
 
-export function memoize<F extends Func>(f: F, maxCacheSize?: number): Memoized<F>
+export function memoize<F extends Func>(name: string, f: F): Memoized<F>
+
+export function memoize<F extends Func>(f: F, name?: string): Memoized<F>
 
 export function memoize<F extends Func>(f: F, options?: MemoizeOptions<F>): Memoized<F>
 
 /**
  * get a method that caches it's output based in the identicality of it's arguments
  */
-export function memoize<F extends Func>(
-    func: F, 
-    options?: string | number | MemoizeOptions<F>
-): Memoized<F> {
+export function memoize(
+    ...args: unknown[]
+): unknown {
 
-    // Get Options
-    const { name, cache, maxCacheSize } = resolveOptions(func, options)
+    // Memoize a record
+    if (isRecordOf(isFunc)(args[0])) {
+        const output: Record<string, Func> = {}
+        for (const key of each.nameOf(args[0]))
+            output[key] = memoize(args[0][key], key)
 
-    function memoized(this: unknown, ...args: Parameters<F> ): ReturnType<F> {
-
-        // get memoized value
-        if (cache.has(args)) 
-            return cache.get(args) as ReturnType<F>
-
-        // create memoized value
-        const value = func.apply(this, args)
-        cache.set(args, value)
-
-        // trim cache
-        if (cache instanceof ValueMap)
-            trimCacheToSize(cache, maxCacheSize)
-
-        return value as ReturnType<F>
+        return output
     }
 
-    return property.name(memoized, name) as Memoized<F>
+    const [func, options] = (isString(args[0]) ? [args[1], args[0]] : args) as [Func, string | MemoizeOptions<Func>]
+
+    // Get Options
+    const { name, cache: memoizations } = resolveOptions(func, options)
+
+    function memoized(this: unknown, ...input: Parameters<Func> ): ReturnType<Func> {
+
+        // get memoized value
+        if (memoizations.has(input)) 
+            return memoizations.get(input)
+
+        // create memoized value
+        const output = func.apply(this, input)
+        memoizations.set(input, output)
+
+        return output
+    }
+
+    return define.named(name, memoized)
 }
 
 //// Extend ////

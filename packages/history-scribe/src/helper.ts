@@ -1,10 +1,10 @@
 import { resolveIndex as _resolveIndex } from '@benzed/array'
-import { defined, isDefined, isEmpty, isNumber, isObject, keysOf } from '@benzed/util'
+import { defined, each, isDefined, isEmpty, isNumber, isRecord } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 
 import { HistoryEntry, HistoryMeta, HistoryMethods } from './types'
 
-//// Exports ////
+//// Exports //// 
 
 export function toDate(a: Date | number | string): Date {
     return a instanceof Date ? a : new Date(a)
@@ -50,7 +50,7 @@ export function assignDefined<T extends object>(
     source: Partial<T>
 ): T {
 
-    for (const key of keysOf(defined(source))) 
+    for (const key of each.keyOf(defined(source))) 
         target[key] = source[key] as T[typeof key]
 
     return target
@@ -78,7 +78,7 @@ export function resolveHistoryMeta<I>(
     signatureOrMeta?: I | Partial<HistoryMeta<I>>
 ): HistoryMeta<I> {
 
-    const partialMeta = isObject(signatureOrMeta) &&
+    const partialMeta = isRecord(signatureOrMeta) &&
         ('signature' in signatureOrMeta || 'timestamp' in signatureOrMeta)
         ? signatureOrMeta
         : {
@@ -128,7 +128,7 @@ export function cleanUpdateEntry<T extends object, I>(
         data: {}
     }
 
-    for (const key of keysOf(data)) {
+    for (const key of each.keyOf(data)) {
         if (!equals(data[key], input.data[key]) && isDefined(input.data[key]))
             output.data[key] = input.data[key]
     }

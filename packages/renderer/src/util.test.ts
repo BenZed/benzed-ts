@@ -1,5 +1,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { it, expect, describe } from '@jest/globals'
 
 type Validator = (...args: any[]) => (input: unknown) => input is unknown
 

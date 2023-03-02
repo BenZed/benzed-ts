@@ -1,0 +1,56 @@
+{
+
+	"Begin Validation Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v",
+		"body": [
+			"describe(`\\${$1.name} validator tests`, () => {",
+			"",
+			"    testValidator(",
+			"        $1,",
+			"        $0",
+			"    )",
+			"",
+			"})"
+		],
+	},
+
+	"Validation Contract Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v-c",
+		"body": [
+			"describe(`\\${$1.name} validator contract tests`, () => {",
+			"",
+			"    testValidationContract(",
+			"        $1,",
+			"        {",
+			"         validInput: $2,",
+			"         invalidInput: $3,",
+			"         transforms: { invalidInput: $4, validOutput: $5 },",
+			"        }",
+			"    )",
+			"",
+			"})",
+			"$0"
+		],
+	},
+
+	"Validation Transform Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v-t",
+		"body": [
+			"{ transforms: $1 },",
+			"$0"
+		],
+	},
+
+	"Validation Assert Test": {
+		"scope": "javascript,typescript",
+		"prefix": "t-v-a",
+		"body": [
+			"{ asserts: $1 },",
+			"$0"
+		],
+	}
+
+}

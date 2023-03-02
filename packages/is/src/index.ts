@@ -1,5 +1,7 @@
+import { To } from './to'
 
-export * from './types'
+//// Main Export ////
 
-export { default, default as is } from './is'
+export const is = new To<[],[]>()
 
+export default is

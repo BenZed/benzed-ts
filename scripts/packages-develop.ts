@@ -156,8 +156,7 @@ ensureMongoDb({
 })
 
 // Watch for ts changes
-watch(PACKAGES_DIR, {
-    ignored: ['/node_modules/', '/lib/'],
+watch(PACKAGES_DIR + '/*/src/**', {
     followSymlinks: false,
     atomic: 250
 }).on('change', async file => {

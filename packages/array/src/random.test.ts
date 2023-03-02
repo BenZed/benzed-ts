@@ -1,5 +1,6 @@
 import random from './random'
-import { isDeepStrictEqual } from 'util'
+import { equals } from '../../immutable/src/traits/comparable/equals'
+
 // eslint-disable-next-line no-unused-vars
 
 function expectEqualOccurances<T>(
@@ -10,7 +11,6 @@ function expectEqualOccurances<T>(
 
     const results: T[] = []
     for (let i = 0; i < count; i++) 
-        
         results.push(random(input))
 
     const average = count / values.length
@@ -19,7 +19,7 @@ function expectEqualOccurances<T>(
     for (const value of values) {
         const occurances = results
             .reduce(
-                (c, v) => isDeepStrictEqual(v, value)
+                (c, v) => equals(v, value)
                     ? c + 1
                     : c
                 , 0

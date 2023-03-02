@@ -13,9 +13,11 @@ export type JsonArray = Json[] | readonly Json[]
 export type JsonRecord = { [k: string]: Json | nil } | { readonly [k: string]: Json | nil }
     
 export type Json =
-    | JsonPrimitive
+    | JsonPrimitive 
     | JsonArray
     | JsonRecord
+
+/*** Utility Types ***/
 
 /**
  * Make specific keys of a type required
@@ -133,4 +135,17 @@ export interface Stack<T> extends Iterable<T> {
     
 }
 
-export type Infer<T> = T extends infer I ? I : never
+export type Infer<T, V = unknown> = T extends infer I ? I extends V ? I : never : never
+
+/**
+ * Use an always-true conditional type to take advantage of the fact that
+ * conditionals distribute over unions. This creates a union of 
+ * entries for a given object.
+ */
+export type Entries<T extends object> = keyof T extends infer K
+    ? K extends keyof T 
+        ? [ key: K, value: T[K] ] 
+        : never
+    : never
+
+export type GenericObject = Record<string | symbol | number, unknown>

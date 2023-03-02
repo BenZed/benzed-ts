@@ -8,8 +8,9 @@
     },
     "include": [
         "./src"
-    ],
+, "_old_src/schemas"    ],
     "exclude": [
-        "./src/**/*.test.ts"
+        "./src/**/*.test.ts",
+        "_old*"
     ]
 }

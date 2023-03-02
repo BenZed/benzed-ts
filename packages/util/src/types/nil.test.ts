@@ -58,37 +58,34 @@ it('what about objects', () => {
     })
 })
 
-it('isVoid', () => {
+it('isNil', () => {
 
     expect(isNil(undefined)).toBe(true)
-    expect(isNil(null)).toBe(false)
-    expect(isNil(NaN)).toBe(false)
-    expect(isNil(void Number)).toBe(true)
+    expect(isNil(null)).toBe(true)
+    expect(isNil(NaN)).toBe(true)
 })
 
-it('toVoid', async () => {
+it('toNil', async () => {
     const value = await Promise.resolve(0).then(toNil)
     expect(value).toEqual(void 0)
 })
 
-it('asVoid', () => {
+it('asNil', () => {
 
     expect(asNil(0)).toBe(0)
     expect(asNil('')).toBe('')
-    expect(asNil(null)).toBe(undefined)
-    expect(asNil(undefined)).toBe(undefined)
+    expect(asNil(null)).toBe(nil)
+    expect(asNil(undefined)).toBe(nil)
 
     expectTypeOf(asNil(0)).toMatchTypeOf<number>()
     expectTypeOf(asNil('')).toMatchTypeOf<string>()
     expectTypeOf(asNil(false)).toMatchTypeOf<boolean>()
 
-    expectTypeOf(asNil(null)).toMatchTypeOf<void>()
-    expect(asNil(null)).toEqual(undefined)
+    expectTypeOf(asNil(null)).toMatchTypeOf<nil>()
+    expect(asNil(null)).toEqual(nil)
 
-    expectTypeOf(asNil(undefined)).toMatchTypeOf<void>()
-    expect(asNil(undefined)).toEqual(undefined)
+    expectTypeOf(asNil(undefined)).toMatchTypeOf<nil>()
+    expect(asNil(undefined)).toEqual(nil)
 
-    expect(asNil(NaN)).toEqual(NaN)
-    expectTypeOf(asNil(NaN)).toMatchTypeOf<number>()
-
+    expect(asNil(NaN)).toEqual(nil)
 })

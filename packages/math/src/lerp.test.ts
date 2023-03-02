@@ -1,5 +1,7 @@
 import lerp from './lerp'
 
+import { it, expect, describe } from '@jest/globals'
+
 describe('lerp()', () => {
 
     it('lerps a value from $from $to to by $delta: \tlerp(5,10,0.5) === 7.5', () => {

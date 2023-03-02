@@ -1,140 +1,116 @@
-import { callable, Func } from '@benzed/util'
+import { Callable } from '@benzed/util'
+import { Async, toAsync } from './types'
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+//// Types ////
 
-//// Type ////
-
-type PromiseState<T> = 
+type AsyncState<T> = 
     { status: 'idle' } | 
-    { status: 'pending', promise: Promise<T> } | 
+    { status: 'pending', promise: Async<T> } | 
     { status: 'resolved', value: T } | 
     { status: 'rejected', error: Error }
 
-interface Guarantee<F extends Func> {
+//// Helper ////
 
-    (...args: Parameters<F>): ReturnType<F>
+export type HasAsyncState<S extends AsyncState<unknown>> = { state: S }
+    
+class Guarantee<A extends unknown[], R> extends Callable<(...args: A) => Async<R>> {
 
-    get isIdle(): boolean
-    get isPending(): boolean 
-    get isResolved(): boolean 
-    get isRejected(): boolean
-    get isFulfilled(): boolean
+    protected _state: AsyncState<R> = { status: 'idle' }
+    get state(): AsyncState<R> {
+        return this._state
+    }
 
-    get value(): Awaited<ReturnType<F>>
+    constructor(readonly func: (...args: A) => R | Async<R>) {
+        super(function (this: unknown, ...args) {
 
-    reset(): void 
-}
-
-interface GuaranteeConstructor {
-    new <F extends () => unknown>(f: F): Guarantee<F>
-}
-
-//// Implementation ////
-
-const Guarantee = callable(
-    function guaranteur(this, ...args) {
-
-        const state = this['_state']
-        switch (state.status) {
+            switch (guarantee.state.status) {
         
-            case 'idle': {
-
-                const promise = Promise
-                    .resolve(this.func.apply(callable.getContext(this), args))
-                    .then(value => {
-                        this['_state'] = { status: 'resolved', value }
-                        return value
-                    })
-                    .catch(error => {
-                        this['_state'] = { status: 'rejected', error }
-                        return Promise.reject(error)
-                    })
-
-                this['_state'] = { 
-                    status: 'pending',
-                    promise: promise
+                case 'idle': {
+        
+                    const promise = toAsync(guarantee.func.apply(this, args))
+                        .then(value => {
+                            guarantee['_state'] = { status: 'resolved', value }
+                            return value
+                        })
+                        .catch(error => {
+                            guarantee['_state'] = { status: 'rejected', error }
+                            return Promise.reject(error)
+                        })
+        
+                    guarantee['_state'] = { 
+                        status: 'pending',
+                        promise
+                    }
+        
+                    return promise
                 }
-
-                return promise
-            }
-            
-            case 'pending': {
-                return state.promise
-            }
-
-            case 'rejected': {
-                return Promise.reject(state.error)
-            }
-
-            case 'resolved': {
-                return Promise.resolve(state.value)
-            }
-
-            default: {
-                const statusBad: never = state
-                throw new Error(`${statusBad} is an invalid option.`)
-            }
-        }
-
-    },
-    class _Guarantee {
-
-        constructor(readonly func: Func) { }
-
-        get name (): string {
-            return this.func.name || 'guaranteur method'
-        }
-
-        protected _state: PromiseState<unknown> = { status: 'idle' }
-
-        get isIdle(): boolean {
-            return this._state.status === 'idle'
-        }
-        get isPending(): boolean {
-            return this._state.status === 'pending'
-        }
-        get isResolved(): boolean {
-            return this._state.status === 'resolved'
-        }
-        get isRejected(): boolean {
-            return this._state.status === 'rejected'
-        }
-        get isFulfilled(): boolean {
-            return this.isRejected || this.isResolved
-        }
-
-        get value(): any {
-            const { _state: state } = this 
-
-            if ('value' in state)
-                return state.value
-
-            const message = 'error' in state
-                ? state.error.message
-                : `${this.name} has not fulfilled.`
-
-            throw new Error(message)
-        }
-
-        reset(): void {
-            if (!this.isFulfilled) {
-                throw new Error(
-                    `${this.name} cannot be reset until it is fulfilled.`
-                )
+                    
+                case 'pending': {
+                    return guarantee.state.promise
+                }
+        
+                case 'rejected': {
+                    return Promise.reject(guarantee.state.error)
+                }
+        
+                case 'resolved': {
+                    return Promise.resolve(guarantee.state.value)
+                }
+        
+                default: {
+                    const statusBad: never = guarantee.state
+                    throw new Error(`${statusBad} is an invalid option.`)
+                }
             }
 
-            this._state = { status: 'idle' }
+        })
+
+        const guarantee = this
+    }
+
+    isIdle(): this is HasAsyncState<{ status: 'idle' }> {
+        return this._state.status === 'idle'
+    }
+
+    isPending(): this is HasAsyncState<{ status: 'pending', promise: Async<R> }> {
+        return this._state.status === 'pending'
+    }
+
+    isResolved(): this is HasAsyncState<{ status: 'resolved', value: R }> {
+        return this._state.status === 'resolved'
+    }
+
+    isRejected(): this is HasAsyncState<{ status: 'rejected', error: Error }> {
+        return this._state.status === 'rejected'
+    }
+    
+    isFulfilled(): this is HasAsyncState<{ status: 'rejected', error: Error } | { status: 'resolved', value: R }> {
+        return this.isRejected() || this.isResolved()
+    }
+
+    get value(): R {
+
+        if (this.isResolved())
+            return this.state.value
+
+        const message = this.isRejected() 
+            ? this.state.error.message
+            : `${this.name || 'guaranteur method'} has not fulfilled.`
+
+        throw new Error(message)
+    }
+
+    reset(): void {
+        if (!this.isFulfilled()) {
+            throw new Error(
+                `${this.name || 'guaranteur method'} cannot be reset until it is fulfilled.`
+            )
         }
 
-    },
-    'Guarantee'
-) as GuaranteeConstructor
+        this._state = { status: 'idle' }
+    }
 
-//// Exports ////
-
-export default Guarantee
+}
 
 export {
     Guarantee
