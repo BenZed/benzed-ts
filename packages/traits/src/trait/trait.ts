@@ -105,5 +105,8 @@ export abstract class Trait {
 }
 
 export {
-    Trait as Traits
+    Trait as Traits,
+    addTraits,
+    useTraits,
+    mergeTraits
 }

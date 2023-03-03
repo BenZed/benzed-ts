@@ -23,6 +23,10 @@ const $todo = new ShapeValidator({
     completed: $boolean
 })
 
+const $lazyTodo = new ShapeValidator({
+    ...$todo.properties
+}, false)
+
 //// Tests ////
 
 it('output type', () => {
@@ -59,5 +63,13 @@ testValidator<unknown, { description: string, completed: boolean }>(
         title: 'throws on invalid keys',
         asserts: { description: 'description', completed: true, cake: true },
         error: 'invalid keys: cake'
+    }
+)
+
+testValidator<unknown, { description: string, completed: boolean }>( 
+    $lazyTodo,
+    {
+        title: 'strict setting allows loose keys',
+        asserts: { description: 'Important task', completed: true, important: true },
     }
 )

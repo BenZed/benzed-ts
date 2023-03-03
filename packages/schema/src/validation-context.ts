@@ -64,7 +64,6 @@ class ValidationContext<I = any, O = I>
         this.transformed = input
         this.transform = options?.transform ?? true
         this.key = options?.key
-        return Node.apply(this)
     }
 
     setOutput(output: O): this {
@@ -129,7 +128,9 @@ class ValidationContext<I = any, O = I>
     }
 
     hasSubContextError(): boolean {
-        return this.hasSubContext.inDescendents(sub => sub.hasError())
+        return this.hasSubContext.inDescendents(sub => 
+            sub instanceof ValidationContext && sub.hasError()
+        )
     }
 
     pushSubContext<Ix, Ox>(
@@ -145,13 +146,19 @@ class ValidationContext<I = any, O = I>
         const children = Node.getChildren(this)
         const nextIndex = each.keyOf(children).count()
         define.hidden(this, nextIndex, subContext)
+        Node.setParent(subContext, this)
 
         return subContext
     }
 
     clearSubContexts(): this {
-        for (const key of each.keyOf(Node.getChildren(this))) 
-            delete this[key]
+        for (
+            const [ index, subContext ] of 
+            each.entryOf(Node.getChildren(this))
+        ) {
+            Node.setParent(subContext as Node, nil)
+            delete this[index]
+        }
 
         return this
     }
