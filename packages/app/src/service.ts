@@ -24,7 +24,7 @@ class Service extends Module {
     get [Structural.state](): ServiceState<this> {
         const state: GenericObject = {}
         for (const [key, value] of each.entryOf(this)) {
-            if (Module.is(value))
+            if (value instanceof Module)
                 state[key] = value
         }
 
