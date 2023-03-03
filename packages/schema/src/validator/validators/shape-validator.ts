@@ -1,5 +1,4 @@
 
-import { Copyable } from '@benzed/immutable'
 import { each, GenericObject, Infer, isObject, nil, pick } from '@benzed/util'
 
 import { ValidateOutput } from '../../validate'
@@ -62,12 +61,14 @@ type _ShapeProperties<T extends ShapeValidatorInput> =
 
 type _ShapePropertyOutput<T extends Validator> = 
     ValidateOutput<
+
     // GOTCHA: We're not actually removing the mutators 
     // in implementation. This is only to clean up the
     // output type
     /**/ RemoveModifier<
     /*    */ RemoveModifier<T, ModifierType.Optional>,
     /**/ ModifierType.ReadOnly>
+    
     >
 
 //// Types ////
@@ -86,7 +87,8 @@ class ShapeValidator<T extends ShapeValidatorInput>
     extends Validator<unknown, ShapeValidatorOutput<T>> {
 
     constructor(
-        readonly properties: T
+        readonly properties: T,
+        readonly strict = true
     ) {
         super()
     }
@@ -112,20 +114,30 @@ class ShapeValidator<T extends ShapeValidatorInput>
                 ? ctx.input
                 : nil
 
-        if (!isObject<GenericObject>(source))
-            return ctx.setError(this.message(ctx.input, ctx))
+        if (!isObject<GenericObject>(source)) {
+            return ctx.setError(
+                this.message(ctx.input, ctx)
+            )
+        }
 
-        // Validate Keys
-        const invalidKeys = ctx.transform
-            ? []
-            : each.keyOf(source).filter(k => !(k in this.properties))
-        if (invalidKeys.length > 0)
-            return ctx.setError(`${this.name} contains invalid keys: ${invalidKeys.map(String)}`)
+        // Get Transformation
+        const transformed: GenericObject = ctx.transformed = { }
 
-        // Validate Properties
-        const transformed = Copyable.createFromProto(source)
+        // Validate Extra Properties
+        const extraKeys = each.keyOf(source).filter(k => !(k in this.properties))
+        if (extraKeys.length > 0 && this.strict && !ctx.transform)
+            return ctx.setError(`${this.name} contains invalid keys: ${extraKeys.map(String)}`)
+        
+        else if (!this.strict) {
+            for (const extraKey of extraKeys)
+                transformed[extraKey] = source[extraKey]
+        }
+
+        // Validate Defined Properties
         for (const [key, property] of each.entryOf(this.properties)) {
+
             const value = source[key as keyof typeof source] as any
+
             const propertyCtx = property[Validator.analyze](ctx.pushSubContext(value, key))
             if (propertyCtx.hasValidOutput())
                 transformed[key] = propertyCtx.getOutput()
@@ -137,8 +149,8 @@ class ShapeValidator<T extends ShapeValidatorInput>
             : ctx.setOutput(transformed as ShapeValidatorOutput<T>)
     }
 
-    get [Validator.state](): Pick<this, 'properties' | 'name' | 'message'> {
-        return pick(this, 'properties', 'name', 'message')
+    get [Validator.state](): Pick<this, 'properties' | 'name' | 'message' | 'strict'> {
+        return pick(this, 'properties', 'name', 'message', 'strict')
     }
 
 }

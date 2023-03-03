@@ -111,6 +111,25 @@ class Shape<T extends ShapeValidatorInput> extends SchemaBuilder<ShapeValidator<
 
     //// Builder Methods ////
 
+    /**
+     * A shape where strictness is disabled:
+     * ```
+     * const todo = is.shape({
+     *     description: is.string,
+     *     completed: is.boolean
+     * }).strict(false)
+     * 
+     * ```
+     * 
+     * Will allow keys not defined by the shape's properties
+     * to pass validation.
+     * 
+     * Shapes are strict by default.
+     */
+    strict(strict = true) {
+        return this._applyMainValidator({ strict })
+    }
+
     named(name: string) {
         return this._applyMainValidator({ name })
     }
