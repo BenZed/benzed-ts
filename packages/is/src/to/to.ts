@@ -62,7 +62,16 @@ import {
     WeakMap,
 
     $nil,
-    Nil
+    Nil,
+
+    $function,
+    Function,
+
+    $object,
+    Obj,
+
+    $unknown,
+    Unknown
 
 } from '../schemas'
 
@@ -203,6 +212,20 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
 
     get weakset(): IsTo<F, M, [WeakSet]> {
         return this($weakset)
+    }
+
+    // Ts Types 
+
+    get object(): IsTo<F, M, [Obj]> {
+        return this($object) 
+    }
+
+    get function(): IsTo<F, M, [Function]> {
+        return this($function) 
+    }
+
+    get unknown(): IsTo<F, M, [Unknown]> {
+        return this($unknown)
     }
 
     shape<T extends ResolveShapeValidatorInput>(
