@@ -5,4 +5,4 @@ export { NodePath } from './path'
 
 export { Children } from './relations'
 
-export { FindNode, HasNode, AssertNode } from './find'
+export { FindInput, FindOutput, FindNode, HasNode, AssertNode } from './find'
