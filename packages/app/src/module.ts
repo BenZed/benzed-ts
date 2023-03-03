@@ -1,8 +1,8 @@
-import { Node } from '@benzed/node'
+import { FindNode, HasNode, AssertNode, Node } from '@benzed/node'
 import { Traits } from '@benzed/traits'
 import { is } from '@benzed/is'
 import { Structural } from '@benzed/immutable'
-import { AnyTypeGuard } from '@benzed/util'
+import { AnyTypeGuard, nil } from '@benzed/util'
 
 //// Types ////
 
@@ -32,12 +32,36 @@ abstract class Module extends Traits.use(Node, Structural) {
         return Node.apply(this)
     }
 
+    get [$$module]() {
+        return this.constructor.name
+    }
+
     get name() {
         return this[$$module]
     }
 
-    get [$$module]() {
-        return this.constructor.name
+    get parent(): Module | nil {
+        return Node.getParent(this)
+    }
+
+    get root(): Module {
+        return Node.getRoot(this) as Module
+    }
+    
+    get modules(): Module[] {
+        return Array.from(Node.eachChild(this)) as Module[]
+    }
+
+    get find(): FindNode<Module> {
+        return Node.find(this)
+    }
+
+    get has(): HasNode<Module> {
+        return Node.has(this)
+    }
+
+    get assert(): AssertNode<Module> {
+        return Node.assert(this)
     }
 
 } 
