@@ -96,7 +96,7 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
     }
 
     override get name(): string {
-        return `Is${this.validate.name}`
+        return this.validate.name
     }
 
     [Copyable.copy](): this {
