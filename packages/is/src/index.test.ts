@@ -1,4 +1,4 @@
-import { Infer, nil } from '@benzed/util'
+import { nil } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 import { Or, Not, Optional, ReadOnly, ValidateOutput } from '@benzed/schema'
 

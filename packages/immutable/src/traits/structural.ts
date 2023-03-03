@@ -153,7 +153,7 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
         for (const subPath of path) 
             partialState = { [subPath]: partialState }
 
-        const state = struct[Stateful.state]
+        const state = Stateful.get(struct)
 
         // deep set state, triggering nested struct state setters
         for (const key of each.keyOf(partialState)) {
