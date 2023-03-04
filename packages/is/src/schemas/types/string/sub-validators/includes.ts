@@ -3,12 +3,12 @@ import { StringValueSubValidator } from './string-value-sub-validator'
 
 //// EsLint ////
 
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/ban-types
 */
 
-//// Exports  ////
+//// Exports ////
 
 export class Includes extends StringValueSubValidator {
 

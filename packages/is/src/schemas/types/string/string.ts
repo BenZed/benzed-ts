@@ -64,7 +64,7 @@ class String extends TypeSchema<StringValidator, StringSubValidators> {
         super(
             new StringValidator, 
             {
-                casing: new Casing(),
+                casing: new Casing,
 
                 startsWith: new StartsWith,
                 endsWith: new EndsWith,
@@ -112,8 +112,7 @@ class String extends TypeSchema<StringValidator, StringSubValidators> {
 
     // TODO 
     // formats: email | url
-    // 
-    
+
     //// Helper ////
 
     protected _applyCasing(

@@ -26,8 +26,12 @@ export type StringValueSettingsSignature =
 
 export abstract class StringValueSubValidator extends SubContractValidator<string> {
 
+    //// Settings ////
+    
     readonly value: string = ''
 
+    //// Validator Implementation ////
+    
     get [Validator.state](): Pick<this, 'value' | 'name' | 'message' | 'enabled'> {
         return pick(this, 'value', 'name', 'message', 'enabled')
     }

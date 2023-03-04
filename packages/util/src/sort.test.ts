@@ -1,4 +1,4 @@
-import by from './sort'
+import by, { toComparable } from './sort'
 
 test('sorts numbers by value', () => {
     const input = [4, 2, 7, 1, 6]
@@ -39,7 +39,7 @@ test('sorts an array of objects by a transform function', () => {
 
 test('sorts an array of objects by multiple criteria', () => {
     const people = [
-        { name: 'Alice', age: 35 },
+        { name: 'Alice', age: 25 },
         { name: 'Bob', age: 25 },
         { name: 'Charlie', age: 30 },
     ]
@@ -47,8 +47,19 @@ test('sorts an array of objects by multiple criteria', () => {
     const sorted = people.sort(by('age', 'name'))
       
     expect(sorted).toEqual([
+        { name: 'Alice', age: 25 },
         { name: 'Bob', age: 25 },
         { name: 'Charlie', age: 30 },
-        { name: 'Alice', age: 35 },
-    ])
+    ]) 
+})
+
+test('toComparable', () => {
+
+    expect(toComparable('cake') < toComparable('base')).toBe(false)
+    expect(toComparable([0,1]) < toComparable([0,1,2])).toBe(true)
+    expect(toComparable([0,1]) === toComparable([3,2])).toBe(true)
+    expect(toComparable(15) > toComparable(10)).toBe(true)
+    expect(toComparable(15n) > toComparable(10n)).toBe(true)
+    expect(toComparable(15n) === toComparable(15n)).toBe(true)
+
 })

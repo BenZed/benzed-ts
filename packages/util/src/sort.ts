@@ -1,4 +1,4 @@
-import { isBoolean, isFunc, isNumber, isRecord, isString, isSymbol } from './types'
+import { isBoolean, isFunc, isNumber, isObject, isRecord, isString, isSymbol } from './types'
 
 //// Types ////
 
@@ -24,7 +24,7 @@ function toSubtractable<T extends Exclude<Sortable, string>>(input: T): Extract<
         return (input ? 1 : 0) as Extract<T, number | bigint>
         //            ^ I know booleans are subtractable, but typescript mad
 
-    if (isRecord<PropertyKey, SortableObjects>(input)) {
+    if (isObject(input)) {
         return ('length' in input && isNumber(input.length)
             ? input.length
             : input.valueOf()) as Extract<T, number | bigint>

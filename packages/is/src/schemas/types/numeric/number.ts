@@ -6,7 +6,10 @@ import {
     isNaN,
 } from '@benzed/util'
 
-import { NameMessageEnabledSettingsSignature, toNameMessageEnabledSettings } from '../../util'
+import { 
+    NameMessageEnabledSettingsSignature, 
+    toNameMessageEnabledSettings 
+} from '../../util'
 
 import {
 
@@ -57,7 +60,7 @@ export class Number
         super(
             new NumberValidator,
             {
-                round: new Round(1),
+                round: new Round,
                 finite: new Finite
             }
         )
