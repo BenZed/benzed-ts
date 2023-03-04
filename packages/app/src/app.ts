@@ -16,7 +16,7 @@ type AsClient<A extends App> =
     { [K in _AppWithKeys<A>]: A[K]} &
     { readonly client: Client }
 
-// type AppWithServer<A extends App> = 
+// type AsServer<A extends App> = 
 //     { [K in _AppWithKeys<A>]: A[K] } & 
 //     { readonly server: Server }
 
@@ -27,14 +27,6 @@ type AsClient<A extends App> =
  * for coordinating the start and stop sequence of all its child modules.
  */
 abstract class App extends Module.add(Service, OnValidate) {
-
-    /**
-     * Apps should always be the root, and cannot be nested in
-     * other apps.
-     */
-    onValidate(): void {
-        this._assertRoot()
-    }
 
     private _running = false 
     get running() {
@@ -70,7 +62,6 @@ abstract class App extends Module.add(Service, OnValidate) {
      * Stop the app.
      */
     async stop(): Promise<void> {
-
         if (!this._running)
             throw new Error(`${this.name} is not running`)
         this._running = false
@@ -79,7 +70,14 @@ abstract class App extends Module.add(Service, OnValidate) {
             if (OnStop.is(module))
                 await module.onStop()
         }
+    }
 
+    /**
+     * Apps should always be the root, and cannot be nested in
+     * other apps.
+     */
+    onValidate(): void {
+        this._assertRoot()
     }
 
     asClient(settings?: Partial<ClientSettings>): AsClient<this> {
