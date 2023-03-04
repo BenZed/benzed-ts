@@ -1,6 +1,7 @@
-import { TypeSchema, TypeValidator } from '@benzed/schema'
+import { TypeValidator } from '@benzed/schema'
 
 import { isInteger, isString } from '@benzed/util'
+import { Numeric } from './numeric'
 
 //// Boolean ////
 
@@ -18,7 +19,7 @@ class IntegerValidator extends TypeValidator<number> {
 
 //// Exports ////
 
-export class Integer extends TypeSchema<IntegerValidator, {}> {
+export class Integer extends Numeric<number, {}> {
     constructor() {
         super(new IntegerValidator, {})
     }
