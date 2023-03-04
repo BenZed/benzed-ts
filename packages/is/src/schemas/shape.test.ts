@@ -151,16 +151,12 @@ describe('builder methods', () => {
 
     describe('strict', () => {
 
-        const $sheet = new Shape({
-            score: $number,
-        }).strict(false)
+        const $sheet = new Shape({ score: $number }).strict(false)
 
         testValidator(
             $sheet,
             { transforms: { score: 5, name: 'larry' } },
             { asserts: { score: 5, name: 'larry' } },
         )
-        
     })
-
 })
