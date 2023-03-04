@@ -1,7 +1,24 @@
+import { copy } from '@benzed/immutable'
+import { assign } from '@benzed/util'
 import { Module } from './module'
-import Service from './service'
-import { OnStart, OnStop } from './traits'
-import OnValidate from './traits/on-validate'
+import { Client, ClientSettings } from './modules'
+import { Service } from './service'
+import { OnStart, OnStop, OnValidate } from './traits'
+
+//// Helper Types ////
+
+type _AppWithKeys<A extends App> =
+    Exclude<keyof A, 'asClient' | 'asServer'>
+
+//// Types ////
+
+type AsClient<A extends App> = 
+    { [K in _AppWithKeys<A>]: A[K]} &
+    { readonly client: Client }
+
+// type AppWithServer<A extends App> = 
+//     { [K in _AppWithKeys<A>]: A[K] } & 
+//     { readonly server: Server }
 
 //// Main ////
 
@@ -64,6 +81,16 @@ abstract class App extends Module.add(Service, OnValidate) {
         }
 
     }
+
+    asClient(settings?: Partial<ClientSettings>): AsClient<this> {
+
+        const clone = copy(this)
+        const client = new Client(settings)
+
+        return assign(clone, { client }) as AsClient<this>
+    }
+
+    // asServer(settings?: Partial<ServerSettings>): AsServer<this> {}
 
 }
 

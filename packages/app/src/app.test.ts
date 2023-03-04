@@ -4,6 +4,7 @@ import { test, expect, describe } from '@jest/globals'
 import { Module } from './module'
 import { OnStart, OnStop } from './traits'
 import OnValidate from './traits/on-validate'
+import { Client } from './modules'
 
 //// Setup ////
 
@@ -106,4 +107,22 @@ describe('app.stop', () => {
         await expect(testApp.stop()).resolves.toBe(undefined)
         await expect(testApp.stop()).rejects.toThrow('is not running')
     })
+})
+
+describe('asClient', () => {
+
+    it('adds a client to the app', () => {
+        const testApp = new TestApp()
+        const testAppClient = testApp.asClient()
+
+        expect(testAppClient.client).toBeInstanceOf(Client)
+        expect(testAppClient).not.toBe(testApp)
+
+        // @ts-expect-error type for asClient shouldn't exist
+        void testAppClient.asClient
+
+        // @ts-expect-error type for asServer shouldn't exist
+        void testAppClient.asServer
+    })
+
 })
