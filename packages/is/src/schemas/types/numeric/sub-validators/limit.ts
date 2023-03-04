@@ -1,7 +1,11 @@
 import { ValidationContext, Validator } from '@benzed/schema'
 import { words } from '@benzed/string'
-import { isObject, pick, Sortable, toComparable } from '@benzed/util'
+import { isObject, nil, pick, Sortable, toComparable } from '@benzed/util'
 import { SubContractValidator } from '../../../../validators'
+
+//// Types ////
+
+type Limitable = number | bigint | { length: number }
 
 //// Main ////
 
@@ -11,10 +15,12 @@ export class Limit<N extends Sortable> extends SubContractValidator<N> {
 
     constructor(
         readonly limit: 'min' | 'max',
-        readonly value: N,
     ) {
         super()
+        this.value = nil as unknown as N
     }
+
+    readonly value: N
 
     readonly inclusive: boolean = false
 
@@ -27,7 +33,7 @@ export class Limit<N extends Sortable> extends SubContractValidator<N> {
             ? 'length must be'
             : 'must be'
 
-        const difference = this._min 
+        const difference = this.limit === 'min'
             ? 'above'
             : 'below'
 
@@ -48,7 +54,7 @@ export class Limit<N extends Sortable> extends SubContractValidator<N> {
         if (this.inclusive && left === right)
             return true 
 
-        return this._min
+        return this.limit === 'min'
             ? left > right
             : left < right
     }
@@ -65,10 +71,8 @@ export class Limit<N extends Sortable> extends SubContractValidator<N> {
         )
     }
 
-    //// Helper ////
-    
-    private get _min() {
-        return this.limit === 'min'
-    }
+}
 
+export {
+    Limitable
 }
