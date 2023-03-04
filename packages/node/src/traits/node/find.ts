@@ -6,6 +6,7 @@ import {
     isFunc,
     isShape,
     nil,
+    pass,
     TypeGuard
 } from '@benzed/util'
 import { Comparable } from '@benzed/immutable'
@@ -47,7 +48,7 @@ type FindOutput<I extends FindInput<any>> =
 
 interface FindNode<N extends Node> {
 
-    <I extends FindInput<N>>(input: I): FindOutput<I> | nil
+    <I extends FindInput<N>>(input?: I): FindOutput<I> | nil
     get inChildren(): FindNode<N>
     get inSiblings(): FindNode<N>
     get inDescendents(): FindNode<N>
@@ -60,7 +61,7 @@ interface FindNode<N extends Node> {
 }
 
 interface FindNodes<N extends Node> {
-    <I extends FindInput<N>>(input: I): FindOutput<I>[]
+    <I extends FindInput<N>>(input?: I): FindOutput<I>[]
     get inChildren(): FindNodes<N>
     get inSiblings(): FindNodes<N>
     get inDescendents(): FindNodes<N>
@@ -165,7 +166,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
 
     //// Helper ////
 
-    find(input: FindInput, error?: string): unknown {
+    find(input?: FindInput, error?: string): unknown {
         const predicate = toNodePredicate(input)
 
         const found = new Set<Node>()
@@ -226,16 +227,17 @@ const isNodeTrait: (input: unknown) => input is NodeTrait =
         is: isFunc as AnyTypeGuard
     })
 
-function toNodePredicate(input: FindInput): NodeTypeGuard | NodePredicate {
+function toNodePredicate(input?: FindInput): NodeTypeGuard | NodePredicate {
+
+    if (!input)
+        return pass
 
     if (isNodeTrait(input))
         return input.is
 
     if (Node.is(input)) {
         return Comparable.is(input)
-
             ? other => input[Comparable.equals](other)
-
             : other => Object.is(input, other)
     }
 

@@ -2,16 +2,11 @@
 import { 
     AnyTypeGuard,
     Each, 
-    isArrayOf,
     isFunc,
     isIntersection,
     isKeyed,
-    isNumber, 
-    isOptional, 
     isShape,
     isString, 
-    isSymbol, 
-    isUnion, 
     nil 
 } from '@benzed/util'
 

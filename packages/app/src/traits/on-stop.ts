@@ -10,7 +10,7 @@ abstract class OnStop extends Trait {
 
     static override readonly is: (input: unknown) => input is OnStop = is.shape({
         onStop: is.function,
-    })
+    }).strict(false)
 
     abstract onStop(): void | Promise<void>
 

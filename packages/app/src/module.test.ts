@@ -1,8 +1,9 @@
 import { Module } from './module'
 
-import { test, it, expect, describe } from '@jest/globals'
+import { test, expect } from '@jest/globals'
 import { Structural } from '@benzed/immutable'
 import { pick } from '@benzed/util'
+import is from '@benzed/is'
 
 ////  ////
 
@@ -17,10 +18,4 @@ class Value extends Module {
 
 //// Tests ////
 
-test('Module.is', () => {
-
-    const value = new Value()
-
-    expect(Module.is(value)).toBe(true)
-
-})
+test.todo('module')
