@@ -5,6 +5,7 @@ export * from './flip'
 export * from './memoize'
 export * from './provide'
 export * from './returns'
+export * from './ansi'
 
 export * from './base-64'
 export * from './benchmark'
