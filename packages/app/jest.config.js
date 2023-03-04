@@ -1,12 +1,11 @@
 
-const BEFORE_ALL_TESTS = './test/all-before.test.ts'
-const AFTER_ALL_TESTS = './test/all-after.test.ts'
+const BEFORE_ALL_TESTS = './src/all-before.test.ts'
+const AFTER_ALL_TESTS = './src/all-after.test.ts'
 
 module.exports = {
 
     roots: [
-        './src',
-        './test'
+        './src'
     ],
 
     transform: {

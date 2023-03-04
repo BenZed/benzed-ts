@@ -41,14 +41,11 @@ export type RoundSettingsSignature = [
 
 export class Round extends ContractValidator<number> implements SubValidator<number> {
 
-    constructor(readonly by: number, type = 'round' as const) {
-        super()
-        this.type = type
-    }
-
-    readonly type: 'round' | 'ceil' | 'floor'
-
     readonly enabled: boolean = false
+
+    readonly by: number = 1 
+
+    readonly type: 'round' | 'ceil' | 'floor' = 'round'
 
     override message(): string {
         const detail = this.by === 1 ? '' : ` by ${this.by}`

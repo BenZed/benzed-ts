@@ -8,10 +8,18 @@ import { SubContractValidator } from '../../../../validators'
 
 export class Casing extends SubContractValidator<string> {
 
-    constructor(readonly casing?: 'lower' | 'upper' | 'camel' | 'capitalize') {
-        super()
-    }
+    //// Settings ////
+    
+    readonly casing?: 'lower' | 'upper' | 'camel' | 'capitalize'
 
+    //// Contract Validator Implementation ////
+
+    override message(): string {
+        return this.casing === 'capitalize'
+            ? `must bed ${this.casing}d`
+            : `must be in ${this.casing} case`
+    }
+    
     override transform(input: string): string {
         switch (this.casing) {
             case 'lower': {
@@ -32,12 +40,8 @@ export class Casing extends SubContractValidator<string> {
         }
     }
 
-    override message(): string {
-        return this.casing === 'capitalize'
-            ? `must bed ${this.casing}d`
-            : `must be in ${this.casing} case`
-    }
-
+    //// Validator Implementation ////
+    
     get [Validator.state](): Pick<this, 'enabled' | 'name' | 'message' | 'casing'> {
         return pick(this, 'enabled', 'name', 'message', 'casing')
     }

@@ -1,40 +1,34 @@
-import { Node, Nodes, Modules } from '@benzed/ecs'
-import { copy } from '@benzed/immutable'
+import { StateOf, Structural } from '@benzed/immutable'
+import { each, GenericObject, NamesOf } from '@benzed/util'
+import Module from './module'
 
-import { AppModule } from './app-module'
-import { Command, CommandList } from './app-modules'
+//// Types ////
 
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any
-*/
+/**
+ * In a service, any string key that contains a module
+ * is considered state.
+ */
+type ServiceState<T extends Service> = {
+    [K in NamesOf<T> as T[K] extends Module ? K : never]: T[K] extends Module 
+        ? StateOf<T[K]>
+        : never
+}
 
 //// Main ////
 
-class Service<M extends Modules = any, N extends Nodes = any> extends Node<M, N> {
+/**
+ * A service
+ */
+class Service extends Module {
 
-    static override create<Nx extends Nodes, Mx extends Modules>(nodes: Nx, ...modules: Mx): Service<Mx,Nx>
-    static override create<Nx extends Nodes, Mx extends Modules>(...modules: Mx): Service<Mx,Nx>
-    static override create(...args: unknown[]): unknown {
-        return new Service(...this._sortConstructorParams(args))
-    }
+    get [Structural.state](): ServiceState<this> {
+        const state: GenericObject = {}
+        for (const [key, value] of each.entryOf(this)) {
+            if (value instanceof Module)
+                state[key] = value
+        }
 
-    get commands(): CommandList<N> {
-        return Command.list(this)
-    }
-
-    async start(): Promise<void> {
-
-        for (const appModule of this.findModules.inTree(AppModule))
-            await appModule.start()
-    }
-
-    async stop(): Promise<void> {
-        for (const appModule of this.findModules.inTree(AppModule))
-            await appModule.stop()
-    }
-
-    setModules<Mx extends Modules>(...modules: Mx): Service<Mx, N> {
-        return new Service(this.nodes, ...modules) as unknown as Service<Mx,N>
+        return state as ServiceState<this>
     }
 
 }

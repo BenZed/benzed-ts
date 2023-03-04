@@ -23,13 +23,11 @@ const $positiveVector = $vector
     .asserts(v => v.x >= 0 && v.y >= 0, 'must be positive.')
 
 describe(`${$vector.name} validator tests`, () => {
-
     testValidator(
         $vector,
         { asserts: { x: 0, y: 0 } },
         { asserts: { x: NaN }, error: 'must be Number' }
     )
-
 })
 
 it('.properties', () => {
@@ -151,4 +149,14 @@ describe('builder methods', () => {
         expect($zero(nil)).toEqual({ x: 0, y: 0 })
     })
 
+    describe('strict', () => {
+
+        const $sheet = new Shape({ score: $number }).strict(false)
+
+        testValidator(
+            $sheet,
+            { transforms: { score: 5, name: 'larry' } },
+            { asserts: { score: 5, name: 'larry' } },
+        )
+    })
 })
