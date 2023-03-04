@@ -1,5 +1,4 @@
-import { isPrimitive } from '@benzed/util'
-import { ansi } from '@benzed/logger'
+import { ansi, isPrimitive } from '@benzed/util'
 import { lines } from '@benzed/string'
 
 import { it } from '@jest/globals'

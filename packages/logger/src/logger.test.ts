@@ -1,4 +1,3 @@
-import ansi, { ansiColorTag, ANSI_UTIL_TAGS } from './ansi'
 
 import {
     Logger,
@@ -8,6 +7,7 @@ import {
 } from './logger'
 
 import { describe, it, expect } from '@jest/globals'
+import { ansi, ansiColorTag, ANSI_UTIL_TAGS } from '@benzed/util'
 
 describe('Logger', () => {
 
@@ -17,7 +17,7 @@ describe('Logger', () => {
 
         const logs: unknown[] = []
 
-        const log = Logger.create({
+        const log = new Logger({
             ...options,
             onLog: (...args: unknown[]) => {
                 logs.push(...args)
@@ -31,7 +31,7 @@ describe('Logger', () => {
 
     it('Accepts a function to defer logs to', () => {
         const { log, logs } = createTestLogger()
-        void log`Hello world.`
+        log`Hello world.`
         expect(logs).toContain('Hello world.')
     })
 
@@ -41,7 +41,7 @@ describe('Logger', () => {
             header: '!'
         })
 
-        void log`Hey.`
+        log`Hey.`
 
         expect(logs).toContain('!')
     })
@@ -50,7 +50,7 @@ describe('Logger', () => {
 
         const { log, logs } = createTestLogger()
 
-        void log`Hey.`
+        log`Hey.`
 
         expect(logs).not.toContain(undefined)
     })
@@ -58,7 +58,7 @@ describe('Logger', () => {
     it('Includes timestamp', () => {
         const { log, logs } = createTestLogger()
 
-        void log`Yo.`
+        log`Yo.`
 
         expect(logs[0]).toContain('[')
         expect(logs[0]).toContain(']')
@@ -67,7 +67,7 @@ describe('Logger', () => {
     it('Timestamp can be omitted', () => {
         const { log, logs } = createTestLogger({ timeStamp: false })
 
-        void log`Bruh what's good`
+        log`Bruh what's good`
 
         expect(logs.join('')).toContain('Bruh what\'s good')
     })
@@ -75,9 +75,9 @@ describe('Logger', () => {
     it('Subsequent identical timestamps are greyed out', () => {
         const { log, logs } = createTestLogger({})
 
-        void log`Bruh what's good`
-        void log`Ntm`
-        void log`Nice`
+        log`Bruh what's good`
+        log`Ntm`
+        log`Nice`
 
         expect(logs.join('')).toContain(ANSI_UTIL_TAGS.dim)
     })
@@ -85,7 +85,7 @@ describe('Logger', () => {
     it(`log.warn prefixes ${WARN_ICON} `, () => {
         const { log, logs } = createTestLogger({})
 
-        void log.warn`Uh Oh`
+        log.warn`Uh Oh`
 
         expect(logs).toContain(WARN_ICON)
     })
@@ -93,7 +93,7 @@ describe('Logger', () => {
     it(`log.error prefixes ${ERR_ICON}`, () => {
         const { log, logs } = createTestLogger({})
 
-        void log.error`Oh ${ansi('No', { italic: true })}`
+        log.error`Oh ${ansi('No', { italic: true })}`
 
         expect(logs).toContain(ERR_ICON)
     })
@@ -101,7 +101,7 @@ describe('Logger', () => {
     it('no color on directly interpolated strings', () => {
         const { log, logs } = createTestLogger()
 
-        void log`This ${'string'} should not be green.`
+        log`This ${'string'} should not be green.`
         expect(logs.join('')).not.toContain(ansiColorTag('green'))
     })
 

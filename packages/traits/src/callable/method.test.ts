@@ -1,6 +1,7 @@
 
 import { test } from '@jest/globals'
 import { Falsy, Func, toVoid } from '@benzed/util'
+
 import { expectTypeOf } from 'expect-type'
 import { Method } from './method'
 import { Callable } from './callable'
