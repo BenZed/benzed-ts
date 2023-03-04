@@ -22,7 +22,7 @@ const isPort = is
     .number
     .named('Port')
     .default(() => DEFAULT_SERVER_PORT)
-    //.range(1025, '...', 65536)
+    .range(1025, '...', 65536)
 
 const isServerSettings: IsType<ServerSettings> = is.shape({
     port: isPort.optional
