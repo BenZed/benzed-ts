@@ -8,7 +8,7 @@
     },
     "include": [
         "src"
-    ],
+, "../util/src/methods/ansi.ts"    ],
     "exclude": [
         "src/**/*.test.ts"
     ]

@@ -1,9 +1,11 @@
-import ansi from './ansi'
-import { inspect } from 'util'
-import { Callable, Trait } from '@benzed/traits'
-import { nil } from '@benzed/util'
+import { inspect } from 'util' // TODO remove this dependency
 
-/* eslint-disable 
+import { Callable, Trait } from '@benzed/traits'
+import { nil, ansi } from '@benzed/util'
+
+//// EsLint ////
+
+/* eslint-disable
     @typescript-eslint/no-this-alias,
     no-return-assign
 */
@@ -47,20 +49,12 @@ interface LoggerOptions {
 
 }
 
-type Log = (strings: TemplateStringsArray, ...inputs: unknown[]) => void
-
-type LogHandler = (...items: unknown[]) => void
-
-interface Logger extends Log {
-    options: LoggerOptions
-    info: Log
-    error: Log
-    warn: Log
+interface Log {
+    (strings: TemplateStringsArray, ...inputs: unknown[]): void
 }
 
-interface LoggerConstructor {
-    create(options: Partial<LoggerOptions>): Logger
-    is: typeof isLogger
+interface LogHandler {
+    (...items: unknown[]): void
 }
 
 type Icon = typeof WARN_ICON | typeof ERR_ICON | nil
@@ -108,37 +102,29 @@ function colorTimeStamp(
     return timeStamp
 }
 
-function isLogger(input: unknown): input is Logger {
-    return typeof input === 'function' &&
-        typeof (input as Logger).error === 'function' &&
-        typeof (input as Logger).warn === 'function' &&
-        (input as Logger).info === input
-}
-
 //// Main ////
 
-const Logger = class extends Trait.use(Callable<(strings: readonly string[], ...params: unknown[]) => void>) {
+class Logger extends Trait.use(Callable<Log>) {
 
-    static is = isLogger 
+    readonly options: LoggerOptions
 
-    static create(options: Partial<LoggerOptions>): Logger {
-        return new this({
+    constructor(
+        options?: Partial<LoggerOptions>
+    ) {
+        super()
+        this.options = {
             header: '',
             onLog: console.log.bind(console),
             timeStamp: true,
             ...options
-        })
+        }
+    
+        return Callable.apply(this)
     }
 
+    // Callable
     get [Callable.signature]() {
         return this.info
-    }
-
-    constructor(
-        readonly options: LoggerOptions
-    ) {
-        super()
-        return Callable.apply(this)
     }
 
     private _lastTimeStamp = ''
@@ -223,7 +209,7 @@ const Logger = class extends Trait.use(Callable<(strings: readonly string[], ...
         this.options.onLog?.(...prefix, outputs.join(''))
     }
 
-} as LoggerConstructor 
+}
 
 //// Exports ////
 
@@ -232,10 +218,7 @@ export default Logger
 export {
 
     Logger,
-    isLogger,
-
     LoggerOptions,
-
     LogHandler,
 
     WARN_ICON,

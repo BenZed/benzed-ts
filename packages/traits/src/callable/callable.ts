@@ -124,5 +124,6 @@ const Callable = class extends Trait {
 
 export {
     Callable,
-    CallableConstructor
+    CallableConstructor,
+    CallableStaticProperties
 }

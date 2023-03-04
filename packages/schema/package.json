@@ -21,12 +21,11 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "@benzed/util": "^3.9.1",
+        "@benzed/signature-parser": "^1.0.0",
         "@benzed/immutable": "^4.0.0",
-        "@benzed/traits": "^1.0.0",
-        "@benzed/string": "^3.2.3",
         "@benzed/node": "^1.0.0",
-        "@benzed/logger": "^1.0.0",
-        "@benzed/signature-parser": "^1.0.0"
+        "@benzed/string": "^3.2.3",
+        "@benzed/traits": "^1.0.0",
+        "@benzed/util": "^3.9.1"
     }
 }
