@@ -2,7 +2,7 @@ import { App } from './app'
 
 import { test, expect, describe } from '@jest/globals'
 import { Module } from './module'
-import { OnStart, OnStop } from './traits'
+import { OnRun } from './traits'
 import OnValidate from './traits/on-validate'
 import { Client } from './modules'
 
@@ -18,7 +18,7 @@ class StatelessModule extends Module {
     }
 }
 
-class TestModule extends Module.add(StatelessModule, OnStart, OnStop, OnValidate) {
+class TestModule extends Module.add(StatelessModule, OnRun, OnValidate) {
 
     validated = 0
     onValidate() {

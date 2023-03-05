@@ -7,10 +7,11 @@ import {
     Modifier, 
     RemoveModifier
 } from '@benzed/schema'
-    
-import { Callable, Mutate, Trait } from '@benzed/traits'
+
 import { assign, TypeGuard } from '@benzed/util'
+import { Callable, Mutate, Trait } from '@benzed/traits'
 import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
+
 import { To } from './to'
 
 //// EsLint ////

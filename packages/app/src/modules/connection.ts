@@ -1,13 +1,14 @@
 import { Module } from '../module'
-import { OnStart, OnStop } from '../traits'
-import OnValidate from '../traits/on-validate'
+import { Runnable } from '../traits'
+import Validateable from '../traits/validateable'
 
 //// Main ////
 
-abstract class Connection extends Module.add(Module, OnStart, OnStop, OnValidate) {
+abstract class Connection extends Module.add(Module, Runnable, Validateable) {
 
     onValidate(): void {
         this._assertUnique()
+        this._assertRootParent()
     }
 
 }

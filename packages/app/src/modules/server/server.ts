@@ -1,31 +1,31 @@
 
 import { is, IsType } from '@benzed/is'
-import { pick } from '@benzed/util'
+import { nil, pick } from '@benzed/util'
+
+import { createServer, Server as HttpServer } from 'http'
+import Koa, { Context } from 'koa'
+import body from 'koa-body'
+import cors from '@koa/cors'
 
 import { Module } from '../../module'
+import { isPort } from '../../util/schemas'
 import { Connection } from '../connection'
-import { DEFAULT_SERVER_PORT } from '../../util/constants'
 
 //// Types ////
 
 interface ServerSettings {
 
     /**
-     * Port to open
+     * Port to open.
      */
-    readonly port?: number
+    readonly port: number
 
 }
 
-// TODO move me
-const isPort = is
-    .number
-    .named('Port')
-    .default(() => DEFAULT_SERVER_PORT)
-    .range(1025, '...', 65536)
-
 const isServerSettings: IsType<ServerSettings> = is.shape({
-    port: isPort.optional
+
+    port: isPort.readonly
+
 })
 
 //// Main ////
@@ -34,12 +34,10 @@ const isServerSettings: IsType<ServerSettings> = is.shape({
  * This client module provides functionality for:
  * - Connecting to the server
  * - Sending commands to the server, retreiving their results
- * - Subscribing to state updates for modules on the server to their local counterparts
- *   client side
+ * - Subscribing to state updates for modules on the server to their 
+ *   local counterparts client side
  */
 class Server extends Connection implements ServerSettings {
-
-    readonly port?: number
 
     constructor(
         settings: Partial<ServerSettings> = {}
@@ -50,13 +48,29 @@ class Server extends Connection implements ServerSettings {
             .port
     }
 
+    //// State ////
+
+    readonly port: number
+
     get [Module.state](): ServerSettings {
         return pick(this, 'port')
     }
 
-    onStart(): void | Promise<void> { /**/ }
+    // TODO Modules should not be copyable while app is running
 
-    onStop(): void | Promise<void> { /**/ }
+    //// Trait Implementations ////
+
+    _onStart(): void | Promise<void> { 
+        /**/
+    }
+
+    _onStop(): void | Promise<void> { 
+        /**/
+    }
+
+    //// Runtime State ////
+
+    private readonly _http: HttpServer | nil = nil
 }
 
 //// Exports ////

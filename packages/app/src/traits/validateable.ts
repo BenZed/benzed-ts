@@ -11,17 +11,24 @@ import Module from '../module'
  * Trait with helper methods to validate a module's position relative
  * to other modules in the app.
  */
-abstract class OnValidate extends Trait {
+abstract class Validateable extends Trait {
 
-    static override readonly is: (input: unknown) => input is OnValidate = is.shape({
-        onValidate: is.function
+    static override readonly is: (input: unknown) => input is Validateable = is.shape({
+        validate: is.function
     }).strict(false) as AnyTypeGuard
+
+    /**
+     * Validate a module's position in the tree.
+     */
+    validate(): void {
+        this._onValidate()
+    }
 
     /**
      * Called to validate a module's position in a tree. If the
      * onValidate method doesn't throw any errors, it's considered to be valid.
      */
-    abstract onValidate(): void
+    protected abstract _onValidate(): void
 
     /**
      * Throws if this module isn't the root
@@ -105,8 +112,8 @@ abstract class OnValidate extends Trait {
 
 //// Exports ////
 
-export default OnValidate
+export default Validateable
 
 export {
-    OnValidate
+    Validateable
 }

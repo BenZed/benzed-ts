@@ -1,12 +1,9 @@
-import { FindNode, HasNode, AssertNode, Node } from '@benzed/node'
-import { Traits } from '@benzed/traits'
 import { is } from '@benzed/is'
+
+import { FindNode, HasNode, AssertNode, Node } from '@benzed/node'
 import { Structural } from '@benzed/immutable'
+import { Traits } from '@benzed/traits'
 import { nil } from '@benzed/util'
-
-//// Types ////
-
-const $$module = Symbol('module-name')
 
 //// Main ////
 
@@ -15,31 +12,26 @@ const $$module = Symbol('module-name')
  */
 abstract class Module extends Traits.use(Node, Structural) {
 
+    static readonly use = Traits.use
+    static readonly add = Traits.add
+
+    static readonly copy: typeof Structural.copy = Structural.copy
     static readonly state: typeof Structural.state = Structural.state
     static readonly equals: typeof Structural.equals = Structural.equals
-    static readonly copy: typeof Structural.copy = Structural.copy
 
     static nameOf(input: object): string {
         if ('name' in input && is.string(input.name))
             return input.name
-
         return input.constructor.name
     }
-
-    static readonly use = Traits.use
-    static readonly add = Traits.add
 
     constructor() {
         super() 
         return Node.apply(this)
     }
 
-    get [$$module]() {
-        return this.constructor.name
-    }
-
     get name() {
-        return this[$$module]
+        return this.constructor.name
     }
 
     get parent(): Module | nil {
@@ -77,6 +69,5 @@ abstract class Module extends Traits.use(Node, Structural) {
 export default Module
  
 export {
-    Module,
-    $$module
+    Module
 }

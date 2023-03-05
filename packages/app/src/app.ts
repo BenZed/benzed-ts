@@ -1,9 +1,11 @@
 import { copy } from '@benzed/immutable'
 import { assign } from '@benzed/util'
+
 import { Module } from './module'
 import { Client, ClientSettings } from './modules'
+
 import { Service } from './service'
-import { OnStart, OnStop, OnValidate } from './traits'
+import { Runnable, Validateable } from './traits'
 
 //// Helper Types ////
 
@@ -26,60 +28,40 @@ type AsClient<A extends App> =
  * The App class is a type of Module that serves as the root of the module tree. It is responsible
  * for coordinating the start and stop sequence of all its child modules.
  */
-abstract class App extends Module.add(Service, OnValidate) {
+abstract class App extends Module.add(Service, Runnable, Validateable) {
 
-    private _running = false 
-    get running() {
-        return this._running
-    }
+    //// Trait Methods ////
 
-    /**
-     * Validate all modules and then start the app.
-     */
-    async start(): Promise<void> {
-
-        if (this._running)
-            throw new Error(`${this.name} is already running`)
-        this._running = true
-
+    protected async _onStart(): Promise<void> {
         const allModules = this.find.all.inDescendents()
 
         // validate each module that implements the OnValidate trait
         for (const module of allModules) {
-            if (OnValidate.is(module))
-                module.onValidate()
+            if (Validateable.is(module))
+                module.validate()
         }
 
         // start each module that implements the OnStart trait
         for (const module of allModules) {
-            if (OnStart.is(module))
-                await module.onStart()
+            if (Runnable.is(module))
+                await module.start()
         }
 
     }
 
-    /**
-     * Stop the app.
-     */
-    async stop(): Promise<void> {
-        if (!this._running)
-            throw new Error(`${this.name} is not running`)
-        this._running = false
-
+    protected async _onStop(): Promise<void> {
         for (const module of this.find.all.inDescendents()) {
-            if (OnStop.is(module))
-                await module.onStop()
+            if (Runnable.is(module))
+                await module.stop()
         }
     }
 
-    /**
-     * Apps should always be the root, and cannot be nested in
-     * other apps.
-     */
-    onValidate(): void {
+    protected _onValidate(): void {
         this._assertRoot()
     }
 
+    //// Builder Methods ////
+    
     asClient(settings?: Partial<ClientSettings>): AsClient<this> {
 
         const clone = copy(this)

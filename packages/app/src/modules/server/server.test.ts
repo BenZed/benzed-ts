@@ -7,6 +7,8 @@ describe('onValidate', () => {
 
     test.todo('asserts unique: no other client (or server) may be on the app')
 
+    test.todo('asserts root parent: must be parented directly to the app')
+
 })
 
 describe('settings', () => {

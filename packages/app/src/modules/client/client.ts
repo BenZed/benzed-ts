@@ -45,11 +45,11 @@ class Client extends Connection implements ClientSettings {
         return pick(this, 'host')
     }
 
-    onStart(): void | Promise<void> {
+    _onStart(): void | Promise<void> {
         //
     }
 
-    onStop(): void | Promise<void> {
+    _onStop(): void | Promise<void> {
         //
     }
 }

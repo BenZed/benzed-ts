@@ -26,6 +26,7 @@
         "@benzed/node": "^1.0.0",
         "@benzed/string": "^3.2.3",
         "@benzed/traits": "^1.0.0",
-        "@benzed/util": "^3.9.1"
+        "@benzed/util": "^3.9.1",
+        "@benzed/logger": "^1.0.0"
     }
 }

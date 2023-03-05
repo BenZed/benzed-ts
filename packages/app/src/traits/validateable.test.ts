@@ -5,7 +5,8 @@ import { Empty } from '@benzed/util'
 import { it, describe } from '@jest/globals'
 
 import { Module } from '../module'
-import { OnValidate } from './on-validate'
+import { Validateable } from './validateable'
+
 import is from '@benzed/is'
 
 //// Place ////
@@ -20,32 +21,28 @@ class StatelessModule extends Module {
 
 describe('_assertRoot', () => {
 
-    class RootModule extends Module.add(StatelessModule, OnValidate) {
-
-        onValidate(): void {
+    class RootModule extends Module.add(StatelessModule, Validateable) {
+        protected _onValidate(): void {
             this._assertRoot()
         }
-
     }
 
     it('throws if module is not a root module', async () => {
-
         const testAssertRootApp = new class TestAssertRootApp extends App {
             thisModuleWillThrowOnStart = new RootModule()
         }
-
         await expect(testAssertRootApp.start()).rejects.toThrow('must be the root module')
     })
 
-    class RootChildModule extends Module.add(StatelessModule, OnValidate) {
-        onValidate(): void {
+    class RootChildModule extends Module.add(StatelessModule, Validateable) {
+        protected _onValidate(): void {
             this._assertRootParent()
         }
     }
 
     it('throws if module is not the root', () => {
         const childModule = new RootChildModule()
-        expect(() => childModule.onValidate()).toThrow(`${childModule.name} must be parented to the root.`)
+        expect(() => childModule.validate()).toThrow(`${childModule.name} must be parented to the root.`)
     })
 
     it('does not throw if module is parented to the root', async () => {
@@ -60,8 +57,8 @@ describe('_assertRoot', () => {
 
 describe('_assertUniqueSibling', () => {
 
-    class SiblingModule extends Module.add(StatelessModule, OnValidate) {
-        onValidate(): void {
+    class SiblingModule extends Module.add(StatelessModule, Validateable) {
+        protected _onValidate(): void {
             this._assertUniqueSibling()
         }
     }
@@ -74,7 +71,7 @@ describe('_assertUniqueSibling', () => {
     it('throws if module has sibling with the same type', () => {
         const parent = new ParentModule()
 
-        expect(() => parent.moduleOne.onValidate()).toThrow('must be the only child of it\'s type.')
+        expect(() => parent.moduleOne.validate()).toThrow('must be the only child of it\'s type.')
     })
 
     it('does not throw if module is the only child of its type', async () => {
@@ -88,8 +85,8 @@ describe('_assertUniqueSibling', () => {
 
 describe('_assertUnique', () => {
 
-    class UniqueModule extends Module.add(StatelessModule, OnValidate) {
-        onValidate(): void {
+    class UniqueModule extends Module.add(StatelessModule, Validateable) {
+        protected _onValidate(): void {
             this._assertUnique()
         }
     }
@@ -103,7 +100,7 @@ describe('_assertUnique', () => {
     
     it('throws if there is another module in the tree of the same type', () => {
         const parent = new ParentModule() 
-        expect(() => parent.moduleOne.onValidate()).toThrow(`${UniqueModule.name} must be the only module of it's type.`)
+        expect(() => parent.moduleOne.validate()).toThrow(`${UniqueModule.name} must be the only module of it's type.`)
     })
     
     it('does not throw if module is unique', async () => {
@@ -119,9 +116,9 @@ describe('_assertUnique', () => {
 describe('_assertRequiredInSibling', () => {
 
     class RequiredModule extends StatelessModule {}
-    class RequiringModule extends Module.add(StatelessModule, OnValidate) {
+    class RequiringModule extends Module.add(StatelessModule, Validateable) {
 
-        onValidate(): void {
+        protected _onValidate(): void {
             this._assertRequiredInSibling(is(RequiredModule))
         }
 
@@ -151,8 +148,8 @@ describe('_assertRequiredInSibling', () => {
 describe('_assertRequired', () => {
 
     class RequiredModule extends StatelessModule {}
-    class RequiringModule extends Module.add(StatelessModule, OnValidate) {
-        onValidate(): void {
+    class RequiringModule extends Module.add(StatelessModule, Validateable) {
+        protected _onValidate(): void {
             this._assertRequired(is(RequiredModule))
         }
     }
@@ -162,7 +159,7 @@ describe('_assertRequired', () => {
             module = new RequiringModule()
         }
 
-        expect(() => parent.module.onValidate())
+        expect(() => parent.module.validate())
             .toThrow(`${RequiringModule.name} is missing required module`)
     })
 
@@ -182,10 +179,12 @@ describe('_assertRequired', () => {
 describe('_assertConflictingInSibling', () => {
 
     class ConflictModule extends StatelessModule {}
-    class ConflictingModule extends Module.add(StatelessModule, OnValidate) {
-        onValidate(): void {
+    class ConflictingModule extends Module.add(StatelessModule, Validateable) {
+
+        protected _onValidate(): void {
             this._assertConflictingInSibling(is(ConflictModule))
         }
+
     }
 
     it('throws if module has conflicting sibling', async () => {
@@ -210,24 +209,22 @@ describe('_assertConflictingInSibling', () => {
 describe('_assertConflicting', () => {
 
     class ConflictModule extends StatelessModule {}
-    class ConflictingModule extends Module.add(StatelessModule, OnValidate) {
-  
-        onValidate(): void {
+
+    class ConflictingModule extends Module.add(StatelessModule, Validateable) {
+        protected _onValidate(): void {
             this._assertConflicting(is(ConflictModule))
         }
-  
     }
-  
+
     it('throws if module has conflicting module', () => {
         const parent = new class TestConflictingApp extends App {
             moduleOne = new ConflictModule()
-
             sub = new class SubModule extends StatelessModule {
                 moduleTwo = new ConflictingModule()
             }
         }
 
-        expect(() => parent.sub.moduleTwo.onValidate())
+        expect(() => parent.sub.moduleTwo.validate())
             .toThrow(`${ConflictingModule.name} cannot be placed with conflicting module`)
     })
 
