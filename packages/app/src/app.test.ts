@@ -2,15 +2,12 @@ import { App } from './app'
 
 import { test, expect, describe } from '@jest/globals'
 import { Module } from './module'
-import { OnRun } from './traits'
-import OnValidate from './traits/on-validate'
+import { Runnable, Validateable } from './traits'
 import { Client } from './modules'
 
 //// Setup ////
 
-class TestApp extends App {
-    //
-}
+class TestApp extends App { /**/ }
 
 class StatelessModule extends Module {
     get [Module.state]() {
@@ -18,20 +15,20 @@ class StatelessModule extends Module {
     }
 }
 
-class TestModule extends Module.add(StatelessModule, OnRun, OnValidate) {
+class TestModule extends Module.add(StatelessModule, Runnable, Validateable) {
 
     validated = 0
-    onValidate() {
+    protected _onValidate() {
         this.validated++
     }
 
     started = 0
-    onStart() {
+    protected _onStart() {
         this.started++
     }
 
     stopped = 0
-    onStop() {
+    protected _onStop() {
         this.stopped++
     }
 }
@@ -56,22 +53,31 @@ describe('OnValidate', () => {
 
 describe('app.start', () => {
     test('runs onValidate method on all applicable sub modules', async () => {
+
         const testApp = new class extends TestApp {
             module = new TestModule()
-        } 
+        }
 
-        expect(OnValidate.is(testApp.module)).toBe(true)
+        expect(
+            Validateable.is(testApp.module)
+        ).toBe(true)
 
-        await expect(testApp.start()).resolves.toBe(undefined)
+        await expect(testApp.start())
+            .resolves
+            .toBe(undefined)
+
         expect(testApp.module.validated).toBe(1)
-    }) 
+    })
 
     test('runs onStart method on all applicable sub modules', async () => {
         const testApp = new class extends TestApp {
             testModule = new TestModule()
         }
 
-        await expect(testApp.start()).resolves.toBe(undefined)
+        await expect(testApp.start())
+            .resolves
+            .toBe(undefined)
+
         expect(testApp.testModule.started).toBe(1)
     })  
 
@@ -86,7 +92,9 @@ describe('app.start', () => {
 describe('app.stop', () => {
 
     test('cannot be stopped if app has not been started', async () => {
-        await expect(new TestApp().stop()).rejects.toThrow('is not running')
+        await expect(new TestApp().stop())
+            .rejects
+            .toThrow('is not running')
     })
 
     test('runs onStop method on all applicable sub modules', async () => {

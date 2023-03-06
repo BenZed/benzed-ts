@@ -6,7 +6,7 @@ import Validateable from '../traits/validateable'
 
 abstract class Connection extends Module.add(Module, Runnable, Validateable) {
 
-    onValidate(): void {
+    protected _onValidate(): void {
         this._assertUnique()
         this._assertRootParent()
     }

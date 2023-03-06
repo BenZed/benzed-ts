@@ -15,8 +15,12 @@ abstract class Module extends Traits.use(Node, Structural) {
     static readonly use = Traits.use
     static readonly add = Traits.add
 
-    static readonly copy: typeof Structural.copy = Structural.copy
+    static readonly getState = Structural.get
+    static readonly setState = Structural.set
+    static readonly applyState = Structural.create
+
     static readonly state: typeof Structural.state = Structural.state
+    static readonly copy: typeof Structural.copy = Structural.copy
     static readonly equals: typeof Structural.equals = Structural.equals
 
     static nameOf(input: object): string {

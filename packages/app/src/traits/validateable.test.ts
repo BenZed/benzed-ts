@@ -2,12 +2,10 @@ import { App } from '../app'
 
 import { Empty } from '@benzed/util'
 
-import { it, describe } from '@jest/globals'
+import { it, describe, beforeAll } from '@jest/globals'
 
 import { Module } from '../module'
 import { Validateable } from './validateable'
-
-import is from '@benzed/is'
 
 //// Place ////
 
@@ -17,9 +15,16 @@ class StatelessModule extends Module {
     }
 }
 
+let is: typeof import('@benzed/is').is
+
 //// Tests ////
 
 describe('_assertRoot', () => {
+
+    beforeAll(async () => {
+        // unsure why this is necessary
+        is = (await import('@benzed/is')).is
+    })
 
     class RootModule extends Module.add(StatelessModule, Validateable) {
         protected _onValidate(): void {

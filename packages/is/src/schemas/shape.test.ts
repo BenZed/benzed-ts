@@ -1,18 +1,13 @@
-import { isNumber, isString, nil } from '@benzed/util'
+import { isString, nil } from '@benzed/util'
 
 import { Shape } from './shape'
 import { testValidator } from '../util.test'
 import { ReadOnly, Optional, TypeValidator } from '@benzed/schema'
 
 import { expectTypeOf } from 'expect-type'
+import { $number, $boolean, $string } from './types'
 
 //// Tests ////
-
-const $number = new class Number extends TypeValidator<number> {
-    isValid(input: unknown): input is number {
-        return isNumber(input)
-    }
-}
 
 const $vector = new Shape({
     x: $number,
@@ -160,3 +155,21 @@ describe('builder methods', () => {
         )
     })
 })
+
+/**
+ * Fixing a bug where boolean validators in shapes weren't working
+ */
+describe('todo shape', () => {
+
+    const $todo = new Shape({
+        completed: $boolean,
+        description: $string
+    })
+
+    testValidator(
+        $todo,
+        { asserts: { completed: false, description: 'Fix bug' } },
+    )
+
+})
+

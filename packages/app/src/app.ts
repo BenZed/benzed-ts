@@ -2,9 +2,18 @@ import { copy } from '@benzed/immutable'
 import { assign } from '@benzed/util'
 
 import { Module } from './module'
-import { Client, ClientSettings } from './modules'
+
+import {
+
+    Server,
+    ServerSettings,
+    Client,
+    ClientSettings
+
+} from './modules'
 
 import { Service } from './service'
+
 import { Runnable, Validateable } from './traits'
 
 //// Helper Types ////
@@ -18,9 +27,9 @@ type AsClient<A extends App> =
     { [K in _AppWithKeys<A>]: A[K]} &
     { readonly client: Client }
 
-// type AsServer<A extends App> = 
-//     { [K in _AppWithKeys<A>]: A[K] } & 
-//     { readonly server: Server }
+type AsServer<A extends App> = 
+    { [K in _AppWithKeys<A>]: A[K] } & 
+    { readonly server: Server }
 
 //// Main ////
 
@@ -61,7 +70,7 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
     }
 
     //// Builder Methods ////
-    
+
     asClient(settings?: Partial<ClientSettings>): AsClient<this> {
 
         const clone = copy(this)
@@ -70,7 +79,12 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
         return assign(clone, { client }) as AsClient<this>
     }
 
-    // asServer(settings?: Partial<ServerSettings>): AsServer<this> {}
+    asServer(settings?: Partial<ServerSettings>): AsServer<this> {
+        const clone = copy(this)
+        const server = new Server(settings)
+
+        return assign(clone, { server }) as AsServer<this>
+    }
 
 }
 

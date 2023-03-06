@@ -1,5 +1,13 @@
 
 import { test, describe } from '@jest/globals'
+import { Module } from '../../module'
+import { App } from '../../app'
+import { Server } from './server'
+
+//// Setup ////
+
+const testApp = new class TestApp extends App {}
+const testServer = testApp.asServer()
 
 //// Tests ////
 
@@ -13,8 +21,20 @@ describe('onValidate', () => {
 
 describe('settings', () => {
 
-    test.todo('host setting points to localhost with the default server port by default')
+    test.todo('port number, between 1025 and 65536')
 
-    test.todo('client state is it\'s own settings')
+    test.todo('server state is it\'s own settings')
+
+})
+
+describe('start', () => {
+
+    test.todo('http server listens on app start')
+
+})
+
+describe('stop', () => {
+
+    test.todo('http server stops listening on app stop')
 
 })

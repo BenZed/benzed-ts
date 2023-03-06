@@ -19,7 +19,7 @@ abstract class Runnable extends Trait {
 
     private _running = false 
     get running() {
-        return this._running
+        return !!this._running
     }
 
     async start() {
@@ -27,7 +27,6 @@ abstract class Runnable extends Trait {
             throw new Error(`${Module.nameOf(this)} is already running`)
 
         this._running = true
-
         await this._onStart()
     }
 
@@ -36,7 +35,6 @@ abstract class Runnable extends Trait {
             throw new Error(`${Module.nameOf(this)} is not running`)
 
         await this._onStop()
-
         this._running = false
     }
 
