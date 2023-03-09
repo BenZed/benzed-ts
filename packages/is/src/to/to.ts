@@ -71,7 +71,11 @@ import {
     Obj,
 
     $unknown,
-    Unknown
+    Unknown,
+
+    Array,
+    ArrayOf,
+    $array
 
 } from '../schemas'
 
@@ -226,6 +230,10 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
 
     get unknown(): IsTo<F, M, [Unknown]> {
         return this($unknown)
+    }
+
+    get array(): IsTo<F,M,[Array]> {
+        return this($array)
     }
 
     shape<T extends ResolveShapeValidatorInput>(

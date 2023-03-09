@@ -44,7 +44,9 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
 
 type _IsDynamic<V extends Validator> = {
     [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends Validator 
-        ? Is<V[K]>
+        ? K extends 'of' 
+            ? To<[V], []>
+            : Is<V[K]>
         : V[K] extends (...args: any) => Validator 
             ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
             : V[K]
@@ -171,6 +173,10 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
     }
 
     get or(): To<[Validator],[]> {
+        return new To(this.validate)
+    }
+
+    get of(): To<[Validator], []> {
         return new To(this.validate)
     }
 

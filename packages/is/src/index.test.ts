@@ -282,3 +282,18 @@ it('is.null.or.nan.or.undefined', () => {
     expect(isNil(undefined)).toBe(true)
     expect(isNil(NaN)).toBe(true)
 })
+
+it('is.array', () => {
+
+    const isArray = is.array
+
+    expect(isArray([])).toBe(true)
+    expect(isArray('')).toBe(false)
+})
+
+it('is.array.of.number', () => {
+    const isArrayOfNumber = is.array.of.number
+
+    expect(isArrayOfNumber([0])).toBe(true)
+    expect(isArrayOfNumber(['ace'])).toBe(false)
+})
