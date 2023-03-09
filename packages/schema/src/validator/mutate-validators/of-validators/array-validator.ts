@@ -1,6 +1,6 @@
 import { each, isArray } from '@benzed/util'
 
-import { ValidateOutput } from '../../../validate'
+import { ValidateInput, ValidateOutput } from '../../../validate'
 import { ValidationContext } from '../../../validation-context'
 import { Validator } from '../../validator'
 
@@ -20,15 +20,20 @@ type _ArrayValidatorWrapBuilderOutput<V extends Validator, P> =
             ? (...args: A) => ArrayValidator<V> 
             : P
 
-type _ArrayValidatorProperties<V extends Validator> = {
+type _ArrayValidatorDynamic<V extends Validator> = {
     [K in keyof V as K extends keyof Of ? never : K]: _ArrayValidatorWrapBuilderOutput<V, V[K]>
+}
+
+interface _ArrayValidatorStatic<V extends Validator> {
+    [Validator.analyze](ctx: ValidationContext<ValidateInput<V>, ValidateOutput<V>[]>): ValidationContext<ValidateInput<V>, ValidateOutput<V>[]>
 }
 
 //// Types ////
 
 type ArrayValidator<V extends Validator> = 
     Of<V, ValidateOutput<V>[]> 
-    & _ArrayValidatorProperties<V>
+    & _ArrayValidatorDynamic<V>
+    & _ArrayValidatorStatic<V>
 
 interface ArrayValidatorConstructor {
     new <V extends Validator>(validator: V): ArrayValidator<V>
