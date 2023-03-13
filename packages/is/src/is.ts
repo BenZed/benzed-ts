@@ -40,6 +40,9 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
      * Type-only property
      */
     get data(): ValidateOutput<V>
+
+    assert(input: unknown): asserts input is ValidateOutput<V>
+
 }
 
 type _IsDynamic<V extends Validator> = {
@@ -155,6 +158,10 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
 
     get or(): To<[Validator],[]> {
         return new To(this.validate)
+    }
+
+    assert(input: unknown) {
+        void this.validate(input, { transform: false })
     }
 
 } as unknown as IsConstructor
