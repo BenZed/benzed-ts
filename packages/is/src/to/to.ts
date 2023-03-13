@@ -71,7 +71,11 @@ import {
     Obj,
 
     $unknown,
-    Unknown
+    Unknown,
+
+    Array,
+    ArrayOf,
+    $array
 
 } from '../schemas'
 
@@ -95,6 +99,14 @@ import {
 
 //// Helper Types ////
 
+type _HoistNotModifier<F extends [Validator], M extends ModifierType[], T extends ResolveValidatorsInput> = 
+    Is<AddModifiers<ResolveValidator<[RemoveModifier<F[0], ModifierType.Not>, ...T]>, [ModifierType.Not, ...M]>>
+
+type _IsToSingleValidator<F extends [Validator], M extends ModifierType[], T extends ResolveValidatorsInput> = 
+    HasModifier<F[0], ModifierType.Not> extends true
+        ? _HoistNotModifier<F, M, T>
+        : Is<AddModifiers<ResolveValidator<[F[0], ...T]>, M>>
+
 //// Types ////
 
 export enum OfType {
@@ -104,7 +116,7 @@ export enum OfType {
     // Map = 'Map'
 }
 
-type From = [Validator] | []
+type From = [Validator] | [] 
 
 interface ToSignature<F extends From, C extends ModifierType[]> {
     <T extends ResolveValidatorsInput>(...inputs: T): IsTo<F, C, T>
@@ -115,9 +127,7 @@ type IsTo<F extends From, M extends ModifierType[], T extends ResolveValidatorsI
     F extends [Validator]
 
         // Hoist Not modifier to the base
-        ? HasModifier<F[0], ModifierType.Not> extends true
-            ? Is<AddModifiers<ResolveValidator<[RemoveModifier<F[0], ModifierType.Not>, ...T]>, [ModifierType.Not, ...M]>>
-            : Is<AddModifiers<ResolveValidator<[F[0], ...T]>, M>>
+        ? _IsToSingleValidator<F,M,T>
 
         : T extends [] 
             ? To<F, M>
@@ -228,6 +238,10 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         return this($unknown)
     }
 
+    get array(): IsTo<F,M,[Array]> {
+        return this($array)
+    }
+
     shape<T extends ResolveShapeValidatorInput>(
         shape: T
     ): IsTo<F, M, [ResolveValidator<[T]>]> {
@@ -238,6 +252,11 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         constructor: T
     ): IsTo<F, M, [InstanceOf<InstanceType<T>>]> {
         return this(new InstanceOf(constructor))
+    }
+
+    arrayOf<T extends ResolveValidatorsInput>(...inputs: T): IsTo<F, M, [ArrayOf<ResolveValidator<T>>]> {
+        const validator = resolveValidator(...inputs)
+        return this(new ArrayOf(validator))
     }
 
     get optional(): IsTo<F, [...M, ModifierType.Optional], []> {

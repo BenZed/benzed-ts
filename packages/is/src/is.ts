@@ -43,11 +43,9 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
 }
 
 type _IsDynamic<V extends Validator> = {
-    [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends Validator 
-        ? Is<V[K]>
-        : V[K] extends (...args: any) => Validator 
-            ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
-            : V[K]
+    [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
+        ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
+        : V[K]
 }
 
 export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V>
@@ -112,21 +110,6 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
             this[Mutate.target]
         )
     }
-
-    // is re-wrap
-    // override [Mutate.get](is: this, key: PropertyKey, proxy: unknown) {
-
-    //     const target = key === Mutate.target || Reflect.has(is, key)
-    //         ? is
-    //         : is.validate
-
-    //     const output = Reflect.get(target, key, proxy)
-
-    //     return target === is.validate && Validator.is(output)
-    //         ? new Is(output)
-    //         : output
-
-    // }
 
     //// Is Interface ////
 
