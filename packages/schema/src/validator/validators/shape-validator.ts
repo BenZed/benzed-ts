@@ -108,7 +108,7 @@ class ShapeValidator<T extends ShapeValidatorInput>
     [Validator.analyze](ctx: ValidationContext<unknown, ShapeValidatorOutput<T>>) {
 
         // Get Source Object
-        const source = ctx.transformed = ctx.input === nil && this.default 
+        const source = ctx.input === nil && this.default 
             ? this.default(ctx)
             : isObject(ctx.input) 
                 ? ctx.input
