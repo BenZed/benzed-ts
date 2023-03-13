@@ -291,9 +291,16 @@ it('is.array', () => {
     expect(isArray('')).toBe(false)
 })
 
-it('is.array.of.number', () => {
-    const isArrayOfNumber = is.array.of.number
+it('is.arrayOf(is.number)', () => {
+    const isArrayOfNumber = is.arrayOf(is.number)
 
     expect(isArrayOfNumber([0])).toBe(true)
     expect(isArrayOfNumber(['ace'])).toBe(false)
+})
+
+it('is.number.or.arrayOf(is.boolean)', () => {
+    const isNumberOrArrayOfBoolean = is.number.or.arrayOf(is.boolean)
+    expect(isNumberOrArrayOfBoolean(5)).toBe(true)
+    expect(isNumberOrArrayOfBoolean([true])).toBe(true)
+    expect(isNumberOrArrayOfBoolean(['ace'])).toBe(true)
 })

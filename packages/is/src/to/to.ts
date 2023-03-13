@@ -254,6 +254,11 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         return this(new InstanceOf(constructor))
     }
 
+    arrayOf<T extends ResolveValidatorsInput>(...inputs: T): IsTo<F, M, [ArrayOf<ResolveValidator<T>>]> {
+        const validator = resolveValidator(...inputs)
+        return this(new ArrayOf(validator))
+    }
+
     get optional(): IsTo<F, [...M, ModifierType.Optional], []> {
         return this._addModifier(ModifierType.Optional)
     }
