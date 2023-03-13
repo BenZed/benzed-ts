@@ -17,6 +17,7 @@ import {
     ShapeValidatorOutput,
     SchemaMainStateApply,
     ValidationErrorMessage,
+    ContractSchema,
 
 } from '@benzed/schema'
 
@@ -87,7 +88,7 @@ type _Partial<T extends ShapeValidatorInput> =
 
 //// Implementation ////
 
-class Shape<T extends ShapeValidatorInput> extends SchemaBuilder<ShapeValidator<T>, {}> {
+class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator<T>, {}> {
 
     constructor(properties: T) {
         super(
@@ -121,20 +122,10 @@ class Shape<T extends ShapeValidatorInput> extends SchemaBuilder<ShapeValidator<
         return this._applyMainValidator({ strict })
     }
 
-    named(name: string) {
-        return this._applyMainValidator({ name })
-    }
-
     default(def: ShapeValidator<T>['default']) {
         return this._applyMainValidator({ 
             default: def 
         } as SchemaMainStateApply<ShapeValidator<T>>)
-    }
-
-    message(message: ValidationErrorMessage<unknown, ShapeValidator<T>>) {
-        return this._applyMainValidator({
-            message
-        })
     }
 
     /**
@@ -195,6 +186,7 @@ class Shape<T extends ShapeValidatorInput> extends SchemaBuilder<ShapeValidator<
      * Make all properties optional.
      */
     partial(): Shape<_Partial<T>> {
+
         const propertiesPartial = { ...this.properties } as ShapeValidatorInput
         for (const key of each.keyOf(propertiesPartial)) {
             propertiesPartial[key] = ensureModifier(

@@ -6,6 +6,7 @@ import {
     HasModifier,
     Modifier,
     ModifierType,
+    PropertyKeyValidator,
     RemoveModifier,
     Validator
 } from '@benzed/schema'
@@ -75,7 +76,14 @@ import {
 
     Array,
     ArrayOf,
-    $array
+    $array,
+    Tuple,
+
+    Set,
+    $set,
+
+    Map,
+    $map
 
 } from '../schemas'
 
@@ -83,10 +91,13 @@ import {
     ResolveShapeValidatorInput,
     resolveValidator, 
     ResolveValidator,
+    ResolveValidatorInput,
     ResolveValidators,
     resolveValidators,
     ResolveValidatorsInput 
 } from './resolve-validator'
+
+import RecordOf, { $record, Record } from '../schemas/record'
 
 //// TODO ////
 
@@ -111,12 +122,7 @@ type _IsToSingleValidator<F extends [Validator], M extends ModifierType[], T ext
 
 //// Types ////
 
-export enum OfType {
-    Record = 'Record',
-    Array = 'Array',
-    // Set = 'Set',
-    // Map = 'Map'
-}
+type Key = PropertyKeyValidator<PropertyKey>
 
 type From = [Validator] | [] 
 
@@ -146,13 +152,11 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
      * @internal
      */
     readonly _from: F
-    
+
     /**
      * @internal
      */
     readonly _modifiers: M
-
-    // readonly _of: OfType[]
 
     constructor(...args: [...F, ...M]) {
         super(to)
@@ -240,10 +244,6 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         return this($unknown)
     }
 
-    get array(): IsTo<F,M,[Array]> {
-        return this($array)
-    }
-
     shape<T extends ResolveShapeValidatorInput>(
         shape: T
     ): IsTo<F, M, [ResolveValidator<[T]>]> {
@@ -266,9 +266,40 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
         return this(new InstanceOf(constructor))
     }
 
+    get array(): IsTo<F,M,[Array]> {
+        return this($array)
+    }
+
     arrayOf<T extends ResolveValidatorsInput>(...inputs: T): IsTo<F, M, [ArrayOf<ResolveValidator<T>>]> {
         const validator = resolveValidator(...inputs)
         return this(new ArrayOf(validator))
+    }
+
+    get record(): IsTo<F,M,[Record]> {
+        return this($record)
+    }
+
+    recordOf<K extends Key, V extends ResolveValidatorInput>(key: K | Is<K>, value: V): IsTo<F, M, [RecordOf<K, ResolveValidator<[V]>>]>
+    recordOf<V extends ResolveValidatorInput>(value: V): IsTo<F, M, [RecordOf<Key, ResolveValidator<[V]>>]>
+    recordOf(...args: [Key, ResolveValidatorInput] | [ResolveValidatorInput]): unknown {
+        const resolved = resolveValidators(...args)
+        return this(new (RecordOf as any)(...resolved))
+    }
+
+    get set(): IsTo<F,M,[Set]> {
+        return this($set)
+    }
+
+    // setOf<V extends ResolveValidatorInput>(input: V): IsTo<F, M, [SetOf<ResolveValidator<[V]>>]> 
+
+    get map(): IsTo<F,M,[Map]> {
+        return this($map)
+    }
+
+    // mapOf<K extends Key, V extends ResolveValidatorInput>(key: K | Is<K>, value: V): IsTo<F, M, [SetOf<ResolveValidator<[V]>>]> 
+
+    get not(): IsTo<F, [...M, ModifierType.Not], []> {
+        return this._addModifier(ModifierType.Not)
     }
 
     get optional(): IsTo<F, [...M, ModifierType.Optional], []> {
@@ -277,10 +308,6 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
 
     get readonly(): IsTo<F, [...M, ModifierType.ReadOnly], []> {
         return this._addModifier(ModifierType.ReadOnly)
-    }
-
-    get not(): IsTo<F, [...M, ModifierType.Not], []> {
-        return this._addModifier(ModifierType.Not)
     }
 
     //// Helper ////

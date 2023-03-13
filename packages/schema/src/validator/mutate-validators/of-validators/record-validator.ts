@@ -9,72 +9,66 @@ import { Validator } from '../../validator'
 
 import Of from '../of'
 
-//// Symbol ////
-
-const $$key = Symbol('key-validator')
-
 //// Helper Types ////
 
-type Key = symbol | string | number 
-
-type _RecordValidatorWrapBuilderOutput<K extends Key, V extends Validator, P> = 
+type _RecordValidatorWrapBuilderOutput<K extends PropertyKeyValidator, V extends Validator, P> = 
     P extends V
         ? RecordValidator<K, V>
         : P extends (...args: infer A) => V 
             ? (...args: A) => RecordValidator<K, V> 
             : P
 
-type _RecordValidatorProperties<K extends Key, V extends Validator> = {
+type _RecordValidatorProperties<K extends PropertyKeyValidator, V extends Validator> = {
     [Vk in keyof V]: _RecordValidatorWrapBuilderOutput<K, V, V[Vk]>
 } & {
-    readonly [$$key]?: KeyValidator<K>
+    readonly key?: K
 }
 
 //// Types ////
 
-type KeyValidator<K extends Key> = Validator<Key, K>
+type PropertyKeyValidator<K extends PropertyKey = PropertyKey> = Validator<unknown, K>
 
-type RecordValidator<K extends Key, V extends Validator> = 
+type RecordValidator<K extends PropertyKeyValidator, V extends Validator> = 
     Of<V, RecordValidatorOutput<K, V>> 
     & _RecordValidatorProperties<K, V>
 
-type RecordValidatorOutput<K extends Key, V extends Validator> =
-    Record<K, ValidateOutput<V>>
+type RecordValidatorOutput<K extends PropertyKeyValidator, V extends Validator> =
+    Record<ValidateOutput<K>, ValidateOutput<V>>
 
 interface RecordValidatorConstructor {
-    new <V extends Validator>(of: V): RecordValidator<Key, V>
-    new <K extends Key, V extends Validator>(key: KeyValidator<K>, of: V): RecordValidator<K, V>
+    new <V extends Validator>(of: V): RecordValidator<PropertyKeyValidator, V>
+    new <K extends PropertyKeyValidator, V extends Validator>(key: K, of: V): RecordValidator<K, V>
 }
 
 //// Main ////
 
 const RecordValidator = class RecordValidator<
-    K extends symbol | string | number,
+    K extends PropertyKeyValidator,
     V extends Validator,
 >
     extends Of<V, RecordValidatorOutput<K, V>> {
 
-    protected readonly [$$key]: KeyValidator<K> | nil
+    protected readonly key: K | nil
 
     //// Construct ////
     
     constructor(value: V)
-    constructor(key: KeyValidator<K>, target: V)
-    constructor(...args: [KeyValidator<K>, V] | [V]) {
+    constructor(key: K, target: V)
+    constructor(...args: [K, V] | [V]) {
 
         const [key, target] = args.length === 2 
             ? args
             : [nil, args[0]]
 
         super(target)
-        this[$$key] = key
+        this.key = key
     }
 
     //// Validate ////
 
     [Mutate.set](recordValidator: this, key: PropertyKey, value: unknown) {
 
-        const target = key === $$key || Reflect.has(recordValidator, key)
+        const target = key === 'key' || Reflect.has(recordValidator, key)
             ? recordValidator
             : recordValidator[Mutate.target]
         
@@ -84,7 +78,7 @@ const RecordValidator = class RecordValidator<
     [Copyable.copy](): this {
         const copy = super[Copyable.copy]()
 
-        assign(copy, { [$$key]: this[$$key] })
+        assign(copy, { key: this.key })
         return copy
     }
 
@@ -99,21 +93,22 @@ const RecordValidator = class RecordValidator<
             if (!vCtx.hasValidOutput())
                 return vCtx
 
-            // Validate Key
-            let tKey = key
-            if (this[$$key]) {
-
-                const kCtx = this[$$key][Validator.analyze](new ValidationContext(
-                    key as K, 
-                    { transform: ctx.transform }) 
+            // Validate PropertyKey
+            let tPropertyKey = key
+            if (this.key) {
+                const kCtx = this.key[Validator.analyze](
+                    new ValidationContext(
+                        key, 
+                        { transform: ctx.transform }
+                    )
                 )
                 if (!kCtx.hasValidOutput()) 
                     return kCtx
 
-                tKey = kCtx.getOutput()
+                tPropertyKey = kCtx.getOutput() as PropertyKey
             }
 
-            transformed[tKey] = vCtx.getOutput()
+            transformed[tPropertyKey] = vCtx.getOutput()
         }
 
         return !ctx.transform && !equals(transformed, ctx.input)
@@ -130,6 +125,6 @@ export default RecordValidator
 export {
     RecordValidator,
     RecordValidatorOutput,
-    KeyValidator
+    PropertyKeyValidator,
 }
 

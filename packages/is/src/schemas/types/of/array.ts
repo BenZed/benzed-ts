@@ -20,11 +20,7 @@ interface ArrayConstructor {
 
 //// Schema ////
 
-export const ArrayOf = class Array extends ArrayValidator<Validator> {
-
-    //
-
-} as ArrayConstructor
+export const ArrayOf = class Array extends ArrayValidator<Validator> { } as ArrayConstructor
 
 export type Array = ArrayOf<Unknown>
 

@@ -1,14 +1,15 @@
 
 import {
+    ContractSchema,
     SchemaBuilder,
     TupleValidator,
     TupleValidatorInput,
-    TupleValidatorOutput
+    TupleValidatorOutput,
 } from '@benzed/schema'
 
 //// Intro ////
 
-class Tuple<T extends TupleValidatorInput> extends SchemaBuilder<TupleValidator<T>, {}> {
+class Tuple<T extends TupleValidatorInput> extends ContractSchema<TupleValidator<T>, {}> {
 
     constructor(...positions: T) {
         super(
