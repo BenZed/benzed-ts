@@ -23,7 +23,10 @@ The relationship between an object's contract and its position in the prototype 
 
 ```ts
 class Vector {
-    constructor(readonly x: number, readonly y: number) {}
+    constructor(
+        readonly x: number,
+        readonly y: number
+    ) {}
 }
 
 const vector = { x: 0, y: 0 }
@@ -98,9 +101,10 @@ I'm a big fan of immutable data structures, as anyone who has spent any time in 
 Mine comes in the form of a couple of traits: `Copyable` and `Comparable`. Rust afficinados in the audience might notice that this terminology is starting to look pretty familiar. Yep, you're right, I completely and shamelessly ripped Rust off:
 
 ```ts
-import { copy, Copyable, Comparable } from '@benzed/immutable' 
+import { copy, Copyable, Comparable } from '@benzed/immutable'
+import { isShape, isNumber } from '@benzed/util'
 
-// 
+//
 class Vector extends Trait.use(Copyable, Comparable) {
 
     static readonly is: (input: unknown) => input is Vector = isShape({
@@ -115,9 +119,10 @@ class Vector extends Trait.use(Copyable, Comparable) {
     }
 
     [Comparable.equals](other: unknown): other is this {
-        return Vector.is(other) && other.x === this.x && other.y === this.y
+        return Vector.is(other)
+            && other.x === this.x
+            && other.y === this.y
     }
-
 }
 ```
 
