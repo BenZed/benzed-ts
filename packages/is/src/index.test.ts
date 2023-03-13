@@ -333,3 +333,23 @@ it('is.recordOf(is.number)', () => {
         })
     ).toBe(true)
 })
+
+describe('is.shape methods', () => {
+
+    it('is.shape.pick', () => {
+
+        const isVector = is.shape({
+            x: is.number,
+            y: is.number
+        })
+
+        const isX = isVector.pick('x')
+        expectTypeOf(isX).toMatchTypeOf<Is<Shape<{
+            x: Number
+        }>>>()
+
+        expect(isX({ x: 0 })).toBe(true)
+        expect(isX({ y: 10 })).toBe(false)
+    })
+
+})

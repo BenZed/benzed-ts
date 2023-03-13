@@ -16,7 +16,6 @@ import {
     ShapeValidatorInput,
     ShapeValidatorOutput,
     SchemaMainStateApply,
-    ValidationErrorMessage,
     ContractSchema,
 
 } from '@benzed/schema'
@@ -38,34 +37,43 @@ import {
 
 //// Helper Types ////
 
-type _PropertyMethod<T extends ShapeValidatorInput, K extends keyof T> = 
-    (prop: T[K]) => Validator
+type _EnsurePropertyModifier<
+    T extends ShapeValidatorInput,
+    M extends ModifierType
+> = Infer<{
+        [K in keyof T]: EnsureModifier<T[K], M>
+    }, ShapeValidatorInput>
+    
+////  ////
 
-type _Property<
+type PropertyMethod<T extends ShapeValidatorInput, K extends keyof T> = 
+    (prop: T[K]) => Validator
+    
+type Property<
     T extends ShapeValidatorInput, 
     K extends keyof T, 
-    U extends _PropertyMethod<T,K>
+    U extends PropertyMethod<T,K>
 > = Infer<{
         [Tk in keyof T]: Tk extends K 
             ? ReturnType<U> 
             : T[K]
     }, ShapeValidatorInput>
 
-type _Pick<
+type Pick<
     T extends ShapeValidatorInput,
     K extends (keyof T)[]
 > = Infer<{
         [Tk in keyof T as Tk extends K[number] ? Tk : never]: T[Tk]
     }, ShapeValidatorInput>
 
-type _Omit<
+type Omit<
     T extends ShapeValidatorInput,
     K extends (keyof T)[]
 > = Infer<{
         [Tk in keyof T as Tk extends K[number] ? never : Tk]: T[Tk]
     }, ShapeValidatorInput>
 
-type _Merge<
+type Merge<
     A extends ShapeValidatorInput,
     B extends ShapeValidatorInput,
 > = Infer<{
@@ -76,14 +84,7 @@ type _Merge<
                 : never
     }, ShapeValidatorInput>
 
-type _EnsurePropertyModifier<
-    T extends ShapeValidatorInput,
-    M extends ModifierType
-> = Infer<{
-        [K in keyof T]: EnsureModifier<T[K], M>
-    }, ShapeValidatorInput>
-
-type _Partial<T extends ShapeValidatorInput> = 
+type Partial<T extends ShapeValidatorInput> = 
     _EnsurePropertyModifier<T, ModifierType.Optional>
 
 //// Implementation ////
@@ -131,10 +132,10 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
     /**
      * Update the property at the given key
      */
-    property<K extends keyof T, U extends _PropertyMethod<T,K>>(
+    property<K extends keyof T, U extends PropertyMethod<T,K>>(
         key: K,
         update: U
-    ): Shape<_Property<T, K, U>> {
+    ): Shape<Property<T, K, U>> {
 
         const newProp = update(this.properties[key])
         const newProps = { 
@@ -142,7 +143,7 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
             [key]: newProp 
         }
 
-        return this._applyShape(newProps) as unknown as Shape<_Property<T, K, U>>
+        return this._applyShape(newProps) as unknown as Shape<Property<T, K, U>>
     }
 
     /**
@@ -150,9 +151,9 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
      */
     pick<K extends (keyof T)[]>(
         ...keys: K
-    ): Shape<_Pick<T, K>> {
+    ): Shape<Pick<T, K>> {
         const newProps = pick(this.properties, ...keys)
-        return this._applyShape(newProps) as unknown as Shape<_Pick<T, K>>
+        return this._applyShape(newProps) as unknown as Shape<Pick<T, K>>
     }
 
     /**
@@ -160,9 +161,9 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
      */
     omit<K extends (keyof T)[]>(
         ...keys: K
-    ): Shape<_Omit<T, K>> {
+    ): Shape<Omit<T, K>> {
         const omittedProps = omit(this.properties, ...keys)
-        return this._applyShape(omittedProps) as unknown as Shape<_Omit<T,K>>
+        return this._applyShape(omittedProps) as unknown as Shape<Omit<T,K>>
     }
 
     /**
@@ -170,7 +171,7 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
      */
     merge<Tx extends ShapeValidatorInput>(
         shapeOrProperties: Tx | Shape<Tx>
-    ): Shape<_Merge<T, Tx>> {
+    ): Shape<Merge<T, Tx>> {
 
         const properties = shapeOrProperties instanceof Shape 
             ? shapeOrProperties.properties
@@ -179,13 +180,13 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
         return this._applyShape({
             ...this.properties,
             ...properties
-        }) as unknown as Shape<_Merge<T,Tx>>
+        }) as unknown as Shape<Merge<T,Tx>>
     }
 
     /**
      * Make all properties optional.
      */
-    partial(): Shape<_Partial<T>> {
+    partial(): Shape<Partial<T>> {
 
         const propertiesPartial = { ...this.properties } as ShapeValidatorInput
         for (const key of each.keyOf(propertiesPartial)) {
@@ -194,7 +195,7 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
                 ModifierType.Optional
             )
         }
-        return this._applyShape(propertiesPartial) as unknown as Shape<_Partial<T>>
+        return this._applyShape(propertiesPartial) as unknown as Shape<Partial<T>>
     }
 
     //// Helper ////
@@ -218,6 +219,12 @@ export default Shape
 
 export {
     Shape,
+    Pick as ShapePick,
+    Omit as ShapeOmit,
+    Merge as ShapeMerge,
+    Partial as ShapePartial,
+    PropertyMethod as ShapePropertyMethod,
+    Property as ShapeProperty,
     ShapeValidatorInput as ShapeInput,
     ShapeValidatorOutput as ShapeOutput
 }

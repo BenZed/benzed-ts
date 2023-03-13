@@ -13,6 +13,16 @@ import { Callable, Mutate, Trait } from '@benzed/traits'
 import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
 
 import { To } from './to'
+import { 
+    Shape, 
+    ShapeInput, 
+    ShapeMerge, 
+    ShapePick, 
+    ShapeOmit,
+    ShapePartial, 
+    ShapeProperty,
+    ShapePropertyMethod 
+} from './schemas'
 
 //// EsLint ////
 
@@ -36,21 +46,39 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
 
     get or(): To<[V], []>
 
+    // get and(): To<[V], [ToType.And]>
+    // get of(): To<[V], [ToType.Of]>
+
     /**
      * Type-only property
      */
     get data(): ValidateOutput<V>
 }
 
+interface _IsShape<S extends ShapeInput> {
+
+    partial(): Is<Shape<ShapePartial<S>>>
+    pick<K extends (keyof S)[]>(...keys: K): Is<Shape<ShapePick<S,K>>>
+    omit<K extends (keyof S)[]>(...keys: K): Is<Shape<ShapeOmit<S,K>>>
+    merge<T extends ShapeInput>(shape: T | Shape<T>): Is<Shape<ShapeMerge<S,T>>>
+    property<K extends keyof S, U extends ShapePropertyMethod<S, K>>(
+        key: K,
+        update: U
+    ): Is<Shape<ShapeProperty<S, K, U>>>
+
+}
+
 type _IsDynamic<V extends Validator> = {
-    [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
+    [K in Exclude<keyof V, keyof _IsShape<ShapeInput> | keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
         ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
         : V[K]
 }
 
-export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V>
+export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V> & (V extends Shape<infer S> 
+    ? _IsShape<S>
+    : {})
 
-export type ValidatorOf<T> = T extends Is<infer V>    
+export type ValidatorOf<T> = T extends Is<infer V>
     ? V 
     : T extends Validator ? T : never
 
