@@ -45,9 +45,8 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
 
     get or(): To<[V], []>
-
-    // get and(): To<[V], [ToType.And]>
     // get of(): To<[V], [ToType.Of]>
+    // get and(): To<[V], [ToType.And]>
 
     /**
      * Type-only property
