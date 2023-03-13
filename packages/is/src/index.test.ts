@@ -302,9 +302,6 @@ it('is.number.or.arrayOf(is.boolean)', () => {
     const isNumberOrArrayOfBoolean = is.number.or.arrayOf(is.boolean)
     expect(isNumberOrArrayOfBoolean(5)).toBe(true)
     expect(isNumberOrArrayOfBoolean([true])).toBe(true)
-<<<<<<< Updated upstream
-    expect(isNumberOrArrayOfBoolean(['ace'])).toBe(true)
-=======
     expect(isNumberOrArrayOfBoolean(['ace'])).toBe(false)
 })
 
@@ -359,5 +356,4 @@ describe('is.shape methods', () => {
 
 it('is.string.assert', () => {
     expect(() => is.string.assert(0)).toThrow('must be String')
->>>>>>> Stashed changes
 })

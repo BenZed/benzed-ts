@@ -1,6 +1,6 @@
 
-import { Copyable } from '@benzed/immutable'
-import { each, GenericObject, Infer, Intersect, pick } from '@benzed/util'
+import { copy } from '@benzed/immutable'
+import { each, Infer, Intersect, pick } from '@benzed/util'
 
 import { ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
@@ -40,14 +40,14 @@ type ValidateArrayOutput<T extends Validator[]> = T extends [infer T1, ...infer 
 
 type AndOutput<V extends Validator[]> = Intersect<ValidateArrayOutput<V>>
 
-type And<V extends Validator<any, object>[]> = 
+type And<V extends Validator[]> = 
     Validator<object, Infer<AndOutput<V>, object>> 
     & _AndProperties<V>
 
 //// Types ////
 
 interface AndConstructor {
-    new <V extends Validator<any, object>[]>(...validators: V): And<V>
+    new <V extends Validator[]>(...validators: V): And<V>
 }
 
 //// Main ////
@@ -63,31 +63,23 @@ const And = class IntersectionValidator extends MutateLastValidator<Validator[],
 
         const { validators } = this
 
-        const transformed = Copyable.createFromProto(ctx.input) as GenericObject
+        let transformed = ctx.transformed = copy(ctx.input)
 
         for (const index of each.indexOf(validators)) {
             const validator = validators[index]
 
-            // I don't like this, but, since the intersection validator
-            // can only be used with object types, it seems pretty safe.
-            const input = validator instanceof ShapeValidator 
-                ? pick(ctx.input, ...each.keyOf(validator.properties))
-                : ctx.input
-
             // validate object with narrowed input
             const vCtx = validator[Validator.analyze](
-                new ValidationContext(input, {
-                    transform: ctx.transform
+                new ValidationContext(transformed, {
+                    transform: ctx.transform,
+                    key: ctx.key
                 })
             )
 
             if (!vCtx.hasValidOutput())
                 return vCtx as ValidationContext<never, unknown>
 
-            // apply all properties to transformed if validation
-            // succeeded
-            for (const [key, value] of each.entryOf(vCtx.getOutput()))
-                transformed[key] = value
+            transformed = vCtx.getOutput() as never
         }
 
         ctx.transformed = transformed

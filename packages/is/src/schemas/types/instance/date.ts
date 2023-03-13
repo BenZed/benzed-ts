@@ -22,6 +22,7 @@ class DateValidator extends InstanceValidator<DateConstructor> {
     override cast(input: unknown): unknown {
         if (isNumber(input) || isString(input))
             return new globalThis.Date(input)
+
         return input
     }
 
