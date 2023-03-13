@@ -3,7 +3,7 @@ import type { Validator } from '@benzed/schema'
 import { Is } from './is'
 import { To } from './to'
 
-//// Main Export //// 
+//// Main Export ////
 
 export default is
 

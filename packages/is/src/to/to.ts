@@ -75,8 +75,7 @@ import {
 
     Array,
     ArrayOf,
-    $array,
-    Tuple
+    $array
 
 } from '../schemas'
 

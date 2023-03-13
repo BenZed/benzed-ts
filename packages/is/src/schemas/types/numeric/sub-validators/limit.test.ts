@@ -10,7 +10,7 @@ const { applyState: apply } = Validator
 
 describe('number', () => {
 
-    const $minNum = new Limit<number>('min', 0)
+    const $minNum = new Limit<number>('min')
 
     testValidator(
         apply($minNum, { value: 5 }),
@@ -24,7 +24,7 @@ describe('number', () => {
         { asserts: 4, error: 'must be above or equal 5' },
     )
 
-    const $maxNum = new Limit<number>('max', 0)
+    const $maxNum = new Limit<number>('max')
 
     testValidator(
         apply($maxNum, { value: 5 }),
@@ -57,7 +57,7 @@ describe('bigint', () => {
         { asserts: 4n, error: 'must be above or equal 5' },
     )
 
-    const $maxBigInt = new Limit<bigint>('max', 0n)
+    const $maxBigInt = new Limit<bigint>('max')
 
     testValidator(
         apply($maxBigInt, { value: 5n }),
@@ -76,10 +76,10 @@ describe('bigint', () => {
 
 describe('arrays', () => {
 
-    const $minLength = new Limit<{ length: number }>('min', { length: 5 })
+    const $minLength = new Limit<{ length: number }>('min')
 
     testValidator(
-        $minLength,
+        apply($minLength, { value: { length: 5 } }),
         { asserts: [1,2,3,4,5,6] },
         { asserts: [1,2,3,4,5], error: 'length must be above 5' },
     )
