@@ -1,10 +1,12 @@
 import is from '@benzed/is'
+
 import { DEFAULT_SERVER_PORT } from './constants'
 
 //// Exports ////
 
 export const isPort = is
     .number
-    .named('Port')
+    .min(1025)
+    .max(65536)
     .default(() => DEFAULT_SERVER_PORT)
-    .range(1025, '...', 65536)
+    .named('Port')

@@ -5,9 +5,9 @@ import { To } from './to'
 
 //// Main Export ////
 
-export default is
-
 export const is = new To<[],[]>()
+
+export default is
 
 //// Additional Exports ////
 
