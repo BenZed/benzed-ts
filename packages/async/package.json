@@ -1,7 +1,7 @@
 {
     "name": "@benzed/async",
     "version": "3.4.1",
-    "main": "./src",
+    "main": "./lib",
     "description": "Asyncronous and Promise-related tools, classes and helpers",
     "scripts": {
         "test": "jest --run-in-band --all",

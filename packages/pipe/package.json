@@ -1,7 +1,7 @@
 {
     "name": "@benzed/pipe",
     "description": "Data structure for chaining methods together.",
-    "main": "./src",
+    "main": "./lib",
     "version": "1.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",

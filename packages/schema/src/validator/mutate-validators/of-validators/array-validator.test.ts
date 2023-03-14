@@ -12,7 +12,7 @@ import { Validator } from '../../validator'
 import ValidationContext from '../../../validation-context'
 
 //// EsLint ////
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/ban-types
 */
 
@@ -23,13 +23,13 @@ class NumberValidator extends TypeValidator<number> {
         return isNumber(value) && (!this.positive || value >= 0) 
     }
 
-    cast(input: unknown): unknown {
+    override cast(input: unknown): unknown {
         return isString(input) ? parseFloat(input) : input
     }
 
     readonly positive: boolean = false
 
-    message(input: unknown, ctx: ValidationContext<unknown, number>): string {
+    override message(input: unknown, ctx: ValidationContext<unknown, number>): string {
         void input
         void ctx
         return [

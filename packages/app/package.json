@@ -1,7 +1,7 @@
 {
     "name": "@benzed/app",
     "description": "ECS for building client and server applications",
-    "main": "./src",
+    "main": "./lib",
     "private": true,
     "version": "1.0.0",
     "scripts": {

@@ -17,7 +17,7 @@ const $number = new class Number extends TypeValidator<number> {
 
 const $positive = new class Positive extends ContractValidator<number, number> {
 
-    isValid(input: number): boolean {
+    override isValid(input: number): boolean {
         return input >= 0
     }
 

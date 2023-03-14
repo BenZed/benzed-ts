@@ -5,7 +5,9 @@ import { testValidator } from '../../util.test'
 import { isBoolean, isString } from '@benzed/util'
 import { ValidateOutput } from '../../validate'
 
-import { expectTypeOf } from 'expect-type' 
+import { expectTypeOf } from 'expect-type'
+
+import { it } from '@jest/globals'
 
 //// Setup ////
 

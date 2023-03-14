@@ -21,9 +21,11 @@ import { ValidationErrorMessage } from '../../validation-error'
 import { Validator } from '../validator'
 import ValidationContext from '../../validation-context'
 
+import { describe } from '@jest/globals'
+
 //// EsLint ////
 
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/ban-types,
     @typescript-eslint/no-explicit-any
 */
@@ -32,13 +34,13 @@ import ValidationContext from '../../validation-context'
 
 class NumberValidator extends TypeValidator<number> {
 
-    isValid(value: unknown): value is number {
+    override isValid(value: unknown): value is number {
         return isNumber(value) && (!this.positive || value >= 0)
     }
 
     readonly positive: boolean = false  
 
-    message(input: number, ctx: ValidationContext<number>) {
+    override message(input: number, ctx: ValidationContext<number>) {
         void input
         void ctx
         return [
@@ -78,7 +80,7 @@ abstract class LimitValidator<O extends '>' | '<'> extends SubContractValidator<
         super()
     } 
 
-    isValid(value: number): boolean { 
+    override isValid(value: number): boolean { 
         return this.operator === '>'
             ? this.inclusive 
                 ? this.value >= value 
@@ -87,7 +89,7 @@ abstract class LimitValidator<O extends '>' | '<'> extends SubContractValidator<
                 ? this.value <= value 
                 : this.value < value
     }
-    message(input: number, ctx: ValidationContext<number>) {
+    override message(input: number, ctx: ValidationContext<number>) {
         void input
         void ctx
 
@@ -138,14 +140,14 @@ class MinValidator extends LimitValidator<'<'> {
     get operator(): '<' {
         return '<'
     }
-    readonly enabled: boolean = false
+    override readonly enabled: boolean = false
 }
 
 class MaxValidator extends LimitValidator<'>'> {
     get operator(): '>' {
         return '>'
     }
-    readonly enabled: boolean = false 
+    override readonly enabled: boolean = false 
 }
 
 //// Schema ////

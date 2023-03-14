@@ -72,9 +72,9 @@ class TransformValidator<T extends Validators>
         ) as unknown as TransformToAnother<T, Tx>
     }
 
-    // get [Validator.state](): Pick<this, 'validators'> {      
-    //     return pick(this, 'validators')
-    // }
+    get [Validator.state](): Pick<this, 'validators'> {      
+        return pick(this, 'validators')
+    }
 
 }
 

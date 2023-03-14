@@ -1,5 +1,5 @@
 import { isString } from '@benzed/util'
-import { it } from '@jest/globals'
+import { it, describe } from '@jest/globals'
 
 import { TransformValidator } from './transform-validator'
 import { ContractValidator } from '../contract-validator'
@@ -18,7 +18,7 @@ class String extends TypeValidator<string> {
 }
 
 class Id extends ContractValidator<string, `#-${number}`> {
-    isValid(value: string): boolean {
+    override isValid(value: string): boolean {
         return /#-\d+/.test(value)
     }
 }

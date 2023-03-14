@@ -1,7 +1,7 @@
 {
     "name": "@benzed/react",
     "description": "React hooks and components",
-    "main": "./src",
+    "main": "./lib",
     "version": "1.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",

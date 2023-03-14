@@ -71,6 +71,8 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
                 break
 
             const sub = this[$$sub][name]
+            if (!Validator.is(sub))
+                continue
 
             // ignore if validator is disablable
             const isDisabled = sub.enabled === false

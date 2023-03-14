@@ -7,6 +7,8 @@ import { TypeValidator, ContractValidator } from '../../validators'
 
 import Schema from '../../schema/schema'
 
+import { describe } from '@jest/globals'
+
 //// EsLint //// 
 
 /* eslint-disable 
@@ -18,24 +20,24 @@ import Schema from '../../schema/schema'
 
 type Key = string | symbol | number
 
-class KeyValidator<K extends Key> extends ContractValidator<Key,K> {
+class KeyValidator<K extends Key> extends ContractValidator<unknown, K> {
 
 }
 
 class SetStringKey extends KeyValidator<`set${string}`> {
 
-    isValid(value: Key): boolean {
+    override isValid(value: Key): boolean {
         return isString(value) && value.startsWith('set')
     }
 
-    message() {
+    override message() {
         return 'key must start with "set"'
     }
 }
 
 class Number extends TypeValidator<number> {
 
-    isValid(value: unknown): value is number {
+    override isValid(value: unknown): value is number {
         return isNumber(value)
     }
 
@@ -58,7 +60,7 @@ class NumberSchema extends Schema<Number, {}> {
 
 // const $keyRecord = new RecordValidator(new SetStringKey, new Number)
 describe(RecordValidator.name + ' validation tests', () => {
-
+ 
     const $record = new RecordValidator(new Number)
 
     testValidator<unknown, Record<string, number>>(
