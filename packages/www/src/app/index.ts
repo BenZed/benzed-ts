@@ -1,9 +1,9 @@
 import { App } from '@benzed/app'
 
-//// App ////
+//// App //// 
 
 class BenZedWWW extends App {
-
+ 
 }
 
 //// Execute ////
