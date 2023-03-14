@@ -1,10 +1,15 @@
 
-import { test } from '@jest/globals'
+import { test, it, expect, describe } from '@jest/globals'
 import { Falsy, Func, toVoid } from '@benzed/util'
 
 import { expectTypeOf } from 'expect-type'
 import { Method } from './method'
 import { Callable } from './callable'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Callable Trait ////
 
@@ -153,7 +158,7 @@ it('multiple signatures', () => {
     abstract class Converter<T extends number> extends Method<Convert<T>> {
 
         constructor() {
-            super(function (to?: string) {
+            super(function (this: any, to?: string) {
                 
                 if (to === 'string')
                     return `${this.value}`
@@ -199,7 +204,7 @@ describe('this context', () => {
             zero = 0 as const
 
             constructor() {
-                super(function (k: PropertyKey) {
+                super(function (this: any, k: PropertyKey) {
                     return this[k]
                 })
             }
@@ -222,7 +227,7 @@ describe('this context', () => {
 
         class Chain extends Method<ReturnsSelf> { 
             constructor() {
-                super(function () {
+                super(function (this: any) {
                     return this
                 })
             }
@@ -248,7 +253,7 @@ describe('this context', () => {
         class Shout extends Method<() => string> {
 
             constructor(protected readonly _words: string) {
-                super(function () {
+                super(function (this: any) {
                     const ctx = (this[Callable.context] ?? this) as { _words: string }
                     return `${ctx?._words}!`
                 })
@@ -285,7 +290,7 @@ it('retreive context', () => {
     class Voider extends Method<() => void> {
 
         constructor() {
-            super(function () {
+            super(function (this: any) {
                 return this[Callable.context]
             })
         }
