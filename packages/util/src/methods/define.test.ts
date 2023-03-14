@@ -1,6 +1,7 @@
 import { define } from './define'
 
 import { test, it, expect, describe } from '@jest/globals'
+import { GenericObject } from '../types'
 
 //// Tests ////
 
@@ -37,7 +38,7 @@ describe(define.name, () => {
   
     test('Define sets a symbol property correctly', () => {
         const sym = Symbol('name')
-        const obj = {}
+        const obj = {} as GenericObject
         define(obj, sym, {
             value: 'some value',
             enumerable: true

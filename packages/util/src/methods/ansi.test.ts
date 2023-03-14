@@ -1,3 +1,4 @@
+import { it, expect, test, describe } from '@jest/globals'
 
 describe('ansi string decorator', () => {
 

@@ -31,7 +31,7 @@ type AsServer<A extends App> =
     { [K in _AppWithKeys<A>]: A[K] } & 
     { readonly server: Server }
 
-//// Main ////
+//// Main //// 
 
 /**
  * The App class is a type of Module that serves as the root of the module tree. It is responsible

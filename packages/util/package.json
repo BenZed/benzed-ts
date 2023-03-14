@@ -1,7 +1,7 @@
 {
     "name": "@benzed/util",
     "description": "Language and meta programminging utilities",
-    "main": "./src",
+    "main": "./lib",
     "version": "3.9.1",
     "scripts": {
         "test": "jest --run-in-band --all",

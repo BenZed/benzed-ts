@@ -1,5 +1,6 @@
 import { eachIndex as indexesOf, IndexesOf } from './index-generator'
 import { expectTypeOf } from 'expect-type'
+import { it, expect, test, describe } from '@jest/globals'
 
 describe('indexesOf', () => {
 

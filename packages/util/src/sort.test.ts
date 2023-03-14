@@ -1,4 +1,5 @@
 import by, { toComparable } from './sort'
+import { expect, test } from '@jest/globals'
 
 test('sorts numbers by value', () => {
     const input = [4, 2, 7, 1, 6]
