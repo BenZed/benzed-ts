@@ -291,9 +291,69 @@ it('is.array', () => {
     expect(isArray('')).toBe(false)
 })
 
-it('is.array.of.number', () => {
-    const isArrayOfNumber = is.array.of.number
+it('is.arrayOf(is.number)', () => {
+    const isArrayOfNumber = is.arrayOf(is.number)
 
     expect(isArrayOfNumber([0])).toBe(true)
     expect(isArrayOfNumber(['ace'])).toBe(false)
+})
+
+it('is.number.or.arrayOf(is.boolean)', () => {
+    const isNumberOrArrayOfBoolean = is.number.or.arrayOf(is.boolean)
+    expect(isNumberOrArrayOfBoolean(5)).toBe(true)
+    expect(isNumberOrArrayOfBoolean([true])).toBe(true)
+    expect(isNumberOrArrayOfBoolean(['ace'])).toBe(false)
+})
+
+it('is.tuple(is.number, is.number)', () => {
+
+    const isRange = is.tuple(is.number, is.number).named('Range')
+
+    expect(isRange([0,0])).toBe(true)
+    expect(isRange([0])).toBe(false)
+    expect(isRange(['ace', 'base'])).toBe(false)
+})
+
+it('is.recordOf(is.string, is.number)', () => {
+
+    const isPhoneBook = is.recordOf(is.string, is.number)
+
+    expect(isPhoneBook({ 'Jerry': 4506781238 })).toBe(true)
+})
+
+it('is.recordOf(is.number)', () => {
+
+    const isNumericTable = is.recordOf(is.number)
+    const $$two = Symbol('two')
+
+    expect(
+        isNumericTable({ 
+            'one': 1, 
+            [$$two]: 2 
+        })
+    ).toBe(true)
+})
+
+describe('is.shape methods', () => {
+
+    it('is.shape.pick', () => {
+
+        const isVector = is.shape({
+            x: is.number,
+            y: is.number
+        })
+
+        const isX = isVector.pick('x')
+        expectTypeOf(isX).toMatchTypeOf<Is<Shape<{
+            x: Number
+        }>>>()
+
+        expect(isX({ x: 0 })).toBe(true)
+        expect(isX({ y: 10 })).toBe(false)
+    })
+
+})
+
+it('is.string.assert', () => {
+    expect(() => is.string.assert(0)).toThrow('must be String')
 })

@@ -1,5 +1,5 @@
 
-import { each, pick } from '@benzed/util'
+import { each, isArray, nil, pick } from '@benzed/util'
 import { ValidateOutput } from '../../validate'
 
 import ValidationContext from '../../validation-context'
@@ -28,10 +28,37 @@ class TupleValidator<T extends TupleValidatorInput> extends Validator<unknown[],
         this.positions = positions
     }
 
+    override get name(): string {
+        return 'Tuple'
+    }
+
+    message(input: unknown, ctx: ValidationContext<unknown, TupleValidatorOutput<T>>): string {
+        void input
+        void ctx
+        return `must be ${this.name}`
+    }
+
+    default?(ctx: ValidationContext<unknown, TupleValidatorOutput<T>>): TupleValidatorOutput<T>
+
     [Validator.analyze](ctx: ValidationContext<unknown[], TupleValidatorOutput<T>>) {
 
-        const output: unknown[] = ctx.transformed = []
+        // Get Source Array
+        const source = ctx.input === nil && this.default 
+            ? this.default(ctx)
+            : isArray(ctx.input) 
+                ? ctx.input
+                : nil
 
+        if (!isArray(source)) {
+            return ctx.setError(
+                this.message(ctx.input, ctx)
+            )
+        }
+
+        // Get Transformation
+        const transformed: unknown[] = ctx.transformed = []
+
+        // Validation Positions
         for (const index of each.indexOf(this.positions)) {
 
             let positionCtx = ctx.pushSubContext(ctx.input[index], index)
@@ -39,17 +66,18 @@ class TupleValidator<T extends TupleValidatorInput> extends Validator<unknown[],
 
             positionCtx = position[Validator.analyze](positionCtx)
             if (positionCtx.hasValidOutput())
-                output[index] = positionCtx.getOutput()
+                transformed[index] = positionCtx.getOutput()
         }
 
-        const invalidElementCount = !ctx.transform && ctx.input.length !== this.positions.length
-        return invalidElementCount
+        // Valiate Position Count
+        const invalidPositionCount = !ctx.transform && ctx.input.length !== this.positions.length
+        return invalidPositionCount
             ? ctx.setError(`must have exactly ${this.positions.length} elements`)
-            : ctx.setOutput(output as TupleValidatorOutput<T>)
+            : ctx.setOutput(transformed as TupleValidatorOutput<T>)
     }
 
-    get [Validator.state](): Pick<this, 'positions'> {
-        return pick(this, 'positions')
+    get [Validator.state](): Pick<this, 'positions' | 'name' | 'message'> {
+        return pick(this, 'positions', 'name', 'message')
     }
 
 }

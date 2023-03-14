@@ -8,16 +8,15 @@ import body from 'koa-body'
 import cors from '@koa/cors'
 
 import { Module } from '../../module'
-import { isPort } from '../../util/schemas'
 import { Connection } from '../connection'
-import { HttpMethod } from '../../util'
+import { HttpMethod, isPort } from '../../util'
 
 //// Types ////
 
 interface ServerSettings {
 
     /**
-     * Port to open.
+     * Port to open
      */
     readonly port: number
 
@@ -32,11 +31,9 @@ const isServerSettings: IsType<ServerSettings> = is.shape({
 //// Main ////
 
 /**
- * This client module provides functionality for:
- * - Connecting to the server
- * - Sending commands to the server, retreiving their results
- * - Subscribing to state updates for modules on the server to their 
- *   local counterparts client side
+ * This server module provides functionality for:
+ * - Accepting client connections
+ * - Routing client commands
  */
 class Server extends Connection implements ServerSettings {
 
@@ -102,8 +99,10 @@ class Server extends Connection implements ServerSettings {
             ? [ ...each.valueOf(HttpMethod) ]
             : each.valueOf(HttpMethod).toArray()
 
-        // Standard Middleware
+        // Cors Middleware
         koa.use(cors({ allowMethods }))
+
+        // BodyParser Middleware
         koa.use(body())
 
         // Route Everything to command handlers

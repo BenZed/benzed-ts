@@ -13,6 +13,16 @@ import { Callable, Mutate, Trait } from '@benzed/traits'
 import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
 
 import { To } from './to'
+import { 
+    Shape, 
+    ShapeInput, 
+    ShapeMerge, 
+    ShapePick, 
+    ShapeOmit,
+    ShapePartial, 
+    ShapeProperty,
+    ShapePropertyMethod 
+} from './schemas'
 
 //// EsLint ////
 
@@ -35,26 +45,42 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
 
     get or(): To<[V], []>
+    // get of(): To<[V], [ToType.Of]>
+    // get and(): To<[V], [ToType.And]>
 
     /**
      * Type-only property
      */
     get data(): ValidateOutput<V>
+
+    assert(input: unknown): asserts input is ValidateOutput<V>
+
+}
+
+interface _IsShape<S extends ShapeInput> {
+
+    partial(): Is<Shape<ShapePartial<S>>>
+    pick<K extends (keyof S)[]>(...keys: K): Is<Shape<ShapePick<S,K>>>
+    omit<K extends (keyof S)[]>(...keys: K): Is<Shape<ShapeOmit<S,K>>>
+    merge<T extends ShapeInput>(shape: T | Shape<T>): Is<Shape<ShapeMerge<S,T>>>
+    property<K extends keyof S, U extends ShapePropertyMethod<S, K>>(
+        key: K,
+        update: U
+    ): Is<Shape<ShapeProperty<S, K, U>>>
+
 }
 
 type _IsDynamic<V extends Validator> = {
-    [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends Validator 
-        ? K extends 'of' 
-            ? To<[V], []>
-            : Is<V[K]>
-        : V[K] extends (...args: any) => Validator 
-            ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
-            : V[K]
+    [K in Exclude<keyof V, keyof _IsShape<ShapeInput> | keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
+        ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
+        : V[K]
 }
 
-export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V>
+export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V> & (V extends Shape<infer S> 
+    ? _IsShape<S>
+    : {})
 
-export type ValidatorOf<T> = T extends Is<infer V>    
+export type ValidatorOf<T> = T extends Is<infer V>
     ? V 
     : T extends Validator ? T : never
 
@@ -115,21 +141,6 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
         )
     }
 
-    // is re-wrap
-    // override [Mutate.get](is: this, key: PropertyKey, proxy: unknown) {
-
-    //     const target = key === Mutate.target || Reflect.has(is, key)
-    //         ? is
-    //         : is.validate
-
-    //     const output = Reflect.get(target, key, proxy)
-
-    //     return target === is.validate && Validator.is(output)
-    //         ? new Is(output)
-    //         : output
-
-    // }
-
     //// Is Interface ////
 
     get validate(): Validator {
@@ -176,8 +187,8 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
         return new To(this.validate)
     }
 
-    get of(): To<[Validator], []> {
-        return new To(this.validate)
+    assert(input: unknown) {
+        void this.validate(input, { transform: false })
     }
 
 } as unknown as IsConstructor
