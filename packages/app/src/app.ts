@@ -93,5 +93,7 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
 export default App
 
 export {
-    App
+    App,
+    AsClient,
+    AsServer
 }

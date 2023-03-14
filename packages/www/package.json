@@ -7,7 +7,9 @@
         "test": "jest --run-in-band --all",
         "test:dev": "jest --run-in-band --only-changed --verbose",
         "lint": "eslint src/**/*.ts --fix",
-        "build": "npm run lint && npm run tsc",
+        "build": "npm run lint && npm run tsc && npm run webpack",
+        "webpack": "shx rm -rf public/ && webpack",
+        "webpack:dev": "webpack serve",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
@@ -19,5 +21,13 @@
     "bugs": {
         "url": "https://github.com/BenZed/benzed-ts/issues"
     },
-    "homepage": "https://github.com/BenZed/benzed-ts#readme"
+    "homepage": "https://github.com/BenZed/benzed-ts#readme",
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.9.0"
+    },
+    "dependencies": {
+        "@benzed/app": "^1.0.0"
+    }
 }
