@@ -23,12 +23,10 @@
         "url": "https://github.com/BenZed/benzed-ts/issues"
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
-    "peerDependencies": {
+    "dependencies": {
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-router-dom": "^6.9.0"
-    },
-    "dependencies": {
+        "react-router-dom": "^6.9.0",
         "@benzed/app": "^1.0.0",
         "@benzed/array": "^3.2.3",
         "@benzed/immutable": "^4.0.0",

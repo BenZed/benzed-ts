@@ -1,27 +1,13 @@
-import React, { ReactElement, ReactNode, useEffect } from 'react'
-import { client } from '../../app'
+import React, { ReactElement, ReactNode } from 'react'
 
-//// Hooks ////
-
-const useClient = (client) => {
-
-    useEffect(() => {
-        console.log({ client })
-    })
-
-}
-
-//// ClientUI Component ////
+//// ClientUi Component ////
 
 interface ClientUIProps {
-    client: typeof client
     children?: ReactNode
 }
 
 const ClientUI = (props: ClientUIProps): ReactElement => {
-    const { children, client, ...rest } = props
-
-    useClient(client)
+    const { children, ...rest } = props
     
     return <>{children}</>
 }

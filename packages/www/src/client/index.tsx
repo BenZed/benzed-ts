@@ -1,5 +1,6 @@
 
 import 'normalize.css'
+import './index.css'
 
 //// Data ////
 
@@ -35,7 +36,7 @@ window.onload = async function () {
 
     root.render(
         <Router>
-            <ClientUI client={client} />
+            <ClientUI />
         </Router>
     )
 }

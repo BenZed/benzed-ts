@@ -1,14 +1,4 @@
-import { App } from '@benzed/app'
-
-//// App //// 
-
-class BenZedWWW extends App {
- 
-}
-
-//// Execute ////
-
-const website = new BenZedWWW
+import { website } from './www'
 
 //// Exports ////
 

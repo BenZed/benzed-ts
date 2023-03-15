@@ -8,7 +8,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const { EnvironmentPlugin } = require('webpack')
+const { EnvironmentPlugin, ProgressPlugin } = require('webpack')
 const path = require('path')
 
 const styledComponentsTransformer = require('typescript-plugin-styled-components').default()
@@ -59,6 +59,10 @@ module.exports = {
                 use: {
                     loader: 'ts-loader',
                     options: {
+                        compilerOptions: {
+                            target: 'es6',
+                            module: 'CommonJS'
+                        },
                         getCustomTransformers: () => ({
                             before: [styledComponentsTransformer]
                         })
@@ -69,7 +73,10 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                use: [MiniCssExtractPlugin.loader, 'css-loader']
+                use: [
+                    MiniCssExtractPlugin.loader, 
+                    'css-loader'
+                ]
             },
             {
                 test: /\.(svg|png|jpe?g|gif)$/,
@@ -111,7 +118,16 @@ module.exports = {
     },
 
     plugins: [
-        new CleanWebpackPlugin(),
+        new ProgressPlugin(),
+
+        // TODO for some reason the CleanWebpackPlugin
+        // is throwing an error saying it can't remove
+        // files outside the process directory, even though
+        // the public file is within the process directory
+
+        // new CleanWebpackPlugin({
+        //     verbose: true
+        // }),
         new MiniCssExtractPlugin(),
         new HtmlWebpackPlugin({
             title: 'BenZed',
