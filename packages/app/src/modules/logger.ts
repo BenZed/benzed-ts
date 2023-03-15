@@ -6,7 +6,7 @@ import Module from '../module'
  * Without a Logger module somewhere in the app, the 
  * Module's 'Log' method will not do anything.
  */
-class Logger extends Module {
+abstract class Logger extends Module {
 
 }
 

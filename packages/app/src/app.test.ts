@@ -1,6 +1,6 @@
 import { App } from './app'
 
-import { test, expect, describe } from '@jest/globals'
+import { it, test, expect, describe } from '@jest/globals'
 import { Module } from './module'
 import { Runnable, Validateable } from './traits'
 import { Client } from './modules'
