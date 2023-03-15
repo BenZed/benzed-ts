@@ -247,9 +247,9 @@ function toNodePredicate(input?: FindInput): NodeTypeGuard | NodePredicate {
     throw new Error('Invalid find input.')
 } 
 
-function toNodeName(input: FindInput): string {
+function toNodeName(input?: FindInput): string {
 
-    let name = 'name' in input 
+    let name = input && 'name' in input 
         ? input.name 
         : ''
 
