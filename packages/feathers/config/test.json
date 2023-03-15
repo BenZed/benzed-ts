@@ -1,8 +1,0 @@
-{
-    "name": "test-feathers-app",
-    "port": 3000,
-    "db": {
-        "port": 3250,
-        "database": "test-feathers-app"
-    }
-}
