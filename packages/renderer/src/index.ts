@@ -4,6 +4,6 @@ import Renderer from './renderer'
 
 export default Renderer
 
+export * from './ffmpeg'
 export * from './renderer'
 export * from './render-settings'
-export * from './ffmpeg'

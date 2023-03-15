@@ -40,7 +40,7 @@ async function getTimeStamp(options: CreatePNGOptions): Promise<number> {
     const { input } = options
     const { duration, frameRate } = await getMetadata({ input })
 
-    if (!is.defined(duration) || !is.defined(frameRate))
+    if (is.undefined(duration) || is.undefined(frameRate))
         return 0
 
     const frameDuration = 1 / frameRate
@@ -83,7 +83,7 @@ async function createPNG(options: CreatePNGOptions): Promise<RenderMetadata> {
         .outputFormat('image2pipe')
 
     const size = getFfmpegSizeOptionString(options)
-    if (is.defined(size))
+    if (is.string(size))
         cmd.setSize(size)
 
     const [outputStream, metaStream] = createOutputStreams(output)

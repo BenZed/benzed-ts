@@ -55,7 +55,7 @@ async function createMP4(
 
     // Optionally set bit rate
     cmd.videoBitrate(vbr)
-    if (is.defined(fps) && fps > 0)
+    if (is.number(fps) && fps > 0)
         cmd.outputFPS(fps)
 
     if (abr <= 0)
