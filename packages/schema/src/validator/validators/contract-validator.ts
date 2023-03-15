@@ -1,9 +1,9 @@
 
 import { equals } from '@benzed/immutable'
+import { define, pick } from '@benzed/util'
 
 import { Validator } from '../validator'
 import { ValidationContext } from '../../validation-context'
-import { define, pick } from '@benzed/util'
 
 //// EsLint ////
 
