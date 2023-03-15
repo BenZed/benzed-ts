@@ -1,5 +1,7 @@
 import { Module } from '@benzed/app'
 
+//// Types ////
+
 //// Main ////
 
 class ServeUI extends Module {

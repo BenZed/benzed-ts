@@ -25,6 +25,7 @@
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
         "react": "^18.2.0",
+        "react-markdown": "^8.0.5",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.9.0",
         "@benzed/app": "^1.0.0",
