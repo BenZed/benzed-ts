@@ -7,9 +7,9 @@ import Validateable from '../traits/validateable'
  * If the App contains a WebSocket Module, Client and Server will use it
  * to enable realtime connections.
  */
-class Websocket extends Module.add(Module, Validateable) {
+abstract class Websocket extends Module.add(Module, Validateable) {
 
-    onValidate(): void {
+    protected _onValidate(): void {
         this._assertUnique()
         this._assertRootParent()
     }

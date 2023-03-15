@@ -1,4 +1,5 @@
 import { swap } from './swap'
+import { it, expect, test, describe } from '@jest/globals'
 
 it('swaps two keys of an object', () => {
 

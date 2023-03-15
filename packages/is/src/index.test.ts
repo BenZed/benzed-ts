@@ -2,7 +2,7 @@ import { nil } from '@benzed/util'
 import { equals } from '@benzed/immutable'
 import { Or, Not, Optional, ReadOnly, ValidateOutput } from '@benzed/schema'
 
-import { test } from '@jest/globals'
+import { test, describe, it, expect } from '@jest/globals'
 
 import { is } from './index'
 

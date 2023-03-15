@@ -1,7 +1,7 @@
 import { Trait } from '@benzed/traits'
 import { fail } from '@benzed/util'
 
-import { expect, describe } from '@jest/globals'
+import { test, expect, describe } from '@jest/globals'
 
 import { Find, FindFlag } from './find'
 import { PublicNode } from '../public-node'

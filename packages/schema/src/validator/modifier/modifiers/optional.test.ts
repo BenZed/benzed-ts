@@ -15,8 +15,9 @@ import { TypeValidator } from '../../validators'
 import { expectTypeOf } from 'expect-type'
 
 import { Validator, ValidatorStateApply } from '../../validator'
+import { describe, it, expect } from '@jest/globals'
 
-//// Setup //// 
+//// Setup ////
 
 class CookieJar extends TypeValidator<{ cookies: number, open: boolean }> {
 

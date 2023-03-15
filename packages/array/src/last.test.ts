@@ -1,5 +1,6 @@
-import last from './last'
+import {last} from './last'
 import { expectTypeOf } from 'expect-type'
+import { it, expect } from '@jest/globals'
 
 it('returns the last element of an array', () => {
     expect(last([1, 2, 3, 4, 5])).toEqual(5)

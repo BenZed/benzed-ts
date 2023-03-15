@@ -31,4 +31,4 @@ function remove(this: unknown, ...args: [ArrayLike<unknown>, unknown] | [unknown
 
 //// Exports ////
 
-export default remove
+export { remove }

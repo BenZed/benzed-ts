@@ -1,6 +1,6 @@
 
 import { Trait } from '@benzed/traits'
-import { expect, describe } from '@jest/globals'
+import { test, expect, describe } from '@jest/globals'
 
 import { Node } from './node'
 
@@ -222,7 +222,7 @@ describe(eachAncestor.name, () => {
 
 describe(eachDescendent.name, () => {
 
-    it('iterates over all descendents of a given node', () => {
+    test('iterates over all descendents of a given node', () => {
         const results = Array.from(eachDescendent(grandPa.mom))
         expect(results).toEqual([
             grandPa.mom.you,

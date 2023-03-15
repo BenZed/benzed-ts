@@ -1,6 +1,6 @@
 
 import { AnyTypeGuard, isEqual, isFunc, isShape, isString } from '@benzed/util'
-import { it, expect, describe } from '@jest/globals'
+import { test, it, expect, describe, beforeAll } from '@jest/globals'
 import { Trait } from './trait'
 
 //// Setup ////
@@ -9,7 +9,7 @@ describe('creates composite classes', () => {
 
     abstract class Jumpable extends Trait {
 
-        static is: (input: unknown) => input is Jumpable = isShape({
+        static override readonly is: (input: unknown) => input is Jumpable = isShape({
             jump: isFunc
         })
 
@@ -18,7 +18,7 @@ describe('creates composite classes', () => {
 
     abstract class Duckable extends Trait { 
 
-        static is: (input: unknown) => input is Duckable = isShape({
+        static override readonly is: (input: unknown) => input is Duckable = isShape({
             duck: isFunc
         })
 
@@ -74,38 +74,38 @@ describe('onApply', () => {
      
     abstract class Emotional extends Trait {
 
-        static is: (input: unknown) => input is Emotional = isShape({
+        static override readonly is: (input: unknown) => input is Emotional = isShape({
             emotion: isEqual('Happy', 'Sad'),
         }) as AnyTypeGuard
 
-        applies: number
+        applies!: number
 
-        static apply<T extends Emotional>(emotional: T): T {
+        static override apply<T extends Emotional>(emotional: T): T {
             emotional.applies ??= 0
             emotional.applies++
             emotional.emotion = 'Happy'
             return emotional
         }
 
-        emotion: 'Happy' | 'Sad'
+        emotion!: 'Happy' | 'Sad'
     }
 
     class Occupational extends Trait { 
 
-        static is: (input: unknown) => input is Emotional = isShape({
+        static override readonly is: (input: unknown) => input is Emotional = isShape({
             job: isString,
         }) as AnyTypeGuard
 
-        applies: number 
+        applies!: number 
 
-        static apply<T extends Occupational>(occupational: T): T {
+        static override apply<T extends Occupational>(occupational: T): T {
             occupational.applies ??= 0
             occupational.applies++
             occupational.job ??= 'unemployed'
             return occupational
         }
 
-        job: string
+        job!: string
     }
 
     class Person extends Trait.use(Emotional) {

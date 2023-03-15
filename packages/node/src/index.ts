@@ -1,5 +1,13 @@
 
-export * from './nodes' 
+export * from './nodes'
+
 export * from './traits'
 
-export { Traits, addTraits, useTraits, mergeTraits } from '@benzed/traits'
+export {
+
+    Traits,
+    addTraits,
+    useTraits,
+    mergeTraits
+
+} from '@benzed/traits'

@@ -1,10 +1,10 @@
 
-import { it } from '@jest/globals'
+import { describe, it, expect } from '@jest/globals'
 import { isArrayOf, isString as isString } from '@benzed/util'
 import { expectTypeOf } from 'expect-type'
 
 import {
-    AddModifier, 
+    AddModifier,
     RemoveModifier, 
     HasModifier,
     addModifiers,
@@ -36,18 +36,22 @@ interface To<O> extends Validator<unknown, O> {}
 interface String extends To<string> {}
 const $string: String = new class extends ContractValidator<unknown, string> {
 
-    message = 'Must be a string'
+    override message() {
+        return 'Must be a String'
+    }
 
-    isValid = isString
+    override isValid = isString
 
 }
 
 interface ArrayOfString extends To<string[]> {}
 const $arrayOfString: ArrayOfString = new class extends ContractValidator<unknown, string[]> {
 
-    message = 'Must be an array of string'
+    override message() {
+        return 'Must be an array of string'
+    }
 
-    isValid = isArrayOf(isString)
+    override isValid = isArrayOf(isString)
 
 }
 

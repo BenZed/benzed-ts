@@ -6,7 +6,7 @@ import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 import { createMP4 } from './create-mp4'
 import { it, expect } from '@jest/globals'
 
-import { $metaData } from './get-metadata'
+import { isMetaData } from './get-metadata'
 
 //// Setup ////
 
@@ -36,6 +36,6 @@ it('receives metadata from render', async () => {
 
     const meta = await createMP4({ input, output })
 
-    expect($metaData.is(meta)).toBe(true)
+    expect(isMetaData(meta)).toBe(true)
 
 })

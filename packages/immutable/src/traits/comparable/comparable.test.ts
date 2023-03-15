@@ -74,7 +74,7 @@ describe('Comparable trait', () => {
                 super()
             }
     
-            protected [Comparable.equals](other: unknown): other is this {
+            [Comparable.equals](other: unknown): other is this {
                 return other instanceof Person && this.name === other.name && this.age === other.age
             }
         }
@@ -96,8 +96,8 @@ describe('Comparable trait', () => {
                 super()
                 this.value = value
             }
-    
-            protected [Comparable.equals](other: unknown): other is this {
+
+            [Comparable.equals](other: unknown): other is this {
                 return other instanceof Foo && this.value === other.value
             }
         }

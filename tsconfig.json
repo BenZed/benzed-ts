@@ -9,8 +9,9 @@
         //
         // Build Options
         "build": true,
-        "target": "es5",
+        "target": "es6",
         "declaration": true,
+        "module": "CommonJS",
         //
         // Decorators are tight
         "experimentalDecorators": true,

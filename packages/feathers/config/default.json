@@ -1,9 +1,0 @@
-{
-    "name": "benzed-feathers-test-app",
-    "port": 4000,
-    "db": {
-        "uri": "mongodb://127.0.0.1:<port>/<database>",
-        "port": 4250,
-        "database": "benzed-feathers-test-app"
-    }
-}

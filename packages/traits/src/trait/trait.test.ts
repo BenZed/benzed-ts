@@ -1,13 +1,13 @@
 import { Trait } from './trait'
 
-import { test, expect } from '@jest/globals'
+import { it, test, expect, describe } from '@jest/globals'
 import { isFunc, isNumber, isShape, isTuple } from '@benzed/util'
 
 //// Test ////
 
 class Huggable extends Trait {
 
-    static is: (input: unknown) => input is Huggable = isShape({
+    static override readonly is: (input: unknown) => input is Huggable = isShape({
         hug: isFunc
     })
 
@@ -21,7 +21,7 @@ class BrokenTrait extends Trait {}
 
 abstract class Toy extends Trait {
 
-    static is: (input: unknown) => input is Toy = isShape({
+    static override readonly is: (input: unknown) => input is Toy = isShape({
         price: isNumber
     })
 
@@ -31,7 +31,7 @@ abstract class Toy extends Trait {
 
 abstract class Color extends Trait {
 
-    static is: (input: unknown) => input is Color = isShape({
+    static override readonly is: (input: unknown) => input is Color = isShape({
         color: isTuple(isNumber, isNumber, isNumber)
     })
 

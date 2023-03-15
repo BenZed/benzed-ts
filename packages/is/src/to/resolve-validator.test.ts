@@ -1,17 +1,18 @@
-import { test, expect } from '@jest/globals'
+import { it, test, expect } from '@jest/globals'
 
 import { resolveValidator } from './resolve-validator'
 import { 
-    Instance, 
     Value, 
     Boolean, 
     String, 
     Shape, 
     Number, 
-    $number 
+    $number, 
+    InstanceOf
 } from '../schemas'
 
 import { expectTypeOf } from 'expect-type'
+
 import { nil } from '@benzed/util'
 import { Or, ReadOnly } from '@benzed/schema'
 
@@ -47,7 +48,7 @@ test('creates instances', () => {
     expect($foo(new Foo)).toEqual(new Foo)
     expect(() => $foo(nil)).toThrow('must be Foo')
 
-    expectTypeOf($foo).toEqualTypeOf<Instance<Foo>>()
+    expectTypeOf($foo).toEqualTypeOf<InstanceOf<Foo>>()
 
 })
 
@@ -126,7 +127,7 @@ test('recursive shapes', () => {
     expectTypeOf($address).toEqualTypeOf<Shape<{
         type: ReadOnly<Value<'address'>>
         postal: String
-        city: Instance<City>
+        city: InstanceOf<City>
         priority: Number
     }>>()
 

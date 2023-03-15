@@ -2,7 +2,7 @@ import { App } from '../app'
 
 import { Empty } from '@benzed/util'
 
-import { it, describe, beforeAll } from '@jest/globals'
+import { it, expect, describe, beforeAll } from '@jest/globals'
 
 import { Module } from '../module'
 import { Validateable } from './validateable'
@@ -10,9 +10,11 @@ import { Validateable } from './validateable'
 //// Place ////
 
 class StatelessModule extends Module {
+
     get [Module.state](): Empty {
         return {}
     }
+
 }
 
 let is: typeof import('@benzed/is').is
@@ -95,7 +97,7 @@ describe('_assertUnique', () => {
             this._assertUnique()
         }
     }
-    
+
     class ParentModule extends Module.add(StatelessModule) {
         moduleOne = new UniqueModule()
         subModule = new class SubModule extends StatelessModule {

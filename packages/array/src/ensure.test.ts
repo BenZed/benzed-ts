@@ -1,4 +1,5 @@
-import ensure from './ensure'
+import { ensure } from './ensure'
+import { it, expect } from '@jest/globals'
 
 //// Tests ////
 

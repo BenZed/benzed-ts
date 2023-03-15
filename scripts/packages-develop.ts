@@ -46,12 +46,17 @@ const testProcess = new PackageSpawnProcess(
     '--bail'
 )
 
-const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) => {
+const buildProcess = new PackageSpawnProcess(
+    'build:dev',
+    'tsc'
+)
+
+const stripSrcSuffixProcess = new FileProcess('strip-lib-suffix', async (file) => {
 
     const contents = await fs.readFile(file, 'utf-8')
     const lines = contents.split('\n')
 
-    const SRC = '/src'
+    const LIB = '/lib'
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
@@ -60,11 +65,11 @@ const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) =
         if (bzImportIndex < 0)
             continue
         
-        const srcIndex = line.indexOf(SRC, bzImportIndex)
+        const srcIndex = line.indexOf(LIB, bzImportIndex)
         if (srcIndex < 0)
             continue 
 
-        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + SRC.length)
+        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + LIB.length)
     }
     
     const newContents = lines.join('\n')
@@ -169,25 +174,25 @@ watch(PACKAGES_DIR + '/*/src/**', {
 
     const contents = await fs.readFile(file, 'utf-8')
     if (tsFileContentCache[file] === contents) 
-        return 
-    
-    if (testProcess.isRunning) 
         return
 
-    tsFileContentCache[file] = contents
+    if (!buildProcess.isRunning)
+        await buildProcess.run(file)
 
-    const isTestFile = file.endsWith('.test.ts')
-    const isPackageIndex = file.endsWith('src/index.ts')
-    const onlyTestThisFile = isTestFile
-    const testAllFiles = !onlyTestThisFile && isPackageIndex
-    await testProcess.run(
-        file, 
-        onlyTestThisFile 
-            ? path.basename(file) 
-            : testAllFiles 
-                ? '--all'
-                : '--only-changed'
-    )
+    if (!testProcess.isRunning) {
+        const isTestFile = file.endsWith('.test.ts')
+        const isPackageIndex = file.endsWith('src/index.ts')
+        const onlyTestThisFile = isTestFile
+        const testAllFiles = !onlyTestThisFile && isPackageIndex
+        await testProcess.run(
+            file, 
+            onlyTestThisFile 
+                ? path.basename(file) 
+                : testAllFiles 
+                    ? '--all'
+                    : '--only-changed'
+        )
+    }
 
     if (!updateDependencyProcess.isRunning)
         await updateDependencyProcess.run(file)
@@ -200,5 +205,8 @@ watch(PACKAGES_DIR + '/*/src/**', {
         '>>', 
         contents.length
     )
+
+    // update cache
+    tsFileContentCache[file] = contents
 
 })

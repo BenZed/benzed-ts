@@ -1,6 +1,6 @@
 import type { Writable, Readable } from 'stream'
 
-import $ from '@benzed/schema'
+import is, { Or, Optional } from '@benzed/is'
 
 //// IO ////
 export interface Input {
@@ -41,9 +41,9 @@ export interface VideoSetting {
 
 }
 
-export const $videoSetting = $.shape({
-    vbr: $.number.optional,
-    fps: $.number.optional
+export const isVideoSetting = is({
+    vbr: is.number.optional,
+    fps: is.number.optional
 })
 
 export interface AudioSetting {
@@ -55,8 +55,8 @@ export interface AudioSetting {
 
 }
 
-export const $audioSetting = $.shape({
-    abr: $.number.optional
+export const isAudioSetting = is({
+    abr: is.number.optional
 })
 
 export type SizeSetting =
@@ -76,11 +76,15 @@ export type SizeSetting =
         scale: number
     }
 
-export const $sizeSetting = $.or(
-    $({ height: $.number }),
-    $({ width: $.number }),
-    $({ dimensions: $.number }),
-    $({ scale: $.number })
+export const isSizeSetting = is(
+    { height: is.number },
+    { width: is.number },
+    {
+        height: is.number,
+        width: is.number 
+    },
+    { dimensions: is.number },
+    { scale: is.number }
 )
 
 export type TimeSetting = {
@@ -107,7 +111,7 @@ export type TimeSetting = {
     progress: number
 }
 
-export const $timeSetting = $.or(
-    $({ seconds: $.number }),
-    $({ progress: $.number })
+export const isTimeSetting = is(
+    { seconds: is.number },
+    { progress: is.number }
 )

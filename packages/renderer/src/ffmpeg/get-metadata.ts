@@ -7,10 +7,9 @@ import {
     Input
 } from './settings'
 
-import { is } from '@benzed/is'
+import { is, Optional, ReadOnly } from '@benzed/is'
 import { priorityFind } from '@benzed/array'
 import { round } from '@benzed/math'
-import $ from '@benzed/schema'
 
 //// Type ////
 
@@ -24,13 +23,13 @@ interface RenderMetadata extends Metadata {
     renderTime: number
 }
 
-const $metaData = $.shape({
-    width: $.number.optional,
-    height:$.number.optional,
-    duration: $.number.optional,
-    format: $.string.optional,
-    size: $.or($.number, $('N/A')).optional,
-    frameRate: $.number.optional
+const isMetaData = is.shape({
+    width: is.number.optional,
+    height: is.number.optional,
+    duration: is.number.optional,
+    format: is.string.optional,
+    size: is(is.number, 'N/A').optional,
+    frameRate: is.number.optional
 })
 
 type GetMetadataOptions = Input
@@ -118,7 +117,7 @@ export {
     GetMetadataOptions,
 
     Metadata,
-    $metaData,
+    isMetaData,
 
     RenderMetadata
 }

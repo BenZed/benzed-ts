@@ -1,7 +1,7 @@
 {
     "name": "@benzed/app",
     "description": "ECS for building client and server applications",
-    "main": "./src",
+    "main": "./lib",
     "private": true,
     "version": "1.0.0",
     "scripts": {
@@ -38,6 +38,7 @@
     },
     "peerDependencies": {},
     "devDependencies": {
-        "@types/bcryptjs": "^2.4.2"
+        "@types/bcryptjs": "^2.4.2",
+        "@types/koa__cors": "^4.0.0"
     }
 }

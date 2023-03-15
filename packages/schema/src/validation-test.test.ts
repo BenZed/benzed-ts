@@ -28,6 +28,10 @@ class Numeric extends Validator<string, `${number}`> {
             ? ctx.setError('must be a numeric string')
             : ctx.setOutput(output as `${number}`)
     }
+
+    get [Validator.state](): {} {
+        return {}
+    }
 }
 
 const $numeric = new Numeric

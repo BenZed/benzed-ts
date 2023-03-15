@@ -1,5 +1,5 @@
-import shuffle from './shuffle'
-
+import { shuffle } from './shuffle'
+import { it, expect } from '@jest/globals'
 // Because shuffle could theoretically break tests do to it's random nature,
 // We run each test a 10000 times. If less than 99% of these 10000 tests pass,
 // something is wrong.

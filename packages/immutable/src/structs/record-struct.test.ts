@@ -1,6 +1,6 @@
 import { RecordStruct } from './record-struct'
 
-import { test } from '@jest/globals'
+import { test, expect } from '@jest/globals'
 import { Structural } from '../traits'
 
 //// Tests ////
@@ -83,5 +83,4 @@ test('deep apply state', () => {
     expect(Structural.get(record2)).toEqual({ gangam: { style: 'yay' } })
     expect(record2).not.toBe(record)
     expect(record2.gangam.style).not.toBe(record.gangam.style)
-
 })

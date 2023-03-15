@@ -1,5 +1,8 @@
-import first from './first'
+import {first} from './first'
+
 import { expectTypeOf } from 'expect-type'
+
+import { it, expect } from '@jest/globals'
 
 //// Tests ////
 

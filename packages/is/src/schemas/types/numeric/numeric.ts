@@ -5,10 +5,15 @@ import {
     SubValidators, 
     TypeSchema, 
     TypeValidator, 
-    ValidationErrorMessage 
+    ValidationErrorMessage
 } from '@benzed/schema'
 
 import { Limit } from './sub-validators/limit'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Helper ////
 
@@ -53,8 +58,8 @@ export abstract class Numeric<N extends bigint | number, S extends NumericSubVal
         const max = defined({ value: maxValue, message, inclusive: maxInclusive, enabled })
 
         return this
-            ._applySubValidator('min', min)
-            ._applySubValidator('max', max)
+            ._applySubValidator('min', min as any)
+            ._applySubValidator('max', max as any)
     }
 
     limit(comparator: LimitComparator, value: N, message?: ValidationErrorMessage<N>): this {
@@ -62,7 +67,7 @@ export abstract class Numeric<N extends bigint | number, S extends NumericSubVal
         const limit = comparator.includes('<') ? 'max' : 'min'
 
         return this
-            ._applySubValidator(limit, defined({ value, inclusive, message, enabled: true }))
+            ._applySubValidator(limit, defined({ value, inclusive, message, enabled: true }) as any)
     }
 
     min(value: N, message?: ValidationErrorMessage<N>): this {

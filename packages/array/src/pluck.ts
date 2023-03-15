@@ -121,4 +121,4 @@ function pluck(
 
 //// Exports ////
 
-export default pluck
+export { pluck }

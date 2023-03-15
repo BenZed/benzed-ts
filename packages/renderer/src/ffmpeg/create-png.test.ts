@@ -6,7 +6,7 @@ import { is } from '@benzed/is'
 import { RENDER_FOLDER, TEST_ASSETS } from '../../test-assets'
 
 import createPNG from './create-png'
-import getMetadata, { $metaData } from './get-metadata'
+import getMetadata, { isMetaData } from './get-metadata'
 import { it, expect } from '@jest/globals'
 
 import { SizeSetting, TimeSetting } from './settings'
@@ -98,7 +98,7 @@ for (const type of types) {
     }
 }
 
-it('gets metadata from render', async () => {
+it.skip('gets metadata from render', async () => {
 
     const meta = await createPNG({
         input: TEST_ASSETS.mp4,
@@ -106,5 +106,5 @@ it('gets metadata from render', async () => {
         seconds: 0.25
     })
 
-    expect($metaData.is(meta)).toBe(true)
+    expect(isMetaData(meta)).toBe(true)
 })

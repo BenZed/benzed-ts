@@ -32,4 +32,4 @@ function random(this: unknown, ...args: [unknown] | []): unknown {
 
 //// Exports ////
 
-export default random
+export { random }

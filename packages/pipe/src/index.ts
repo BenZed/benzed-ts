@@ -1,3 +1,2 @@
-
-// TODO refator combine with resolver
-export * from './pipe' 
+// TODO refactor combine with resolver
+export * from './pipe'

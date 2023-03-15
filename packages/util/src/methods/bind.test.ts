@@ -1,4 +1,5 @@
 import { bind } from './bind'
+import { it, expect, test, describe } from '@jest/globals'
 
 it('binds args', () => {
     const parse100 = bind(parseInt, '100')

@@ -58,4 +58,4 @@ function unique(
 
 //// Exports ////
 
-export default unique
+export { unique }

@@ -1,4 +1,6 @@
 import { Trait } from '@benzed/traits'
+import { test, it, expect, describe, beforeAll } from '@jest/globals'
+
 import { Node } from './node'
 import PublicNode from './public-node'
 
@@ -121,14 +123,13 @@ describe('PublicNode', () => {
             const parents: Node[] = []
             for (const parent of iterator)
                 parents.push(parent)
-  
+
             expect(parents).toEqual([ grandPa.mom, grandPa ])
-  
             const iterator2 = grandPa.mom.sister.eachParent()
             const parents2: Node[] = []
             for (const parent of iterator2)
                 parents2.push(parent)
-  
+
             expect(parents2).toEqual([ grandPa.mom, grandPa ])
         })
   

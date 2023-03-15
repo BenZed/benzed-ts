@@ -1,4 +1,7 @@
 import milliseconds from './milliseconds'
+import { describe, it, expect } from '@jest/globals'
+
+//// Tests ////
 
 describe('milliseconds', () => {
 

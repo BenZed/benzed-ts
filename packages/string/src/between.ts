@@ -37,6 +37,4 @@ function between(
 
 export default between
 
-export {
-    between
-}
+export { between }

@@ -1,5 +1,6 @@
 import { append } from './merge'
 import { expectTypeOf } from 'expect-type'
+import { it, expect, describe } from '@jest/globals'
 
 //// Tests ////
 

@@ -1,5 +1,5 @@
 
-import { equals, copy, $$equals, $$copy } from '@benzed/immutable'
+import { equals, copy, Copyable, Comparable } from '@benzed/immutable'
 import { wrap } from '@benzed/array'
 import { max } from '@benzed/math'
 
@@ -38,7 +38,7 @@ type Signature = string
  * A scribe instance provides an interface for computing immutable history
  * updates on arbitrary objects.
  */
-class HistoryScribe<T extends object, I = Signature> {
+class HistoryScribe<T extends object, I = Signature> implements Copyable, Comparable {
 
     static create<T extends object, I>(
         data: T,
@@ -239,7 +239,7 @@ class HistoryScribe<T extends object, I = Signature> {
      * Creates a deep copy of this scribe with the same state. 
      */
     copy(): HistoryScribe<T, I> {
-        return this[$$copy]()
+        return this[Copyable.copy]()
     }
 
     /**
@@ -247,17 +247,18 @@ class HistoryScribe<T extends object, I = Signature> {
      * @param other 
      */
     equals(other: HistoryScribe<T, I>): other is HistoryScribe<T, I> {
-        return this[$$equals](other)
+        return this[Comparable.equals](other)
     }
 
-    private [$$copy](): HistoryScribe<T, I> {
+    [Copyable.copy](): this {
         const { options, _history: history } = this
 
-        return new HistoryScribe({ ...options, history })
+        return new HistoryScribe({ ...options, history }) as this
     }
 
-    private [$$equals](other: HistoryScribe<T, I>): other is HistoryScribe<T, I> {
-        return equals(this.options, other.options) &&
+    [Comparable.equals](other: unknown): other is this {
+        return other instanceof HistoryScribe && 
+            equals(this.options, other.options) &&
             equals(this._history, other._history)
     }
 

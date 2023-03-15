@@ -1,6 +1,7 @@
 
 import { Structural } from '@benzed/immutable'
 import { assign } from '@benzed/util'
+import { ValidateInput, ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
 import { ValidationErrorMessage } from '../../validation-error'
 import { Validator } from '../validator'
@@ -16,8 +17,6 @@ import {
 
 import { 
     Schema, 
-    SchemaInput, 
-    SchemaOutput, 
     SubValidators, 
     $$main, 
     $$sub 
@@ -34,13 +33,13 @@ const $$builder = Symbol('pipe-builder-validator')
 
 //// Types ////
 
-type SchemaPipeBuilder<V extends Validator> = PipeValidatorBuilder<SchemaOutput<V>, SchemaOutput<V>>
-type SchemaBuilderValidator<V extends Validator> = OutputValidator<SchemaOutput<V>>
-type SchemaBuilderValidatorSettings<V extends Validator> = OutputValidatorSettings<SchemaOutput<V>>
-type SchemaBuilderValidatorErrorMessage<V extends Validator> = ValidationErrorMessage<SchemaOutput<V>>
-type SchemaBuilderValidatorPredicate<V extends Validator> = OutputValidatorPredicate<SchemaOutput<V>>
-type SchemaBuilderValidatorTransform<V extends Validator> = OutputValidatorTransform<SchemaOutput<V>>
-type SchemaBuilderMethods<V extends Validator> = PipeValidatorBuilderMethods<SchemaOutput<V>>
+type SchemaPipeBuilder<V extends Validator> = PipeValidatorBuilder<ValidateOutput<V>, ValidateOutput<V>>
+type SchemaBuilderValidator<V extends Validator> = OutputValidator<ValidateOutput<V>>
+type SchemaBuilderValidatorSettings<V extends Validator> = OutputValidatorSettings<ValidateOutput<V>>
+type SchemaBuilderValidatorErrorMessage<V extends Validator> = ValidationErrorMessage<ValidateOutput<V>>
+type SchemaBuilderValidatorPredicate<V extends Validator> = OutputValidatorPredicate<ValidateOutput<V>>
+type SchemaBuilderValidatorTransform<V extends Validator> = OutputValidatorTransform<ValidateOutput<V>>
+type SchemaBuilderMethods<V extends Validator> = PipeValidatorBuilderMethods<ValidateOutput<V>>
 
 //// Main ////
 
@@ -48,15 +47,15 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
 
     extends Schema<V,S>
 
-    implements PipeValidatorBuilderMethods<SchemaOutput<V>> {
+    implements PipeValidatorBuilderMethods<ValidateOutput<V>> {
 
     static readonly builder: typeof $$builder = $$builder
 
-    override [Validator.analyze](ctx: ValidationContext<SchemaInput<V>, SchemaOutput<V>>) {
+    override [Validator.analyze](ctx: ValidationContext<ValidateInput<V>, ValidateOutput<V>>) {
         
         ctx = super[Validator.analyze](ctx)
         if (!ctx.hasError() && !ctx.hasSubContextError())
-            ctx = this[$$builder][Validator.analyze](ctx as ValidationContext)
+            ctx = this[$$builder][Validator.analyze](ctx as ValidationContext) as ValidationContext
         
         return ctx
     }

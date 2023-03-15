@@ -3,10 +3,10 @@ import { client } from '../../app'
 
 //// Hooks ////
 
-const useClient = (c: typeof client) => {
+const useClient = (client) => {
 
     useEffect(() => {
-        console.log(c, 'ace')
+        console.log({ client })
     })
 
 }

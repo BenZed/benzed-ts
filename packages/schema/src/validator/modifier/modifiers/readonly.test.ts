@@ -1,4 +1,5 @@
-import { isArrayOf, isNumber, isInteger, pick, define } from '@benzed/util'
+import { isArrayOf, isNumber, isInteger, pick } from '@benzed/util'
+import { describe, it, expect } from '@jest/globals'
 
 import { ReadOnly } from './readonly'
 import { expectTypeOf } from 'expect-type'

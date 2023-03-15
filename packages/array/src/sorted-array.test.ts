@@ -1,7 +1,6 @@
-import SortedArray from './sorted-array'
-
+import { SortedArray } from './sorted-array'
+import { it, expect, describe } from '@jest/globals'
 // eslint-disable-next-line no-unused-vars
-/* global describe it  */
 
 describe('Sorted Array', () => {
 

@@ -3,7 +3,9 @@
     "compilerOptions": {
         "outDir": "./lib",
     },
-    "include": ["./src", "_old-validator" ],
+    "include": [
+        "./src" 
+    ],
     "exclude": [
         "./src/**/*.test.ts"
     ]

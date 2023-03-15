@@ -1,1 +1,1 @@
-export * from './signature-parser' 
+export * from './signature-parser'

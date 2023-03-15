@@ -7,6 +7,8 @@ import { ReadOnly, Optional, TypeValidator } from '@benzed/schema'
 import { expectTypeOf } from 'expect-type'
 import { $number, $boolean, $string } from './types'
 
+import { it, expect, describe } from '@jest/globals'
+
 //// Tests ////
 
 const $vector = new Shape({
@@ -86,7 +88,7 @@ describe('builder methods', () => {
             y: number
         }>() 
  
-        testValidator<object, typeof output>(
+        testValidator<unknown, typeof output>(
             $vectorOptionalX,
             { transforms: { y: 0 } },
 

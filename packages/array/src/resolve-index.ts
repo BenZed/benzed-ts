@@ -21,4 +21,4 @@ function resolveIndex(
 
 //// Exports ////
 
-export default resolveIndex
+export { resolveIndex }

@@ -1,5 +1,5 @@
 export {
     Logger,
     LoggerOptions,
-    LogHandler 
+    LogHandler
 } from './logger'

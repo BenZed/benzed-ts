@@ -1,9 +1,15 @@
 import { onTimeout, onInterval, onAnimationFrame } from './on-timeout'
 import { milliseconds } from './milliseconds'
+
+import { describe, test, expect } from '@jest/globals'
+
 //// EsLint ////
-/* eslint-disable 
+
+/* eslint-disable
     @typescript-eslint/explicit-function-return-type
 */
+
+//// Tests ////
 
 describe('onTimeout', () => {
     test('should execute the callback after the specified timeout', async () => {

@@ -3,6 +3,8 @@ import { nil } from '@benzed/util'
 import { Node } from './node'
 import { getParent } from './parent'
 
+import { test, describe, expect } from '@jest/globals'
+
 //// Setup ////
 
 class Person extends Trait.use(Node) { 

@@ -1,6 +1,11 @@
 import { expect, test } from '@jest/globals'
 import ValidationContext from './validation-context'
-import ValidationError from './validation-error'
+import ValidationError from './validation-error' 
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Ferns Grow ////
 
@@ -92,7 +97,7 @@ test('complex json property', () => {
 
     ctx.pushSubContext(data.ace, 'ace')
         .pushSubContext(data.ace[4], 4)
-        .pushSubContext(data.ace[4][$$key], $$key)
+        .pushSubContext((data.ace[4] as any)[$$key], $$key)
         .setError('must not be zero')
 
     const error = new ValidationError(ctx)

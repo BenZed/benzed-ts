@@ -2,6 +2,7 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         // Build Options
+
         "target": "esnext", // prevents jest tests from failing,
         "types": [
             "node"

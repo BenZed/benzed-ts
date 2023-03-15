@@ -1,4 +1,6 @@
 import { Trait } from '@benzed/traits'
+import { describe, test, expect } from '@jest/globals'
+
 import { Copyable } from './copyable'
 
 class Person extends Trait.use(Copyable) {
@@ -6,7 +8,7 @@ class Person extends Trait.use(Copyable) {
         super()
     }
 
-    protected [Copyable.copy](): this {
+    [Copyable.copy](): this {
         return new Person(this.name, this.age) as this
     }
 }
@@ -17,10 +19,12 @@ class Product extends Trait.use(Copyable) {
         super()
     }
 
-    protected [Copyable.copy](): this {
+    [Copyable.copy](): this {
         return new Product(this.name, this.price) as this
     }
 }
+
+//// Tests ////
 
 describe('Copyable.is', () => {
     test('returns true for copyable objects', () => {
@@ -47,7 +51,7 @@ describe('Copyable.copy', () => {
                 super()
             }
 
-            protected [Copyable.copy](): this {
+            [Copyable.copy](): this {
                 return new Example(this.prop1, this.prop2, { nestedProp: this.prop3.nestedProp }) as this
             }
         }

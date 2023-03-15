@@ -1,7 +1,7 @@
 {
     "name": "@benzed/file-service",
     "description": "File Service and and server incorperating @feathers & @renderer package",
-    "main": "./src",
+    "main": "./lib",
     "version": "1.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",
@@ -26,7 +26,6 @@
         "@benzed/math": "^3.1.4",
         "@benzed/util": "^3.9.1",
         "@benzed/schema": "^0.3.0",
-        "@benzed/feathers": "^1.0.0",
         "@benzed/renderer": "^0.9.0",
         "@benzed/immutable": "^4.0.0",
         "@benzed/fs": "^3.1.0",

@@ -4,15 +4,17 @@ import { isString } from '@benzed/util'
 import { testValidator } from '../../util.test'
 import { copy } from '@benzed/immutable'
 
+import { describe, it, expect } from '@jest/globals'
+
 //// Setup ////
 
 const $string = new class String extends ContractValidator<unknown, string> {
 
-    isValid(input: unknown): input is string {
+    override isValid(input: unknown): input is string {
         return isString(input)
     }
 
-    transform(input: unknown) {
+    override transform(input: unknown) {
         return this.isValid(input) ? input.trim() : input
     }
 }
