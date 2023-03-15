@@ -91,8 +91,22 @@ module.exports = {
 
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
-        fallback: {
-            util: false
+        alias: {
+            'koa-body': false,
+            'util': false,
+            'http': false,
+            'path': false,
+            'fs': false,
+            'stream': false,
+            'zlib': false,
+            'os': false,
+            'crypto': false,
+            'querystring': false,
+            'url': false,
+            'net': false,
+            'assert': false,
+            'async_hooks': false,
+            'koa-body': false
         }
     },
 

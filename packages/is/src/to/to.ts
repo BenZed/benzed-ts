@@ -263,7 +263,7 @@ class To<F extends From, M extends ModifierType[]> extends Method<ToSignature<F,
     instanceOf<T extends InstanceInput>(
         constructor: T
     ): IsTo<F, M, [InstanceOf<InstanceType<T>>]> {
-        return this(new InstanceOf(constructor))
+        return this(new InstanceOf(constructor) as any)
     }
 
     get array(): IsTo<F,M,[Array]> {
