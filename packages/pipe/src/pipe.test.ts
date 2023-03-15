@@ -21,13 +21,13 @@ it('create a pipe with multiple transforms', () => {
 
 it('multiple transforms must have the same type', () => { 
     // @ts-expect-error mismatching input type
-    void Pipe.from(x2, parseInt) 
+    void Pipe.from(x2, parseInt)
 })
 
 describe('params', () => {
 
     type Incrementer = ParamPipe<number, number, [{ count: number }]>
-    const i1: Incrementer = Pipe.from((i, ctx) => i + ctx.count)
+    const i1: Incrementer = Pipe.from((i: number, ctx: { count: number }) => i + ctx.count)
 
     describe('infer param through from() signature', () => {
         const t1 = (i: number, ctx: { count: number }): number => i + ctx.count

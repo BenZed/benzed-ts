@@ -172,7 +172,7 @@ const Pipe = (class extends Trait.use(Callable<Func>) {
 
     static expression(input: unknown): PipeExpression<unknown> {
         const pipe = new Pipe([() => input], nil, true)
-        return pipe as PipeExpression<unknown>
+        return pipe as unknown as PipeExpression<unknown>
     }
 
     static flatten(input: readonly AnyTransform[]): AnyTransform[] {
