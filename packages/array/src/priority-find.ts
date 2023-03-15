@@ -64,8 +64,6 @@ priorityFind.index = priorityFindIndex
 
 //// Exports ////
 
-export default priorityFind
-
 export {
     priorityFind,
     priorityFindIndex

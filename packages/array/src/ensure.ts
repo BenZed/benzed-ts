@@ -33,4 +33,4 @@ function ensure(this: unknown, ...args: [ArrayLike<unknown>, unknown] | [unknown
 
 //// Exports ////
 
-export default ensure
+export { ensure }

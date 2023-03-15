@@ -1,5 +1,6 @@
-import random from './random'
+import { random } from './random'
 import { equals } from '../../immutable/src/traits/comparable/equals'
+import { it, expect } from '@jest/globals'
 
 // eslint-disable-next-line no-unused-vars
 

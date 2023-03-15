@@ -1,4 +1,6 @@
-import adjacent from './adjacent'
+import { adjacent } from './adjacent'
+
+import { it, expect } from '@jest/globals'
 
 //// Tests ////
 

@@ -1,38 +1,17 @@
 
-import adjacent from './adjacent'
-import shuffle from './shuffle'
-import unique from './unique'
-import pluck from './pluck'
-import random from './random'
-import ensure from './ensure'
-import remove from './remove' 
-import resolveIndex from './resolve-index'
+export * from './adjacent'
+export * from './shuffle'
+export * from './unique'
+export * from './pluck'
+export * from './random'
+export * from './ensure'
+export * from './remove'
+export * from './resolve-index'
 
-import wrap from './wrap'
-import unwrap from './unwrap'
-import first from './first'
-import last from './last'
-
-//// Exports ////
-
-export {
-
-    adjacent,
-    shuffle,
-    unique,
-    pluck,
-    random,
-
-    ensure,
-    remove,
-    resolveIndex,
-
-    first,
-    last,
-    wrap,
-    unwrap
-
-}
+export * from './wrap'
+export * from './unwrap'
+export * from './first'
+export * from './last'
 
 export * from './min-max'
 export * from './adjacent'

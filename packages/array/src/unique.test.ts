@@ -1,5 +1,6 @@
-import unique from './unique'
+import { unique } from './unique'
 import { inspect } from 'util'
+import { it, expect, describe } from '@jest/globals'
 
 describe('removes duplicate items from input array', () => {
 

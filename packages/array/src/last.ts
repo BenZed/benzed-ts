@@ -28,4 +28,4 @@ function last<T extends ArrayLike<any>>(
 
 //// Exports ////
 
-export default last
+export { last }

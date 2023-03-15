@@ -1,7 +1,7 @@
 
 import { isArray } from '@benzed/util'
 
-import first from './first'
+import { first } from './first'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any,
@@ -32,4 +32,4 @@ function unwrap<T>(array: T): Unwrap<T> {
 
 //// Exports ////
 
-export default unwrap
+export { unwrap }

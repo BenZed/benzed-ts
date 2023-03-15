@@ -1,5 +1,5 @@
-import remove from './remove'
-
+import { remove } from './remove'
+import { it, expect } from '@jest/globals'
 //// Main ////
 
 it('removes all values from an array', () => {

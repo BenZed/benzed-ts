@@ -39,4 +39,4 @@ function shuffle(this: unknown, ...args: [unknown] | []): unknown {
 
 //// Exports ////
 
-export default shuffle
+export { shuffle }

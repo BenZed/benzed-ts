@@ -28,5 +28,5 @@ function wrap<T>(
 
 //// Exports ////
 
-export default wrap
+export { wrap }
 

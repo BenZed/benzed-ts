@@ -1,4 +1,5 @@
 import { min, max } from './min-max'
+import { describe, it, expect } from '@jest/globals'
 
 class Role {
 
