@@ -1,7 +1,8 @@
 
 import { Trait } from '@benzed/traits'
-import { assign, each, Func, isFunc, pick } from '@benzed/util'
-import { expect, test, describe, it, } from '@jest/globals'
+import { assign, pick } from '@benzed/util'
+
+import { expect, describe, it, } from '@jest/globals'
 
 import { Stateful } from './stateful'
 import { Structural } from './structural'

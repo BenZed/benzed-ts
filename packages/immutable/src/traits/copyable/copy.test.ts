@@ -1,7 +1,8 @@
 import { copy } from './copy'
 
-import { describe, it, expect } from '@jest/globals'
 import Copyable from './copyable'
+
+import { describe, it, expect } from '@jest/globals'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */ 
 
