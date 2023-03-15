@@ -3,8 +3,8 @@ import { $bigint } from './big-int'
 import { testValidator } from '../../../util.test'
 
 //// Tests ////
-  
-testValidator(
+
+testValidator<unknown, bigint>(
     $bigint,
     { transforms: 0n },
     { asserts: 0n }
@@ -37,7 +37,7 @@ testValidator(
 
 testValidator(
     $bigint.min(5n).max(10n),
-    { asserts: 5n },
+    { asserts: 5n }, 
     { asserts: 4n, error: 'must be above or equal 5' },
     { asserts: 10n },
     { asserts: 11n, error: 'must be below or equal 10' }

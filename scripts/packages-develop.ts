@@ -51,12 +51,12 @@ const buildProcess = new PackageSpawnProcess(
     'tsc'
 )
 
-const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) => {
+const stripSrcSuffixProcess = new FileProcess('strip-lib-suffix', async (file) => {
 
     const contents = await fs.readFile(file, 'utf-8')
     const lines = contents.split('\n')
 
-    const SRC = '/src'
+    const LIB = '/lib'
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
@@ -65,11 +65,11 @@ const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) =
         if (bzImportIndex < 0)
             continue
         
-        const srcIndex = line.indexOf(SRC, bzImportIndex)
+        const srcIndex = line.indexOf(LIB, bzImportIndex)
         if (srcIndex < 0)
             continue 
 
-        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + SRC.length)
+        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + LIB.length)
     }
     
     const newContents = lines.join('\n')

@@ -2,7 +2,7 @@ import { Value } from './value'
 
 //// Main ////
 
-class NaN extends Value<number> {
+export class NAN extends Value<number> {
 
     constructor() {
         super(globalThis.NaN)
@@ -12,9 +12,5 @@ class NaN extends Value<number> {
 
 //// Exports ////
 
-const $nan = new NaN
+export const $nan = new NAN
 
-export {
-    NaN,
-    $nan
-}

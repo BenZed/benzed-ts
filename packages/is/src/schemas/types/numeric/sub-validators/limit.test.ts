@@ -4,6 +4,8 @@ import { Validator } from '@benzed/schema'
 
 import { testValidator } from '../../../../util.test'
 
+import { describe } from '@jest/globals'
+
 //// Tests ////
 
 const { applyState: apply } = Validator
@@ -43,7 +45,7 @@ describe('number', () => {
 
 describe('bigint', () => {
 
-    const $minBigint = new Limit<bigint>('min', 0n)
+    const $minBigint = new Limit<bigint>('min')
 
     testValidator(
         apply($minBigint, { value: 5n }),

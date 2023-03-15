@@ -92,6 +92,7 @@ module.exports = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
         alias: {
+            'koa': false,
             'koa-body': false,
             'util': false,
             'http': false,
@@ -106,7 +107,6 @@ module.exports = {
             'net': false,
             'assert': false,
             'async_hooks': false,
-            'koa-body': false
         }
     },
 
