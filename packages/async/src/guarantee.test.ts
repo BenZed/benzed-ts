@@ -3,6 +3,9 @@ import { Guarantee } from './guarantee'
 import milliseconds from './milliseconds'
 
 import { expectTypeOf } from 'expect-type'
+import { it, expect } from '@jest/globals'
+
+//// Tests ////
 
 it('returns a callable object', async () => { 
 

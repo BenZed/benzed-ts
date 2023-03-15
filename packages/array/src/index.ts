@@ -5,7 +5,7 @@ import unique from './unique'
 import pluck from './pluck'
 import random from './random'
 import ensure from './ensure'
-import remove from './remove'
+import remove from './remove' 
 import resolveIndex from './resolve-index'
 
 import wrap from './wrap'

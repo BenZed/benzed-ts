@@ -33,6 +33,9 @@ function onAnimationFrame(
     callback: () => unknown
 ): Abort {
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requestAnimationFrame = (globalThis as any).requestAnimationFrame
+
     if (typeof requestAnimationFrame !== 'function') {
         const SIXTY_FRAMES_PER_SECOND = 1000 / 60
         return onInterval(callback, SIXTY_FRAMES_PER_SECOND)
