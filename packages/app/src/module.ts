@@ -2,7 +2,7 @@ import { is } from '@benzed/is'
 
 import { FindNode, HasNode, AssertNode, Node } from '@benzed/node'
 import { Structural } from '@benzed/immutable'
-import { Traits } from '@benzed/traits'
+import { Callable, Traits } from '@benzed/traits'
 import { nil } from '@benzed/util'
 
 //// Main ////
@@ -24,8 +24,10 @@ abstract class Module extends Traits.use(Node, Structural) {
     static readonly equals: typeof Structural.equals = Structural.equals
 
     static nameOf(input: object): string {
+
         if ('name' in input && is.string(input.name))
             return input.name
+
         return input.constructor.name
     }
 
@@ -66,7 +68,19 @@ abstract class Module extends Traits.use(Node, Structural) {
 
     // get server(): Server | nil { return this.find.inRoot(Server) }
 
-} 
+    get [Structural.state](): {} {
+        return { ...this }
+    }
+
+    [Structural.copy](): this {
+        const clone = super[Structural.copy]()
+        return Node.apply(clone)
+    }
+}
+
+//// Extends ////
+
+Callable[Traits.onUse](Module)
 
 //// Exports ////
 

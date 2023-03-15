@@ -1,13 +1,22 @@
-import { Module } from '@benzed/app'
-
-//// Types ////
+import { GetCommand } from '@benzed/app'
+import fs from '@benzed/fs'
 
 //// Main ////
 
-class ServeUI extends Module {
+class ServeUI extends GetCommand<void, string> {
 
-    get [Module.state](): {} {
-        return {}
+    private _html = ''
+
+    async execute(): Promise<string> {
+
+        if (!this._html)
+            this._html = await fs.readFile('../client/index.html', 'utf-8')
+
+        return this._html
+    }
+
+    override get path(): string {
+        return ''
     }
 
 }
