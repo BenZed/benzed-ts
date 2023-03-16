@@ -2,42 +2,45 @@ import { Callable, Trait } from '@benzed/traits'
 import { HttpMethod } from '../../util'
 import { Executable, Execute } from './executable'
 
-import type { 
-    GetCommand, 
-    PostCommand, 
-    PatchCommand, 
-    PutCommand, 
-    DeleteCommand, 
-    OptionsCommand 
+import type {
+    GetCommand,
+    PostCommand,
+    PatchCommand,
+    PutCommand,
+    DeleteCommand,
+    OptionsCommand
 } from './commands'
 
 import { Node } from '@benzed/node'
 import Module from '../../module'
 
 //// EsLint ////
-/* eslint-disable 
+/* eslint-disable
     @typescript-eslint/no-explicit-any,
 */
 
 //// Types ////
 
-interface Command<I = any, O = any> extends Executable<I,O> {
+interface Command<I = any, O = any> extends Executable<I, O> {
     (input: I): Promise<O>
 
-    get pathFromRoot(): readonly string[] 
+    get pathFromRoot(): readonly string[]
     get path(): string
 }
 
-type _CommandConstructor = abstract new <I,O>() => Command<I,O>
+type _CommandConstructor = abstract new <I, O>() => Command<I, O>
 
 interface CommandConstructor extends _CommandConstructor {
 
-    get<I = void, O = void>(execute: Execute<I,O>): GetCommand<I,O>
-    post<I = void, O = void>(execute: Execute<I,O>): PostCommand<I,O>
-    patch<I = void, O = void>(execute: Execute<I,O>): PatchCommand<I,O>
-    put<I = void, O = void>(execute: Execute<I,O>): PutCommand<I,O>
-    delete<I = void, O = void>(execute: Execute<I,O>): DeleteCommand<I,O>
-    options<I = void, O = void>(execute: Execute<I,O>): OptionsCommand<I,O>
+    get<I = void, O = void>(execute: Execute<I, O>): GetCommand<I, O>
+    post<I = void, O = void>(execute: Execute<I, O>): PostCommand<I, O>
+
+    put<I = void, O = void>(execute: Execute<I, O>): PutCommand<I, O>
+    patch<I = void, O = void>(execute: Execute<I, O>): PatchCommand<I, O>
+
+    delete<I = void, O = void>(execute: Execute<I, O>): DeleteCommand<I, O>
+
+    options<I = void, O = void>(execute: Execute<I, O>): OptionsCommand<I, O>
 
 }
 
@@ -46,11 +49,12 @@ interface CommandConstructor extends _CommandConstructor {
 const Command = class extends Trait.add(Executable, Callable) {
 
     static _create(execute: Execute, method: HttpMethod): Command {
-        return new class extends Command<any,any> {
+        return new class extends Command<any, any> {
             get method(): HttpMethod {
                 return method
             }
             execute(input: unknown) {
+                console.log({ input })
                 return execute(input)
             }
         }
@@ -85,6 +89,27 @@ const Command = class extends Trait.add(Executable, Callable) {
         return Callable.apply(this)
     }
 
+    get method(): HttpMethod {
+        throw new Error(`${this.constructor.name} has not implemented an 'method' getter.`)
+    }
+
+    execute(input: unknown): unknown {
+        void input
+        throw new Error(`${this.constructor.name} has not implemented an 'execute' method.`)
+    }
+
+    get pathFromRoot(): readonly string[] {
+        return Node
+            .getPath(this)
+            .map(String)
+    }
+
+    get path(): string {
+        return this.pathFromRoot.at(-1) ?? this.name
+    }
+
+    /// Trait Implementations
+
     get [Callable.signature]() {
         return this.execute
     }
@@ -92,22 +117,6 @@ const Command = class extends Trait.add(Executable, Callable) {
     [Module.copy](): this {
         const clone = super[Module.copy]()
         return Callable.apply(clone)
-    }
-
-    get method(): HttpMethod {
-        throw new Error(`${this.constructor.name} has not implemented an 'method' getter.`)
-    }
-
-    execute(_input: unknown): unknown {
-        throw new Error(`${this.constructor.name} has not implemented an 'execute' method.`)
-    }
-
-    get pathFromRoot(): readonly string[] {
-        return Node.getPath(this).map(String)
-    }
-
-    get path(): string {
-        return this.pathFromRoot.at(-1) ?? this.name
     }
 
 } as CommandConstructor

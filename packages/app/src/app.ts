@@ -1,5 +1,5 @@
-import { copy } from '@benzed/immutable'
-import { assign } from '@benzed/util'
+import { Node } from '@benzed/node'
+import { define } from '@benzed/util'
 
 import { Module } from './module'
 
@@ -19,16 +19,16 @@ import { Runnable, Validateable } from './traits'
 //// Helper Types ////
 
 type _AppWithKeys<A extends App> =
-    Exclude<keyof A, 'asClient' | 'asServer'>
+    Exclude<keyof A, 'asClient' | 'asServer' | 'client' | 'server'>
 
 //// Types ////
 
-type AsClient<A extends App> = 
-    { [K in _AppWithKeys<A>]: A[K]} &
+type AsClient<A extends App> =
+    { [K in _AppWithKeys<A>]: A[K] } &
     { readonly client: Client }
 
-type AsServer<A extends App> = 
-    { [K in _AppWithKeys<A>]: A[K] } & 
+type AsServer<A extends App> =
+    { [K in _AppWithKeys<A>]: A[K] } &
     { readonly server: Server }
 
 //// Main ////
@@ -44,25 +44,27 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
     protected async _onStart(): Promise<void> {
         const allModules = this.find.all.inDescendents()
 
-        // validate each module that implements the OnValidate trait
+        // validate each module that implements the Validateable trait
         for (const module of allModules) {
             if (Validateable.is(module))
                 module.validate()
         }
 
-        // start each module that implements the OnStart trait
+        // start each module that implements the Runnable trait
         for (const module of allModules) {
             if (Runnable.is(module))
                 await module.start()
         }
 
-    }
+    } 
 
     protected async _onStop(): Promise<void> {
-        for (const module of this.find.all.inDescendents()) {
+
+        const allModules = this.find.all.inDescendents()
+        for (const module of allModules) {
             if (Runnable.is(module))
                 await module.stop()
-        }
+        } 
     }
 
     protected _onValidate(): void {
@@ -73,17 +75,17 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
 
     asClient(settings?: Partial<ClientSettings>): AsClient<this> {
 
-        const clone = copy(this)
+        const clone = this[Module.copy]()
         const client = new Client(settings)
 
-        return assign(clone, { client }) as AsClient<this>
+        return define.enumerable(clone, 'client', client) as AsClient<this>
     }
 
     asServer(settings?: Partial<ServerSettings>): AsServer<this> {
-        const clone = copy(this)
+        const clone = this[Module.copy]()
         const server = new Server(settings)
 
-        return assign(clone, { server }) as AsServer<this>
+        return define.enumerable(clone, 'server', server) as AsServer<this>
     }
 
 }

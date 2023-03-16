@@ -13,9 +13,10 @@ import Module from '../module'
  */
 abstract class Validateable extends Trait {
 
-    static override readonly is: (input: unknown) => input is Validateable = is.shape({
-        validate: is.function
-    }).strict(false) as AnyTypeGuard
+    static override readonly is: (input: unknown) => input is Validateable =
+        is.shape({
+            validate: is.function
+        }).strict(false) as AnyTypeGuard
 
     /**
      * Validate a module's position in the tree.
@@ -92,7 +93,7 @@ abstract class Validateable extends Trait {
         if (Node.has<Module>(this).inSiblings(input))
             throw new Error(`${this.name} cannot be placed with conflicting module ${Module.nameOf(input)} in siblings`)
     }
-    
+
     /**
      * Throws if conflicting module is found
      */
@@ -103,7 +104,7 @@ abstract class Validateable extends Trait {
     }
 
     //// Helper ////
-    
+
     private _assertModule(): asserts this is Module {
         if (!is(Module)(this))
             throw new Error(`${Module.nameOf(this)} must be a ${Module.name}`)

@@ -4,6 +4,7 @@ import { FindNode, HasNode, AssertNode, Node } from '@benzed/node'
 import { Structural } from '@benzed/immutable'
 import { Callable, Traits } from '@benzed/traits'
 import { nil } from '@benzed/util'
+import type { Client, Server } from './modules'
 
 //// Main ////
 
@@ -32,7 +33,7 @@ abstract class Module extends Traits.use(Node, Structural) {
     }
 
     constructor() {
-        super() 
+        super()
         return Node.apply(this)
     }
 
@@ -47,7 +48,7 @@ abstract class Module extends Traits.use(Node, Structural) {
     get root(): Module {
         return Node.getRoot(this) as Module
     }
-    
+
     get modules(): Module[] {
         return Array.from(Node.eachChild(this)) as Module[]
     }
@@ -64,9 +65,19 @@ abstract class Module extends Traits.use(Node, Structural) {
         return Node.assert(this)
     }
 
-    // get client(): Client | nil { return this.find.inRoot(Client) }
+    get client(): Client | nil {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { Client } = require('./modules/client') as typeof import('./modules/client')
+        return this.root.find(is(Client))
+    }
 
-    // get server(): Server | nil { return this.find.inRoot(Server) }
+    get server(): Server | nil {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { Server } = require('./modules/server') as typeof import('./modules/server')
+        return this.root.find(is(Server))
+    }
+
+    //// Trait Implementations ////
 
     get [Structural.state](): {} {
         return { ...this }
@@ -85,7 +96,7 @@ Callable[Traits.onUse](Module)
 //// Exports ////
 
 export default Module
- 
+
 export {
     Module
 }

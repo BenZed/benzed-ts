@@ -1,4 +1,4 @@
-import { 
+import {
     AnyTypeGuard,
     Each,
     each,
@@ -39,11 +39,11 @@ type NodePredicate<N extends Node = Node> = (input: N) => boolean
 //// Types ////
 
 type FindInput<N extends Node = Node> = N | NodePredicate<N> | NodeTypeGuard<N> | NodeTrait<N>
-type FindOutput<I extends FindInput<any>> = 
-    I extends NodePredicate<infer N> | NodeTypeGuard<infer N> | NodeTrait<infer N> 
-        ? N 
-        : I extends Node 
-            ? I 
+type FindOutput<I extends FindInput<any>> =
+    I extends NodePredicate<infer N> | NodeTypeGuard<infer N> | NodeTrait<infer N>
+        ? N
+        : I extends Node
+            ? I
             : never
 
 interface FindNode<N extends Node> {
@@ -114,7 +114,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         readonly source: Node,
         private _flag?: FindFlag,
         private readonly _error?: string
-    ) { 
+    ) {
         super()
         this._each = eachChild(source)
         return Callable.apply(this)
@@ -127,7 +127,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
     }
 
     get or(): this {
-        this._mergeOnIncrement = true 
+        this._mergeOnIncrement = true
         return this
     }
 
@@ -188,8 +188,8 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         const has = found.size > 0
         if (flag === FindFlag.Assert && !has) {
             throw new Error(
-                error ?? 
-                this._error ?? 
+                error ??
+                this._error ??
                 `Node ${getPath(this.source).join('/')} Could not find node ${toNodeName(input)}`
             )
         }
@@ -197,7 +197,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         if (flag === FindFlag.Has)
             return has
 
-        if (flag === FindFlag.All)
+        if (flag === FindFlag.All) 
             return Array.from(found)
 
         const [first] = found
@@ -222,7 +222,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
 //// Helper ////
 
 // TODO should be exchanged with 'isGuardedConstructor'
-const isNodeTrait: (input: unknown) => input is NodeTrait = 
+const isNodeTrait: (input: unknown) => input is NodeTrait =
     isShape({
         is: isFunc as AnyTypeGuard
     })
@@ -245,12 +245,12 @@ function toNodePredicate(input?: FindInput): NodeTypeGuard | NodePredicate {
         return input
 
     throw new Error('Invalid find input.')
-} 
+}
 
 function toNodeName(input?: FindInput): string {
 
-    let name = input && 'name' in input 
-        ? input.name 
+    let name = input && 'name' in input
+        ? input.name
         : ''
 
     // assume typeguard with convention isModuleName
@@ -272,7 +272,7 @@ export {
 
     Find,
     FindFlag,
-    FindConstructor, 
+    FindConstructor,
     FindInput,
     FindOutput,
 

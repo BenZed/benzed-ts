@@ -10,7 +10,7 @@ const testServer = testApp.asServer()
 
 //// Tests ////
 
-describe('onValidate', () => {
+describe('Validateable', () => {
 
     test.todo('asserts unique: no other client (or server) may be on the app')
 
