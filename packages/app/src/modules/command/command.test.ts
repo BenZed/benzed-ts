@@ -1,8 +1,16 @@
 import { Command } from './command'
 import { App } from '../../app'
 import { Module } from '../../module'
+import {
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
+    it,
+    expect,
+    describe,
+
+    beforeAll,
+    afterAll
+
+} from '@jest/globals'
 
 //// Tests ////
 
@@ -13,7 +21,7 @@ class TestData extends Module {
 
 const testApp = new class TestApp extends App {
 
-    data = new TestData
+    data = new TestData 
 
     get = Command.get(() => void this.data.gets++ ?? 'get' as const)
 
@@ -34,15 +42,30 @@ afterAll(async () => {
     await testServer.stop()
 }, 1000)
 
+for (const app of [testApp, testClient, testServer]) {
+
+    describe(`${app.name} immutable tests`, () => {
+        it(`${app.name} command path`, () => {
+            expect(app.post.pathFromRoot).toEqual(['post'])
+            expect(app.post.path).toEqual('post')
+
+            expect(app.get.pathFromRoot).toEqual(['get'])
+            expect(app.get.path).toEqual('get')
+        })
+        it(`${app.name} command parent`, () => {
+            expect(app.get.parent).toBe(app)
+            expect(app.post.parent).toBe(app)
+        })
+    })
+}
+
 describe('client -> server', () => {
 
     it('sends command to server', async () => {
         const get = await testClient.get()
-        expect(get).toBe('get')
 
-        expect(testServer.data.gets).toBe(1)
         expect(testClient.data.gets).toBe(0)
-
+        expect(get).toBe('get')
+        expect(testServer.data.gets).toBe(1)
     })
-
 })

@@ -107,6 +107,9 @@ abstract class Node extends Trait {
             }
         })
 
+        for (const child of eachChild(proxyNode))
+            setParent(child, proxyNode)
+
         setParent(proxyNode, nil)
         return proxyNode
     }

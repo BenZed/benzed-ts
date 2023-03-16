@@ -1,10 +1,12 @@
 
-import { is, IsType } from '@benzed/is'
 import { pick } from '@benzed/util'
+import { is, IsType } from '@benzed/is'
 
 import Module from '../../module'
 import { Connection } from '../connection'
 import { DEFAULT_SERVER_PORT } from '../../util/constants'
+
+import { Command, CommandInput, CommandOutput } from '../command'
 
 //// Types ////
 
@@ -35,23 +37,41 @@ class Client extends Connection implements ClientSettings {
     readonly host: string
 
     constructor(
-        settings: Partial<ClientSettings> = {}
+        settings: Partial<ClientSettings> = {} 
     ) {
         super()
-        this.host = isClientSettings.validate(settings).host
+        this.host = isClientSettings
+            .validate(settings)
+            .host
     }
 
+    sendToServer<C extends Command>(
+        command: C,
+        input: CommandInput<C>
+    ): Promise<CommandOutput<C>> { 
+
+        const { path, pathFromRoot } = command
+
+        console.log({ path, pathFromRoot })
+        console.log(command.parent)
+        console.log(command.pathFromRoot)
+        return null as any
+    }
+
+    //// Runnable implementation ////
+    protected _onStart(): void | Promise<void> {
+        //
+    }
+
+    protected _onStop(): void | Promise<void> {
+        //
+    }
+
+    //// Module Implementation ////
     get [Module.state](): ClientSettings {
         return pick(this, 'host')
     }
-
-    _onStart(): void | Promise<void> {
-        //
-    }
-
-    _onStop(): void | Promise<void> {
-        //
-    }
+    
 }
 
 //// Exports ////

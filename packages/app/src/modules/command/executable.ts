@@ -12,7 +12,11 @@ export type Execute<I = any, O = any> = (input: I) => Promise<O> | O
 
 export abstract class Executable<I,O> extends Module {
 
-    abstract execute(input: I): Promise<O> | O
+    execute(input: I): Promise<O> | O {
+        return this.onExecute(input)
+    }
+
+    abstract onExecute(input: I): Promise<O> | O
 
     abstract get method(): HttpMethod
 

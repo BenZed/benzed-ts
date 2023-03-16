@@ -1,18 +1,22 @@
 import { Callable, Trait } from '@benzed/traits'
+import { Node } from '@benzed/node'
+
 import { HttpMethod } from '../../util'
 import { Executable, Execute } from './executable'
 
 import type {
+
+    PutCommand,
     GetCommand,
     PostCommand,
     PatchCommand,
-    PutCommand,
     DeleteCommand,
     OptionsCommand
+
 } from './commands'
 
-import { Node } from '@benzed/node'
 import Module from '../../module'
+import { Structural } from '@benzed/immutable'
 
 //// EsLint ////
 /* eslint-disable
@@ -22,11 +26,14 @@ import Module from '../../module'
 //// Types ////
 
 interface Command<I = any, O = any> extends Executable<I, O> {
-    (input: I): Promise<O>
+    (input: I): O | Promise<O>
 
     get pathFromRoot(): readonly string[]
     get path(): string
 }
+
+type CommandInput<C extends Command> = C extends Command<infer I, any> ? I : unknown
+type CommandOutput<C extends Command> = C extends Command<any, infer O> ? O : unknown
 
 type _CommandConstructor = abstract new <I, O>() => Command<I, O>
 
@@ -50,13 +57,15 @@ const Command = class extends Trait.add(Executable, Callable) {
 
     static _create(execute: Execute, method: HttpMethod): Command {
         return new class extends Command<any, any> {
+
             get method(): HttpMethod {
                 return method
             }
-            execute(input: unknown) {
-                console.log({ input })
+
+            onExecute(input: unknown) {
                 return execute(input)
             }
+
         }
     }
 
@@ -93,7 +102,13 @@ const Command = class extends Trait.add(Executable, Callable) {
         throw new Error(`${this.constructor.name} has not implemented an 'method' getter.`)
     }
 
-    execute(input: unknown): unknown {
+    override execute(input: unknown): unknown {
+        return this.client
+            ? this.client.sendToServer(this as Command, input)
+            : this.onExecute(input)
+    }
+
+    onExecute(input: unknown): unknown {
         void input
         throw new Error(`${this.constructor.name} has not implemented an 'execute' method.`)
     }
@@ -101,7 +116,7 @@ const Command = class extends Trait.add(Executable, Callable) {
     get pathFromRoot(): readonly string[] {
         return Node
             .getPath(this)
-            .map(String)
+            .map(a => String(a))
     }
 
     get path(): string {
@@ -119,11 +134,18 @@ const Command = class extends Trait.add(Executable, Callable) {
         return Callable.apply(clone)
     }
 
+    // [Module.copy](): this {
+    //     const clone = Structural.prototype[Structural.copy].call(this) as this
+    //     return Node.apply(Callable.apply(clone))
+    // }
+
 } as CommandConstructor
 
 //// Exports ////
 
 export {
     Command,
+    CommandInput,
+    CommandOutput,
     CommandConstructor
 }

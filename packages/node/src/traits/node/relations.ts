@@ -84,11 +84,11 @@ export function eachDescendent<T extends Node>(node: T): Each<Node> {
             const next: Node[] = []
             for (const node of current) {
 
-                // In case of circulare references
-                if (found.has(node))
-                    continue
-                else 
+                // In case of circular references
+                if (!found.has(node))
                     found.add(node) 
+                else 
+                    continue
 
                 const children = eachChild(node).toArray()
                 yield* children

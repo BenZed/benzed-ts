@@ -39,6 +39,11 @@ type AsServer<A extends App> =
  */
 abstract class App extends Module.add(Service, Runnable, Validateable) {
 
+    override get name(): string {
+        const suffix = this.server ? 'Server' : this.client ? 'Client' : ''
+        return this.constructor.name + suffix
+    }
+
     //// Trait Methods ////
 
     protected async _onStart(): Promise<void> {

@@ -20,6 +20,7 @@ abstract class Module extends Traits.use(Node, Structural) {
     static readonly setState = Structural.set
     static readonly applyState = Structural.create
 
+    static readonly parent: typeof Node.parent = Node.parent
     static readonly state: typeof Structural.state = Structural.state
     static readonly copy: typeof Structural.copy = Structural.copy
     static readonly equals: typeof Structural.equals = Structural.equals
@@ -71,7 +72,7 @@ abstract class Module extends Traits.use(Node, Structural) {
         return this.root.find(is(Client))
     }
 
-    get server(): Server | nil {
+    get server(): Server | nil { 
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { Server } = require('./modules/server') as typeof import('./modules/server')
         return this.root.find(is(Server))
