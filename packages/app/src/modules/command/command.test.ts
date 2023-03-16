@@ -6,7 +6,6 @@ import {
     it,
     expect,
     describe,
-
     beforeAll,
     afterAll
 
@@ -57,9 +56,9 @@ for (const app of [testApp, testClient, testServer]) {
             expect(app.post.parent).toBe(app)
         })
     })
-}
+} 
 
-describe('client -> server', () => {
+describe.only('client -> server', () => {
 
     it('sends command to server', async () => {
         const get = await testClient.get()
@@ -68,4 +67,5 @@ describe('client -> server', () => {
         expect(get).toBe('get')
         expect(testServer.data.gets).toBe(1)
     })
+
 })

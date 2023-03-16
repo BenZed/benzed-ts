@@ -85,7 +85,7 @@ each.prototypeOf = function prototypeOf<T extends object[]>(...objects: T): Each
 }
 
 each.indexOf = function indexOf<T extends Indexable>(
-    arrayLike: T, 
+    arrayLike: T,
     ...options: IndexesOfOptionsSignature
 ): EachIterable<IndexesOf<T>> {
     const indexGenerator = (eachIndex as any)(arrayLike, ...options)

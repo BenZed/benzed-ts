@@ -24,10 +24,12 @@
         //
         // Enable strictest settings like strictNullChecks & noImplicitAny.
         "strict": true,
+        "strictFunctionTypes": true,
+
+        "sourceMap": true,
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
 
-        "strictFunctionTypes": true,
         "incremental": true,
         //
         // Import non-ES modules as default imports.

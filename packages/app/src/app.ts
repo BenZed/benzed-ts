@@ -1,4 +1,3 @@
-import { Node } from '@benzed/node'
 import { define } from '@benzed/util'
 
 import { Module } from './module'

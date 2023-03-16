@@ -16,7 +16,6 @@ import type {
 } from './commands'
 
 import Module from '../../module'
-import { Structural } from '@benzed/immutable'
 
 //// EsLint ////
 /* eslint-disable
@@ -28,7 +27,7 @@ import { Structural } from '@benzed/immutable'
 interface Command<I = any, O = any> extends Executable<I, O> {
     (input: I): O | Promise<O>
 
-    get pathFromRoot(): readonly string[]
+    get pathFromRoot(): string[]
     get path(): string
 }
 
@@ -104,7 +103,7 @@ const Command = class extends Trait.add(Executable, Callable) {
 
     override execute(input: unknown): unknown {
         return this.client
-            ? this.client.sendToServer(this as Command, input)
+            ? this.client.sendCommand(this as Command, input)
             : this.onExecute(input)
     }
 
@@ -113,10 +112,10 @@ const Command = class extends Trait.add(Executable, Callable) {
         throw new Error(`${this.constructor.name} has not implemented an 'execute' method.`)
     }
 
-    get pathFromRoot(): readonly string[] {
+    get pathFromRoot(): string[] {
         return Node
             .getPath(this)
-            .map(a => String(a))
+            .map(String)
     }
 
     get path(): string {

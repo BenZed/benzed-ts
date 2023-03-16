@@ -1,4 +1,5 @@
 import { App } from './app'
+import { each } from '@benzed/util'
 
 import { it, test, expect, describe } from '@jest/globals'
 import { Module } from './module'

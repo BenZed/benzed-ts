@@ -45,16 +45,19 @@ class Client extends Connection implements ClientSettings {
             .host
     }
 
-    sendToServer<C extends Command>(
+    sendCommand<C extends Command>(
         command: C,
         input: CommandInput<C>
     ): Promise<CommandOutput<C>> { 
 
-        const { path, pathFromRoot } = command
+        const { path, method, pathFromRoot } = command
 
-        console.log({ path, pathFromRoot })
-        console.log(command.parent)
-        console.log(command.pathFromRoot)
+        const url = pathFromRoot
+            .splice(-1, 1, path)
+            .join('/')
+
+        console.log({ url })
+
         return null as any
     }
 
