@@ -8,9 +8,6 @@ describe('onValidate', () => {
 })
 
 describe('settings', () => {
-
     test.todo('host setting points to localhost with the default server port by default')
-
     test.todo('client state is it\'s own settings')
-
 })

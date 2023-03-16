@@ -1,12 +1,21 @@
 
-import { pick } from '@benzed/util'
+import { nil, pick } from '@benzed/util'
 import { is, IsType } from '@benzed/is'
 
 import Module from '../../module'
 import { Connection } from '../connection'
 import { DEFAULT_SERVER_PORT } from '../../util/constants'
 
-import { Command, CommandInput, CommandOutput } from '../command'
+import {
+    Command,
+    CommandError,
+    CommandInput,
+    CommandOutput
+} from '../command'
+
+import { HttpMethod, HttpCode, isPath } from '../../util'
+
+import { fetch } from 'cross-fetch'
 
 //// Types ////
 
@@ -45,7 +54,7 @@ class Client extends Connection implements ClientSettings {
             .host
     }
 
-    sendCommand<C extends Command>(
+    async sendCommand<C extends Command>(
         command: C,
         input: CommandInput<C>
     ): Promise<CommandOutput<C>> { 
@@ -56,9 +65,33 @@ class Client extends Connection implements ClientSettings {
             .splice(-1, 1, path)
             .join('/')
 
-        console.log({ url })
+        const body = method === HttpMethod.Get || method === HttpMethod.Options
+            ? nil
+            : input
 
-        return null as any
+        const response = await fetch(
+            this.host + isPath.validate(url),
+            {
+                method,
+                body: body && JSON.stringify(body),
+            }
+        )
+
+        if (response.status >= HttpCode.BadRequest) {
+            const text = await response.text()
+            let error
+            try {
+                error = JSON.parse(text)
+            } catch {
+                error = {
+                    code: HttpCode.InternalServerError,
+                    message: response.statusText
+                }
+            }
+            throw CommandError.from(error)
+        }
+
+        return response.json()
     }
 
     //// Runnable implementation ////

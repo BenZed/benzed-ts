@@ -45,7 +45,6 @@ interface CommandConstructor extends _CommandConstructor {
     patch<I = void, O = void>(execute: Execute<I, O>): PatchCommand<I, O>
 
     delete<I = void, O = void>(execute: Execute<I, O>): DeleteCommand<I, O>
-
     options<I = void, O = void>(execute: Execute<I, O>): OptionsCommand<I, O>
 
 }
@@ -64,7 +63,6 @@ const Command = class extends Trait.add(Executable, Callable) {
             onExecute(input: unknown) {
                 return execute(input)
             }
-
         }
     }
 
