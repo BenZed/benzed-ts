@@ -54,9 +54,9 @@ class SchemaBuilder<V extends Validator, S extends SubValidators<V>>
     override [Validator.analyze](ctx: ValidationContext<ValidateInput<V>, ValidateOutput<V>>) {
         
         ctx = super[Validator.analyze](ctx)
-        if (!ctx.hasError() && !ctx.hasSubContextError())
+        if (ctx.hasValidOutput()) 
             ctx = this[$$builder][Validator.analyze](ctx as ValidationContext) as ValidationContext
-        
+         
         return ctx
     }
 

@@ -51,7 +51,7 @@ class NumberValidator extends TypeValidator<number> {
     }
 
     //// State ////
-    
+
     get [Validator.state](): Pick<this, 'name' | 'positive' | 'message'> {
         return pick(this, 'name', 'positive', 'message')
     }

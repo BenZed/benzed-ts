@@ -133,6 +133,20 @@ class ValidationContext<I = any, O = I>
         )
     }
 
+    /**
+     * Pipe the output of this context into
+     * the input of another
+     */
+    pipeContext<Ix = O, Ox = O>(): ValidationContext<Ix, Ox> {
+
+        const pipeInput = this.hasOutput() ? this.getOutput() : this.input
+
+        return new ValidationContext(
+            pipeInput,
+            this
+        ) as ValidationContext
+    }
+
     pushSubContext<Ix, Ox>(
         input: Ix, 
         key: PropertyKey

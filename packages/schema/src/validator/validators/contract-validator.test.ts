@@ -29,6 +29,7 @@ describe(`${$string.constructor.name} validator tests`, () => {
         { asserts: '3' },
         { transforms: 3, error: true },
         { transforms: '', output: '' },
+        { transforms: ' ace ', output: 'ace' },
     )
 
 })

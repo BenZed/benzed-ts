@@ -67,7 +67,7 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
 
         // validate sub validators
         for (const name of each.nameOf(this[$$sub])) {
-            if (ctx.hasError() || ctx.hasSubContextError())
+            if (!ctx.hasValidOutput())
                 break
 
             const sub = this[$$sub][name]
@@ -79,7 +79,7 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
             if (isDisabled)
                 continue
 
-            ctx = sub[Validator.analyze](ctx as ValidationContext) as ValidationContext
+            ctx = sub[Validator.analyze](ctx.pipeContext()) as ValidationContext
         }
 
         return ctx

@@ -24,9 +24,9 @@ abstract class PipeValidator<I, O = I> extends Validator<I, O> {
     [Validator.analyze](ctx: ValidationContext<I,O>): ValidationContext<I,O> {
 
         for (const validator of this.validators) {
-            ctx = validator[Validator.analyze](ctx as ValidationContext) as ValidationContext
+            ctx = validator[Validator.analyze](ctx.pipeContext()) as ValidationContext
             if (!ctx.hasValidOutput())
-                return ctx
+                break
         }
 
         return ctx
