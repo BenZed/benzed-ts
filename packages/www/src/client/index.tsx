@@ -25,7 +25,7 @@ window.onload = async function () {
         { createRoot },
         { BrowserRouter: Router },
         { client },
-        { ClientUI }
+        { ClientUI, ClientProvider }
     ] = await dependencies
 
     const mainTag = document.getElementById(HTML_MAIN_TAG)
@@ -35,8 +35,12 @@ window.onload = async function () {
     const root = createRoot(mainTag)
 
     root.render(
-        <Router>
-            <ClientUI />
-        </Router>
+        <React.StrictMode>
+            <Router>
+                <ClientProvider value={client}>
+                    <ClientUI />
+                </ClientProvider>
+            </Router>
+        </React.StrictMode>
     )
 }

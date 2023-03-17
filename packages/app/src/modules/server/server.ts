@@ -1,6 +1,6 @@
 
 import { is, IsType } from '@benzed/is'
-import { each, nil, pick, isTruthy as isNotEmpty } from '@benzed/util'
+import { each, nil, pick } from '@benzed/util'
 
 import { createServer, Server as HttpServer } from 'http'
 import Koa, { Context } from 'koa'
@@ -136,7 +136,8 @@ class Server extends Connection implements ServerSettings {
                 { 
                     method: ctx.method,
                     url: ctx.url
-                })
+                }
+            )
         }
 
         const input = ctx.request.body && is.string(ctx.request.body) 
@@ -149,16 +150,24 @@ class Server extends Connection implements ServerSettings {
     }
 
     private _getCtxCommand(ctx: Context): Command | nil {
-        const path = ctx.originalUrl
+        const path = ctx.originalUrl.replace(/^\//, '')
             .split('/')
-            .filter(isNotEmpty)
 
-        let module: any = this.root
-        for (const subPath of path) {
+        let module = this.root
 
-            if (subPath in module && module[subPath] instanceof Module)
-                module = module[subPath]
-            else 
+        while (path.length > 0) {
+
+            const subPath = path.shift() as string
+
+            const isLastPath = path.length === 0 
+
+            const nextModule = module.modules.find(m => isLastPath 
+                ? m.path === subPath
+                : m instanceof Command && m.method === ctx.method && m.path === subPath
+            )
+            if (nextModule)
+                module = nextModule
+            else
                 return nil
         }
 

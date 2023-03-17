@@ -38,3 +38,14 @@ export abstract class OptionsCommand<I,O> extends Command<I,O> {
         return HttpMethod.Options
     }
 }
+
+/*
+type Stream = string | Buffer | Readable 
+
+// Generic Command for getting static files serverside
+export class GetStaticFile extends GetCommand<string, Stream> { ... }
+
+// Command for getting html files that are going to be augmented with serverside markup
+// TODO move to @benzed/react?
+export class GetReactViewFile extends GetStaticFile { ... }
+*/

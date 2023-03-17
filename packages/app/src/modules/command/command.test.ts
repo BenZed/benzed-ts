@@ -69,7 +69,7 @@ for (const app of [testApp, testClient, testServer]) {
             expect(app.post.parent).toBe(app)
         })
 
-    })
+    }) 
 } 
 
 describe('client -> server', () => {

@@ -11,7 +11,7 @@
         "packages:tsc": "lerna run tsc",
         "packages:lint": "lerna run lint",
         "packages:publish": "npm run packages:sync-versions; ts-node ./scripts/packages-publish.ts",
-        "packages:sync-versions": "ts-node ./scripts/packages-sync-versions.ts --max_old_space_size 3049",
+        "packages:sync-versions": "ts-node ./scripts/packages-sync-versions.ts",
         "start:file-server": "node ./packages/file-server/lib/scripts/start-file-server.js",
         "start:client-renderer": "node ./packages/file-server/lib/scripts/start-client-renderer.js"
     },

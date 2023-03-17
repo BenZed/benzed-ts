@@ -4,12 +4,14 @@ import { Module, Command } from '@benzed/app'
 
 export class Slide extends Module {
 
-    value = 0
+    value = 0 
 
-    readonly get = Command.get(() => this.value)
+    readonly get = Command.get(function (this: Module) {
+        return (this.parent as Slide).value
+    })
 
-    readonly set = Command.post((slide: number) => {
-        this.value = slide
+    readonly set = Command.post(function (this: Module, slide: number){
+        (this.parent as Slide).value = slide
     })
 
 }

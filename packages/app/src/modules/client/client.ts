@@ -61,9 +61,8 @@ class Client extends Connection implements ClientSettings {
 
         const { path, method, pathFromRoot } = command
 
-        const url = pathFromRoot
-            .splice(-1, 1, path)
-            .join('/')
+        pathFromRoot.splice(-1, 1, path)
+        const url = isPath.validate(pathFromRoot.join('/'))
 
         const body = 
             method === HttpMethod.Get ||
@@ -72,7 +71,7 @@ class Client extends Connection implements ClientSettings {
                 : input
 
         const response = await fetch(
-            this.host + isPath.validate(url),
+            this.host + url,
             {
                 method,
                 body: body && JSON.stringify(body),

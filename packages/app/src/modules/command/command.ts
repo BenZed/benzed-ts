@@ -1,5 +1,4 @@
 import { Callable, Trait } from '@benzed/traits'
-import { Node } from '@benzed/node'
 
 import { HttpMethod } from '../../util'
 import { Executable, Execute } from './executable'
@@ -25,10 +24,7 @@ import Module from '../../module'
 //// Types ////
 
 interface Command<I = any, O = any> extends Executable<I, O> {
-    (input: I): O | Promise<O>
-
-    get pathFromRoot(): string[]
-    get path(): string
+    (input: I): Promise<O>
 }
 
 type CommandInput<C extends Command> = C extends Command<infer I, any> ? I : unknown
@@ -99,25 +95,15 @@ const Command = class extends Trait.add(Executable, Callable) {
         throw new Error(`${this.constructor.name} has not implemented an 'method' getter.`)
     }
 
-    override execute(input: unknown): unknown {
+    override execute(input: unknown): Promise<unknown> {
         return this.client
             ? this.client.sendCommand(this as Command, input)
-            : this.onExecute(input)
+            : super.execute(input)
     }
 
     onExecute(input: unknown): unknown {
         void input
         throw new Error(`${this.constructor.name} has not implemented an 'execute' method.`)
-    }
-
-    get pathFromRoot(): string[] {
-        return Node
-            .getPath(this)
-            .map(String)
-    }
-
-    get path(): string {
-        return this.pathFromRoot.at(-1) ?? this.name
     }
 
     /// Trait Implementations

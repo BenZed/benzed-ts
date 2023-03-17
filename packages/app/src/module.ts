@@ -78,6 +78,16 @@ abstract class Module extends Traits.use(Node, Structural) {
         return this.root.find(is(Server))
     }
 
+    get pathFromRoot(): string[] {
+        return Node
+            .getPath(this)
+            .map(String)
+    }
+
+    get path(): string {
+        return this.pathFromRoot.at(-1) ?? this.name
+    }
+
     //// Trait Implementations ////
 
     get [Structural.state](): {} {
