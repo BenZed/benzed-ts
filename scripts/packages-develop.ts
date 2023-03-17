@@ -24,8 +24,11 @@ import ensureMongoDb from './util/ensure-mongo-db'
 
 //// Helper ////
 
-const isTypeScriptFile = (file: string): boolean => 
-    path.extname(file).endsWith('.ts')
+const isTypeScriptFile = (file: string): boolean => {
+    const ext = path.extname(file)
+
+    return ext.endsWith('.ts') || ext.endsWith('.tsx')
+}
 
 const isNotInNodeModules = (file: string): boolean => 
     !file.includes('node_modules')

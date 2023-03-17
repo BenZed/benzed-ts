@@ -27,6 +27,8 @@ const ENTRY = path.resolve(__dirname, 'src/client/index.tsx')
 
 const TEMPLATE = path.resolve(__dirname, 'src/client/index.html')
 
+const MONO_REPO_NODE_MODULES = path.resolve(__dirname, '../../node_modules')
+
 /* EXPORTS */
 
 module.exports = {
@@ -99,6 +101,12 @@ module.exports = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
         alias: {
+            // Prevent multiple-react-versions error (mind you, I still don't
+            // understand why it's happening. This is the location react should
+            // be resolving from, anyway)
+            'react': path.join(MONO_REPO_NODE_MODULES, 'react'),
+            
+            // Prevent app-client errors
             'koa': false,
             'koa-body': false,
             'util': false,

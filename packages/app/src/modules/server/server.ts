@@ -7,10 +7,11 @@ import Koa, { Context } from 'koa'
 import body from 'koa-body'
 import cors from '@koa/cors'
 
-import { Module } from '../../module'
 import { Connection } from '../connection'
-import { HttpCode, HttpMethod, isPort } from '../../util'
 import { Command, CommandError } from '../command'
+
+import { Module } from '../../module'
+import { HttpCode, HttpMethod, isPort } from '../../util'
 
 //// EsLint ////
 /* eslint-disable 
@@ -116,7 +117,7 @@ class Server extends Connection implements ServerSettings {
             const result = await this
                 ._executeCtxCommand(ctx)
                 .catch(CommandError.from) as { code?: number }
-            
+
             if (is.shape({ code: is.number })(result))
                 ctx.status = result.code 
 
@@ -161,9 +162,10 @@ class Server extends Connection implements ServerSettings {
 
             const isLastPath = path.length === 0 
 
-            const nextModule = module.modules.find(m => isLastPath 
-                ? m.path === subPath
-                : m instanceof Command && m.method === ctx.method && m.path === subPath
+            const nextModule = module.modules.find(m => 
+                isLastPath 
+                    ? m.path === subPath && m instanceof Command && m.method === ctx.method
+                    : m.path === subPath
             )
             if (nextModule)
                 module = nextModule

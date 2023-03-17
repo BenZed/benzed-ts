@@ -1,2 +1,2 @@
 export * from './client-ui'
-export * from './client-context'
+export { ClientProvider } from './client-context'

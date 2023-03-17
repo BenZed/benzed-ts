@@ -1,39 +1,44 @@
 import { HttpMethod } from '../../util'
 import { Command } from './command'
 
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
+
 //// Exports ////
 
-export abstract class GetCommand<I,O> extends Command<I,O> {
+export abstract class GetCommand<I = any,O = any> extends Command<I,O> {
     get method(): HttpMethod.Get {
         return HttpMethod.Get
     }
 }
 
-export abstract class PostCommand<I,O> extends Command<I,O> {
+export abstract class PostCommand<I = any,O = any> extends Command<I,O> {
     get method(): HttpMethod.Post {
         return HttpMethod.Post
     }
 }
 
-export abstract class PatchCommand<I,O> extends Command<I,O> {
+export abstract class PatchCommand<I = any,O = any> extends Command<I,O> {
     get method(): HttpMethod.Patch {
         return HttpMethod.Patch
     }
 }
 
-export abstract class PutCommand<I,O> extends Command<I,O> {
+export abstract class PutCommand<I = any,O = any> extends Command<I,O> {
     get method(): HttpMethod.Put {
         return HttpMethod.Put
     }
 }
 
-export abstract class DeleteCommand<I,O> extends Command<I,O> {
+export abstract class DeleteCommand<I = any,O = any> extends Command<I,O> {
     get method(): HttpMethod.Delete {
         return HttpMethod.Delete
     }
 }
 
-export abstract class OptionsCommand<I,O> extends Command<I,O> {
+export abstract class OptionsCommand<I = any,O = any> extends Command<I,O> {
     get method(): HttpMethod.Options {
         return HttpMethod.Options
     }
