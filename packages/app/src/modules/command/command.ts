@@ -61,7 +61,7 @@ const Command = class extends Trait.add(Executable, Callable) {
             }
 
             onExecute(input: unknown) {
-                return execute(input)
+                return execute.call(this, input)
             }
         }
     }
@@ -130,11 +130,6 @@ const Command = class extends Trait.add(Executable, Callable) {
         const clone = super[Module.copy]()
         return Callable.apply(clone)
     }
-
-    // [Module.copy](): this {
-    //     const clone = Structural.prototype[Structural.copy].call(this) as this
-    //     return Node.apply(Callable.apply(clone))
-    // }
 
 } as CommandConstructor
 

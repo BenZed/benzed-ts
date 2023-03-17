@@ -1,15 +1,21 @@
 
 import { is, IsType } from '@benzed/is'
-import { each, nil, pick } from '@benzed/util'
+import { each, nil, pick, isTruthy as isNotEmpty } from '@benzed/util'
 
 import { createServer, Server as HttpServer } from 'http'
-import Koa from 'koa'
+import Koa, { Context } from 'koa'
 import body from 'koa-body'
 import cors from '@koa/cors'
 
 import { Module } from '../../module'
 import { Connection } from '../connection'
-import { HttpMethod, isPort } from '../../util'
+import { HttpCode, HttpMethod, isPort } from '../../util'
+import { Command, CommandError } from '../command'
+
+//// EsLint ////
+/* eslint-disable 
+    @typescript-eslint/no-explicit-any,
+*/
 
 //// Types ////
 
@@ -105,19 +111,60 @@ class Server extends Connection implements ServerSettings {
         // BodyParser Middleware
         koa.use(body())
 
-        // Route Everything to command handlers
         koa.use(async (ctx, next) => {
-
             await next()
-            const result = { code: 200 } // TODO get result from command
-
-            if (is.number(result.code))
+            const result = await this
+                ._executeCtxCommand(ctx)
+                .catch(CommandError.from) as { code?: number }
+            
+            if (is.shape({ code: is.number })(result))
                 ctx.status = result.code 
 
             ctx.body = result
         })
 
         return koa
+    }
+
+    private async _executeCtxCommand(ctx: Context): Promise<unknown> {
+
+        const command = this._getCtxCommand(ctx)
+        if (!command) {
+            throw new CommandError(
+                HttpCode.NotFound,
+                `Could not ${ctx.method} ${ctx.url}`, 
+                { 
+                    method: ctx.method,
+                    url: ctx.url
+                })
+        }
+
+        const input = ctx.request.body && is.string(ctx.request.body) 
+            ? JSON.parse(ctx.request.body)
+            : ctx.request.body
+
+        const output = await command.execute(input)
+
+        return is.string(output) ? output : JSON.stringify(output)
+    }
+
+    private _getCtxCommand(ctx: Context): Command | nil {
+        const path = ctx.originalUrl
+            .split('/')
+            .filter(isNotEmpty)
+
+        let module: any = this.root
+        for (const subPath of path) {
+
+            if (subPath in module && module[subPath] instanceof Module)
+                module = module[subPath]
+            else 
+                return nil
+        }
+
+        return module instanceof Command 
+            ? module 
+            : nil
     }
 }
 

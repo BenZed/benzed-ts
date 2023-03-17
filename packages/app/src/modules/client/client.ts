@@ -1,5 +1,5 @@
 
-import { nil, pick } from '@benzed/util'
+import { nil, pick, safeJsonParse } from '@benzed/util'
 import { is, IsType } from '@benzed/is'
 
 import Module from '../../module'
@@ -65,9 +65,11 @@ class Client extends Connection implements ClientSettings {
             .splice(-1, 1, path)
             .join('/')
 
-        const body = method === HttpMethod.Get || method === HttpMethod.Options
-            ? nil
-            : input
+        const body = 
+            method === HttpMethod.Get ||
+            method === HttpMethod.Options
+                ? nil
+                : input
 
         const response = await fetch(
             this.host + isPath.validate(url),
@@ -77,8 +79,9 @@ class Client extends Connection implements ClientSettings {
             }
         )
 
+        const text = await response.text()
+
         if (response.status >= HttpCode.BadRequest) {
-            const text = await response.text()
             let error
             try {
                 error = JSON.parse(text)
@@ -91,7 +94,7 @@ class Client extends Connection implements ClientSettings {
             throw CommandError.from(error)
         }
 
-        return response.json()
+        return (safeJsonParse(text) ?? text) as Promise<CommandOutput<C>>
     }
 
     //// Runnable implementation ////
