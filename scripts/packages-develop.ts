@@ -30,8 +30,8 @@ const isTypeScriptFile = (file: string): boolean => {
     return ext.endsWith('.ts') || ext.endsWith('.tsx')
 }
 
-const isNotInNodeModules = (file: string): boolean => 
-    !file.includes('node_modules')
+const isSourceFolder = (file: string): boolean => 
+    !file.includes('node_modules') && !file.includes('lib')
 
 //// State ////
 
@@ -87,7 +87,7 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     const tsFileUrls = await readDirRecursive(
         pkgDir, 
         isTypeScriptFile, 
-        isNotInNodeModules
+        isSourceFolder
     )
 
     const pkgs = await eachPackage(json => json)
@@ -179,7 +179,7 @@ watch(PACKAGES_DIR + '/*/src/**', {
     if (tsFileContentCache[file] === contents) 
         return
 
-    if (!buildProcess.isRunning)
+    if (!buildProcess.isRunning)  
         await buildProcess.run(file)
 
     if (!testProcess.isRunning) {
