@@ -108,7 +108,7 @@ class Client extends Connection implements ClientSettings {
     get [Module.state](): ClientSettings {
         return pick(this, 'host')
     }
-    
+
 }
 
 //// Exports ////

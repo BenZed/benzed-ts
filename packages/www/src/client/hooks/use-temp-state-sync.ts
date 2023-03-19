@@ -13,7 +13,7 @@ export const useTempStateSync = <C extends GetCommand>(
 ) => {
 
     const [ state, setState ] = useStoredJson(
-        getCommand.pathFromRoot.join('/'),
+        getCommand.path.join('/'),
         defaultOutput
     )
 

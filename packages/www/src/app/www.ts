@@ -1,7 +1,7 @@
 import { App } from '@benzed/app'
 
 import { ServeUI } from './serve-ui'
-import { Slide } from './slide'
+import { Presentation } from './presentation'
 
 //// Main ////
 
@@ -9,7 +9,7 @@ export class WWW extends App {
 
     serveUI = new ServeUI
 
-    slide = new Slide
+    presentation = new Presentation
 
 }
 
