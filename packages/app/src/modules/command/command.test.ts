@@ -57,11 +57,11 @@ for (const app of [testApp, testClient, testServer]) {
     describe(`${app.name} immutable tests`, () => {
 
         it(`${app.name} command path`, () => {
-            expect(app.post.pathFromRoot).toEqual(['post'])
-            expect(app.post.path).toEqual('post')
+            expect(app.post.path).toEqual(['post'])
+            expect(app.post.pathKey).toEqual('post')
 
-            expect(app.get.pathFromRoot).toEqual(['get'])
-            expect(app.get.path).toEqual('get')
+            expect(app.get.path).toEqual(['get'])
+            expect(app.get.pathKey).toEqual('get')
         })
 
         it(`${app.name} command parent`, () => {

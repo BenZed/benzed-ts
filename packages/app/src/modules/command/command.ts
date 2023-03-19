@@ -1,4 +1,5 @@
 import { Callable, Trait } from '@benzed/traits'
+import { Node } from '@benzed/node'
 
 import { HttpMethod } from '../../util'
 import { Executable, Execute } from './executable'
@@ -25,6 +26,18 @@ import Module from '../../module'
 
 interface Command<I = any, O = any> extends Executable<I, O> {
     (input: I): Promise<O>
+
+    /**
+     * URL section of this command
+     */
+    get pathKey(): string 
+
+    /**
+     * URL sections leading to this command
+     */
+    get path(): string[]
+
+    get method(): HttpMethod
 }
 
 type CommandInput<C extends Command> = C extends Command<infer I, any> ? I : unknown
@@ -52,7 +65,7 @@ const Command = class extends Trait.add(Executable, Callable) {
     static _create(execute: Execute, method: HttpMethod): Command {
         return new class extends Command<any, any> {
 
-            get method(): HttpMethod {
+            override get method(): HttpMethod {
                 return method
             }
 
@@ -86,14 +99,14 @@ const Command = class extends Trait.add(Executable, Callable) {
         return this._create(execute, HttpMethod.Options)
     }
 
+    //// Constructor ////
+
     constructor() {
         super()
         return Callable.apply(this)
     }
 
-    get method(): HttpMethod {
-        throw new Error(`${this.constructor.name} has not implemented an 'method' getter.`)
-    }
+    //// Executable Implementation ////
 
     override execute(input: unknown): Promise<unknown> {
         return this.client
@@ -104,6 +117,36 @@ const Command = class extends Trait.add(Executable, Callable) {
     onExecute(input: unknown): unknown {
         void input
         throw new Error(`${this.constructor.name} has not implemented an 'execute' method.`)
+    }
+
+    //// Command Interface ////
+
+    get method(): HttpMethod {
+        throw new Error(`${this.constructor.name} has not implemented an 'method' getter.`)
+    }
+
+    /**
+     * Url section of this command
+     */
+    get pathKey(): string {
+        return Node
+            .getPath(this)
+            .map(String)
+            .at(-1) ?? this.name
+    }
+
+    /**
+     * Url sections leading to this command
+     */
+    get path(): string[] {
+        const actualPath = Node.getPath(this).map(String)
+            
+        // replace last item with this.pathKey
+        // to handle cases where pathKey is overridden
+        // with something other than the default
+        actualPath.splice(-1, 1, this.pathKey)
+            
+        return actualPath
     }
 
     /// Trait Implementations

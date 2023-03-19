@@ -25,7 +25,7 @@ class ServeUI extends GetCommand<void, string> {
         return this._html
     }
 
-    override get path(): string {
+    override get pathKey(): string {
         return ''
     }
 

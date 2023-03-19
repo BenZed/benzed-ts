@@ -59,10 +59,9 @@ class Client extends Connection implements ClientSettings {
         input: CommandInput<C>
     ): Promise<CommandOutput<C>> { 
 
-        const { path, method, pathFromRoot } = command
+        const { path, method } = command
 
-        pathFromRoot.splice(-1, 1, path)
-        const url = isPath.validate(pathFromRoot.join('/'))
+        const url = isPath.validate(path.join('/'))
 
         const body = 
             method === HttpMethod.Get ||

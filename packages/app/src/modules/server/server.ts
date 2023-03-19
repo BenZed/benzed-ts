@@ -12,6 +12,7 @@ import { Command, CommandError } from '../command'
 
 import { Module } from '../../module'
 import { HttpCode, HttpMethod, isPort } from '../../util'
+import { equals } from '@benzed/immutable'
 
 //// EsLint ////
 /* eslint-disable 
@@ -151,31 +152,19 @@ class Server extends Connection implements ServerSettings {
     }
 
     private _getCtxCommand(ctx: Context): Command | nil {
-        const path = ctx.originalUrl.replace(/^\//, '')
-            .split('/')
 
-        let module = this.root
+        const endSlashes = /^(\/+)|(\/+)$/
 
-        while (path.length > 0) {
+        const method = ctx.method.toUpperCase()
 
-            const subPath = path.shift() as string
+        const path = ctx.originalUrl
+            .replace(endSlashes, '')
+            .split('/') // 'path/to' -> ['path', 'to']
 
-            const isLastPath = path.length === 0 
-
-            const nextModule = module.modules.find(m => 
-                isLastPath 
-                    ? m.path === subPath && m instanceof Command && m.method === ctx.method
-                    : m.path === subPath
-            )
-            if (nextModule)
-                module = nextModule
-            else
-                return nil
-        }
-
-        return module instanceof Command 
-            ? module 
-            : nil
+        const commands = this.find.all.inNodes(is(Command))
+        
+        const ctxCommand = commands.find(c => c.method === method && equals(c.path, path))
+        return ctxCommand
     }
 }
 

@@ -30,6 +30,10 @@
         "react-redux": "8.0.5",
         "@reduxjs/toolkit": "1.9.3",
         "react-dom": "^18.2.0",
-        "react-router-dom": "^6.9.0"
+        "react-router-dom": "^6.9.0",
+        "@benzed/app": "^1.0.0",
+        "@benzed/async": "^3.4.1",
+        "@benzed/fs": "^3.1.0",
+        "@benzed/react": "^1.0.0"
     }
 }
