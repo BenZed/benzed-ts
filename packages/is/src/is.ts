@@ -51,7 +51,7 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     /**
      * Type-only property
      */
-    get data(): ValidateOutput<V>
+    get type(): ValidateOutput<V>
 
     assert(input: unknown): asserts input is ValidateOutput<V>
 
