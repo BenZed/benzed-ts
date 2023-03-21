@@ -29,10 +29,9 @@ window.onload = async function () {
 
     const mainTag = document.getElementById(HTML_MAIN_TAG)
     if (!mainTag)
-        throw new Error(`Html main tag ${HTML_MAIN_TAG} not found.`)
+        throw new Error(`HTML main tag ${HTML_MAIN_TAG} not found.`)
 
     const root = createRoot(mainTag)
-
     root.render(
         <React.StrictMode>
             <Router>

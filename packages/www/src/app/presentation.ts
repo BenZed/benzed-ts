@@ -11,6 +11,8 @@ import os from 'os'
 
 export interface Slide {
 
+    readonly title: string
+
     /**
      * Content visible to attendees
      */
@@ -35,7 +37,7 @@ export class Presentation extends Module {
         const parent = this.parent as Presentation
         if (parent._slides.length === 0) {
             const markdown = await readMarkdown()
-            parent._slides = createSlides(markdown)
+            parent._slides = markdown.map(createSlides).flat()
         }
 
         return parent._slides
@@ -46,7 +48,7 @@ export class Presentation extends Module {
         const parent = this.parent as Presentation
 
         const current = IS_DEV 
-            ? await syncDevCurrentSlide(parent)
+            ? await getDevCurrentSlide(parent)
             : parent.currentSlide
 
         return current
@@ -59,7 +61,7 @@ export class Presentation extends Module {
         nextSlide = clamp(nextSlide, 0, parent._slides.length)
 
         if (IS_DEV)
-            await syncDevCurrentSlide(parent, nextSlide)
+            await setDevCurrentSlide(parent, nextSlide)
         else 
             parent.currentSlide = nextSlide
     })
@@ -92,28 +94,49 @@ export class Presentation extends Module {
 
 //// Helper ////
 
-async function readMarkdown(): Promise<string> {
+async function readMarkdown(): Promise<{ name: string, contents: string }[]> {
 
-    const MARKDOWN_FILE = './presentation.md'
+    const MARKDOWN_DIR = path.resolve(__dirname, './presentation')
 
-    const markdownUrl = path.resolve(__dirname, MARKDOWN_FILE)
-    
-    const markdown = await fs.readFile(markdownUrl, 'utf-8')
+    const markdownUrls = await fs.readDir(MARKDOWN_DIR, {
+        filter(url) {
+            return url.endsWith('.md')
+        },
+        asUrls: true
+    })
+
+    const markdown: { name: string, contents: string }[] = []
+
+    for (const markdownUrl of markdownUrls) {
+        const name = path.basename(markdownUrl, '.md')
+        const contents = await fs.readFile(markdownUrl, 'utf-8')
+
+        markdown.push({ name, contents })
+    }
+
     return markdown
 }
 
-function createSlides(markdown: string): Slide[] {
+function createSlides(markdown: { name: string, contents: string }): Slide[] {
 
     const SLIDE_BOUNDARY = '<!-- Slide Boundary -->'
     const PRESENTER_CARD_PREFIX = '> '
+    const TITLE_PREFIX = '# '
 
     const rawSlides = markdown
+        .contents
         .split(SLIDE_BOUNDARY)
         .filter(isNotEmpty)
 
+    let title = markdown.name
+
+    // create slides
     const slides = rawSlides.map(rawSlide => {
 
         const lines = rawSlide.split('\n')
+
+        if (lines[0].includes(TITLE_PREFIX))
+            title = lines.shift()?.replace(TITLE_PREFIX, '').trim() ?? title
 
         // For a given slide, we're treating any markdown block quote
         // as a presenter card that should be visible to the presenter only.
@@ -128,6 +151,7 @@ function createSlides(markdown: string): Slide[] {
             .join('\n')
 
         return {
+            title,
             content,
             cards
         }
@@ -136,31 +160,31 @@ function createSlides(markdown: string): Slide[] {
     return slides
 }
 
-async function syncDevCurrentSlide(presentation: Presentation, newCurrentSlide?: number): Promise<number> {
+//// Dev Helper ////
 
-    const DEV_STATE_URL = path.join(os.tmpdir(), `bz-www-presentation-dev-state`)
+const DEV_STATE_FILE_NAME = `bz-www-presentation-dev-state`
 
-    if (is.number(newCurrentSlide)) {
+async function getDevCurrentSlide(presentation: Presentation): Promise<number> {
 
-        presentation.currentSlide = newCurrentSlide
+    const devStateUrl = path.join(os.tmpdir(), DEV_STATE_FILE_NAME)
 
-        const devState = { 
-            currentSlide: presentation.currentSlide 
-        }
+    const isDevState = is.shape({ currentSlide: is.number })
 
-        await fs
-            .writeJson(devState, DEV_STATE_URL)
-            .catch(toVoid)
-        
-        return presentation.currentSlide
-    } else {
+    const devState = await fs
+        .readJson(devStateUrl, isDevState.assert)
+        .catch(toVoid)
 
-        const isDevState = is.shape({ currentSlide: is.number })
+    return (devState ?? presentation).currentSlide
+}
 
-        const devState = await fs
-            .readJson(DEV_STATE_URL, isDevState.assert)
-            .catch(toVoid)
+async function setDevCurrentSlide(presentation: Presentation, currentSlide: number): Promise<void> {
 
-        return (devState ?? presentation).currentSlide
-    }
+    const devStateUrl = path.join(os.tmpdir(), DEV_STATE_FILE_NAME)
+
+    presentation.currentSlide = currentSlide
+
+    await fs
+        .writeJson({ currentSlide }, devStateUrl)
+        .catch(toVoid)
+
 }

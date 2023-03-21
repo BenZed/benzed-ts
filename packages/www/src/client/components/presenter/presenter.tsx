@@ -1,8 +1,8 @@
 import React, { ReactElement, useState } from 'react'
 
 import styled from 'styled-components'
+import { Slide } from '../../../app/presentation'
 
-import { useSlides } from '../../hooks'
 import SlideInput from './slide-input'
 
 //// Helper ////
@@ -14,6 +14,7 @@ const PresenterCard = styled.div`
     border: none;
     color: inherit;
     position: relative;
+    min-width: 10em;
 `
 
 const SlideInfo = styled.span`
@@ -31,13 +32,15 @@ const SlideInfo = styled.span`
 //// Presenter Component ////
 
 interface PresenterProps {
+    slides: Slide[]
+    current: number,
+    setCurrent: (current: number) => void | Promise<void>
 }
 
 const Presenter = styled((props: PresenterProps): null | ReactElement => {
 
-    const { ...rest } = props
+    const { slides, current, setCurrent, ...rest } = props
 
-    const [slides, current, setCurrent] = useSlides()
     const [cardIndex, setCardIndex] = useState(0)
 
     const slide = slides.at(current)

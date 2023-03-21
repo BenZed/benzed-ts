@@ -1,3 +1,5 @@
+# Traits
+
 > I think it’s interesting that, while javascript and of course typescript are structural languages, a lot of meta programming in javascript is reasoned nominally.
 
 ```ts

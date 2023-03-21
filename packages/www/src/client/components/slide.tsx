@@ -1,26 +1,24 @@
-import React, { ReactElement, ReactNode } from 'react'
+import React, { ReactElement } from 'react'
 import { useSlides } from '../hooks'
 
 import styled from 'styled-components'
 import Markdown from './markdown'
+import type { Slide as SlideJson } from '../../app/presentation'
 
 //// Slide Component ////
 
 interface SlideProps {
-    children?: ReactNode
+    slide: SlideJson
 }
 
-const Slide = styled((props: SlideProps): null | ReactElement => {
-    const { children, ...rest } = props
+const Slide = styled((props: SlideProps): ReactElement => {
 
-    const [slides, current] = useSlides()
+    const { slide, ...rest } = props
 
-    const slide = slides.at(current) ?? null
-
-    return slide && <Markdown content={slide.content} />
+    return <Markdown content={slide.content} {...rest} />
 })`
     display: block important!;
-    margin: 1em;
+    margin: auto;
 `
 
 //// Exports ////

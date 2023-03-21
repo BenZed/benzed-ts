@@ -25,7 +25,7 @@ interface ReadDirOptions extends ObjectEncodingOptions {
 
 //// Main ////
 
-async function readDir(dir: PathLike, options: ReadDirOptions): Promise<string[]> {
+async function readDir(dir: PathLike, options: ReadDirOptions = {}): Promise<string[]> {
 
     const { recursive, filter, asUrls, ...rest } = options
 
