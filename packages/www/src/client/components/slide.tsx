@@ -1,5 +1,8 @@
 import React, { ReactElement, ReactNode } from 'react'
-import { useSlide } from '../hooks'
+import { useSlides } from '../hooks'
+
+import styled from 'styled-components'
+import Markdown from './markdown'
 
 //// Slide Component ////
 
@@ -7,13 +10,18 @@ interface SlideProps {
     children?: ReactNode
 }
 
-const Slide = (props: SlideProps): ReactElement => {
+const Slide = styled((props: SlideProps): null | ReactElement => {
     const { children, ...rest } = props
 
-    const [ slide ] = useSlide()
+    const [slides, current] = useSlides()
 
-    return <> Slide: {slide}</>
-}
+    const slide = slides.at(current) ?? null
+
+    return slide && <Markdown content={slide.content} />
+})`
+    display: block important!;
+    margin: 1em;
+`
 
 //// Exports ////
 

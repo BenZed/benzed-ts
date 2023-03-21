@@ -1,0 +1,65 @@
+import React, { ReactElement, ReactNode } from 'react'
+import { useSlides } from '../hooks'
+
+import ReactMarkdown from 'react-markdown'
+
+import { PrismLight as SyntaxHighlighter, SyntaxHighlighterProps } from 'react-syntax-highlighter'
+import ts from 'react-syntax-highlighter/dist/cjs/languages/prism/typescript'
+import tsx from 'react-syntax-highlighter/dist/cjs/languages/prism/tsx'
+import json from 'react-syntax-highlighter/dist/cjs/languages/prism/json'
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import { CodeProps } from 'react-markdown/lib/ast-to-react'
+import is from '@benzed/is'
+
+//// Code Component ////
+
+const Code = (props: CodeProps) => {
+    const language = /language-(\w+)/.exec(props.className || '')
+
+    const { children: content } = props
+
+    const isStringContent = is.string.or.arrayOf(is.string)(content)
+
+    return language && isStringContent
+        ? (
+            <SyntaxHighlighter
+                style={oneDark}
+                language={language[1]}
+                children={content}
+            />
+        )
+        : <code className={props.className} {...props} />
+}
+
+//// Slide Component ////
+
+interface MarkdownProps {
+    content: string
+}
+
+const Markdown = (props: MarkdownProps): ReactElement => {
+    const { content, ...rest } = props
+
+
+    return <ReactMarkdown
+        children={content}
+        components={{
+            code: Code
+        }}
+    />
+}
+
+//// Register Syntax Highlight Languages ////
+
+SyntaxHighlighter.registerLanguage('tsx', tsx)
+SyntaxHighlighter.registerLanguage('ts', ts)
+SyntaxHighlighter.registerLanguage('json', json)
+
+//// Exports ////
+
+export default Markdown
+
+export {
+    Markdown,
+    MarkdownProps
+}

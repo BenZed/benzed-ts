@@ -7,7 +7,7 @@ import { WWW } from '../../app'
 import { ClientProvider } from './client-context'
 import Container from './container'
 import { GlobalStyle } from './global-style'
-import SlideInput from './slide-input'
+import Presenter from './presenter/presenter'
 import Slide from './slide'
 
 //// Presentation Component ////
@@ -22,15 +22,15 @@ const Presentation = (props: PresentationProps): ReactElement => {
 
     return <ClientProvider value={client} >
 
-        <GlobalStyle/>
+        <GlobalStyle />
 
         <Container>
-            <Routes>
-                <Route path='presenter' element={<SlideInput/>} />
-            </Routes>
-
             <Slide />
         </Container>
+
+        <Routes>
+            <Route path='/presenter' element={<Presenter />} />
+        </Routes>
 
     </ClientProvider>
 }

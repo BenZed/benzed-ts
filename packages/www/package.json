@@ -28,17 +28,20 @@
     "dependencies": {
         "styled-components": "^5.3.9",
         "react": "^18.2.0",
-        "react-redux": "8.0.5",
-        "@reduxjs/toolkit": "1.9.3",
+        "react-markdown": "^8.0.6",
+        "react-syntax-highlighter": "^15.5.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.9.0",
         "@benzed/app": "^1.0.0",
         "@benzed/async": "^3.4.1",
         "@benzed/fs": "^3.1.0",
+        "@benzed/is": "^3.1.3",
+        "@benzed/math": "^3.1.4",
         "@benzed/react": "^1.0.0",
         "@benzed/util": "^3.9.1"
     },
     "devDependencies": {
+        "@types/react-syntax-highlighter": "^15.5.6",
         "@types/styled-components": "^5.1.26"
     }
 }
