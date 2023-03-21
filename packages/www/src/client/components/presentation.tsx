@@ -42,6 +42,7 @@ const Presentation = (_props: PresentationProps): ReactElement => {
                     setCurrent={setCurrent}
                 />}
             />
+            <Route index element={null} />
         </Routes>
 
     </>

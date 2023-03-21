@@ -13,13 +13,14 @@ export const useSlides = () => {
         undefined,
         500
     )
-    
+
     const [ slides ] = useTempStateSync(
         client.presentation.getSlides,
         [],
         undefined,
-        5000
+        2500
     )
+
 
     const setCurrentSlide = async (slide: number) => {
         if (slide < 0)

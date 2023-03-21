@@ -137,8 +137,8 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
             'internal dependencies updated:',
             ...changes
         )
-    } else 
-        return 
+    } else
+        return
 
     // Write Changes
     await writeJson(thisPkg, path.join(pkgDir, 'package.json'))

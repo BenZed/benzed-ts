@@ -27,4 +27,15 @@ export const GlobalStyle = createGlobalStyle`
         height: 100vh;
     }
 
+    @media screen and (max-width: 600px) {
+        html {
+            font-size: 0.5rem;
+        }
+    }
+
+    @media screen and (min-width: 601px) and (max-width: 900px) {
+        html {
+            font-size: 0.75rem;
+        }
+    }
 `

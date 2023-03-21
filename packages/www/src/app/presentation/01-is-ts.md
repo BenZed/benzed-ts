@@ -37,6 +37,10 @@ expect(trimmed).toEqual('hello world')
 
 > This was born out of a couple of desires. There many typesafe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
 
+> On screen you'll see a couple of contrived examples of how the api might be used to create type guards, type assertions or validation methods.
+
+> I'd also like to point out that right now you see it imported from my npm scoped library, but when it's actually released, it'll be import from is-ts.
+
 ## Type Safety
 
 Extract a type defined by a schematic:
@@ -65,6 +69,8 @@ expect(isVector({ x: 0, y: 0 })).toBe(true)
 > I looked at a couple of the other data validation libraries that were written with the same design goals in mind, such as ts-json-schema, or zod. When I was new to typescript, the source code in their respective repositories was greek to me. I figured that actually building a library that was so closely tied to the type system would be a great way to learn the type system.
 
 > As I learned more about typescript and worked extensively in the web ecosystem, I found myself writing a great deal of type guards, and I kept on imagining a library that could be used to guard types and create validation for them at the same time as I feel they're tightly coupled concepts, anyway.
+
+> In the first example, you can see how a type can be defined with `is-ts`, and in the second you can see how validation could be created for an existing type.
 
 ## Fluidity
 
@@ -96,7 +102,6 @@ const isSerialInput = is(isNumberOrString)
 ```
 
 Type Safe:
-
 ```ts
 isSerialInput.type satisfies number | string | (number | string)[]
 
@@ -105,46 +110,38 @@ expect(isSerialInput(0)).toBe(true)
 expect(isSerialInput([0, 'string'])).toBe(true)
 ```
 
-> As we know, code is inherently a lot easier to write than to read, which is a phenomenon I've always found very frustrated. The more I've programmed, the more I've imagined api's I like to work with that I imagine make code easier to understand apon revisiting.
+> As we know, code is inherently a lot easier to write than to read, which is a phenomenon I've always found very frustrating. The more anyone programs, the more focused they become on making their own code readable. I find myself imagining and building api's that are structured with readability as a directive.
 
 > I think different languages have different readability strengths and generally the higher level languages are easier for humans to read
 
-> Javacript and Typescript arn't exactly the most extensible languages, but the structures are malleable enough that you can make your own standards. JQuery comes to mind.
+> Javacript and Typescript arn't exactly the most extensible languages, but the syntax is malleable enough that you can more or less make your own standards. JQuery comes to mind.
 
 > In my own mono repo utility libraries, I've developed a number of these fluid apis. In my mind, the more often one depends on a library the more readable it's interface should be. My creations borrowed a lot from testing libraries like mocha or jest.
 
-> In the examples on screen, you can see a couple of ways of defining the same data structure. This is some contrived schematic for serial input.
+> In the examples on screen, you can see a couple of ways of defining the same type of data. I like that, once the data types are written, they're structured exactly how I think about them in english.
 
 ## Type Fluidity
+
+```ts
+const isVector = is({
+    x: is.number,
+    y: is.number
+})
+```
 
 Type definitions are intended to be easily readable:
 
 ```ts
 import { Is, Optional, ReadOnly, ArrayOf, Shape } from '@benzed/is'
 
-const isVector = is({
-    x: is.number,
-    y: is.number
-})
-
 const isMaybeVectors = is.optional.array.of(isVector.readonly) satisfies
-
     Is<Optional<ArrayOf<ReadOnly<Shape<{ x: Number, y: Number  }>>>>>
 
 isMaybeVectors.type satisfies 
     { readonly x: number, readonly y: number }[] | undefined
 ```
 
-> I think some of typescripts less developer experience friendly aspects are the cryptic type errors and readability of complex or nested types, so in addition to the runtime syntax itself being readable, I'd like as much as possible for the types to be readable as well.
-
-> You'll see in the example satisfies operand more or less has the same structure as the validator declaration itself.
-
-> I admit that the syntax highlighting isn't as friendly as it is inside my IDE
-
-## Inituitive API
-
 ```ts
-
 const isReadonlyVectors = is.readonly.array.of(isVector.optional) satisfies
 
     Is<ReadOnly<ArrayOf<Optional<Shape<{ x: Number, y: Number }>>>>>
@@ -153,9 +150,25 @@ isReadonlyVectors.type satisfies
     readonly ({ x: number, y: number } | undefined)[]
 ```
 
+```ts
+const isTodo = is.shape({
+    completed: is.readonly.boolean,
+    description: is.description.readonly
+})
+```
+
+> I think some of typescripts less developer experience friendly aspects are the cryptic type errors and readability of complex or nested types, so in addition to the runtime syntax itself being readable, I'd like as much as possible for the types to be readable as well.
+
+> You'll see in the example the satisfies operand more or less has the same structure as the validator declaration itself.
+
+> I admit that the syntax highlighting isn't as friendly as it is inside my IDE.
+
 ## Inituitive API
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** uses typescript theory and conventions
 ```ts
-
+const isTodo = is({
+    completed: is.readonly.boolean,
+    description: is.description.readonly
+})
 ```

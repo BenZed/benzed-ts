@@ -15,6 +15,8 @@ export class WWW extends App {
 
 export const www = new WWW
 
-export const server = www.asServer()
+export const server = www.asServer({ port: 4000 })
 
-export const client = www.asClient()
+export const client = www.asClient({
+    host: 'http://24.86.168.131:4000'
+})

@@ -15,7 +15,7 @@ const styledComponentsTransformer = require('typescript-plugin-styled-components
 
 /* CONSTANTS */
 
-const WEBPACK_DEV_SERVER_PORT = 3000 + 500
+const WEBPACK_DEV_SERVER_PORT = 4000 + 500
 
 const ENV = {
     NODE_ENV: process.env.NODE_ENV ?? 'development',
@@ -45,9 +45,9 @@ module.exports = {
 
     devServer: {
         compress: true,
+        host: '0.0.0.0',
         port: WEBPACK_DEV_SERVER_PORT,
         historyApiFallback: true,
-        host: '0.0.0.0',
         devMiddleware: {
             writeToDisk: true
         }
@@ -76,7 +76,7 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [
-                    MiniCssExtractPlugin.loader, 
+                    MiniCssExtractPlugin.loader,
                     'css-loader'
                 ]
             },
@@ -105,7 +105,7 @@ module.exports = {
             // understand why it's happening. This is the location react should
             // be resolving from, anyway)
             'react': path.join(MONO_REPO_NODE_MODULES, 'react'),
-            
+
             // Prevent app-client errors
             'koa': false,
             'koa-body': false,

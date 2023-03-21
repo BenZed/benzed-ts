@@ -2,10 +2,8 @@ import { IS_DEV, toVoid } from '@benzed/util'
 import { Module, Command } from '@benzed/app'
 import { clamp } from '@benzed/math'
 import fs from '@benzed/fs'
-import is from '@benzed/is'
 
 import path from 'path'
-import os from 'os'
 
 //// Type ////
 
@@ -46,12 +44,7 @@ export class Presentation extends Module {
     readonly getCurrentSlide = Command.get(async function (this: Module) {
 
         const parent = this.parent as Presentation
-
-        const current = IS_DEV 
-            ? await getDevCurrentSlide(parent)
-            : parent.currentSlide
-
-        return current
+        return parent.currentSlide
     })
 
     readonly setCurrentSlide = Command.post(async function (this: Module, nextSlide: number){
@@ -60,10 +53,7 @@ export class Presentation extends Module {
 
         nextSlide = clamp(nextSlide, 0, parent._slides.length)
 
-        if (IS_DEV)
-            await setDevCurrentSlide(parent, nextSlide)
-        else 
-            parent.currentSlide = nextSlide
+        parent.currentSlide = nextSlide
     })
 
     // Future decorator syntax
@@ -154,33 +144,4 @@ function createSlides(markdown: { name: string, contents: string }): Slide[] {
     }
 
     return slides
-}
-
-//// Dev Helper ////
-
-const DEV_STATE_FILE_NAME = `bz-www-presentation-dev-state`
-
-async function getDevCurrentSlide(presentation: Presentation): Promise<number> {
-
-    const devStateUrl = path.join(os.tmpdir(), DEV_STATE_FILE_NAME)
-
-    const isDevState = is.shape({ currentSlide: is.number })
-
-    const devState = await fs
-        .readJson(devStateUrl, isDevState.assert)
-        .catch(toVoid)
-
-    return (devState ?? presentation).currentSlide
-}
-
-async function setDevCurrentSlide(presentation: Presentation, currentSlide: number): Promise<void> {
-
-    const devStateUrl = path.join(os.tmpdir(), DEV_STATE_FILE_NAME)
-
-    presentation.currentSlide = currentSlide
-
-    await fs
-        .writeJson({ currentSlide }, devStateUrl)
-        .catch(toVoid)
-
 }
