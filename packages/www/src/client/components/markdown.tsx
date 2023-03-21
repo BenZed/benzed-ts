@@ -1,20 +1,22 @@
-import React, { ReactElement, ReactNode } from 'react'
-import { useSlides } from '../hooks'
+import is from '@benzed/is'
+
+import React, { ReactElement } from 'react'
 
 import ReactMarkdown from 'react-markdown'
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
 
-import { PrismLight as SyntaxHighlighter, SyntaxHighlighterProps } from 'react-syntax-highlighter'
 import ts from 'react-syntax-highlighter/dist/cjs/languages/prism/typescript'
 import tsx from 'react-syntax-highlighter/dist/cjs/languages/prism/tsx'
 import json from 'react-syntax-highlighter/dist/cjs/languages/prism/json'
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { CodeProps } from 'react-markdown/lib/ast-to-react'
-import is from '@benzed/is'
 
 //// Code Component ////
 
 const Code = (props: CodeProps) => {
-    const language = /language-(\w+)/.exec(props.className || '')
+
+    const language = /language-(\w+)/
+        .exec(props.className || '')
 
     const { children: content } = props
 

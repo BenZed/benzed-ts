@@ -7,4 +7,3 @@ export const ClientContext = createContext(client)
 
 export const ClientProvider = ClientContext.Provider
 
-//// Hook ////

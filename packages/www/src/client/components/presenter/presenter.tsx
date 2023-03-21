@@ -5,7 +5,7 @@ import { Slide } from '../../../app/presentation'
 
 import SlideInput from './slide-input'
 
-//// Helper ////
+//// Helper Components ////
 
 const PresenterCard = styled.div`
     background-color: rgba(255,255,255,0.25);
@@ -29,7 +29,7 @@ const SlideInfo = styled.span`
     color: rgba(255,255,255,0.25);
 `
 
-//// Presenter Component ////
+//// Main Component ////
 
 interface PresenterProps {
     slides: Slide[]
@@ -79,8 +79,6 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
 
     </div>
 })`
-
-    margin: 2em 4em 2em 2em;
 
     position: absolute;
     bottom: 0;

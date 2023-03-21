@@ -4,11 +4,14 @@ import React, { ReactElement } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
 import { WWW } from '../../app'
-import { ClientProvider } from './client-context'
-import { GlobalStyle } from './global-style'
+
 import Presenter from './presenter/presenter'
+import { GlobalStyle } from './global-style'
+import { ClientProvider } from './client-context'
+
 import Slide from './slide'
 import SlideTitle from './slide-title'
+
 import { useSlides } from '../hooks'
 
 //// Presentation Component ////

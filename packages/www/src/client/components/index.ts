@@ -1,10 +1,10 @@
 
-
-export * from './presentation'
-
+export { ClientProvider } from './client-context'
 export * from './global-style'
 
-export * from './slide'
-export * from './slide-title'
+export * from './markdown'
+export * from './presentation'
+export * from './presenter'
 
-export { ClientProvider } from './client-context'
+export * from './slide-title'
+export * from './slide'

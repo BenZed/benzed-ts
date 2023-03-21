@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react'
 import styled from 'styled-components'
 import { Slide } from '../../app/presentation'
-import { ACCENT_COLOR, BG_COLOR } from './global-style'
+import { ACCENT_COLOR } from './global-style'
 
 //// CurrentSlideTitle Component ////
 
@@ -18,7 +18,7 @@ const SlideTitle = styled(({ slide, ...rest }: SlideTitleProps): null | ReactEle
     width: 100%;
     h2 {
         margin: 0.5em;
-        text-shadow: 3px 3px 3px rgba(0,0,0,0.25);
+        text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
     }
 `
 
