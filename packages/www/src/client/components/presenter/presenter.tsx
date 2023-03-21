@@ -14,17 +14,24 @@ const PresenterCard = styled.div`
     border: none;
     color: inherit;
     position: relative;
-    min-width: 10em;
+    width: calc(100% - 4em);
 `
 
-const SlideInfo = styled.span`
+const SlideInfo = styled.div`
 
     position: absolute;
+    display: flex;
+    align-items: between;
 
     font-weight: bold;
 
+    span:first-child {
+        margin-right: auto;
+    }
+
     top: -0.95em;
-    left: 0em;
+    left: 0.25em;
+    right: 0.25em;
     border-radius: 0.25em;
     color: rgba(255,255,255,0.25);
 `
@@ -65,26 +72,33 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
             setCardIndex(cardIndex - 1)
     }
 
+    const numCards = slide?.cards.length ?? 0
+
     return <div {...rest}>
 
-        {slide && <PresenterCard>
-            <SlideInfo>Slide {current} Card {cardIndex + 1} of {slide?.cards.length}</SlideInfo>
-            {card}
-        </PresenterCard>}
+
 
         <SlideInput
             onNext={onNext}
             onPrev={onPrev}
-        />
+        >
+            {slide && <PresenterCard>
+                <SlideInfo>
+                    <span>Slide {current}</span>
+                    <span>Card {Math.min(cardIndex + 1, numCards)} of {numCards}</span>
+                </SlideInfo>
+                {card}
+            </PresenterCard>}
+        </SlideInput>
 
     </div>
 })`
 
     position: absolute;
-    bottom: 5em;
-    left: 2em;
-    right: 2em;
-    opacity: 0.8;
+    bottom: 1em;
+    left: 1em;
+    right: 1em;
+    opacity: 0.5;
 
     display: flex;
     font-size: 150%;

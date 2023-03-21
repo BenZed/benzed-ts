@@ -17,13 +17,13 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     #benzed-www {
-        
+
         display: flex;
 
         flex-direction: column;
         box-sizing: border-box;
 
-        width: 100vw;
+        align-items: center;
         height: 100vh;
     }
 

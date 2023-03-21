@@ -4,6 +4,7 @@ import { useSlides } from '../hooks'
 import styled from 'styled-components'
 import Markdown from './markdown'
 import type { Slide as SlideJson } from '../../app/presentation'
+import { ACCENT_COLOR } from './global-style'
 
 //// Slide Component ////
 
@@ -26,7 +27,20 @@ const Slide = styled((props: SlideProps): ReactElement => {
         align-self: center;
     }
 
-    margin: 2em;
+    box-sizing: border-box;
+    width: 100vw;
+
+    padding: 1em 15% 1em 15%;
+
+    overflow-y: auto;
+
+    ::-webkit-scrollbar {
+        width: 0.5em;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: ${ACCENT_COLOR};
+    }
 `
 
 //// Exports ////
