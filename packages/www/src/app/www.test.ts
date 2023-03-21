@@ -1,6 +1,6 @@
 import { client, server } from './www'
 
-import { test, beforeAll, afterAll } from '@jest/globals'
+import { it, test, beforeAll, afterAll } from '@jest/globals'
 
 //// Tests ////
 

@@ -11,17 +11,17 @@ import os from 'os'
 
 export interface Slide {
 
-    readonly title: string
+    title: string
 
     /**
      * Content visible to attendees
      */
-    readonly content: string
+    content: string
 
     /**
      * Dialog cards visible to the presenter only
      */
-    readonly cards: readonly string[]
+    readonly cards: string[]
 
 }
 
@@ -35,7 +35,7 @@ export class Presentation extends Module {
     readonly getSlides = Command.get(async function (this: Module) {
 
         const parent = this.parent as Presentation
-        if (parent._slides.length === 0) {
+        if (IS_DEV || parent._slides.length === 0) {
             const markdown = await readMarkdown()
             parent._slides = markdown.map(createSlides).flat()
         }
@@ -119,43 +119,39 @@ async function readMarkdown(): Promise<{ name: string, contents: string }[]> {
 
 function createSlides(markdown: { name: string, contents: string }): Slide[] {
 
-    const SLIDE_BOUNDARY = '<!-- Slide Boundary -->'
     const PRESENTER_CARD_PREFIX = '> '
-    const TITLE_PREFIX = '# '
+    const SLIDE_BOUNDARY = /^##?\s(.+)/
 
-    const rawSlides = markdown
-        .contents
-        .split(SLIDE_BOUNDARY)
-        .filter(isNotEmpty)
+    const slideTemplate = { 
+        title: markdown.name.replace(/(^\d+-?)/, ''), // "01-title" -> "title"
+        content: '',
+    }
 
-    let title = markdown.name
-
+    const slides: Slide[] = []
     // create slides
-    const slides = rawSlides.map(rawSlide => {
+    for (const line of markdown.contents.split('\n')) {
 
-        const lines = rawSlide.split('\n')
+        const boundary = SLIDE_BOUNDARY.exec(line)
 
-        if (lines[0].includes(TITLE_PREFIX))
-            title = lines.shift()?.replace(TITLE_PREFIX, '').trim() ?? title
+        let slide: Slide
+        if (boundary || !slides.at(-1)) {
+            slide = { ...slideTemplate, cards: [] }
+            slides.push(slide)
+        } else 
+            slide = slides.at(-1) as Slide
+
+        if (boundary)
+            slide.title = boundary[1]
 
         // For a given slide, we're treating any markdown block quote
         // as a presenter card that should be visible to the presenter only.
-        const cards = lines
-            .filter(line => line.startsWith(PRESENTER_CARD_PREFIX))
-            .map(quote => quote.replace(PRESENTER_CARD_PREFIX, ''))
-
+        else if (line.startsWith(PRESENTER_CARD_PREFIX))
+            slide.cards.push(line.replace(PRESENTER_CARD_PREFIX, ''))
+        else
         // Anything that isn't a block quote is content that should be
         // visible to the attendees
-        const content = lines
-            .filter(line => !line.startsWith(PRESENTER_CARD_PREFIX))
-            .join('\n')
-
-        return {
-            title,
-            content,
-            cards
-        }
-    })
+            slide.content += line + '\n'
+    }
 
     return slides
 }
