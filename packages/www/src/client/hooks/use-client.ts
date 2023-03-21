@@ -3,5 +3,4 @@ import { ClientContext } from '../components/client-context'
 
 //// Main ////
 
-export const useClient = () => 
-    useContext(ClientContext)
+export const useClient = () => useContext(ClientContext)

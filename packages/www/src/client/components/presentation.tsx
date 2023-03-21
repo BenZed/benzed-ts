@@ -17,18 +17,15 @@ import { useSlides } from '../hooks'
 //// Presentation Component ////
 
 interface PresentationProps {
-    readonly client: AsClient<WWW>
 }
 
-const Presentation = (props: PresentationProps): ReactElement => {
-
-    const { client, ...rest } = props
+const Presentation = (_props: PresentationProps): ReactElement => {
 
     const [slides, current, setCurrent] = useSlides()
 
     const slide = slides.at(current)
 
-    return <ClientProvider value={client} >
+    return <>
 
         <GlobalStyle />
 
@@ -47,7 +44,7 @@ const Presentation = (props: PresentationProps): ReactElement => {
             />
         </Routes>
 
-    </ClientProvider>
+    </>
 }
 
 //// Exports ////

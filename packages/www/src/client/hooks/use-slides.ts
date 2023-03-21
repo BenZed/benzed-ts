@@ -18,12 +18,12 @@ export const useSlides = () => {
         client.presentation.getSlides,
         [],
         undefined,
-        10000
+        5000
     )
 
     const setCurrentSlide = async (slide: number) => {
         if (slide < 0)
-            return 
+            return
 
         await client.presentation.setCurrentSlide(slide)
         _setCurrentSlide(slide)

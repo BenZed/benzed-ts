@@ -15,10 +15,18 @@ const Slide = styled((props: SlideProps): ReactElement => {
 
     const { slide, ...rest } = props
 
-    return <Markdown content={slide.content} {...rest} />
+    return <section {...rest}>
+        <Markdown content={slide.content} />
+    </section>
 })`
-    display: block important!;
-    margin: auto;
+    display: flex;
+    flex-direction: column;
+
+    pre {
+        align-self: center;
+    }
+
+    margin: 2em;
 `
 
 //// Exports ////

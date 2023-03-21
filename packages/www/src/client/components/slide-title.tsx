@@ -11,12 +11,12 @@ interface SlideTitleProps {
 
 const SlideTitle = styled(({ slide, ...rest }: SlideTitleProps): null | ReactElement => {
     return <div {...rest}>
-        <h2>{slide.title}</h2>
+        <h1>{slide.title}</h1>
     </div>
 })`
     background-color: ${ACCENT_COLOR};
     width: 100%;
-    h2 {
+    h1 {
         margin: 0.5em;
         text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
     }

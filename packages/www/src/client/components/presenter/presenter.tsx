@@ -81,10 +81,13 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
 })`
 
     position: absolute;
-    bottom: 0;
+    bottom: 5em;
+    left: 2em;
+    right: 2em;
     opacity: 0.8;
 
     display: flex;
+    font-size: 150%;
     align-items: center;
     justify-content: center;
     flex-direction: column;
