@@ -1,4 +1,4 @@
-import { isTruthy as isNotEmpty, IS_DEV, toVoid } from '@benzed/util'
+import { IS_DEV, toVoid } from '@benzed/util'
 import { Module, Command } from '@benzed/app'
 import { clamp } from '@benzed/math'
 import fs from '@benzed/fs'

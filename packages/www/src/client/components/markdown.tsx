@@ -28,6 +28,7 @@ const Code = (props: CodeProps) => {
                 style={oneDark}
                 language={language[1]}
                 children={content}
+                showLineNumbers
             />
         )
         : <code className={props.className} {...props} />
@@ -41,7 +42,6 @@ interface MarkdownProps {
 
 const Markdown = (props: MarkdownProps): ReactElement => {
     const { content, ...rest } = props
-
 
     return <ReactMarkdown
         children={content}

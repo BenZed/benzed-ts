@@ -35,6 +35,14 @@ const Slide = styled((props: SlideProps): ReactElement => {
         padding: 0em 2em 0em 2em;
     }
 
+    a {
+        color: inherit;
+    }
+
+    a:visited {
+        color: ${ACCENT_COLOR};
+    }
+
     box-sizing: border-box;
     width: 100vw;
 
