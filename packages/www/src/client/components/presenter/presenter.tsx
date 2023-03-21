@@ -75,9 +75,6 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
     const numCards = slide?.cards.length ?? 0
 
     return <div {...rest}>
-
-
-
         <SlideInput
             onNext={onNext}
             onPrev={onPrev}

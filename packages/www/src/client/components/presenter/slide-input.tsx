@@ -27,8 +27,8 @@ interface SlideInputProps {
 const SlideInput = styled(({ onNext, onPrev, children, ...rest }: SlideInputProps): null | ReactElement => {
 
     useKeyPress({
-        'LeftArrow': onPrev,
-        'RightArrow': onNext
+        'ArrowLeft': onPrev,
+        'ArrowRight': onNext
     })
 
     return <div {...rest}>
@@ -39,10 +39,8 @@ const SlideInput = styled(({ onNext, onPrev, children, ...rest }: SlideInputProp
 
     </div>
 })`
-
+    width: min(100%, 50em);
     display: flex;
-    align-items: center;
-
 `
 
 //// Exports ////

@@ -17,20 +17,28 @@ const Slide = styled((props: SlideProps): ReactElement => {
     const { slide, ...rest } = props
 
     return <section {...rest}>
-        <Markdown content={slide.content} />
+        <div>
+            <Markdown content={slide.content} />
+        </div>
     </section>
 })`
     display: flex;
     flex-direction: column;
 
-    pre {
+    div {
         align-self: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+    div pre {
+        padding: 0em 2em 0em 2em;
     }
 
     box-sizing: border-box;
     width: 100vw;
 
-    padding: 1em 15% 1em 15%;
+    padding: 2em;
 
     overflow-y: auto;
 

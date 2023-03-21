@@ -18,8 +18,8 @@ it('typeof isVectory', () => {
 })
 
 it('typeof isVectory', () => {
-    const isVector = is({ 
-        x: is.number, 
-        y: is.number 
+    const isVector = is({
+        x: is.number,
+        y: is.number
     }) satisfies IsType<{ x: number, y: number }>
 })
