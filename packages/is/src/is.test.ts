@@ -48,10 +48,16 @@ it('isErrorOrArrayOfTodos', () => {
 
 it('isArrayOfReadOnlyVectory', () => {
 
-    const isVector = is({
-        x: is.number,
-        y: is.number
-    })
+
+    const isVector = is({ x: is.number, y: is.number })
+
+    const isNotVector = is.not(isVector)
+    
+    is.not(isNotVector).type satisfies typeof isVector.type
+
+    is.optional.arrayOf(is.string).readonly
+
+        .type satisfies undefined | readonly string[]
 
     const isArrayOfReadOnlyVector = is.optional.arrayOf(isVector)
 

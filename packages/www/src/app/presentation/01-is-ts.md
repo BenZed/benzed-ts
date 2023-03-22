@@ -163,12 +163,143 @@ const isTodo = is.shape({
 
 > I admit that the syntax highlighting isn't as friendly as it is inside my IDE.
 
-## Inituitive API
+## Validation Narrowing
 
-**[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** uses typescript theory and conventions
+**[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** allows complex narrowing through terms
+
 ```ts
+const isHashtag = is.string.startsWith('#')
+
+const isShout = is.string.capitalized().endsWith('!')
+
+const isPort = is.integer.min(1025).max(65536).message('must be an accessible port')
+```
+> Talk about narrowing
+
+## Immutability 
+
+Each validator created by **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** is an immutable data structure. Any methods or properties that are part of the configuration interface will create new instances. Thus, actions can be reversed:
+
+```ts
+const isRaisedVoice = isShout.capitalized(false)
+```
+
+Any terms with a function signature can be disabled or called with different configuration:
+```ts
+const isRestrictedPort = isPort.min(0).max(1024).message('must be a restricted port')
+const isCurrency = isHashtag.startsWith('$', 'must be worth money')
+```
+
+## Readonly
+
+**[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** uses naming conventions with typescript familiarity in mind.
+
+Writing a readonly todo:
+```ts
+
 const isTodo = is({
     completed: is.readonly.boolean,
-    description: is.description.readonly
-})
+    description: is.string.readonly
+}) 
+
+isTodo.type satisfies {
+    readonly completed: boolean,
+    readonly description: string
+}
+
 ```
+
+Alternatively:
+```ts
+const isTodo = is({
+    completed: is.boolean,
+    description: is.string
+}).readonly
+
+isTodo.type satisfies Readonly<{
+    completed: boolean,
+    description: string
+}>
+```
+
+# Optional / Partial
+
+Writing an optional todo:
+```ts
+const isTodo = is({
+    completed: is.boolean.optional,
+    description: is.optional.string
+})
+
+isTodo.type satisfies {
+    completed?: boolean,
+    description?: string
+}
+```
+
+Alternatively:
+```ts
+const isTodo = is({
+    completed: is.boolean,
+    description: is.string
+}).partial
+
+isTodo.type satisfies {
+    completed?: boolean,
+    description?: string
+}
+```
+
+> is-ts is built with typescript conventions, utilities and theory in mind. The top example showcases that the readonly modifier could be prefixed or suffixed on individual properties of a shape or indexes of a tuple. Alternatively, the entire shape could be made readonly if the readonly modifier is hoisted up a level, much like using the readonly property modifiers or the Readonly utility type.
+
+> In the second example we see similarily that the optional modifier can be prefixed or suffixed to individual properties, or the partial property could be used much like the Partial utility type. Using the .optional term for the Todo would make the entire value optional rather than each individual property, much like you'd expect the optional operator to behave.
+
+# Required / Writable
+
+```ts
+is.optional.string 
+    .type satisfies string | undefined
+
+is.optional.string.required
+    .type satisfies string
+
+is.readonly.array.of.string
+    .type satisfies readonly string[]
+
+is.readonly.array.of.string.writable
+    .type satisfies string[]
+```
+
+# Not
+
+Validations can be negated:
+
+```ts
+if (is.not.string(input))
+    input = String(input)
+```
+
+Negations can also be negated:
+
+```ts
+const isVector = is({
+    x: is.number,
+    y: is.number
+})
+
+const isNotVector = is.not(isVector)
+
+is.not(isNotVector).type satisfies typeof isVector.type
+```
+
+Negations can work on narrowing validations:
+```ts
+const isLiquidTemp = is.number.min(0).max(100)
+expect(() => isLiquidTemp.assert(125)).toThrow('must be below or equal 100')
+expect(() => is.not(isLiquidTemp).assert(125)).not.toThrow()
+```
+
+> !!!Talk a little about the .not operator
+
+> Talk about how type guarding works
+
