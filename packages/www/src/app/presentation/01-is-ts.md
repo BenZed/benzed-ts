@@ -35,7 +35,7 @@ expect(trimmed).toEqual('hello world')
 ```
 > is-ts is a yet-to-be-released library I've been building in type script. It allows developers to compose type guards, type asserters and data validation schematics with a fluent and, I'm hoping, intuitive api.
 
-> This was born out of a couple of desires. There many typesafe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
+> This was born out of a couple of desires. There many type-safe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
 
 > On screen you'll see a couple of contrived examples of how the api might be used to create type guards, type assertions or validation methods.
 
@@ -64,13 +64,15 @@ const isVector: IsType<Vector> = is({ x: is.number, y: is.number })
 expect(isVector({ x: 0, y: 0 })).toBe(true)
 ```
 
-> When I first transitioned to TypeScript, I became increasingly impressed with how the type system worked, and how malleable and powerful it was especially in comparison to other existing strongly typed languages. There's a lot of interesting things you can do in typescript that you can't do in, for example, C#.
+> When I first transitioned to TypeScript, I became increasingly impressed with how the type system worked, and how malleable and powerful it was especially in comparison to other existing strongly typed languages. There's a lot of interesting things you can do in typescript that you can't do, for example, in C#.
 
-> I looked at a couple of the other data validation libraries that were written with the same design goals in mind, such as ts-json-schema, or zod. When I was new to typescript, the source code in their respective repositories was greek to me. I figured that actually building a library that was so closely tied to the type system would be a great way to learn the type system.
+> I remember having something of a eureka moment when learning about mapped types and conditional types years ago and thinking that there are some incredible opportunities for developer experience in this language. As a developer, at the time, I strongly wanted to gravitate away from javascript for it's deficiencies and I started learning rust, instead. Typescript made me stay.
+
+> I looked at a couple of the other data validation libraries that were written with the same design goals in mind, such as ts-json-schema, or zod. I figured that actually building a library that was so closely tied to the type system would be a great way to learn the type system.
 
 > As I learned more about typescript and worked extensively in the web ecosystem, I found myself writing a great deal of type guards, and I kept on imagining a library that could be used to guard types and create validation for them at the same time as I feel they're tightly coupled concepts, anyway.
 
-> In the first example, you can see how a type can be defined with `is-ts`, and in the second you can see how validation could be created for an existing type.
+> In the first example, you can see how a type can be defined with `is-ts`, and in the second you can see how validation could be created for an existing type in a type-safe manner.
 
 ## Fluidity
 
@@ -110,30 +112,28 @@ expect(isSerialInput(0)).toBe(true)
 expect(isSerialInput([0, 'string'])).toBe(true)
 ```
 
-> As we know, code is inherently a lot easier to write than to read, which is a phenomenon I've always found very frustrating. The more anyone programs, the more focused they become on making their own code readable. I find myself imagining and building api's that are structured with readability as a directive.
+> As we know, code is inherently a lot easier to write than to read, which is a phenomenon I've always found very frustrating. I very frequently have to exercise discipline not to re-write modules as opposed to sit down and parse them. The more anyone programs, the more focused they become on making their own code readable. I find myself imagining and building api's that are structured with readability as a prime directive.
 
-> I think different languages have different readability strengths and generally the higher level languages are easier for humans to read
+> I think different languages have different readability strengths and generally the higher level languages are easier for humans to read than the lower levels ones, but not matter how you slice it, it's the responsibility of the coder. No disrespect to the author at all, but I open the zod repository, and I have difficulty making heads or tails of it.
 
-> Javacript and Typescript arn't exactly the most extensible languages, but the syntax is malleable enough that you can more or less make your own standards. JQuery comes to mind.
+> JavaScript and Typescript aren't exactly the most extensible languages, you can't define your own operators, for example, but the syntax is malleable enough that you can more or less make your own standards. JQuery comes to mind.
 
-> In my own mono repo utility libraries, I've developed a number of these fluid apis. In my mind, the more often one depends on a library the more readable it's interface should be. My creations borrowed a lot from testing libraries like mocha or jest.
+> In my own mono repo utility libraries, I've developed a number of these fluid apis. In my mind, the more often one depends on a library the more readable it's syntax should be. My creations borrow a lot from testing libraries like mocha or jest.
 
-> In the examples on screen, you can see a couple of ways of defining the same type of data. I like that, once the data types are written, they're structured exactly how I think about them in english.
+> In the examples on screen, you can see a couple of different ways of defining the same type of data. I like that, once the data types are written, they're structured exactly how I think about them in english.
+
+> A "SerialInput", whatever that is, is a number or a string, or an array of numbers or strings.
 
 ## Type Fluidity
 
+
 ```ts
-const isVector = is({
-    x: is.number,
-    y: is.number
-})
+import { Is, Optional, ArrayOf, ReadOnly, Shape, Number } from '@benzed/is'
 ```
 
-Type definitions are intended to be easily readable:
+Type definitions are intended to be readable:
 
 ```ts
-import { Is, Optional, ReadOnly, ArrayOf, Shape } from '@benzed/is'
-
 const isMaybeVectors = is.optional.array.of(isVector.readonly) satisfies
     Is<Optional<ArrayOf<ReadOnly<Shape<{ x: Number, y: Number  }>>>>>
 
@@ -150,31 +150,41 @@ isReadonlyVectors.type satisfies
     readonly ({ x: number, y: number } | undefined)[]
 ```
 
-```ts
-const isTodo = is.shape({
-    completed: is.readonly.boolean,
-    description: is.description.readonly
-})
-```
+> I think some of Typescript's less developer experience friendly aspects are the cryptic type errors and readability of complex or nested types, so in addition to the runtime syntax itself being readable, I'd like as much as possible for the types to be readable as well.
 
-> I think some of typescripts less developer experience friendly aspects are the cryptic type errors and readability of complex or nested types, so in addition to the runtime syntax itself being readable, I'd like as much as possible for the types to be readable as well.
+> You'll see in the examples the satisfies operand more or less has the same structure as the validator declaration itself. You can see that by exchanging the position of the modifiers, one gets a different type.
 
-> You'll see in the example the satisfies operand more or less has the same structure as the validator declaration itself.
+> I admit that the syntax highlighting in this example isn't as friendly as it is inside my IDE.
 
-> I admit that the syntax highlighting isn't as friendly as it is inside my IDE.
+## Narrowing
 
-## Validation Narrowing
-
-**[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** allows complex narrowing through terms
+**[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** allows complex narrowing through terms:
 
 ```ts
-const isHashtag = is.string.startsWith('#')
+const isHashtag = is.string
+    .startsWith('#')
 
-const isShout = is.string.capitalized().endsWith('!')
+const isShout = is.string
+    .capitalized()
+    .endsWith('!')
 
-const isPort = is.integer.min(1025).max(65536).message('must be an accessible port')
+const isPort = is.integer
+    .min(1025)
+    .max(65536)
+    .error('must be an accessible port')
+
+const isObjectId = is.string
+    .format(
+        /^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i,
+        'must be in object-id format'
+    )
+
 ```
-> Talk about narrowing
+> Since it-ts is a type-guard AND data validation library, it wouldn't be very useful if it weren't possible to narrow the scope of the types to specific forms.
+
+> It's nice to be able to quickly write type guards for common or obvious shapes, but I'd also like to use the same library to sanitize user input or validate records being pushed up to a database.
+
+> The examples on screen showcase some sub validation builder methods that one might expect to find.
 
 ## Immutability 
 
