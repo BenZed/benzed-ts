@@ -45,6 +45,10 @@ const Translate = styled((props: { children: ReactElement, time?: number }) => {
         padding: 0em 2em 0em 2em;
     }
 
+    p {
+        max-width: 50%;
+    }
+
 `
 
 //// Slide Component ////

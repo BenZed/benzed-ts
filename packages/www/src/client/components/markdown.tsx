@@ -20,9 +20,7 @@ const Code = (props: CodeProps) => {
 
     const { children: content } = props
 
-    const isStringContent = is.string.or.arrayOf(is.string)(content)
-
-    return language && isStringContent
+    return language && is.string.or.arrayOf(is.string)(content)
         ? (
             <SyntaxHighlighter
                 style={oneDark}
@@ -46,8 +44,10 @@ const Markdown = (props: MarkdownProps): ReactElement => {
     return <ReactMarkdown
         children={content}
         components={{
-            code: Code
+            code: Code,
         }}
+
+        {...rest}
     />
 }
 

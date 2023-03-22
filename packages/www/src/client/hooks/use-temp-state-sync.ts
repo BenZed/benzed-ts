@@ -19,9 +19,9 @@ export const useTempStateSync = <C extends GetCommand>(
 
     useEffect(
         () => {
-            const syncronize = () => getCommand(input).then(setState)
-            syncronize()
-            return onInterval(syncronize, interval)
+            const synchronize = () => getCommand(input).then(setState)
+            synchronize()
+            return onInterval(synchronize, interval)
         },
         [input, interval]
     )

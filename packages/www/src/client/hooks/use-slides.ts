@@ -21,7 +21,6 @@ export const useSlides = () => {
         2500
     )
 
-
     const setCurrentSlide = async (slide: number) => {
         if (slide < 0)
             return
@@ -30,8 +29,8 @@ export const useSlides = () => {
         _setCurrentSlide(slide)
     }
 
-    return [ 
-        slides, 
+    return [
+        slides,
         currentSlide, 
         setCurrentSlide 
     ] as const

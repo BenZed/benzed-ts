@@ -27,6 +27,7 @@ const SlideTitle = styled(({ slide, ...rest }: SlideTitleProps): null | ReactEle
 
     h1 {
         font-family: monospace;
+        font-size: 250%;
         margin: 0.5em 2em 0.5em 2em;
         text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);
     }
