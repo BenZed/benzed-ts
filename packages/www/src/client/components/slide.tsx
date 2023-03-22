@@ -1,32 +1,37 @@
 import React, { ReactElement, useEffect, useState } from 'react'
-import { useSlides } from '../hooks'
 
-import styled from 'styled-components'
-import Markdown from './markdown'
-import type { Slide as SlideJson } from '../../app/presentation'
-import { ACCENT_COLOR } from './global-style'
 import { GenericObject } from '@benzed/util'
 import { onTimeout } from '@benzed/async'
 
+import styled from 'styled-components'
+
+import { ACCENT_COLOR } from './global-style'
+import Markdown from './markdown'
+import type { Slide as SlideJson } from '../../app/presentation'
+
+//// Constants ////
+
+const DEFAULT_TRANSLATION_TIME = 250
+
 //// Hook ////
 
-const useTranslateAnimation = () => {
+const useTranslateAnimation = (time: number) => {
 
     const [style, setTranslate] = useState<GenericObject>({ transform: `translateX(-200%)` })
 
     useEffect(
-        () => onTimeout(() => setTranslate({ transform: undefined }), 250),
+        () => onTimeout(() => setTranslate({ transform: undefined }), time),
         []
     )
 
     return style
 }
 
-const Translate = styled((props: { children: ReactElement, speed?: number }) => {
+const Translate = styled((props: { children: ReactElement, time?: number }) => {
 
-    const { speed = 250, children, ...rest } = props
+    const { time = DEFAULT_TRANSLATION_TIME, children, ...rest } = props
 
-    const style = useTranslateAnimation()
+    const style = useTranslateAnimation(time)
 
     return <div {...rest} style={style} >{children}</div>
 })`
@@ -34,7 +39,7 @@ const Translate = styled((props: { children: ReactElement, speed?: number }) => 
     display: flex;
     flex-direction: column;
 
-    transition: transform 250ms;
+    transition: transform ${p => p.time ?? DEFAULT_TRANSLATION_TIME}ms;
 
     pre {
         padding: 0em 2em 0em 2em;
