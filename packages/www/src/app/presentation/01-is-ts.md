@@ -1,4 +1,4 @@
-# Presenting *is-ts*
+# Presenting is-ts
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** is a syntactially fluid data validation composition library.
 

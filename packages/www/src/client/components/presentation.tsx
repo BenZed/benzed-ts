@@ -1,13 +1,8 @@
-import { AsClient } from '@benzed/app'
-
 import React, { ReactElement } from 'react'
-import { Route, Routes } from 'react-router-dom'
-
-import { WWW } from '../../app'
+import { useMatch } from 'react-router-dom'
 
 import Presenter from './presenter/presenter'
 import { GlobalStyle } from './global-style'
-import { ClientProvider } from './client-context'
 
 import Slide from './slide'
 import SlideTitle from './slide-title'
@@ -25,6 +20,8 @@ const Presentation = (_props: PresentationProps): ReactElement => {
 
     const slide = slides.at(current)
 
+    const matchPresenter = useMatch('/presenter')
+
     return <>
 
         <GlobalStyle />
@@ -33,17 +30,11 @@ const Presentation = (_props: PresentationProps): ReactElement => {
 
         {slide && <Slide slide={slide} />}
 
-        <Routes>
-            <Route
-                path='/presenter'
-                element={<Presenter
-                    slides={slides}
-                    current={current}
-                    setCurrent={setCurrent}
-                />}
-            />
-            <Route index element={null} />
-        </Routes>
+        {matchPresenter && <Presenter
+            slides={slides}
+            current={current}
+            setCurrent={setCurrent}
+        />}
 
     </>
 }

@@ -214,7 +214,7 @@ Also, what about validation that *demands* a transformation from one type to ano
 
 Or what about validation that doesn't involve transformations *at all*?
 
-How about a structure that can help? 
+How about a structure that can help?
 
-## Validator 
+## Validator
 
