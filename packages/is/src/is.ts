@@ -5,7 +5,10 @@ import {
     AddModifier,
     ModifierType, 
     Modifier, 
-    RemoveModifier
+    RemoveModifier,
+    RemoveAllModifiers,
+    ModifiersOf,
+    AddModifiers
 } from '@benzed/schema'
 
 import { assign, TypeGuard } from '@benzed/util'
@@ -54,30 +57,32 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     get type(): ValidateOutput<V>
 
     assert(input: unknown): asserts input is ValidateOutput<V>
-
 }
 
-interface _IsShape<S extends ShapeInput> {
+interface _IsShape<S extends ShapeInput, M extends ModifierType[]> {
 
-    partial(): Is<Shape<ShapePartial<S>>>
-    pick<K extends (keyof S)[]>(...keys: K): Is<Shape<ShapePick<S,K>>>
-    omit<K extends (keyof S)[]>(...keys: K): Is<Shape<ShapeOmit<S,K>>>
-    merge<T extends ShapeInput>(shape: T | Shape<T>): Is<Shape<ShapeMerge<S,T>>>
+    partial(): Is<AddModifiers<Shape<ShapePartial<S>>, M>>
+    pick<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapePick<S,K>>, M>>
+    omit<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapeOmit<S,K>>, M>>
+    merge<T extends ShapeInput>(shape: T | Shape<T>): Is<AddModifiers<Shape<ShapeMerge<S,T>>, M>>
     property<K extends keyof S, U extends ShapePropertyMethod<S, K>>(
         key: K,
         update: U
-    ): Is<Shape<ShapeProperty<S, K, U>>>
+    ): Is<AddModifiers<Shape<ShapeProperty<S, K, U>>, M>>
 
 }
 
 type _IsDynamic<V extends Validator> = {
-    [K in Exclude<keyof V, keyof _IsShape<ShapeInput> | keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
+    [K in Exclude<keyof V, keyof _IsShape<ShapeInput, []> | keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
         ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
         : V[K]
 }
 
-export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V> & (V extends Shape<infer S> 
-    ? _IsShape<S>
+export type Is<V extends Validator> = 
+    IsStatic<V> & 
+    _IsDynamic<V> & 
+    (RemoveAllModifiers<V> extends Shape<infer S> 
+    ? _IsShape<S, ModifiersOf<V>>
     : {})
 
 export type ValidatorOf<T> = T extends Is<infer V>
