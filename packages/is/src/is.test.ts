@@ -10,13 +10,13 @@ it('is.string', () => {
         console.log(`Welcome back, ${name}`)
 })
 
-it('typeof isVectory', () => {
+it('typeof isVector', () => {
     const isVector = is({ x: is.number, y: is.number })
 
     type Vector = typeof isVector.type
 })
 
-it('typeof isVectory', () => {
+it('typeof isVector', () => {
     const isVector = is({
         x: is.number,
         y: is.number

@@ -16,13 +16,13 @@ import { Callable, Mutate, Trait } from '@benzed/traits'
 import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
 
 import { To } from './to'
-import { 
-    Shape, 
-    ShapeInput, 
-    ShapeMerge, 
-    ShapePick, 
+import {
+    Shape,
+    ShapeInput,
+    ShapeMerge,
+    ShapePick,
     ShapeOmit,
-    ShapePartial, 
+    ShapePartial,
     ShapeProperty,
     ShapePropertyMethod 
 } from './schemas'

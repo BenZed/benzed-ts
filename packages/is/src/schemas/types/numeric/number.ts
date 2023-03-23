@@ -57,6 +57,10 @@ export class Number extends Numeric<number, { round: Round, finite: Finite }> {
         )
     }
 
+    get two(): number {
+        return 2
+    }
+
     round(...params: RoundSettingsSignature): this {
         const settings = toRoundSettings(...params)
         return this._applySubValidator('round', { ...settings, type: 'round' })

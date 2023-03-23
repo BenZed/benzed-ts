@@ -10,7 +10,7 @@
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc && npm run webpack",
         "webpack": "shx rm -rf public/ && webpack",
-        "webpack:dev": "webpack serve",
+        "webpack:dev": "npm run webpack -- serve",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc",
         "serve": "node ./lib/scripts/serve.js",
         "serve:dev": "ts-node-dev ./src/scripts/serve.ts --watch ./src/app/*"

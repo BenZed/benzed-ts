@@ -1,7 +1,7 @@
-import { TypeValidator } from '@benzed/schema'
+import { Schema, TypeValidator } from '@benzed/schema'
 
-import { isInteger, isString } from '@benzed/util'
-import { Numeric } from './numeric'
+import { assign, isInteger, isString, Mutable } from '@benzed/util'
+import { Number } from './number'
 
 //// Boolean ////
 
@@ -19,10 +19,13 @@ class IntegerValidator extends TypeValidator<number> {
 
 //// Exports ////
 
-export class Integer extends Numeric<number, {}> {
+export class Integer extends Number {
+
     constructor() {
-        super(new IntegerValidator, {})
+        super();
+        (this as Mutable<this>)[Schema.main] = new IntegerValidator()
     }
+
 }
 
 export const $integer = new Integer

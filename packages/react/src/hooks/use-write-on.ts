@@ -1,5 +1,6 @@
 import { onInterval } from '@benzed/async'
 import { each } from '@benzed/util'
+import is from '@benzed/is'
 
 import { useEffect, useState } from 'react'
 
@@ -40,11 +41,16 @@ const useWriteOn = (target: string, options: WriteOnOptions = {}) => {
         let changes = changeRate
         let newValue = value
 
+        const isEven = is.number.even()
+
         change: while (changes-- > 0) {
+
+            const onAlternatingSides = { reverse: isEven(changes) }
+
             // Match chars
-            for (const index of each.indexOf(target))
-                if (newValue.charAt(index) !== target.charAt(index)) {
-                    const replaceOneChar = newValue.slice(0, index) + target.charAt(index) + newValue.slice(index + 1)
+            for (const i of each.indexOf(target, onAlternatingSides))
+                if (newValue.charAt(i) !== target.charAt(i)) {
+                    const replaceOneChar = newValue.slice(0, i) + target.charAt(i) + newValue.slice(i + 1)
                     newValue = replaceOneChar
                     continue change
                 }

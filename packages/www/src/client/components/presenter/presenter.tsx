@@ -1,20 +1,22 @@
+import { useWriteOn } from '@benzed/react'
 import React, { ReactElement, useState } from 'react'
 
 import styled from 'styled-components'
 import { Slide } from '../../../app/presentation'
+import { ACCENT_COLOR } from '../global-style'
 
 import SlideInput from './slide-input'
 
 //// Helper Components ////
 
 const PresenterCard = styled.div`
-    background-color: rgba(255,255,255,0.25);
     padding: 1em;
-    border-radius: 0.25em;
-    border: none;
+
     color: inherit;
     position: relative;
-    width: calc(100% - 4em);
+
+    width: 40em;
+    height: 5em;
 `
 
 const SlideInfo = styled.div`
@@ -29,7 +31,7 @@ const SlideInfo = styled.div`
         margin-right: auto;
     }
 
-    top: -0.95em;
+    bottom: 0em;
     left: 0.25em;
     right: 0.25em;
     border-radius: 0.25em;
@@ -52,7 +54,13 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
 
     const slide = slides.at(current)
 
-    const card = slide?.cards[cardIndex] ?? null
+    const cardContent = useWriteOn(
+        slide?.cards[cardIndex] ?? '',
+        {
+            interval: 50,
+            changeRate: 11
+        }
+    )
 
     const onNext = () => {
         if (cardIndex + 1 >= (slide?.cards.length ?? 0)) {
@@ -84,24 +92,19 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
                     <span>Slide {current}</span>
                     <span>Card {Math.min(cardIndex + 1, numCards)} of {numCards}</span>
                 </SlideInfo>
-                {card}
+                {cardContent}
             </PresenterCard>}
         </SlideInput>
 
     </div>
 })`
 
-    position: absolute;
-    bottom: 1em;
-    left: 1em;
-    right: 1em;
-    opacity: 0.5;
-
     display: flex;
-    font-size: 150%;
-    align-items: center;
     justify-content: center;
-    flex-direction: column;
+
+    font-size: 125%;
+    width: 100%;
+    background-color: ${ACCENT_COLOR};
 
 `
 

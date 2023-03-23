@@ -542,4 +542,4 @@ isRange.type satisfies [number, number]
 
 > Like shapes, schematics can be made for tuples. All of this is possible thanks to the new const argument modifier, otherwise we'd have to be dropping in const keywords.
 
->
+> 

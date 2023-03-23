@@ -22,12 +22,16 @@ class BigIntValidator extends TypeValidator<bigint> {
     }
 }
 
-//// Ex[prts] ////
+//// Exports ////
 
 export class BigInt extends Numeric<bigint, {}> {
 
     constructor() {
         super(new BigIntValidator, {})
+    }
+
+    get two(): 2n {
+        return globalThis.BigInt('2') as 2n
     }
 
 }

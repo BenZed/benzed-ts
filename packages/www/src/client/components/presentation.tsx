@@ -26,15 +26,15 @@ const Presentation = (_props: PresentationProps): ReactElement => {
 
         <GlobalStyle />
 
-        {slide && <SlideTitle slide={slide} />}
-
-        {slide && <Slide slide={slide} />}
-
         {matchPresenter && <Presenter
             slides={slides}
             current={current}
             setCurrent={setCurrent}
         />}
+
+        {slide && <SlideTitle slide={slide} />}
+
+        {slide && <Slide slide={slide} />}
 
     </>
 }

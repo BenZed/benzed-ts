@@ -10,10 +10,18 @@ const SlideButton = styled.button`
     border: none;
     background: none;
     margin: 0.5em;
-    font-size: 2em;
+
+    font-size: 2.5em;
+    font-weight: bold;
+
+    color: inherit;
 
     :hover {
         transform: scale(1.25,1.25);
+    }
+
+    :active {
+        transform: scale(1.5,1.5);
     }
 `
 //// Presenter Component ////
@@ -33,13 +41,12 @@ const SlideInput = styled(({ onNext, onPrev, children, ...rest }: SlideInputProp
 
     return <div {...rest}>
 
-        <SlideButton onClick={onPrev}>⬅️</SlideButton>
+        <SlideButton onClick={onPrev}>{'<'}</SlideButton>
         {children}
-        <SlideButton onClick={onNext}>➡️</SlideButton>
+        <SlideButton onClick={onNext}>{'>'}</SlideButton>
 
     </div>
 })`
-    width: min(100%, 50em);
     display: flex;
 `
 

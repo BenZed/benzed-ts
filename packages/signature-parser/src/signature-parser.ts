@@ -178,8 +178,8 @@ class MergedSignatureParser<P extends AnySignatureParser[]>
                 if (parser.isSignature(signature))
                     return parser(...signature) as Results<P[number]>
             }
-
-            throw new Error(`Signature not recognized: ${signature}`)
+            console.error(signature)
+            throw new Error(`Signature not recognized: ${JSON.stringify(signature)}`)
         })
         this.parsers = parsers
     }
