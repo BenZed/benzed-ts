@@ -58,7 +58,7 @@ export class Number extends Numeric<number, { round: Round, finite: Finite }> {
         )
     }
 
-    get two(): number {
+    get _two(): number {
         return 2
     }
 

@@ -72,7 +72,7 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
         return this.multipleOf({
             message: 'must be even',
             ...options,
-            value: this.two,
+            value: this._two,
         })
     }
 
@@ -90,7 +90,11 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
     /**
      * 2 if this is a number validator, 2n if bigint validator.
      */
-    abstract get two(): N
+    protected abstract get _two(): N
+
+    protected get _zero(): N {
+        return this._two - this._two as N
+    }
 
     //// Range ////
     
@@ -139,6 +143,22 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
     }
     belowOrEqual(value: N, message?: ValidationErrorMessage<N>): this {
         return this.limit('<=', value, message)
+    }
+
+    positive(message?: ValidationErrorMessage<N>): this {
+        return this.limit(
+            '>=', 
+            this._zero, 
+            message ?? 'must be positive'
+        )
+    }
+
+    negative(message?: ValidationErrorMessage<N>): this {
+        return this.limit(
+            '<', 
+            this._zero, 
+            message ?? 'must be negative'
+            )
     }
 
 }

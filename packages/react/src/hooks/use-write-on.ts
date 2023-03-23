@@ -68,8 +68,10 @@ const useWriteOn = (target: string, options: WriteOnOptions = {}) => {
             if (newValue.length < target.length) {
                 const plusOneChar = newValue + target.slice(newValue.length, newValue.length + 1)
                 newValue = plusOneChar
+                continue change
             }
 
+            changes = 0 // if we've gotten here newValue must equal target
         }
 
         if (newValue !== value) 

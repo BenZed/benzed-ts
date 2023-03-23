@@ -30,7 +30,7 @@ export class BigInt extends Numeric<bigint, {}> {
         super(new BigIntValidator, {})
     }
 
-    get two(): 2n {
+    get _two(): 2n {
         return globalThis.BigInt('2') as 2n
     }
 
