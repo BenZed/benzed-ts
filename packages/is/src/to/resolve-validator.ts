@@ -44,7 +44,7 @@ type ResolveValidators<T extends unknown[]> = T extends [infer T1, ...infer Tr]
             : [
                 // Handle Primitive
                 T1 extends Primitive 
-                    ? ReadOnly<Value<T1>>
+                    ? Value<T1>
 
                     // Handle Shape
                     : T1 extends ResolveShapeValidatorInput 

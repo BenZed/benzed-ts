@@ -125,7 +125,7 @@ test('recursive shapes', () => {
     })
 
     expectTypeOf($address).toEqualTypeOf<Shape<{
-        type: ReadOnly<Value<'address'>>
+        type: Value<'address'>
         postal: String
         city: InstanceOf<City>
         priority: Number

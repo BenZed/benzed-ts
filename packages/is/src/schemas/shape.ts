@@ -43,8 +43,8 @@ type _EnsurePropertyModifier<
 > = Infer<{
         [K in keyof T]: EnsureModifier<T[K], M>
     }, ShapeValidatorInput>
-    
-////  ////
+
+//// Types ////
 
 type PropertyMethod<T extends ShapeValidatorInput, K extends keyof T> = 
     (prop: T[K]) => Validator
@@ -56,7 +56,7 @@ type Property<
 > = Infer<{
         [Tk in keyof T]: Tk extends K 
             ? ReturnType<U> 
-            : T[K]
+            : T[Tk]
     }, ShapeValidatorInput>
 
 type Pick<
@@ -218,13 +218,17 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
 export default Shape 
 
 export {
+
     Shape,
+
     Pick as ShapePick,
     Omit as ShapeOmit,
     Merge as ShapeMerge,
     Partial as ShapePartial,
-    PropertyMethod as ShapePropertyMethod,
+
     Property as ShapeProperty,
+    PropertyMethod as ShapePropertyMethod,
+
     ShapeValidatorInput as ShapeInput,
     ShapeValidatorOutput as ShapeOutput
 }

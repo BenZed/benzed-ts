@@ -39,6 +39,8 @@ export interface IsCursor<V extends Validator> {
     get validate(): V
 }
 
+type Analyze = typeof Validator['analyze']
+
 interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateOutput<V>> {
 
     get optional(): Is<AddModifier<V, ModifierType.Optional>>
@@ -48,8 +50,11 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
 
     get or(): To<[V], []>
+    // get or(): To<[V], [ToType.Or]>
     // get of(): To<[V], [ToType.Of]>
     // get and(): To<[V], [ToType.And]>
+
+    [Validator.analyze](...params: Parameters<V[Analyze]>): ReturnType<V[Analyze]>
 
     /**
      * Type-only property
@@ -64,7 +69,7 @@ interface _IsShape<S extends ShapeInput, M extends ModifierType[]> {
     partial(): Is<AddModifiers<Shape<ShapePartial<S>>, M>>
     pick<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapePick<S,K>>, M>>
     omit<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapeOmit<S,K>>, M>>
-    merge<T extends ShapeInput>(shape: T | Shape<T>): Is<AddModifiers<Shape<ShapeMerge<S,T>>, M>>
+    and<T extends ShapeInput>(shape: T | Shape<T>): Is<AddModifiers<Shape<ShapeMerge<S,T>>, M>>
     property<K extends keyof S, U extends ShapePropertyMethod<S, K>>(
         key: K,
         update: U
@@ -78,7 +83,7 @@ type _IsDynamic<V extends Validator> = {
         : V[K]
 }
 
-export type Is<V extends Validator> = 
+export type Is<V extends Validator = Validator> = 
     IsStatic<V> & 
     _IsDynamic<V> & 
     (RemoveAllModifiers<V> extends Shape<infer S> 
