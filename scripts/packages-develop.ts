@@ -95,7 +95,7 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     if (!thisPkg.dependencies)  
         thisPkg.dependencies = {}
 
-    // Build iternal dependencies
+    // Build internal dependencies
     const newInternalDeps: Record<string,string> = {}
     for (const tsFileUrl of tsFileUrls) {
         const tsFileContent = tsFileContentCache[tsFileUrl] ??= await fs.readFile(tsFileUrl, 'utf-8')
@@ -179,8 +179,12 @@ watch(PACKAGES_DIR + '/*/src/**', {
     if (tsFileContentCache[file] === contents) 
         return
 
+    const logError = console.error.bind(console, 'process-error')
+
     if (!buildProcess.isRunning)  
-        await buildProcess.run(file)
+        await buildProcess
+            .run(file)
+            .catch(logError)
 
     if (!testProcess.isRunning) {
         const isTestFile = file.endsWith('.test.ts')
@@ -194,13 +198,15 @@ watch(PACKAGES_DIR + '/*/src/**', {
                 : testAllFiles 
                     ? '--all'
                     : '--only-changed'
-        )
+        ).catch(logError)
     }
 
     if (!updateDependencyProcess.isRunning)
-        await updateDependencyProcess.run(file)
+        await updateDependencyProcess
+            .run(file)
+            .catch(logError)
 
-    // rel/path/to/file updated oldsize >> newsize
+    // rel/path/to/file updated oldSize >> newSize
     console.log(
         '\n' + file.replace(PACKAGES_DIR, ''), 
         'updated', 

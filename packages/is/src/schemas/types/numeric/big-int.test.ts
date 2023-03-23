@@ -4,7 +4,7 @@ import { testValidator } from '../../../util.test'
 
 //// Tests ////
 
-testValidator<unknown, bigint>(
+testValidator<unknown, bigint>( 
     $bigint,
     { transforms: 0n },
     { asserts: 0n }

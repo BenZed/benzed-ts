@@ -22,7 +22,7 @@ testValidator(
     { asserts: 1.5, error: 'must be rounded' } 
 )
 
-testValidator(
+testValidator( 
     $number.min(5),
     { asserts: 5 },
     { asserts: 4, error: 'must be above or equal 5' }
@@ -40,4 +40,10 @@ testValidator(
     { asserts: 4, error: 'must be above or equal 5' },
     { asserts: 10 },
     { asserts: 11, error: 'must be below or equal 10' }
+)
+
+testValidator(
+    $number.even(),
+    { asserts: 4 },
+    { asserts: 5, error: 'must be even'}
 )

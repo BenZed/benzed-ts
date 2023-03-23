@@ -13,7 +13,7 @@ import {
 
 import { assign, TypeGuard } from '@benzed/util'
 import { Callable, Mutate, Trait } from '@benzed/traits'
-import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
+import { Comparable, equals, Copyable, copy } from '@benzed/immutable'
 
 import { To } from './to'
 import {
@@ -24,7 +24,7 @@ import {
     ShapeOmit,
     ShapePartial,
     ShapeProperty,
-    ShapePropertyMethod 
+    ShapePropertyMethod
 } from './schemas'
 
 //// EsLint ////
@@ -33,36 +33,7 @@ import {
     @typescript-eslint/no-explicit-any
 */
 
-//// Types ////
-
-export interface IsCursor<V extends Validator> {
-    get validate(): V
-}
-
-type Analyze = typeof Validator['analyze']
-
-interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateOutput<V>> {
-
-    get optional(): Is<AddModifier<V, ModifierType.Optional>>
-    get required(): Is<RemoveModifier<V, ModifierType.Optional>>
-
-    get readonly(): Is<AddModifier<V, ModifierType.ReadOnly>>
-    get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
-
-    get or(): To<[V], []>
-    // get or(): To<[V], [ToType.Or]>
-    // get of(): To<[V], [ToType.Of]>
-    // get and(): To<[V], [ToType.And]>
-
-    [Validator.analyze](...params: Parameters<V[Analyze]>): ReturnType<V[Analyze]>
-
-    /**
-     * Type-only property
-     */
-    get type(): ValidateOutput<V>
-
-    assert(input: unknown): asserts input is ValidateOutput<V>
-}
+//// Helper Types ////
 
 interface _IsShape<S extends ShapeInput, M extends ModifierType[]> {
 
@@ -82,6 +53,38 @@ type _IsDynamic<V extends Validator> = {
         ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
         : V[K]
 }
+
+//// Types ////
+
+export interface IsCursor<V extends Validator> {
+    get validate(): V
+}
+
+type Analyze = typeof Validator['analyze']
+
+interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateOutput<V>> {
+
+    get optional(): Is<AddModifier<V, ModifierType.Optional>>
+    get required(): Is<RemoveModifier<V, ModifierType.Optional>>
+
+    get readonly(): Is<AddModifier<V, ModifierType.ReadOnly>>
+    get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
+
+    get or(): To<[V], []>
+    // get or(): To<[V], ToType.Or>
+    // get of(): To<[V], ToType.Of>
+    // get and(): To<[V], ToType.And>
+
+    [Validator.analyze](...params: Parameters<V[Analyze]>): ReturnType<V[Analyze]>
+
+    /**
+     * Type-only property
+     */
+    get type(): ValidateOutput<V>
+
+    assert(input: unknown): asserts input is ValidateOutput<V>
+}
+
 
 export type Is<V extends Validator = Validator> = 
     IsStatic<V> & 

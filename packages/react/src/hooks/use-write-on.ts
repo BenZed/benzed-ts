@@ -1,4 +1,4 @@
-import { onInterval } from '@benzed/async'
+import { onInterval, onTimeout } from '@benzed/async'
 import { each } from '@benzed/util'
 import is from '@benzed/is'
 
@@ -36,42 +36,46 @@ const useWriteOn = (target: string, options: WriteOnOptions = {}) => {
 
     const [ value, setValue ] = useState(initialValue)
 
-    useEffect(() => onInterval(() => {
+    const [ reverse, setReverse ] = useState(target.length > value.length)
+
+    useEffect(() => {
+        setReverse(target.length < value.length)
+    }, [target])
+
+    useEffect(() => onTimeout(() => {
 
         let changes = changeRate
         let newValue = value
 
-        const isEven = is.number.even()
-
         change: while (changes-- > 0) {
-
-            const onAlternatingSides = { reverse: isEven(changes) }
-
-            // Match chars
-            for (const i of each.indexOf(target, onAlternatingSides))
-                if (newValue.charAt(i) !== target.charAt(i)) {
-                    const replaceOneChar = newValue.slice(0, i) + target.charAt(i) + newValue.slice(i + 1)
-                    newValue = replaceOneChar
-                    continue change
-                }
 
             // Increase length
             if (newValue.length > target.length) {
                 const minusOneChar = newValue.slice(0, -1)
                 newValue = minusOneChar
+                continue change
+            }
+
+            // Match characters
+            for (const i of each.indexOf(newValue, { reverse }))
+            if (newValue.charAt(i) !== target.charAt(i)) {
+                const replaceOneChar = newValue.slice(0, i) + target.charAt(i) + newValue.slice(i + 1)
+                newValue = replaceOneChar
+                continue change
             }
 
             // Reduce length
-            else if (newValue.length < target.length) {
+            if (newValue.length < target.length) {
                 const plusOneChar = newValue + target.slice(newValue.length, newValue.length + 1)
                 newValue = plusOneChar
             }
+
         }
 
         if (newValue !== value) 
             setValue(newValue)
 
-    }, interval), [value, target, interval, changeRate])
+    }, interval), [value, target, reverse, interval, changeRate])
 
     return value
 }

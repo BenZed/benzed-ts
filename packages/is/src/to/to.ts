@@ -42,7 +42,7 @@ import {
     Undefined,
 
     $nan,
-    NaN,
+    NAN as NaN,
 
     $date,
     Date,

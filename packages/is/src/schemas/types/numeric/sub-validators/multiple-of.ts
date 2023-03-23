@@ -57,13 +57,16 @@ export class MultipleOf<N extends number | bigint> extends ContractValidator<N> 
     }
 
     override isValid(input: N): boolean {
-        return this.value === nil
-            ? false 
-            : input % this.value === 0
+        if (this.value === nil)
+            return false 
+
+        const isMultipleOfValue = input % this.value === 0
+    
+        return this.not ? !isMultipleOfValue : isMultipleOfValue
     }
 
-    get [Validator.state](): Pick<this, 'value' | 'not' | 'name' | 'message'> {
-        return pick(this, 'value', 'not', 'name', 'message')
+    get [Validator.state](): Pick<this, 'enabled' | 'value' | 'not' | 'name' | 'message'> {
+        return pick(this, 'enabled', 'value', 'not', 'name', 'message')
     }
 
     override message(_input: N, _ctx: ValidationContext<N, N>): string {

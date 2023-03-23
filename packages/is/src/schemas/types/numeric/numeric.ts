@@ -1,21 +1,15 @@
 import { pluck } from '@benzed/array'
-import { defined, isBoolean, isEqual, isObject, isRecord, nil } from '@benzed/util'
+import { defined, isBoolean, isEqual } from '@benzed/util'
 import { 
-    isValidationErrorMessage,
     SubValidator, 
     SubValidators, 
     TypeSchema, 
     TypeValidator, 
-    ValidationContext, 
     ValidationErrorMessage,
-    Validator,
-    Validators,
-    ValidatorState
 } from '@benzed/schema'
 
 import { Limit } from './sub-validators/limit'
 import { MultipleOf, MultipleOfSettingsSignature, toMultipleOfSettings, MultipleOfSettings } from './sub-validators'
-import { SignatureParser } from '@benzed/signature-parser'
 
 //// EsLint ////
 /* eslint-disable 
@@ -63,7 +57,7 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
     multipleOf(value: N, message?: ValidationErrorMessage<N>): this
     multipleOf(...signature: MultipleOfSettingsSignature<N>): this 
     multipleOf(...signature: []): this {
-        const options = toMultipleOfSettings(signature as any) as any
+        const options = toMultipleOfSettings(...signature as any) as any
         return this._applySubValidator(
             'multipleOf', 
             options
@@ -75,12 +69,8 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
     even(options?: EvenSettings<N>): this
     even(input?: boolean | ValidationErrorMessage<N> | EvenSettings<N>): this | boolean {
         const options = toMultipleOfSettings(input as any)
-
-        console.log({
-            ...options,
-            value: this.two,
-        })
         return this.multipleOf({
+            message: 'must be even',
             ...options,
             value: this.two,
         })
@@ -91,6 +81,7 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
     odd(input?: boolean | ValidationErrorMessage<N> | EvenSettings<N>): this | boolean {
         const options = toMultipleOfSettings(input as any)
         return this.even({
+            message: 'must be odd',
             ...options,
             not: true 
         })
@@ -107,7 +98,7 @@ export abstract class Numeric<N extends numeric, S extends NumericSubValidators<
     range(min: N, max: N, message?: ValidationErrorMessage<N>): this
     range(min: N, comparator: RangeComparator, max: N, message?: ValidationErrorMessage<N>): this 
     range(...signature: [false] | [N, N, ValidationErrorMessage<N>?] | [N, RangeComparator, N, ValidationErrorMessage<N>?]): this {
-        
+         
         const [ enabled = true ] = pluck(signature, isBoolean)
         const maxInclusive = pluck(signature, isRangeComparator)[0] === '...'
         const [ minValue, maxValue, message ] = signature as [N,N, ValidationErrorMessage<N>?]

@@ -10,6 +10,7 @@ import {
     NameMessageEnabledSettingsSignature, 
     toNameMessageEnabledSettings 
 } from '../../util'
+
 import { Numeric } from './numeric'
 
 import {
