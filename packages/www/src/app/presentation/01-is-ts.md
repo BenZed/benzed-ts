@@ -663,4 +663,4 @@ const isStringRef = isRef(is.string)
 isStringRef.type satisfies { current: string }
 ```
 
-> And that is a brief overview of many of the features that `is-ts` when it is complete. Now that you know what `is-ts` is, let me talk about how I built it. Any questions before continuing?
+> And that is a brief overview of many features `is-ts` will have when it is complete. Now that you know what it is, let me talk about how I built it. Any questions before I continue?
