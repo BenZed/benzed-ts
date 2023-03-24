@@ -49,6 +49,11 @@ const Translate = styled((props: { children: ReactElement, time?: number }) => {
         max-width: 50%;
     }
 
+    code {
+        color: ${ACCENT_COLOR};
+        font-size: 120%;
+    }
+
 `
 
 //// Slide Component ////
