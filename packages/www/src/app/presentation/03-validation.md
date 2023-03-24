@@ -2,42 +2,32 @@
 
 ### [@benzed/schema](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/schema)
 
-### Validation basically involes three concepts:
+### There are three tenants of the Validation trifecta:
 - #### **`transform`**-ing data from a one type to another
 - #### determining if data **`is`** of an expected type
 - #### **`assert`**-ing that data is of an expected type
 
-## Transformation
+> So here we are, in the @benzed/schema library. The schema library defines the behavior of validators, provides templates for different validator types, and provides schematic structures to combine them together. The actual chaining of validators into an expressive syntax is the responsibility of the `is-ts` library.
 
-A transformation is simple:
-```ts 
+> There are three tenants in what this library calls the validation trifecta: **Transform**ing data from one type to another, determining if data **is** of an expected type, or **assert**ing that data is of an expected type. 
 
-/**
- * Transform an input into an expected output.
- */
-interface Transform<I,O> {
-    (input: I): O
-}
-
-```
-
-A common transformation example: Deserializing data that had been saved in some persistent state: 
+# Transform
 
 ```ts
-    const deserialize: Transform<string, Json> = (i) => JSON.parse(i)
+const deserialize = (i: string): object => JSON.parse(i)
 ```
 
-Transforms take only a single input argument and are always syncronous.
-
-Transformations can fail. In the case of `JSON.parse`, it will throw an error if the given string is nonsense, and doesn't describe any `Json` data. On it's own, `JSON.parse` demonstrates two facets data validation:
-
-- **`transforms`**: ✅ 
-- **`asserts`**: ✅ 
+- **`transforms`**: ✅
+- **`asserts`**: ✅
 - **`is`**: ❌
 
-## Is
+> A transformation is simple. One takes data from some non-environment format, and transforms it into something the runtime can use.
 
-To complete the trifecta, we'd need another method to determine weather or not a given string is JSON parseable.
+> A common transformation example: Deserializing data that had been saved in some persistent state.
+
+> Transformations can fail. In the case of `JSON.parse`, it will throw an error if the given string is nonsense, and doesn't describe any `Json` data. On it's own, `JSON.parse` demonstrates two of the three pillars of the validation trifecta
+
+# Is
 
 ```ts
     const isDeserializable = (input: string): boolean => {
@@ -49,8 +39,9 @@ To complete the trifecta, we'd need another method to determine weather or not a
         }
     }
 ```
+> To complete the trifecta, we'd need another method to determine weather or not a given string is JSON parsable. Behold, isDeserializable
 
-Quite simply, if the input string cannot be converted into `JSON` without failing, it must not be serializable. With these two methods, we can handle any aspect of data validation concerning strings to Json:
+> Quite simply, if the input string cannot be converted into `JSON` without failing, it must not be serializable. With these two methods, we can handle any aspect of data validation concerning strings to Json:
 
 ```ts
 
@@ -60,7 +51,7 @@ expect(isDeserializable(`{ "json": true }`)).toBe(true) // is ✅
 
 ```
 
-Handy, but we can't just check if a transformation fails every time to determine if data is valid: 
+> Handy, but we can't just check if a transformation fails every time to determine if data is valid: 
 
 ```ts
 
