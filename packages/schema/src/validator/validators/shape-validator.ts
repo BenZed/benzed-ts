@@ -60,16 +60,7 @@ type _ShapeProperties<T extends ShapeValidatorInput> =
     & _OptionalReadOnlyProperties<T>
 
 type _ShapePropertyOutput<T extends Validator> = 
-    ValidateOutput<
-
-    // GOTCHA: We're not actually removing the mutators 
-    // in implementation. This is only to clean up the
-    // output type
-    /**/ RemoveModifier<
-    /*    */ RemoveModifier<T, ModifierType.Optional>,
-    /**/ ModifierType.ReadOnly>
-    
-    >
+    ValidateOutput<T>
 
 //// Types ////
 

@@ -26,4 +26,4 @@ export const isPath = is
     )
     .named('Path') as IsType<`/${string}`> 
 
-export type Path = typeof isPath.data
+export type Path = typeof isPath.type

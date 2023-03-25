@@ -6,8 +6,10 @@ import { onTimeout } from '@benzed/async'
 import styled from 'styled-components'
 
 import { ACCENT_COLOR } from './global-style'
+
 import Markdown from './markdown'
-import type { Slide as SlideJson } from '../../app/presentation'
+
+import type { Slide as SlideJson, PresentationState, ContentCard, Slide } from '../../app/presentation'
 
 //// Constants ////
 
@@ -27,49 +29,34 @@ const useTranslateAnimation = (time: number) => {
     return style
 }
 
-const Translate = styled((props: { children: ReactElement, time?: number }) => {
+const useContentFromAllCardsUpToCurrent = (slide: Slide, current: PresentationState): string => {
 
-    const { time = DEFAULT_TRANSLATION_TIME, children, ...rest } = props
+    const isUsedCard = (_: ContentCard, i: number) => i < current.card
 
-    const style = useTranslateAnimation(time)
+    const content = slide
+        .cards
+        .filter(isUsedCard)
+        .map(card => card.content)
+        .join('')
 
-    return <div {...rest} style={style} >{children}</div>
-})`
-    align-self: center;
-    display: flex;
-    flex-direction: column;
-
-    transition: transform ${p => p.time ?? DEFAULT_TRANSLATION_TIME}ms;
-
-    pre {
-        padding: 0em 2em 0em 2em;
-    }
-
-    p {
-        max-width: 50%;
-    }
-
-    code {
-        color: ${ACCENT_COLOR};
-        font-size: 120%;
-    }
-
-`
+    return content
+}
 
 //// Slide Component ////
 
 interface SlideProps {
     slide: SlideJson
+    current: PresentationState
 }
 
 const Slide = styled((props: SlideProps): ReactElement => {
 
-    const { slide, ...rest } = props
+    const { slide, current, ...rest } = props
+
+    const content = useContentFromAllCardsUpToCurrent(slide, current)
 
     return <section {...rest}>
-        <Translate key={slide.content}>
-            <Markdown content={slide.content} />
-        </Translate>
+        <Markdown content={content} />
     </section>
 })`
     display: flex;

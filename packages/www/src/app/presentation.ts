@@ -1,35 +1,42 @@
-import { IS_DEV, toVoid } from '@benzed/util'
+import { IS_DEV, Mutable } from '@benzed/util'
 import { Module, Command } from '@benzed/app'
-import { clamp } from '@benzed/math'
 import fs from '@benzed/fs'
 
 import path from 'path'
+import is, { ReadOnly, Or, Optional } from '@benzed/is'
 
 //// Type ////
 
-export interface Slide {
+export const isContentCard = is({
+    prompt: is.string.readonly,
+    content: is.string.readonly
+})
 
-    title: string
+export type ContentCard = typeof isContentCard.output
 
-    /**
-     * Content visible to attendees
-     */
-    content: string
 
-    /**
-     * Dialog cards visible to the presenter only
-     */
-    readonly cards: string[]
+export const isSlide = is.readonly({
+    title: is.string,
+    cards: is.readonly.arrayOf(isContentCard)
+})
 
-}
+export type Slide = typeof isSlide.output
+
+export const isPresentationState = is.readonly({
+    slide: is.number.min(0),
+    card: is.number.min(0)
+})
+
+export type PresentationState = typeof isPresentationState.output
 
 //// Main ////
 
 export class Presentation extends Module {
 
-    currentSlide = 0
+    current = { slide: 0, card: 0 }
 
     private _slides: Slide[] = []
+
     readonly getSlides = Command.get(async function (this: Module) {
 
         const parent = this.parent as Presentation
@@ -41,19 +48,17 @@ export class Presentation extends Module {
         return parent._slides
     })
 
-    readonly getCurrentSlide = Command.get(async function (this: Module) {
+    readonly getCurrent = Command.get(async function (this: Module) {
 
         const parent = this.parent as Presentation
-        return parent.currentSlide
+        return parent.current
     })
 
-    readonly setCurrentSlide = Command.post(async function (this: Module, nextSlide: number){
+    readonly setCurrent = Command.post(async function (this: Module, slideState: PresentationState){
         
         const parent = this.parent as Presentation
 
-        nextSlide = clamp(nextSlide, 0, parent._slides.length)
-
-        parent.currentSlide = nextSlide
+        parent.current = slideState
     })
 
     // Future decorator syntax
@@ -109,38 +114,40 @@ async function readMarkdown(): Promise<{ name: string, contents: string }[]> {
 
 function createSlides(markdown: { name: string, contents: string }): Slide[] {
 
-    const PRESENTER_CARD_PREFIX = '> '
-    const SLIDE_BOUNDARY = /^##?\s(.+)/
+    const CARD_BOUNDARY = /^>\s/
+    const SLIDE_BOUNDARY = /^##?\s/
 
-    const slideTemplate = { 
-        title: markdown.name.replace(/(^\d+-?)/, ''), // "01-title" -> "title"
-        content: '',
-    }
+    const fileTitle = markdown.name.replace(/(^\d+-?)/, '') // "01-title" -> "title"
 
     const slides: Slide[] = []
+
     // create slides
     for (const line of markdown.contents.split('\n')) {
 
-        const boundary = SLIDE_BOUNDARY.exec(line)
+        const hasAtLeastOneSlide = slides.length > 0
 
-        let slide: Slide
-        if (boundary || !slides.at(-1)) {
-            slide = { ...slideTemplate, cards: [] }
-            slides.push(slide)
-        } else 
-            slide = slides.at(-1) as Slide
+        const isSlideBoundary = SLIDE_BOUNDARY.test(line)
+        if (isSlideBoundary || !hasAtLeastOneSlide)
+            slides.push({ title: fileTitle, cards: [] })
 
-        if (boundary)
-            slide.title = boundary[1]
+        const slide = slides.at(-1) as Mutable<Slide>
+        if (isSlideBoundary) {
+            const title = line.replace(SLIDE_BOUNDARY, '')
+            slide.title = title
+            slide.cards.push({ prompt: title, content: '' })
+            continue
+        }
 
-        // For a given slide, we're treating any markdown block quote
-        // as a presenter card that should be visible to the presenter only.
-        else if (line.startsWith(PRESENTER_CARD_PREFIX))
-            slide.cards.push(line.replace(PRESENTER_CARD_PREFIX, ''))
-        else
-        // Anything that isn't a block quote is content that should be
-        // visible to the attendees
-            slide.content += line + '\n'
+        const isCardBoundary = CARD_BOUNDARY.test(line)
+        if (isCardBoundary) {
+            const prompt = line.replace(CARD_BOUNDARY, '')
+            slide.cards.push({ prompt, content: '' })
+        } else {
+            // append card content
+            const lastCardIndex = slide.cards.length - 1
+            slide.cards[lastCardIndex].content += line + '\n'
+        }
+
     }
 
     return slides

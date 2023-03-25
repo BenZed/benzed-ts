@@ -6,9 +6,10 @@ import { useKeyPress } from '../../hooks'
 
 //// Helper ////
 
-const SlideButton = styled.button`
+const CardButton = styled.button`
     border: none;
     background: none;
+    outline: none;
     margin: 0.5em;
 
     font-size: 2.5em;
@@ -41,9 +42,9 @@ const SlideInput = styled(({ onNext, onPrev, children, ...rest }: SlideInputProp
 
     return <div {...rest}>
 
-        <SlideButton onClick={onPrev}>{'<'}</SlideButton>
+        <CardButton onClick={onPrev}>{'<'}</CardButton>
         {children}
-        <SlideButton onClick={onNext}>{'>'}</SlideButton>
+        <CardButton onClick={onNext}>{'>'}</CardButton>
 
     </div>
 })`

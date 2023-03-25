@@ -6,6 +6,11 @@
 import is from 'is-ts'
 ```
 
+> is-ts is a yet-to-be-released library I've been building in type script. It allows developers to compose type guards, type asserters and data validation schematics with a fluent and intuitive api.
+
+> This was born out of a couple of desires. There many type-safe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
+
+
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** defines, identifies, asserts and transforms data into desired types.
 
 ```ts
@@ -36,9 +41,7 @@ const trimmed = is.string.trim().validate('   hello world   ')
 
 expect(trimmed).toEqual('hello world')
 ```
-> is-ts is a yet-to-be-released library I've been building in type script. It allows developers to compose type guards, type asserters and data validation schematics with a fluent and intuitive api.
 
-> This was born out of a couple of desires. There many type-safe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
 
 > On screen you'll see a couple of contrived examples of how is-ts might be used to create type guards, type assertions or validation schematics.
 

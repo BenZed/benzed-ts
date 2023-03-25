@@ -1,15 +1,15 @@
 import { useWriteOn } from '@benzed/react'
-import React, { ReactElement, useState } from 'react'
-
+import React, { ReactElement } from 'react'
 import styled from 'styled-components'
-import { Slide } from '../../../app/presentation'
+
+import { Slide, PresentationState } from '../../../app/presentation'
 import { ACCENT_COLOR } from '../global-style'
 
 import SlideInput from './slide-input'
 
 //// Helper Components ////
 
-const PresenterCard = styled.div`
+const PresenterPrompt = styled.div`
     padding: 1em;
 
     color: inherit;
@@ -18,7 +18,6 @@ const PresenterCard = styled.div`
     font-size: 120%;
 
     width: 40em;
-    min-height: 5em;
 `
 
 const SlideInfo = styled.div`
@@ -33,49 +32,58 @@ const SlideInfo = styled.div`
     }
 
     margin-bottom: 1em;
-
 `
 
 //// Main Component ////
 
 interface PresenterProps {
     slides: Slide[]
-    current: number,
-    setCurrent: (current: number) => void | Promise<void>
+    current: PresentationState,
+    setCurrent: (current: PresentationState) => void | Promise<void>
 }
 
 const Presenter = styled((props: PresenterProps): null | ReactElement => {
 
     const { slides, current, setCurrent, ...rest } = props
 
-    const [cardIndex, setCardIndex] = useState(0)
+    const slide = slides.at(current.slide)
 
-    const slide = slides.at(current)
+    const prompt = slide?.cards.at(current.card)?.prompt ?? ''
 
-    const cardContent = slide?.cards[cardIndex] ?? ''
-
-    const cardTitle = cardIndex === 0
-        ? <h3>{slide?.title}</h3>
-        : null
+    const writeOnPrompt = useWriteOn(prompt, { changeRate: 15, interval: 5 })
 
     const onNext = () => {
-        if (cardIndex + 1 >= (slide?.cards.length ?? 0)) {
-            setCardIndex(0)
-            setCurrent(current + 1)
-
+        const hasNextCard = current.card + 1 >= (slide?.cards.length ?? 0)
+        if (hasNextCard) {
+            setCurrent({
+                card: 0,
+                slide: current.slide + 1
+            })
         } else
-            setCardIndex(cardIndex + 1)
+            setCurrent({
+                ...current,
+                card: current.card + 1
+            })
     }
 
     const onPrev = () => {
-        if (cardIndex - 1 < 0 && current > 0) {
-            setCurrent(current - 1)
-            const nextSlide = slides.at(current - 1)
-            const nextCardIndex = nextSlide ? nextSlide.cards.length - 1 : 0
-            setCardIndex(nextCardIndex)
+        const hasPrevCard = current.card - 1 < 0 && current.slide > 0
+        if (hasPrevCard) {
 
-        } else if (cardIndex - 1 >= 0)
-            setCardIndex(cardIndex - 1)
+            const prevSlide = slides.at(current.slide - 1)
+            const prevCardIndex = prevSlide ? prevSlide.cards.length - 1 : 0
+
+            setCurrent({
+                ...current,
+                slide: current.slide - 1,
+                card: prevCardIndex
+            })
+
+        } else if (current.card - 1 >= 0)
+            setCurrent({
+                ...current,
+                card: current.card - 1
+            })
     }
 
     const numCards = slide?.cards.length ?? 0
@@ -85,14 +93,15 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
             onNext={onNext}
             onPrev={onPrev}
         >
-            {slide && <PresenterCard>
-                <SlideInfo>
-                    <span>Slide {Math.min(current + 1, slides.length)} of {slides.length} </span>
-                    <span>Card {Math.min(cardIndex + 1, numCards)} of {numCards}</span>
-                </SlideInfo>
-                {cardTitle}
-                {cardContent}
-            </PresenterCard>}
+            {slide && <PresenterPrompt>
+                <>
+                    <SlideInfo>
+                        <span>Card {Math.min(current.card + 1, numCards)} of {numCards}</span>
+                        <span>Slide {Math.min(current.slide + 1, slides.length)} of {slides.length} </span>
+                    </SlideInfo>
+                    {writeOnPrompt}
+                </>
+            </PresenterPrompt>}
         </SlideInput>
 
     </div>
@@ -104,6 +113,7 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
     font-size: 125%;
     width: 100%;
     background-color: ${ACCENT_COLOR};
+    min-height: 12em;
 
 `
 

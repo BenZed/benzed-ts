@@ -186,7 +186,7 @@ class Shape<T extends ShapeValidatorInput> extends ContractSchema<ShapeValidator
     /**
      * Make all properties optional.
      */
-    partial(): Shape<Partial<T>> {
+    get partial(): Shape<Partial<T>> {
 
         const propertiesPartial = { ...this.properties } as ShapeValidatorInput
         for (const key of each.keyOf(propertiesPartial)) {

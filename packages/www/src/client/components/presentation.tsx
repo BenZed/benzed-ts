@@ -7,18 +7,21 @@ import { GlobalStyle } from './global-style'
 import Slide from './slide'
 import SlideTitle from './slide-title'
 
-import { useSlides } from '../hooks'
+import { usePresentation } from '../hooks'
 
 //// Presentation Component ////
 
-interface PresentationProps {
-}
+interface PresentationProps { }
 
 const Presentation = (_props: PresentationProps): ReactElement => {
 
-    const [slides, current, setCurrent] = useSlides()
+    const [
+        slides,
+        current,
+        setCurrent
+    ] = usePresentation()
 
-    const slide = slides.at(current)
+    const slide = slides.at(current.slide)
 
     const matchPresenter = useMatch('/presenter')
 
@@ -34,7 +37,7 @@ const Presentation = (_props: PresentationProps): ReactElement => {
 
         {slide && <SlideTitle slide={slide} />}
 
-        {slide && <Slide slide={slide} />}
+        {slide && <Slide slide={slide} current={current} />}
 
     </>
 }

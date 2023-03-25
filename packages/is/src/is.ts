@@ -37,7 +37,7 @@ import {
 
 interface _IsShape<S extends ShapeInput, M extends ModifierType[]> {
 
-    partial(): Is<AddModifiers<Shape<ShapePartial<S>>, M>>
+    get partial(): Is<AddModifiers<Shape<ShapePartial<S>>, M>>
     pick<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapePick<S,K>>, M>>
     omit<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapeOmit<S,K>>, M>>
     and<T extends ShapeInput>(shape: T | Shape<T>): Is<AddModifiers<Shape<ShapeMerge<S,T>>, M>>
@@ -78,9 +78,9 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     [Validator.analyze](...params: Parameters<V[Analyze]>): ReturnType<V[Analyze]>
 
     /**
-     * Type-only property
+     * type-only property
      */
-    get type(): ValidateOutput<V>
+    get output(): ValidateOutput<V>
 
     assert(input: unknown): asserts input is ValidateOutput<V>
 }
