@@ -46,7 +46,7 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
     //// Trait Methods ////
 
     protected async _onStart(): Promise<void> {
-        const allModules = this.find.all.inDescendents()
+        const allModules = this.find.all.inDescendants()
 
         // validate each module that implements the Validateable trait
         for (const module of allModules) {
@@ -64,7 +64,7 @@ abstract class App extends Module.add(Service, Runnable, Validateable) {
 
     protected async _onStop(): Promise<void> {
 
-        const allModules = this.find.all.inDescendents()
+        const allModules = this.find.all.inDescendants()
         for (const module of allModules) {
             if (Runnable.is(module))
                 await module.stop()

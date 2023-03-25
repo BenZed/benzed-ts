@@ -1,9 +1,9 @@
-import { useWriteOn } from '@benzed/react'
 import React, { ReactElement } from 'react'
 import styled from 'styled-components'
 
 import { Slide, PresentationState } from '../../../app/presentation'
 import { ACCENT_COLOR } from '../global-style'
+import Markdown from '../markdown'
 
 import SlideInput from './slide-input'
 
@@ -18,6 +18,10 @@ const PresenterPrompt = styled.div`
     font-size: 120%;
 
     width: 40em;
+
+    a:visited {
+        color: inherit;
+    }
 `
 
 const SlideInfo = styled.div`
@@ -49,8 +53,6 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
     const slide = slides.at(current.slide)
 
     const prompt = slide?.cards.at(current.card)?.prompt ?? ''
-
-    const writeOnPrompt = useWriteOn(prompt, { changeRate: 15, interval: 5 })
 
     const onNext = () => {
         const hasNextCard = current.card + 1 >= (slide?.cards.length ?? 0)
@@ -99,7 +101,7 @@ const Presenter = styled((props: PresenterProps): null | ReactElement => {
                         <span>Card {Math.min(current.card + 1, numCards)} of {numCards}</span>
                         <span>Slide {Math.min(current.slide + 1, slides.length)} of {slides.length} </span>
                     </SlideInfo>
-                    {writeOnPrompt}
+                    <Markdown content={prompt} />
                 </>
             </PresenterPrompt>}
         </SlideInput>

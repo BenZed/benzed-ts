@@ -12,7 +12,7 @@ import {
 import {
     eachAncestor,
     eachChild,
-    eachDescendent,
+    eachDescendant,
     eachNode,
     eachParent,
     eachSibling,
@@ -56,7 +56,7 @@ abstract class Node extends Trait {
     static readonly eachParent = eachParent
     static readonly eachSibling = eachSibling
     static readonly eachAncestor = eachAncestor
-    static readonly eachDescendent = eachDescendent
+    static readonly eachDescendent = eachDescendant
     static readonly eachNode = eachNode
 
     static readonly getPath = getPath

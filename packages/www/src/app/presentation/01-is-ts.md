@@ -42,10 +42,11 @@ const trimmed = is.string.trim().validate('   hello world   ')
 expect(trimmed).toEqual('hello world')
 ```
 
-
 > On screen you'll see a couple of contrived examples of how is-ts might be used to create type guards, type assertions or validation schematics.
 
 > I'd also like to point out that right now you see it imported from my npm scoped library, but when it's actually released, it'll be import from is-ts.
+
+> [getCurrentSlide](/getCurrent)
 
 ## Static Type Inference
 

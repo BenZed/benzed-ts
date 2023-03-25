@@ -72,7 +72,7 @@ export function eachAncestor<T extends Node>(node: T): Each<Node> {
     })
 }
 
-export function eachDescendent<T extends Node>(node: T): Each<Node> {
+export function eachDescendant<T extends Node>(node: T): Each<Node> {
 
     return each(function * () {
 
@@ -108,6 +108,6 @@ export function eachNode<T extends Node>(node: T): Each<Node> {
     return each(function * () {
         const root = getRoot(node)
         yield root
-        yield* eachDescendent(root)
+        yield* eachDescendant(root)
     })
 }

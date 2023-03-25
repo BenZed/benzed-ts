@@ -17,7 +17,7 @@ import { getPath } from './path'
 import {
     eachAncestor,
     eachChild,
-    eachDescendent,
+    eachDescendant,
     eachNode,
     eachParent,
     eachSibling
@@ -51,7 +51,7 @@ interface FindNode<N extends Node> {
     <I extends FindInput<N>>(input?: I): FindOutput<I> | nil
     get inChildren(): FindNode<N>
     get inSiblings(): FindNode<N>
-    get inDescendents(): FindNode<N>
+    get inDescendants(): FindNode<N>
     get inParents(): FindNode<N>
     get inAncestors(): FindNode<N>
     get inNodes(): FindNode<N>
@@ -64,7 +64,7 @@ interface FindNodes<N extends Node> {
     <I extends FindInput<N>>(input?: I): FindOutput<I>[]
     get inChildren(): FindNodes<N>
     get inSiblings(): FindNodes<N>
-    get inDescendents(): FindNodes<N>
+    get inDescendants(): FindNodes<N>
     get inParents(): FindNodes<N>
     get inAncestors(): FindNodes<N>
     get inNodes(): FindNodes<N>
@@ -75,7 +75,7 @@ interface HasNode<N extends Node> {
     <I extends FindInput<N>>(input: I): boolean
     get inChildren(): HasNode<N>
     get inSiblings(): HasNode<N>
-    get inDescendents(): HasNode<N>
+    get inDescendants(): HasNode<N>
     get inParents(): HasNode<N>
     get inAncestors(): FindNodes<N>
     get inNodes(): FindNodes<N>
@@ -86,7 +86,7 @@ interface AssertNode<N extends Node> {
     <I extends FindInput<N>>(input: I, error?: string): FindOutput<I>
     get inChildren(): AssertNode<N>
     get inSiblings(): AssertNode<N>
-    get inDescendents(): AssertNode<N>
+    get inDescendants(): AssertNode<N>
     get inParents(): AssertNode<N>
     get inAncestors(): AssertNode<N>
     get inNodes(): AssertNode<N>
@@ -148,8 +148,8 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         )
     }
 
-    get inDescendents(): this {
-        return this._incrementEach(eachDescendent(this.source))
+    get inDescendants(): this {
+        return this._incrementEach(eachDescendant(this.source))
     }
 
     get inParents(): this {

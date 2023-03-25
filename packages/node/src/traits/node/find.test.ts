@@ -44,28 +44,28 @@ const grandPa = new class GrandPa extends Person {
 
 const you = grandPa.mom.you
  
-describe('inDescendents', () => { 
+describe('inDescendants', () => { 
 
     test('should find Son', () => {
         const find = new Find<Node>(you)
-        expect(find.inDescendents(you.son))
+        expect(find.inDescendants(you.son))
             .toBe(you.son)    
     })
 
     test('should find GrandDaughter', () => {
         const find = new Find<Node>(you)
-        expect(find.inDescendents(you.son.grandDaughter))
+        expect(find.inDescendants(you.son.grandDaughter))
             .toBe(you.son.grandDaughter)
     })
 
     test('should return undefined for Uncle', () => {
         const find = new Find<Node>(you)
-        expect(find.inDescendents(grandPa.uncle)).toBeUndefined()
+        expect(find.inDescendants(grandPa.uncle)).toBeUndefined()
     })
 
-    test('inDescendents.all', () => {
+    test('inDescendants.all', () => {
         const find = new Find(you)
-        expect(find.inDescendents.all((p: unknown) => PublicNode.is(p) && p.constructor.name.includes('Grand')))
+        expect(find.inDescendants.all((p: unknown) => PublicNode.is(p) && p.constructor.name.includes('Grand')))
             .toEqual([you.son.grandDaughter, you.son.grandDaughter.greatGrandSon])
     })
 
@@ -156,7 +156,7 @@ describe('Assert', () => {
 
     test('assert should return found node', () => {
         const find = new Find<Node>(you, FindFlag.Assert)
-        const result = find.inDescendents(you.son)
+        const result = find.inDescendants(you.son)
 
         expect(result).toBe(you.son)
     })
@@ -171,7 +171,7 @@ describe('Assert', () => {
     test('assert should allow custom error message', () => {
         const customErrorMessage = 'Node not found'
         const find = new Find(you, FindFlag.Assert)
-        expect(() => find.inDescendents(fail, customErrorMessage)).toThrow(
+        expect(() => find.inDescendants(fail, customErrorMessage)).toThrow(
             customErrorMessage
         ) 
     })
