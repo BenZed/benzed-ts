@@ -1,34 +1,69 @@
 import React, { Dispatch, ReactElement } from 'react'
 
-import {
+import { each, nil } from '@benzed/util'
 
-    ContentComponentMap,
-    Contents,
-    ContentJson,
+import { MarkdownComponent, MarkdownComponentMap } from './markdown-component'
+import { BasicMarkdown } from './markdown-components'
 
-} from './content'
+import createPresentationState from './create-presentation-state'
+import { PresentationJson } from './create-presentation-json'
 
-//// Types ////
+//// EsLint ////
 
-//// PresentationComponent ////
+/* eslint-disable
+    @typescript-eslint/no-explicit-any
+*/
 
-interface PresentationProps<P extends ContentComponentMap> {
-    components: P
-    contents: ContentJson<P>
+//// ContentLayout ////
+
+interface PresentationProps<P extends MarkdownComponentMap> {
+
+    readonly components: P
+    readonly presentation: PresentationJson<P>[]
+    readonly currentIndex: number
+    readonly setCurrentIndex?: Dispatch<number>
 }
 
-const Presentation = <P extends ContentComponentMap>(props: PresentationProps<P>): ReactElement => {
+const Presentation = <P extends MarkdownComponentMap>(props: PresentationProps<P>): ReactElement => {
 
-    const { ...rest } = props
+    const { presentation, components, currentIndex } = props
 
-    return <> </>
+    const [state] = createPresentationState(presentation, currentIndex)
+
+    const contentsResolved = state.map(state => ({
+        Component: getMarkdownComponent(state.component, components),
+        markdown: state.markdown
+    }))
+
+    return <>{
+        contentsResolved.map(({ Component, markdown }, i) =>
+            <Component 
+                key={i} 
+                markdown={markdown} 
+            />
+        )
+    }</>
+}
+
+//// Helper ////
+
+const getMarkdownComponent = <P extends MarkdownComponentMap>(name: string | nil, components: P): MarkdownComponent => {
+
+    if (!name)
+        return BasicMarkdown
+
+    if (!(name in components)) {
+        throw new Error(
+            `No component named "${name}" in component list: ${each.nameOf(components)}`
+        )
+    }
+
+    return components[name]
 }
 
 //// Exports ////
 
-export default Presentation
-
 export {
     Presentation,
-    PresentationProps,
+    PresentationProps
 }

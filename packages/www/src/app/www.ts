@@ -1,7 +1,7 @@
 import { App } from '@benzed/app'
 
 import { ServeUI } from './serve-ui'
-import { Presentation } from './presentation'
+import { PresentationModule } from '../client/components/presentation/presentation-module'
 
 //// Main ////
 
@@ -9,7 +9,10 @@ export class WWW extends App {
 
     serveUI = new ServeUI
 
-    presentation = new Presentation
+    presentation = new PresentationModule(
+        {},
+        './presentation'
+    )
 
 }
 

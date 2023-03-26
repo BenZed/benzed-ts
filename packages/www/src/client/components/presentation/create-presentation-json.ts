@@ -2,7 +2,7 @@ import { pluck } from '@benzed/array'
 import is, { IsType, Validates } from '@benzed/is'
 import { each, Mutable, NamesOf, nil } from '@benzed/util'
 
-import { ContentComponentMap } from './content'
+import { MarkdownComponentMap } from './markdown-component'
 
 //// Data ////
 
@@ -11,34 +11,34 @@ const NEST_PREFIX = ' '.repeat(NEST_TAB_SIZE)
 
 //// Types ////
 
-export type ContentJson<P extends ContentComponentMap> =
+export type PresentationJson<T extends MarkdownComponentMap> =
     {
-        readonly component?: NamesOf<P>
+        readonly component?: NamesOf<T>
         readonly index: number
         readonly lines: readonly {
             readonly index: number
-            readonly content: string
+            readonly markdown: string
         }[]
     }
 
 //// Helper ////
 
 // TODO is-ts is gonna need: is.nameOf, is.symbolOf, is.indexOf, is.keyOf
-const isNameOf = <P extends ContentComponentMap>(object: P): IsType<NamesOf<P>> =>
+const isNameOf = <P extends MarkdownComponentMap>(object: P): IsType<NamesOf<P>> =>
     is.string.asserts(
         name => name in object,
         name => `${name} invalid, must be: ${each.nameOf(object).toArray().join(' or ')}`
     ) as unknown as IsType<NamesOf<P>>
 
-function createRawContentJson<P extends ContentComponentMap>(
+function createRawPresentationJson<P extends MarkdownComponentMap>(
     lines: readonly string[],
     validateName: Validates<NamesOf<P>>,
     indexOffset = 0
-): Mutable<ContentJson<P>>[] {
+): Mutable<PresentationJson<P>>[] {
     
     const COMPONENT_BOUNDARY = /^<!--\s@(.+)\s-->/ // <!-- @ComponentName -->
 
-    const contents: Mutable<ContentJson<P>>[] = [{ 
+    const contents: Mutable<PresentationJson<P>>[] = [{ 
         component: nil, 
         index: indexOffset, 
         lines: [] 
@@ -58,7 +58,7 @@ function createRawContentJson<P extends ContentComponentMap>(
         } else {
             contents.at(-1)?.lines.push({
                 index: index + indexOffset,
-                content: line
+                markdown: line
             })
         }
     }
@@ -68,13 +68,13 @@ function createRawContentJson<P extends ContentComponentMap>(
         .filter(content => content.component ?? content.lines.length > 0)
 }
 
-function createNestedContentJson<P extends ContentComponentMap>(
+function createNestedPresentationJson<P extends MarkdownComponentMap>(
     lines: readonly string[],
     validateName: Validates<NamesOf<P>>,
     indexOffset = 0
 ) {
 
-    const contents = createRawContentJson(lines, validateName, indexOffset)
+    const contents = createRawPresentationJson(lines, validateName, indexOffset)
 
     // flatten nested content
     for (let i = 0; i < contents.length; i++) {
@@ -83,17 +83,17 @@ function createNestedContentJson<P extends ContentComponentMap>(
         // determine if there is any nested content
         const nestedLines = pluck(
             content.lines,
-            (line) => line.content.startsWith(NEST_PREFIX)
+            (line) => line.markdown.startsWith(NEST_PREFIX)
         )
         if (nestedLines.length === 0)
             continue
 
         // convert nested lines into raw lines
         const nestedLinesRaw = nestedLines
-            .map(line => line.content.replace(NEST_PREFIX, ''))
+            .map(line => line.markdown.replace(NEST_PREFIX, ''))
 
         // create nested content
-        const nestedContent = createNestedContentJson(
+        const nestedContent = createNestedPresentationJson(
             nestedLinesRaw,
             validateName,
             // offset index
@@ -116,11 +116,11 @@ function createNestedContentJson<P extends ContentComponentMap>(
  * Given a component map and markdown content, create
  * a content json array.
  */
-export function createContentJson<P extends ContentComponentMap>(
+export function createPresentationJson<P extends MarkdownComponentMap>(
     components: P,
-    content: string
-) {
+    markdown: string
+): PresentationJson<P>[] {
     const validateName = isNameOf(components).validate
-    const lines = content.split('\n')
-    return createNestedContentJson(lines, validateName)
+    const lines = markdown.split('\n')
+    return createNestedPresentationJson(lines, validateName) as PresentationJson<P>[]
 }

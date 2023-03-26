@@ -3,25 +3,25 @@ import { createElement } from 'react'
 import { nil } from '@benzed/util'
 import { test, expect, describe } from '@jest/globals'
 
-import { getContentState } from './get-content-state'
-import { createContentJson } from './create-content-json'
-import { ContentComponentProps } from './content'
+import { createPresentationState } from './create-presentation-state'
+import { createPresentationJson } from './create-presentation-json'
+import { MarkdownComponentProps } from './markdown-component'
 
 //// Setup ////
 
-const Boundary = (props: ContentComponentProps) => 
-    createElement('div', null, props.content)
+const Boundary = (props: MarkdownComponentProps) => 
+    createElement('div', null, props.markdown)
 
 const components = { Boundary }
 
 const toStateGetter = (...lines: string[]) => {
 
-    const contentJson = createContentJson(
+    const contentJson = createPresentationJson(
         components,
         lines.join('\n')
     )
 
-    return (index: number) => getContentState(contentJson, index)
+    return (index: number) => createPresentationState(contentJson, index)
 }
 
 //// Tests ////

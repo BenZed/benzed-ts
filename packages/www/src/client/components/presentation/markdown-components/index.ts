@@ -1,4 +1,3 @@
-
-export * from './markdown'
 export * from './anchor'
+export * from './basic-markdown'
 export * from './code'

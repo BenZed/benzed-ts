@@ -5,13 +5,12 @@ import React, { ReactElement} from 'react'
 
 import {
 
-    Markdown,
-    createContentJson,
-    getContentState,
+    BasicMarkdown,
+    createPresentationJson,
 
-    Contents,
-    ContentComponentMap,
-    ContentComponentProps,
+    Presentation,
+    MarkdownComponentMap,
+    MarkdownComponentProps,
 
 } from './presentation'
 
@@ -39,23 +38,20 @@ Current state can be configured to show a range of slides.
 
 //// Slide Component ////
 
-interface SlideProps extends ContentComponentProps {}
+interface SlideProps extends MarkdownComponentProps {}
 
 const Slide = (props: SlideProps): ReactElement => {
-
-    const { content } = props
-
-    return <Markdown content={content} />
+    const { markdown } = props
+    return <BasicMarkdown markdown={markdown} />
 }
 
 //// Prompt Component ////
 
-interface PromptProps extends ContentComponentProps {}
+interface PromptProps extends MarkdownComponentProps {}
 
 const Prompt = (props: PromptProps): ReactElement => {
-    const { content } = props
-    
-    return <em>{content}</em>
+    const { markdown } = props
+    return <em>{markdown}</em>
 }
 
 //// IsPresentation Component ////
@@ -64,19 +60,18 @@ interface IsPresentationProps {
     client: AsClient<WWW>
 }
 
-const IsPresentation = (props: IsPresentationProps): ReactElement => {
+const IsPresentation = ({ client }: IsPresentationProps): ReactElement => {
 
-    const { client } = props
+    void client
+    const components = { Slide, Prompt } satisfies MarkdownComponentMap
 
-    const components = { Slide, Prompt } satisfies ContentComponentMap
-
-    const json = createContentJson(components, example)
-    const [ content ] = getContentState(json, 1)
+    const presentation = createPresentationJson(components, example)
 
     return <>
-        <Contents                                                                            
+        <Presentation                                                                            
             components={components}
-            content={content} 
+            presentation={presentation}
+            currentIndex={1}
         />
         <GlobalStyle/>
     </>

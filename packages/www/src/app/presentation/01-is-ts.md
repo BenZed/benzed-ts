@@ -7,9 +7,11 @@ Presenting is-ts
 import is from 'is-ts'
 ```
 
-> is-ts is a yet-to-be-released library I've been building in type script. It allows developers to compose type guards, type asserters and data validation schematics with a fluent and intuitive api.
+    <!-- @Prompt -->
+    is-ts is a yet-to-be-released library I've been building in type script. It allows developers to compose type guards, type asserters and data validation schematics with a fluent and intuitive api.
 
-> This was born out of a couple of desires. There many type-safe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
+    <!-- @Prompt -->
+    This was born out of a couple of desires. There many type-safe validation libraries out there, and they all seem fine to me. I built one mainly because I've always wanted to.
 
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** defines, identifies, asserts and transforms data into desired types.
@@ -29,7 +31,8 @@ if (is.array.of.string(unknownValue))
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** performs type assertions:
 
 ```ts
-expect(() => is.string.assert(unknownValue))
+expect(() =    <!-- @Prompt -->
+    is.string.assert(unknownValue))
     .toThrow('must be a string')
 ```
 
@@ -43,11 +46,14 @@ const trimmed = is.string.trim().validate('   hello world   ')
 expect(trimmed).toEqual('hello world')
 ```
 
-> On screen you'll see a couple of contrived examples of how is-ts might be used to create type guards, type assertions or validation schematics.
+    <!-- @Prompt -->
+    On screen you'll see a couple of contrived examples of how is-ts might be used to create type guards, type assertions or validation schematics.
 
-> I'd also like to point out that right now you see it imported from my npm scoped library, but when it's actually released, it'll be import from is-ts.
+    <!-- @Prompt -->
+    I'd also like to point out that right now you see it imported from my npm scoped library, but when it's actually released, it'll be import from is-ts.
 
-> [getCurrentSlide](/getCurrent)
+    <!-- @Prompt -->
+    [getCurrentSlide](/getCurrent)
 
 #<!-- @SlideTitle -->
 Static Type Inference
@@ -70,7 +76,8 @@ interface Vector {
     y: number
 }
 
-const isVector: IsType<Vector> = is({ x: is.number, y: is.number })
+const isVector: IsType<Vector    <!-- @Prompt -->
+    = is({ x: is.number, y: is.number })
 
 expect(isVector({ x: 0, y: 0 })).toBe(true)
 ```
@@ -138,7 +145,7 @@ expect(isSerialInput([0, 'string'])).toBe(true)
 
 <!-- @SlideTitle -->
 #Type Fluidity
-
+<!-- @Slide -->
 
 ```ts
 import { Is, Optional, ArrayOf, ReadOnly, Shape, Number } from '@benzed/is'
@@ -171,8 +178,9 @@ isReadonlyVectors.type satisfies
     <!-- @Prompt -->
     The syntax highlighting in this example isn't as nice as it would be in an IDE.
 
-#<!-- @SlideTitle -->
-Narrowing
+<!-- @SlideTitle -->
+#Narrowing
+<!-- @Slide -->
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** allows schematic narrowing through terms:
 
@@ -250,8 +258,9 @@ const isTag = is.string.startsWith({
     <!-- @Prompt -->
     In the last example you can see how an explicit configuration object can be passed in as well. A lot of signatures are available for developer experience and readability.
 
-#<!-- @SlideTitle -->
-Readonly Modifier
+<!-- @SlideTitle -->
+#Readonly Modifier
+<!-- @Slide -->
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** uses naming conventions with typescript familiarity in mind.
 
@@ -298,6 +307,7 @@ The readonly modifier does not affect the schematics runtime behavior, only it's
 
 <!-- @SlideTitle -->
 Optional Modifier
+<!-- @Slide -->
 
 Writing an optional todo:
 ```ts
@@ -361,9 +371,11 @@ is.required({
 .type satisfies { x: number, y: number }
 ```
 
-> The examples on screen are contrived, but they showcase that modifiers can be removed just like sub validations can.
+    <!-- @Prompt -->
+    The examples on screen are contrived, but they showcase that modifiers can be removed just like sub validations can.
 
-> You can see that an optional string could made required, or a readonly array could be made mutable. All modifiers are removable.
+    <!-- @Prompt -->
+    You can see that an optional string could made required, or a readonly array could be made mutable. All modifiers are removable.
 
 <!-- @SlideTitle -->
 Not Modifier
@@ -372,8 +384,10 @@ Validations can be negated:
 
 ```ts
 const isLiquidTemp = is.number.min(0).max(100)
-expect(() => isLiquidTemp.assert(125)).toThrow('must be below or equal 100')
-expect(() => is.not(isLiquidTemp).assert(125)).not.toThrow()
+expect(() =    <!-- @Prompt -->
+    isLiquidTemp.assert(125)).toThrow('must be below or equal 100')
+expect(() =    <!-- @Prompt -->
+    is.not(isLiquidTemp).assert(125)).not.toThrow()
 ```
 
 Negations in properties:
@@ -411,6 +425,7 @@ is.not(isNotVector).type satisfies typeof isVector.type
 
 <!-- @SlideTitle -->
 Shape Pick
+<!-- @Slide -->
 
 Shape schematics have a number of useful utility methods.
 
@@ -469,6 +484,7 @@ isAnonymous.type satisfies {
 
 <!-- @SlideTitle -->
 Shape And
+<!-- @Slide -->
 
 If used on a shape, `.and` combines the properties from two shapes into one instead of making an intersection:
 
@@ -491,17 +507,20 @@ isEmployee.type satisfies {
 
 <!-- @SlideTitle -->
 Shape Property 
+<!-- @Slide -->
 
 Make changes to individual properties on a shape:
 
 ```ts
-const isAdult = isPerson.property('age', age => age.min(19))
+const isAdult = isPerson.property('age', age =    <!-- @Prompt -->
+    age.min(19))
 ```
 
 A property can be replaced with another type:
 ```ts
 const isDoctor = isPerson
-    .property('title', () => is('Md', 'Phd'))
+    .property('title', () =    <!-- @Prompt -->
+    is('Md', 'Phd'))
 
 isDoctor.type satisfies {
     readonly firstName: string,
@@ -520,6 +539,7 @@ isDoctor.type satisfies {
 
 <!-- @SlideTitle -->
 Shape Partial
+<!-- @Slide -->
 
 Make all properties on a given shape optional:
 
@@ -556,12 +576,14 @@ const isVectorLike = is
     .and(isVector)
 ```
 
-> By default, a shape will validate properties it has definitions for and ignore the rest. This is consistent with typescript's design goals, but is undesirable when sanitizing input, so the strict term can be applied to prevent additional properties from passing validation.
+    <!-- @Prompt -->
+    By default, a shape will validate properties it has definitions for and ignore the rest. This is consistent with typescript's design goals, but is undesirable when sanitizing input, so the strict term can be applied to prevent additional properties from passing validation.
 
 >
 
 <!-- @SlideTitle -->
 Is Signatures 
+<!-- @Slide -->
 
 The `is` call signature will make out of literal values:
 
@@ -604,7 +626,8 @@ isAsyncState.type satisfies {
     I think the `.or` term is generally preferable for readability, but in this case, I think it's very clear that I'm describing a discriminated union.
 
 <!-- @SlideTitle -->
-More Is Signatures
+# More Is Signatures
+<!-- @Slide -->
 
 Schematics can take constructors as input to validate instances:
 ```ts
@@ -636,7 +659,8 @@ Schematic Validation
 
 ```ts
 export const isRecord = is({ 
-    _id: isObjectIdString.cast(i => `${i}`).readonly
+    _id: isObjectIdString.cast(i =    <!-- @Prompt -->
+    `${i}`).readonly
 })
 ```
 
@@ -700,7 +724,8 @@ is.error.or.function.or.object.or.weakmap.or.weakset.or.promise
 Custom Validations:
 ```ts
 const isRange = is.readonly([ is.number.finite(), is.number.finite() ])
-    .asserts(([min, max]) => min <= max, 'min must be below or equal max')
+    .asserts(([min, max]) =    <!-- @Prompt -->
+    min <= max, 'min must be below or equal max')
 
 isRange.type satisfies readonly [ number, number ]
 ```
@@ -732,7 +757,9 @@ Generics:
 ```ts
 const isRef = <T extends Is>(
         schematic: T
-    ): Is<Shape<{ current: T['validate'] }>> => 
+    ): Is<Shape<{ current: T['validate'] }>    <!-- @Prompt -->
+    =    <!-- @Prompt -->
+    
 
         is({
             current: schematic  

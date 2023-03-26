@@ -1,15 +1,15 @@
 import { createElement } from 'react'
-import { createContentJson } from './create-content-json'
-import { lines } from '../../../../../../string'
+import { createPresentationJson } from './create-presentation-json'
+import { lines } from '../../../../../string/lib'
 
 import { test, expect } from '@jest/globals'
-import { ContentComponentProps } from './content'
+import { MarkdownComponentProps } from './markdown-component'
 import { nil } from '@benzed/util'
 
 //// Tests ////
  
-const Boundary = (props: ContentComponentProps) => 
-    createElement('div', null, props.content)
+const Boundary = (props: MarkdownComponentProps) => 
+    createElement('div', null, props.markdown)
 
 test('creates content json for a given component map', () => {
 
@@ -19,7 +19,7 @@ test('creates content json for a given component map', () => {
         'Content for Boundary component'
     )
 
-    const content = createContentJson({ Boundary }, markdown)
+    const content = createPresentationJson({ Boundary }, markdown)
 
     expect(content).toEqual([
         { 
@@ -50,7 +50,7 @@ test('throws if components are missing', () => {
     const markdown = lines(
         '<!-- @MissingComponent -->'
     )
-    expect(() => createContentJson({}, markdown)).toThrow('MissingComponent invalid')
+    expect(() => createPresentationJson({}, markdown)).toThrow('MissingComponent invalid')
 })
 
 test('handles nested content', () => {
@@ -63,7 +63,7 @@ test('handles nested content', () => {
         'Line 3'
     )
 
-    const content = createContentJson({ Boundary }, markdown)
+    const content = createPresentationJson({ Boundary }, markdown)
     expect(content).toEqual([
         {
             component: nil,
@@ -101,7 +101,7 @@ test('handles deeply nested content', () => {
         'D1'
     )
 
-    const content = createContentJson({ Boundary }, markdown)
+    const content = createPresentationJson({ Boundary }, markdown)
     expect(content).toEqual([
         { 
             component: nil, 

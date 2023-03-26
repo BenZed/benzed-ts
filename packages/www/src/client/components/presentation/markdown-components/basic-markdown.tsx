@@ -2,7 +2,7 @@
 import React, { ReactElement, ComponentProps } from 'react'
 
 import ReactMarkdown from 'react-markdown'
-import { ContentComponentProps } from '../content/content'
+import { MarkdownComponentProps } from '../markdown-component'
 
 //// Markdown Component ////
 
@@ -11,22 +11,22 @@ type ReactMarkdownComponents = NonNullable<ReactMarkdownProps['components']>
 
 //// Markdown Component ////
 
-interface MarkdownProps extends ReactMarkdownComponents, ContentComponentProps { }
+interface BasicMarkdownProps extends ReactMarkdownComponents, MarkdownComponentProps { }
 
-const Markdown = (props: MarkdownProps): ReactElement => {
-    const { content, ...components } = props
+const BasicMarkdown = (props: BasicMarkdownProps): ReactElement => {
+    const { markdown, ...components } = props
 
     return <ReactMarkdown
-        children={content}
+        children={markdown}
         components={components}
     />
 }
 
 //// Exports ////
 
-export default Markdown
+export default BasicMarkdown
 
 export {
-    Markdown,
-    MarkdownProps
+    BasicMarkdown,
+    BasicMarkdownProps
 }
