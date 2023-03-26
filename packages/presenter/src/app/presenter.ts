@@ -7,31 +7,39 @@ import path from 'path'
 import {
     createPresentationJson,
     PresentationJson
-} from './create-presentation-json'
+} from '../client/components/presentation/create-presentation-json'
 
-import { MarkdownComponentMap } from './markdown-component'
+import type {
+    MarkdownComponentMap
+} from '../client/components/presentation'
 
 //// Main ////
 
-export class PresentationModule<P extends MarkdownComponentMap> extends Module {
+/**
+ * The presenter module keeps the ui state in sync for viewers
+ */
+export class Presenter<P extends MarkdownComponentMap> extends Module {
 
     constructor(
-        private readonly _components: P,
-        private readonly _markdownDirectory: string
+        private readonly _components: P | Promise<P>
     ) {
         super()
     }
 
+    //// Presentation Json ////
+
     private readonly _presentationJson: PresentationJson<P>[] = []
 
     readonly getPresentationJson = Command.get(async function (this: Module) {
-        const parent = this.parent as PresentationModule<P>
+        const parent = this.parent as Presenter<P>
         if (IS_DEV || parent._presentationJson.length === 0) {
 
-            const markdowns = await readMarkdown(parent._markdownDirectory)
+            const markdowns = await readMarkdown()
+
+            const components = await parent._components
 
             const json = markdowns
-                .map(({ markdown }) => createPresentationJson(parent._components, markdown))
+                .map(({ markdown }) => createPresentationJson(components, markdown))
                 .flat()
 
             parent._presentationJson.length = 0
@@ -40,15 +48,17 @@ export class PresentationModule<P extends MarkdownComponentMap> extends Module {
         return parent._presentationJson
     })
 
+    //// Current Index ////
+
     currentIndex = 0
 
     readonly getCurrentIndex = Command.get(function (this: Module) {
-        const parent = this.parent as PresentationModule<P>
+        const parent = this.parent as Presenter<P>
         return parent.currentIndex
     })
 
     readonly setCurrentIndex = Command.post(function (this: Module, current: number) {
-        const parent = this.parent as PresentationModule<P>
+        const parent = this.parent as Presenter<P>
         parent.currentIndex = current
     })
 
@@ -56,9 +66,11 @@ export class PresentationModule<P extends MarkdownComponentMap> extends Module {
 
 //// Helper ////
 
-async function readMarkdown(markdownDirectory: string ): Promise<{ name: string, markdown: string }[]> {
+async function readMarkdown(): Promise<{ name: string, markdown: string }[]> {
 
-    const markdownUrls = await fs.readDir(markdownDirectory, {
+    const MARKDOWN_DIRECTORY = path.join(__dirname, 'markdown')
+
+    const markdownUrls = await fs.readDir(MARKDOWN_DIRECTORY, {
         filter(url) {
             return url.endsWith('.md')
         },

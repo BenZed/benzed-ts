@@ -1,10 +1,13 @@
 
-import React, { ReactElement, ComponentProps } from 'react'
+import React, { lazy, ReactElement, ComponentProps } from 'react'
 
-import ReactMarkdown from 'react-markdown'
 import { MarkdownComponentProps } from '../markdown-component'
 
-//// Markdown Component ////
+//// Dynamic Import Components ////
+
+const ReactMarkdown = lazy(() => import('react-markdown'))
+
+//// Types ////
 
 type ReactMarkdownProps = ComponentProps<typeof ReactMarkdown>
 type ReactMarkdownComponents = NonNullable<ReactMarkdownProps['components']>

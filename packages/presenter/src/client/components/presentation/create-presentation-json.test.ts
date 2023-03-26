@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { createPresentationJson } from './create-presentation-json'
-import { lines } from '../../../../string'
+import { lines } from '../../../../../string'
 
 import { test, expect } from '@jest/globals'
 import { MarkdownComponentProps } from './markdown-component'

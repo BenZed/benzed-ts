@@ -3,6 +3,7 @@
     "description": "@benzed/app related hooks and components",
     "main": "./lib",
     "version": "1.0.0",
+    "private": true,
     "scripts": {
         "test": "jest --run-in-band --all",
         "test:dev": "jest --run-in-band --only-changed --verbose",

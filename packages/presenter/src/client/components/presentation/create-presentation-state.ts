@@ -18,6 +18,9 @@ function createPresentationState<P extends MarkdownComponentMap>(
     index: number
 ): [ state: PresentationState<P>[], lineIndex: number ] {
 
+    if (presentationJson.length === 0)
+        return [[], 0]
+
     const contentAtIndex = presentationJson.at(index)
     if (!contentAtIndex) {
         throw new Error(

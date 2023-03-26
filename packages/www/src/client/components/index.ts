@@ -2,4 +2,4 @@
 export { ClientProvider } from './client-context'
 
 export * from './global-style'
-export * from './is-presentation'
+export * from './providers'

@@ -3,7 +3,7 @@ import React, { Dispatch, ReactElement } from 'react'
 import { each, nil } from '@benzed/util'
 
 import { MarkdownComponent, MarkdownComponentMap } from './markdown-component'
-import { BasicMarkdown } from './markdown-components'
+import { BasicMarkdown } from './basic-markdown-component'
 
 import createPresentationState from './create-presentation-state'
 import { PresentationJson } from './create-presentation-json'

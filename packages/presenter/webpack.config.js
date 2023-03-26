@@ -15,7 +15,7 @@ const styledComponentsTransformer = require('typescript-plugin-styled-components
 
 /* CONSTANTS */
 
-const WEBPACK_DEV_SERVER_PORT = 5000 + 500
+const WEBPACK_DEV_SERVER_PORT = 4000 + 500
 
 const ENV = {
     NODE_ENV: process.env.NODE_ENV ?? 'development',

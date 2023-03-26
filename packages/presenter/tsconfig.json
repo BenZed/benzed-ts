@@ -12,8 +12,7 @@
     },
     "include": [
         "src",
-        "../react/src/hooks/use-key-press.ts",
-        "../presenter/src/client/presentation",
+        "src/scripts/*",
     ],
     "exclude": [
         "src/**/*.test.ts"

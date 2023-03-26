@@ -23,19 +23,19 @@ window.onload = async function () {
         React,
         { createRoot },
         { BrowserRouter: Router },
-        { client },
+        { presenterClient },
         { Providers }
     ] = await dependencies
 
-    const mainTag = document.getElementById(HTML_MAIN_TAG)
-    if (!mainTag)
+    const main = document.getElementById(HTML_MAIN_TAG)
+    if (!main)
         throw new Error(`HTML main tag ${HTML_MAIN_TAG} not found.`)
 
-    const root = createRoot(mainTag)
+    const root = createRoot(main)
     root.render(
         <React.StrictMode>
             <Router>
-                <Providers client={client} />
+                <Providers client={presenterClient} />
             </Router>
         </React.StrictMode>
     )
