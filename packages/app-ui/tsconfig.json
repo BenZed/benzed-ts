@@ -1,18 +1,16 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "jsx": "react",
         "types": [
             "node"
         ],
         "lib": [
-            "dom"
+            "DOM"
         ],
         "outDir": "./lib"
     },
     "include": [
         "src",
-        "../react/src/hooks/use-key-press.ts",
     ],
     "exclude": [
         "src/**/*.test.ts"

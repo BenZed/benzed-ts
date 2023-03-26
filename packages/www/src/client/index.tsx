@@ -1,6 +1,5 @@
 
 import 'normalize.css'
-import { ClientContext, ClientProvider } from './components/client-context'
 
 //// Data ////
 
@@ -13,7 +12,7 @@ const dependencies = Promise.all([
     import('react-dom/client'),
     import('react-router-dom'),
     import('../app'),
-    import('./components')
+    import('./components'),
 ] as const)
 
 /* Execute */
@@ -25,7 +24,7 @@ window.onload = async function () {
         { createRoot },
         { BrowserRouter: Router },
         { client },
-        { Presentation, ClientProvider }
+        { IsPresentation }
     ] = await dependencies
 
     const mainTag = document.getElementById(HTML_MAIN_TAG)
@@ -36,9 +35,7 @@ window.onload = async function () {
     root.render(
         <React.StrictMode>
             <Router>
-                <ClientProvider value={client}>
-                    <Presentation />
-                </ClientProvider>
+                <IsPresentation client={client} />
             </Router>
         </React.StrictMode>
     )

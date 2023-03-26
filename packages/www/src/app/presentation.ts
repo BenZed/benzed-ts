@@ -14,7 +14,6 @@ export const isContentCard = is({
 
 export type ContentCard = typeof isContentCard.output
 
-
 export const isSlide = is.readonly({
     title: is.string,
     cards: is.readonly.arrayOf(isContentCard)
@@ -48,13 +47,13 @@ export class Presentation extends Module {
         return parent._slides
     })
 
-    readonly getCurrent = Command.get(async function (this: Module) {
+    readonly getCurrent = Command.get(function (this: Module) {
 
         const parent = this.parent as Presentation
         return parent.current
     })
 
-    readonly setCurrent = Command.post(async function (this: Module, slideState: PresentationState){
+    readonly setCurrent = Command.post(function (this: Module, slideState: PresentationState){
         
         const parent = this.parent as Presentation
 
@@ -63,27 +62,27 @@ export class Presentation extends Module {
 
     // Future decorator syntax
 
-    // @Command.get() 
+    // @command.get() 
     // getSlides() {
     // 
     // }
 
-    // @Command.get()
+    // @command.get()
     // getCurrent() {
     //     return this.value
     // }
 
-    // @Command.post(is.number)
+    // @command.post(is.number)
     // setCurrent(slide: number) {
     //     this.value = slide
     // }
 
     // Contrived examples
-    // @Command.post({ x: is.number, y: is.number }).path`position/${'x'}/${'y'}`.headers(authHeaders)
+    // @command.post({ x: is.number, y: is.number }).path`position/${'x'}/${'y'}`.headers(authHeaders)
     // createPosition(position: Vector) { this.positions.push(position) }
-    // @Command.put(isVector).path`position`.headers(authHeaders)
+    // @command.put(isVector).path`position`.headers(authHeaders)
     // setPosition(position){ this.positions[0] = position }
-    // @Command.get().path`position`.headers(authHeaders)
+    // @command.get().path`position`.headers(authHeaders)
     // getPosition() { return this.positions[0] }
 }
 
@@ -117,7 +116,9 @@ function createSlides(markdown: { name: string, contents: string }): Slide[] {
     const CARD_BOUNDARY = /^>\s/
     const SLIDE_BOUNDARY = /^##?\s/
 
-    const fileTitle = markdown.name.replace(/(^\d+-?)/, '') // "01-title" -> "title"
+    const fileTitle = markdown
+        .name
+        .replace(/^(\d+-?)/, '') // "01-title" -> "title"
 
     const slides: Slide[] = []
 
@@ -147,8 +148,6 @@ function createSlides(markdown: { name: string, contents: string }): Slide[] {
             const lastCardIndex = slide.cards.length - 1
             slide.cards[lastCardIndex].content += line + '\n'
         }
-
     }
-
     return slides
 }

@@ -1,9 +1,12 @@
-import { createContext } from 'react'
+import { createContext, useContext } from 'react'
 import { client } from '../../app'
 
 //// Context ////
 
-export const ClientContext = createContext(client)
+const ClientContext = createContext(client)
+
+//// Exports ////
 
 export const ClientProvider = ClientContext.Provider
 
+export const useClient = () => useContext(ClientContext)
