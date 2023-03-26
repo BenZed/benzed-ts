@@ -4,12 +4,15 @@ import { WWW } from '../../app'
 import React, { ReactElement} from 'react'
 
 import {
-    ContentComponentMap,
-    ContentComponentProps,
-    Contents,
+
+    Markdown,
     createContentJson,
     getContentState,
-    Markdown
+
+    Contents,
+    ContentComponentMap,
+    ContentComponentProps,
+
 } from './presentation'
 
 import { GlobalStyle } from './global-style'
@@ -62,16 +65,16 @@ interface IsPresentationProps {
 }
 
 const IsPresentation = (props: IsPresentationProps): ReactElement => {
-    const { client, ...rest } = props
-    
+
+    const { client } = props
+
     const components = { Slide, Prompt } satisfies ContentComponentMap
 
     const json = createContentJson(components, example)
-
-    const [content] = getContentState(json, 1)
+    const [ content ] = getContentState(json, 1)
 
     return <>
-        <Contents 
+        <Contents                                                                            
             components={components}
             content={content} 
         />

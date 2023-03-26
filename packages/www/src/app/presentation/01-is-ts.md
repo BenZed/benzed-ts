@@ -1,5 +1,6 @@
-# Presenting is-ts
-
+<!-- @SlideTitle -->
+Presenting is-ts
+<!-- @Slide -->
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** is a data validation library with static type inference. 
 
 ```ts
@@ -48,7 +49,8 @@ expect(trimmed).toEqual('hello world')
 
 > [getCurrentSlide](/getCurrent)
 
-## Static Type Inference
+#<!-- @SlideTitle -->
+Static Type Inference
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** can be used to define inferrable types:
 
@@ -73,17 +75,24 @@ const isVector: IsType<Vector> = is({ x: is.number, y: is.number })
 expect(isVector({ x: 0, y: 0 })).toBe(true)
 ```
 
-> When I first transitioned to TypeScript, I became increasingly impressed with how the type system worked, and how malleable and powerful it was especially in comparison to other existing strongly typed languages. There's a lot of interesting things you can do in typescript that you can't do, for example, in C#.
+    <!-- @Prompt -->
+    When I first transitioned to TypeScript, I became increasingly impressed with how the type system worked, and how malleable and powerful it was especially in comparison to other existing strongly typed languages. There's a lot of interesting things you can do in typescript that you can't do, for example, in C#.
 
-> I remember having something of a eureka moment when learning about mapped types and conditional types years ago and thinking that there are some incredible opportunities for developer experience in this language. As a developer, at the time, I strongly wanted to gravitate away from javascript for it's deficiencies. I wanted to stay in C# or delve into rust, but Typescript made me stay.
+    <!-- @Prompt -->
+    I remember having something of a eureka moment when learning about mapped types and conditional types years ago and thinking that there are some incredible opportunities for developer experience in this language. As a developer, at the time, I strongly wanted to gravitate away from javascript for it's deficiencies. I wanted to stay in C# or delve into rust, but Typescript made me stay.
 
-> I looked at a couple of the other data validation libraries that were written with the same design goals in mind, such as ts-json-schema, or zod. Now that mine is close to done, I've noticed a lot of them being released lately, actually.
+    <!-- @Prompt -->
+    I looked at a couple of the other data validation libraries that were written with the same design goals in mind, such as ts-json-schema, or zod. Now that mine is close to done, I've noticed a lot of them being released lately, actually.
 
-> As I learned more about typescript and worked extensively in the web ecosystem, I found myself writing a great deal of type guards, and I kept on imagining a library that could be used to create guards for types and schematics for them at the same time as I feel they're tightly coupled concepts, anyway.
+    <!-- @Prompt -->
+    As I learned more about typescript and worked extensively in the web ecosystem, I found myself writing a great deal of type guards, and I kept on imagining a library that could be used to create guards for types and schematics for them at the same time as I feel they're tightly coupled concepts, anyway.
 
-> In the first example, you can see how a type can be defined with `is-ts`, and in the second you can see how a schematic could be created for an existing type in a type-safe manner.
+    <!-- @Prompt -->
+    In the first example, you can see how a type can be defined with `is-ts`, and in the second you can see how a schematic could be created for an existing type in a type-safe manner.
 
-## Fluidity
+<!-- @SlideTitle -->
+#Fluidity
+<!-- @Slide -->
 
 Define complex schematics using fluid chainable terms:
 
@@ -109,19 +118,26 @@ expect(isSerialInput(0)).toBe(true)
 expect(isSerialInput([0, 'string'])).toBe(true)
 ```
 
-> As we know, code is inherently a lot easier to write than to read, which is a phenomenon I've always found very frustrating. I very frequently have to exercise discipline not to re-write modules as opposed to sit down and parse them. The more anyone programs, the more focused they become on making their own code readable. I find myself imagining and building api's that are structured with readability as a prime directive.
+    <!-- @Prompt -->
+    As we know, code is inherently a lot easier to write than to read, which is a phenomenon I've always found very frustrating. I very frequently have to exercise discipline not to re-write modules as opposed to sit down and parse them. The more anyone programs, the more focused they become on making their own code readable. I find myself imagining and building api's that are structured with readability as a prime directive.
 
-> I think different languages have different readability strengths and generally the higher level languages are easier for humans to read than the lower levels ones, but no matter how you slice it, readability is the responsibility of the writer.
+    <!-- @Prompt -->
+    I think different languages have different readability strengths and generally the higher level languages are easier for humans to read than the lower levels ones, but no matter how you slice it, readability is the responsibility of the writer.
 
-> JavaScript and Typescript aren't exactly the most extensible languages, for example you can't overload most operators, but the syntax is malleable enough that you can more or less make your own standards. JQuery comes to mind.
+    <!-- @Prompt -->
+    JavaScript and Typescript aren't exactly the most extensible languages, for example you can't overload most operators, but the syntax is malleable enough that you can more or less make your own standards. JQuery comes to mind.
 
-> I have a mono repository of all my own utility libraries and  I've developed a couple of interfaces focused on fluid readability. In my mind, ideally the more often one depends on a library the more readable it's syntax should be. My creations borrow a lot from testing libraries like mocha or jest.
+    <!-- @Prompt -->
+    I have a mono repository of all my own utility libraries and  I've developed a couple of interfaces focused on fluid readability. In my mind, ideally the more often one depends on a library the more readable it's syntax should be. My creations borrow a lot from testing libraries like mocha or jest.
 
-> In the examples on screen, you can see a couple of different ways of defining the same type of data. I like writing a schematic that reads as english or pseudo code. 
+    <!-- @Prompt -->
+    In the examples on screen, you can see a couple of different ways of defining the same type of data. I like writing a schematic that reads as english or pseudo code. 
 
-> In this case a "SerialInput" is a number or a string, or an array of numbers or strings. I'm also showcasing that some terms are chainable as well as callable. In the first example you can see how the `or` term is chained into a schematic shortcut, but in the second you can see how the `or` term is called with a schematic, instead. In the third example, you can see the same with the `of` term.
+    <!-- @Prompt -->
+    In this case a "SerialInput" is a number or a string, or an array of numbers or strings. I'm also showcasing that some terms are chainable as well as callable. In the first example you can see how the `or` term is chained into a schematic shortcut, but in the second you can see how the `or` term is called with a schematic, instead. In the third example, you can see the same with the `of` term.
 
-## Type Fluidity
+<!-- @SlideTitle -->
+#Type Fluidity
 
 
 ```ts
@@ -146,13 +162,17 @@ isReadonlyVectors.type satisfies
     readonly ({ x: number, y: number } | undefined)[]
 ```
 
-> I think some of the unfriendly aspects of Typescript's developer experience are the cryptic type errors and readability of complex or nested types, so in addition to the runtime syntax itself being readable, I'd like as much as possible for the types to be readable as well.
+    <!-- @Prompt -->
+    I think some of the unfriendly aspects of Typescript's developer experience are the cryptic type errors and readability of complex or nested types, so in addition to the runtime syntax itself being readable, I'd like as much as possible for the types to be readable as well.
 
-> You'll see on line 2 in the second and third example that the satisfies operand more or less has the same structure as the schematic declaration itself. You can see that by exchanging the position of the modifiers, one gets a different type.
+    <!-- @Prompt -->
+    You'll see on line 2 in the second and third example that the satisfies operand more or less has the same structure as the schematic declaration itself. You can see that by exchanging the position of the modifiers, one gets a different type.
 
-> The syntax highlighting in this example isn't as nice as it would be in an IDE.
+    <!-- @Prompt -->
+    The syntax highlighting in this example isn't as nice as it would be in an IDE.
 
-## Narrowing
+#<!-- @SlideTitle -->
+Narrowing
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** allows schematic narrowing through terms:
 
@@ -178,15 +198,21 @@ const isObjectIdString = is.string
 const isShoutedHashTag = isHashtag.and(isShout)
 
 ```
-> Since it-ts is a type-guard AND data validation library, it wouldn't be very useful if it weren't possible to narrow the scope of the types to specific forms.
+    <!-- @Prompt -->
+    Since it-ts is a type-guard AND data validation library, it wouldn't be very useful if it weren't possible to narrow the scope of the types to specific forms.
 
-> It's nice to be able to quickly write type guards for common or obvious shapes, but I'd also like to use the same library to sanitize user input or validate records being pushed up to a database, anything that one needs schematic validation for.
+    <!-- @Prompt -->
+    It's nice to be able to quickly write type guards for common or obvious shapes, but I'd also like to use the same library to sanitize user input or validate records being pushed up to a database, anything that one needs schematic validation for.
 
-> The examples on screen showcase some schematic builder methods that one might expect to find. A hashtag is a string that starts with a hash symbol, an accessible port is an integer between 1025 and 65536 and so on.
+    <!-- @Prompt -->
+    The examples on screen showcase some schematic builder methods that one might expect to find. A hashtag is a string that starts with a hash symbol, an accessible port is an integer between 1025 and 65536 and so on.
 
-> The `.and` term works similarly to the `.or` term, creating an intersection of schematics that all must pass to be considered valid.
+    <!-- @Prompt -->
+    The `.and` term works similarly to the `.or` term, creating an intersection of schematics that all must pass to be considered valid.
 
-## Immutability 
+<!-- @SlideTitle -->
+#Immutability 
+<!-- @Slide -->
 
 Each schematic created by **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** is an immutable data structure. Any methods or properties that change the configuration of the schematic create new instances.
 
@@ -209,17 +235,23 @@ const isTag = is.string.startsWith({
 })
 ```
 
-> I'm a big fan of builder pattern, I use it very frequently when creating dev libraries in typescript, and is-ts is no exception. As you would expect from similar libraries, every term that changes the configuration of a schematic, or combines schematics together will create a new schematic instance.
+    <!-- @Prompt -->
+    I'm a big fan of builder pattern, I use it very frequently when creating dev libraries in typescript, and is-ts is no exception. As you would expect from similar libraries, every term that changes the configuration of a schematic, or combines schematics together will create a new schematic instance.
 
-> In the first example on screen, you can see how we've taken a schematic from the previous slide, `isShout`, and we've disabled one of it's sub-validations. There are couple of examples that showcase the different signatures one can use when configuring a term.
+    <!-- @Prompt -->
+    In the first example on screen, you can see how we've taken a schematic from the previous slide, `isShout`, and we've disabled one of it's sub-validations. There are couple of examples that showcase the different signatures one can use when configuring a term.
 
-> Sub validation terms can take a single false boolean, which disables it, so 'isShout' becomes 'isRaisedVoice' because it is no longer uppercase and simply must end with an exclamation mark. 
+    <!-- @Prompt -->
+    Sub validation terms can take a single false boolean, which disables it, so 'isShout' becomes 'isRaisedVoice' because it is no longer uppercase and simply must end with an exclamation mark. 
 
-> Many sub validation terms don't require a configuration, so they can be passed a true boolean or just called without any arguments to enable them. And many sub validation terms, such as `startsWith` require some configuration input. 
+    <!-- @Prompt -->
+    Many sub validation terms don't require a configuration, so they can be passed a true boolean or just called without any arguments to enable them. And many sub validation terms, such as `startsWith` require some configuration input. 
 
-> In the last example you can see how an explicit configuration object can be passed in as well. A lot of signatures are available for developer experience and readability.
+    <!-- @Prompt -->
+    In the last example you can see how an explicit configuration object can be passed in as well. A lot of signatures are available for developer experience and readability.
 
-## Readonly Modifier
+#<!-- @SlideTitle -->
+Readonly Modifier
 
 **[is-ts](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/is)** uses naming conventions with typescript familiarity in mind.
 
@@ -252,15 +284,20 @@ isTodo.type satisfies Readonly<{
 
 The readonly modifier does not affect the schematics runtime behavior, only it's type inference.
 
-> is-ts is intended to have terms and naming conventions that would be familiar to typescript developers. I've re-used a lot of names from utility types where functionality applies.
+    <!-- @Prompt -->
+    is-ts is intended to have terms and naming conventions that would be familiar to typescript developers. I've re-used a lot of names from utility types where functionality applies.
 
-> Many terms are only available when composing specific types, such as string specific terms or number specific terms, but the readonly modifier is available generally everywhere.
+    <!-- @Prompt -->
+    Many terms are only available when composing specific types, such as string specific terms or number specific terms, but the readonly modifier is available generally everywhere.
 
-> In the first example, you can see that we've declared both properties on the Todo shape as readonly, either as a prefix or suffix, functionally they do the same thing.
+    <!-- @Prompt -->
+    In the first example, you can see that we've declared both properties on the Todo shape as readonly, either as a prefix or suffix, functionally they do the same thing.
 
-> In the second example, instead of defining each individual term as readonly, we've made the entire shape readonly. Functionally this does the same thing as the first example, I'm just showcasing the intuitive and composable nature of the terms.
+    <!-- @Prompt -->
+    In the second example, instead of defining each individual term as readonly, we've made the entire shape readonly. Functionally this does the same thing as the first example, I'm just showcasing the intuitive and composable nature of the terms.
 
-# Optional Modifier
+<!-- @SlideTitle -->
+Optional Modifier
 
 Writing an optional todo:
 ```ts
@@ -288,13 +325,17 @@ isTodo.type satisfies {
 }
 ```
 
-> Like the previous example, properties in a shape can be made optional, and the optional modifier is equivalently liberal with where it can be declared.
+    <!-- @Prompt -->
+    Like the previous example, properties in a shape can be made optional, and the optional modifier is equivalently liberal with where it can be declared.
 
-> In the second example, we're using the partial property on the shape in order to make all of it's properties optional, much like how you'd expect the Partial utility method to work. In this example, the .partial property is only available on shape schematics, so it can't prefixed, only suffixed.
+    <!-- @Prompt -->
+    In the second example, we're using the partial property on the shape in order to make all of it's properties optional, much like how you'd expect the Partial utility method to work. In this example, the .partial property is only available on shape schematics, so it can't prefixed, only suffixed.
 
-> We *can* use the optional modifier on the shape as well, but as one would expect, that makes the entire value optional, rather than each individual property.
+    <!-- @Prompt -->
+    We *can* use the optional modifier on the shape as well, but as one would expect, that makes the entire value optional, rather than each individual property.
 
-# Required / Writable Terms
+<!-- @SlideTitle -->
+Required / Writable Terms
 
 Modifier negation properties:
 ```ts
@@ -324,7 +365,8 @@ is.required({
 
 > You can see that an optional string could made required, or a readonly array could be made mutable. All modifiers are removable.
 
-# Not Modifier
+<!-- @SlideTitle -->
+Not Modifier
 
 Validations can be negated:
 
@@ -355,15 +397,20 @@ const isNotVector = is.not(isVector)
 is.not(isNotVector).type satisfies typeof isVector.type
 ```
 
-> The not modifier simply negates a validation. Unfortunately, it's not very useful by itself as a type guard, because negative type guards haven't been made possible to write. 
+    <!-- @Prompt -->
+    The not modifier simply negates a validation. Unfortunately, it's not very useful by itself as a type guard, because negative type guards haven't been made possible to write. 
 
-> One would just use the negate operator in an expression before a type-guard in order to exclude types from an input set rather than extract them.
+    <!-- @Prompt -->
+    One would just use the negate operator in an expression before a type-guard in order to exclude types from an input set rather than extract them.
 
-> But the not modifier can still be useful for property validations or unions. Say you're parsing some json, and you'll take any value that ISN'T a boolean or a number, or some specific value, for example.
+    <!-- @Prompt -->
+    But the not modifier can still be useful for property validations or unions. Say you're parsing some json, and you'll take any value that ISN'T a boolean or a number, or some specific value, for example.
 
-> I'd also like to showcase how the not operator can be removed, because I think it's funny. It's not-not a vector? Great, so it's a vector. Ha-ha.
+    <!-- @Prompt -->
+    I'd also like to showcase how the not operator can be removed, because I think it's funny. It's not-not a vector? Great, so it's a vector. Ha-ha.
 
-# Shape Pick
+<!-- @SlideTitle -->
+Shape Pick
 
 Shape schematics have a number of useful utility methods.
 
@@ -394,13 +441,17 @@ isName.type satisfies {
 }
 ```
 
-> I'm going to quickly showcase some other utility methods available on shape schematics, but that's only because it took a lot of iteration to get the types to work with acceptable performance in the IDE.
+    <!-- @Prompt -->
+    I'm going to quickly showcase some other utility methods available on shape schematics, but that's only because it took a lot of iteration to get the types to work with acceptable performance in the IDE.
 
-> One thing I'd like to address with this library, is that many of the other validation libraries with static type inference invariably depend on recursive conditionals, which can lead to a great deal of type instantiation and slow the typescript language serve down considerably. My library is decent, but there is still more optimization to be done. The modifier stack I've come up with alleviates a lot of the pressure.
+    <!-- @Prompt -->
+    One thing I'd like to address with this library, is that many of the other validation libraries with static type inference invariably depend on recursive conditionals, which can lead to a great deal of type instantiation and slow the typescript language serve down considerably. My library is decent, but there is still more optimization to be done. The modifier stack I've come up with alleviates a lot of the pressure.
 
-> Shape.pick, like the `Pick` utility type, creates a new shape from a subset of given properties. In the first example, you can see that we've defined a 'Person' type, and in the second we extract a new type that only consists of the name properties.
+    <!-- @Prompt -->
+    Shape.pick, like the `Pick` utility type, creates a new shape from a subset of given properties. In the first example, you can see that we've defined a 'Person' type, and in the second we extract a new type that only consists of the name properties.
 
-# Shape Omit 
+<!-- @SlideTitle -->
+Shape Omit 
 
 Much like the `Omit` utility method, a new shape can be created by defining *exclusive* property keys:
 
@@ -413,9 +464,11 @@ isAnonymous.type satisfies {
 }
 ```
 
-> Shape.omit, like the `Omit` utility type, creates a new shape from an *exclusive* subset of given properties.
+    <!-- @Prompt -->
+    Shape.omit, like the `Omit` utility type, creates a new shape from an *exclusive* subset of given properties.
 
-# Shape And
+<!-- @SlideTitle -->
+Shape And
 
 If used on a shape, `.and` combines the properties from two shapes into one instead of making an intersection:
 
@@ -433,9 +486,11 @@ isEmployee.type satisfies {
 }
 ```
 
-> Typically, the `.and` term would create an intersection of validators, but in the case of a shape it's smart enough to merge properties of shapes together, which makes it easier to work with.
+    <!-- @Prompt -->
+    Typically, the `.and` term would create an intersection of validators, but in the case of a shape it's smart enough to merge properties of shapes together, which makes it easier to work with.
 
-# Shape Property 
+<!-- @SlideTitle -->
+Shape Property 
 
 Make changes to individual properties on a shape:
 
@@ -457,11 +512,14 @@ isDoctor.type satisfies {
 }
 ```
 
-> The `.property` term allows one to make single property changes to a shape, using the previous property as input. Handy if you want to change the configuration or add modifiers to a specific property.
+    <!-- @Prompt -->
+    The `.property` term allows one to make single property changes to a shape, using the previous property as input. Handy if you want to change the configuration or add modifiers to a specific property.
 
-> In the example, we've converted a person type into a doctor type by changing the title property into a union of two doctorate prefixes and making it no longer optional.
+    <!-- @Prompt -->
+    In the example, we've converted a person type into a doctor type by changing the title property into a union of two doctorate prefixes and making it no longer optional.
 
-# Shape Partial
+<!-- @SlideTitle -->
+Shape Partial
 
 Make all properties on a given shape optional:
 
@@ -471,9 +529,11 @@ const isPersonData = isPerson.partial
 isPersonData.type satisfies Partial<typeof isPerson.type>
 ```
 
-> The `.partial` term is an analog to the Partial utility type, makes all of the properties on a given shape partial.
+    <!-- @Prompt -->
+    The `.partial` term is an analog to the Partial utility type, makes all of the properties on a given shape partial.
 
-# Shape Strict 
+<!-- @SlideTitle -->
+Shape Strict 
 
 By default, a shape will only validate properties it has schematic definitions for, ignoring other properties that may be on the validation input. 
 
@@ -500,7 +560,8 @@ const isVectorLike = is
 
 >
 
-# Is Signatures 
+<!-- @SlideTitle -->
+Is Signatures 
 
 The `is` call signature will make out of literal values:
 
@@ -533,13 +594,17 @@ isAsyncState.type satisfies {
 }
 ```
 
-> I'm going to briefly showcase some of the signatures on the is method. In the first example, you can see it's possible to supply literals to create schematics for exact values.
+    <!-- @Prompt -->
+    I'm going to briefly showcase some of the signatures on the is method. In the first example, you can see it's possible to supply literals to create schematics for exact values.
 
-> In the second example you can see that instead of using the .or term we can provide multiple inputs to create a union.
+    <!-- @Prompt -->
+    In the second example you can see that instead of using the .or term we can provide multiple inputs to create a union.
 
-> I think the `.or` term is generally preferable for readability, but in this case, I think it's very clear that I'm describing a discriminated union.
+    <!-- @Prompt -->
+    I think the `.or` term is generally preferable for readability, but in this case, I think it's very clear that I'm describing a discriminated union.
 
-# More Is Signatures
+<!-- @SlideTitle -->
+More Is Signatures
 
 Schematics can take constructors as input to validate instances:
 ```ts
@@ -560,11 +625,14 @@ const isRange = is([ is.number, is.number ])
 isRange.type satisfies [number, number]
 ```
 
-> Existing constructors can be dropped in to create schematics that validate instances, in the first example we've created an instanceOf `Foo` schematic.
+    <!-- @Prompt -->
+    Existing constructors can be dropped in to create schematics that validate instances, in the first example we've created an instanceOf `Foo` schematic.
 
-> One passes in an object to make shapes, but one can also pass in an array to make tuple schematics. All of this is possible thanks to the new const argument modifier, otherwise we'd have to be dropping in const keywords all over the place.
+    <!-- @Prompt -->
+    One passes in an object to make shapes, but one can also pass in an array to make tuple schematics. All of this is possible thanks to the new const argument modifier, otherwise we'd have to be dropping in const keywords all over the place.
 
-# Schematic Validation
+<!-- @SlideTitle -->
+Schematic Validation
 
 ```ts
 export const isRecord = is({ 
@@ -602,19 +670,27 @@ export const isUser =
         .readonly
 ```
 
-> Here's an example of how some schemas may or may not be set up in a backend I'm building for a different project. 
+    <!-- @Prompt -->
+    Here's an example of how some schemas may or may not be set up in a backend I'm building for a different project. 
 
-> There's a couple of schematics at the top isRecord and isTimeStamps, that could be consumed by other document types.
+    <!-- @Prompt -->
+    There's a couple of schematics at the top isRecord and isTimeStamps, that could be consumed by other document types.
 
-> Then there's the user data schematic which defines data that is specific to a user, this would be used elsewhere in business logic to validate input data for a user being created. 
+    <!-- @Prompt -->
+    Then there's the user data schematic which defines data that is specific to a user, this would be used elsewhere in business logic to validate input data for a user being created. 
 
-> There's a user update schematic, which would would be used elsewhere to validate data for a user being updated. It's the create user schematic made partial.
+    <!-- @Prompt -->
+    There's a user update schematic, which would would be used elsewhere to validate data for a user being updated. It's the create user schematic made partial.
 
-> Finally, the user record schematic itself, which combines readonly user data and timestamps and id's that would be filled on the backend.
+    <!-- @Prompt -->
+    Finally, the user record schematic itself, which combines readonly user data and timestamps and id's that would be filled on the backend.
 
-> Now, obviously I'm biased, but I find these definitions easier to read that the ones provided by, for example, ts-json-schema. Also easier to extend and change.
+    <!-- @Prompt -->
+    Now, obviously I'm biased, but I find these definitions easier to read that the ones provided by, for example, ts-json-schema. Also easier to extend and change.
 
-# is-ts
+<!-- @SlideTitle -->
+is-ts
+<!-- @Slide -->
 
 Shortcuts for built in types:
 ```ts
@@ -667,4 +743,5 @@ const isStringRef = isRef(is.string)
 isStringRef.type satisfies { current: string }
 ```
 
-> And that is a brief overview of many features `is-ts` will have when it is complete. Now that you know what it is, let me talk about how I built it. Any questions before I continue?
+    <!-- @Prompt -->
+    And that is a brief overview of many features `is-ts` will have when it is complete. Now that you know what it is, let me talk about how I built it. Any questions before I continue?
