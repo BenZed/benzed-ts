@@ -12,7 +12,7 @@ import {
     MarkdownComponentMap,
     MarkdownComponentProps,
 
-} from './presentation'
+} from '@benzed/react'
 
 import { GlobalStyle } from './global-style'
 

@@ -1,7 +1,7 @@
 import { App } from '@benzed/app'
+import { PresentationModule } from '@benzed/react'
 
 import { ServeUI } from './serve-ui'
-import { PresentationModule } from '../client/components/presentation/presentation-module'
 
 //// Main ////
 

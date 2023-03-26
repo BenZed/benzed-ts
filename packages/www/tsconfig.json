@@ -13,6 +13,7 @@
     "include": [
         "src",
         "../react/src/hooks/use-key-press.ts",
+        "../react/src/components/presentation",
     ],
     "exclude": [
         "src/**/*.test.ts"

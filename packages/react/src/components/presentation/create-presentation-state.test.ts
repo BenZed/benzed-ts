@@ -37,7 +37,7 @@ test('builds content state up until a content index', () => {
 
     expect(contentState).toEqual([{
         component: nil,
-        content: '# Title\n> Quote\n'
+        markdown: '# Title\n> Quote\n'
     }])
 
     expect(lineIndex).toEqual(1)
@@ -62,11 +62,11 @@ describe('nesting', () => {
         expect(contentState).toEqual([
             {
                 component: undefined,
-                content: '# Title\n'
+                markdown: '# Title\n'
             },
             {
                 component: 'Boundary',
-                content: '- item 1\n'
+                markdown: '- item 1\n'
             }
         ])
         expect(lineIndex).toEqual(2)
@@ -77,15 +77,15 @@ describe('nesting', () => {
         expect(contentState).toEqual([
             {
                 component: undefined,
-                content: '# Title\n'
+                markdown: '# Title\n'
             }, 
             {
                 component: 'Boundary',
-                content: '- item 1\n- item 2\n'
+                markdown: '- item 1\n- item 2\n'
             },
             {
                 component: 'Boundary',
-                content: '- sub item 1\n'
+                markdown: '- sub item 1\n'
             }
         ]) 
         expect(lineIndex).toEqual(4)
@@ -96,19 +96,19 @@ describe('nesting', () => {
         expect(contentState).toEqual([
             {
                 component: undefined,
-                content: '# Title\n'
+                markdown: '# Title\n'
             }, 
             {
                 component: 'Boundary',
-                content: '- item 1\n- item 2\n- item 3\n'
+                markdown: '- item 1\n- item 2\n- item 3\n'
             },
             {
                 component: 'Boundary',
-                content: '- sub item 1\n'
+                markdown: '- sub item 1\n'
             },
             {
                 component: 'Boundary',
-                content: ''
+                markdown: ''
             }
         ]) 
         expect(lineIndex).toEqual(5)

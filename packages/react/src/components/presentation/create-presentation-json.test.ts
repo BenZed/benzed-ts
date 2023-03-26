@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { createPresentationJson } from './create-presentation-json'
-import { lines } from '../../../../../string/lib'
+import { lines } from '../../../../string'
 
 import { test, expect } from '@jest/globals'
 import { MarkdownComponentProps } from './markdown-component'
@@ -28,7 +28,7 @@ test('creates content json for a given component map', () => {
             lines: [
                 {
                     index: 0,
-                    content: 'Content without component'
+                    markdown: 'Content without component'
                 }
             ] 
         },
@@ -38,7 +38,7 @@ test('creates content json for a given component map', () => {
             lines: [
                 {
                     index: 2,
-                    content: 'Content for Boundary component'
+                    markdown: 'Content for Boundary component'
                 }
             ] 
         }
@@ -69,9 +69,9 @@ test('handles nested content', () => {
             component: nil,
             index: 0,
             lines: [
-                { index: 0, content: 'Line 1' },
-                { index: 1, content: 'Line 2' },
-                { index: 4, content: 'Line 3' }
+                { index: 0, markdown: 'Line 1' },
+                { index: 1, markdown: 'Line 2' },
+                { index: 4, markdown: 'Line 3' }
             ]
         },
         {
@@ -79,7 +79,7 @@ test('handles nested content', () => {
             index: 2, 
             lines: [{
                 index: 3,
-                content: 'Boundary Line 1'
+                markdown: 'Boundary Line 1'
             }]
         }
     ]) 
@@ -107,24 +107,24 @@ test('handles deeply nested content', () => {
             component: nil, 
             index: 0,
             lines: [
-                { index: 0, content: 'A1' },
-                { index: 1, content: 'A2' },
-                { index: 8, content: 'A3' }
+                { index: 0, markdown: 'A1' },
+                { index: 1, markdown: 'A2' },
+                { index: 8, markdown: 'A3' }
             ]
         },
         {
             component: 'Boundary', 
             index: 2,
             lines: [
-                { index: 3, content: 'B1' },
-                { index: 7, content: 'B2' }
+                { index: 3, markdown: 'B1' },
+                { index: 7, markdown: 'B2' }
             ]
         },
         { 
             component: 'Boundary',
             index: 4,
             lines: [
-                { index: 5, content: 'C1' }
+                { index: 5, markdown: 'C1' }
             ]
         },
         { 
@@ -136,7 +136,7 @@ test('handles deeply nested content', () => {
             component: 'Boundary', 
             index: 9,
             lines: [
-                { index: 10, content: 'D1' },
+                { index: 10, markdown: 'D1' },
             ]
         }
     ])
