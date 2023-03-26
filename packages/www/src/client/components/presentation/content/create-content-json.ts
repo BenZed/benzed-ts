@@ -1,6 +1,6 @@
-import { each, Mutable, NamesOf, nil } from '@benzed/util'
-import is, { IsType, Validates } from '@benzed/is'
 import { pluck } from '@benzed/array'
+import is, { IsType, Validates } from '@benzed/is'
+import { each, Mutable, NamesOf, nil } from '@benzed/util'
 
 import { ContentComponentMap } from './content'
 
@@ -11,7 +11,7 @@ const NEST_PREFIX = ' '.repeat(NEST_TAB_SIZE)
 
 //// Types ////
 
-export type ContentJson<P extends object> =
+export type ContentJson<P extends ContentComponentMap> =
     {
         readonly component?: NamesOf<P>
         readonly index: number
@@ -24,7 +24,7 @@ export type ContentJson<P extends object> =
 //// Helper ////
 
 // TODO is-ts is gonna need: is.nameOf, is.symbolOf, is.indexOf, is.keyOf
-const isNameOf = <P extends object>(object: P): IsType<NamesOf<P>> =>
+const isNameOf = <P extends ContentComponentMap>(object: P): IsType<NamesOf<P>> =>
     is.string.asserts(
         name => name in object,
         name => `${name} invalid, must be: ${each.nameOf(object).toArray().join(' or ')}`
@@ -120,10 +120,7 @@ export function createContentJson<P extends ContentComponentMap>(
     components: P,
     content: string
 ) {
-
     const validateName = isNameOf(components).validate
-
     const lines = content.split('\n')
-
     return createNestedContentJson(lines, validateName)
 }

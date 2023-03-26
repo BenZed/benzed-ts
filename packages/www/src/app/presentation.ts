@@ -98,7 +98,6 @@ async function readMarkdown(): Promise<{ name: string, contents: string }[]> {
         },
         asUrls: true
     })
-
     const markdown: { name: string, contents: string }[] = []
 
     for (const markdownUrl of markdownUrls) {
@@ -107,7 +106,6 @@ async function readMarkdown(): Promise<{ name: string, contents: string }[]> {
 
         markdown.push({ name, contents })
     }
-
     return markdown
 }
 
@@ -149,5 +147,6 @@ function createSlides(markdown: { name: string, contents: string }): Slide[] {
             slide.cards[lastCardIndex].content += line + '\n'
         }
     }
+
     return slides
 }
