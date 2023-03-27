@@ -1,6 +1,4 @@
 
-import 'normalize.css'
-
 //// Data ////
 
 const HTML_MAIN_TAG = 'benzed-www'
@@ -11,7 +9,6 @@ const dependencies = Promise.all([
     import('react'),
     import('react-dom/client'),
     import('react-router-dom'),
-    import('../app'),
     import('./components'),
 ] as const)
 
@@ -22,9 +19,8 @@ window.onload = async function () {
     const [
         React,
         { createRoot },
-        { BrowserRouter: Router },
-        { client },
-        { Providers }
+        { BrowserRouter },
+        { Website }
     ] = await dependencies
 
     const mainTag = document.getElementById(HTML_MAIN_TAG)
@@ -34,9 +30,9 @@ window.onload = async function () {
     const root = createRoot(mainTag)
     root.render(
         <React.StrictMode>
-            <Router>
-                <Providers client={client} />
-            </Router>
+            <BrowserRouter>
+                <Website />
+            </BrowserRouter>
         </React.StrictMode>
     )
 }

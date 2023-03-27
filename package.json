@@ -12,8 +12,7 @@
         "packages:lint": "lerna run lint",
         "packages:publish": "npm run packages:sync-versions; ts-node ./scripts/packages-publish.ts",
         "packages:sync-versions": "ts-node ./scripts/packages-sync-versions.ts",
-        "start:file-server": "node ./packages/file-server/lib/scripts/start-file-server.js",
-        "start:client-renderer": "node ./packages/file-server/lib/scripts/start-client-renderer.js"
+        "start": "node ./packages/www/lib/serve"
     },
     "repository": {
         "type": "git",
