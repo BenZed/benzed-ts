@@ -30,7 +30,7 @@ type _OptionalValues<T> = {
 }
 
 type _NilToOptional<T> = T extends [infer T1] 
-    ? nil extends T1 ? [Exclude<T1, nil>?] : [T1]
+    ? nil extends T1 ? [T1?] : [T1]
     : Compile<_RequiredValues<T> & _OptionalValues<T>>
 
 type _EveryValueIsOptional<T> = keyof _RequiredValues<T> extends never
@@ -48,7 +48,7 @@ type _LayoutToSignature<T extends GenericObject, L extends Layout<T>> =
 
 //// Types ////
 
-type Result<T extends GenericObject, D extends Partial<Defaults<T>>> =
+type Result<T extends GenericObject, D extends Partial<T>> =
     Merge<[T,D]> extends infer O
         ? _EveryValueIsOptional<O> extends true
             ? _NilToOptional<O> | nil
@@ -60,8 +60,6 @@ type Types<T extends GenericObject> = {
 }
 
 type Layout<T extends GenericObject> = NamesOf<T>[]
-
-type Defaults<T extends GenericObject> = _OptionalValues<T>
 
 type Signature<T extends GenericObject, L extends Layout<T>[]> =
     L extends [infer L1, ...infer Lr]
@@ -76,7 +74,7 @@ type Signature<T extends GenericObject, L extends Layout<T>[]> =
 
 class SignatureParser<
     T extends GenericObject, 
-    D extends Partial<Defaults<T>>,
+    D extends Partial<T>,
     L extends Layout<T>[] = []
 >
     extends Method<(...signature: Signature<T,L>) => Result<T, D>> {
@@ -111,7 +109,7 @@ class SignatureParser<
 
     //// Builder Pattern ////
     
-    setDefaults<Dx extends Partial<Defaults<T>>>(defaults: Dx): SignatureParser<T,Dx,L> {
+    setDefaults<Dx extends Partial<T>>(defaults: Dx): SignatureParser<T,Dx,L> {
         return new SignatureParser(this.types, defaults, this.layouts)
     }
 
