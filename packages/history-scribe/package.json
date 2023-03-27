@@ -1,7 +1,7 @@
 {
     "name": "@benzed/history-scribe",
     "description": "Structure for tracking historical changes to data.",
-    "main": "./src",
+    "main": "./lib",
     "version": "2.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",

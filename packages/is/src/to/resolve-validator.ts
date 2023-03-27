@@ -11,18 +11,18 @@ type _ReduceValidators<T extends Validator[]> = T['length'] extends 1
     ? T[0]
     : Or<T>
 
-type _ResolveValidatorInput =
+//// Types ////
+
+ type ResolveValidatorInput =
     | IsCursor<Validator>
     | Primitive 
     | ResolveShapeValidatorInput 
     | Validator 
     | InstanceInput 
 
-//// Types ////
+type ResolveShapeValidatorInput = { [key: PropertyKey]: ResolveValidatorInput }
 
-type ResolveShapeValidatorInput = { [key: PropertyKey]: _ResolveValidatorInput }
-
-type ResolveValidatorsInput = _ResolveValidatorInput[]
+type ResolveValidatorsInput = ResolveValidatorInput[]
 
 type ResolveValidator<T extends ResolveValidatorsInput> = 
     Infer<_ReduceValidators<ResolveValidators<T>>, Validator>
@@ -44,7 +44,7 @@ type ResolveValidators<T extends unknown[]> = T extends [infer T1, ...infer Tr]
             : [
                 // Handle Primitive
                 T1 extends Primitive 
-                    ? ReadOnly<Value<T1>>
+                    ? Value<T1>
 
                     // Handle Shape
                     : T1 extends ResolveShapeValidatorInput 
@@ -134,6 +134,7 @@ export {
     resolveValidators,
     ResolveValidators,
 
+    ResolveValidatorInput,
     ResolveValidatorsInput,
     ResolveShapeValidatorInput
 }

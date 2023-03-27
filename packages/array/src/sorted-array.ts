@@ -191,14 +191,12 @@ class SortedArray<T extends Sortable> extends Array<T> {
 
 //// Exports ////
 
-export default SortedArray
-
 export {
+    isSortedArray,
+    SortedArray,
+
     ascending,
     descending,
-    isSortedArray
-}
 
-export type {
     Sortable
 }

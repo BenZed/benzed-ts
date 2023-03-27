@@ -164,8 +164,8 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
                 !this.is(partialState[key])
             ) {
                 partialState[key] = this.create(
-                    state[prevKey], 
-                    partialState[key] as never // <- shut up, ts
+                    (state as any)[prevKey], 
+                    partialState[key] // <- shut up, ts
                 )
             }
         }
@@ -222,17 +222,8 @@ abstract class Structural extends Trait.merge(Stateful, Copyable, Comparable) {
      * override this copy method in order to account for them.
      */
     [Copyable.copy](): this {
- 
-        const superCopy = each.prototypeOf(this.constructor)
-            .find((constructor): constructor is Func => 
-                isFunc(constructor) &&
-                Copyable.is(constructor.prototype) && 
-                constructor.prototype[Copyable.copy] !== this[Copyable.copy]
-            )?.prototype[Copyable.copy]
 
-        const clone = superCopy
-            ? superCopy.call(this)
-            : Copyable.createFromProto(this)
+        const clone = Copyable.createFromProto(this)
 
         Stateful.set(clone, copy(this[Stateful.state]))
         return clone

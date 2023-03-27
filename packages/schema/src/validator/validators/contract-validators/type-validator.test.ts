@@ -3,17 +3,17 @@ import { TypeValidator } from './type-validator'
 import { describe } from '@jest/globals'
 import { isBigInt, isNumber, isString } from '@benzed/util'
 
-import { testValidator } from '../../../util.test'
+import { testValidator } from '../../../util.test' 
  
 //// Setup ////
 
 class BigIntValidator extends TypeValidator<bigint> {
 
-    isValid(value: unknown): value is bigint {
+    override isValid(value: unknown): value is bigint {
         return isBigInt(value)
     }
 
-    cast(input: unknown): unknown {
+    override cast(input: unknown): unknown {
         if (isString(input) && /\d+/.test(input) || isNumber(input)) 
             return BigInt(input)
 

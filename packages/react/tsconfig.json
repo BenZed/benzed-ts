@@ -1,0 +1,19 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "jsx": "react",
+        "types": [
+            "node"
+        ],
+        "lib": [
+            "DOM"
+        ],
+        "outDir": "./lib"
+    },
+    "include": [
+        "src",
+    ],
+    "exclude": [
+        "src/**/*.test.ts"
+    ]
+}

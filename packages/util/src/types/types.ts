@@ -82,7 +82,7 @@ export type Compile<T, E = void, R extends boolean = true> =
                         : T 
 
 /**
- * Retreive conditional types if two input types are equal.
+ * Retrieve conditional types if two input types are equal.
  */
 export type IsIdentical<T1, T2> =
     // This is some magician shit I got off the internet and did not write.
@@ -99,9 +99,11 @@ export type AsMutable<T> = {
 
 }
 
-export type Mutable<T> = {
-    -readonly [K in keyof T as K]: T[K]
-}
+export type Mutable<T> = T extends object 
+    ? T extends Array<infer U> | Readonly<Array<infer U>> 
+        ? Mutable<U>[]
+        : { -readonly [K in keyof T as K]: Mutable<T[K]> } 
+    : T
 
 export type AsReadonly<T> = {
     [K in keyof T as 

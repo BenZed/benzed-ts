@@ -1,5 +1,5 @@
 import Module from '../module'
-import OnValidate from '../traits/on-validate'
+import Validateable from '../traits/validateable'
 
 //// Main ////
 
@@ -7,9 +7,9 @@ import OnValidate from '../traits/on-validate'
  * If the App contains a WebSocket Module, Client and Server will use it
  * to enable realtime connections.
  */
-class Websocket extends Module.add(Module, OnValidate) {
+abstract class Websocket extends Module.add(Module, Validateable) {
 
-    onValidate(): void {
+    protected _onValidate(): void {
         this._assertUnique()
         this._assertRootParent()
     }

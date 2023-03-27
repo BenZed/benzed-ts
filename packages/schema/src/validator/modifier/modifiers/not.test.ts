@@ -6,13 +6,15 @@ import { testValidator } from '../../../util.test'
 import { expectTypeOf } from 'expect-type'
 import { Validator, ValidatorState } from '../../validator'
 
+import { describe, it, expect } from '@jest/globals'
+
 //// Tests //// 
 
 type id = `#id-${number}`
 
 class Id extends ContractValidator<string, id> {
 
-    transform(input: string): `#id-${number}` {
+    override transform(input: string): `#id-${number}` {
         const digits = input.replace('#id-', '')
 
         let numeric = parseInt(digits)
@@ -31,7 +33,7 @@ class Id extends ContractValidator<string, id> {
         )
     }
 
-    message(): string {
+    override message(): string {
         return `must be ${this.name}`
     }
 

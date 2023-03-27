@@ -1,5 +1,5 @@
 
-import { assign, define, defined, isFunc, isOptional, isString, isSymbol, isUnion, pick } from '@benzed/util'
+import { assign, define, defined, isDefined, isFunc, isOptional, isString, isSymbol, isUnion, pick } from '@benzed/util'
 import { SignatureParser } from '@benzed/signature-parser'
 
 import { PipeValidator, Validators } from '../pipe-validator'
@@ -32,10 +32,19 @@ export class OutputValidator<O> extends ContractValidator<O, O> {
 
     set [Validator.state](state: OutputValidatorState<O>) {
         define.named(state.name, this)
-        define.enumerable(this, 'id', state.id)
-        define.hidden(this, 'isValid', state.isValid)
+
         define.hidden(this, 'transform', state.transform)
-        define.hidden(this, 'message', isString(state.message) ? () => state.message : state.message)
+        define.hidden(this, 'isValid', state.isValid)
+        define.hidden(
+            this, 
+            'message', 
+            isString(state.message) 
+                ? () => state.message 
+                : state.message
+        )
+
+        define(this, 'id', { value: state.id, enumerable: isDefined(state.id) })
+
     }
 
 }

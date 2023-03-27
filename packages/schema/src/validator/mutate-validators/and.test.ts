@@ -21,11 +21,11 @@ const $boolean = new class Boolean extends TypeValidator<boolean> {
 
 const $foo = new ShapeValidator({
     foo: $number
-})
+}, false)
 
 const $bar = new ShapeValidator({
     bar: $boolean
-}) 
+}, false) 
 
 const $fooBar = new And($foo, $bar)
 
@@ -46,8 +46,3 @@ testValidator<object,object>(
         error: 'foo must be Number'
     }
 )
-
-it('requires an intersection of object types', () => {
-    // @ts-expect-error must be object types
-    void new And($number, $boolean) 
-})

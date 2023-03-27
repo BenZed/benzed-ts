@@ -1,5 +1,6 @@
 import { expectTypeOf } from 'expect-type'
-import unwrap from './unwrap'
+import { unwrap } from './unwrap'
+import { it, expect } from '@jest/globals'
 
 it('ensures an input is not an array', () => {
     const obj = {}

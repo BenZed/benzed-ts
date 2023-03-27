@@ -13,7 +13,7 @@ class DateValidator extends InstanceValidator<typeof Date> {
         super(Date)
     }
 
-    cast(input: unknown): unknown {
+    override cast(input: unknown): unknown {
         if (isString(input) && /\d+/.test(input) || isNumber(input)) 
             return new Date(input)
 

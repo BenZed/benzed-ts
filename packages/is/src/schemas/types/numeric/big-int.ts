@@ -1,5 +1,6 @@
-import { TypeSchema, TypeValidator } from '@benzed/schema'
+import { TypeValidator } from '@benzed/schema'
 import { isBigInt, isString } from '@benzed/util'
+import { Numeric } from './numeric'
 
 //// BigInt ////
 
@@ -21,13 +22,18 @@ class BigIntValidator extends TypeValidator<bigint> {
     }
 }
 
-//// Ex[prts] ////
+//// Exports ////
 
-export class BigInt extends TypeSchema<BigIntValidator, {}> {
+export class BigInt extends Numeric<bigint, {}> {
 
     constructor() {
         super(new BigIntValidator, {})
     }
+
+    get _two(): 2n {
+        return globalThis.BigInt('2') as 2n
+    }
+
 }
 
 export const $bigint = new BigInt

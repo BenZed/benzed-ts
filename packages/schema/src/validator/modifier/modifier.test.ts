@@ -1,6 +1,5 @@
 import { describe } from '@jest/globals'
-import { assign, define, isInteger, isNumber, nil, pick } from '@benzed/util'
-import { Trait } from '@benzed/traits'
+import { define, isInteger, isNumber, nil, pick } from '@benzed/util'
 
 import { Not, Optional } from './modifiers'
 import { ContractValidator, TypeValidator } from '../validators'
@@ -18,7 +17,7 @@ class IntegerValidator extends TypeValidator<number> {
         return isInteger(value)
     }
 
-    cast(input: unknown): unknown { 
+    override cast(input: unknown): unknown { 
         return isNumber(input) ? Math.floor(input) : input
     }
 
@@ -28,7 +27,7 @@ class PositiveValidator extends ContractValidator<number, number> {
 
     readonly enabled: boolean = false 
 
-    transform(input: number): number {
+    override transform(input: number): number {
         return Math.max(input, 0)
     } 
 

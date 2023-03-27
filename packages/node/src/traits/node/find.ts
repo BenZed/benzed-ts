@@ -1,4 +1,4 @@
-import { 
+import {
     AnyTypeGuard,
     Each,
     each,
@@ -17,7 +17,7 @@ import { getPath } from './path'
 import {
     eachAncestor,
     eachChild,
-    eachDescendent,
+    eachDescendant,
     eachNode,
     eachParent,
     eachSibling
@@ -39,11 +39,11 @@ type NodePredicate<N extends Node = Node> = (input: N) => boolean
 //// Types ////
 
 type FindInput<N extends Node = Node> = N | NodePredicate<N> | NodeTypeGuard<N> | NodeTrait<N>
-type FindOutput<I extends FindInput<any>> = 
-    I extends NodePredicate<infer N> | NodeTypeGuard<infer N> | NodeTrait<infer N> 
-        ? N 
-        : I extends Node 
-            ? I 
+type FindOutput<I extends FindInput<any>> =
+    I extends NodePredicate<infer N> | NodeTypeGuard<infer N> | NodeTrait<infer N>
+        ? N
+        : I extends Node
+            ? I
             : never
 
 interface FindNode<N extends Node> {
@@ -51,7 +51,7 @@ interface FindNode<N extends Node> {
     <I extends FindInput<N>>(input?: I): FindOutput<I> | nil
     get inChildren(): FindNode<N>
     get inSiblings(): FindNode<N>
-    get inDescendents(): FindNode<N>
+    get inDescendants(): FindNode<N>
     get inParents(): FindNode<N>
     get inAncestors(): FindNode<N>
     get inNodes(): FindNode<N>
@@ -64,7 +64,7 @@ interface FindNodes<N extends Node> {
     <I extends FindInput<N>>(input?: I): FindOutput<I>[]
     get inChildren(): FindNodes<N>
     get inSiblings(): FindNodes<N>
-    get inDescendents(): FindNodes<N>
+    get inDescendants(): FindNodes<N>
     get inParents(): FindNodes<N>
     get inAncestors(): FindNodes<N>
     get inNodes(): FindNodes<N>
@@ -75,7 +75,7 @@ interface HasNode<N extends Node> {
     <I extends FindInput<N>>(input: I): boolean
     get inChildren(): HasNode<N>
     get inSiblings(): HasNode<N>
-    get inDescendents(): HasNode<N>
+    get inDescendants(): HasNode<N>
     get inParents(): HasNode<N>
     get inAncestors(): FindNodes<N>
     get inNodes(): FindNodes<N>
@@ -86,7 +86,7 @@ interface AssertNode<N extends Node> {
     <I extends FindInput<N>>(input: I, error?: string): FindOutput<I>
     get inChildren(): AssertNode<N>
     get inSiblings(): AssertNode<N>
-    get inDescendents(): AssertNode<N>
+    get inDescendants(): AssertNode<N>
     get inParents(): AssertNode<N>
     get inAncestors(): AssertNode<N>
     get inNodes(): AssertNode<N>
@@ -114,7 +114,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         readonly source: Node,
         private _flag?: FindFlag,
         private readonly _error?: string
-    ) { 
+    ) {
         super()
         this._each = eachChild(source)
         return Callable.apply(this)
@@ -127,7 +127,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
     }
 
     get or(): this {
-        this._mergeOnIncrement = true 
+        this._mergeOnIncrement = true
         return this
     }
 
@@ -148,8 +148,8 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         )
     }
 
-    get inDescendents(): this {
-        return this._incrementEach(eachDescendent(this.source))
+    get inDescendants(): this {
+        return this._incrementEach(eachDescendant(this.source))
     }
 
     get inParents(): this {
@@ -188,8 +188,8 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         const has = found.size > 0
         if (flag === FindFlag.Assert && !has) {
             throw new Error(
-                error ?? 
-                this._error ?? 
+                error ??
+                this._error ??
                 `Node ${getPath(this.source).join('/')} Could not find node ${toNodeName(input)}`
             )
         }
@@ -197,7 +197,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
         if (flag === FindFlag.Has)
             return has
 
-        if (flag === FindFlag.All)
+        if (flag === FindFlag.All) 
             return Array.from(found)
 
         const [first] = found
@@ -222,7 +222,7 @@ const Find = class NodeFinder extends Trait.use(Callable<Func>) {
 //// Helper ////
 
 // TODO should be exchanged with 'isGuardedConstructor'
-const isNodeTrait: (input: unknown) => input is NodeTrait = 
+const isNodeTrait: (input: unknown) => input is NodeTrait =
     isShape({
         is: isFunc as AnyTypeGuard
     })
@@ -245,12 +245,12 @@ function toNodePredicate(input?: FindInput): NodeTypeGuard | NodePredicate {
         return input
 
     throw new Error('Invalid find input.')
-} 
+}
 
-function toNodeName(input: FindInput): string {
+function toNodeName(input?: FindInput): string {
 
-    let name = 'name' in input 
-        ? input.name 
+    let name = input && 'name' in input
+        ? input.name
         : ''
 
     // assume typeguard with convention isModuleName
@@ -272,7 +272,7 @@ export {
 
     Find,
     FindFlag,
-    FindConstructor, 
+    FindConstructor,
     FindInput,
     FindOutput,
 

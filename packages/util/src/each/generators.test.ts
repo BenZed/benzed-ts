@@ -1,6 +1,6 @@
 import { eachKey, KeyType } from './generators'
 
-import { it, expect, } from '@jest/globals'
+import { it, expect } from '@jest/globals'
 
 //// Setup ////
 

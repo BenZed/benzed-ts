@@ -1,7 +1,7 @@
 import { ArrayStruct } from './array-struct'
 import { RecordStruct } from './record-struct'
 
-import { test, expect } from '@jest/globals'
+import { describe, test, expect } from '@jest/globals'
 import { expectTypeOf } from 'expect-type'
 
 import {
@@ -235,5 +235,4 @@ describe('array interface', () => {
         expect(Stateful.get(arrayFiltered)).toEqual({ 0: 1 })
         expect(array).not.toBe(arrayFiltered)
     })
-
 })

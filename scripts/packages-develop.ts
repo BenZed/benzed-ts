@@ -24,11 +24,14 @@ import ensureMongoDb from './util/ensure-mongo-db'
 
 //// Helper ////
 
-const isTypeScriptFile = (file: string): boolean => 
-    path.extname(file).endsWith('.ts')
+const isTypeScriptFile = (file: string): boolean => {
+    const ext = path.extname(file)
 
-const isNotInNodeModules = (file: string): boolean => 
-    !file.includes('node_modules')
+    return ext.endsWith('.ts') || ext.endsWith('.tsx')
+}
+
+const isSourceFolder = (file: string): boolean => 
+    !file.includes('node_modules') && !file.includes('lib')
 
 //// State ////
 
@@ -46,12 +49,17 @@ const testProcess = new PackageSpawnProcess(
     '--bail'
 )
 
-const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) => {
+const buildProcess = new PackageSpawnProcess(
+    'build:dev',
+    'tsc'
+)
+
+const stripSrcSuffixProcess = new FileProcess('strip-lib-suffix', async (file) => {
 
     const contents = await fs.readFile(file, 'utf-8')
     const lines = contents.split('\n')
 
-    const SRC = '/src'
+    const LIB = '/lib'
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
@@ -60,11 +68,11 @@ const stripSrcSuffixProcess = new FileProcess('strip-src-suffix', async (file) =
         if (bzImportIndex < 0)
             continue
         
-        const srcIndex = line.indexOf(SRC, bzImportIndex)
+        const srcIndex = line.indexOf(LIB, bzImportIndex)
         if (srcIndex < 0)
             continue 
 
-        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + SRC.length)
+        lines[i] = line.slice(0, srcIndex) + line.slice(srcIndex + LIB.length)
     }
     
     const newContents = lines.join('\n')
@@ -79,7 +87,7 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     const tsFileUrls = await readDirRecursive(
         pkgDir, 
         isTypeScriptFile, 
-        isNotInNodeModules
+        isSourceFolder
     )
 
     const pkgs = await eachPackage(json => json)
@@ -87,7 +95,7 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
     if (!thisPkg.dependencies)  
         thisPkg.dependencies = {}
 
-    // Build iternal dependencies
+    // Build internal dependencies
     const newInternalDeps: Record<string,string> = {}
     for (const tsFileUrl of tsFileUrls) {
         const tsFileContent = tsFileContentCache[tsFileUrl] ??= await fs.readFile(tsFileUrl, 'utf-8')
@@ -129,8 +137,8 @@ const updateDependencyProcess = new PackageProcess('update-deps', async pkgDir =
             'internal dependencies updated:',
             ...changes
         )
-    } else 
-        return 
+    } else
+        return
 
     // Write Changes
     await writeJson(thisPkg, path.join(pkgDir, 'package.json'))
@@ -169,30 +177,36 @@ watch(PACKAGES_DIR + '/*/src/**', {
 
     const contents = await fs.readFile(file, 'utf-8')
     if (tsFileContentCache[file] === contents) 
-        return 
-    
-    if (testProcess.isRunning) 
         return
 
-    tsFileContentCache[file] = contents
+    const logError = console.error.bind(console, 'process-error')
 
-    const isTestFile = file.endsWith('.test.ts')
-    const isPackageIndex = file.endsWith('src/index.ts')
-    const onlyTestThisFile = isTestFile
-    const testAllFiles = !onlyTestThisFile && isPackageIndex
-    await testProcess.run(
-        file, 
-        onlyTestThisFile 
-            ? path.basename(file) 
-            : testAllFiles 
-                ? '--all'
-                : '--only-changed'
-    )
+    if (!buildProcess.isRunning)  
+        await buildProcess
+            .run(file)
+            .catch(logError)
+
+    if (!testProcess.isRunning) {
+        const isTestFile = file.endsWith('.test.ts')
+        const isPackageIndex = file.endsWith('src/index.ts')
+        const onlyTestThisFile = isTestFile
+        const testAllFiles = !onlyTestThisFile && isPackageIndex
+        await testProcess.run(
+            file, 
+            onlyTestThisFile 
+                ? path.basename(file) 
+                : testAllFiles 
+                    ? '--all'
+                    : '--only-changed'
+        ).catch(logError)
+    }
 
     if (!updateDependencyProcess.isRunning)
-        await updateDependencyProcess.run(file)
+        await updateDependencyProcess
+            .run(file)
+            .catch(logError)
 
-    // rel/path/to/file updated oldsize >> newsize
+    // rel/path/to/file updated oldSize >> newSize
     console.log(
         '\n' + file.replace(PACKAGES_DIR, ''), 
         'updated', 
@@ -200,5 +214,8 @@ watch(PACKAGES_DIR + '/*/src/**', {
         '>>', 
         contents.length
     )
+
+    // update cache
+    tsFileContentCache[file] = contents
 
 })

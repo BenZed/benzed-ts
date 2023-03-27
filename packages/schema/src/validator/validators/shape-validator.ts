@@ -60,16 +60,7 @@ type _ShapeProperties<T extends ShapeValidatorInput> =
     & _OptionalReadOnlyProperties<T>
 
 type _ShapePropertyOutput<T extends Validator> = 
-    ValidateOutput<
-
-    // GOTCHA: We're not actually removing the mutators 
-    // in implementation. This is only to clean up the
-    // output type
-    /**/ RemoveModifier<
-    /*    */ RemoveModifier<T, ModifierType.Optional>,
-    /**/ ModifierType.ReadOnly>
-    
-    >
+    ValidateOutput<T>
 
 //// Types ////
 
@@ -108,7 +99,7 @@ class ShapeValidator<T extends ShapeValidatorInput>
     [Validator.analyze](ctx: ValidationContext<unknown, ShapeValidatorOutput<T>>) {
 
         // Get Source Object
-        const source = ctx.transformed = ctx.input === nil && this.default 
+        const source = ctx.input === nil && this.default 
             ? this.default(ctx)
             : isObject(ctx.input) 
                 ? ctx.input

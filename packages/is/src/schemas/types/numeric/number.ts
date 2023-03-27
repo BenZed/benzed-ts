@@ -1,4 +1,4 @@
-import { TypeSchema, TypeValidator } from '@benzed/schema'
+import { TypeValidator } from '@benzed/schema'
 
 import {
     isNumber,
@@ -10,6 +10,8 @@ import {
     NameMessageEnabledSettingsSignature, 
     toNameMessageEnabledSettings 
 } from '../../util'
+
+import { Numeric } from './numeric'
 
 import {
 
@@ -44,17 +46,7 @@ class NumberValidator extends TypeValidator<number> {
 
 //// Exports ////
 
-export class Number 
-    extends TypeSchema<
-
-    NumberValidator, 
-    {
-        round: Round
-        finite: Finite
-        //range: Range
-    }
-
-    > {
+export class Number extends Numeric<number, { round: Round, finite: Finite }> {
 
     constructor() {
         super(
@@ -64,6 +56,10 @@ export class Number
                 finite: new Finite
             }
         )
+    }
+
+    get _two(): number {
+        return 2
     }
 
     round(...params: RoundSettingsSignature): this {

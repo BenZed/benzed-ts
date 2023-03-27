@@ -1,4 +1,4 @@
-import resolveIndex from './resolve-index'
+import {resolveIndex} from './resolve-index'
 
 //// Shortcuts ////
 
@@ -33,4 +33,4 @@ function adjacent<T>(
 
 //// Exports ////
 
-export default adjacent
+export { adjacent }

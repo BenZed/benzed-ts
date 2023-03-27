@@ -1,6 +1,8 @@
 import { Empty, isEmpty } from './empty'
 import { expectTypeOf } from 'expect-type'
 
+import { it, expect, test, describe } from '@jest/globals'
+
 it('isEmpty', () => {
     expect(isEmpty({})).toBe(true)
 })

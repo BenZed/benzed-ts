@@ -1,4 +1,8 @@
+import { describe, it, expect } from '@jest/globals'
+
 import { words, lines } from './compose'
+
+////
 
 describe('words', () => {
     it('joins strings separated by spaces', () => {

@@ -1,4 +1,7 @@
 import { PrivateState } from './private-state'
+import { expect, test, beforeEach } from '@jest/globals'
+
+////  ////
 
 class TestClass { }
 

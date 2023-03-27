@@ -1,5 +1,5 @@
 import { RecordStruct } from '@benzed/immutable'
-import { assign, each, pick } from '@benzed/util'
+import { assign, each, isString, pick } from '@benzed/util'
 
 import { ValidateInput, ValidateOutput } from '../../validate'
 import ValidationContext from '../../validation-context'
@@ -35,7 +35,7 @@ type SchemaMainStateApply<V extends Validator> = {
 //// Main ////
 
 /**
- * A schema houses a primary validator and an arbitary
+ * A schema houses a primary validator and an arbitrary
  * number of sub validators, providing interface elements
  * for extended classes to assist in configuration.
  */
@@ -67,17 +67,19 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
 
         // validate sub validators
         for (const name of each.nameOf(this[$$sub])) {
-            if (ctx.hasError() || ctx.hasSubContextError())
+            if (!ctx.hasValidOutput())
                 break
 
             const sub = this[$$sub][name]
+            if (!Validator.is(sub))
+                continue
 
-            // ignore if validator is disablable
+            // ignore if validator is disable-able
             const isDisabled = sub.enabled === false
             if (isDisabled)
                 continue
 
-            ctx = sub[Validator.analyze](ctx as ValidationContext) as ValidationContext
+            ctx = sub[Validator.analyze](ctx.pipeContext()) as ValidationContext
         }
 
         return ctx
@@ -100,7 +102,7 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
             this,
             $$sub,
             name,
-            state as any
+            this._checkStateMessage(state) as any
         )
     }
 
@@ -111,8 +113,21 @@ abstract class Schema<V extends Validator, S extends SubValidators<V>> extends V
         return Validator.applyState(
             this,
             $$main,
-            state as any
+            this._checkStateMessage(state) as any
         )
+    }
+
+    // Convert a string message into a message function
+    private _checkStateMessage(
+        input: object
+    ): object {
+        
+        if ('message' in input && isString(input.message)) {
+            const { message } = input
+            input.message = () => message
+        }
+        
+        return input
     }
 
     //// Structural ////

@@ -29,4 +29,4 @@ function first<T extends ArrayLike<unknown>>(
 
 //// Exports ////
 
-export default first
+export { first }

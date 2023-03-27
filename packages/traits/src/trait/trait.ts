@@ -1,4 +1,5 @@
 
+import { define } from '@benzed/util/lib'
 import {
     $$onUse,
     addTraits,
@@ -71,18 +72,6 @@ export abstract class Trait {
             `${this.name} has not implemented a static typeguard named 'is'`
         )
     }
-    
-    /**
-     * Traits are structrual in nature and don't exist as 
-     * instances in practice, so the instanceof operator's 
-     * behaviour is modified to mirror the typeguard.
-     * 
-     * Any object that fulfills the structural contract outlined
-     * by the type guard is considered an instanceof that trait.
-     */
-    static [Symbol.hasInstance](other: unknown): boolean {
-        return this.is(other)
-    }
 
     /**
      * Trait consumers may implement theonUse symbolic
@@ -103,6 +92,22 @@ export abstract class Trait {
     }
 
 }
+
+//// Overrides ////
+
+/**
+ * Traits are structrual in nature and don't exist as 
+ * instances in practice, so the instanceof operator's 
+ * behaviour is modified to mirror the typeguard.
+ * 
+ * Any object that fulfills the structural contract outlined
+ * by the type guard is considered an instanceof that trait.
+ */
+define.nonEnumerable(Trait, Symbol.hasInstance, function (this: typeof Trait, other: unknown): boolean {
+    return this.is(other)
+})
+
+//// Exports ////
 
 export {
     Trait as Traits,

@@ -1,4 +1,4 @@
-import { $sizeSetting, $timeSetting } from './settings'
+import { isSizeSetting, isTimeSetting } from './settings'
 import { it, expect, describe } from '@jest/globals'
 
 describe('isTimeSetting method', () => {
@@ -13,7 +13,7 @@ describe('isTimeSetting method', () => {
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {
-            expect($timeSetting.is(obj)).toBe(result)
+            expect(isTimeSetting(obj)).toBe(result)
         })
     }
 })
@@ -35,7 +35,7 @@ describe('isSizeSetting method', () => {
         [{}, false]
     ]) {
         it(`${JSON.stringify(obj)} ${result ? 'pass' : 'fail'}`, () => {
-            expect($sizeSetting.is(obj)).toBe(result)
+            expect(isSizeSetting(obj)).toBe(result)
         })
     }
 })

@@ -5,6 +5,8 @@ import { pick } from '@benzed/util'
 import { Service } from './service'
 import Module from './module'
 
+import { test, expect } from '@jest/globals'
+
 //// Tests ////
 
 class DummyModule extends Module {

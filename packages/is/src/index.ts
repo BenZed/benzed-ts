@@ -1,13 +1,13 @@
-import { Validator } from '@benzed/schema'
+import type { Validator } from '@benzed/schema'
 
 import { Is } from './is'
 import { To } from './to'
 
-//// Main Export //// 
-
-export default is
+//// Main Export ////
 
 export const is = new To<[],[]>()
+
+export default is 
 
 //// Additional Exports ////
 
@@ -25,4 +25,3 @@ export interface Validates<T> extends Validator<unknown, T> {}
  * Utility for declaring is schematics for a specific type
  */
 export interface IsType<T> extends Is<Validates<T>> {}
-

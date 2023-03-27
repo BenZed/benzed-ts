@@ -4,18 +4,19 @@ import { ContractValidator, TypeValidator } from '../validators'
 
 import { SchemaBuilder } from './schema-builder'
 
+import { describe } from '@jest/globals'
 //// Tests ////
 
 const $number = new class Number extends TypeValidator<number> {
-    name = 'Number'
-    isValid = isNumber
+    override isValid = isNumber
 }
 
 const $positive = new class Positive extends ContractValidator<number> {
     readonly enabled = true
-    readonly transform = (i: number): number => Math.max(i, 0)
-    readonly message = 'Must be positive'
-
+    override readonly transform = (i: number): number => Math.max(i, 0)
+    override message() {
+        return 'Must be positive'
+    }
 }
 
 const $schema = new SchemaBuilder(

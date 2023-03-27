@@ -1,5 +1,6 @@
-import { isArray, isNumber, isRecord, nil } from '../types'
+import { isArrayOf, isNumber, isRecord, nil } from '../types'
 import { NestedMap } from './nested-map'
+import { it, expect } from '@jest/globals'
 
 ////  ////
 
@@ -40,7 +41,7 @@ for (const { key, value } of kv) {
 
 it('keys', () => {
     expect(Array.from(ref.keys())).toHaveLength(ref.size)
-    expect(Array.from(ref.keys()).every(k => isArray(k, isNumber))).toBe(true)
+    expect(Array.from(ref.keys()).every(isArrayOf(isNumber))).toBe(true)
 })
 
 it('values', () => {

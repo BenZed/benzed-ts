@@ -1,6 +1,6 @@
-import { copy, Copyable, Stateful } from '@benzed/immutable'
+import { copy, Copyable } from '@benzed/immutable'
 import { Callable, Mutate, Trait } from '@benzed/traits'
-import { define, isString } from '@benzed/util'
+import { define } from '@benzed/util'
 
 import { ValidateInput, ValidateOptions, ValidateOutput } from '../../validate'
 import { ValidationContext } from '../../validation-context'
@@ -71,6 +71,10 @@ interface ModifierConstructor extends ModifierAbstractConstructor {
     readonly each: typeof eachModifier
     readonly get: typeof getModifiers
     readonly is: typeof isModifier
+
+    readonly Optional: typeof ModifierType.Optional
+    readonly ReadOnly: typeof ModifierType.ReadOnly
+    readonly Not: typeof ModifierType.Not
 }
 
 //// Main ////
@@ -88,6 +92,10 @@ const Modifier = class extends MutateValidator<Validator, any> {
     static readonly each = eachModifier
     static readonly get = getModifiers
     static readonly is = isModifier
+
+    static Optional = ModifierType.Optional
+    static ReadOnly = ModifierType.ReadOnly
+    static Not = ModifierType.Not
 
     constructor(validator: Validator) {
         super()

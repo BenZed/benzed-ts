@@ -1,7 +1,8 @@
 
 import { Trait } from '@benzed/traits'
-import { assign, each, Func, isFunc, pick } from '@benzed/util'
-import { Copyable } from './copyable'
+import { assign, pick } from '@benzed/util'
+
+import { expect, describe, it, } from '@jest/globals'
 
 import { Stateful } from './stateful'
 import { Structural } from './structural'
@@ -212,55 +213,6 @@ describe('Struct.update', () => {
             position: { x: 20, y: 10 }
         })
 
-    })
-
-})
-
-describe('copy implementation respects super calls', () => {
-
-    let superCopyCalls = 0
-
-    class Value {
-
-        protected _state = 0;
-
-        [Structural.copy](): this {
-            const copy = Copyable.createFromProto(this)
-            copy._state = this._state 
-            superCopyCalls++
-            return copy as this
-        }
-    }
-
-    let getCalls = 0
-    let setCalls = 0
-
-    class PublicValue extends Trait.add(Value, Structural) {
-        get state() {
-            return this._state
-        }
-
-        get [Structural.state](): { value: number } {
-            getCalls++
-            return { value: this._state }
-        }
-
-        set [Structural.state](state: { value: number }) {
-            setCalls++
-            this._state = state.value
-        }
-
-    }
-
-    it('uses super implementation if it exists', () => {
-
-        const zero = new PublicValue
-        const one = Structural.create(zero, { value: 5 })
-
-        expect(superCopyCalls).toBe(1)
-        expect(getCalls).toBeGreaterThanOrEqual(1)
-        expect(setCalls).toBeGreaterThanOrEqual(1)
-        expect(one).toEqual({ _state: 5 })
     })
 
 })

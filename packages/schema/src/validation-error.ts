@@ -107,7 +107,7 @@ class ValidationError<T> extends Error {
 
         const firstErrorCtx = ctx.hasError()
             ? ctx 
-            : ctx.findSubContext.inDescendents(sub => sub.hasError())
+            : ctx.findSubContext.inDescendants(sub => sub.hasError())
 
         const message = firstErrorCtx
             ? words(

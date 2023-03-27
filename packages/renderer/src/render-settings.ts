@@ -1,18 +1,18 @@
 
-import $ from '@benzed/schema'
+import is, { Or, Optional, ReadOnly, IsType } from '@benzed/is'
 
 import {
 
-    $sizeSetting,
+    isSizeSetting,
     SizeSetting,
 
-    $timeSetting,
+    isTimeSetting,
     TimeSetting,
 
-    $audioSetting,
+    isAudioSetting,
     AudioSetting,
 
-    $videoSetting,
+    isVideoSetting,
     VideoSetting
 
 } from './ffmpeg/settings'
@@ -22,10 +22,10 @@ import {
 export interface AudioRenderSetting extends AudioSetting {
     type: 'audio'
 }
-const $audioRenderSetting =
-    $({
-        type: $.enum('audio' as const),
-        ...$audioSetting.$
+const isAudioRenderSetting: IsType<AudioRenderSetting> =
+    is({
+        type: 'audio' as const,
+        ...isAudioSetting.properties
     })
 
 export interface VideoRenderSetting extends VideoSetting, AudioSetting {
@@ -33,11 +33,11 @@ export interface VideoRenderSetting extends VideoSetting, AudioSetting {
     size?: SizeSetting
 }
 
-const $videoRenderSetting = $({
-    type: $('video' as const),
-    ...$videoSetting.$,
-    ...$audioSetting.$,
-    size: $sizeSetting.optional
+const isVideoRenderSetting: IsType<VideoRenderSetting> = is({
+    type: 'video' as const,
+    ...isVideoSetting.properties,
+    ...isAudioSetting.properties,
+    size: isSizeSetting.optional
 
 })
 
@@ -46,19 +46,19 @@ export interface ImageRenderSetting {
     size?: SizeSetting
     time?: TimeSetting
 }
-const $imageRenderSetting = $({
-    type: $('image' as const),
-    size: $sizeSetting.optional,
-    time: $timeSetting.optional
+const isImageRenderSetting: IsType<ImageRenderSetting> = is({
+    type: 'image' as const,
+    size: isSizeSetting.optional,
+    time: isTimeSetting.optional
 })
 
 //// Expots ////
 
 export type RenderSetting = AudioRenderSetting | VideoRenderSetting | ImageRenderSetting
-export const $renderSetting = $.or(
-    $audioRenderSetting,
-    $videoRenderSetting,
-    $imageRenderSetting
+export const isRenderSetting = is(
+    isAudioRenderSetting,
+    isVideoRenderSetting,
+    isImageRenderSetting
 )
 
 export interface RendererConfig {
@@ -68,7 +68,7 @@ export interface RendererConfig {
     }
 }
 
-export const $rendererConfig = $({
-    maxConcurrent: $.number.range('>', 0).optional,
-    settings: $.record($renderSetting)
+export const isRenderConfig = is({
+    maxConcurrent: is.number.above(0).optional,
+    settings: is.recordOf(is.string, isRenderSetting)
 })

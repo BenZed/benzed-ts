@@ -6,9 +6,9 @@ import type { ValidateOptions } from './validate'
 
 //// EsLint ////
 /* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+    @typescript-eslint/no-explicit-any
 */
-
+ 
 //// Types ////
 
 type ValidationResult<I = any, O = I> =
@@ -128,9 +128,23 @@ class ValidationContext<I = any, O = I>
     }
 
     hasSubContextError(): boolean {
-        return this.hasSubContext.inDescendents(sub => 
+        return this.hasSubContext.inDescendants(sub => 
             sub instanceof ValidationContext && sub.hasError()
         )
+    }
+
+    /**
+     * Pipe the output of this context into
+     * the input of another
+     */
+    pipeContext<Ix = O, Ox = O>(): ValidationContext<Ix, Ox> {
+
+        const pipeInput = this.hasOutput() ? this.getOutput() : this.input
+
+        return new ValidationContext(
+            pipeInput,
+            this
+        ) as ValidationContext
     }
 
     pushSubContext<Ix, Ox>(

@@ -5,13 +5,27 @@ import {
     AddModifier,
     ModifierType, 
     Modifier, 
-    RemoveModifier
+    RemoveModifier,
+    RemoveAllModifiers,
+    ModifiersOf,
+    AddModifiers
 } from '@benzed/schema'
-    
-import { Callable, Mutate, Trait } from '@benzed/traits'
+
 import { assign, TypeGuard } from '@benzed/util'
-import { Comparable, copy, Copyable, equals } from '@benzed/immutable'
+import { Callable, Mutate, Trait } from '@benzed/traits'
+import { Comparable, equals, Copyable, copy } from '@benzed/immutable'
+
 import { To } from './to'
+import {
+    Shape,
+    ShapeInput,
+    ShapeMerge,
+    ShapePick,
+    ShapeOmit,
+    ShapePartial,
+    ShapeProperty,
+    ShapePropertyMethod
+} from './schemas'
 
 //// EsLint ////
 
@@ -19,11 +33,34 @@ import { To } from './to'
     @typescript-eslint/no-explicit-any
 */
 
+//// Helper Types ////
+
+interface _IsShape<S extends ShapeInput, M extends ModifierType[]> {
+
+    get partial(): Is<AddModifiers<Shape<ShapePartial<S>>, M>>
+    pick<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapePick<S,K>>, M>>
+    omit<K extends (keyof S)[]>(...keys: K): Is<AddModifiers<Shape<ShapeOmit<S,K>>, M>>
+    and<T extends ShapeInput>(shape: T | Shape<T>): Is<AddModifiers<Shape<ShapeMerge<S,T>>, M>>
+    property<K extends keyof S, U extends ShapePropertyMethod<S, K>>(
+        key: K,
+        update: U
+    ): Is<AddModifiers<Shape<ShapeProperty<S, K, U>>, M>>
+
+}
+
+type _IsDynamic<V extends Validator> = {
+    [K in Exclude<keyof V, keyof _IsShape<ShapeInput, []> | keyof IsStatic<V>>]: V[K] extends (...args: any) => Validator 
+        ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
+        : V[K]
+}
+
 //// Types ////
 
 export interface IsCursor<V extends Validator> {
     get validate(): V
 }
+
+type Analyze = typeof Validator['analyze']
 
 interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateOutput<V>> {
 
@@ -34,24 +71,29 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     get writable(): Is<RemoveModifier<V, ModifierType.ReadOnly>>
 
     get or(): To<[V], []>
+    // get or(): To<[V], ToType.Or>
+    // get of(): To<[V], ToType.Of>
+    // get and(): To<[V], ToType.And>
+
+    [Validator.analyze](...params: Parameters<V[Analyze]>): ReturnType<V[Analyze]>
 
     /**
-     * Type-only property
+     * type-only property
      */
-    get data(): ValidateOutput<V>
+    get output(): ValidateOutput<V>
+
+    assert(input: unknown): asserts input is ValidateOutput<V>
 }
 
-type _IsDynamic<V extends Validator> = {
-    [K in Exclude<keyof V, keyof IsStatic<V>>]: V[K] extends Validator 
-        ? Is<V[K]>
-        : V[K] extends (...args: any) => Validator 
-            ? (...params: Parameters<V[K]>) => Is<ReturnType<V[K]>>
-            : V[K]
-}
 
-export type Is<V extends Validator> = IsStatic<V> & _IsDynamic<V>
+export type Is<V extends Validator = Validator> = 
+    IsStatic<V> & 
+    _IsDynamic<V> & 
+    (RemoveAllModifiers<V> extends Shape<infer S> 
+    ? _IsShape<S, ModifiersOf<V>>
+    : {})
 
-export type ValidatorOf<T> = T extends Is<infer V>    
+export type ValidatorOf<T> = T extends Is<infer V>
     ? V 
     : T extends Validator ? T : never
 
@@ -112,21 +154,6 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
         )
     }
 
-    // is re-wrap
-    // override [Mutate.get](is: this, key: PropertyKey, proxy: unknown) {
-
-    //     const target = key === Mutate.target || Reflect.has(is, key)
-    //         ? is
-    //         : is.validate
-
-    //     const output = Reflect.get(target, key, proxy)
-
-    //     return target === is.validate && Validator.is(output)
-    //         ? new Is(output)
-    //         : output
-
-    // }
-
     //// Is Interface ////
 
     get validate(): Validator {
@@ -171,6 +198,10 @@ export const Is = class Is extends Trait.use(Mutate<any>, Callable) {
 
     get or(): To<[Validator],[]> {
         return new To(this.validate)
+    }
+
+    assert(input: unknown) {
+        void this.validate(input, { transform: false })
     }
 
 } as unknown as IsConstructor

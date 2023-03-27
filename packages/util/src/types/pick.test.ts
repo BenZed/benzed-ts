@@ -1,5 +1,6 @@
 import { pick } from './pick'
 import { isRecord } from './guards'
+import { it, expect, describe } from '@jest/globals'
 
 describe(pick.name, () => {
     it('returns a new object of given keys', () => {

@@ -3,7 +3,7 @@ import path from 'path'
 import { cpus } from 'os'
 
 import {
-    $rendererConfig,
+    isRenderConfig,
     RendererConfig,
     RenderSetting
 } from './render-settings'
@@ -112,7 +112,7 @@ class Renderer {
 
         const options = await fs.readJson(
             configUrl,
-            $rendererConfig.assert
+            isRenderConfig.assert
         )
 
         return new Renderer(options)

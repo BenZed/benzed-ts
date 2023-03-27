@@ -1,9 +1,9 @@
 import { PublicStruct } from './public-struct'
 
-import { expect } from '@jest/globals'
+import { test, expect } from '@jest/globals'
 
 import { Structural } from '../traits'
-
+ 
 //// Tests ////
 
 const vector = new class Vector extends PublicStruct {

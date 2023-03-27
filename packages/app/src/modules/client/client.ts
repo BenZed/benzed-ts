@@ -1,10 +1,21 @@
 
+import { nil, pick, safeJsonParse } from '@benzed/util'
 import { is, IsType } from '@benzed/is'
-import { pick } from '@benzed/util'
 
 import Module from '../../module'
 import { Connection } from '../connection'
 import { DEFAULT_SERVER_PORT } from '../../util/constants'
+
+import {
+    Command,
+    CommandError,
+    CommandInput,
+    CommandOutput
+} from '../command'
+
+import { HttpMethod, HttpCode, isPath } from '../../util'
+
+import { fetch } from 'cross-fetch'
 
 //// Types ////
 
@@ -35,23 +46,69 @@ class Client extends Connection implements ClientSettings {
     readonly host: string
 
     constructor(
-        settings: Partial<ClientSettings> = {}
+        settings: Partial<ClientSettings> = {} 
     ) {
         super()
-        this.host = isClientSettings.validate(settings).host
+        this.host = isClientSettings
+            .validate(settings)
+            .host
     }
 
+    async sendCommand<C extends Command>(
+        command: C,
+        input: CommandInput<C>
+    ): Promise<CommandOutput<C>> { 
+
+        const { path, method } = command
+
+        const url = isPath.validate(path.join('/'))
+
+        const body = 
+            method === HttpMethod.Get ||
+            method === HttpMethod.Options
+                ? nil
+                : input
+
+        const response = await fetch(
+            this.host + url,
+            {
+                method,
+                body: body && JSON.stringify(body),
+            }
+        )
+
+        const text = await response.text()
+
+        if (response.status >= HttpCode.BadRequest) {
+            let error
+            try {
+                error = JSON.parse(text)
+            } catch {
+                error = {
+                    code: HttpCode.InternalServerError,
+                    message: response.statusText
+                }
+            }
+            throw CommandError.from(error)
+        }
+
+        return (safeJsonParse(text) ?? text) as Promise<CommandOutput<C>>
+    }
+
+    //// Runnable implementation ////
+    protected _onStart(): void | Promise<void> {
+        //
+    }
+
+    protected _onStop(): void | Promise<void> {
+        //
+    }
+
+    //// Module Implementation ////
     get [Module.state](): ClientSettings {
         return pick(this, 'host')
     }
 
-    onStart(): void | Promise<void> {
-        //
-    }
-
-    onStop(): void | Promise<void> {
-        //
-    }
 }
 
 //// Exports ////

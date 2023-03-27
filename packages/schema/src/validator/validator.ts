@@ -60,7 +60,8 @@ function analyze<I, O >(this: Validator<I,O>, input: I, options?: ValidateOption
  * compelling extended classes to implement the symbolic analyze method 
  * to carry out validations.
  */
-export interface Validator<I = any, O = I> extends Structural, Callable<Validate<I,O>> {}
+export interface Validator<I = any, O = I> extends Structural, Callable<Validate<I,O>> {
+}
 
 export abstract class Validator<I = any, O = I> implements Structural, Callable<Validate<I,O>> {
 

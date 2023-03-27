@@ -2,7 +2,7 @@ import digitize from './digitize'
 import { it, expect, describe } from '@jest/globals'
 
 const PI = Math.PI
-
+ 
 describe('digitize', () => {
 
     it('converts a number to a string', () => {
@@ -40,7 +40,6 @@ describe('digitize', () => {
                     .toEqual('1.20000')
             })
         })
-
     })
 
     describe('whole options', () => {

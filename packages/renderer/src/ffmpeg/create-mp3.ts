@@ -44,7 +44,7 @@ function createMP3(
         .audioCodec(AUDIO_CODEC)
         .format(OUTPUT_FORMAT)
 
-    if (is.defined(abr))
+    if (is.number(abr))
         cmd.audioBitrate(abr)
 
     const start = Date.now()

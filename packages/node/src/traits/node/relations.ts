@@ -1,4 +1,5 @@
 import { Each, each, GenericObject } from '@benzed/util'
+import { Callable } from '@benzed/traits'
 
 import { $$parent, getParent } from './parent'
 import { Node } from './node'
@@ -22,7 +23,7 @@ export function getChildren<T extends Node>(node: T): Children<T> {
     const children: GenericObject = {}
 
     for (const [key, descriptor] of each.defined.descriptorOf(node)) { 
-        if (key !== $$parent && Node.is(descriptor.value))
+        if (key !== $$parent && key !== Callable.context && Node.is(descriptor.value))
             children[key] = node[key]
     }
 
@@ -71,19 +72,28 @@ export function eachAncestor<T extends Node>(node: T): Each<Node> {
     })
 }
 
-export function eachDescendent<T extends Node>(node: T): Each<Node> {
+export function eachDescendant<T extends Node>(node: T): Each<Node> {
 
-    let current: Node[] = [node]
     return each(function * () {
+
+        let current: Node[] = [node]
+        const found = new Set<Node> 
 
         while (current.length > 0) {
 
             const next: Node[] = []
             for (const node of current) {
+
+                // In case of circular references
+                if (!found.has(node))
+                    found.add(node) 
+                else 
+                    continue
+
                 const children = eachChild(node).toArray()
                 yield* children
                 next.push(...children)
-            } 
+            }
 
             current = next
         }
@@ -98,6 +108,6 @@ export function eachNode<T extends Node>(node: T): Each<Node> {
     return each(function * () {
         const root = getRoot(node)
         yield root
-        yield* eachDescendent(root)
+        yield* eachDescendant(root)
     })
 }

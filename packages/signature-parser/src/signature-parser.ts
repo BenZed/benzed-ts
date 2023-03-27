@@ -14,8 +14,9 @@ import {
 } from '@benzed/traits'
 
 //// EsLint ////
-/* eslint-disable 
-    @typescript-eslint/no-explicit-any,
+
+/* eslint-disable
+    @typescript-eslint/no-explicit-any
 */
 
 //// Helper Types ////
@@ -83,8 +84,8 @@ class SignatureParser<
     }
 
     constructor(
-        readonly types: Types<T>, 
-        readonly defaults: D = {} as D, 
+        readonly types: Types<T>,
+        readonly defaults: D = {} as D,
         readonly layouts: L = [] as unknown as L
     ) {
         super((...signature): Result<T, D> => {
@@ -100,7 +101,9 @@ class SignatureParser<
             if (this.isResult(outputWithDefaults))
                 return outputWithDefaults
     
-            throw new Error(`Signature not recognized: ${signature}`)
+            throw new Error(
+                `Signature not recognized: ${JSON.stringify(signature)}`
+            )
         })
     }
 
@@ -176,8 +179,8 @@ class MergedSignatureParser<P extends AnySignatureParser[]>
                 if (parser.isSignature(signature))
                     return parser(...signature) as Results<P[number]>
             }
-
-            throw new Error(`Signature not recognized: ${signature}`)
+            console.error(signature)
+            throw new Error(`Signature not recognized: ${JSON.stringify(signature)}`)
         })
         this.parsers = parsers
     }
@@ -199,11 +202,12 @@ export default SignatureParser
 export {
     SignatureParser,
     Signature,
+    Defaults as SignatureParserDefaults,
     Types as SignatureParserTypes,
     Layout as SignatureParserLayout,
     Result as SignatureParserResult,
 
     MergedSignatureParser,
     Signatures,
-    Results as SigantureParserResults
+    Results as SignatureParserResults
 }
