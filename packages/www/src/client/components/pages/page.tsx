@@ -1,12 +1,12 @@
 import React, { ReactElement, ReactNode } from 'react'
 
-//// Routes Component ////
+//// Page Component ////
 
-interface RoutesProps {
+interface PageProps {
     children?: ReactNode
 }
 
-const Routes = (props: RoutesProps): ReactElement => {
+const Page = (props: PageProps): ReactElement => {
     const { children, ...rest } = props
     
     return <>{children}</>
@@ -14,9 +14,9 @@ const Routes = (props: RoutesProps): ReactElement => {
 
 //// Exports ////
 
-export default Routes
+export default Page
 
 export {
-    Routes,
-    RoutesProps
+    Page,
+    PageProps
 }
