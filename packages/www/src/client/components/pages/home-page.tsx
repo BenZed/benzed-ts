@@ -1,6 +1,6 @@
 import React, { ReactElement, ReactNode } from 'react'
 
-import { Center, Flex, Avatar, Title, TitleProps, NavLink } from '@mantine/core'
+import { Center, Flex, Avatar, Title, TitleProps } from '@mantine/core'
 
 import { benAvatar } from '../../assets'
 
@@ -17,9 +17,10 @@ const BenGaumond = (props: TitleProps) =>
         <Title 
             inline
             size='min(5vw, 7em)'
-            sx={{
-                fontFamily: 'Libby'
-            }}
+            sx={t => ({
+                fontFamily: 'Libby',
+                color: t.fn.primaryColor()
+            })}
             {...props}
         >
             bengaumond.com
@@ -35,7 +36,7 @@ interface HomePageProps {
 const HomePage = (props: HomePageProps): ReactElement => {
     const {} = props
     
-    return <Center h='100vh' w='100vw'>
+    return <Center h='100vh' w='100vw' >
         <Flex direction='column'>
             <BenGaumond />
         </Flex>
