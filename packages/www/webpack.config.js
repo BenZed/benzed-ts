@@ -7,6 +7,7 @@
 
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const FontFaceGenWebpackPlugin = require('fontfacegen-webpack-plugin')
 const { EnvironmentPlugin, ProgressPlugin } = require('webpack')
 const path = require('path')
 
@@ -19,11 +20,8 @@ const ENV = {
 }
 
 const OUTPUT = path.resolve(__dirname, 'public')
-
 const ENTRY = path.resolve(__dirname, 'src/client/index.tsx')
-
-const TEMPLATE = path.resolve(__dirname, 'src/client/index.html')
-
+const TEMPLATE = path.resolve(__dirname, 'src/client/assets/index.html')
 const MONO_REPO_NODE_MODULES = path.resolve(__dirname, '../../node_modules')
 
 /* EXPORTS */
@@ -75,7 +73,7 @@ module.exports = {
                 ]
             },
             {
-                test: /\.(svg|png|jpe?g|gif)$/,
+                test: /\.(woff(2)?|ttf|eot|svg|png|jpe?g|gif|md)$/,
                 use: {
                     loader: 'file-loader',
                     options: {
@@ -126,6 +124,13 @@ module.exports = {
             title: 'BenZed',
             template: TEMPLATE,
             inject: 'head'
+        }),
+        new FontFaceGenWebpackPlugin({
+            tasks: [
+                './src/client/assets/libby-bold.ttf',
+                './src/client/assets/libby-heavy.ttf',
+                './src/client/assets/libby-regular.ttf',
+            ]
         }),
         new EnvironmentPlugin(ENV)
     ]

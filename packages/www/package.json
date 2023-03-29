@@ -35,7 +35,8 @@
         "@benzed/logger": "^1.0.0",
         "@mantine/core": "^6.0.4",
         "@mantine/hooks": "^6.0.4",
-        "@emotion/react": "11.10.6"
+        "@emotion/react": "11.10.6",
+        "@benzed/react": "^1.0.0"
     },
     "devDependencies": {
         "@types/koa-static": "^4.0.2"

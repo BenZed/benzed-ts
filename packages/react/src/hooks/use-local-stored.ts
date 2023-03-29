@@ -79,7 +79,7 @@ function toJson<T>(serializedValue: string | null): T | null {
 
 //// Hooks ////
 
-function useStoredString<S extends string = string>(
+function useLocalStoredString<S extends string = string>(
     key: string,
     initialString: S
 ): [
@@ -120,7 +120,7 @@ function useStoredString<S extends string = string>(
     return [storedString, setStoredStringAndDispatch]
 }
 
-function useStoredJson<T>(key: string, defaultState: T): [
+function useLocalStoredJson<T>(key: string, defaultState: T): [
     T,
     Dispatch<T>
 ] {
@@ -128,7 +128,7 @@ function useStoredJson<T>(key: string, defaultState: T): [
     const [
         storedString,
         setStoredString
-    ] = useStoredString(key, toString(defaultState))
+    ] = useLocalStoredString(key, toString(defaultState))
 
     const storedState = useMemo<T | null>(
         () => toJson(storedString),
@@ -148,9 +148,9 @@ function useStoredJson<T>(key: string, defaultState: T): [
 
 //// Exports ////
 
-export default useStoredJson
+export default useLocalStoredJson
 
 export {
-    useStoredJson,
-    useStoredString
+    useLocalStoredJson,
+    useLocalStoredString
 }

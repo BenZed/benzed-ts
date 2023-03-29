@@ -1,5 +1,7 @@
 import React, { ReactElement, ReactNode } from 'react'
 
+import { Container } from '@mantine/core'
+
 //// Page Component ////
 
 interface PageProps {
@@ -7,9 +9,9 @@ interface PageProps {
 }
 
 const Page = (props: PageProps): ReactElement => {
-    const { children, ...rest } = props
+    const { children } = props
     
-    return <>{children}</>
+    return <Container>{children}</Container>
 }
 
 //// Exports ////

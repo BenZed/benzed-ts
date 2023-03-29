@@ -1,11 +1,28 @@
-import React, { ReactElement } from 'react'
+import React, { ReactElement, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
-import { MantineProvider } from '@mantine/core'
+import { useThemeMode } from '@benzed/react'
+
+import {
+    MantineProvider as ThemeProvider,
+    ColorSchemeProvider,
+    ColorScheme
+} from '@mantine/core'
 
 import { HomePage } from './pages'
 
 import { theme } from '../theme'
+
+//// Hooks ////
+
+const useColorScheme = (initialScheme: ColorScheme = 'dark') => {
+    const [colorScheme, setColorScheme] = useThemeMode()
+
+    const toggleColorScheme = (scheme?: ColorScheme) =>
+        setColorScheme(scheme ?? (colorScheme === 'dark' ? 'light' : 'dark'))
+
+    return [ colorScheme, toggleColorScheme ] as const
+}
 
 //// Website Component ////
 
@@ -18,17 +35,27 @@ const Website = (props: WebsiteProps): ReactElement => {
 
     const { } = props
 
-    return <MantineProvider
-        withGlobalStyles
-        withNormalizeCSS
-        theme={theme}
+    const [colorScheme, toggleColorScheme] = useColorScheme()
+
+    return <ColorSchemeProvider
+        colorScheme={colorScheme}
+        toggleColorScheme={toggleColorScheme}    
     >
+        <ThemeProvider
+            withGlobalStyles
+            withNormalizeCSS
+            inherit
+            theme={{
+                ...theme,
+                colorScheme
+            }}
+        >
+            <Routes>
+                <Route index path='/' element={<HomePage />} />
+            </Routes>
 
-        <Routes>
-            <Route index path='/' element={<HomePage />} />
-        </Routes>
-
-    </MantineProvider>
+        </ThemeProvider>
+    </ColorSchemeProvider>
 }
 
 //// Exports ////
