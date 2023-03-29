@@ -22,8 +22,8 @@ export const theme: MantineThemeOverride = {
         body: {
             background: t.fn.linearGradient(
                 177, 
-                t.colorScheme === 'light' ? t.white : t.colors.dark[8],
-                t.colorScheme === 'light' ? t.colors.gray[3] : t.colors.dark[8],
+                t.colorScheme === 'light' ? t.white : t.colors.dark[3],
+                t.colorScheme === 'light' ? t.colors.gray[2] : t.colors.dark[6],
             )
         }
     }),
