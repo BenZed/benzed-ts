@@ -35,7 +35,7 @@ const useThemeMode = (
     )
 
     //// Effect ////
-    
+
     useEffect(() => {
 
         const isAuto = userThemeMode === 'auto'

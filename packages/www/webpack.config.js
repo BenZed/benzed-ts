@@ -7,7 +7,6 @@
 
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const FontFaceGenWebpackPlugin = require('fontfacegen-webpack-plugin')
 const { EnvironmentPlugin, ProgressPlugin } = require('webpack')
 const path = require('path')
 
@@ -71,15 +70,6 @@ module.exports = {
                     MiniCssExtractPlugin.loader,
                     'css-loader'
                 ]
-            },
-            {
-                test: /\.(woff(2)?|ttf|eot|svg|png|jpe?g|gif|md)$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name]@[contenthash].[ext]'
-                    }
-                }
             }
         ],
     },
@@ -97,6 +87,7 @@ module.exports = {
             // understand why it's happening. This is the location react should
             // be resolving from, anyway)
             'react': path.join(MONO_REPO_NODE_MODULES, 'react'),
+            'react-dom': path.join(MONO_REPO_NODE_MODULES, 'react-dom'),
 
             // Prevent app-client errors
             'koa': false,
@@ -124,13 +115,6 @@ module.exports = {
             title: 'BenZed',
             template: TEMPLATE,
             inject: 'head'
-        }),
-        new FontFaceGenWebpackPlugin({
-            tasks: [
-                './src/client/assets/libby-bold.ttf',
-                './src/client/assets/libby-heavy.ttf',
-                './src/client/assets/libby-regular.ttf',
-            ]
         }),
         new EnvironmentPlugin(ENV)
     ]

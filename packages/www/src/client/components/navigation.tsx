@@ -8,7 +8,6 @@ interface NavigationProps {
 
 const Navigation = (props: NavigationProps): ReactElement => {
     const { children, ...rest } = props
-    
     return <>{children}</>
 }
 

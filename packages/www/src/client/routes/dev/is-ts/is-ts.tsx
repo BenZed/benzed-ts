@@ -9,7 +9,7 @@ interface IsTsProps {
 const IsTs = (props: IsTsProps): ReactElement => {
     const { children, ...rest } = props
 
-    return <>{children}</>
+    return <>Is Ts</>
 }
 
 //// Exports ////

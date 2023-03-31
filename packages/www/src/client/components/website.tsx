@@ -1,59 +1,41 @@
-import React, { ReactElement, useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
-
-import { useThemeMode } from '@benzed/react'
+import React, { ReactElement } from 'react'
+import { RouterProvider, RouterProviderProps } from 'react-router-dom'
 
 import {
     MantineProvider as ThemeProvider,
     ColorSchemeProvider,
-    ColorScheme
 } from '@mantine/core'
 
-import { HomePage } from './pages'
+import { useUserColorScheme, useWebsiteTheme } from '../hooks' 
 
-import { theme } from '../theme'
+//// Types ////
 
-//// Hooks ////
-
-const useColorScheme = (initialScheme: ColorScheme = 'dark') => {
-    const [colorScheme, setColorScheme] = useThemeMode()
-
-    const toggleColorScheme = (scheme?: ColorScheme) =>
-        setColorScheme(scheme ?? (colorScheme === 'dark' ? 'light' : 'dark'))
-
-    return [ colorScheme, toggleColorScheme ] as const
+interface WebsiteProps {
+    readonly router: RouterProviderProps['router']
 }
 
 //// Website Component ////
 
-interface WebsiteProps {}
-
 /**
  * Contains root providers and routing logic.
  */
-const Website = (props: WebsiteProps): ReactElement => {
+const Website = ({ router }: WebsiteProps): ReactElement => {
 
-    const { } = props
+    const [ colorScheme, toggleColorScheme ] = useUserColorScheme()
 
-    const [colorScheme, toggleColorScheme] = useColorScheme()
+    const theme = useWebsiteTheme(colorScheme)
 
     return <ColorSchemeProvider
         colorScheme={colorScheme}
-        toggleColorScheme={toggleColorScheme}    
+        toggleColorScheme={toggleColorScheme}
     >
         <ThemeProvider
             withGlobalStyles
             withNormalizeCSS
             inherit
-            theme={{
-                ...theme,
-                colorScheme
-            }}
+            theme={theme}
         >
-            <Routes>
-                <Route index path='/' element={<HomePage />} />
-            </Routes>
-
+            <RouterProvider router={router} />
         </ThemeProvider>
     </ColorSchemeProvider>
 }
@@ -63,6 +45,5 @@ const Website = (props: WebsiteProps): ReactElement => {
 export default Website
 
 export {
-    Website,
-    WebsiteProps
+    Website
 }
