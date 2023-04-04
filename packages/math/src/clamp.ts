@@ -7,7 +7,7 @@
  * @param value Value to clamp.
  * @param min=0
  * @param max=1
- * @return Clamped number. 
+ * @return Clamped number.
  */
 function clamp(value: number, min = 0, max = 1): number {
 

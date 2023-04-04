@@ -7,7 +7,6 @@
 
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const { EnvironmentPlugin, ProgressPlugin } = require('webpack')
 const path = require('path')
 
@@ -66,7 +65,9 @@ module.exports = {
                             module: 'CommonJS'
                         },
                         getCustomTransformers: () => ({
-                            before: [styledComponentsTransformer]
+                            before: [
+                                styledComponentsTransformer
+                            ]
                         })
                     }
                 },

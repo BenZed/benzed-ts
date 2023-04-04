@@ -4,7 +4,7 @@ import { equals } from '@benzed/immutable'
 
 import { HistoryEntry, HistoryMeta, HistoryMethods } from './types'
 
-//// Exports //// 
+//// Exports ////
 
 export function toDate(a: Date | number | string): Date {
     return a instanceof Date ? a : new Date(a)

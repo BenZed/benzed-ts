@@ -8,7 +8,7 @@
     },
     "include": [
         "./src"
-, "structs", "state"    ],
+    ],
     "exclude": [
         "./src/**/*.test.ts"
     ]

@@ -5,8 +5,7 @@
         "outDir": "./lib"
     },
     "include": [
-        "./src",
-        "../util/assert-defined.test.ts"
+        "./src"
     ],
     "exclude": [
         "./src/**/*.test.ts"

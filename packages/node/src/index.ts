@@ -7,7 +7,7 @@ export {
 
     Traits,
     addTraits,
-    useTraits,
+    useTraits, 
     mergeTraits
 
 } from '@benzed/traits'

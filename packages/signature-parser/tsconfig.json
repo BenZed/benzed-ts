@@ -7,9 +7,8 @@
         "outDir": "./lib"
     },
     "include": [
-        "src",
-        "../match/match.test.ts"
-, "_old_module"    ],
+        "src"
+    ],
     "exclude": [
         "src/**/*.test.ts"
     ]
