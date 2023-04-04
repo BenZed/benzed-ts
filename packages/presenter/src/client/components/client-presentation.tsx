@@ -1,10 +1,16 @@
 import React, { ReactElement, useEffect, useState } from 'react'
+import { useMatch } from 'react-router-dom'
 
-import { onInterval } from '@benzed/async'
+import { useIntervalEffect } from '@benzed/react'
 
-import { useClient } from './client-context'
-import { Presentation, PresentationJson } from './presentation'
+import {
+    Presentation,
+    PresentationJson,
+    PresentationControls
+} from './presentation'
+
 import * as markdownComponents from './markdown-components'
+import { useClient } from './client-context'
 
 //// Hooks ////
 
@@ -29,18 +35,18 @@ const useCurrentIndex = () => {
 
     const client = useClient()
 
+    // 
     const [ currentIndex, setCurrentIndexLocal ] = useState(0)
 
-    // sync state
-    useEffect(() => 
-        onInterval(() => 
-            client
-                .presenter
-                .getCurrentIndex()
-                .then(setCurrentIndexLocal)
-        , 500)
-    , [])
+    // sync state every 500ms
+    useIntervalEffect(() => 
+        client
+            .presenter
+            .getCurrentIndex()
+            .then(setCurrentIndexLocal)
+    , 500)
 
+    // set-current-index
     const setCurrentIndex = async (index: number) => {
         setCurrentIndexLocal(index)
         await client.presenter.setCurrentIndex(index)
@@ -59,15 +65,27 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
 
     void props
     const presentation = usePresentationJson()
-    const [currentIndex, setCurrentIndex] = useCurrentIndex()
+    const [ currentIndex, setCurrentIndex ] = useCurrentIndex()
 
-    return <Presentation
-        
-        presentation={presentation}
-        components={markdownComponents}
+    const isPresenter = !!useMatch('/presenter')
 
-        currentIndex={currentIndex}
-        setCurrentIndex={setCurrentIndex}
-    />
+    return <>
 
+        {
+            isPresenter
+                ? <PresentationControls
+                    currentIndex={currentIndex}
+                    setCurrentIndex={setCurrentIndex}
+                />
+                : null
+        }
+
+        <Presentation
+            presentation={presentation}
+            components={markdownComponents}
+            currentIndex={currentIndex}
+            setCurrentIndex={setCurrentIndex}
+        />
+
+    </>
 }

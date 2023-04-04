@@ -9,9 +9,7 @@ import {
     PresentationJson
 } from '../client/components/presentation/create-presentation-json'
 
-import type {
-    MarkdownComponentMap
-} from '../client/components/presentation'
+import type { MarkdownComponentMap} from '../client/components/presentation'
 
 //// Main ////
 

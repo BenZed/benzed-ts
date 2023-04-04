@@ -5,7 +5,7 @@ import 'normalize.css'
 
 const HTML_MAIN_TAG = 'benzed-www'
 
-/* Dynamic Imports for webpack output chunking */
+//// Dynamic Imports ////
 
 const dependencies = Promise.all([
     import('react'),
@@ -15,14 +15,14 @@ const dependencies = Promise.all([
     import('./components'),
 ] as const)
 
-/* Execute */
+//// Execute ////
 
 window.onload = async function () {
 
     const [
         React,
         { createRoot },
-        { BrowserRouter: Router },
+        { BrowserRouter },
         { presenterClient },
         { Providers }
     ] = await dependencies
@@ -34,9 +34,9 @@ window.onload = async function () {
     const root = createRoot(main)
     root.render(
         <React.StrictMode>
-            <Router>
+            <BrowserRouter>
                 <Providers client={presenterClient} />
-            </Router>
+            </BrowserRouter>
         </React.StrictMode>
     )
 }

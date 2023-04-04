@@ -3,23 +3,23 @@ import { PresenterApp } from '../../app'
 
 import React, { ReactElement} from 'react'
 
-import { GlobalStyle } from './global-style'
 import { ClientProvider } from './client-context'
 import { ClientPresentation } from './client-presentation'
+import { ThemeProvider } from './theme-provider'
 
 //// IsPresentation Component ////
 
 interface ProvidersProps {
-    client: AsClient<PresenterApp>
+    readonly client: AsClient<PresenterApp>
 }
 
-const Providers = ({ client }: ProvidersProps): ReactElement => {
+const Providers = ({ client }: ProvidersProps): ReactElement => 
 
-    return <ClientProvider value={client}>
-        <ClientPresentation />
-        <GlobalStyle/>
-    </ClientProvider>
-}
+    <ThemeProvider>
+        <ClientProvider value={client}>
+            <ClientPresentation />
+        </ClientProvider>
+    </ThemeProvider>
 
 //// Exports ////
 

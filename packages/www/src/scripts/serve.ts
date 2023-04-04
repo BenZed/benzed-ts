@@ -12,5 +12,3 @@ const port = isPort
 const server = new Server()
 
 void server.start(port)
-
-console.log(process.env.NODE_ENV)

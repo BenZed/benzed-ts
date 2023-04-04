@@ -28,21 +28,14 @@ const Presentation = <P extends MarkdownComponentMap>(props: PresentationProps<P
 
     const { presentation, components, currentIndex } = props
 
-    const [state] = createPresentationState(presentation, currentIndex)
+    const [ state ] = createPresentationState(presentation, currentIndex)
 
     const contentsResolved = state.map(state => ({
         Component: getMarkdownComponent(state.component, components),
         markdown: state.markdown
     }))
 
-    return <>{
-        contentsResolved.map(({ Component, markdown }, i) =>
-            <Component 
-                key={i} 
-                markdown={markdown} 
-            />
-        )
-    }</>
+    return <>{contentsResolved.map(({ Component, markdown }, i) => <Component key={i} markdown={markdown} />)}</>
 }
 
 //// Helper ////
