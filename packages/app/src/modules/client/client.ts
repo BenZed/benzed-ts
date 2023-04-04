@@ -80,15 +80,10 @@ class Client extends Connection implements ClientSettings {
         const text = await response.text()
 
         if (response.status >= HttpCode.BadRequest) {
-            let error
-            try {
-                error = JSON.parse(text)
-            } catch {
-                error = {
-                    code: HttpCode.InternalServerError,
-                    message: response.statusText
-                }
-            }
+            const error = safeJsonParse(text) ?? { code: HttpCode.InternalServerError, message: response.statusText }
+
+            console.log(error)
+
             throw CommandError.from(error)
         }
 

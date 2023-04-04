@@ -23,12 +23,12 @@ const usePresentationJson = () => {
 
     const [ json, setJson ] = useState<PresentationJson<MarkdownComponents>[]>([])
 
-    useEffect(() => {
-        client
+    useEffect(() =>
+        void client
             .presenter
             .getPresentationJson()
             .then(setJson)
-    }, [])
+    , [])
 
     return json
 }
@@ -39,9 +39,9 @@ const useCurrentIndex = () => {
 
     const [ currentIndex, setCurrentIndexLocal ] = useState(0)
 
-    // sync state every 500ms
+    // sync state
     useIntervalEffect(() => 
-        client
+        void client
             .presenter
             .getCurrentIndex()
             .then(setCurrentIndexLocal)

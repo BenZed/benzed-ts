@@ -125,7 +125,6 @@ class Server extends Connection implements ServerSettings {
 
             if (is.shape({ code: is.number })(result))
                 ctx.status = result.code 
-
             ctx.body = result
         })
 

@@ -43,6 +43,7 @@ export class Presenter<P extends MarkdownComponentMap> extends Module {
             parent._presentationJson.length = 0
             parent._presentationJson.push(...json)
         }
+
         return parent._presentationJson
     })
 

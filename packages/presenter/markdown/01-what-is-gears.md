@@ -1,4 +1,4 @@
-<!-- @Section -->
+<!-- @CenterHeader -->
 # Gears
 
 <!-- @Prompt -->
