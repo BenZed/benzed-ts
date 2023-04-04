@@ -1,6 +1,6 @@
 
 export { Prompt, PromptContainerProps } from './prompt'
 
-export * from './slide'
+export * from './section'
 
-export * from './slide-title'
+export * from './header'

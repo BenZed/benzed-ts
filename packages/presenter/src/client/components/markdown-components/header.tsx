@@ -4,18 +4,18 @@ import { MarkdownComponentProps } from '../presentation/markdown-component'
 
 //// SlideTitle Component ////
 
-interface SlideProps extends MarkdownComponentProps {}
+interface HeaderProps extends MarkdownComponentProps {}
 
-const Slide = (props: SlideProps): ReactElement => {
+const HeaderTitle = (props: HeaderProps): ReactElement => {
     const { markdown } = props
     return <BasicMarkdown markdown={markdown} />
 }
 
 //// Exports ////
 
-export default Slide
+export default HeaderTitle
 
 export {
-    Slide,
-    SlideProps
+    HeaderTitle,
+    HeaderProps
 }
