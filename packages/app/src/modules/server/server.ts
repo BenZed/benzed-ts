@@ -30,9 +30,9 @@ interface ServerSettings {
 
 }
 
-const isServerSettings: IsType<ServerSettings> = is.shape({
+const isServerSettings: IsType<ServerSettings> = is.readonly({
 
-    port: isPort.readonly
+    port: isPort
 
 })
 
@@ -108,7 +108,11 @@ class Server extends Connection implements ServerSettings {
             : each.valueOf(HttpMethod).toArray()
 
         // Cors Middleware
-        koa.use(cors({ allowMethods }))
+        koa.use(
+            cors({ 
+                allowMethods 
+            })
+        )
 
         // BodyParser Middleware
         koa.use(body())

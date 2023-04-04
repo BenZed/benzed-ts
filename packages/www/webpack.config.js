@@ -7,26 +7,20 @@
 
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const { EnvironmentPlugin, ProgressPlugin } = require('webpack')
 const path = require('path')
 
-const styledComponentsTransformer = require('typescript-plugin-styled-components').default()
-
 /* CONSTANTS */
 
-const WEBPACK_DEV_SERVER_PORT = 5000 + 500
+const WEBPACK_DEV_SERVER_PORT = 4000 + 500
 
 const ENV = {
     NODE_ENV: process.env.NODE_ENV ?? 'development',
 }
 
 const OUTPUT = path.resolve(__dirname, 'public')
-
 const ENTRY = path.resolve(__dirname, 'src/client/index.tsx')
-
-const TEMPLATE = path.resolve(__dirname, 'src/client/index.html')
-
+const TEMPLATE = path.resolve(__dirname, 'src/client/assets/index.html')
 const MONO_REPO_NODE_MODULES = path.resolve(__dirname, '../../node_modules')
 
 /* EXPORTS */
@@ -64,10 +58,7 @@ module.exports = {
                         compilerOptions: {
                             target: 'es6',
                             module: 'CommonJS'
-                        },
-                        getCustomTransformers: () => ({
-                            before: [styledComponentsTransformer]
-                        })
+                        }
                     }
                 },
                 exclude: /node_modules/,
@@ -79,15 +70,6 @@ module.exports = {
                     MiniCssExtractPlugin.loader,
                     'css-loader'
                 ]
-            },
-            {
-                test: /\.(svg|png|jpe?g|gif)$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name]@[contenthash].[ext]'
-                    }
-                }
             }
         ],
     },
@@ -105,6 +87,7 @@ module.exports = {
             // understand why it's happening. This is the location react should
             // be resolving from, anyway)
             'react': path.join(MONO_REPO_NODE_MODULES, 'react'),
+            'react-dom': path.join(MONO_REPO_NODE_MODULES, 'react-dom'),
 
             // Prevent app-client errors
             'koa': false,
@@ -127,15 +110,6 @@ module.exports = {
 
     plugins: [
         new ProgressPlugin(),
-
-        // TODO for some reason the CleanWebpackPlugin
-        // is throwing an error saying it can't remove
-        // files outside the process directory, even though
-        // the public file is within the process directory
-
-        // new CleanWebpackPlugin({
-        //     verbose: true
-        // }),
         new MiniCssExtractPlugin(),
         new HtmlWebpackPlugin({
             title: 'BenZed',

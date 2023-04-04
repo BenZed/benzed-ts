@@ -1,6 +1,5 @@
-import { onInterval, onTimeout } from '@benzed/async'
+import { onTimeout } from '@benzed/async'
 import { each } from '@benzed/util'
-import is from '@benzed/is'
 
 import { useEffect, useState } from 'react'
 
@@ -57,11 +56,12 @@ const useWriteOn = (target: string, options: WriteOnOptions = {}) => {
             }
 
             // Match characters
-            for (const i of each.indexOf(newValue, { reverse }))
-            if (newValue.charAt(i) !== target.charAt(i)) {
-                const replaceOneChar = newValue.slice(0, i) + target.charAt(i) + newValue.slice(i + 1)
-                newValue = replaceOneChar
-                continue change
+            for (const i of each.indexOf(newValue, { reverse })) {
+                if (newValue.charAt(i) !== target.charAt(i)) {
+                    const replaceOneChar = newValue.slice(0, i) + target.charAt(i) + newValue.slice(i + 1)
+                    newValue = replaceOneChar
+                    continue change
+                }
             }
 
             // Reduce length

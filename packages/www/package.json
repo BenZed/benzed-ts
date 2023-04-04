@@ -9,11 +9,12 @@
         "test:dev": "jest --run-in-band --only-changed --verbose",
         "lint": "eslint src/**/*.ts --fix",
         "build": "npm run lint && npm run tsc && npm run webpack",
-        "webpack": "shx rm -rf public/ && webpack",
-        "webpack:dev": "npm run webpack -- serve",
+        "create-public": "sh ./src/scripts/create-public.sh",
+        "webpack": "npm run create-public && NODE_ENV=production webpack",
+        "webpack:dev": "npm run create-public && webpack serve",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc",
-        "serve": "node ./lib/scripts/serve.js",
-        "serve:dev": "ts-node-dev ./src/scripts/serve.ts --watch ./src/app/*"
+        "serve": "NODE_ENV=production node ./lib/scripts/serve.js",
+        "serve:dev": "NODE_ENV=development ts-node-dev ./src/scripts/serve.ts --watch ./src/app/*"
     },
     "repository": {
         "type": "git",
@@ -26,17 +27,21 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "styled-components": "^5.3.9",
+        "koa": "^2.14.1",
+        "koa-static": "^5.0.0",
         "react": "^18.2.0",
-        "react-markdown": "^8.0.6",
-        "react-syntax-highlighter": "^15.5.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.9.0",
         "@benzed/app": "^1.0.0",
+        "@benzed/logger": "^1.0.0",
+        "@mantine/core": "^6.0.4",
+        "@mantine/hooks": "^6.0.4",
+        "@mantine/ssr": "^6.0.5",
+        "@emotion/react": "11.10.6",
+        "@benzed/react": "^1.0.0",
         "@benzed/fs": "^3.1.0"
     },
     "devDependencies": {
-        "@types/react-syntax-highlighter": "^15.5.6",
-        "@types/styled-components": "^5.1.26"
+        "@types/koa-static": "^4.0.2"
     }
 }

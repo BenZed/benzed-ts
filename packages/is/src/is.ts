@@ -85,13 +85,12 @@ interface IsStatic<V extends Validator> extends IsCursor<V>, TypeGuard<ValidateO
     assert(input: unknown): asserts input is ValidateOutput<V>
 }
 
-
 export type Is<V extends Validator = Validator> = 
     IsStatic<V> & 
     _IsDynamic<V> & 
     (RemoveAllModifiers<V> extends Shape<infer S> 
-    ? _IsShape<S, ModifiersOf<V>>
-    : {})
+        ? _IsShape<S, ModifiersOf<V>>
+        : {})
 
 export type ValidatorOf<T> = T extends Is<infer V>
     ? V 
