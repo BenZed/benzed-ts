@@ -18,22 +18,18 @@ function createPresentationState<P extends MarkdownComponentMap>(
     index: number
 ): [ state: PresentationState<P>[], lineIndex: number ] {
 
-    if (presentationJson.length === 0)
-        return [[], 0]
-
     const contentAtIndex = presentationJson.at(index)
-    if (!contentAtIndex) {
-        throw new Error(
-            `invalid content index ${index}, ` + 
-            `must be: 0 - ${presentationJson.length - 1}`
-        )
-    }
-
     const contentAtNextIndex = presentationJson.at(index + 1)
 
+    //
+    if (presentationJson.length === 0 || !contentAtIndex)
+        return [[], 0]
+
+    //
     const states: PresentationState<P>[] = []
     let lineIndex = 0
 
+    //
     for (const content of presentationJson) {
 
         if (content === contentAtNextIndex)
@@ -60,6 +56,7 @@ function createPresentationState<P extends MarkdownComponentMap>(
             states.push(state)
     }
 
+    //
     return [ states, lineIndex ]
 }
 

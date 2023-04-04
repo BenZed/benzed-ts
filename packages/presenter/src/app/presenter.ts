@@ -9,7 +9,7 @@ import {
     PresentationJson
 } from '../client/components/presentation/create-presentation-json'
 
-import type { MarkdownComponentMap} from '../client/components/presentation'
+import type { MarkdownComponentMap } from '../client/components/presentation'
 
 //// Main ////
 
@@ -66,7 +66,7 @@ export class Presenter<P extends MarkdownComponentMap> extends Module {
 
 async function readMarkdown(): Promise<{ name: string, markdown: string }[]> {
 
-    const MARKDOWN_DIRECTORY = path.join(__dirname, 'markdown')
+    const MARKDOWN_DIRECTORY = path.join(__dirname, '../../markdown')
 
     const markdownUrls = await fs.readDir(MARKDOWN_DIRECTORY, {
         filter(url) {

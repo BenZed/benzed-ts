@@ -3,7 +3,7 @@ import 'normalize.css'
 
 //// Data ////
 
-const HTML_MAIN_TAG = 'benzed-www'
+const HTML_MAIN_TAG = 'presenter-www'
 
 //// Dynamic Imports ////
 

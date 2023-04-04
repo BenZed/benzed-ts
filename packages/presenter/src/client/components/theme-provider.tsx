@@ -5,7 +5,7 @@ import {
     ColorSchemeProvider,
 } from '@mantine/core'
 
-import { useUserColorScheme, useWebsiteTheme } from '../hooks' 
+import { useUserColorScheme, usePresenterTheme } from '../hooks' 
 
 //// Types ////
 
@@ -22,7 +22,7 @@ const ThemeProvider = ({ children }: ThemeProviderProps): ReactElement => {
 
     const [ colorScheme, toggleColorScheme ] = useUserColorScheme()
 
-    const theme = useWebsiteTheme(colorScheme)
+    const presenterTheme = usePresenterTheme(colorScheme)
 
     return <ColorSchemeProvider
         colorScheme={colorScheme}
@@ -32,7 +32,7 @@ const ThemeProvider = ({ children }: ThemeProviderProps): ReactElement => {
             withGlobalStyles
             withNormalizeCSS
             inherit
-            theme={theme}
+            theme={presenterTheme}
         >
             {children}
         </MantineProvider>

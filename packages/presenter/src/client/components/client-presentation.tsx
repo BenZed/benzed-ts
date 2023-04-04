@@ -26,7 +26,7 @@ const usePresentationJson = () => {
             .presenter
             .getPresentationJson()
             .then(setJson)
-    })
+    }, [])
 
     return json
 }
@@ -35,7 +35,6 @@ const useCurrentIndex = () => {
 
     const client = useClient()
 
-    // 
     const [ currentIndex, setCurrentIndexLocal ] = useState(0)
 
     // sync state every 500ms
@@ -44,7 +43,7 @@ const useCurrentIndex = () => {
             .presenter
             .getCurrentIndex()
             .then(setCurrentIndexLocal)
-    , 500)
+    , 1000)
 
     // set-current-index
     const setCurrentIndex = async (index: number) => {
