@@ -10,6 +10,8 @@ import {
 } from './presentation'
 
 import * as markdownComponents from './markdown-components'
+import { PromptContainer } from './markdown-components/prompt'
+
 import { useClient } from './client-context'
 
 //// Hooks ////
@@ -75,8 +77,10 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
                 ? <PresentationControls
                     currentIndex={currentIndex}
                     setCurrentIndex={setCurrentIndex}
-                />
-                : null
+                >
+                    <PromptContainer />
+                </PresentationControls>
+                : <PromptContainer sx={{ display: 'none' }}/>
         }
 
         <Presentation

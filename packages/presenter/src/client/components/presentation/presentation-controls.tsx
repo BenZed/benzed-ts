@@ -1,30 +1,33 @@
-import React, { Dispatch, ReactElement } from 'react'
+import React, { Dispatch, ReactNode, ReactElement } from 'react'
 
 import { useKeyPress } from '@benzed/react'
-import { Container, Flex, Text, Sx, Button } from '@mantine/core'
+import { Flex, Sx, Button, Title } from '@mantine/core'
 
-//// Presentation Controls Component ////
+//// Styles ////
 
-interface PresentationControlsProps { 
-    readonly currentIndex: number
-    readonly setCurrentIndex: Dispatch<number>
-    readonly portalId?: string
-}
-
-const presentationStyle: Sx = t => ({
+const stickToBottom: Sx = t => ({
     position: 'absolute',
     bottom: '1em',
     left: '1em',
     right: '1em',
     background: t.fn.rgba(t.white, 0.125),
     borderRadius: t.radius.md,
-    padding: 0
 })
+
+//// Props ////
+
+interface PresentationControlsProps { 
+    readonly currentIndex: number
+    readonly setCurrentIndex: Dispatch<number>
+    readonly children?: ReactNode
+}
+
+//// Component ////
 
 const PresentationControls = (props: PresentationControlsProps): ReactElement => {
 
     const {
-        portalId,
+        children,
         currentIndex,
         setCurrentIndex
     } = props
@@ -38,20 +41,21 @@ const PresentationControls = (props: PresentationControlsProps): ReactElement =>
         'ArrowRight': nextIndex
     })
 
-    return <Container sx={presentationStyle}>
+    return <Flex direction='column' sx={stickToBottom}>
 
-        <Flex direction='column'>
+        {children}
 
-            <Flex direction='row' align='center' justify='center'>
-                <Button onClick={prevIndex} sx={{ marginRight: 'auto' }}>Prev</Button>
-                <Text>{currentIndex}</Text>
-                <Button onClick={nextIndex} sx={{ marginLeft: 'auto' }}>Next</Button>
-            </Flex>
+        <Flex direction='row' align='center' justify='center'>
 
-            <Container id={portalId} />
+            <Button onClick={prevIndex} sx={{ marginRight: 'auto' }}>Prev</Button>
+
+            <Title order={2}>{currentIndex}</Title>
+
+            <Button onClick={nextIndex} sx={{ marginLeft: 'auto' }}>Next</Button>
+
         </Flex>
 
-    </Container>
+    </Flex>
 }
 
 //// Exports ////

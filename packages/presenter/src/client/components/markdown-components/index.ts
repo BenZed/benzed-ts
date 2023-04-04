@@ -1,5 +1,5 @@
 
-export * from './prompt'
+export { Prompt, PromptContainerProps } from './prompt'
 
 export * from './slide'
 
