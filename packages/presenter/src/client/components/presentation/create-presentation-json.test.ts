@@ -45,34 +45,33 @@ test('throws if components are missing', () => {
     expect(() => createPresentationJson({}, markdown)).toThrow('MissingComponent invalid')
 })
 
-test('respects clear syntax', () => {
+test('respects clear keyword', () => {
 
     const markdown = lines(
         'Basic',
         '<!-- @Boundary -->',
         'Title',
-        '<!-- !@Boundary -->',
+        '<!-- @Boundary clear skip -->',
         'Clear Title'
     )
 
     const content = createPresentationJson({ Boundary }, markdown)
 
     expect(content).toEqual([
-        { 
+        {
             component: nil,
             clear: true,
             markdown: 'Basic'
         },
-        { 
-            component: 'Boundary', 
+        {
+            component: 'Boundary',
             clear: false,
             markdown: 'Title'
         },
-        { 
-            component: 'Boundary', 
+        {
+            component: 'Boundary',
             clear: true,
             markdown: 'Clear Title'
         }
-    ]) 
-
+    ])
 })

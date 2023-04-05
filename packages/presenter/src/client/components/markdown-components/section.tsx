@@ -1,7 +1,5 @@
 import React, { ReactElement } from 'react'
 
-import { Container } from '@mantine/core'
-
 import { BasicMarkdown } from '../presentation'
 import { MarkdownComponentProps } from '../presentation/markdown-component'
 
@@ -11,10 +9,7 @@ interface SectionProps extends MarkdownComponentProps {}
 
 const Section = (props: SectionProps): ReactElement => {
     const { markdown } = props
-
-    return <Container>
-        <BasicMarkdown markdown={markdown} />
-    </Container>
+    return <BasicMarkdown markdown={markdown} />
 }
 
 //// Exports ////

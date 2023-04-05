@@ -39,11 +39,8 @@ const getMarkdownComponent = <P extends MarkdownComponentMap>(name: string | nil
     if (!name)
         return BasicMarkdown
 
-    if (!(name in components)) {
-        throw new Error(
-            `No component named "${name}" in component list: ${each.nameOf(components)}`
-        )
-    }
+    if (!(name in components)) 
+        throw new Error(`No component named "${name}" in component list: ${each.nameOf(components)}`)
 
     return components[name]
 }

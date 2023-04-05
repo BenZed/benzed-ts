@@ -15,6 +15,7 @@ import * as markdownComponents from './markdown-components'
 import { PromptContainer } from './markdown-components/prompt'
 
 import { useClient } from './client-context'
+import { Container } from '@mantine/core'
 
 //// Types ////
 
@@ -85,6 +86,7 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
 
         {
             isPresenter
+
                 ? <PresentationControls
                     maxIndex={maxIndex}
                     currentIndex={currentIndex}
@@ -92,13 +94,16 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
                 >
                     <PromptContainer />
                 </PresentationControls>
+
                 : <PromptContainer sx={{ display: 'none' }}/>
         }
 
-        <Presentation
-            presentation={currentPresentation}
-            components={markdownComponents}
-        />
+        <Container>
+            <Presentation
+                presentation={currentPresentation}
+                components={markdownComponents}
+            />
+        </Container>
 
     </>
 }

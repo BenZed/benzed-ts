@@ -1,8 +1,8 @@
-<!-- @CenterHeader -->
-# GEARS 
+<!-- @CenterHeader clear skip -->
+# GEARS OUTLINE
 
 <!-- @Prompt -->
-I was attempting to build it in a manner I thought would look fantastic on a resume. 
+So, Gears. I was attempting to build it in a manner I thought would look fantastic on a resume. 
 
 <!-- @Prompt -->
 Other than Scribbles and Ink, of which are code bases I am not proud of, and the current version of Gears, which is a code base that I am not proud of, I have very little to show for this 11 years of experience that I allegedly have. One of my packages on GitHub has 150 stars, that’s about it.
@@ -23,5 +23,4 @@ I have extensive details of how all these public modules work, they’re not wel
 However, for one of my public modules: a data validation library that I’m proud of that demonstrates I know the type system extremely well and it’s extremely good for defining database models, etcetera. I had prepared a presentation about this library for an interview and they wouldn’t look at it. And then they proceeded to ask me a bunch of questions I didn’t have answers to. I’ve had quite a few interviews in the passed four months and of course I have fantastic answers for the problems that I have solved, I’ve had many questions without any answer a tall. For example, how I would manage a database with hundreds of millions of rows. The same way I’d manage a database with 100 thousand rows is apparently not a good answer. 
 
 <!-- @Prompt -->
-
-Point is, after 5 or 6 failed interviews I have to re-address my approach, and accept the reality that perhaps if 5 different companies don’t consider me a senior developer, then perhaps I don’t have the experience of a senior developer, and do some skills development while going for intermediate level positions. The fact that these public modules aren’t complete doesn’t help either. I am not NEARLY the hot shit that I thought was. The research that I have conducted in the last couple of months to fill these holes in my skill-set has led to changes in the model I had in mind for gears. I’ll detail the differences during this presentation.
+Point is, after 5 or 6 failed interviews I realized I had to re-address my approach, and accept the reality that perhaps if 5 different companies don’t consider me a senior developer, then perhaps I don’t have the experience of a senior developer, and do some skills development while going for intermediate level positions. The fact that these public modules aren’t complete doesn’t help either. I am not NEARLY the hot shit that I thought was. The research that I have conducted in the last couple of months to fill these holes in my skill-set has led to changes in the model I had in mind for gears. I’ll detail the differences during this presentation.

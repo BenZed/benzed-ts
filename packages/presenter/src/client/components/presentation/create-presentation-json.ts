@@ -9,6 +9,7 @@ export type PresentationJson<T extends MarkdownComponentMap> =
     {
         readonly component?: NamesOf<T>
         readonly clear: boolean
+        readonly skip: boolean
         readonly markdown: string
     }
 
@@ -32,13 +33,14 @@ export function createPresentationJson<T extends MarkdownComponentMap>(
     markdown: string
 ): PresentationJson<T>[] {
 
-    const COMPONENT_BOUNDARY = /^<!--\s(\!?@)(.+)\s-->/ // <!-- @ComponentName -->
+    const COMPONENT_BOUNDARY = /^<!--\s@([A-z]+)\s(([a-z]|\s)+\s)?-->/ // <!-- @ComponentName -->
 
     const validateName = isNameOf(components).validate
     const lines = markdown.split('\n')
     const contents: Mutable<PresentationJson<T>>[] = [{ 
         component: nil,
         clear: true,
+        skip: false,
         markdown: ''
     }]
 
@@ -49,14 +51,20 @@ export function createPresentationJson<T extends MarkdownComponentMap>(
         // add a new content json if we're on a component boundary
         const componentBoundary = COMPONENT_BOUNDARY.exec(line)
         if (componentBoundary) {
-            const clear = componentBoundary[1].includes('!')
-            const component = validateName(componentBoundary[2]) as Mutable<NamesOf<T>>
-            contents.push({ component, clear, markdown: '' })
+
+            const [, name, keywords = '' ] = componentBoundary
+
+            const clear = keywords.includes('clear')
+            const skip = keywords.includes('skip')
+
+            const component = validateName(name) as Mutable<NamesOf<T>>
+
+            contents.push({ component, clear, skip, markdown: '' })
 
         // otherwise append line to the latest content json
         } else {
             const content = contents.at(-1) as Mutable<PresentationJson<T>>
-            content.markdown += line
+            content.markdown += line + '\n'
         }
     }
 
@@ -74,14 +82,15 @@ export function getCurrentPresentationJson<T extends MarkdownComponentMap>(
 ): PresentationJson<T>[] {
 
     let startIndex = 0
-
     // Webpack doesn't want to recognized .lastIndexOf, even with the lib compiler option set.
-    for (let index = presentationJson.length - 1; index >= 0; index--) {
+    for (const index of each.indexOf(presentationJson, { reverse: true })) {
         if (index <= currentIndex && presentationJson[index].clear) {
             startIndex = index
             break
         }
     }
+
+    // const endIndex = presentationJson.findIndex((c, i) => !c.skip && i >= currentIndex) 
 
     return presentationJson.slice(startIndex, currentIndex + 1)
 }
