@@ -1,2 +1,2 @@
 <!-- @CenterHeader clear skip -->
-# COMMITTING 
+# COMMIT
