@@ -2,7 +2,7 @@
 # TEMPLATES
 
 <!-- @Prompt -->
-Templates. A Template is essentially a blue print for a folder. A 
+Templates. A Template is essentially a blue print for a folder.
 
 <!-- @Section clear -->
 
@@ -67,6 +67,7 @@ Looking at good old *JV101_sq14_sc02* over here, what does it consist of?
 ```
 
 <!-- @Prompt -->
+
 So, if Brodie were setting up `Gears` for *Bird Girl Season 3*, he'd ask Ben to create a template called an `Asset`. An Asset must consist of a Preview folder, which can contain images or video files. An asset must have a Harmony folder, consisting of harmony files. We're not going to go and validate the entire harmony file structure, so he'd just say declare the folder as loose, meaning it'll take anything. He'd declare a couple of data types, say `Priority`, `Episode`.
 
 <!-- @Section clear -->
@@ -116,6 +117,44 @@ So, if Brodie were setting up `Gears` for *Bird Girl Season 3*, he'd ask Ben to 
 
 <!-- @Prompt -->
 Then he might clone that `Asset` template, and call it a `Scene`, and then he'd add a data type to it called `Frame Count`.
+
+With these template schematics, you can imagine how you could define a number of different structures that would apply to different projects. 
+
+<!-- @Section clear -->
+
+```json
+{
+    "name": "Character",
+    "type": "template",
+    "data": {
+        "quality": {
+            "type": "union",
+            "values": [ "low", "medium", "high" ]
+        }
+    },
+    "structure": [
+        {
+            "name": "walk-cycle",
+            "type": [".mov"]
+        },
+        {
+            "name": "Spine",
+            "type": "folder",
+            "structure": [
+                {
+                    "loose": true,
+                }
+            ]
+        }
+    ]
+}
+```
+
+<!-- @Prompt -->
+For example, if Gears were being used for Scribbles and Ink Season 3, instead of an Asset or a Scene, you might have a Character. A character might have a Spine subfolder, with where the Spine animation files would be held, and it might have a walk-cycle.mov that gears would use as a preview, and it might have a "quality" entry in the gears.json to delineate weather this was a rig for high quality or low quality builds.
+
+<!-- @Prompt -->
+The idea is that defining a template for a structure related to a unit of work encapsulates all of the information needed about that structure for use elsewhere, in a format that is more or less universally accessible. Hypothetically, if consumers of a character instance, once it's downloaded to their hard drive, wouldn't really need to interact with the Gears UI much. They could edit the gears.json file manually, as long as the data they try to push back up is valid.
 
 <!-- @Section clear -->
 

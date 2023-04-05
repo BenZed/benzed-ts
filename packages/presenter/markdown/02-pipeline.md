@@ -40,7 +40,7 @@ There's dropbox. Dropbox is great.
 There's the Asset Manager. What we currently call Gears, but is really just the fourth version of the original Asset Manager built by DNS. It has improved a great deal since the first version.
 
 - For an asset to exist, it needs to have a working file, for which versions are tracked. This working file can be anything; .psd file, image, a zipped harmony folder, whatever.
-- The Asset Manager allows meta-data to be associated with a project. Episode, Stages and Statuses, configurable by project. Comments and tags can be added. We can see who an asset is assigned to, what priority is has.
+- The Asset Manager allows meta-data to be associated with a project. Episode, Stages and Statuses, configurable by project. Comments and tags can be added. We can see who an asset is assigned to, what priority is has, etcetera. 
 - The Asset Manager allows for previews to be uploaded. Images or video. There's a secondary system that tracks all of these images and videos and compresses into web friendly formats so the animator doesn't have to.
 
 <!-- @Prompt -->
@@ -62,7 +62,7 @@ Real time syncing of every file can lead to a lot of traffic. Very frequently we
 <!-- @Prompt -->
 Related: How many times has a root folder gone missing that results in costly wait times or duplication of efforts?
 <!-- @Prompt -->
-In dropbox, unlike google drive, sharing a folder is limited to folders in the root directory. This makes things fundamentally much harder to organize.
+In dropbox, unlike google drive, sharing a folder is limited to folders in the root directory, or at least it was the last time I checked. This makes things fundamentally much harder to organize.
 <!-- @Prompt -->
 On organization, a reoccurring problem is folder structure. As we've seen, coming up with a folder structure that applies to all projects doesn't really work. There will often be long meetings to establish a folder structure, which is fine in theory, but in practice it's very difficult to get everyone to remember to stick to them. Especially when we're bringing on remote workers. Every project incurs a great deal of temporal debt in the form of organizing and archiving projects, and this debt goes up with each project as opposed to down.
 
@@ -76,7 +76,7 @@ On organization, a reoccurring problem is folder structure. As we've seen, comin
 - Files are decoupled from their DropBox counterparts
 
 <!-- @Prompt -->
-In the Asset Manager, an asset is a single file. It can be a zip, sure, but this is inherently pretty rigid. To update the version of something, an entire zip folder needs to be uploaded. This makes it cumbersome to check through versions, and is an unfriendly user experience.
+In the Asset Manager, an asset is a single file. It can be a zip, sure, but this is inherently pretty rigid. To update the version of something, an entire zip folder needs to be uploaded. This makes for an unfriendly user experience.
 <!-- @Prompt -->
 You can have either an image preview or a video preview, which sounds like it should be sufficient, but what if the asset is a .pdf? What if the project is interactive? What if it's a 3D asset, and you want to provide multiple angles, or different variations? 
 <!-- @Prompt -->
@@ -84,6 +84,7 @@ In the most recent version of the Asset Manager Meta data is much more configura
 <!-- @Prompt -->
 Tracking is almost impossible. The Asset Manager has that CSV aggregating capability, but it pretty crude, and there is a lot of overhead placed on producers to sift through data manually.
 <!-- @Prompt -->
-Files related to an asset exist on the Asset Manager, and they also exist in part in dropbox. This separation of data is inherently disorganized, and adds to the temporal debt I spoke of when handling archiving. Imagine a newly hired producer down the line being tasked with going back and finding meta data that only exists on the Asset Manager related to a scene or an asset in dropbox. "Hey, Larry? What comments did Tim make about Jam Van Seq01Ep01"?
+Files related to an asset exist on the Asset Manager, and they also exist in part in dropbox. This separation of data is inherently disorganized, and adds to the temporal debt I spoke of when handling archiving. Imagine a newly hired producer down the line being tasked with going back and finding meta data that only exists on the Asset Manager related to a scene or an asset in dropbox. 
+
 <!-- @Prompt -->
 So, what kind of pipeline could one imagine - or, perhaps bang their head against the wall repeatedly - to address these problems?
