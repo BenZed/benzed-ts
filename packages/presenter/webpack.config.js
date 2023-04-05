@@ -62,7 +62,7 @@ module.exports = {
                     options: {
                         compilerOptions: {
                             target: 'es6',
-                            module: 'CommonJS'
+                            module: 'CommonJS',
                         },
                         getCustomTransformers: () => ({
                             before: [

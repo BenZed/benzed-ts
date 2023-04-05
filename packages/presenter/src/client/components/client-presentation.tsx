@@ -1,12 +1,14 @@
-import React, { ReactElement, useEffect, useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import { useMatch } from 'react-router-dom'
 
 import { useIntervalEffect } from '@benzed/react'
+import { clamp } from '@benzed/math'
 
 import {
     Presentation,
     PresentationJson,
-    PresentationControls
+    PresentationControls,
+    getCurrentPresentationJson
 } from './presentation'
 
 import * as markdownComponents from './markdown-components'
@@ -14,26 +16,28 @@ import { PromptContainer } from './markdown-components/prompt'
 
 import { useClient } from './client-context'
 
+//// Types ////
+
+type MarkdownComponents = typeof markdownComponents
+
 //// Hooks ////
 
 const usePresentationJson = () => {
     const client = useClient()
 
-    type MarkdownComponents = typeof markdownComponents
-
     const [ json, setJson ] = useState<PresentationJson<MarkdownComponents>[]>([])
 
-    useEffect(() =>
+    useIntervalEffect(() =>
         void client
             .presenter
             .getPresentationJson()
             .then(setJson)
-    , [])
+    , 5000)
 
     return json
 }
 
-const useCurrentIndex = () => {
+const useCurrentIndex = (maxIndex = Infinity) => {
 
     const client = useClient()
 
@@ -49,8 +53,11 @@ const useCurrentIndex = () => {
 
     // set-current-index
     const setCurrentIndex = async (index: number) => {
-        setCurrentIndexLocal(index)
-        await client.presenter.setCurrentIndex(index)
+
+        const sanitizedIndex = clamp(index, 0, maxIndex)
+
+        setCurrentIndexLocal(sanitizedIndex)
+        await client.presenter.setCurrentIndex(sanitizedIndex)
     }
 
     return [ currentIndex, setCurrentIndex ] as const
@@ -66,7 +73,11 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
 
     void props
     const presentation = usePresentationJson()
-    const [ currentIndex, setCurrentIndex ] = useCurrentIndex()
+
+    const maxIndex = presentation.length - 1
+    const [ currentIndex, setCurrentIndex ] = useCurrentIndex(maxIndex)
+
+    const currentPresentation = getCurrentPresentationJson(presentation, currentIndex)
 
     const isPresenter = !!useMatch('/presenter')
 
@@ -75,6 +86,7 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
         {
             isPresenter
                 ? <PresentationControls
+                    maxIndex={maxIndex}
                     currentIndex={currentIndex}
                     setCurrentIndex={setCurrentIndex}
                 >
@@ -84,10 +96,8 @@ export const ClientPresentation = (props: ClientPresentationProps): ReactElement
         }
 
         <Presentation
-            presentation={presentation}
+            presentation={currentPresentation}
             components={markdownComponents}
-            currentIndex={currentIndex}
-            setCurrentIndex={setCurrentIndex}
         />
 
     </>

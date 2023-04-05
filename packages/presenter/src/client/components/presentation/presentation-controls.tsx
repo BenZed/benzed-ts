@@ -1,12 +1,14 @@
 import React, { Dispatch, ReactNode, ReactElement } from 'react'
 
 import { useKeyPress } from '@benzed/react'
-import { Flex, Sx, Button, Title } from '@mantine/core'
+import { Overlay, Flex, Sx, Button, Title } from '@mantine/core'
+import { clamp } from '@benzed/math'
 
 //// Styles ////
 
 const stickToBottom: Sx = t => ({
     position: 'absolute',
+    top: 'inherit',
     bottom: '1em',
     left: '1em',
     right: '1em',
@@ -17,6 +19,7 @@ const stickToBottom: Sx = t => ({
 //// Props ////
 
 interface PresentationControlsProps { 
+    readonly maxIndex: number
     readonly currentIndex: number
     readonly setCurrentIndex: Dispatch<number>
     readonly children?: ReactNode
@@ -28,6 +31,7 @@ const PresentationControls = (props: PresentationControlsProps): ReactElement =>
 
     const {
         children,
+        maxIndex,
         currentIndex,
         setCurrentIndex
     } = props
@@ -41,7 +45,10 @@ const PresentationControls = (props: PresentationControlsProps): ReactElement =>
         'ArrowRight': nextIndex
     })
 
-    return <Flex direction='column' sx={stickToBottom}>
+    const max = maxIndex + 1
+    const current = clamp(currentIndex + 1, 0, max)
+
+    return <Overlay component={Flex} blur={15} direction='column' sx={stickToBottom}>
 
         {children}
 
@@ -49,13 +56,13 @@ const PresentationControls = (props: PresentationControlsProps): ReactElement =>
 
             <Button onClick={prevIndex} sx={{ marginRight: 'auto' }}>Prev</Button>
 
-            <Title order={2}>{currentIndex}</Title>
+            <Title order={2}>{current} of {max}</Title>
 
             <Button onClick={nextIndex} sx={{ marginLeft: 'auto' }}>Next</Button>
 
         </Flex>
 
-    </Flex>
+    </Overlay>
 }
 
 //// Exports ////

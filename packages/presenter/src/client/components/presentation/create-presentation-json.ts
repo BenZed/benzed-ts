@@ -1,47 +1,45 @@
-import { pluck } from '@benzed/array'
-import is, { IsType, Validates } from '@benzed/is'
+import is, { IsType } from '@benzed/is'
 import { each, Mutable, NamesOf, nil } from '@benzed/util'
 
 import { MarkdownComponentMap } from './markdown-component'
-
-//// Data ////
-
-const NEST_TAB_SIZE = 4
-const NEST_PREFIX = ' '.repeat(NEST_TAB_SIZE)
 
 //// Types ////
 
 export type PresentationJson<T extends MarkdownComponentMap> =
     {
         readonly component?: NamesOf<T>
-        readonly index: number
-        readonly lines: readonly {
-            readonly index: number
-            readonly markdown: string
-        }[]
+        readonly clear: boolean
+        readonly markdown: string
     }
 
 //// Helper ////
 
 // TODO is-ts is gonna need: is.nameOf, is.symbolOf, is.indexOf, is.keyOf
-const isNameOf = <P extends MarkdownComponentMap>(object: P): IsType<NamesOf<P>> =>
+const isNameOf = <T extends MarkdownComponentMap>(object: T): IsType<NamesOf<T>> =>
     is.string.asserts(
         name => name in object,
         name => `${name} invalid, must be: ${each.nameOf(object).toArray().join(' or ')}`
-    ) as unknown as IsType<NamesOf<P>>
+    ) as unknown as IsType<NamesOf<T>>
 
-function createRawPresentationJson<P extends MarkdownComponentMap>(
-    lines: readonly string[],
-    validateName: Validates<NamesOf<P>>,
-    indexOffset = 0
-): Mutable<PresentationJson<P>>[] {
-    
-    const COMPONENT_BOUNDARY = /^<!--\s@(.+)\s-->/ // <!-- @ComponentName -->
+//// Main ////
 
-    const contents: Mutable<PresentationJson<P>>[] = [{ 
-        component: nil, 
-        index: indexOffset, 
-        lines: [] 
+/**
+ * Given a component map and markdown content, create
+ * a content json array.
+ */
+export function createPresentationJson<T extends MarkdownComponentMap>(
+    components: T,
+    markdown: string
+): PresentationJson<T>[] {
+
+    const COMPONENT_BOUNDARY = /^<!--\s(\!?@)(.+)\s-->/ // <!-- @ComponentName -->
+
+    const validateName = isNameOf(components).validate
+    const lines = markdown.split('\n')
+    const contents: Mutable<PresentationJson<T>>[] = [{ 
+        component: nil,
+        clear: true,
+        markdown: ''
     }]
 
     // create json for each boundary split
@@ -51,76 +49,39 @@ function createRawPresentationJson<P extends MarkdownComponentMap>(
         // add a new content json if we're on a component boundary
         const componentBoundary = COMPONENT_BOUNDARY.exec(line)
         if (componentBoundary) {
-            const component = validateName(componentBoundary[1]) as Mutable<NamesOf<P>>
-            contents.push({ component, index: index + indexOffset, lines: [] })
+            const clear = componentBoundary[1].includes('!')
+            const component = validateName(componentBoundary[2]) as Mutable<NamesOf<T>>
+            contents.push({ component, clear, markdown: '' })
 
         // otherwise append line to the latest content json
         } else {
-            contents.at(-1)?.lines.push({
-                index: index + indexOffset,
-                markdown: line
-            })
+            const content = contents.at(-1) as Mutable<PresentationJson<T>>
+            content.markdown += line
         }
     }
 
-    return contents
-    // omit empty content
-        .filter(content => content.component ?? content.lines.length > 0)
+    return (
+        contents.filter(content => content.component ?? content.markdown.length > 0) // non-empty
+    ) as PresentationJson<T>[]
 }
-
-function createNestedPresentationJson<P extends MarkdownComponentMap>(
-    lines: readonly string[],
-    validateName: Validates<NamesOf<P>>,
-    indexOffset = 0
-) {
-
-    const contents = createRawPresentationJson(lines, validateName, indexOffset)
-
-    // flatten nested content
-    for (let i = 0; i < contents.length; i++) {
-        const content = contents[i]
-
-        // determine if there is any nested content
-        const nestedLines = pluck(
-            content.lines,
-            (line) => line.markdown.startsWith(NEST_PREFIX)
-        )
-        if (nestedLines.length === 0)
-            continue
-
-        // convert nested lines into raw lines
-        const nestedLinesRaw = nestedLines
-            .map(line => line.markdown.replace(NEST_PREFIX, ''))
-
-        // create nested content
-        const nestedContent = createNestedPresentationJson(
-            nestedLinesRaw,
-            validateName,
-            // offset index
-            nestedLines[0].index
-        )
-
-        // insert nested content
-        contents.splice(i + 1, 0, ...nestedContent)
-
-        // offset next index
-        i += nestedContent.length
-    }
-
-    return contents
-}
-
-//// Main ////
 
 /**
- * Given a component map and markdown content, create
- * a content json array.
+ * Get the PresentationJson that would be in scope at the given index
  */
-export function createPresentationJson<P extends MarkdownComponentMap>(
-    components: P,
-    markdown: string
-): PresentationJson<P>[] {
-    const validateName = isNameOf(components).validate
-    const lines = markdown.split('\n')
-    return createNestedPresentationJson(lines, validateName) as PresentationJson<P>[]
+export function getCurrentPresentationJson<T extends MarkdownComponentMap>(
+    presentationJson: PresentationJson<T>[],
+    currentIndex: number
+): PresentationJson<T>[] {
+
+    let startIndex = 0
+
+    // Webpack doesn't want to recognized .lastIndexOf, even with the lib compiler option set.
+    for (let index = presentationJson.length - 1; index >= 0; index--) {
+        if (index <= currentIndex && presentationJson[index].clear) {
+            startIndex = index
+            break
+        }
+    }
+
+    return presentationJson.slice(startIndex, currentIndex + 1)
 }

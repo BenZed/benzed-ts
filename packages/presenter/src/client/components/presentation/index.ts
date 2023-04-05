@@ -6,4 +6,3 @@ export * from './presentation'
 export * from './presentation-controls'
 
 export * from './create-presentation-json'
-export * from './create-presentation-state'
