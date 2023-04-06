@@ -4,18 +4,47 @@
 <!-- @Prompt -->
 Templates. A Template is essentially a blue print for a folder.
 
-<!-- @Section clear -->
-
-## Hypothetical Asset Folder
-
-**JV101_sq14_sc02**
-- *gears.json*
-- **Previews**
-    - *jv101_sq14_sc02.mov*
-    - *jv101_sq15_sc02.png*
-- **Harmony**
-    - `...nested sub folder of harmony assets...`
-
+<!-- @Gears clear -->
+```json
+[
+    { 
+        "endpoint": "file-browser"
+    },
+    {
+        "name": "JV101_sq14_sc02",
+        "type": "folder",
+        "contents": [
+            {
+                "type": "folder",
+                "name": "Harmony",
+                "open": false,
+                "contents": []
+            },
+            {
+                "type": "folder",
+                "name": "Previews",
+                "contents": [
+                    {
+                        "name": "image",
+                        "type": "file",
+                        "ext": "png"
+                    },
+                    {
+                        "name": "video",
+                        "type": "file",
+                        "ext": "mov"
+                    }
+                ]
+            },
+            {
+                "type": "file",
+                "name": "gears",
+                "ext": "json"
+            }
+        ]
+    }
+]
+```
 <!-- @Prompt -->
 When we imagine an asset as it exists on the Asset Manager right now, we can also describe the exact same thing with a folder.
 
