@@ -1,6 +1,6 @@
 {
     "name": "@benzed/history-scribe",
-    "description": "Structure for tracking historical changes to data.",
+    "description": "version history tracking and management",
     "main": "./lib",
     "version": "2.0.0",
     "scripts": {

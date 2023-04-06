@@ -1,6 +1,6 @@
 {
     "name": "@benzed/signature-parser",
-    "description": "Combine signatures",
+    "description": "utility for providing methods with diverse signatures",
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {

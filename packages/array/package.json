@@ -1,6 +1,6 @@
 {
     "name": "@benzed/array",
-    "description": "Utility and Convenience methods for working with arrays.",
+    "description": "Promise and async related utilities and classes",
     "version": "3.2.3",
     "main": "./lib",
     "scripts": {

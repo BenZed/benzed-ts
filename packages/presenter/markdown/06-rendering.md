@@ -11,7 +11,7 @@
 - The robot downloads those preview files, compresses them, and then re-uploads them using the `Asset Manager API`
 
 <!-- @Prompt -->
-Rendering on the current Asset Manager is a straight up hack. If that machine on the *floor* over there were to break or get unplugged, all Rendering on Gears would stop happening.
+Rendering on the current Asset Manager is a straight up hack. If that machine on the *floor* over there were to break or get unplugged, all Rendering on Gears would stop happening. There is definitely  a better system.
 
 <!-- @CenterHeader clear skip -->
 # AWS Lambda

@@ -20,10 +20,10 @@ Templates. A Template is essentially a blue print for a folder.
 When we imagine an asset as it exists on the Asset Manager right now, we can also describe the exact same thing with a folder.
 
 <!-- @Prompt -->
-Looking at good old *JV101_sq14_sc02* over here, what does it consist of? 
+Looking at good old *JV101_sq14_sc02* over here, if it were a folder on the file system instead of an entry on the asset manager, what would it consist of? 
 - A harmony folder, *NOT* a .zip.
 - A preview folder, with a couple of previews inside, a video, an image.
-- A *gears.json* file, which every template has. The *gears.json* file would contain any data that doesn't fit into a file by itself: `Priority`, `Episode`, etcetera.
+- A *gears.json* file, which would contain any data that doesn't fit into a file by itself: `Priority`, `Episode`, etcetera.
 
 <!-- @Section clear -->
 
@@ -68,7 +68,7 @@ Looking at good old *JV101_sq14_sc02* over here, what does it consist of?
 
 <!-- @Prompt -->
 
-So, if Brodie were setting up `Gears` for *Bird Girl Season 3*, he'd ask Ben to create a template called an `Asset`. An Asset must consist of a Preview folder, which can contain images or video files. An asset must have a Harmony folder, consisting of harmony files. We're not going to go and validate the entire harmony file structure, so he'd just say declare the folder as loose, meaning it'll take anything. He'd declare a couple of data types, say `Priority`, `Episode`.
+So, if Brodie were setting up `Gears` for *Bird Girl Season 3*, he'd ask Ben to create a template called an `Asset`. An Asset must consist of a Preview folder, which can contain images or video files. An asset must have a Harmony folder, consisting of harmony files. He'd declare a couple of data types, say `Priority`, `Episode`.
 
 <!-- @Section clear -->
 
@@ -154,7 +154,10 @@ With these template schematics, you can imagine how you could define a number of
 For example, if Gears were being used for Scribbles and Ink Season 3, instead of an Asset or a Scene, you might have a Character. A character might have a Spine subfolder, with where the Spine animation files would be held, and it might have a walk-cycle.mov that gears would use as a preview, and it might have a "quality" entry in the gears.json to delineate weather this was a rig for high quality or low quality builds.
 
 <!-- @Prompt -->
-The idea is that defining a template for a structure related to a unit of work encapsulates all of the information needed about that structure for use elsewhere, in a format that is more or less universally accessible. Hypothetically, if consumers of a character instance, once it's downloaded to their hard drive, wouldn't really need to interact with the Gears UI much. They could edit the gears.json file manually, as long as the data they try to push back up is valid.
+The idea is that defining a template for a structure related to a unit of work encapsulates all of the information needed about that structure for use elsewhere, in a format that is more or less universally accessible.
+
+<!-- @Prompt -->
+One would have all of the files related to a template instance on their hard drive, and the Gears app would visualize the asset online very similar to how it's visualized now on the Asset Manager.
 
 <!-- @Section clear -->
 
@@ -177,16 +180,16 @@ The idea is that defining a template for a structure related to a unit of work e
         - ...
 
 <!-- @Prompt -->
-Templates can be nested. Currently, in the Asset Manager, a project is a specific data structure, and asset is another. In Gears, jam-van would be a folder structure, with a `project` template. 
+Templates can be nested. Currently, in the Asset Manager, a project is a specific data structure, and asset is another. In Gears, all structures would be the same thing. They'd be templates, and some templates would be configured to contain instances of other templates.
 
 <!-- @Prompt -->
 A project would consist, say, of a design folder, which contains only `asset` instances. Then an Animation folder, consisting of `episode` instances. An `episode` would a template that consist of a Scenes folder, full of `scene` instances and a premiere project file.
 
 <!-- @Prompt -->
-A project might have some arbitrary meta data associated with it, such as `job-code`, or `end-date`, or `client`, or what have you.
+A project, which is the equivalent of a root folder on drop box might have some arbitrary meta data associated with it, such as `job-code`, or `end-date`, or `client`, or what have you.
 
 <!-- @Prompt -->
 A project might have a Production folder that doesn't contain any assets or scenes or sub templates of any kind, but only contains deal memos or producer related files.
 
 <!-- @Prompt -->
-So, all this sounds pretty intuitive, but how would Gears go about keeping something like `Jam Van` organized any better than Drop Box? How would Producers and Animators interact with template instances?
+So, all this sounds pretty intuitive, but how would Gears go about keeping something like `Jam Van` organized any better than Drop Box? How would Editors and Animators interact with template instances?

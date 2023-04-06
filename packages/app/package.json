@@ -1,6 +1,6 @@
 {
     "name": "@benzed/app",
-    "description": "ECS for building client and server applications",
+    "description": "ECS for building client and server application routing and commands",
     "main": "./lib",
     "private": true,
     "version": "1.0.0",

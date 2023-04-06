@@ -1,6 +1,6 @@
 {
     "name": "@benzed/math",
-    "description": "My own personal Math module, extending Math with overridden or custom functionality.",
+    "description": "extended and overridden math functions and utilities",
     "main": "./lib",
     "version": "3.1.4",
     "scripts": {

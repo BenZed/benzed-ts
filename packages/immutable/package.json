@@ -1,6 +1,6 @@
 {
     "name": "@benzed/immutable",
-    "description": "Immutable object deep cloning / comparison",
+    "description": "traits, methods and utilities for dealing with immutable data",
     "main": "./lib",
     "version": "4.0.0",
     "scripts": {

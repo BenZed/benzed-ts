@@ -1,6 +1,6 @@
 {
     "name": "@benzed/file-service",
-    "description": "File Service and and server incorperating @feathers & @renderer package",
+    "description": "file upload/download/queueing/model/preview management and authentication for the file system and aws",
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {

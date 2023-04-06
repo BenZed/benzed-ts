@@ -1,6 +1,6 @@
 {
     "name": "@benzed/pipe",
-    "description": "Data structure for chaining methods together.",
+    "description": "method chaining data structure",
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {
