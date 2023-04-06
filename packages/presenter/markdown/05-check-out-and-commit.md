@@ -86,4 +86,4 @@ Let's consider how this might affect say, `Jam Van`. The current work flow is fo
 Within Gears, inside the `episode` template instance, there is a sub folder with scenes. Animators would check out and push up changes to `scene` instances, and editors would check out and push up changes to `episode` instances. Since `scene` are nested in episodes, an Editor could pull down `scene` version changes one at a time, make their changes in premiere, and then push up a new `episode` version. This round trip simplifies things significantly from the current workflow.
 
 <!-- @Prompt -->
-Now, this is an intuitive workflow that keeps things organized, but how does it help producers? Are producers going to be syncing working files to their machines? How does this let producers track progress of assets and animators as a whole?
+Now, this is an intuitive workflow that keeps things organized, but how does it help producers? Producers wouldn't be syncing files to their system, so how does this let them track progress of assets and animators as a whole?
