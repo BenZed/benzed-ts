@@ -34,7 +34,7 @@ An editor with sufficient permissions could do this, but more commonly, a *Task*
 - Target -> Template Instance
 - Timeline -> [ Date, Date ]
 - Difficulty -> Number
-- Priority -> [ Low, Medium, High, Urgent ]
+- Priority -> [ "Low", "Medium", "High", "Urgent" ]
 - Status
     - Pending
     - Submitted
@@ -53,8 +53,10 @@ Tasks are a separate data structure that Gears tracks than Template instances. T
 - A priority and a status. Tasks can bounce between submitted and rejected for a while until they're approved. Once approved, the target instance would typically not be able to be checked out by the assignee, unless they have advanced permissions.
 
 <!-- @Prompt -->
-Unlike the current asset manager, task related data persists between assignments. So, if an artists is assigned multiple tasks for an Asset, taking it through it's various stages, that data persists. This makes tracking a whole heck of a lot easier. 
+Unlike the current asset manager, task related data persists between assignments. So, if an artists is assigned multiple tasks for an Asset, taking it through it's various stages, that data persists. This makes tracking a whole heck of a lot easier.
 
+<!-- @Prompt -->
+Tasks are also versioned 
+
+<!-- @Prompt -->
 Producers wouldn't be syncing much files to their system, save for say templates related to production. Producers would use the Gears app to visualize data related to tasks and instances, much like the current Asset Manager.
-
-

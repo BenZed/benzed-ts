@@ -1,8 +1,8 @@
 <!-- @CenterHeader clear skip -->
-# GEARS OUTLINE
+# Current State
 
 <!-- @Prompt -->
-So, Gears. I was attempting to build it in a manner I thought would look fantastic on a resume. 
+And THAT little presention is there good news ends. See, I was attempting to build Gears in a manner I thought would look fantastic on a resume.
 
 <!-- @Prompt -->
 Other than Scribbles and Ink, of which are code bases I am not proud of, and the current version of Gears, which is a code base that I am not proud of, I have very little to show for this 11 years of experience that I allegedly have. One of my packages on GitHub has 150 stars, that’s about it.

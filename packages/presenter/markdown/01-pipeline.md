@@ -77,12 +77,16 @@ On organization, a reoccurring problem is folder structure. As we've seen, comin
 
 <!-- @Prompt -->
 In the Asset Manager, an asset is a single file. It can be a zip, sure, but this is inherently pretty rigid. To update the version of something, an entire zip folder needs to be uploaded. This makes for an unfriendly user experience.
+
 <!-- @Prompt -->
 You can have either an image preview or a video preview, which sounds like it should be sufficient, but what if the asset is a .pdf? What if the project is interactive? What if it's a 3D asset, and you want to provide multiple angles, or different variations? 
+
 <!-- @Prompt -->
 In the most recent version of the Asset Manager Meta data is much more configurable than previous versions, which is nice, but every time a new project comes along we discover deficiencies. Not every asset type has a Stage. Scenes might have frame counters, character rigs might not. The adaptability of the Asset Manager has increased with each iteration, but it is still not good enough.
+
 <!-- @Prompt -->
 Tracking is almost impossible. The Asset Manager has that CSV aggregating capability, but it pretty crude, and there is a lot of overhead placed on producers to sift through data manually.
+
 <!-- @Prompt -->
 Files related to an asset exist on the Asset Manager, and they also exist in part in dropbox. This separation of data is inherently disorganized, and adds to the temporal debt I spoke of when handling archiving. Imagine a newly hired producer down the line being tasked with going back and finding meta data that only exists on the Asset Manager related to a scene or an asset in dropbox. 
 

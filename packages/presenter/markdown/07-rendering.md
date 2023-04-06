@@ -1,2 +1,0 @@
-<!-- @CenterHeader clear skip -->
-# RENDERING 

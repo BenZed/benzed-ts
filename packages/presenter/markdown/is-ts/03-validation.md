@@ -7,7 +7,7 @@
  * The validate method takes an input an optionally a set of validate options and
  * either returns a valid output or throws a validation error.
  */
-export interface Validate<I, O = I    <!-- @Prompt -->
+export interface Validate<I, O = I>
     {
     (input: I, options?: ValidateOptions): O 
 }
@@ -24,28 +24,28 @@ export interface ValidateOptions {
 
 }
 ```
-    <!-- @Prompt -->
-    So here we are, in the @benzed/schema library. The schema library defines the behavior of validators, provides templates for different validator types, and provides schematic structures to combine them together.
+<!-- @Prompt -->
+So here we are, in the @benzed/schema library. The schema library defines the behavior of validators, provides templates for different validator types, and provides schematic structures to combine them together.
 
-    <!-- @Prompt -->
-    Declaring and chaining schematics into an expressive syntax is the responsibility of the `is-ts` library, all the actual validation logic is happening in here.
+<!-- @Prompt -->
+Declaring and chaining schematics into an expressive syntax is the responsibility of the `is-ts` library, all the actual validation logic is happening in here.
 
-    <!-- @Prompt -->
-    What we're looking at here are the first two interfaces related to validation. First, the Validate method. It takes an input, typically `unknown`, and optionally a validation options object. It will return a valid output or it will throw a validation error.
+<!-- @Prompt -->
+What we're looking at here are the first two interfaces related to validation. First, the Validate method. It takes an input, typically `unknown`, and optionally a validation options object. It will return a valid output or it will throw a validation error.
 
-    <!-- @Prompt -->
-    Currently there is only one property in the `ValidateOptions` interface that's relevant to end users: The `transform` option.
+<!-- @Prompt -->
+Currently there is only one property in the `ValidateOptions` interface that's relevant to end users: The `transform` option.
 
 # Transformation
 
 ### [@benzed/schema](https://github.com/BenZed/benzed-ts/tree/is-presentation/packages/schema/src/validate.ts)
 
 
-    <!-- @Prompt -->
-    Transformations are what separate an assertion from a validation. Let's go back to `is-ts` for a quick example.
+<!-- @Prompt -->
+Transformations are what separate an assertion from a validation. Let's go back to `is-ts` for a quick example.
 
-    <!-- @Prompt -->
-    So here we have a very basic schematic: isTrimmedString. We want to be able to perform three distinct operations with this validator:
+<!-- @Prompt -->
+So here we have a very basic schematic: isTrimmedString. We want to be able to perform three distinct operations with this validator:
 
 ```ts
 import is from '@benzed/is'
@@ -66,25 +66,29 @@ expect(isTrimmedString(' ace ')).toBe(false)
 expect(isTrimmedString('ace')).toBe(true)
 
 // type assertion
-expect(() =    <!-- @Prompt -->
+expect(() =>
     isTrimmedString.assert(' ace ')).toThrow('no whitespace allowed')
-expect(() =    <!-- @Prompt -->
+expect(() =>
     isTrimmedString.assert('ace')).not.toThrow()
 
 // validation 
 expect(isTrimmedString.validate(' ace ')).toBe('ace')
 ```
 
-    <!-- @Prompt -->
-    We want to check if a given value *is* a trimmed string, a type guard
-    <!-- @Prompt -->
-    We want to `assert` that a given value is a trimmed string, a type assertion
-    <!-- @Prompt -->
-    We want to get a valid trimmed string from a given input. The transform option is what separates the first two operations from the latter, as transformations will attempt to convert invalid data into valid data, and will throw an error if the transformation fails.
-    <!-- @Prompt -->
-    Internally, all three operations are using validation options. `type-guards` and `type-assertions` validate with transformations disabled, validations do so with transformations `enabled`. 
-    <!-- @Prompt -->
-    You can see our operations passing the tests you'd expect them to in the second example. " ace " with whitespace around it is *not* a trimmed string, so the type guard shouldn't pass and a type assertion should throw, but it's easy to convert it into a trimmed string, so a validation *should* pass.
+<!-- @Prompt -->
+We want to check if a given value *is* a trimmed string, a type guard.
+
+<!-- @Prompt -->
+We want to `assert` that a given value is a trimmed string, a type assertion
+
+<!-- @Prompt -->
+We want to get a valid trimmed string from a given input. The transform option is what separates the first two operations from the latter, as transformations will attempt to convert invalid data into valid data, and will throw an error if the transformation fails.
+
+<!-- @Prompt -->
+Internally, all three operations are using validation options. `type-guards` and `type-assertions` validate with transformations disabled, validations do so with transformations `enabled`. 
+
+<!-- @Prompt -->
+You can see our operations passing the tests you'd expect them to in the second example. " ace " with whitespace around it is *not* a trimmed string, so the type guard shouldn't pass and a type assertion should throw, but it's easy to convert it into a trimmed string, so a validation *should* pass.
 
 # Analyze
 
@@ -120,23 +124,23 @@ function analyze<I, O>(this: Validator<I,O>, input: I, options?: ValidateOptions
 }
 ```
 
-    <!-- @Prompt -->
-    Now you might expect the @benzed/schema library to be full of a large number of Validate definitions, but in fact, there is only one in the entire repository and this is it:
+<!-- @Prompt -->
+Now you might expect the @benzed/schema library to be full of a large number of Validate definitions, but in fact, there is only one in the entire repository and this is it:
 
-    <!-- @Prompt -->
-    The analyze function. Validations are conducted by creating a validation context out of an input and validation options.
+<!-- @Prompt -->
+The analyze function. Validations are conducted by creating a validation context out of an input and validation options.
 
-    <!-- @Prompt -->
-    This context is then fed into a symbolic analyze method that's attached to a Validator, which is a distinct structure from a Validate function, that you're going to see in a second.
+<!-- @Prompt -->
+This context is then fed into a symbolic analyze method that's attached to a Validator, which is a distinct structure from a Validate function, that you're going to see in a second.
 
-    <!-- @Prompt -->
-    I'm not going to too much into ValidationContext, because it involves more traits as the ones I've describes so far, but basically it's a persistent state that allows validations and sub validations to be conducted without errors being thrown until they're relevant. 
+<!-- @Prompt -->
+I'm not going to too much into ValidationContext, because it involves more traits as the ones I've describes so far, but basically it's a persistent state that allows validations and sub validations to be conducted without errors being thrown until they're relevant. 
 
-    <!-- @Prompt -->
-    For large nested objects such as shapes, we don't want validation to terminate after it encounters a single error, we want all the errors. 
+<!-- @Prompt -->
+For large nested objects such as shapes, we don't want validation to terminate after it encounters a single error, we want all the errors. 
 
-    <!-- @Prompt -->
-    ValidationContext is also beneficial for implementing modifiers and other validation related mutations.
+<!-- @Prompt -->
+ValidationContext is also beneficial for implementing modifiers and other validation related mutations.
 
 # Validator 
 
@@ -144,8 +148,8 @@ function analyze<I, O>(this: Validator<I,O>, input: I, options?: ValidateOptions
 
 
 ```ts
-export interface Validator<I, O = I    <!-- @Prompt -->
-    extends Structural, Callable<Validate<I,O>    <!-- @Prompt -->
+export interface Validator<I, O = I>
+    extends Structural, Callable<Validate<I,O>>
     {
 
     [$$analyze](ctx: ValidationContext<I, O>): ValidationContext<I, O>
@@ -153,14 +157,14 @@ export interface Validator<I, O = I    <!-- @Prompt -->
 }
 ```
 
-    <!-- @Prompt -->
-    Behold, the Validator. The definition you see here is highly abridged from the actual one, but in short, the Validator class consumes the Structural and Callable traits and uses the aforementioned analyze method as it's callable signature.
+<!-- @Prompt -->
+Behold, the Validator. The definition you see here is highly abridged from the actual one, but in short, the Validator class consumes the Structural and Callable traits and uses the aforementioned analyze method as it's callable signature.
 
-    <!-- @Prompt -->
-    This is the bedrock base class of the `schema-ts` and `is-ts` libraries. If one where to create their own validator and want it to be compatible with `is-ts`, this is the class they would extend.
+<!-- @Prompt -->
+This is the bedrock base class of the `schema-ts` and `is-ts` libraries. If one where to create their own validator and want it to be compatible with `is-ts`, this is the class they would extend.
 
-    <!-- @Prompt -->
-    Extended classes must implement the symbolic analyze method which receives a ValidationContext. Analyze methods manipulate this context, adding sub contexts, errors or output, and then returning that context. The analyze method is where all the magic happens.
+<!-- @Prompt -->
+Extended classes must implement the symbolic analyze method which receives a ValidationContext. Analyze methods manipulate this context, adding sub contexts, errors or output, and then returning that context. The analyze method is where all the magic happens.
 
 # Validator Types
 
@@ -189,23 +193,23 @@ export interface Validator<I, O = I    <!-- @Prompt -->
 - `Schema`
 - `SchemaBuilder`
 
-    <!-- @Prompt -->
-    @benzed/schema defines many Validator types. These Validator types were built with `is-ts` and it's fluid syntax in mind, but they're abstract and agnostic enough that they could be consumed for other purposes. 
+<!-- @Prompt -->
+@benzed/schema defines many Validator types. These Validator types were built with `is-ts` and it's fluid syntax in mind, but they're abstract and agnostic enough that they could be consumed for other purposes. 
 
-    <!-- @Prompt -->
-    We've your Scalar Value Validators, which you'd use to create schematics for strings, booleans, integers, ect. 
+<!-- @Prompt -->
+We've your Scalar Value Validators, which you'd use to create schematics for strings, booleans, integers, ect. 
 
-    <!-- @Prompt -->
-    We've got your Compound Validators, which you'd use to validate structures that have sub properties, such as shapes and tuples
+<!-- @Prompt -->
+We've got your Compound Validators, which you'd use to validate structures that have sub properties, such as shapes and tuples
 
-    <!-- @Prompt -->
-    We've got your Mutation validators, which target other validators, inherit their properties and change their analyzation behavior, such as Readonly, Optional, Not, etc. 
+<!-- @Prompt -->
+We've got your Mutation validators, which target other validators, inherit their properties and change their analyzation behavior, such as Readonly, Optional, Not, etc. 
 
-    <!-- @Prompt -->
-    Then we have your Schematics, which are structures that allow validators to be immutably configured. By themselves, validators do not have any builder pattern methods. They'll have their state and and their validation behavior and that's it. Schematics are what provide validators with the configuration terms we saw in `is-ts` at the beginning of this presentation. Every term in `is-ts` is either a schematic, or a modifier targeting one.
+<!-- @Prompt -->
+Then we have your Schematics, which are structures that allow validators to be immutably configured. By themselves, validators do not have any builder pattern methods. They'll have their state and and their validation behavior and that's it. Schematics are what provide validators with the configuration terms we saw in `is-ts` at the beginning of this presentation. Every term in `is-ts` is either a schematic, or a modifier targeting one.
 
-    <!-- @Prompt -->
-    I am not going to give an exhaustive explanation of every single validator type, that would be time prohibitive and I feel like I've made this presentation too long anyway, but I'll show you what I feel is the most important one.
+<!-- @Prompt -->
+I am not going to give an exhaustive explanation of every single validator type, that would be time prohibitive and I feel like I've made this presentation too long anyway, but I'll show you what I feel is the most important one.
 
 # Contract Validator 
 
@@ -213,8 +217,8 @@ export interface Validator<I, O = I    <!-- @Prompt -->
 
 
 ```ts
-abstract class ContractValidator<I = any, O = I    <!-- @Prompt -->
-    extends Validator<I,O    <!-- @Prompt -->
+abstract class ContractValidator<I = any, O = I>
+    extends Validator<I,O>
     {
 
     isValid(input: I | O, ctx: ValidationContext<I,O>): boolean {
@@ -235,7 +239,7 @@ abstract class ContractValidator<I = any, O = I    <!-- @Prompt -->
 
     //// Analyze ////
 
-    [Validator.analyze](ctx: ValidationContext<I,O>): ValidationContext<I,O    <!-- @Prompt -->
+    [Validator.analyze](ctx: ValidationContext<I,O>): ValidationContext<I,O>
     {
 
         if (this.transform)
@@ -254,27 +258,27 @@ abstract class ContractValidator<I = any, O = I    <!-- @Prompt -->
             )
     }
 
-    get [Validator.state](): Pick<this, 'message' | 'name'    <!-- @Prompt -->
+    get [Validator.state](): Pick<this, 'message' | 'name'>
     {
         return pick(this, 'message', 'name')
     }
 }
 ```
 
-    <!-- @Prompt -->
-    The Contract Validator has an extremely versatile analyze implementation. The Contract validator and it's extensions are the ones that developers are interacting with most.
+<!-- @Prompt -->
+The Contract Validator has an extremely versatile analyze implementation. The Contract validator and it's extensions are the ones that developers are interacting with most.
 
-    <!-- @Prompt -->
-    Recalling the concept of transformations in validations, one of the aspects of the analyze method and the validation context, is that transformations are always conducted, weather or not the transform option is enabled.
+<!-- @Prompt -->
+Recalling the concept of transformations in validations, one of the aspects of the analyze method and the validation context, is that transformations are always conducted, weather or not the transform option is enabled.
 
-    <!-- @Prompt -->
-    Validators are not obligated to transform values, but if they *do*, the context will execute the transformation and store it in the `context.transformed` property. If transformations are enabled, the context will use the transformed property as output, otherwise it will use the input as output.
+<!-- @Prompt -->
+Validators are not obligated to transform values, but if they *do*, the context will execute the transformation and store it in the `context.transformed` property. If transformations are enabled, the context will use the transformed property as output, otherwise it will use the input as output.
 
-    <!-- @Prompt -->
-    The Contract Validator defines an 'isValid' method, which takes an input, a validation context and returns a boolean. True if the value is valid, false if the value is not, very simple. 
+<!-- @Prompt -->
+The Contract Validator defines an 'isValid' method, which takes an input, a validation context and returns a boolean. True if the value is valid, false if the value is not, very simple. 
 
-    <!-- @Prompt -->
-    The key to the Contract Validator's versatility is the default implementation of ths `isValid` method is to check if the input is deep equal to the transformed value using the @benzed/immutable equality implementation. The implication of this is that a large number of validations can easily be created by giving a contract validator a transform method. I'll show you what this means.
+<!-- @Prompt -->
+The key to the Contract Validator's versatility is the default implementation of ths `isValid` method is to check if the input is deep equal to the transformed value using the @benzed/immutable equality implementation. The implication of this is that a large number of validations can easily be created by giving a contract validator a transform method. I'll show you what this means.
 
 # Custom Contract Validations
 
@@ -284,14 +288,14 @@ abstract class ContractValidator<I = any, O = I    <!-- @Prompt -->
 import { is } from '@benzed/is'
 
 const isDashCase = is.string.transforms(
-    str =    <!-- @Prompt -->
+    str =>
     str.replaceAll(' ', '-'), 
     'must be dash cased'
 )
 
 /// equivalent to 
 
-class DashCase extends ContractValidator<string, string    <!-- @Prompt -->
+class DashCase extends ContractValidator<string, string>
     {
     transform(input: string) {
         return input.replaceAll(' ', '-')
@@ -309,9 +313,9 @@ const isDashCase = is.string.validates(new DashCase())
 expect(isDashCase('look-at-me-hector')).toBe(true)
 expect(isDashCase('look at me hector')).toBe(false)
 
-expect(() =    <!-- @Prompt -->
+expect(() =>
     isDashCase.assert('look-at-me-hector')).not.toThrow()
-expect(() =    <!-- @Prompt -->
+expect(() =>
     isDashCase.assert('look at me hector')).toThrow('must be dash cased')
 
 expect(isDashCase.validate('look at me hector')).toEqual('look-at-me-hector')
@@ -323,32 +327,32 @@ const isPath = is
     .trim()
     .startsWith('/')
     .transforms(
-        s =    <!-- @Prompt -->
+        s =>
     s.replace(/\/+/g, '/'), 
         'must not have multiple consecutive "/"s'
     )
     .transforms(
-        s =    <!-- @Prompt -->
+        s =>
     s.replace(/\/$/, '') || '/',
         //                            ^ in case we just removed the last slash
         'must not end with a "/"'
     )
 ```
 
-    <!-- @Prompt -->
-    To illustrate this, I'm going to take us back to @benzed/is. Most schematics on @benzed/is have the pipe builder interface, which allows custom validators to be added to a schematic. The pipe builder interface has three methods: `asserts`, `transforms` and `validates`
+<!-- @Prompt -->
+To illustrate this, I'm going to take us back to @benzed/is. Most schematics on @benzed/is have the pipe builder interface, which allows custom validators to be added to a schematic. The pipe builder interface has three methods: `asserts`, `transforms` and `validates`
 
-    <!-- @Prompt -->
-    What one is doing when calling the `transforms` method is defining a transform to be applied to a contract validator, as well as optionally an error message.
+<!-- @Prompt -->
+What one is doing when calling the `transforms` method is defining a transform to be applied to a contract validator, as well as optionally an error message.
 
-    <!-- @Prompt -->
-    You can see in the top example what this looks like. By only defining a dash-case transformation, the default implementation of the isValid method allows our validator to fulfill all three aspects of our validation trifecta in one fell swoop:
+<!-- @Prompt -->
+You can see in the top example what this looks like. By only defining a dash-case transformation, the default implementation of the isValid method allows our validator to fulfill all three aspects of our validation trifecta in one fell swoop:
 
-    <!-- @Prompt -->
-    If we're type guarding or asserting a given string, the analyze method will transform it to dash case. If the input matches the transformation, it is valid, otherwise it is not. If we're validating a non dash cased string, it gets transformed into the format we want. 
+<!-- @Prompt -->
+If we're type guarding or asserting a given string, the analyze method will transform it to dash case. If the input matches the transformation, it is valid, otherwise it is not. If we're validating a non dash cased string, it gets transformed into the format we want. 
 
-    <!-- @Prompt -->
-    In the third example, I've got an actual schematic that I'm using in an actual server backend to define a path structure for matching. You can see that by combining canned sub validations and custom validations, we can quickly define a schematic that validates complex data. 
+<!-- @Prompt -->
+In the third example, I've got an actual schematic that I'm using in an actual server backend to define a path structure for matching. You can see that by combining canned sub validations and custom validations, we can quickly define a schematic that validates complex data. 
 
 # Chaining it all together 
 
@@ -356,7 +360,7 @@ const isPath = is
 
 ```ts
 
-declare class To<F extends From, M extends ModifierType[]    <!-- @Prompt -->
+declare class To<F extends From, M extends ModifierType[]>
     
     extends Trait.use(Callable<ToSignature<F,M>>, Mutate<Validator>) {
 
@@ -372,27 +376,27 @@ declare class To<F extends From, M extends ModifierType[]    <!-- @Prompt -->
 
     //// Primitives ////
 
-    get string(): IsTo<F, M, [String]    <!-- @Prompt -->
+    get string(): IsTo<F, M, [String]>
     
-    get boolean(): IsTo<F, M, [Boolean]    <!-- @Prompt -->
+    get boolean(): IsTo<F, M, [Boolean]>
     
-    get number(): IsTo<F, M, [Number]    <!-- @Prompt -->
+    get number(): IsTo<F, M, [Number]>
     
     get integer(): IsTo<F, M, [Integer]>
-    get bigint(): IsTo<F, M, [BigInt]    <!-- @Prompt -->
+    get bigint(): IsTo<F, M, [BigInt]>
     
 
     //// Falsy Primitives ////
 
     get null(): IsTo<F, M, [Null]>
     get undefined(): IsTo<F, M, [Undefined]>
-    get nan(): IsTo<F, M, [NaN]    <!-- @Prompt -->
+    get nan(): IsTo<F, M, [NaN]>
     
 
     get date(): IsTo<F, M, [Date]>
-    get error(): IsTo<F, M, [Error]    <!-- @Prompt -->
+    get error(): IsTo<F, M, [Error]>
     
-    get promise(): IsTo<F, M, [Promise]    <!-- @Prompt -->
+    get promise(): IsTo<F, M, [Promise]>
     
 
     get regexp(): IsTo<F, M, [RegExp]>
@@ -401,10 +405,10 @@ declare class To<F extends From, M extends ModifierType[]    <!-- @Prompt -->
 
     // Ts Types 
 
-    get object(): IsTo<F, M, [Obj]    <!-- @Prompt -->
+    get object(): IsTo<F, M, [Obj]>
     
     get function(): IsTo<F, M, [Function]>
-    get unknown(): IsTo<F, M, [Unknown]    <!-- @Prompt -->
+    get unknown(): IsTo<F, M, [Unknown]>
     
     shape<T extends ResolveShapeValidatorInput>(
         shape: T
@@ -412,7 +416,7 @@ declare class To<F extends From, M extends ModifierType[]    <!-- @Prompt -->
 
     tuple<T extends ResolveValidatorsInput>(
         ...inputs: T
-    ): IsTo<F,M,[Tuple<ResolveValidators<T>>]    <!-- @Prompt -->
+    ): IsTo<F,M,[Tuple<ResolveValidators<T>>]>
     
 
     instanceOf<T extends InstanceInput>(
@@ -433,19 +437,19 @@ declare class To<F extends From, M extends ModifierType[]    <!-- @Prompt -->
         value: V
     ): IsTo<F, M, [RecordOf<Key, ResolveValidator<[V]>>]>
 
-    get set(): IsTo<F,M,[Set]    <!-- @Prompt -->
+    get set(): IsTo<F,M,[Set]>
     
     setOf<V extends ResolveValidatorInput>(
         input: V
-    ): IsTo<F, M, [SetOf<ResolveValidator<[V]>>]    <!-- @Prompt -->
+    ): IsTo<F, M, [SetOf<ResolveValidator<[V]>>]>
     
 
-    get map(): IsTo<F,M,[Map]    <!-- @Prompt -->
+    get map(): IsTo<F,M,[Map]>
     
     mapOf<K extends Key, V extends ResolveValidatorInput>(
         key: K | Is<K>, 
         value: V
-    ): IsTo<F, M, [SetOf<ResolveValidator<[V]>>]    <!-- @Prompt -->
+    ): IsTo<F, M, [SetOf<ResolveValidator<[V]>>]>
     
 
     get not(): IsTo<F, [...M, ModifierType.Not], []>
@@ -456,14 +460,14 @@ declare class To<F extends From, M extends ModifierType[]    <!-- @Prompt -->
 
 ```
 
-    <!-- @Prompt -->
-    Now, I haven't gotten to describing the `is-ts` repository yet, but an in depth description of it would be time prohibitive.
+<!-- @Prompt -->
+Now, I haven't gotten to describing the `is-ts` repository yet, but an in depth description of it would be time prohibitive.
 
-    <!-- @Prompt -->
-    Most of what happens in the `is-ts` library is taking the abstract schematics and validators that exist in the `@benzed/schema` library and extending them to define the actual schematics that `is-ts` uses. Such as `string` and all of it's sub validators `startsWith`, `includes`, `format`, etcetera. 
+<!-- @Prompt -->
+Most of what happens in the `is-ts` library is taking the abstract schematics and validators that exist in the `@benzed/schema` library and extending them to define the actual schematics that `is-ts` uses. Such as `string` and all of it's sub validators `startsWith`, `includes`, `format`, etcetera. 
 
-    <!-- @Prompt -->
-    The most interesting thing that `is-ts` does is the chaining. This chaining involves a lot of type trickery, and is going to have another round of iteration before release, but I'll take you through a high level overview.
+<!-- @Prompt -->
+The most interesting thing that `is-ts` does is the chaining. This chaining involves a lot of type trickery, and is going to have another round of iteration before release, but I'll take you through a high level overview.
 
-    <!-- @Prompt -->
-    Any part of the `is` interface that allows chaining from one type to another is actually an instance of this `To` mutator class. *blah blah blah*
+<!-- @Prompt -->
+Any part of the `is` interface that allows chaining from one type to another is actually an instance of this `To` mutator class. *blah blah blah*
