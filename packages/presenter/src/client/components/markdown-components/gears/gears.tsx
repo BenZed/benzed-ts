@@ -28,7 +28,7 @@ const Gears = ({ markdown }: MarkdownComponentProps): ReactElement => {
     const [ nav, props ] = markdownToJson<GearsMockJson>(markdown)
 
     const EndPoint = ENDPOINTS[nav.endpoint]
-
+ 
     return <AppShell
 
         navbar={
@@ -50,9 +50,7 @@ const Gears = ({ markdown }: MarkdownComponentProps): ReactElement => {
             </Navbar>
         }
     >
-
         <EndPoint {...props} />
-
     </AppShell>
 }
 

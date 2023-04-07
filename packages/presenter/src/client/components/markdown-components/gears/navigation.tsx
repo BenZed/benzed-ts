@@ -8,7 +8,7 @@ interface GearsNavigationProps {
 
 const GearsNavigation = (props: GearsNavigationProps): ReactElement => {
     const { endpoint } = props
-    
+
     return <>{endpoint}</>
 }
 

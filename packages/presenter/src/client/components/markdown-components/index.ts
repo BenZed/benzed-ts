@@ -5,4 +5,4 @@ export * from './section'
 
 export * from './center-header'
 
-export * from './gears/gears'
+export * from './gears'
