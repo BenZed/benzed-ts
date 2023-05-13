@@ -29,7 +29,6 @@
     "dependencies": {
         "react": "^18.2.0",
         "react-markdown": "^8.0.6",
-        "react-syntax-highlighter": "^15.5.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.9.0",
         "@benzed/app": "^1.0.0",
@@ -45,9 +44,5 @@
         "@tabler/icons-react": "2.14.0",
         "@benzed/math": "^3.1.4",
         "@benzed/string": "^3.2.3"
-    },
-    "devDependencies": {
-        "@types/react-syntax-highlighter": "^15.5.6",
-        "@types/styled-components": "^5.1.26"
     }
 }
