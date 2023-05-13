@@ -1,2 +1,2 @@
-# What is @benzed/schema
+# What is @benzed/is
 
