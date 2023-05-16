@@ -1,13 +1,13 @@
 import type { Validator } from '@benzed/schema'
 
-import { Is } from './is'
+import { Is } from './is' 
 import { To } from './to'
 
 //// Main Export ////
 
 export const is = new To<[],[]>()
-
-export default is 
+ 
+export default is
 
 //// Additional Exports ////
 

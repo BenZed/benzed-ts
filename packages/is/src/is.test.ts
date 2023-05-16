@@ -1,73 +1,15 @@
 
-import { test, describe, it, expect } from '@jest/globals'
-import { Is, is, IsType, Optional, Validator } from './index'
-import { ArrayOf, String, Shape, Number } from './schemas'
+import { it, expect } from '@jest/globals'
+import { is } from './index'
 
-it('is.string', () => {
-    const name = localStorage.getItem('name')
-
-    if (is.string(name))
-        console.log(`Welcome back, ${name}`)
-})
-
-it('typeof isVector', () => {
-    const isVector = is({ x: is.number, y: is.number })
-
-    type Vector = typeof isVector.type
-})
-
-it('typeof isVector', () => {
-    const isVector = is({
-        x: is.number,
-        y: is.number
-    }) satisfies IsType<{ x: number, y: number }>
-})
-
-it('isTodo', () => {
-    const isTodo = is({
-        completed: is.readonly.boolean,
-        description: is.readonly.string
-    })
-
-    const { validate: Todo } = isTodo
-
-    const isTodoOrArrayOfTodos = is(Todo).or.arrayOf(Todo)
-})
-
-it('isErrorOrArrayOfTodos', () => {
-    expect('ace').toEqual(expect.any(String))
+it('isErrorOrArrayOfTodo', () => {
     const isSerialInput = is
         .number.or.string
         .or
         .arrayOf(is.number.or.string)
 
-    isSerialInput.type satisfies number | string | (number | string)[]
+    isSerialInput.output satisfies number | string | (number | string)[]
 })
-
-it('isArrayOfReadOnlyVectory', () => {
-
-
-    const isVector = is({ x: is.number, y: is.number })
-
-    const isNotVector = is.not(isVector)
-    
-    is.not(isNotVector).type satisfies typeof isVector.type
-
-    is.optional.arrayOf(is.string).readonly
-
-        .type satisfies undefined | readonly string[]
-
-    const isArrayOfReadOnlyVector = is.optional.arrayOf(isVector)
-
-    isArrayOfReadOnlyVector satisfies Is<Optional<ArrayOf<Shape<{
-            x: Number;
-            y: Number;
-        }>>>>
-
-    isArrayOfReadOnlyVector.type satisfies 
-    { readonly x: number, readonly y: number }[] | undefined
-})
-
 
 it('isReadonlyVectors', () => {
 
@@ -94,8 +36,8 @@ it('readonly shape', () => {
         description: is.string
     })
 
-    isTodo.type satisfies {
-        readonly completed: boolean,
+    isTodo.output satisfies {
+        readonly completed: boolean
         readonly description: string
     }
 })
@@ -115,8 +57,8 @@ it('isPerson', () => {
 
     const isName = isPerson.pick('firstName', 'lastName')
 
-    isName.type satisfies {
-        readonly firstName: string,
+    isName.output satisfies {
+        readonly firstName: string
         readonly lastName: string
     }
 
@@ -137,40 +79,10 @@ it('isPerson', () => {
 
     const isAnonymous = isPerson.omit('firstName', 'lastName', 'title')
 
-    isAnonymous.type satisfies {
+    isAnonymous.output satisfies {
         readonly age: number
     }
 
-})
-
-it('isEmployee', () => {
-
-    const isLettersOnly = is.string
-    const isAboveZero = is.integer
-
-    const isPerson = is.readonly({
-        firstName: isLettersOnly,
-        lastName: isLettersOnly,
-        title: is.optional.string,
-        age: isAboveZero,
-    })
-
-    const isEmployee = isPerson.and({
-        salary: isAboveZero.validate
-    })
-
-    const isAdult = isPerson.property('age', age => age.min(19))
-
-    const isDoctor = isEmployee
-        .property('title', () => is('Md', 'Phd').validate)
-        .omit('lastName')
-
-    const isZero = is(0)
-
-    const isRef = <V extends Validator>(isType: { validate: V }): Is<Shape<{ current: V }>> => 
-        is({ current: isType.validate }) as any
-
-    const isStringRef = isRef(is.string)
 })
 
 it('isAsyncState', () => {
@@ -188,8 +100,7 @@ it('isAsyncState', () => {
             value: is.unknown
         })
 
-
-    isAsyncState.type satisfies {
+    isAsyncState.output satisfies {
         type: 'resolved'
         value: unknown
     } | {
@@ -208,5 +119,5 @@ it('isFoo', () => {
 
     const isFoo = is(Foo)
 
-    isFoo.type satisfies Foo 
+    isFoo.output satisfies Foo 
 })

@@ -126,7 +126,7 @@ describe('builder methods', () => {
     })
 
     it('partial', () => {
-        const $partialVector = $positiveVector.partial()
+        const $partialVector = $positiveVector.partial
         expect($partialVector({})).toEqual({})
     })
 
