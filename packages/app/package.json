@@ -1,6 +1,6 @@
 {
-    "name": "@benzed/www",
-    "description": "Website",
+    "name": "@benzed/app",
+    "description": "SvelteKit Showcase / Dev Documentation / App",
     "main": "./lib",
     "private": true,
     "version": "1.0.0",
@@ -26,17 +26,7 @@
     },
     "homepage": "https://github.com/BenZed/benzed-ts#readme",
     "dependencies": {
-        "styled-components": "^5.3.9",
-        "react": "^18.2.0",
-        "react-markdown": "^8.0.6",
-        "react-syntax-highlighter": "^15.5.0",
-        "react-dom": "^18.2.0",
-        "react-router-dom": "^6.9.0",
-        "@benzed/app": "^1.0.0",
         "@benzed/fs": "^3.1.0"
     },
-    "devDependencies": {
-        "@types/react-syntax-highlighter": "^15.5.6",
-        "@types/styled-components": "^5.1.26"
-    }
+    "devDependencies": {}
 }
