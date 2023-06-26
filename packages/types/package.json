@@ -1,8 +1,8 @@
 {
-    "name": "@benzed/util",
-    "description": "Utility classes and methods",
+    "name": "@benzed/types",
+    "description": "Advanced typescript types and guards",
     "main": "./lib",
-    "version": "3.9.1",
+    "version": "1.0.0",
     "scripts": {
         "test": "jest --run-in-band --all",
         "test:dev": "jest --run-in-band --only-changed --verbose",
