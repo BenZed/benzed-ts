@@ -1,4 +1,4 @@
-import { Entries } from '../types'
+import { Entries } from '@benzed/util/src/types'
 import { EachIterable } from './each-iterable'
 
 import { eachDescriptor, eachEntry, eachKey, eachValue, KeyType } from './generators'

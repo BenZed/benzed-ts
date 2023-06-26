@@ -1,7 +1,7 @@
 
 //// EsLint ////
 
-import { Entries } from '../types'
+import { Entries } from '@benzed/util/src/types'
 
 /* eslint-disable 
     @typescript-eslint/no-explicit-any

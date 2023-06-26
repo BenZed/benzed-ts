@@ -3,8 +3,8 @@ import { EachIterable } from './each-iterable'
 import { eachObjectInPrototypeChain, eachValue } from './generators'
 import { EachEnumerableInheritedKey } from './each-key-interface'
 import { eachIndex, Indexable, IndexesOf, IndexesOfOptionsSignature } from './index-generator'
-import { isArrayLike, isIterable } from '../types/guards'
-import { isFunc } from '../types/func'
+import { isArrayLike, isIterable } from '@benzed/util/src/types/guards'
+import { isFunc } from '@benzed/util/src/types/func'
 
 //// EsLint ////
 /* eslint-disable 

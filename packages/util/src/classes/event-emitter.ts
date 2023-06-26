@@ -4,7 +4,7 @@
     @typescript-eslint/no-explicit-any,
 */
 
-import { NamesOf } from '../each'
+import { NamesOf } from '../../../each/src'
 
 //// Constants ////
 

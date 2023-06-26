@@ -1,4 +1,4 @@
-import { each } from '../each'
+import { each } from '../../../each/src'
 import { isNil, nil } from './nil'
 
 //// Type ////

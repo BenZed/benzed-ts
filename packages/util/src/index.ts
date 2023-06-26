@@ -1,5 +1,5 @@
 export * from './classes'
-export * from './each'
+export * from '../../each/src'
 export * from './methods'
 export * from './types'
 export * from './constants'

@@ -1,7 +1,7 @@
 
 /* eslint-disable @typescript-eslint/unified-signatures */
 
-import { each } from '../each'
+import { each } from '../../../each/src'
 
 //// Types ////
 

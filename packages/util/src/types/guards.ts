@@ -2,8 +2,8 @@ import { isBigInt, isBoolean, isEqual, isNumber, isString } from './primitive'
 import { AnyTypeGuard, Func, isFunc, TypeGuard, TypeOf, TypesOf } from './func'
 import { Json, JsonArray, JsonRecord, JsonPrimitive, Infer, GenericObject } from './types'
 
-import { eachKey } from '../each/generators'
-import { eachIndex} from '../each/index-generator'
+import { eachKey } from '../../../each/src/generators'
+import { eachIndex} from '../../../each/src/index-generator'
 
 import { Sortable } from '../sort'
 import { Intersect } from './merge'

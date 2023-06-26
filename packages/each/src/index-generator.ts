@@ -1,8 +1,8 @@
-import { ToNumber } from '../types'
+import { ToNumber } from '@benzed/util/src/types'
 
-import { defined } from '../types/defined'
-import { isRecord } from '../types/guards'
-import { isBoolean, isInteger, isNumber } from '../types/primitive'
+import { defined } from '@benzed/util/src/types/defined'
+import { isRecord } from '@benzed/util/src/types/guards'
+import { isBoolean, isInteger, isNumber } from '@benzed/util/src/types/primitive'
 
 //// IndexesOf ////
 

@@ -1,5 +1,5 @@
-import { Func } from '../types'
-import { nil } from '../types/nil'
+import { Func } from '@benzed/util/src/types'
+import { nil } from '@benzed/util/src/types/nil'
 
 //// Types ////
 

@@ -1,5 +1,5 @@
 import { NestedMap } from '../classes'
-import { each } from '../each'
+import { each } from '../../../each/src'
 import { isRecordOf, isString } from '../types'
 import { Func, isFunc } from '../types/func'
 import { define } from './define'

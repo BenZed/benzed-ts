@@ -1,4 +1,4 @@
-import { each } from '../each'
+import { each } from '../../../each/src'
 
 /**
  * Define a property on an object with a key and a descriptor. 
