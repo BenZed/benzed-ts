@@ -1,6 +1,6 @@
 {
-    "name": "@benzed/each",
-    "description": "Iterator utility package",
+    "name": "@benzed/sort",
+    "description": "Sort utility package",
     "main": "./lib",
     "version": "1.0.0",
     "scripts": {
