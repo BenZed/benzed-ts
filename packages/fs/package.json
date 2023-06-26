@@ -1,6 +1,6 @@
 {
     "name": "@benzed/fs",
-    "description": "My own fs utilties.",
+    "description": "async utility for declaritavely working with the file system",
     "main": "./lib",
     "version": "3.1.0",
     "scripts": {
