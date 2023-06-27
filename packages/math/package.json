@@ -7,7 +7,7 @@
         "test": "jest --run-in-band --all",
         "test:dev": "jest --run-in-band --only-changed --verbose",
         "lint": "eslint src/**/*.ts --fix",
-        "build": "npm run lint && npm run tsc",
+        "build": "npm run lint && npm run test && npm run tsc",
         "tsc": "shx rm -rf lib && shx mkdir lib && tsc"
     },
     "repository": {
